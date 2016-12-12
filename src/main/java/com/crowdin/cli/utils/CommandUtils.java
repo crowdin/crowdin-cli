@@ -1,0 +1,916 @@
+package com.crowdin.cli.utils;
+
+import com.crowdin.Credentials;
+import com.crowdin.Crwdn;
+import com.crowdin.cli.BaseCli;
+import com.crowdin.cli.properties.FileBean;
+import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.helper.FileHelper;
+import com.crowdin.client.CrowdinApiClient;
+import com.crowdin.parameters.CrowdinApiParametersBuilder;
+import com.sun.jersey.api.client.ClientResponse;
+import net.lingala.zip4j.core.ZipFile;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.io.FilenameUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
+import java.util.zip.ZipEntry;
+
+public class CommandUtils extends BaseCli {
+
+    public static final String USER_HOME = "user.home";
+
+    /*
+    *
+    * Return file ".crowdin.yaml" or ".crowdin.yml".
+    *
+    */
+    public File getIdentityFile (CommandLine commandLine) {
+        File identity = null;
+        if (commandLine == null) {
+            return identity;
+        }
+
+        if (commandLine.hasOption(OPTION_NAME_IDENTITY) && commandLine.getOptionValue(OPTION_NAME_IDENTITY) != null) {
+            identity = new File(commandLine.getOptionValue(OPTION_NAME_IDENTITY));
+        } else {
+            identity = getIdentity(FILE_NAME_IDENTITY_CROWDIN_YAML);
+            if (identity == null || !identity.isFile()) {
+                identity = getIdentity(FILE_NAME_IDENTITY_CROWDIN_YML);
+            }
+        }
+        return identity;
+    }
+
+    private File getIdentity (String fileName) {
+        File identity = null;
+        if (fileName == null) {
+            return identity;
+        }
+        String userHome = System.getProperty(USER_HOME);
+        if (userHome != null && !userHome.isEmpty()) {
+            userHome = userHome + PATH_SEPARATOR + fileName;
+            userHome = userHome.replaceAll(PATH_SEPARATOR + STRING_PLUS, PATH_SEPARATOR);
+            identity = new File(userHome);
+        } else {
+            identity = new File(fileName);
+        }
+        return identity;
+    }
+
+    public boolean isSourceContainsPattern(String source) {
+        if (source == null) {
+            return false;
+        }
+        if (source.contains("**") || source.contains("*") || source.contains("?")
+                || (source.contains("[") && source.contains("]")) || source.contains("\\")) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    public String replaceDoubleAsteriskInTranslation(String translations, String sources, String source,  PropertiesBean propertiesBean) {
+        if (translations == null || translations.isEmpty()) {
+            System.exit(0);
+        }
+        if (sources == null || sources.isEmpty()) {
+            System.exit(0);
+        }
+        int position;
+        if (translations.contains("**")) {
+            sources = Utils.replaceBasePath(sources, propertiesBean);
+            if (sources.startsWith(PATH_SEPARATOR) || sources.startsWith(File.separator)) {
+                position = 2;
+            } else {
+                position = 1;
+            }
+            String[] sourceNodes = sources.split(PATH_SEPARATOR);
+            int srcLength = sourceNodes.length;
+            int srcPatternLength = source.split(PATH_SEPARATOR).length;
+            String replacement = "";
+            for (int i = srcPatternLength; i<=srcLength; i++) {
+                replacement+= PATH_SEPARATOR + sourceNodes[i-position];
+            }
+            replacement= replacement.replaceFirst(PATH_SEPARATOR,"");
+            if (replacement.indexOf(PATH_SEPARATOR) >= 0) {
+                if (replacement.indexOf(PATH_SEPARATOR) <= replacement.length()) {
+                    replacement = replacement.substring(replacement.indexOf(PATH_SEPARATOR));
+                }
+            }  else if (replacement.indexOf("\\") >= 0) {
+                if (replacement.indexOf("\\") <= replacement.length()) {
+                    replacement = replacement.substring(replacement.indexOf("\\"));
+                }
+            } else {
+                replacement = "";
+            }
+            translations = translations.replace("**", replacement);
+            translations = translations.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
+        }
+        return translations;
+    }
+
+    public List<String> getSourcesWithoutIgnores(FileBean file, PropertiesBean propertiesBean) {
+        List<String> result = new ArrayList<>();
+        if (propertiesBean == null || file == null) {
+            return result;
+        }
+        FileHelper fileHelper = new FileHelper();
+        Boolean preserveHierarchy = propertiesBean.getPreserveHierarchy();
+        List<File> sources = fileHelper.getFileSource(file, propertiesBean);
+        List<File> ignores = fileHelper.getIgnoreFiles(file, propertiesBean);
+        if (ignores != null) {
+            if (sources == null) {
+                return result;
+            }
+            for (File source : sources) {
+                if (source == null || !source.isFile()) {
+                    continue;
+                }
+                if (ignores.size() > 0) {
+                    boolean isIgnore = false;
+                    for (File ignore : ignores) {
+                        if (ignore != null && ignore.isFile()) {
+                            if (source.getAbsolutePath() != null && ignore.getAbsolutePath() != null && source.getAbsolutePath().equals(ignore.getAbsolutePath())) {
+                                isIgnore = true;
+                                break;
+                            }
+                        }
+                    }
+                    if (!isIgnore) {
+                        result.add(source.getAbsolutePath());
+                    }
+                } else {
+                    result.add(source.getAbsolutePath());
+                }
+            }
+        } else {
+            if (sources != null && sources.size() > 0) {
+                for (File source : sources) {
+                    if (source.isFile()) {
+                        result.add(source.getAbsolutePath());
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public String preserveHierarchy(FileBean file, String sourcePath, String commonPath, PropertiesBean propertiesBean,
+                                    String branch, Credentials credentials, boolean isVerbose) {
+        CrowdinApiParametersBuilder parametersBuilder = new CrowdinApiParametersBuilder();
+        Parser parser = new Parser();
+        CrowdinApiClient crwdn = new Crwdn();
+        Set<String> directories = new HashSet<>();
+        parametersBuilder.headers(HEADER_ACCEPT, HEADER_ACCAEPT_VALUE)
+                .headers(HEADER_CLI_VERSION, HEADER_CLI_VERSION_VALUE)
+                .headers(HEADER_JAVA_VERSION, HEADER_JAVA_VERSION_VALUE)
+                .headers(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
+        String[] nodes;
+        StringBuilder dirs = new StringBuilder();
+        StringBuilder resultDirs = new StringBuilder();
+        String filePath = Utils.replaceBasePath(sourcePath, propertiesBean);
+        if (filePath.startsWith(PATH_SEPARATOR)) {
+            filePath = filePath.replaceFirst(PATH_SEPARATOR, "");
+        }
+        if (!propertiesBean.getPreserveHierarchy()) {
+            if (filePath.startsWith(commonPath)) {
+                filePath = filePath.replaceFirst(commonPath, "");
+            } else if (filePath.startsWith(PATH_SEPARATOR + commonPath)) {
+                filePath = filePath.replaceFirst(PATH_SEPARATOR + commonPath, "");
+            }
+        }
+        if (file.getDest() != null && !file.getDest().isEmpty() && !this.isSourceContainsPattern(file.getSource())) {
+            nodes = file.getDest().split(PATH_SEPARATOR);
+        } else {
+            nodes = filePath.split(PATH_SEPARATOR);
+        }
+        for (String node : nodes) {
+            if (node != null && !node.isEmpty()) {
+                if (!node.equals(nodes[nodes.length - 1])) {
+                    if (dirs.length() == 0) {
+                        dirs.append(node);
+                    } else {
+                        dirs.append(PATH_SEPARATOR)
+                                .append(node);
+                    }
+                    if (resultDirs.length() == 0) {
+                        resultDirs.append(node);
+                    } else {
+                        resultDirs.append(PATH_SEPARATOR)
+                                .append(node);
+                    }
+                    if (directories.contains(resultDirs.toString())) {
+                        continue;
+                    }
+                    if (branch != null && !branch.isEmpty()) {
+                        parametersBuilder.branch(branch);
+                    }
+                    parametersBuilder.json();
+                    String directoryName = resultDirs.toString();
+                    if (directoryName.indexOf(PATH_SEPARATOR) != -1) {
+                        directoryName = directoryName.replaceAll(PATH_SEPARATOR, "/");
+                        directoryName = directoryName.replaceAll("/+","/");
+                    }
+                    parametersBuilder.name(directoryName);
+                    JSONObject dir = null;
+                    try {
+                        directories.add(resultDirs.toString());
+                        ClientResponse clientResponse;
+                        clientResponse = crwdn.addDirectory(credentials, parametersBuilder);
+                        dir = parser.parseJson(clientResponse.getEntity(String.class));
+                        if (isVerbose) {
+                            System.out.println(clientResponse.getHeaders());
+                            System.out.println(dir);
+                        }
+                    } catch (Exception ex) {
+                        System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + parametersBuilder.getName() + "' failed");
+                    }
+                    if (dir != null && dir.getBoolean("success")) {
+                        directories.add(resultDirs.toString());
+                        System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - OK");
+                    } else if (dir != null && !dir.getBoolean("success") && dir.getJSONObject("error") != null && dir.getJSONObject("error").getInt("code") == 13
+                            && "Directory with such name already exists".equals(dir.getJSONObject("error").getString("message"))) {
+                        //SKIPPED
+                        if (!directories.contains(resultDirs.toString())) {
+                            System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - SKIPPED");
+                        }
+                    } else {
+                        System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - ERROR");
+                        if (dir != null) {
+                            System.out.println(dir.getJSONObject("error").getString("message"));
+                        }
+                        System.exit(0);
+                    }
+                }
+            }
+        }
+        return resultDirs.toString();
+    }
+
+    public PropertiesBean makeConfigFromParameters(CommandLine commandLine, PropertiesBean propertiesBean) {
+        if (propertiesBean == null) {
+            System.out.println(RESOURCE_BUNDLE.getString("error_property_bean_null"));
+            System.exit(0);
+        }
+        if (commandLine == null) {
+            System.out.println(RESOURCE_BUNDLE.getString("commandline_null"));
+            System.exit(0);
+        }
+        FileBean fileBean = new FileBean();
+        if (commandLine.getOptionValue("identifier") != null && !commandLine.getOptionValue("identifier").isEmpty()) {
+            propertiesBean.setProjectIdentifier(commandLine.getOptionValue("identifier"));
+        } else if (commandLine.getOptionValue("i") != null && !commandLine.getOptionValue("i").isEmpty()) {
+            propertiesBean.setProjectIdentifier(commandLine.getOptionValue("i"));
+        }
+        if (commandLine.getOptionValue("key") != null && !commandLine.getOptionValue("key").isEmpty()) {
+            propertiesBean.setApiKey(commandLine.getOptionValue("key"));
+        } else if (commandLine.getOptionValue("k") != null && !commandLine.getOptionValue("k").isEmpty()) {
+            propertiesBean.setApiKey(commandLine.getOptionValue("k"));
+        }
+        if (commandLine.getOptionValue("base-path") != null && !commandLine.getOptionValue("base-path").isEmpty()) {
+            propertiesBean.setBasePath(commandLine.getOptionValue("base-path"));
+        }
+        if (commandLine.getOptionValue("source") != null && !commandLine.getOptionValue("source").isEmpty()) {
+            fileBean.setSource(commandLine.getOptionValue("source"));
+        } else if (commandLine.getOptionValue("s") != null && !commandLine.getOptionValue("s").isEmpty()) {
+            fileBean.setSource(commandLine.getOptionValue("s"));
+        }
+        if (commandLine.getOptionValue("translation") != null && !commandLine.getOptionValue("translation").isEmpty()) {
+            fileBean.setTranslation(commandLine.getOptionValue("translation"));
+        } else if (commandLine.getOptionValue("t") != null && !commandLine.getOptionValue("t").isEmpty()) {
+            fileBean.setTranslation(commandLine.getOptionValue("t"));
+        }
+        if ((fileBean.getSource() != null && !fileBean.getSource().isEmpty())
+                || (fileBean.getTranslation() != null && !fileBean.getTranslation().isEmpty())) {
+            propertiesBean.getFiles().clear();
+            propertiesBean.setFiles(fileBean);
+        } else {
+            propertiesBean = null;
+        }
+        return propertiesBean;
+    }
+
+    public void sortFilesName(List<String> files) {
+        Collections.sort(files,
+                new Comparator<String>() {
+                    @Override
+                    public int compare(String f1, String f2) {
+                        return f1.toString().compareTo(f2.toString());
+                    }
+                });
+    }
+
+    public String getBranch(CommandLine commandLine) {
+        String branch = null;
+        if (commandLine.getOptionValue(COMMAND_BRANCH_SHORT) != null && !commandLine.getOptionValue(COMMAND_BRANCH_SHORT).isEmpty()) {
+            branch = commandLine.getOptionValue(COMMAND_BRANCH_SHORT).trim();
+        } else if (commandLine.getOptionValue(COMMAND_BRANCH_LONG) != null && !commandLine.getOptionValue(COMMAND_BRANCH_LONG).isEmpty()) {
+            branch = commandLine.getOptionValue(COMMAND_BRANCH_LONG).trim();
+        }
+        return branch;
+    }
+
+    public String getLanguage(CommandLine commandLine) {
+        String language = null;
+        if (commandLine.getOptionValue(COMMAND_LANGUAGE_SHORT) != null && !commandLine.getOptionValue(COMMAND_LANGUAGE_SHORT).isEmpty()) {
+            language = commandLine.getOptionValue(COMMAND_LANGUAGE_SHORT).trim();
+        } else if (commandLine.getOptionValue(COMMAND_LANGUAGE_LONG) != null && !commandLine.getOptionValue(COMMAND_LANGUAGE_LONG).isEmpty()) {
+            language = commandLine.getOptionValue(COMMAND_LANGUAGE_LONG).trim();
+        }
+        return language;
+    }
+
+    public JSONObject getLanguageInfo(String language, JSONArray supportedLanguages) {
+        if (language == null || language.isEmpty()) {
+            System.exit(0);
+        }
+        if (supportedLanguages == null) {
+            System.exit(0);
+        }
+        Parser parser = new Parser();
+        JSONObject langInfo = new JSONObject();
+        for (Object supportedLanguage : supportedLanguages) {
+            JSONObject lang = parser.parseJson(supportedLanguage.toString());
+            String langName = lang.getString("name");
+            if (langName != null && language.equalsIgnoreCase(langName)) {
+                langInfo.put("name", lang.getString("name"));
+                langInfo.put("editor_code", lang.getString("editor_code"));
+                langInfo.put("locale", lang.getString("locale"));
+                langInfo.put("two_letters_code", lang.getString("iso_639_1"));
+                langInfo.put("three_letters_code", lang.getString("iso_639_3"));
+                langInfo.put("crowdin_code", lang.getString("crowdin_code"));
+                langInfo.put("android_code", lang.getString("locale"));
+                langInfo.put("osx_code", lang.getString("locale"));
+                break;
+            }
+        }
+        return langInfo;
+    }
+
+    public void renameMappingFiles(Map<String, String> mapping, String baseTempDir, String branch, PropertiesBean propertiesBean) {
+        for (Map.Entry<String, String> entry : mapping.entrySet()) {
+            branch = (branch == null) ? "" : branch;
+            String commonPath;
+            String preservedKey = entry.getKey();
+            if (!propertiesBean.getPreserveHierarchy()) {
+                String[] common = new String[mapping.keySet().size()];
+                common = mapping.keySet().toArray(common);
+                commonPath = Utils.commonPath(common);
+                if (preservedKey.startsWith(commonPath)) {
+                    preservedKey = preservedKey.replaceFirst(commonPath, "");
+                }
+            }
+            String key = baseTempDir + PATH_SEPARATOR + branch + PATH_SEPARATOR + preservedKey;
+            key = key.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
+            String value = propertiesBean.getBasePath() + PATH_SEPARATOR + entry.getValue();
+            value = value.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
+            if (Utils.isWindows()) {
+                key = key.replaceAll("/+", PATH_SEPARATOR);
+                key = key.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
+                value = value.replaceAll("/+", PATH_SEPARATOR);
+                value = value.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
+            }
+            if (!key.equals(value)) {
+                File oldFile = new File(key);
+                File newFile = new File(value);
+                if (oldFile.isFile()) {
+                    newFile.getParentFile().mkdirs();
+                    oldFile.renameTo(newFile);
+                }
+            }
+        }
+    }
+
+    public void extractFiles(List<String> downloadedFiles, List<String> files, String baseTempDir, boolean ignore_match,
+                             File downloadedZipArchive, Map<String, String> mapping, boolean isDebug, String branch,
+                             PropertiesBean propertiesBean) {
+        ZipFile zFile = null;
+        try {
+            zFile = new ZipFile(downloadedZipArchive.getAbsolutePath());
+        } catch (Exception e) {
+            System.out.println("An archive '" + downloadedZipArchive.getAbsolutePath() + "' does not exist");
+            if (isDebug) {
+                e.printStackTrace();
+                System.exit(0);
+            }
+        }
+        File tmpDir = new File(baseTempDir);
+        if (!tmpDir.exists()) {
+            try {
+                Files.createDirectory(tmpDir.toPath());
+            } catch (IOException ex) {
+                System.out.println(RESOURCE_BUNDLE.getString("error_extracting"));
+            }
+        }
+        try {
+            zFile.extractAll(tmpDir.getAbsolutePath());
+        } catch (Exception e) {
+            System.out.println("Extracting an archive '" + downloadedZipArchive + "' failed");
+            if (isDebug) {
+                e.printStackTrace();
+                System.exit(0);
+            }
+        }
+        List<String> ommitedFiles = new ArrayList<>();
+        List<String> extractingFiles = new ArrayList<>();
+        for (String downloadedFile : downloadedFiles) {
+            if (!files.contains(downloadedFile) && !files.contains(downloadedFile.replaceFirst("/", ""))) {
+                if (branch != null && !branch.isEmpty()) {
+                    ommitedFiles.add(downloadedFile.replaceAll("/" + branch, ""));
+                } else {
+                    ommitedFiles.add(downloadedFile);
+                }
+            } else {
+                if (branch != null && !branch.isEmpty()) {
+                    extractingFiles.add(downloadedFile.replaceAll("/" + branch, ""));
+                } else {
+                    extractingFiles.add(downloadedFile);
+                }
+            }
+        }
+        List<String> sortedExtractingFiles = new ArrayList<>();
+        String commonPath;
+        String[] common = new String[mapping.keySet().size()];
+        common = mapping.keySet().toArray(common);
+        commonPath = Utils.commonPath(common);
+        for (Map.Entry<String, String> extractingMappingFile : mapping.entrySet()) {
+            String k = extractingMappingFile.getKey();
+            if (k.indexOf(PATH_SEPARATOR) != -1) {
+                k = k.replaceAll(PATH_SEPARATOR, "/");
+                k = k.replaceAll("/+", "/");
+            }
+            if (k.indexOf("/") != -1) {
+                k = k.replaceAll("/+", "/");
+            }
+            if (!propertiesBean.getPreserveHierarchy()) {
+                if (k.startsWith(commonPath)) {
+                    k = k.replaceFirst(commonPath, "");
+                }
+            }
+            String v = extractingMappingFile.getValue();
+            if (v.indexOf(PATH_SEPARATOR) != -1) {
+                v = v.replaceAll(PATH_SEPARATOR, "/");
+                v = v.replaceAll("/+", "/");
+            }
+            if (extractingFiles.contains(k) || extractingFiles.contains("/" + k)) {
+                sortedExtractingFiles.add(v);
+            }
+        }
+        this.sortFilesName(sortedExtractingFiles);
+        for (String sortedExtractingFile : sortedExtractingFiles) {
+            System.out.println("Extracting: '" + sortedExtractingFile + "'");
+        }
+        if (ommitedFiles.size() > 0 && !ignore_match) {
+            this.sortFilesName(ommitedFiles);
+            System.out.println(RESOURCE_BUNDLE.getString("downloaded_file_omitted"));
+            for (String ommitedFile : ommitedFiles) {
+                System.out.println(" - '" + ommitedFile + "'");
+            }
+        }
+    }
+
+    public List<String> getListOfFileFromArchive(File downloadedZipArchive, boolean isDebug) {
+        List<String> downloadedFiles = new ArrayList<>();
+        java.util.zip.ZipFile zipFile = null;
+        try {
+            zipFile = new java.util.zip.ZipFile(downloadedZipArchive.getAbsolutePath());
+        } catch (Exception e) {
+            System.out.println("Extracting archive '" + downloadedZipArchive + "' failed");
+            if (isDebug) {
+                e.printStackTrace();
+                System.exit(0);
+            }
+        }
+        Enumeration zipEntries = zipFile.entries();
+        while (zipEntries.hasMoreElements()) {
+            ZipEntry ze = (ZipEntry) zipEntries.nextElement();
+            if (!ze.isDirectory()) {
+                String fname = ze.getName();
+                if (!fname.startsWith(PATH_SEPARATOR)) {
+                    fname = PATH_SEPARATOR + fname;
+                    if (Utils.isWindows()) {
+                        fname = fname.replaceAll(PATH_SEPARATOR + "+", "/");
+                    }
+                }
+                downloadedFiles.add(fname);
+            }
+        }
+        return downloadedFiles;
+    }
+
+    private Map<String, String> map(String translations, String mappingTranslations, JSONObject languageInfo, FileBean file, String placeholder, String pattern) {
+        if (file == null || languageInfo == null) {
+            return null;
+        }
+        if (translations == null || mappingTranslations == null) {
+            return null;
+        }
+        Map<String, String> result = new HashMap<>();
+        boolean isMapped = false;
+        String localWithUnderscore = null;
+        if (PLACEHOLDER_LOCALE_WITH_UNDERSCORE.equals(pattern)) {
+            localWithUnderscore = languageInfo.getString(placeholder).replace("-", "_");
+        }
+        if (PLACEHOLDER_ANDROID_CODE.equals(pattern)) {
+            translations = translations.replace(pattern, Utils.getAndoidLocaleCode(languageInfo.getString("locale")));
+        } else if (PLACEHOLDER_OSX_CODE.equals(pattern)) {
+            translations = translations.replace(pattern, Utils.getOsXLocaleCode(languageInfo.getString("crowdin_code")));
+        } else {
+            translations = translations.replace(pattern, languageInfo.getString(placeholder));
+        }
+        Map<String, String> map = new HashMap<>();
+        if (file.getLanguagesMapping() != null) {
+            if ("name".equals(placeholder)) {
+                map = file.getLanguagesMapping().get("language");
+            } else if ("locale".equals(placeholder) && localWithUnderscore != null) {
+                map = file.getLanguagesMapping().get("locale_with_underscore");
+            } else {
+                map = file.getLanguagesMapping().get(placeholder);
+            }
+        }
+        if (map != null) {
+            for (Map.Entry<String, String> hashMap : map.entrySet()) {
+                if ((languageInfo.getString(placeholder).equals(hashMap.getKey()) && localWithUnderscore == null)
+                        || (localWithUnderscore != null && localWithUnderscore.equals(hashMap.getKey()))) {
+                    mappingTranslations = mappingTranslations.replace(pattern, hashMap.getValue());
+                    isMapped = true;
+                    break;
+                }
+            }
+        }
+        if (!isMapped) {
+            String replacement;
+            if (PLACEHOLDER_ANDROID_CODE.equals(pattern)) {
+                replacement = Utils.getAndoidLocaleCode(languageInfo.getString("locale"));
+            } else if (PLACEHOLDER_OSX_CODE.equals(pattern)) {
+                replacement = Utils.getOsXLocaleCode(languageInfo.getString("crowdin_code"));
+            } else {
+                replacement = (localWithUnderscore == null) ? languageInfo.getString(placeholder) : localWithUnderscore;
+            }
+            mappingTranslations = mappingTranslations.replace(pattern, replacement);
+        }
+        result.put(translations, mappingTranslations);
+        return result;
+    }
+
+    public Map<String, String> doLanguagesMapping(JSONObject projectInfo, JSONArray supportedLanguages, PropertiesBean propertiesBean) {
+        Map<String, String> mapping = new HashMap<>();
+        JSONArray projectLanguages = projectInfo.getJSONArray("languages");
+        Parser parser = new Parser();
+        for (Object projectLanguage : projectLanguages) {
+            JSONObject languages = parser.parseJson(projectLanguage.toString());
+            String languageName = languages.getString("name");
+            if (languageName != null && !languageName.isEmpty()) {
+                JSONObject languageInfo = this.getLanguageInfo(languageName, supportedLanguages);
+                List<FileBean> files = propertiesBean.getFiles();
+                for (FileBean file : files) {
+                    String translationsBase = file.getTranslation();
+                    String translationsMapping = file.getTranslation();
+                    if (translationsBase != null && !translationsBase.isEmpty()) {
+                        if (translationsBase.contains(PLACEHOLDER_LANGUAGE)) {
+                            Map<String, String> locale = this.map(translationsBase, translationsMapping, languageInfo, file, "name", PLACEHOLDER_LANGUAGE);
+                            if (locale != null) {
+                                for (Map.Entry<String, String> language: locale.entrySet()) {
+                                    translationsBase = language.getKey();
+                                    translationsMapping = language.getValue();
+                                }
+                            }
+                        }
+                        if (translationsBase.contains(PLACEHOLDER_LOCALE)) {
+                            Map<String, String> locale = this.map(translationsBase, translationsMapping, languageInfo, file, "locale", PLACEHOLDER_LOCALE);
+                            if (locale != null) {
+                                for (Map.Entry<String, String> language: locale.entrySet()) {
+                                    translationsBase = language.getKey();
+                                    translationsMapping = language.getValue();
+                                }
+                            }
+                        }
+                        if (translationsBase.contains(PLACEHOLDER_LOCALE_WITH_UNDERSCORE)) {
+                            Map<String, String> undersoceLocale = this.map(translationsBase, translationsMapping, languageInfo, file, "locale", PLACEHOLDER_LOCALE_WITH_UNDERSCORE);
+                            if (undersoceLocale != null) {
+                                for (Map.Entry<String, String> language: undersoceLocale.entrySet()) {
+                                    translationsBase = language.getKey();
+                                    translationsMapping = language.getValue();
+                                }
+                            }
+                        }
+                        if (translationsBase.contains(PLACEHOLDER_TWO_LETTERS_CODE)) {
+                            Map<String, String> twoLettersCode = this.map(translationsBase, translationsMapping, languageInfo, file, "two_letters_code", PLACEHOLDER_TWO_LETTERS_CODE);
+                            if (twoLettersCode != null) {
+                                for (Map.Entry<String, String> language: twoLettersCode.entrySet()) {
+                                    translationsBase = language.getKey();
+                                    translationsMapping = language.getValue();
+                                }
+
+                            }
+                        }
+                        if (translationsBase.contains(PLACEHOLDER_THREE_LETTERS_CODE)) {
+                            Map<String, String> threeLettersCode = this.map(translationsBase, translationsMapping, languageInfo, file, "three_letters_code", PLACEHOLDER_THREE_LETTERS_CODE);
+                            if (threeLettersCode != null) {
+                                for (Map.Entry<String, String> language: threeLettersCode.entrySet()) {
+                                    translationsBase = language.getKey();
+                                    translationsMapping = language.getValue();
+                                }
+                            }
+                        }
+                        if (translationsBase.contains(PLACEHOLDER_ANDROID_CODE)) {
+                            Map<String, String> threeLettersCode = this.map(translationsBase, translationsMapping, languageInfo, file, "android_code", PLACEHOLDER_ANDROID_CODE);
+                            if (threeLettersCode != null) {
+                                for (Map.Entry<String, String> language: threeLettersCode.entrySet()) {
+                                    translationsBase = language.getKey();
+                                    translationsMapping = language.getValue();
+                                }
+                            }
+                        }
+                        if (translationsBase.contains(PLACEHOLDER_OSX_CODE)) {
+                            Map<String, String> threeLettersCode = this.map(translationsBase, translationsMapping, languageInfo, file, "osx_code", PLACEHOLDER_OSX_CODE);
+                            if (threeLettersCode != null) {
+                                for (Map.Entry<String, String> language: threeLettersCode.entrySet()) {
+                                    translationsBase = language.getKey();
+                                    translationsMapping = language.getValue();
+                                }
+                            }
+                        }
+                        if (translationsBase.contains(PLACEHOLDER_ORIGINAL_FILE_NAME)
+                                || translationsBase.contains(PLACEHOLDER_FILE_NAME)
+                                || translationsBase.contains(PLACEHOLDER_FILE_EXTENTION)
+                                || translationsBase.contains(PLACEHOLDER_ORIGINAL_PATH)
+                                || translationsBase.contains(PLACEHOLDER_ANDROID_CODE)
+                                || translationsBase.contains(PLACEHOLDER_OSX_CODE)) {
+                            List<String> projectFiles = this.getSourcesWithoutIgnores(file, propertiesBean);
+                            for (String projectFile : projectFiles) {
+                                File f = new File(projectFile);
+                                String temporaryTranslation = translationsBase;
+                                String temporaryTranslationsMapping = translationsMapping;
+                                String fileParent = new File(f.getParent()).getAbsolutePath();
+                                fileParent = Utils.replaceBasePath(fileParent, propertiesBean);
+                                if (fileParent.startsWith(PATH_SEPARATOR)) {
+                                    fileParent = fileParent.replaceFirst(PATH_SEPARATOR, "");
+                                }
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, f.getName());
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_NAME, FilenameUtils.removeExtension(f.getName()));
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_EXTENTION, FilenameUtils.getExtension(f.getName()));
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
+                                temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, f.getName());
+                                temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_NAME, FilenameUtils.removeExtension(f.getName()));
+                                temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_EXTENTION, FilenameUtils.getExtension(f.getName()));
+                                temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, Utils.getAndoidLocaleCode(languageInfo.getString("locale")));
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_CODE, Utils.getOsXLocaleCode(languageInfo.getString("crowdin_code")));
+                                String k = this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean);
+                                String v = this.replaceDoubleAsteriskInTranslation(temporaryTranslationsMapping, f.getAbsolutePath(), file.getSource(), propertiesBean);
+                                k = k.replaceAll(PATH_SEPARATOR, "/");
+                                mapping.put(k, v);
+                            }
+                        } else {
+                            if (this.getSourcesWithoutIgnores(file, propertiesBean) != null && this.getSourcesWithoutIgnores(file, propertiesBean).size() > 0) {
+                                String k = this.replaceDoubleAsteriskInTranslation(translationsBase, this.getSourcesWithoutIgnores(file, propertiesBean).get(0), file.getSource(), propertiesBean);
+                                String v = this.replaceDoubleAsteriskInTranslation(translationsMapping, this.getSourcesWithoutIgnores(file, propertiesBean).get(0), file.getSource(), propertiesBean);
+                                k = k.replaceAll(PATH_SEPARATOR, "/");
+                                mapping.put(k, v);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return mapping;
+    }
+
+    public List<String> getTranslations(String lang, String sourceFile, FileBean file, JSONObject projectInfo,
+                                        JSONArray supportedLanguages, PropertiesBean propertiesBean) {
+        List<String> result = new ArrayList<>();
+        JSONArray projectLanguages = projectInfo.getJSONArray("languages");
+        Parser parser = new Parser();
+        for (Object projectLanguage : projectLanguages) {
+            JSONObject language = parser.parseJson(projectLanguage.toString());
+            String langName = language.getString("name");
+            if (langName != null && !langName.isEmpty()) {
+                JSONObject langsInfo = this.getLanguageInfo(langName, supportedLanguages);
+                if (lang != null && !lang.isEmpty() && !lang.equals(langsInfo.getString("crowdin_code"))) {
+                    continue;
+                }
+                if (file != null) {
+                    String translations = file.getTranslation();
+                    if (translations != null && !translations.isEmpty()) {
+                        if (translations.contains(PLACEHOLDER_LANGUAGE)) {
+                            translations = translations.replace(PLACEHOLDER_LANGUAGE, langsInfo.getString("name"));
+                        }
+                        if (translations.contains(PLACEHOLDER_LOCALE)) {
+                            translations = translations.replace(PLACEHOLDER_LOCALE, langsInfo.getString("locale"));
+                        }
+                        if (translations.contains(PLACEHOLDER_LOCALE_WITH_UNDERSCORE)) {
+                            String localWithUnderscore = langsInfo.getString("locale").replace("-", "_");
+                            translations = translations.replace(PLACEHOLDER_LOCALE_WITH_UNDERSCORE, localWithUnderscore);
+                        }
+                        if (translations.contains(PLACEHOLDER_TWO_LETTERS_CODE)) {
+                            translations = translations.replace(PLACEHOLDER_TWO_LETTERS_CODE, langsInfo.getString("two_letters_code"));
+                        }
+                        if (translations.contains(PLACEHOLDER_THREE_LETTERS_CODE)) {
+                            translations = translations.replace(PLACEHOLDER_THREE_LETTERS_CODE, langsInfo.getString("three_letters_code"));
+                        }
+                        if (translations.contains(PLACEHOLDER_ANDROID_CODE)) {
+                            translations = translations.replace(PLACEHOLDER_ANDROID_CODE, Utils.getAndoidLocaleCode(langsInfo.getString("locale")));
+                        }
+                        if (translations.contains(PLACEHOLDER_OSX_CODE)) {
+                            translations = translations.replace(PLACEHOLDER_OSX_CODE, Utils.getOsXLocaleCode(langsInfo.getString("crowdin_code")));
+                        }
+                        if (translations.contains(PLACEHOLDER_ORIGINAL_FILE_NAME) || translations.contains(PLACEHOLDER_FILE_NAME)
+                                || translations.contains(PLACEHOLDER_FILE_EXTENTION) || translations.contains(PLACEHOLDER_ORIGINAL_PATH)
+                                || translations.contains(PLACEHOLDER_ANDROID_CODE) || translations.contains(PLACEHOLDER_OSX_CODE)) {
+                            List<String> projectFiles = this.getSourcesWithoutIgnores(file, propertiesBean);
+                            String commonPath;
+                            String[] common = new String[projectFiles.size()];
+                            common = projectFiles.toArray(common);
+                            commonPath = Utils.commonPath(common);
+                            for (String projectFile : projectFiles) {
+                                File f = new File(projectFile);
+                                String temporaryTranslation = translations;
+                                String originalFileName = f.getName();
+                                String fileNameWithoutExt = FilenameUtils.removeExtension(f.getName());
+                                String fileExt = FilenameUtils.getExtension(f.getName());
+                                String fileParent = new File(f.getParent()).getAbsolutePath();
+                                if (!propertiesBean.getPreserveHierarchy()) {
+                                    fileParent = fileParent.replaceFirst(commonPath, "");
+                                } else {
+                                    fileParent = Utils.replaceBasePath(fileParent, propertiesBean);
+                                }
+                                fileParent = fileParent.replaceAll("/+", "/");
+                                String androidLocaleCode = Utils.getAndoidLocaleCode(langsInfo.getString("locale"));
+                                String osXLocaleCode = Utils.getOsXLocaleCode(langsInfo.getString("crowdin_code"));
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, originalFileName);
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt);
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_EXTENTION, fileExt);
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, androidLocaleCode);
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_CODE, osXLocaleCode);
+                                if (sourceFile != null) {
+                                    if (sourceFile.equals(projectFile)) {
+                                        result.add(this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean));
+                                    }
+                                } else {
+                                    result.add(this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean));
+                                }
+                            }
+                        } else {
+                            result.add(this.replaceDoubleAsteriskInTranslation(translations, file.getSource(), file.getSource(), propertiesBean));
+                        }
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public JSONObject projectInfo(Credentials credentials, boolean isVerbose, boolean isDebug) {
+        CrowdinApiClient crwdn = new Crwdn();
+        Parser parser = new Parser();
+        CrowdinApiParametersBuilder parameters = new CrowdinApiParametersBuilder();
+        parameters.headers(HEADER_ACCEPT, HEADER_ACCAEPT_VALUE)
+                .headers(HEADER_CLI_VERSION, HEADER_CLI_VERSION_VALUE)
+                .headers(HEADER_JAVA_VERSION, HEADER_JAVA_VERSION_VALUE)
+                .headers(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
+        parameters.json();
+        ClientResponse clientResponse = null;
+        try {
+            clientResponse = crwdn.getInfo(credentials, parameters);
+        } catch (Exception e) {
+            System.out.println(RESOURCE_BUNDLE.getString("wrong_connection"));
+            if (isDebug) {
+                e.printStackTrace();
+            }
+            System.exit(0);
+        }
+        if (isVerbose) {
+            System.out.println(clientResponse.getHeaders());
+        }
+        String response = clientResponse.getEntity(String.class);
+        JSONObject o = parser.parseJson(response);
+        if (o != null && o.has("success") && !o.getBoolean("success")) {
+            JSONObject error = o.getJSONObject("error");
+            if (error != null) {
+                System.out.println("ERROR");
+                System.out.println("code: " + error.getInt("code"));
+                System.out.println("message: " + error.getString("message"));
+            }
+            System.exit(0);
+        }
+        return o;
+    }
+
+    public JSONArray getSupportedLanguages(Credentials credentials, boolean isVerbose, boolean isDebug) {
+        CrowdinApiClient crwdn = new Crwdn();
+        Parser parser = new Parser();
+        CrowdinApiParametersBuilder crowdinApiParametersBuilder = new CrowdinApiParametersBuilder();
+        crowdinApiParametersBuilder.headers(HEADER_ACCEPT, HEADER_ACCAEPT_VALUE)
+                .headers(HEADER_CLI_VERSION, HEADER_CLI_VERSION_VALUE)
+                .headers(HEADER_JAVA_VERSION, HEADER_JAVA_VERSION_VALUE)
+                .headers(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
+        crowdinApiParametersBuilder.json();
+        ClientResponse clientResponse = null;
+        try {
+            clientResponse = crwdn.getSupportedLanguages(credentials, crowdinApiParametersBuilder);
+        } catch (Exception e) {
+            System.out.println("\n" + RESOURCE_BUNDLE.getString("error_getting_supported_languages"));
+            if (isDebug) {
+                e.printStackTrace();
+            }
+            System.exit(0);
+        }
+        if (isVerbose) {
+            System.out.println(clientResponse.getHeaders());
+        }
+        String response = clientResponse.getEntity(String.class);
+        return parser.parseJsonArray(response);
+    }
+
+    public List<String> projectList(JSONArray files, String path) {
+        List<String> result = new ArrayList<>();
+        if (path == null) {
+            path = PATH_SEPARATOR;
+        }
+        if (files != null) {
+            String s = path;
+            for (int i = 0; i < files.length(); i++) {
+                JSONObject file = files.getJSONObject(i);
+                if ("".equalsIgnoreCase(path)) {
+                    path = s;
+                }
+                if (file != null && file.get("node_type") != null && ("branch".equals(file.get("node_type")) || "directory".equals(file.get("node_type")))) {
+                    path += PATH_SEPARATOR + file.get("name").toString() + PATH_SEPARATOR;
+                    path = path.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
+                    result.addAll(projectList(file.getJSONArray("files"), path));
+                    path = "";
+                } else if (file != null && file.get("node_type") != null && "file".equals(file.get("node_type"))) {
+                    if (file.get("name") != null) {
+                        result.add(path + file.get("name").toString());
+                    }
+                }
+            }
+        }
+        return result;
+    }
+
+    public String getBaseUrl(PropertiesBean propertiesBean) {
+        String baseUrl;
+        if (propertiesBean.getBaseUrl() != null && !propertiesBean.getBaseUrl().isEmpty()) {
+            baseUrl = propertiesBean.getBaseUrl();
+            if (!(baseUrl.endsWith("/api") || baseUrl.endsWith("/api/"))) {
+                baseUrl = baseUrl + "/api/";
+                baseUrl = baseUrl.replaceAll("/+", "/");
+            }
+        } else {
+            baseUrl = Utils.getBaseUrl();
+        }
+        return baseUrl;
+    }
+
+    public String getBasePath(PropertiesBean propertiesBean, File configurationFile) {
+        String basePath = propertiesBean.getBasePath();
+        String result = null;
+        if (basePath != null && Paths.get(basePath) != null) {
+            if (Paths.get(basePath).isAbsolute()) {
+                result = basePath;
+            } else if (configurationFile != null && configurationFile.isFile()) {
+                basePath = (basePath == null || ".".equals(basePath)) ? "" : basePath;
+                result =  Paths.get(configurationFile.getAbsolutePath()).getParent() + PATH_SEPARATOR + basePath;
+                result = result.replaceAll(PATH_SEPARATOR + "+",  PATH_SEPARATOR);
+            }
+        } else if (configurationFile != null && configurationFile.isFile()) {
+            basePath = (basePath == null) ? "" : basePath;
+            result =  Paths.get(configurationFile.getAbsolutePath()).getParent() + PATH_SEPARATOR + basePath;
+            result = result.replaceAll(PATH_SEPARATOR + "+",  PATH_SEPARATOR);
+        }
+        return result;
+    }
+
+    public String getCommonPath(List<String> sources, PropertiesBean propertiesBean) {
+        String result;
+        if (sources.size() == 1) {
+            result = sources.get(0);
+            if (result.contains(PATH_SEPARATOR)) {
+                result = result.substring(0, result.lastIndexOf(PATH_SEPARATOR));
+            }
+            result = Utils.replaceBasePath(result, propertiesBean);
+            if (result.startsWith(PATH_SEPARATOR)) {
+                result = result.replaceFirst(PATH_SEPARATOR, "");
+            }
+        } else {
+            String[] common = new String[sources.size()];
+            common = sources.toArray(common);
+            result = Utils.commonPath(common);
+            result = Utils.replaceBasePath(result, propertiesBean);
+            if (result.startsWith(PATH_SEPARATOR)) {
+                result = result.replaceFirst(PATH_SEPARATOR, "");
+            }
+        }
+        return result;
+    }
+}

@@ -1,0 +1,174 @@
+package com.crowdin.cli.utils;
+
+import com.crowdin.cli.properties.PropertiesBean;
+
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.util.Properties;
+import java.util.ResourceBundle;
+
+import org.apache.commons.lang3.SystemUtils;
+
+/**
+ * @author ihor
+ */
+public class Utils {
+
+    private static final String APPLICATION_BASE_URL = "application.base_url";
+
+    private static final String APPLICATION_NAME = "application.name";
+
+    private static final String APPLICATION_VERSION = "application.version";
+
+    private static final String PROPERTIES_FILE = "/crowdin.properties";
+
+    private static final String USER_AGENT = "application.user_agent";
+    
+    private static final String PATH_SEPARATOR = (Utils.isWindows()) ? File.separator + File.separator : File.separator;
+
+    private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
+
+    public static String getAppName() {
+        Properties properties = new Properties();
+        String applicationName = null;
+        try {
+            InputStream in = Utils.class.getResourceAsStream(PROPERTIES_FILE);
+            properties.load(in);
+            in.close();
+        } catch (Exception e) {
+            System.out.println(RESOURCE_BUNDLE.getString("exception_app_name"));
+        }
+        if (properties != null && properties.get(APPLICATION_NAME) != null) {
+            applicationName = properties.get(APPLICATION_NAME).toString();
+        }
+        return applicationName;
+    }
+
+    public static String getAppVersion() {
+        Properties properties = new Properties();
+        String applicationVersion = null;
+        try {
+            InputStream in = Utils.class.getResourceAsStream(PROPERTIES_FILE);
+            properties.load(in);
+            in.close();
+        } catch (Exception e) {
+            System.out.println(RESOURCE_BUNDLE.getString("exception_app_version"));
+        }
+        if (properties != null && properties.get(APPLICATION_VERSION) != null) {
+            applicationVersion = properties.get(APPLICATION_VERSION).toString();
+        }
+        return applicationVersion;
+    }
+
+    public static String getBaseUrl() {
+        Properties properties = new Properties();
+        String applicationBaseUrl = null;
+        try {
+            InputStream in = Utils.class.getResourceAsStream(PROPERTIES_FILE);
+            properties.load(in);
+            in.close();
+        } catch (Exception e) {
+            System.out.println(RESOURCE_BUNDLE.getString("error_get_base_url"));
+        }
+        if (properties != null && properties.get(APPLICATION_BASE_URL) != null) {
+            applicationBaseUrl = properties.get(APPLICATION_BASE_URL).toString();
+        }
+        return applicationBaseUrl;
+    }
+
+    public static String getAndoidLocaleCode(String localeCode) {
+        String androidLocaleCode = null;
+        if (localeCode != null && !localeCode.isEmpty()) {
+            if ("he-IL".equals(localeCode.trim())) {
+                localeCode = "iw-IL";
+            } else if ("yi-DE".equals(localeCode.trim())) {
+                localeCode = "ji-DE";
+            } else if ("id-ID".equals(localeCode.trim())) {
+                localeCode = "in-ID";
+            }
+            androidLocaleCode = localeCode.replace("-", "-r");
+        }
+        return androidLocaleCode;
+    }
+
+    public static String getOsXLocaleCode(String localeCode) {
+        String osXLocaleCode = null;
+        if (localeCode != null && !localeCode.isEmpty()) {
+            if ("zh-CN".equals(localeCode.trim())) {
+                localeCode = "zh-Hans";
+            } else if ("zh-TW".equals(localeCode.trim())) {
+                localeCode = "zh-Hant";
+            }
+            osXLocaleCode = localeCode.replace("-", "_") + ".lproj";
+        }
+        return osXLocaleCode;
+    }
+
+    public static String replaceBasePath(String path, PropertiesBean propertiesBean) {
+        if (path == null || path.isEmpty()) {
+            System.out.println(RESOURCE_BUNDLE.getString("error_empty_path"));
+            System.exit(0);
+        }
+        String result;
+        if (propertiesBean !=  null && propertiesBean.getBasePath() != null) {
+            result = path.replace(propertiesBean.getBasePath(), PATH_SEPARATOR);
+        } else {
+            result = PATH_SEPARATOR;
+        }
+        result = result.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
+        return result;
+    }
+
+    public static Boolean isWindows() {
+        return SystemUtils.IS_OS_WINDOWS;
+    }
+
+    public static String getUserAgent() {
+        Properties prop = new Properties();
+        String userAgent = null;
+        try {
+            InputStream in = Utils.class.getResourceAsStream(PROPERTIES_FILE);
+            prop.load(in);
+            in.close();
+        } catch (Exception e) {
+            System.out.println(RESOURCE_BUNDLE.getString("error_get_user_agent"));
+        }
+        if (prop != null && prop.get(USER_AGENT) != null) {
+            userAgent = prop.get(USER_AGENT).toString();
+        }
+        return userAgent;
+    }
+
+    public static String commonPath(String[] paths){
+        String commonPath = "";
+        String[][] folders = new String[paths.length][];
+        for(int i = 0; i < paths.length; i++){
+            folders[i] = paths[i].split("/");
+        }
+        for(int j = 0; j < folders[0].length; j++){
+            String thisFolder = folders[0][j];
+            boolean allMatched = true;
+            for(int i = 1; i < folders.length && allMatched; i++){
+                if(folders[i].length < j){
+                    allMatched = false;
+                    break;
+                }
+                allMatched &= folders[i][j].equals(thisFolder);
+            }
+            if(allMatched){
+                commonPath += thisFolder + "/";
+            } else{
+                break;
+            }
+        }
+        return commonPath;
+    }
+
+    public static String getEnvironmentVariable(String name) {
+        if (name == null || name.isEmpty()) {
+            return null;
+        }
+        return System.getenv(name);
+    }
+}
