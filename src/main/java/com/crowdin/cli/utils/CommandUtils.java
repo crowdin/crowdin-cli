@@ -864,7 +864,13 @@ public class CommandUtils extends BaseCli {
             baseUrl = propertiesBean.getBaseUrl();
             if (!(baseUrl.endsWith("/api") || baseUrl.endsWith("/api/"))) {
                 baseUrl = baseUrl + "/api/";
+                if (baseUrl.contains("://")) {
+                    baseUrl = baseUrl.replaceAll("://", "%crwdn-url%");
+                }
                 baseUrl = baseUrl.replaceAll("/+", "/");
+                if (baseUrl.contains("%crwdn-url%")) {
+                    baseUrl = baseUrl.replaceAll("%crwdn-url%", "://");
+                }
             }
         } else {
             baseUrl = Utils.getBaseUrl();
