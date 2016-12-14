@@ -150,7 +150,7 @@ $ crowdin upload sources --dryrun
 To upload existing translations to Crowdin (translations will be synchronized):
 ```
 $ crowdin upload translations
-
+```
 To show a detailed information about the `upload` command:
 ```
 $ crowdin upload --help
@@ -195,8 +195,6 @@ $ crowdin upload translations -b {branch_name}
 To download translations from the specified version branch:
 ```
 $ crowdin download -b {branch_name}
-```
-
 ```
 
 To show a detailed information about the `upload` command:
