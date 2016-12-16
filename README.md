@@ -195,7 +195,7 @@ $ crowdin upload translations -b {branch_name}
 To download translations from the specified version branch:
 ```
 $ crowdin download -b {branch_name}
-
+```
 
 ### Configuring Crowdin YAML
 
