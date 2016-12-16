@@ -118,6 +118,10 @@ public class CrowdinCliOptions {
 
     public static final String PROJECT_IDENTIFIER_SHORT = "i";
 
+    public static final String IDENTITY = "identity";
+
+    public static final String IDENTITY_DESCRIPTION = RESOURCE_BUNDLE.getString("identity_description");
+
     public static final String PROJECT_KEY_DESCRIPTION = RESOURCE_BUNDLE.getString("project_key_description");
 
     public static final String PROJECT_KEY_LONG = "key";
@@ -173,6 +177,7 @@ public class CrowdinCliOptions {
         options.addOption(HELP_SHORT, HELP_LONG, false, HELP_DESCRIPTION);
         options.addOption(null, IGNORE_MATCH_LONG, false, IGNORE_MATCH_DESCRIPTIONS);
         options.addOption(null, IMPORT_DUPLICATES, false, null);
+        options.addOption(null, IDENTITY, true, null);
         options.addOption(null, NO_IMPORT_DUPLICATES, false, null);
         options.addOption(null, IMPORT_EQ_SUGGESTIONS, false, null);
         options.addOption(null, NO_IMPORT_EQ_SUGGESTIONS, false, null);
@@ -399,6 +404,7 @@ public class CrowdinCliOptions {
         Options o = new Options();
         o.addOption(null, HELP_LONG, false, HELP_DESCRIPTION);
         o.addOption(null, CONFIG_LONG, true, CONFIG_DESCRIPTION);
+        o.addOption(null, IDENTITY, true, IDENTITY_DESCRIPTION);
         o.addOption(VERBOSE_SHORT, VERBOSE_LONG, false, VERBOSE_DESCRIPTION);
         o.addOption(null, VERSION_LONG, false, VERSION_DESCRIPTION);
         return o;

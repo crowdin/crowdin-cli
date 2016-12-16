@@ -1057,6 +1057,9 @@ public class Commands extends BaseCli {
 
     private void dryrunSources(CommandLine commandLine) {
         List<String> files = this.list(SOURCES);
+        if (files.size() < 1 ) {
+            System.exit(0);
+        }
         commandUtils.sortFilesName(files);
         String commonPath = "";
         if (!propertiesBean.getPreserveHierarchy()) {
