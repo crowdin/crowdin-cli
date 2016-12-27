@@ -392,7 +392,7 @@ public class Commands extends BaseCli {
         if (branch != null && branch.getBoolean(RESPONSE_SUCCESS)) {
             System.out.println(RESOURCE_BUNDLE.getString("creating_branch") + " '" + name + "' - OK");
         } else if (branch != null && !branch.getBoolean(RESPONSE_SUCCESS) && branch.getJSONObject(RESPONSE_ERROR) != null && branch.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE) == 13
-                && "Directory with such name already ddqdqwdqexists".equals(branch.getJSONObject(RESPONSE_ERROR).getString(RESPONSE_MESSAGE))) {
+                && "Directory with such name already exists".equals(branch.getJSONObject(RESPONSE_ERROR).getString(RESPONSE_MESSAGE))) {
             System.out.println(RESOURCE_BUNDLE.getString("creating_branch") + " '" + name + "' - SKIPPED");
         } else {
             System.out.println(RESOURCE_BUNDLE.getString("creating_branch") + " '" + name + "' - ERROR");
@@ -436,11 +436,15 @@ public class Commands extends BaseCli {
 
             for (String source : sources) {
                 File sourceFile = new File(source);
-                String preservePath = this.commandUtils.preserveHierarchy(file, sourceFile.getAbsolutePath(), commonPath, this.propertiesBean, this.branch, this.credentials, this.isVerbose);
-                preservePath = preservePath + PATH_SEPARATOR + sourceFile.getName();
-                preservePath = preservePath.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
-                if (preservePath.startsWith(PATH_SEPARATOR)) {
-                    preservePath = preservePath.replaceFirst(PATH_SEPARATOR, "");
+                Boolean isDest = file.getDest() != null && !file.getDest().isEmpty() && !this.commandUtils.isSourceContainsPattern(file.getSource());
+                String preservePath = file.getDest();
+                if (!isDest) {
+                    preservePath = this.commandUtils.preserveHierarchy(file, sourceFile.getAbsolutePath(), commonPath, this.propertiesBean, this.branch, this.credentials, this.isVerbose);
+                    preservePath = preservePath + PATH_SEPARATOR + sourceFile.getName();
+                    preservePath = preservePath.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
+                    if (preservePath.startsWith(PATH_SEPARATOR)) {
+                        preservePath = preservePath.replaceFirst(PATH_SEPARATOR, "");
+                    }
                 }
                 CrowdinApiParametersBuilder parameters = new CrowdinApiParametersBuilder();
                 parameters.headers(HEADER_ACCEPT, HEADER_ACCAEPT_VALUE)
@@ -502,14 +506,10 @@ public class Commands extends BaseCli {
                     parameters.titles(sourceFile.getAbsolutePath(), file.getDest());
                 }
                 parameters.json();
-                if (file.getDest() != null && !file.getDest().isEmpty() && !commandUtils.isSourceContainsPattern(file.getSource())) {
-                    preservePath = file.getDest();
-                }
-                if (!preserveHierarchy) {
-                    if (this.branch != null && !this.branch.isEmpty()) {
-                        preservePath = this.branch + File.separator + preservePath;
-                        preservePath = preservePath.replace(File.separator + "+", File.separator);
-                    }
+                if (this.branch != null && !this.branch.isEmpty()) {
+                    preservePath = this.branch + "/" + preservePath;
+                    preservePath = preservePath.replaceAll("/+", "/");
+                    preservePath = preservePath.replaceAll("\\+", "\\");
                 }
                 System.out.print(RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'");
                 Thread spinner = new Thread(new Runnable() {
@@ -642,28 +642,31 @@ public class Commands extends BaseCli {
                                 .headers(HEADER_JAVA_VERSION, HEADER_JAVA_VERSION_VALUE)
                                 .headers(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
                         String lng = (language == null || language.isEmpty()) ? languages.getString("code") : language;
-                        List<String> translations = commandUtils.getTranslations(lng, sourcesWithoutIgnore, file, projectInfo, supportedLanguages, propertiesBean);
+                        List<String> translations = commandUtils.getTranslations(lng, sourcesWithoutIgnore, file, projectInfo, supportedLanguages, propertiesBean, "translations");
                         Map<String,String> mapping = commandUtils.doLanguagesMapping(projectInfo, supportedLanguages, propertiesBean);
                         List<File> translationFiles = new ArrayList<>();
 
                         String commonPath = "";
                         if (!propertiesBean.getPreserveHierarchy()) {
-                            if (mapping != null && mapping.keySet() != null) {
-                                String[] common = new String[mapping.keySet().size()];
-                                common = mapping.keySet().toArray(common);
-                                commonPath = Utils.commonPath(common);
-                                commonPath = Utils.replaceBasePath(commonPath, propertiesBean);
-                            }
+                            String[] common = new String[sourcesWithoutIgnores.size()];
+                            common = sourcesWithoutIgnores.toArray(common);
+                            commonPath = Utils.commonPath(common);
+                            commonPath = Utils.replaceBasePath(commonPath, propertiesBean);
                         }
                         commonPath = (commonPath == null) ? "" : commonPath;
                         for (String translation : translations) {
-                            translation = commonPath + PATH_SEPARATOR + translation;
+                            translation = PATH_SEPARATOR + translation;
                             translation = translation.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
-                            if (mapping != null && mapping.get(translation) != null) {
-                                translationFiles.add(new File(propertiesBean.getBasePath() + mapping.get(translation)));
-                            } else {
-                                translationFiles.add(new File(propertiesBean.getBasePath() + translation));
+                            String mappedTranslations = translation;
+                            if (Utils.isWindows() && translation.contains("\\")) {
+                                translation = translation.replaceAll("\\\\+", "/").replaceAll("  \\+", "/");
                             }
+                            if (mapping != null && mapping.get(translation) != null) {
+                                mappedTranslations = mapping.get(translation);
+                            }
+                            mappedTranslations = propertiesBean.getBasePath() + PATH_SEPARATOR + mappedTranslations;
+                            mappedTranslations = mappedTranslations.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
+                            translationFiles.add(new File(mappedTranslations));
                         }
                         for (File translationFile : translationFiles) {
                             if (!translationFile.isFile()) {
@@ -676,8 +679,21 @@ public class Commands extends BaseCli {
                             }
                             String translationSrc = Utils.replaceBasePath(sourcesWithoutIgnoreFile.getAbsolutePath(), propertiesBean);
                             if (!propertiesBean.getPreserveHierarchy()) {
+                                if (Utils.isWindows()) {
+                                    if (translationSrc.contains("\\")) {
+                                        translationSrc = translationSrc.replaceAll("\\\\", "/");
+                                        translationSrc = translationSrc.replaceAll("/+", "/");
+                                    }
+                                    if (commonPath.contains("\\")) {
+                                        commonPath = commonPath.replaceAll("\\\\", "/");
+                                        commonPath = commonPath.replaceAll("/+", "/");
+                                    }
+                                }
                                 if (translationSrc.startsWith(commonPath)) {
                                     translationSrc = translationSrc.replaceFirst(commonPath, "");
+                                }
+                                if (Utils.isWindows() && translationSrc.contains("/")) {
+                                    translationSrc = translationSrc.replaceAll("/", PATH_SEPARATOR);
                                 }
                             }
                             if (branch != null) {
@@ -688,6 +704,10 @@ public class Commands extends BaseCli {
                             }
                             if (translationSrc.startsWith("/")) {
                                 translationSrc = translationSrc.replaceFirst("/", "");
+                            }
+                            Boolean isDest = file.getDest() != null && !file.getDest().isEmpty() && !this.commandUtils.isSourceContainsPattern(file.getSource());
+                            if (isDest) {
+                                translationSrc = file.getDest();
                             }
                             parameters.files(translationFile.getAbsolutePath());
                             parameters.titles(translationFile.getAbsolutePath(), translationSrc);
@@ -955,6 +975,8 @@ public class Commands extends BaseCli {
             try {
                 List<String> downloadedFiles = commandUtils.getListOfFileFromArchive(downloadedZipArchive, isDebug);
                 List<String> downloadedFilesProc = new ArrayList<>();
+                String b = (branch != null && !branch.isEmpty()) ? "/" + branch + "/" : "";
+                b = b.replaceAll("/+", "/");
                 for (String downloadedFile : downloadedFiles) {
                     if (Utils.isWindows()) {
                         downloadedFile = downloadedFile.replaceAll(PATH_SEPARATOR + "+", "/");
@@ -963,9 +985,7 @@ public class Commands extends BaseCli {
                 }
                 List<String> files = new ArrayList<>();
                 Map<String, String> mapping = commandUtils.doLanguagesMapping(projectInfo, supportedLanguages, propertiesBean);
-                List<String> translations = this.list(TRANSLATIONS);
-                String b = (branch != null && !branch.isEmpty()) ? "/" + branch + "/" : "";
-                b = b.replaceAll("/+", "/");
+                List<String> translations = this.list(TRANSLATIONS, "download");
                 for (String translation : translations) {
                     translation = b + translation;
                     translation = translation.replaceAll("/+", "/");
@@ -979,9 +999,18 @@ public class Commands extends BaseCli {
                         files.add(translation);
                     }
                 }
+                List<String> sources = this.list(SOURCES, null);
+                String commonPath;
+                String[] common = new String[sources.size()];
+                common = sources.toArray(common);
+                commonPath = Utils.commonPath(common);
+                commonPath = Utils.replaceBasePath(commonPath, propertiesBean);
+                if (commonPath.contains("\\")) {
+                    commonPath = commonPath.replaceAll("\\\\+", "/");
+                }
                 commandUtils.sortFilesName(downloadedFilesProc);
-                commandUtils.extractFiles(downloadedFilesProc, files, baseTempDir, ignoreMatch, downloadedZipArchive, mapping, isDebug, branch, propertiesBean);
-                commandUtils.renameMappingFiles(mapping, baseTempDir, branch, propertiesBean);
+                commandUtils.extractFiles(downloadedFilesProc, files, baseTempDir, ignoreMatch, downloadedZipArchive, mapping, isDebug, branch, propertiesBean, commonPath);
+                commandUtils.renameMappingFiles(mapping, baseTempDir, branch, propertiesBean, commonPath);
                 FileUtils.deleteDirectory(new File(baseTempDir));
                 downloadedZipArchive.delete();
             } catch (java.util.zip.ZipException e) {
@@ -998,7 +1027,7 @@ public class Commands extends BaseCli {
         }
     }
 
-    public List<String> list(String subcommand) {
+    public List<String> list(String subcommand, String command) {
         List<String> result = new ArrayList<>();
         if (subcommand != null && !subcommand.isEmpty()) {
             if (PROJECT.equals(subcommand)) {
@@ -1020,7 +1049,7 @@ public class Commands extends BaseCli {
             } else if (TRANSLATIONS.equals(subcommand)) {
                 List<FileBean> files = propertiesBean.getFiles();
                 for (FileBean file : files) {
-                    result.addAll(commandUtils.getTranslations(null, null, file, projectInfo, supportedLanguages, propertiesBean));
+                    result.addAll(commandUtils.getTranslations(null, null, file, projectInfo, supportedLanguages, propertiesBean, command));
                 }
             }
         }
@@ -1056,7 +1085,7 @@ public class Commands extends BaseCli {
     }
 
     private void dryrunSources(CommandLine commandLine) {
-        List<String> files = this.list(SOURCES);
+        List<String> files = this.list(SOURCES, "sources");
         if (files.size() < 1 ) {
             System.exit(0);
         }
@@ -1075,10 +1104,23 @@ public class Commands extends BaseCli {
                     StringBuilder resultFiles = new StringBuilder();
                     StringBuilder f = new StringBuilder();
                     String path = Utils.replaceBasePath(file, propertiesBean);
+                    if (Utils.isWindows()) {
+                        if (path.contains("\\")) {
+                            path = path.replaceAll("\\\\", "/");
+                            path = path.replaceAll("/+", "/");
+                        }
+                        if (commonPath.contains("\\")) {
+                            commonPath = commonPath.replaceAll("\\\\", "/");
+                            commonPath = commonPath.replaceAll("/+", "/");
+                        }
+                    }
                     if (path.startsWith(commonPath)) {
                         path = path.replaceFirst(commonPath, "");
-                    } else if (path.startsWith(PATH_SEPARATOR + commonPath)) {
-                        path = path.replaceFirst(PATH_SEPARATOR + commonPath, "");
+                    } else if (path.startsWith("/" + commonPath)) {
+                        path = path.replaceFirst("/" + commonPath, "");
+                    }
+                    if (Utils.isWindows() && path.contains("/")) {
+                        path = path.replaceAll("/", PATH_SEPARATOR);
                     }
                     if (path.startsWith(PATH_SEPARATOR)) {
                         path = path.replaceFirst(PATH_SEPARATOR, "");
@@ -1111,19 +1153,29 @@ public class Commands extends BaseCli {
                 if (propertiesBean.getPreserveHierarchy()) {
                     src = Utils.replaceBasePath(file, propertiesBean);
                     if (branch != null && !branch.isEmpty()) {
-                        src = branch + File.separator + src;
+                        src = PATH_SEPARATOR + branch + PATH_SEPARATOR + src;
                     }
-                    src = src.replaceAll(File.separator + "+", File.separator);
+                    src = src.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
                     System.out.println(src);
                 } else {
                     src = Utils.replaceBasePath(file, propertiesBean);
+                    if (Utils.isWindows()) {
+                        if (src.contains("\\")) {
+                            src = src.replaceAll("\\\\", "/");
+                            src = src.replaceAll("/+", "/");
+                        }
+                        if (commonPath.contains("\\")) {
+                            commonPath = commonPath.replaceAll("\\\\", "/");
+                            commonPath = commonPath.replaceAll("/+", "/");
+                        }
+                    }
                     if (src.startsWith(commonPath)) {
                         src = src.replaceFirst(commonPath, "");
-                    } else if (src.startsWith(PATH_SEPARATOR + commonPath)) {
-                        src = src.replaceFirst(PATH_SEPARATOR + commonPath, "");
+                    } else if (src.startsWith("/" + commonPath)) {
+                        src = src.replaceFirst("/" + commonPath, "");
                     }
-                    if (src.startsWith(PATH_SEPARATOR)) {
-                        src = src.replaceFirst(PATH_SEPARATOR, "");
+                    if (Utils.isWindows() && src.contains("/")) {
+                        src = src.replaceAll("/", PATH_SEPARATOR);
                     }
                     if (branch != null && !branch.isEmpty()) {
                         src = branch + File.separator + src;
@@ -1166,7 +1218,7 @@ public class Commands extends BaseCli {
     }
 
     private void dryrunProject(CommandLine commandLine) {
-        List<String> files = this.list(PROJECT);
+        List<String> files = this.list(PROJECT, "project");
         List<String> filesWin = new ArrayList<>();
         for (String file : files) {
             file = file.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
