@@ -25,7 +25,7 @@ public class Utils {
 
     private static final String USER_AGENT = "application.user_agent";
     
-    private static final String PATH_SEPARATOR = (Utils.isWindows()) ? File.separator + File.separator : File.separator;
+    private static final String PATH_SEPARATOR = (Utils.isWindows()) ? "\\\\" : "/";
 
     private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
 
@@ -112,6 +112,7 @@ public class Utils {
         }
         String result;
         if (propertiesBean !=  null && propertiesBean.getBasePath() != null) {
+            path = path.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
             result = path.replace(propertiesBean.getBasePath(), PATH_SEPARATOR);
         } else {
             result = PATH_SEPARATOR;
@@ -142,24 +143,47 @@ public class Utils {
 
     public static String commonPath(String[] paths){
         String commonPath = "";
-        String[][] folders = new String[paths.length][];
-        for(int i = 0; i < paths.length; i++){
-            folders[i] = paths[i].split("/");
+        if (paths == null) {
+            return commonPath;
         }
-        for(int j = 0; j < folders[0].length; j++){
-            String thisFolder = folders[0][j];
-            boolean allMatched = true;
-            for(int i = 1; i < folders.length && allMatched; i++){
-                if(folders[i].length < j){
-                    allMatched = false;
+        if (Utils.isWindows()) {
+            String[] winPath = new String[paths.length];
+            for (int i=0; i<paths.length; i++) {
+                if (paths[i].contains("/")) {
+                    winPath[i] = paths[i].replaceAll("/+", PATH_SEPARATOR);
+                } else {
+                    winPath[i] = paths[i];
+                }
+            }
+            paths = winPath;
+        }
+        if (paths.length == 1) {
+            if (paths[0].lastIndexOf(PATH_SEPARATOR) > 0) {
+                commonPath = paths[0].substring(0, paths[0].lastIndexOf(PATH_SEPARATOR));
+            }
+            if (Utils.isWindows() && paths[0].lastIndexOf("\\") > 0) {
+                commonPath = paths[0].substring(0, paths[0].lastIndexOf("\\"));
+            }
+        } else if (paths.length > 1) {
+            String[][] folders = new String[paths.length][];
+            for(int i = 0; i < paths.length; i++){
+                folders[i] = paths[i].split(PATH_SEPARATOR);
+            }
+            for(int j = 0; j < folders[0].length; j++){
+                String thisFolder = folders[0][j];
+                boolean allMatched = true;
+                for(int i = 1; i < folders.length && allMatched; i++){
+                    if(folders[i].length < j){
+                        allMatched = false;
+                        break;
+                    }
+                    allMatched &= folders[i][j].equals(thisFolder);
+                }
+                if(allMatched){
+                    commonPath += thisFolder + PATH_SEPARATOR;
+                } else{
                     break;
                 }
-                allMatched &= folders[i][j].equals(thisFolder);
-            }
-            if(allMatched){
-                commonPath += thisFolder + "/";
-            } else{
-                break;
             }
         }
         return commonPath;
