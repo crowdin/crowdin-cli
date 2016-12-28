@@ -265,6 +265,9 @@ public class CliProperties {
                     System.out.println(RESOURCE_BUNDLE.getString("error_empty_source_section"));
                     hasError = true;
                 }
+                if (Utils.isWindows() && file.getSource() != null && file.getSource().contains("/")) {
+                    file.setSource(file.getSource().replaceAll("/+", PATH_SEPARATOR));
+                }
                 //Translation
                 if (file.getTranslation() == null || file.getTranslation().isEmpty()) {
                     System.out.println(RESOURCE_BUNDLE.getString("error_empty_translation_section"));
@@ -285,9 +288,23 @@ public class CliProperties {
                         file.setTranslation(translation);
                     }
                 }
+                if (Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("/")) {
+                    file.setTranslation(file.getTranslation().replaceAll("/+", PATH_SEPARATOR));
+                }
                 //Ignore
                 if (file.getIgnore() == null || file.getIgnore().isEmpty()) {
                 } else {
+                    if (Utils.isWindows()) {
+                        List<String> ignores = new ArrayList<>();
+                        for (String ignore : file.getIgnore()) {
+                            if (ignore.contains("/")) {
+                                ignores.add(ignore.replaceAll("/+", PATH_SEPARATOR));
+                            } else {
+                                ignores.add(ignore);
+                            }
+                        }
+                        file.setIgnore(ignores);
+                    }
                 }
                 //dest
                 if (file.getDest() == null || file.getDest().isEmpty()) {

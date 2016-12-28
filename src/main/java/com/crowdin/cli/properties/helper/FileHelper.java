@@ -59,6 +59,8 @@ public class FileHelper {
                     pattern = pattern.replaceAll(FOLDER_SEPARATOR + "+", FOLDER_SEPARATOR);
                 }
             }
+            pattern = pattern.replaceAll("\\\\+", "\\\\");
+            pattern = pattern.replaceAll("/+", "/");
             String[] nodes = pattern.split(FOLDER_SEPARATOR);
             StringBuilder resultPath = new StringBuilder();
             for (String node : nodes) {
