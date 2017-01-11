@@ -830,9 +830,8 @@ Need help working with Crowdin CLI or have any questions? <a href="https://crowd
 
 ### License and Author
 
-Author: Crowdin (ihor.popyk@crowdin.com)
+Author: Ihor Popyk (ihor.popyk@crowdin.com)
 
-Copyright: 2016 crowdin.com
+Copyright: 2017 crowdin.com
 
 This project is licensed under the MIT license, a copy of which can be found in the LICENSE file.
-
