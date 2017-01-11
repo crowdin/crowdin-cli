@@ -934,6 +934,9 @@ public class Commands extends BaseCli {
                 crowdinApiParametersBuilder.downloadPackage("all");
                 fileName = "all.zip";
             }
+            if (branch != null) {
+                crowdinApiParametersBuilder.branch(branch);
+            }
             String basePath = propertiesBean.getBasePath();
             String baseTempDir;
             if (basePath.endsWith(File.separator)) {
