@@ -391,7 +391,7 @@ public class Commands extends BaseCli {
         }
         if (branch != null && branch.getBoolean(RESPONSE_SUCCESS)) {
             System.out.println(RESOURCE_BUNDLE.getString("creating_branch") + " '" + name + "' - OK");
-        } else if (branch != null && !branch.getBoolean(RESPONSE_SUCCESS) && branch.getJSONObject(RESPONSE_ERROR) != null && branch.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE) == 13
+        } else if (branch != null && !branch.getBoolean(RESPONSE_SUCCESS) && branch.getJSONObject(RESPONSE_ERROR) != null && branch.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE) == 50
                 && "Directory with such name already exists".equals(branch.getJSONObject(RESPONSE_ERROR).getString(RESPONSE_MESSAGE))) {
             System.out.println(RESOURCE_BUNDLE.getString("creating_branch") + " '" + name + "' - SKIPPED");
         } else {
