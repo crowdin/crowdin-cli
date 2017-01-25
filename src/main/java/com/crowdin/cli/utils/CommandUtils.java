@@ -249,7 +249,7 @@ public class CommandUtils extends BaseCli {
                     if (dir != null && dir.getBoolean("success")) {
                         directories.add(resultDirs.toString());
                         System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - OK");
-                    } else if (dir != null && !dir.getBoolean("success") && dir.getJSONObject("error") != null && dir.getJSONObject("error").getInt("code") == 13
+                    } else if (dir != null && !dir.getBoolean("success") && dir.getJSONObject("error") != null && dir.getJSONObject("error").getInt("code") == 50
                             && "Directory with such name already exists".equals(dir.getJSONObject("error").getString("message"))) {
                         //SKIPPED
                         if (!directories.contains(resultDirs.toString())) {
