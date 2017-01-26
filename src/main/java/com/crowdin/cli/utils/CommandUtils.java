@@ -251,6 +251,7 @@ public class CommandUtils extends BaseCli {
                         System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - OK");
                     } else if (dir != null && !dir.getBoolean("success") && dir.getJSONObject("error") != null && dir.getJSONObject("error").getInt("code") == 50
                             && "Directory with such name already exists".equals(dir.getJSONObject("error").getString("message"))) {
+
                         //SKIPPED
                         if (!directories.contains(resultDirs.toString())) {
                             System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - SKIPPED");
@@ -368,9 +369,8 @@ public class CommandUtils extends BaseCli {
         return langInfo;
     }
 
-    public void renameMappingFiles(Map<String, String> mapping, String baseTempDir, String branch, PropertiesBean propertiesBean, String commonPath) {
+    public void renameMappingFiles(Map<String, String> mapping, String baseTempDir, PropertiesBean propertiesBean, String commonPath) {
         for (Map.Entry<String, String> entry : mapping.entrySet()) {
-            branch = (branch == null) ? "" : branch;
             String preservedKey = entry.getKey();
             if (!propertiesBean.getPreserveHierarchy()) {
                 if (Utils.isWindows() && commonPath != null && commonPath.contains("\\")) {
@@ -382,7 +382,7 @@ public class CommandUtils extends BaseCli {
                     preservedKey = preservedKey.replaceFirst(commonPath, "");
                 }
             }
-            String key = baseTempDir + PATH_SEPARATOR + branch + PATH_SEPARATOR + preservedKey;
+            String key = baseTempDir + PATH_SEPARATOR + preservedKey;
             key = key.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
             String value = propertiesBean.getBasePath() + PATH_SEPARATOR + entry.getValue();
             value = value.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);

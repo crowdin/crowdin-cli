@@ -817,9 +817,11 @@ Example of configuration file:
 ```
 
 ### Change log
-
-Version 2.0.6
+**Version 2.0.7**
+* Fix bug: when download translations from branch
+**Version 2.0.6**
 * Fix bug: when adding directories or branches with same names
+
 
 ### Seeking Assistance
 
