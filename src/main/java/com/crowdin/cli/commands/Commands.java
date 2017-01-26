@@ -978,8 +978,6 @@ public class Commands extends BaseCli {
             try {
                 List<String> downloadedFiles = commandUtils.getListOfFileFromArchive(downloadedZipArchive, isDebug);
                 List<String> downloadedFilesProc = new ArrayList<>();
-                String b = (branch != null && !branch.isEmpty()) ? "/" + branch + "/" : "";
-                b = b.replaceAll("/+", "/");
                 for (String downloadedFile : downloadedFiles) {
                     if (Utils.isWindows()) {
                         downloadedFile = downloadedFile.replaceAll(PATH_SEPARATOR + "+", "/");
@@ -990,7 +988,6 @@ public class Commands extends BaseCli {
                 Map<String, String> mapping = commandUtils.doLanguagesMapping(projectInfo, supportedLanguages, propertiesBean);
                 List<String> translations = this.list(TRANSLATIONS, "download");
                 for (String translation : translations) {
-                    translation = b + translation;
                     translation = translation.replaceAll("/+", "/");
                     if (!files.contains(translation)) {
                         if (translation.contains(PATH_SEPARATOR)) {
@@ -1013,7 +1010,7 @@ public class Commands extends BaseCli {
                 }
                 commandUtils.sortFilesName(downloadedFilesProc);
                 commandUtils.extractFiles(downloadedFilesProc, files, baseTempDir, ignoreMatch, downloadedZipArchive, mapping, isDebug, branch, propertiesBean, commonPath);
-                commandUtils.renameMappingFiles(mapping, baseTempDir, branch, propertiesBean, commonPath);
+                commandUtils.renameMappingFiles(mapping, baseTempDir, propertiesBean, commonPath);
                 FileUtils.deleteDirectory(new File(baseTempDir));
                 downloadedZipArchive.delete();
             } catch (java.util.zip.ZipException e) {
