@@ -757,7 +757,15 @@ public class CommandUtils extends BaseCli {
                             String fileExt = FilenameUtils.getExtension(f.getName());
                             String fileParent = new File(f.getParent()).getAbsolutePath();
                             if (!propertiesBean.getPreserveHierarchy() && "download".equals(command)) {
-                                fileParent = fileParent.replaceFirst(commonPath, "");
+                                if (Utils.isWindows()) {
+                                    fileParent = fileParent.replaceAll(PATH_SEPARATOR + "+", "/");
+                                    commonPath = commonPath.replaceAll(PATH_SEPARATOR + "+", "/");
+                                    fileParent = fileParent.replaceFirst(commonPath, "");
+                                    fileParent = fileParent.replaceAll("/+", PATH_SEPARATOR);
+                                    commonPath = commonPath.replaceAll("/+", PATH_SEPARATOR);
+                                } else {
+                                    fileParent = Utils.replaceBasePath(fileParent, propertiesBean);
+                                }
                             } else {
                                 fileParent = Utils.replaceBasePath(fileParent, propertiesBean);
                             }
