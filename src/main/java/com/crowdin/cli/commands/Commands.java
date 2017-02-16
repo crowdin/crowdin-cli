@@ -501,14 +501,14 @@ public class Commands extends BaseCli {
                     }
                     if (translationWithReplacedAsterisk != null) {
                         if (translationWithReplacedAsterisk.indexOf("\\") != -1) {
-                            translationWithReplacedAsterisk = translationWithReplacedAsterisk.replaceAll("\\+", "/");
+                            translationWithReplacedAsterisk = translationWithReplacedAsterisk.replaceAll(PATH_SEPARATOR, "/");
                             translationWithReplacedAsterisk = translationWithReplacedAsterisk.replaceAll("/+", "/");
                         }
                         parameters.exportPatterns(preservePath, translationWithReplacedAsterisk);
                     } else {
                         String pattern = file.getTranslation();
                         if (pattern != null && pattern.indexOf("\\") != -1) {
-                            pattern = pattern.replaceAll("\\+", "/");
+                            pattern = pattern.replaceAll(PATH_SEPARATOR, "/");
                             pattern = pattern.replaceAll("/+", "/");
                         }
                         parameters.exportPatterns(preservePath, pattern);
