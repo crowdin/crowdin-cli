@@ -170,7 +170,7 @@ public class CommandUtils extends BaseCli {
                 .headers(HEADER_CLI_VERSION, HEADER_CLI_VERSION_VALUE)
                 .headers(HEADER_JAVA_VERSION, HEADER_JAVA_VERSION_VALUE)
                 .headers(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
-        String[] nodes;
+        String[] nodes = null;
         StringBuilder dirs = new StringBuilder();
         StringBuilder resultDirs = new StringBuilder();
         String filePath = Utils.replaceBasePath(sourcePath, propertiesBean);
@@ -198,70 +198,74 @@ public class CommandUtils extends BaseCli {
             }
         }
         if (file.getDest() != null && !file.getDest().isEmpty() && !this.isSourceContainsPattern(file.getSource())) {
-            nodes = file.getDest().split(PATH_SEPARATOR);
+            if (propertiesBean.getPreserveHierarchy()) {
+                nodes = file.getDest().split(PATH_SEPARATOR);
+            }
         } else {
             nodes = filePath.split(PATH_SEPARATOR);
         }
-        for (String node : nodes) {
-            if (node != null && !node.isEmpty()) {
-                if (!node.equals(nodes[nodes.length - 1])) {
-                    if (dirs.length() == 0) {
-                        dirs.append(node);
-                    } else {
-                        dirs.append(PATH_SEPARATOR)
-                                .append(node);
-                    }
-                    if (resultDirs.length() == 0) {
-                        resultDirs.append(node);
-                    } else {
-                        resultDirs.append(PATH_SEPARATOR)
-                                .append(node);
-                    }
-                    if (directories.contains(resultDirs.toString())) {
-                        continue;
-                    }
-                    if (branch != null && !branch.isEmpty()) {
-                        parametersBuilder.branch(branch);
-                    }
-                    parametersBuilder.json();
-                    String directoryName = resultDirs.toString();
-                    if (directoryName.indexOf(PATH_SEPARATOR) != -1) {
-                        directoryName = directoryName.replaceAll(PATH_SEPARATOR, "/");
-                        directoryName = directoryName.replaceAll("/+","/");
-                    }
-                    parametersBuilder.name(directoryName);
-                    JSONObject dir = null;
-                    try {
-                        directories.add(resultDirs.toString());
-                        ClientResponse clientResponse;
-                        clientResponse = crwdn.addDirectory(credentials, parametersBuilder);
-                        dir = parser.parseJson(clientResponse.getEntity(String.class));
-                        if (isVerbose) {
-                            System.out.println(clientResponse.getHeaders());
-                            System.out.println(dir);
+        if (nodes != null) {
+            for (String node : nodes) {
+                if (node != null && !node.isEmpty()) {
+                    if (!node.equals(nodes[nodes.length - 1])) {
+                        if (dirs.length() == 0) {
+                            dirs.append(node);
+                        } else {
+                            dirs.append(PATH_SEPARATOR)
+                                    .append(node);
                         }
-                    } catch (Exception ex) {
-                        System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + parametersBuilder.getName() + "' failed");
-                    }
-                    if (branch != null && !branch.isEmpty()) {
-                        directoryName = branch + "/" + directoryName;
-                    }
-                    if (dir != null && dir.getBoolean("success")) {
-                        directories.add(resultDirs.toString());
-                        System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - OK");
-                    } else if (dir != null && !dir.getBoolean("success") && dir.getJSONObject("error") != null && dir.getJSONObject("error").getInt("code") == 50
-                            && "Directory with such name already exists".equals(dir.getJSONObject("error").getString("message"))) {
+                        if (resultDirs.length() == 0) {
+                            resultDirs.append(node);
+                        } else {
+                            resultDirs.append(PATH_SEPARATOR)
+                                    .append(node);
+                        }
+                        if (directories.contains(resultDirs.toString())) {
+                            continue;
+                        }
+                        if (branch != null && !branch.isEmpty()) {
+                            parametersBuilder.branch(branch);
+                        }
+                        parametersBuilder.json();
+                        String directoryName = resultDirs.toString();
+                        if (directoryName.indexOf(PATH_SEPARATOR) != -1) {
+                            directoryName = directoryName.replaceAll(PATH_SEPARATOR, "/");
+                            directoryName = directoryName.replaceAll("/+","/");
+                        }
+                        parametersBuilder.name(directoryName);
+                        JSONObject dir = null;
+                        try {
+                            directories.add(resultDirs.toString());
+                            ClientResponse clientResponse;
+                            clientResponse = crwdn.addDirectory(credentials, parametersBuilder);
+                            dir = parser.parseJson(clientResponse.getEntity(String.class));
+                            if (isVerbose) {
+                                System.out.println(clientResponse.getHeaders());
+                                System.out.println(dir);
+                            }
+                        } catch (Exception ex) {
+                            System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + parametersBuilder.getName() + "' failed");
+                        }
+                        if (branch != null && !branch.isEmpty()) {
+                            directoryName = branch + "/" + directoryName;
+                        }
+                        if (dir != null && dir.getBoolean("success")) {
+                            directories.add(resultDirs.toString());
+                            System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - OK");
+                        } else if (dir != null && !dir.getBoolean("success") && dir.getJSONObject("error") != null && dir.getJSONObject("error").getInt("code") == 50
+                                && "Directory with such name already exists".equals(dir.getJSONObject("error").getString("message"))) {
 
-                        //SKIPPED
-                        if (!directories.contains(resultDirs.toString())) {
-                            System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - SKIPPED");
+                            //SKIPPED
+                            if (!directories.contains(resultDirs.toString())) {
+                                System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - SKIPPED");
+                            }
+                        } else {
+                            System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - ERROR");
+                            if (dir != null) {
+                                System.out.println(dir.getJSONObject("error").getString("message"));
+                            }
+                            System.exit(0);
                         }
-                    } else {
-                        System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - ERROR");
-                        if (dir != null) {
-                            System.out.println(dir.getJSONObject("error").getString("message"));
-                        }
-                        System.exit(0);
                     }
                 }
             }
@@ -559,7 +563,7 @@ public class CommandUtils extends BaseCli {
         }
         if (map != null) {
             for (Map.Entry<String, String> hashMap : map.entrySet()) {
-                if ((languageInfo.getString(placeholder).equals(hashMap.getKey()) && localWithUnderscore == null)
+                if ((languageInfo.getString("crowdin_code").equals(hashMap.getKey()) && localWithUnderscore == null)
                         || (localWithUnderscore != null && localWithUnderscore.equals(hashMap.getKey()))) {
                     mappingTranslations = mappingTranslations.replace(pattern, hashMap.getValue());
                     isMapped = true;

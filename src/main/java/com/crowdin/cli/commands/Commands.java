@@ -17,6 +17,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
@@ -438,13 +439,17 @@ public class Commands extends BaseCli {
                 File sourceFile = new File(source);
                 Boolean isDest = file.getDest() != null && !file.getDest().isEmpty() && !this.commandUtils.isSourceContainsPattern(file.getSource());
                 String preservePath = file.getDest();
-                if (!isDest) {
-                    preservePath = this.commandUtils.preserveHierarchy(file, sourceFile.getAbsolutePath(), commonPath, this.propertiesBean, this.branch, this.credentials, this.isVerbose);
-                    preservePath = preservePath + PATH_SEPARATOR + sourceFile.getName();
-                    preservePath = preservePath.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
-                    if (preservePath.startsWith(PATH_SEPARATOR)) {
-                        preservePath = preservePath.replaceFirst(PATH_SEPARATOR, "");
-                    }
+                preservePath = this.commandUtils.preserveHierarchy(file, sourceFile.getAbsolutePath(), commonPath, this.propertiesBean, this.branch, this.credentials, this.isVerbose);
+                String fName;
+                if (isDest) {
+                    fName = new File(file.getDest()).getName();
+                } else {
+                    fName = sourceFile.getName();
+                }
+                preservePath = preservePath + PATH_SEPARATOR + fName;
+                preservePath = preservePath.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
+                if (preservePath.startsWith(PATH_SEPARATOR)) {
+                    preservePath = preservePath.replaceFirst(PATH_SEPARATOR, "");
                 }
                 CrowdinApiParametersBuilder parameters = new CrowdinApiParametersBuilder();
                 parameters.headers(HEADER_ACCEPT, HEADER_ACCAEPT_VALUE)
@@ -494,24 +499,31 @@ public class Commands extends BaseCli {
                     if (translations.contains("**")) {
                         translationWithReplacedAsterisk = this.commandUtils.replaceDoubleAsteriskInTranslation(file.getTranslation(), sourceFile.getAbsolutePath(), file.getSource(), this.propertiesBean);
                     }
-                    if (file.getDest() != null && !file.getDest().isEmpty() && !this.commandUtils.isSourceContainsPattern(file.getSource())) {
-                        parameters.exportPatterns(file.getDest(), file.getTranslation());
-                    } else if (translationWithReplacedAsterisk != null) {
+                    if (translationWithReplacedAsterisk != null) {
+                        if (translationWithReplacedAsterisk.indexOf("\\") != -1) {
+                            translationWithReplacedAsterisk = translationWithReplacedAsterisk.replaceAll("\\+", "/");
+                            translationWithReplacedAsterisk = translationWithReplacedAsterisk.replaceAll("/+", "/");
+                        }
                         parameters.exportPatterns(preservePath, translationWithReplacedAsterisk);
                     } else {
-                        parameters.exportPatterns(preservePath, file.getTranslation());
+                        String pattern = file.getTranslation();
+                        if (pattern != null && pattern.indexOf("\\") != -1) {
+                            pattern = pattern.replaceAll("\\+", "/");
+                            pattern = pattern.replaceAll("/+", "/");
+                        }
+                        parameters.exportPatterns(preservePath, pattern);
                     }
                 }
-                if (sourceFile.getAbsolutePath() != null && !sourceFile.getAbsolutePath().isEmpty() && file.getDest() != null && !file.getDest().isEmpty() && !commandUtils.isSourceContainsPattern(file.getSource())) {
-                    parameters.titles(sourceFile.getAbsolutePath(), file.getDest());
-                }
                 parameters.json();
+                String outPath;
                 if (this.branch != null && !this.branch.isEmpty()) {
-                    preservePath = this.branch + "/" + preservePath;
-                    preservePath = preservePath.replaceAll("/+", "/");
-                    preservePath = preservePath.replaceAll("\\+", "\\");
+                    outPath = this.branch + "/" + preservePath;
+                    outPath = outPath.replaceAll("/+", "/");
+                    outPath = outPath.replaceAll("\\+", "\\");
+                } else {
+                    outPath = preservePath;
                 }
-                System.out.print(RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'");
+                System.out.print(RESOURCE_BUNDLE.getString("uploading_file") + " '" + outPath + "'");
                 Thread spinner = new Thread(new Runnable() {
                     @Override
                     public void run() {
@@ -543,7 +555,22 @@ public class Commands extends BaseCli {
                     if (result != null && !result.getBoolean(RESPONSE_SUCCESS)) {
                         if (result.getJSONObject(RESPONSE_ERROR) != null && result.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE) == 5) {
                             try {
+                                File destFile = null;
+                                if (isDest) {
+                                    String destExt = file.getDest().substring(file.getDest().lastIndexOf("."));
+                                    if (destExt != null && !sourceFile.getName().endsWith(destExt)) {
+                                        destFile = new File(sourceFile.getParent() + PATH_SEPARATOR + new Timestamp(System.currentTimeMillis()).getTime() + destExt);
+                                        FileUtils.copyFile(sourceFile, destFile);
+                                        parameters.files(destFile.getAbsolutePath());
+                                        parameters.titles(destFile.getAbsolutePath(), preservePath);
+                                    }
+                                }
                                 clientResponse = crwdn.updateFile(credentials, parameters);
+                                if (isDest && destFile != null && destFile.isFile()) {
+                                    if (!destFile.delete()) {
+                                        System.out.println("Temporary file '" + destFile.getAbsolutePath() + "' needs to be deleted");
+                                    }
+                                }
                                 spinner.stop();
                             } catch (Exception e) {
                                 System.out.println(" - ERROR");
@@ -708,6 +735,15 @@ public class Commands extends BaseCli {
                             Boolean isDest = file.getDest() != null && !file.getDest().isEmpty() && !this.commandUtils.isSourceContainsPattern(file.getSource());
                             if (isDest) {
                                 translationSrc = file.getDest();
+                                if (!propertiesBean.getPreserveHierarchy()) {
+                                    if (translationSrc.lastIndexOf(PATH_SEPARATOR) != -1) {
+                                        translationSrc = translationSrc.substring(translationSrc.lastIndexOf(PATH_SEPARATOR));
+                                    }
+                                    translationSrc = translationSrc.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
+                                }
+                                if (translationSrc.startsWith(PATH_SEPARATOR)) {
+                                    translationSrc = translationSrc.replaceFirst(PATH_SEPARATOR, "");
+                                }
                             }
                             parameters.files(translationFile.getAbsolutePath());
                             parameters.titles(translationFile.getAbsolutePath(), translationSrc);

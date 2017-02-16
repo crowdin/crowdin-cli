@@ -817,6 +817,11 @@ Example of configuration file:
 ```
 
 ### Change log
+**Version 2.0.9**
++ Fix bug: improved work with 'dest' option
++ Fix bug: language mapping processing
++ Fix bug: improved export pattern on Windows OS
+
 **Version 2.0.8**
 + Fix bug: when download translations on Windows OS
 
