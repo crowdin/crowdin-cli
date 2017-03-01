@@ -126,7 +126,7 @@ public class Commands extends BaseCli {
             this.propertiesBean.setBaseUrl(commandUtils.getBaseUrl(this.propertiesBean));
             this.credentials = new Credentials(this.propertiesBean.getBaseUrl(), this.propertiesBean.getProjectIdentifier(), this.propertiesBean.getApiKey(), this.propertiesBean.getAccountKey(), Utils.getUserAgent());
             this.initCli();
-            String basePath = commandUtils.getBasePath(this.propertiesBean, this.configFile);
+            String basePath = commandUtils.getBasePath(this.propertiesBean, this.configFile, this.isDebug);
             if (basePath != null) {
                 this.propertiesBean.setBasePath(basePath);
             } else {

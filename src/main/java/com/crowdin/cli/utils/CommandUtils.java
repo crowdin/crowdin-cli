@@ -18,6 +18,7 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.zip.ZipEntry;
@@ -906,7 +907,7 @@ public class CommandUtils extends BaseCli {
         return baseUrl;
     }
 
-    public String getBasePath(PropertiesBean propertiesBean, File configurationFile) {
+    public String getBasePath(PropertiesBean propertiesBean, File configurationFile, boolean isDebug) {
         String basePath = propertiesBean.getBasePath();
         String result = null;
         if (basePath != null && Paths.get(basePath) != null) {
@@ -914,8 +915,16 @@ public class CommandUtils extends BaseCli {
                 result = basePath;
             } else if (configurationFile != null && configurationFile.isFile()) {
                 basePath = (basePath == null || ".".equals(basePath)) ? "" : basePath;
-                result =  Paths.get(configurationFile.getAbsolutePath()).getParent() + PATH_SEPARATOR + basePath;
-                result = result.replaceAll(PATH_SEPARATOR + "+",  PATH_SEPARATOR);
+                Path parentPath = Paths.get(configurationFile.getAbsolutePath()).getParent();
+                File base = new File(parentPath.toFile(), basePath);
+                try {
+                    result = base.getCanonicalPath();
+                } catch (IOException e) {
+                    System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
+                    if (isDebug) {
+                        e.printStackTrace();
+                    }
+                }
             }
         } else if (configurationFile != null && configurationFile.isFile()) {
             basePath = (basePath == null) ? "" : basePath;
