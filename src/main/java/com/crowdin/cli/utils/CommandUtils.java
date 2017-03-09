@@ -84,31 +84,25 @@ public class CommandUtils extends BaseCli {
         if (sources == null || sources.isEmpty()) {
             System.exit(0);
         }
-        int position;
         if (translations.contains("**")) {
             sources = Utils.replaceBasePath(sources, propertiesBean);
-            if (sources.startsWith(PATH_SEPARATOR) || sources.startsWith(File.separator)) {
-                position = 2;
-            } else {
-                position = 1;
-            }
-            String[] sourceNodes = sources.split(PATH_SEPARATOR);
-            int srcLength = sourceNodes.length;
-            int srcPatternLength = source.split(PATH_SEPARATOR).length;
             String replacement = "";
-            for (int i = srcPatternLength; i<=srcLength; i++) {
-                replacement+= PATH_SEPARATOR + sourceNodes[i-position];
-            }
-            if (replacement.indexOf("\\") >= 0) {
-                if (replacement.indexOf("\\") <= replacement.length()) {
-                    replacement = replacement.substring(replacement.indexOf("\\"));
+            if (source.contains("**")) {
+                if (source.contains("\\")) {
+                    source = source.replaceAll("\\\\", "/");
+                    source = source.replaceAll("/+", "/");
                 }
-            } else if (replacement.indexOf(PATH_SEPARATOR) >= 0) {
-                if (replacement.indexOf(PATH_SEPARATOR) <= replacement.length()) {
-                    replacement = replacement.substring(replacement.indexOf(PATH_SEPARATOR));
+                if (sources.contains("\\")) {
+                    sources = sources.replaceAll("\\\\", "/");
+                    sources = sources.replaceAll("/+", "/");
                 }
-            } else {
-                replacement = "";
+                String[] sourceNodes = source.split("\\*\\*");
+                for (int i=0; i<sourceNodes.length; i++) {
+                    if (sources.contains(sourceNodes[i])) {
+                        sources = sources.replaceFirst(sourceNodes[i], "");
+                    }
+                }
+                replacement = sources;
             }
             translations = translations.replace("**", replacement);
             translations = translations.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);

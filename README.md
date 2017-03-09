@@ -817,6 +817,10 @@ Example of configuration file:
 ```
 
 ### Change log
+**Version 2.0.11**
++ Fix bug: improved work with commands options
++ Fix bug: improved work with `**` in export pattern
+
 **Version 2.0.10**
 + Fix bug: improved work with relative paths
 
