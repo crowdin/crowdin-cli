@@ -221,9 +221,9 @@ public class Commands extends BaseCli {
                 }
                 break;
             case UPLOAD_TRANSLATIONS :
-                boolean isImportDuplicates = commandLine.getOptionValue(CrowdinCliOptions.IMPORT_DUPLICATES) != null;
-                boolean isImportEqSuggestions = commandLine.getOptionValue(CrowdinCliOptions.IMPORT_EQ_SUGGESTIONS) != null;
-                boolean isAutoApproveImported = commandLine.getOptionValue(CrowdinCliOptions.AUTO_APPROVE_IMPORTED) != null;
+                boolean isImportDuplicates = commandLine.hasOption(CrowdinCliOptions.IMPORT_DUPLICATES);
+                boolean isImportEqSuggestions = commandLine.hasOption(CrowdinCliOptions.IMPORT_EQ_SUGGESTIONS);
+                boolean isAutoApproveImported = commandLine.hasOption(CrowdinCliOptions.AUTO_APPROVE_IMPORTED);
                 if (this.help) {
                     this.cliOptions.cmdUploadTranslationsOptions();
                 } else {
