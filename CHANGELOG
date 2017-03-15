@@ -1,0 +1,23 @@
+**Version 2.0.12**
++ Fix bug: improved work with export pattern
+
+**Version 2.0.11**
++ Fix bug: improved work with commands options
++ Fix bug: improved work with `**` in export pattern
+
+**Version 2.0.10**
++ Fix bug: improved work with relative paths
+
+**Version 2.0.9**
++ Fix bug: improved work with 'dest' option
++ Fix bug: language mapping processing
++ Fix bug: improved export pattern on Windows OS
+
+**Version 2.0.8**
++ Fix bug: when download translations on Windows OS
+
+**Version 2.0.7**
++ Fix bug: when download translations from branch
+
+**Version 2.0.6**
++ Fix bug: when adding directories or branches with same names
