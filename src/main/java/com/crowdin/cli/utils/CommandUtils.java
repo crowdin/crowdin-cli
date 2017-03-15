@@ -378,7 +378,12 @@ public class CommandUtils extends BaseCli {
                 commonPath = commonPath.replaceAll("/+", "/");
                 preservedKey = preservedKey.replaceAll("/+", "/");
                 if (preservedKey.startsWith(commonPath)) {
-                    preservedKey = preservedKey.replaceFirst(commonPath, "");
+                    for (FileBean file : propertiesBean.getFiles()) {
+                        String ep = file.getTranslation();
+                        if (ep != null && !ep.startsWith(commonPath)) {
+                            preservedKey = preservedKey.replaceFirst(commonPath, "");
+                        }
+                    }
                 }
             }
             String key = baseTempDir + PATH_SEPARATOR + preservedKey;
@@ -468,7 +473,12 @@ public class CommandUtils extends BaseCli {
             }
             if (!propertiesBean.getPreserveHierarchy()) {
                 if (k.startsWith(commonPath)) {
-                    k = k.replaceFirst(commonPath, "");
+                    for (FileBean file : propertiesBean.getFiles()) {
+                        String ep = file.getTranslation();
+                        if (ep != null && !ep.startsWith(commonPath)) {
+                            k = k.replaceFirst(commonPath, "");
+                        }
+                    }
                 }
             }
             if (k.startsWith("/")) {
