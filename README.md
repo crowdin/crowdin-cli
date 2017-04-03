@@ -817,6 +817,9 @@ Example of configuration file:
 ```
 
 ### Change log
+**Version 2.0.13**
++ Fix bug: updating file with different extension in `source` and `dest`
+
 **Version 2.0.12**
 + Fix bug: improved work with export pattern
 

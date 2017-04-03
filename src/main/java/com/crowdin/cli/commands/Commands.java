@@ -555,22 +555,7 @@ public class Commands extends BaseCli {
                     if (result != null && !result.getBoolean(RESPONSE_SUCCESS)) {
                         if (result.getJSONObject(RESPONSE_ERROR) != null && result.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE) == 5) {
                             try {
-                                File destFile = null;
-                                if (isDest) {
-                                    String destExt = file.getDest().substring(file.getDest().lastIndexOf("."));
-                                    if (destExt != null && !sourceFile.getName().endsWith(destExt)) {
-                                        destFile = new File(sourceFile.getParent() + PATH_SEPARATOR + new Timestamp(System.currentTimeMillis()).getTime() + destExt);
-                                        FileUtils.copyFile(sourceFile, destFile);
-                                        parameters.files(destFile.getAbsolutePath());
-                                        parameters.titles(destFile.getAbsolutePath(), preservePath);
-                                    }
-                                }
                                 clientResponse = crwdn.updateFile(credentials, parameters);
-                                if (isDest && destFile != null && destFile.isFile()) {
-                                    if (!destFile.delete()) {
-                                        System.out.println("Temporary file '" + destFile.getAbsolutePath() + "' needs to be deleted");
-                                    }
-                                }
                                 spinner.stop();
                             } catch (Exception e) {
                                 System.out.println(" - ERROR");
