@@ -706,6 +706,7 @@ public class CommandUtils extends BaseCli {
                                 String k = this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean);
                                 String v = this.replaceDoubleAsteriskInTranslation(temporaryTranslationsMapping, f.getAbsolutePath(), file.getSource(), propertiesBean);
                                 k = k.replaceAll(PATH_SEPARATOR, "/");
+                                k = k.replaceAll("/+", "/");
                                 mapping.put(k, v);
                             }
                         } else {
@@ -713,6 +714,7 @@ public class CommandUtils extends BaseCli {
                                 String k = this.replaceDoubleAsteriskInTranslation(translationsBase, this.getSourcesWithoutIgnores(file, propertiesBean).get(0), file.getSource(), propertiesBean);
                                 String v = this.replaceDoubleAsteriskInTranslation(translationsMapping, this.getSourcesWithoutIgnores(file, propertiesBean).get(0), file.getSource(), propertiesBean);
                                 k = k.replaceAll(PATH_SEPARATOR, "/");
+                                k = k.replaceAll("/+", "/");
                                 mapping.put(k, v);
                             }
                         }
