@@ -194,7 +194,15 @@ public class CommandUtils extends BaseCli {
         }
         if (file.getDest() != null && !file.getDest().isEmpty() && !this.isSourceContainsPattern(file.getSource())) {
             if (propertiesBean.getPreserveHierarchy()) {
-                nodes = file.getDest().split(PATH_SEPARATOR);
+                if (file.getDest().contains(PATH_SEPARATOR)) {
+                    nodes = file.getDest().split(PATH_SEPARATOR);
+                } else {
+                    if (filePath.contains(PATH_SEPARATOR)) {
+                        nodes = filePath.split(PATH_SEPARATOR);
+                    } else {
+                        nodes = filePath.split("/");
+                    }
+                }
             }
         } else {
             nodes = filePath.split(PATH_SEPARATOR);
