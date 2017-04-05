@@ -673,7 +673,7 @@ public class Commands extends BaseCli {
                             if (Utils.isWindows() && translation.contains("\\")) {
                                 translation = translation.replaceAll("\\\\+", "/").replaceAll("  \\+", "/");
                             }
-                            if (mapping != null && mapping.get(translation) != null) {
+                            if (mapping != null && (mapping.get(translation) != null || mapping.get("/" + translation) != null)) {
                                 mappedTranslations = mapping.get(translation);
                             }
                             mappedTranslations = propertiesBean.getBasePath() + PATH_SEPARATOR + mappedTranslations;

@@ -194,18 +194,10 @@ public class CommandUtils extends BaseCli {
         }
         if (file.getDest() != null && !file.getDest().isEmpty() && !this.isSourceContainsPattern(file.getSource())) {
             if (propertiesBean.getPreserveHierarchy()) {
-                if (file.getDest().contains(PATH_SEPARATOR)) {
-                    nodes = file.getDest().split(PATH_SEPARATOR);
-                } else {
-                    nodes = file.getDest().split("/");
-                }
+                nodes = file.getDest().split(PATH_SEPARATOR);
             }
         } else {
-            if (filePath.contains(PATH_SEPARATOR)) {
-                nodes = filePath.split(PATH_SEPARATOR);
-            } else {
-                nodes = filePath.split("/");
-            }
+            nodes = filePath.split(PATH_SEPARATOR);
         }
         if (nodes != null) {
             for (String node : nodes) {
@@ -706,6 +698,7 @@ public class CommandUtils extends BaseCli {
                                 String k = this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean);
                                 String v = this.replaceDoubleAsteriskInTranslation(temporaryTranslationsMapping, f.getAbsolutePath(), file.getSource(), propertiesBean);
                                 k = k.replaceAll(PATH_SEPARATOR, "/");
+                                k = k.replaceAll("/+", "/");
                                 mapping.put(k, v);
                             }
                         } else {
@@ -713,6 +706,7 @@ public class CommandUtils extends BaseCli {
                                 String k = this.replaceDoubleAsteriskInTranslation(translationsBase, this.getSourcesWithoutIgnores(file, propertiesBean).get(0), file.getSource(), propertiesBean);
                                 String v = this.replaceDoubleAsteriskInTranslation(translationsMapping, this.getSourcesWithoutIgnores(file, propertiesBean).get(0), file.getSource(), propertiesBean);
                                 k = k.replaceAll(PATH_SEPARATOR, "/");
+                                k = k.replaceAll("/+", "/");
                                 mapping.put(k, v);
                             }
                         }
