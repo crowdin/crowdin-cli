@@ -208,8 +208,6 @@ public class Commands extends BaseCli {
 
         switch (resultCmd) {
             case UPLOAD :
-                cliOptions.cmdUploadOptions();
-                break;
             case UPLOAD_SOURCES :
                 boolean isAutoUpdate = commandLine.getOptionValue(COMMAND_NO_AUTO_UPDATE) == null;
                 if (this.help) {
@@ -877,7 +875,7 @@ public class Commands extends BaseCli {
         }
     }
 
-    public void downloadTranslation(boolean ignoreMatch) {
+    private void download(String lang, boolean ignoreMatch) {
         JSONObject result;
         CrowdinApiClient crwdn = new Crwdn();
         Parser parser = new Parser();
@@ -894,15 +892,21 @@ public class Commands extends BaseCli {
                 }
             }
         });
+        String projectLanguage;
+        if (language != null) {
+            projectLanguage = language;
+        } else {
+            projectLanguage = lang;
+        }
         if (branch != null) {
             crowdinApiParametersBuilder.branch(branch);
         }
-        if (language != null) {
-            crowdinApiParametersBuilder.downloadPackage(language);
-            crowdinApiParametersBuilder.exportLanguage(language);
+        if (projectLanguage != null) {
+            crowdinApiParametersBuilder.downloadPackage(projectLanguage);
+            crowdinApiParametersBuilder.exportLanguage(projectLanguage);
         }
         crowdinApiParametersBuilder.json();
-        System.out.print(RESOURCE_BUNDLE.getString("build_archive"));
+        System.out.print(RESOURCE_BUNDLE.getString("build_archive") + " for '" + projectLanguage + "'");
         ClientResponse clientResponse = null;
         try {
             spinner.start();
@@ -928,7 +932,7 @@ public class Commands extends BaseCli {
                 if (result.getJSONObject(RESPONSE_ERROR) != null && result.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE) == 10
                         && "Language was not found".equals(result.getJSONObject(RESPONSE_ERROR).getString(RESPONSE_MESSAGE))) {
                     System.out.println(" - error");
-                    System.out.println("language '" + language + "' does not exist in the project");
+                    System.out.println("language '" + projectLanguage + "' does not exist in the project");
                 } else if (result.getJSONObject(RESPONSE_ERROR) != null && result.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE) == 17
                         && "Specified directory was not found".equals(result.getJSONObject(RESPONSE_ERROR).getString(RESPONSE_MESSAGE))) {
                     System.out.println("error");
@@ -948,9 +952,9 @@ public class Commands extends BaseCli {
                     .headers(HEADER_CLI_VERSION, HEADER_CLI_VERSION_VALUE)
                     .headers(HEADER_JAVA_VERSION, HEADER_JAVA_VERSION_VALUE)
                     .headers(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
-            if (language != null) {
-                crowdinApiParametersBuilder.downloadPackage(language);
-                fileName = language + ".zip";
+            if (projectLanguage != null) {
+                crowdinApiParametersBuilder.downloadPackage(projectLanguage);
+                fileName = projectLanguage + ".zip";
             } else {
                 crowdinApiParametersBuilder.downloadPackage("all");
                 fileName = "all.zip";
@@ -1043,6 +1047,23 @@ public class Commands extends BaseCli {
                 System.out.println(RESOURCE_BUNDLE.getString("error_extracting_files"));
                 if (isDebug) {
                     e.printStackTrace();
+                }
+            }
+        }
+    }
+
+    public void downloadTranslation(boolean ignoreMatch) {
+        Parser parser = new Parser();
+        if (language != null) {
+            this.download(language, ignoreMatch);
+        } else {
+            JSONArray projectLanguages = projectInfo.getJSONArray("languages");
+            for (Object projectLanguage : projectLanguages) {
+                JSONObject languages = parser.parseJson(projectLanguage.toString());
+                if (languages != null && languages.getString("code") != null) {
+                    JSONObject languageInfo = commandUtils.getLanguageInfo(languages.getString("name"), supportedLanguages);
+                    String crowdinCode = languageInfo.getString("crowdin_code");
+                    this.download(crowdinCode, ignoreMatch);
                 }
             }
         }
