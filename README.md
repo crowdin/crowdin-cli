@@ -817,8 +817,10 @@ Example of configuration file:
 ```
 
 ### Change log
-**Version 2.0.13**
-+ Fix bug: updating file with different extension in `source` and `dest`
+**Version 2.0.14**
++ Fix bug: improved work with `preserve_hierarchy` option
++ Downloading translations for each language separately
+
 
 **Version 2.0.12**
 + Fix bug: improved work with export pattern

@@ -580,8 +580,7 @@ public class CommandUtils extends BaseCli {
         }
         if (map != null) {
             for (Map.Entry<String, String> hashMap : map.entrySet()) {
-                if ((languageInfo.getString("crowdin_code").equals(hashMap.getKey()) && localWithUnderscore == null)
-                        || (localWithUnderscore != null && localWithUnderscore.equals(hashMap.getKey()))) {
+                if (languageInfo.getString("crowdin_code").equals(hashMap.getKey())) {
                     mappingTranslations = mappingTranslations.replace(pattern, hashMap.getValue());
                     isMapped = true;
                     break;
