@@ -196,6 +196,8 @@ public class CommandUtils extends BaseCli {
             if (propertiesBean.getPreserveHierarchy()) {
                 if (file.getDest().contains(PATH_SEPARATOR)) {
                     nodes = file.getDest().split(PATH_SEPARATOR);
+                } else if (file.getDest().contains("\\")) {
+                    nodes = file.getDest().split("\\\\");
                 } else {
                     nodes = file.getDest().split("/");
                 }
@@ -203,6 +205,8 @@ public class CommandUtils extends BaseCli {
         } else {
             if (filePath.contains(PATH_SEPARATOR)) {
                 nodes = filePath.split(PATH_SEPARATOR);
+            } else if (filePath.contains("\\")) {
+                nodes = filePath.split("\\\\");
             } else {
                 nodes = filePath.split("/");
             }
@@ -576,8 +580,7 @@ public class CommandUtils extends BaseCli {
         }
         if (map != null) {
             for (Map.Entry<String, String> hashMap : map.entrySet()) {
-                if ((languageInfo.getString("crowdin_code").equals(hashMap.getKey()) && localWithUnderscore == null)
-                        || (localWithUnderscore != null && localWithUnderscore.equals(hashMap.getKey()))) {
+                if (languageInfo.getString("crowdin_code").equals(hashMap.getKey())) {
                     mappingTranslations = mappingTranslations.replace(pattern, hashMap.getValue());
                     isMapped = true;
                     break;
