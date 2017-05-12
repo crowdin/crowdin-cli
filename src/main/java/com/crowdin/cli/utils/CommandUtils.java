@@ -12,6 +12,7 @@ import com.sun.jersey.api.client.ClientResponse;
 import net.lingala.zip4j.core.ZipFile;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -100,6 +101,8 @@ public class CommandUtils extends BaseCli {
                 for (int i=0; i<sourceNodes.length; i++) {
                     if (sources.contains(sourceNodes[i])) {
                         sources = sources.replaceFirst(sourceNodes[i], "");
+                    } else if (sourceNodes.length - 1 == i && StringUtils.indexOfAny(sourceNodes[i], new String[]{"*", "?", "[", "]"}) > 0) {
+                        sources = sources.substring(0, sources.lastIndexOf("/"));
                     }
                 }
                 replacement = sources;
