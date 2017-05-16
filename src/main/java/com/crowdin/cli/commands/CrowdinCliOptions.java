@@ -233,7 +233,7 @@ public class CrowdinCliOptions {
         header.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("command_upload_description_long"));
         footer.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("commands").toUpperCase());
         footer.append(NEW_LINE + "sources    -     ").append(RESOURCE_BUNDLE.getString("subcommand_sources"));
-        footer.append(NEW_LINE + "transaltions -   ").append(RESOURCE_BUNDLE.getString("subcommand_translations"));
+        footer.append(NEW_LINE + "translations -   ").append(RESOURCE_BUNDLE.getString("subcommand_translations"));
         footer.append(NEW_LINE);
         formatter.printHelp(cmdLineSyntax, header.toString(), options, footer.toString(), false);
     }
