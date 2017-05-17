@@ -284,10 +284,10 @@ public class Commands extends BaseCli {
                 }
                 break;
             case HELP :
-                boolean c = commandLine.hasOption(HELP_C);
+                boolean p = commandLine.hasOption(HELP_P);
                 if (this.help) {
                     this.cliOptions.cmdHelpOptions();
-                } else if (c) {
+                } else if (p) {
                     System.out.println(UPLOAD);
                     System.out.println(DOWNLOAD);
                     System.out.println(LIST);
