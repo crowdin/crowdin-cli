@@ -817,10 +817,16 @@ Example of configuration file:
 ```
 
 ### Change log
+**Version 2.0.15**
++ Fix bug: improved work with wildcard in export pattern
++ Fix bug: improved work with language mapping
++ Fix bug: improved work with update source file with `dest` option
++ Added support of short option `-c` for set configuration file
++ Improved performance
+
 **Version 2.0.14**
 + Fix bug: improved work with `preserve_hierarchy` option
 + Downloading translations for each language separately
-
 
 **Version 2.0.12**
 + Fix bug: improved work with export pattern
