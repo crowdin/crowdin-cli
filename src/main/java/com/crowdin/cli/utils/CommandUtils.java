@@ -126,13 +126,13 @@ public class CommandUtils extends BaseCli {
                 return result;
             }
             for (File source : sources) {
-                if (source == null || !source.isFile()) {
+                if (source == null) {
                     continue;
                 }
                 if (ignores.size() > 0) {
                     boolean isIgnore = false;
                     for (File ignore : ignores) {
-                        if (ignore != null && ignore.isFile()) {
+                        if (ignore != null) {
                             if (source.getAbsolutePath() != null && ignore.getAbsolutePath() != null && source.getAbsolutePath().equals(ignore.getAbsolutePath())) {
                                 isIgnore = true;
                                 break;
@@ -149,9 +149,7 @@ public class CommandUtils extends BaseCli {
         } else {
             if (sources != null && sources.size() > 0) {
                 for (File source : sources) {
-                    if (source.isFile()) {
-                        result.add(source.getAbsolutePath());
-                    }
+                    result.add(source.getAbsolutePath());
                 }
             }
         }

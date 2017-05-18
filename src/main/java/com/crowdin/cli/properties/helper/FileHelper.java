@@ -120,12 +120,10 @@ public class FileHelper {
                     }
                     if (resultListTemp != null && resultListTemp.size() > 0) {
                         for (File f : resultListTemp) {
-                            if (f.isFile()) {
-                                resultList.add(f);
-                            } else if (f.isDirectory()) {
+                            if (f.isDirectory()) {
                                 resultList.addAll(this.getFilesFromDirectory(f));
                             } else {
-                                continue;
+                                resultList.add(f);
                             }
                         }
                     }
@@ -169,12 +167,10 @@ public class FileHelper {
                 File[] files = dir.listFiles();
                 if (files != null) {
                     for (File f : files) {
-                        if (f.isFile()) {
-                            result.add(f);
-                        } else if (f.isDirectory()) {
+                        if (f.isDirectory()) {
                             result.addAll(this.getFilesFromDirectory(f));
                         } else {
-                            continue;
+                            result.add(f);
                         }
                     }
                 }
@@ -216,7 +212,7 @@ public class FileHelper {
                     } else {
                         absolutePath.append(node);
                         File tmpFile = new File(absolutePath.toString());
-                        if (tmpFile.isFile() || tmpFile.isDirectory()) {
+                        if (tmpFile.exists()) {
                             resultList.add(tmpFile);
                         }
                     }

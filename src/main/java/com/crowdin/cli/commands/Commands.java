@@ -1176,7 +1176,7 @@ public class Commands extends BaseCli {
                             File treeFile = new File(preservePath);
                             if (treeFile.isDirectory()) {
                                 resultFiles.append(node).append(PATH_SEPARATOR);
-                            } else if (treeFile.isFile()) {
+                            } else {
                                 resultFiles.append(node);
                             }
                         }
