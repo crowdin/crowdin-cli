@@ -436,13 +436,15 @@ public class Commands extends BaseCli {
             for (String source : sources) {
                 File sourceFile = new File(source);
                 Boolean isDest = file.getDest() != null && !file.getDest().isEmpty() && !this.commandUtils.isSourceContainsPattern(file.getSource());
-                String preservePath = file.getDest();
-                preservePath = this.commandUtils.preserveHierarchy(file, sourceFile.getAbsolutePath(), commonPath, this.propertiesBean, this.branch, this.credentials, this.isVerbose);
+                String preservePath;
                 String fName;
                 if (isDest) {
-                    fName = new File(file.getDest()).getName();
+                    File _f = new File(file.getDest());
+                    fName = _f.getName();
+                    preservePath = _f.getParent();
                 } else {
                     fName = sourceFile.getName();
+                    preservePath = this.commandUtils.preserveHierarchy(file, sourceFile.getAbsolutePath(), commonPath, this.propertiesBean, this.branch, this.credentials, this.isVerbose);
                 }
                 preservePath = preservePath + PATH_SEPARATOR + fName;
                 preservePath = preservePath.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
