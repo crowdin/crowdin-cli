@@ -1,14 +1,11 @@
 package com.crowdin.cli.utils;
 
 import com.crowdin.cli.properties.PropertiesBean;
+import org.apache.commons.lang3.SystemUtils;
 
-import java.io.File;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
 import java.util.ResourceBundle;
-
-import org.apache.commons.lang3.SystemUtils;
 
 /**
  * @author ihor
@@ -111,7 +108,7 @@ public class Utils {
             System.exit(0);
         }
         String result;
-        if (propertiesBean !=  null && propertiesBean.getBasePath() != null) {
+        if (propertiesBean !=  null && propertiesBean.getBasePath() != null && !propertiesBean.getBasePath().isEmpty()) {
             path = path.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
             result = path.replace(propertiesBean.getBasePath(), PATH_SEPARATOR);
         } else {

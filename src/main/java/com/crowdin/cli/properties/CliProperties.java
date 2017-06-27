@@ -245,7 +245,7 @@ public class CliProperties {
         if (pb.getPreserveHierarchy() == null) {
             pb.setPreserveHierarchy(Boolean.FALSE);
         }
-        if (pb.getBasePath() != null) {
+        if (pb.getBasePath() != null && !pb.getBasePath().isEmpty()) {
             if (!Paths.get(pb.getBasePath()).isAbsolute()){
                 System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
                 System.exit(0);
