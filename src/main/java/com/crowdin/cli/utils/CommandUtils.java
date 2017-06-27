@@ -11,6 +11,7 @@ import com.crowdin.parameters.CrowdinApiParametersBuilder;
 import com.sun.jersey.api.client.ClientResponse;
 import net.lingala.zip4j.core.ZipFile;
 import org.apache.commons.cli.CommandLine;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -102,7 +103,11 @@ public class CommandUtils extends BaseCli {
                     if (sources.contains(sourceNodes[i])) {
                         sources = sources.replaceFirst(sourceNodes[i], "");
                     } else if (sourceNodes.length - 1 == i && StringUtils.indexOfAny(sourceNodes[i], new String[]{"*", "?", "[", "]"}) > 0) {
-                        sources = sources.substring(0, sources.lastIndexOf("/"));
+                        if (sources.lastIndexOf("/") > 0) {
+                            sources = sources.substring(0, sources.lastIndexOf("/"));
+                        } else if (sources.contains(".")) {
+                            sources = "";
+                        }
                     }
                 }
                 replacement = sources;
@@ -393,7 +398,7 @@ public class CommandUtils extends BaseCli {
                 if (preservedKey.startsWith(commonPath)) {
                     for (FileBean file : propertiesBean.getFiles()) {
                         String ep = file.getTranslation();
-                        if (ep != null && !ep.startsWith(commonPath)) {
+                        if (ep != null && !ep.startsWith(commonPath) && !this.isSourceContainsPattern(ep)) {
                             preservedKey = preservedKey.replaceFirst(commonPath, "");
                         }
                     }
@@ -488,7 +493,7 @@ public class CommandUtils extends BaseCli {
                 if (k.startsWith(commonPath)) {
                     for (FileBean file : propertiesBean.getFiles()) {
                         String ep = file.getTranslation();
-                        if (ep != null && !ep.startsWith(commonPath)) {
+                        if (ep != null && !ep.startsWith(commonPath) && !this.isSourceContainsPattern(ep)) {
                             k = k.replaceFirst(commonPath, "");
                         }
                     }
@@ -545,6 +550,9 @@ public class CommandUtils extends BaseCli {
                 downloadedFiles.add(fname);
             }
         }
+        try {
+            zipFile.close();
+        } catch (IOException e) {}
         return downloadedFiles;
     }
 
