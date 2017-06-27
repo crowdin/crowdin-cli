@@ -31,7 +31,7 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 
 Crowdin CLI can be installed as a stand-alone Java application.
 
-<a class="btn btn-lg btn-success" href="https://crowdin.com/downloads/crowdin-cli.zip">Download for macOS, Linux and Windows</a>
+<a class="btn btn-lg btn-success" href="https://downloads.crowdin.com/cli/v2/crowdin-cli.zip">Download for macOS, Linux and Windows</a>
 
 #### Verifying Your Java Version
 
