@@ -17,7 +17,7 @@ public class Cli {
             c.run(command, commandLine);
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
-            System.exit(0);
+            System.exit(1);
         }
     }
 }
