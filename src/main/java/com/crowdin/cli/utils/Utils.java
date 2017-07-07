@@ -4,6 +4,7 @@ import com.crowdin.cli.properties.PropertiesBean;
 import org.apache.commons.lang3.SystemUtils;
 
 import java.io.InputStream;
+import java.nio.file.FileSystems;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
@@ -21,8 +22,16 @@ public class Utils {
     private static final String PROPERTIES_FILE = "/crowdin.properties";
 
     private static final String USER_AGENT = "application.user_agent";
-    
-    private static final String PATH_SEPARATOR = (Utils.isWindows()) ? "\\\\" : "/";
+
+    /**
+     * Path separator for use when concatenating or using non-regex find/replace methods.
+     */
+    public static final String PATH_SEPARATOR = FileSystems.getDefault().getSeparator();
+
+    /**
+     * Path separator for use in regex patterns, or in regex replacements, which use the same escaping.
+     */
+    public static final String PATH_SEPARATOR_REGEX = "\\".equals(PATH_SEPARATOR) ? "\\\\" : PATH_SEPARATOR;
 
     private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
 
@@ -109,12 +118,12 @@ public class Utils {
         }
         String result;
         if (propertiesBean !=  null && propertiesBean.getBasePath() != null && !propertiesBean.getBasePath().isEmpty()) {
-            path = path.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
+            path = path.replaceAll(PATH_SEPARATOR_REGEX + "+", PATH_SEPARATOR_REGEX);
             result = path.replace(propertiesBean.getBasePath(), PATH_SEPARATOR);
         } else {
             result = PATH_SEPARATOR;
         }
-        result = result.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
+        result = result.replaceAll(PATH_SEPARATOR_REGEX + "+", PATH_SEPARATOR_REGEX);
         return result;
     }
 
@@ -147,7 +156,7 @@ public class Utils {
             String[] winPath = new String[paths.length];
             for (int i=0; i<paths.length; i++) {
                 if (paths[i].contains("/")) {
-                    winPath[i] = paths[i].replaceAll("/+", PATH_SEPARATOR);
+                    winPath[i] = paths[i].replaceAll("/+", PATH_SEPARATOR_REGEX);
                 } else {
                     winPath[i] = paths[i];
                 }
@@ -164,7 +173,7 @@ public class Utils {
         } else if (paths.length > 1) {
             String[][] folders = new String[paths.length][];
             for(int i = 0; i < paths.length; i++){
-                folders[i] = paths[i].split(PATH_SEPARATOR);
+                folders[i] = paths[i].split(PATH_SEPARATOR_REGEX);
             }
             for(int j = 0; j < folders[0].length; j++){
                 String thisFolder = folders[0][j];

@@ -17,8 +17,6 @@ import org.apache.commons.io.filefilter.RegexFileFilter;
  */
 public class FileHelper {
 
-    private static final String FOLDER_SEPARATOR = (Utils.isWindows()) ? File.separator + File.separator : File.separator;
-
     private static final String DOUBLED_ASTERISK = "**";
 
     private static final String REGEX = "regex";
@@ -52,16 +50,16 @@ public class FileHelper {
         if (file != null) {
             String pattern = file.getSource();
             if (propertiesBean != null && propertiesBean.getBasePath() != null) {
-                if (!propertiesBean.getBasePath().trim().endsWith(FOLDER_SEPARATOR) && !file.getSource().trim().startsWith(FOLDER_SEPARATOR)) {
-                    pattern = propertiesBean.getBasePath() + FOLDER_SEPARATOR + file.getSource();
+                if (!propertiesBean.getBasePath().trim().endsWith(Utils.PATH_SEPARATOR) && !file.getSource().trim().startsWith(Utils.PATH_SEPARATOR)) {
+                    pattern = propertiesBean.getBasePath() + Utils.PATH_SEPARATOR + file.getSource();
                 } else {
                     pattern = propertiesBean.getBasePath().trim() + file.getSource().trim();
-                    pattern = pattern.replaceAll(FOLDER_SEPARATOR + "+", FOLDER_SEPARATOR);
+                    pattern = pattern.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
                 }
             }
             pattern = pattern.replaceAll("\\\\+", "\\\\");
             pattern = pattern.replaceAll("/+", "/");
-            String[] nodes = pattern.split(FOLDER_SEPARATOR);
+            String[] nodes = pattern.split(Utils.PATH_SEPARATOR_REGEX);
             StringBuilder resultPath = new StringBuilder();
             for (String node : nodes) {
                 if (!node.isEmpty()) {
@@ -92,14 +90,14 @@ public class FileHelper {
                 for (String pattern : ignores) {
                     List<File> resultListTemp = new ArrayList<>();
                     if (propertiesBean != null && propertiesBean.getBasePath() != null) {
-                        if (!propertiesBean.getBasePath().trim().endsWith(File.separator) && !pattern.trim().startsWith(File.separator)) {
-                            pattern = propertiesBean.getBasePath() + File.separator + pattern;
+                        if (!propertiesBean.getBasePath().trim().endsWith(Utils.PATH_SEPARATOR) && !pattern.trim().startsWith(Utils.PATH_SEPARATOR)) {
+                            pattern = propertiesBean.getBasePath() + Utils.PATH_SEPARATOR + pattern;
                         } else {
                             pattern = propertiesBean.getBasePath().trim() + pattern.trim();
-                            pattern = pattern.replace(File.separator + File.separator, File.separator);
+                            pattern = pattern.replace(Utils.PATH_SEPARATOR_REGEX + Utils.PATH_SEPARATOR_REGEX, Utils.PATH_SEPARATOR_REGEX);
                         }
                     }
-                    String[] nodes = pattern.split(FOLDER_SEPARATOR);
+                    String[] nodes = pattern.split(Utils.PATH_SEPARATOR_REGEX);
                     StringBuilder resultPath = new StringBuilder();
                     for (String node : nodes) {
                         if (!node.isEmpty()) {
@@ -189,7 +187,7 @@ public class FileHelper {
             resultList.clear();
             for (File file : tmpResultList) {
                 StringBuilder absolutePath = new StringBuilder(file.getAbsolutePath());
-                absolutePath.append(FOLDER_SEPARATOR);
+                absolutePath.append(Utils.PATH_SEPARATOR);
                 if (null != patternName) {
                     if (DOUBLED_ASTERISK.equals(patternName)) {
                         List<File> files = getlistDirectory(absolutePath.toString());
@@ -220,9 +218,9 @@ public class FileHelper {
             }
         } else {
             if (node != null && node.endsWith(":")) {
-                resultPath.append(node + FOLDER_SEPARATOR);
+                resultPath.append(node + Utils.PATH_SEPARATOR);
             } else {
-                resultPath.append(FOLDER_SEPARATOR);
+                resultPath.append(Utils.PATH_SEPARATOR);
             }
             if (null != patternName) {
                 if (DOUBLED_ASTERISK.equals(patternName)) {
@@ -230,7 +228,7 @@ public class FileHelper {
                     if (!files.isEmpty()) {
                         resultList.clear();
                         for (File f : files) {
-                            File tmpF = new File(resultPath.toString() + FOLDER_SEPARATOR + f.getName());
+                            File tmpF = new File(resultPath.toString(), f.getName());
                             if (tmpF.isDirectory()) {
                                 resultList.add(tmpF);
                             }
