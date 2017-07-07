@@ -94,7 +94,7 @@ public class BaseCli {
 
     protected static final String HELP = "help";
 
-    protected static final String HELP_C = "c";
+    protected static final String HELP_P = "p";
 
     protected static final String HELP_SHORT = "h";
 

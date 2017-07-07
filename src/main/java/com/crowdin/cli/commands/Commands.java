@@ -7,6 +7,7 @@ import com.crowdin.cli.properties.CliProperties;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.*;
+import com.crowdin.cli.utils.FileReader;
 import com.crowdin.cli.utils.tree.DrawTree;
 import com.crowdin.client.CrowdinApiClient;
 import com.crowdin.parameters.CrowdinApiParametersBuilder;
@@ -16,9 +17,7 @@ import org.apache.commons.io.FileUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -284,10 +283,10 @@ public class Commands extends BaseCli {
                 }
                 break;
             case HELP :
-                boolean c = commandLine.hasOption(HELP_C);
+                boolean p = commandLine.hasOption(HELP_P);
                 if (this.help) {
                     this.cliOptions.cmdHelpOptions();
-                } else if (c) {
+                } else if (p) {
                     System.out.println(UPLOAD);
                     System.out.println(DOWNLOAD);
                     System.out.println(LIST);
@@ -435,6 +434,9 @@ public class Commands extends BaseCli {
 
             for (String source : sources) {
                 File sourceFile = new File(source);
+                if (!sourceFile.isFile()) {
+                    continue;
+                }
                 Boolean isDest = file.getDest() != null && !file.getDest().isEmpty() && !this.commandUtils.isSourceContainsPattern(file.getSource());
                 String preservePath = file.getDest();
                 preservePath = this.commandUtils.preserveHierarchy(file, sourceFile.getAbsolutePath(), commonPath, this.propertiesBean, this.branch, this.credentials, this.isVerbose);
@@ -462,7 +464,7 @@ public class Commands extends BaseCli {
                     parameters.files(sourceFile.getAbsolutePath());
                 }
                 if (preservePath != null && !preservePath.isEmpty()) {
-                    parameters.titles(sourceFile.getAbsolutePath(), preservePath);
+                    parameters.titles(preservePath, preservePath);
                 }
                 if (file.getType() != null && !file.getType().isEmpty()) {
                     parameters.type(file.getType());
@@ -724,12 +726,15 @@ public class Commands extends BaseCli {
                                     }
                                     translationSrc = translationSrc.replaceAll(PATH_SEPARATOR + "+", PATH_SEPARATOR);
                                 }
-                                if (translationSrc.startsWith(PATH_SEPARATOR)) {
-                                    translationSrc = translationSrc.replaceFirst(PATH_SEPARATOR, "");
+                                if (Utils.isWindows()) {
+                                    translationSrc = translationSrc.replaceAll(PATH_SEPARATOR + "+", "/");
+                                }
+                                if (translationSrc.startsWith("/")) {
+                                    translationSrc = translationSrc.replaceFirst("/", "");
                                 }
                             }
                             parameters.files(translationFile.getAbsolutePath());
-                            parameters.titles(translationFile.getAbsolutePath(), translationSrc);
+                            parameters.titles(translationSrc, translationSrc);
                             parameters.language(languages.getString("code"));
                             parameters.importDuplicates(importDuplicates);
                             parameters.importEqSuggestion(importEqSuggestions);
@@ -840,7 +845,7 @@ public class Commands extends BaseCli {
             System.out.println(RESOURCE_BUNDLE.getString("initialisation_failed"));
             System.exit(0);
         }
-        if (result.has(RESPONSE_SUCCESS)){
+        if (result.has(RESPONSE_SUCCESS)) {
             Boolean responseStatus = result.getBoolean(RESPONSE_SUCCESS);
             if (responseStatus) {
                 if (result.has(RESPONSE_MESSAGE)) {
@@ -1176,7 +1181,7 @@ public class Commands extends BaseCli {
                             File treeFile = new File(preservePath);
                             if (treeFile.isDirectory()) {
                                 resultFiles.append(node).append(PATH_SEPARATOR);
-                            } else if (treeFile.isFile()) {
+                            } else {
                                 resultFiles.append(node);
                             }
                         }

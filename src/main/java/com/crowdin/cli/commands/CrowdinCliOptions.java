@@ -56,9 +56,11 @@ public class CrowdinCliOptions {
 
     public static final String CONFIG_LONG = "config";
 
-    public static final String HELP_C = "c";
+    public static final String CONFIG_SHORT = "c";
 
-    public static final String HELP_C_DESCRIPTIONS = "List commands one per line, to assist with shell completion";
+    public static final String HELP_P = "p";
+
+    public static final String HELP_P_DESCRIPTIONS = "List commands one per line, to assist with shell completion";
 
     public static final String DRY_RUN_DESCRIPTION = RESOURCE_BUNDLE.getString("dryrun_description");
 
@@ -168,8 +170,8 @@ public class CrowdinCliOptions {
         options.addOption(null, AUTO_UPDATE, false, null);
         options.addOption(null, NO_AUTO_UPDATE, false, null);
         options.addOption(BRANCH_SHORT, BRANCH_LONG, true, null);
-        options.addOption(HELP_C, null, false, HELP_C_DESCRIPTIONS);
-        options.addOption(null, CONFIG_LONG, true, CONFIG_DESCRIPTION);
+        options.addOption(HELP_P, null, false, HELP_P_DESCRIPTIONS);
+        options.addOption(CONFIG_SHORT, CONFIG_LONG, true, CONFIG_DESCRIPTION);
         options.addOption(null, DRY_RUN_LONG, false, DRY_RUN_DESCRIPTION);
         options.addOption(null, DEBUG_LONG, false, null);
         options.addOption(DESTINATION_SHORT, DESTINATION_LONG, true, DESTINATION_DESCRIPTION);
@@ -233,7 +235,7 @@ public class CrowdinCliOptions {
         header.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("command_upload_description_long"));
         footer.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("commands").toUpperCase());
         footer.append(NEW_LINE + "sources    -     ").append(RESOURCE_BUNDLE.getString("subcommand_sources"));
-        footer.append(NEW_LINE + "transaltions -   ").append(RESOURCE_BUNDLE.getString("subcommand_translations"));
+        footer.append(NEW_LINE + "translations -   ").append(RESOURCE_BUNDLE.getString("subcommand_translations"));
         footer.append(NEW_LINE);
         formatter.printHelp(cmdLineSyntax, header.toString(), options, footer.toString(), false);
     }
@@ -403,7 +405,7 @@ public class CrowdinCliOptions {
     private Options globalOptions() {
         Options o = new Options();
         o.addOption(null, HELP_LONG, false, HELP_DESCRIPTION);
-        o.addOption(null, CONFIG_LONG, true, CONFIG_DESCRIPTION);
+        o.addOption(CONFIG_SHORT, CONFIG_LONG, true, CONFIG_DESCRIPTION);
         o.addOption(null, IDENTITY, true, IDENTITY_DESCRIPTION);
         o.addOption(VERBOSE_SHORT, VERBOSE_LONG, false, VERBOSE_DESCRIPTION);
         o.addOption(null, VERSION_LONG, false, VERSION_DESCRIPTION);
@@ -421,7 +423,7 @@ public class CrowdinCliOptions {
 
     private Options cmdHelp() {
         Options options = new Options();
-        options.addOption(HELP_C, null, false, HELP_C_DESCRIPTIONS);
+        options.addOption(HELP_P, null, false, HELP_P_DESCRIPTIONS);
         return options;
     }
 

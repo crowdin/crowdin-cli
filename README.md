@@ -31,7 +31,7 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 
 Crowdin CLI can be installed as a stand-alone Java application.
 
-<a class="btn btn-lg btn-success" href="https://crowdin.com/downloads/crowdin-cli.zip">Download for macOS, Linux and Windows</a>
+<a class="btn btn-lg btn-success" href="https://downloads.crowdin.com/cli/v2/crowdin-cli.zip">Download for macOS, Linux and Windows</a>
 
 #### Verifying Your Java Version
 
@@ -817,10 +817,20 @@ Example of configuration file:
 ```
 
 ### Change log
+**Version 2.0.16**
++ Bugs fixed
++ Added spell checker for commands
+
+**Version 2.0.15**
++ Fix bug: improved work with wildcard in export pattern
++ Fix bug: improved work with language mapping
++ Fix bug: improved work with update source file with `dest` option
++ Added support of short option `-c` for set configuration file
++ Improved performance
+
 **Version 2.0.14**
 + Fix bug: improved work with `preserve_hierarchy` option
 + Downloading translations for each language separately
-
 
 **Version 2.0.12**
 + Fix bug: improved work with export pattern
