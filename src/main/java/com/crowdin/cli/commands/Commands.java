@@ -224,6 +224,7 @@ public class Commands extends BaseCli {
                 if (this.help) {
                     this.cliOptions.cmdUploadTranslationsOptions();
                 } else {
+                    //TODO: Bug, ignores this.dryrun
                     this.uploadTranslation(isImportDuplicates, isImportEqSuggestions, isAutoApproveImported);
                 }
                 break;
@@ -782,6 +783,8 @@ public class Commands extends BaseCli {
                                     } else {
                                         System.out.println(" error: directory does not exist in the project");
                                     }
+                                } else {
+                                    System.out.println(" error: " + jsonObjError.get("message"));
                                 }
                             } else {
                                 System.out.println(" - " + result);
