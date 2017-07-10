@@ -119,44 +119,17 @@ public class CommandUtils extends BaseCli {
     }
 
     public List<String> getSourcesWithoutIgnores(FileBean file, PropertiesBean propertiesBean) {
-        List<String> result = new ArrayList<>();
         if (propertiesBean == null || file == null) {
-            return result;
+            return Collections.emptyList();
         }
+
         FileHelper fileHelper = new FileHelper();
         List<File> sources = fileHelper.getFileSource(file, propertiesBean);
-        List<File> ignores = fileHelper.getIgnoreFiles(file, propertiesBean);
-        if (ignores != null) {
-            if (sources == null) {
-                return result;
-            }
-            for (File source : sources) {
-                if (source == null) {
-                    continue;
-                }
-                if (ignores.size() > 0) {
-                    boolean isIgnore = false;
-                    for (File ignore : ignores) {
-                        if (ignore != null) {
-                            if (source.getAbsolutePath() != null && ignore.getAbsolutePath() != null && source.getAbsolutePath().equals(ignore.getAbsolutePath())) {
-                                isIgnore = true;
-                                break;
-                            }
-                        }
-                    }
-                    if (!isIgnore) {
-                        result.add(source.getAbsolutePath());
-                    }
-                } else {
-                    result.add(source.getAbsolutePath());
-                }
-            }
-        } else {
-            if (sources != null && sources.size() > 0) {
-                for (File source : sources) {
-                    result.add(source.getAbsolutePath());
-                }
-            }
+        List<File> sourcesWithoutIgnores = fileHelper.filterOutIgnoredFiles(sources, file, propertiesBean);
+
+        List<String> result = new ArrayList<>();
+        for (File source : sourcesWithoutIgnores) {
+            result.add(source.getAbsolutePath());
         }
         return result;
     }
