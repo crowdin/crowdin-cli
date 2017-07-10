@@ -588,13 +588,21 @@ public class CommandUtils extends BaseCli {
         Map<String, String> mapping = new HashMap<>();
         JSONArray projectLanguages = projectInfo.getJSONArray("languages");
         Parser parser = new Parser();
+
+        // Iterating the project is slow, so fetch all source files up-front, not once per translation.
+        Map<FileBean, List<String>> sourcesByFileBean = new IdentityHashMap<>();
+        List<FileBean> files = propertiesBean.getFiles();
+        for (FileBean file : files) {
+            sourcesByFileBean.put(file, getSourcesWithoutIgnores(file, propertiesBean));
+        }
+
         for (Object projectLanguage : projectLanguages) {
             JSONObject languages = parser.parseJson(projectLanguage.toString());
             String languageName = languages.getString("name");
             if (languageName != null && !languageName.isEmpty()) {
                 JSONObject languageInfo = this.getLanguageInfo(languageName, supportedLanguages);
-                List<FileBean> files = propertiesBean.getFiles();
                 for (FileBean file : files) {
+                    List<String> projectFiles = sourcesByFileBean.get(file);
                     String translationsBase = file.getTranslation();
                     String translationsMapping = file.getTranslation();
                     if (translationsBase != null && !translationsBase.isEmpty()) {
@@ -668,7 +676,6 @@ public class CommandUtils extends BaseCli {
                                 || translationsBase.contains(PLACEHOLDER_ORIGINAL_PATH)
                                 || translationsBase.contains(PLACEHOLDER_ANDROID_CODE)
                                 || translationsBase.contains(PLACEHOLDER_OSX_CODE)) {
-                            List<String> projectFiles = this.getSourcesWithoutIgnores(file, propertiesBean);
                             for (String projectFile : projectFiles) {
                                 File f = new File(projectFile);
                                 String temporaryTranslation = translationsBase;
@@ -695,9 +702,9 @@ public class CommandUtils extends BaseCli {
                                 mapping.put(k, v);
                             }
                         } else {
-                            if (this.getSourcesWithoutIgnores(file, propertiesBean) != null && this.getSourcesWithoutIgnores(file, propertiesBean).size() > 0) {
-                                String k = this.replaceDoubleAsteriskInTranslation(translationsBase, this.getSourcesWithoutIgnores(file, propertiesBean).get(0), file.getSource(), propertiesBean);
-                                String v = this.replaceDoubleAsteriskInTranslation(translationsMapping, this.getSourcesWithoutIgnores(file, propertiesBean).get(0), file.getSource(), propertiesBean);
+                            if (projectFiles != null && !projectFiles.isEmpty()) {
+                                String k = this.replaceDoubleAsteriskInTranslation(translationsBase, projectFiles.get(0), file.getSource(), propertiesBean);
+                                String v = this.replaceDoubleAsteriskInTranslation(translationsMapping, projectFiles.get(0), file.getSource(), propertiesBean);
                                 k = k.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
                                 k = k.replaceAll("/+", "/");
                                 mapping.put(k, v);
