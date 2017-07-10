@@ -10,8 +10,6 @@ import java.util.List;
  */
 public class DrawTree {
 
-    private static final String PATH_SEPARATOR = (Utils.isWindows()) ? File.separator + File.separator : File.separator;
-
     public void draw(List<String> l, int ident) {
 
         Tree<String> top = new Tree<>(".");
@@ -19,7 +17,7 @@ public class DrawTree {
 
         for (String tree : l) {
             Tree<String> root = current;
-            for (String data : tree.split(PATH_SEPARATOR)) {
+            for (String data : tree.split(Utils.PATH_SEPARATOR_REGEX)) {
                 current = current.child(data);
             }
             current = root;

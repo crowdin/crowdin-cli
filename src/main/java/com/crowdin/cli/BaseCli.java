@@ -24,8 +24,6 @@ public class BaseCli {
 
     protected static final String OPTION_NAME_IDENTITY = "identity";
 
-    protected static final String PATH_SEPARATOR = (Utils.isWindows()) ? File.separator + File.separator : File.separator;
-
     protected static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
 
     protected static final String STRING_PLUS = "+";

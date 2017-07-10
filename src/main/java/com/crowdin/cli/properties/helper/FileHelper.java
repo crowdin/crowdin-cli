@@ -3,21 +3,20 @@ package com.crowdin.cli.properties.helper;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.Utils;
+import org.apache.commons.io.filefilter.RegexFileFilter;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-
-import org.apache.commons.io.filefilter.RegexFileFilter;
 
 /**
  * @author ihor
  */
 public class FileHelper {
-
-    private static final String FOLDER_SEPARATOR = (Utils.isWindows()) ? File.separator + File.separator : File.separator;
 
     private static final String DOUBLED_ASTERISK = "**";
 
@@ -52,16 +51,16 @@ public class FileHelper {
         if (file != null) {
             String pattern = file.getSource();
             if (propertiesBean != null && propertiesBean.getBasePath() != null) {
-                if (!propertiesBean.getBasePath().trim().endsWith(FOLDER_SEPARATOR) && !file.getSource().trim().startsWith(FOLDER_SEPARATOR)) {
-                    pattern = propertiesBean.getBasePath() + FOLDER_SEPARATOR + file.getSource();
+                if (!propertiesBean.getBasePath().trim().endsWith(Utils.PATH_SEPARATOR) && !file.getSource().trim().startsWith(Utils.PATH_SEPARATOR)) {
+                    pattern = propertiesBean.getBasePath() + Utils.PATH_SEPARATOR + file.getSource();
                 } else {
                     pattern = propertiesBean.getBasePath().trim() + file.getSource().trim();
-                    pattern = pattern.replaceAll(FOLDER_SEPARATOR + "+", FOLDER_SEPARATOR);
+                    pattern = pattern.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
                 }
             }
             pattern = pattern.replaceAll("\\\\+", "\\\\");
             pattern = pattern.replaceAll("/+", "/");
-            String[] nodes = pattern.split(FOLDER_SEPARATOR);
+            String[] nodes = pattern.split(Utils.PATH_SEPARATOR_REGEX);
             StringBuilder resultPath = new StringBuilder();
             for (String node : nodes) {
                 if (!node.isEmpty()) {
@@ -72,11 +71,11 @@ public class FileHelper {
                         node = translateToRegex(node);
                     }
                     if (DOUBLED_ASTERISK.equals(node)) {
-                        resultList = filterFiles(DOUBLED_ASTERISK, resultList, node, resultPath);
+                        resultList = findFiles(DOUBLED_ASTERISK, resultList, node, resultPath);
                     } else if (node.contains(ASTERISK) || node.contains(QUESTION_MARK) || (node.contains(SET_OPEN_BRECKET) && node.contains(SET_CLOSE_BRECKET))) {
-                        resultList = filterFiles(REGEX, resultList, node, resultPath);
+                        resultList = findFiles(REGEX, resultList, node, resultPath);
                     } else {
-                        resultList = filterFiles(REGEX, resultList, node, resultPath);
+                        resultList = findFiles(REGEX, resultList, node, resultPath);
                     }
                 }
             }
@@ -84,53 +83,42 @@ public class FileHelper {
         return resultList;
     }
 
-    public List<File> getIgnoreFiles(FileBean file, PropertiesBean propertiesBean) {
-        List<File> resultList = new ArrayList<>();
-        if (file != null) {
-            List<String> ignores = file.getIgnore();
-            if (ignores != null) {
-                for (String pattern : ignores) {
-                    List<File> resultListTemp = new ArrayList<>();
-                    if (propertiesBean != null && propertiesBean.getBasePath() != null) {
-                        if (!propertiesBean.getBasePath().trim().endsWith(File.separator) && !pattern.trim().startsWith(File.separator)) {
-                            pattern = propertiesBean.getBasePath() + File.separator + pattern;
-                        } else {
-                            pattern = propertiesBean.getBasePath().trim() + pattern.trim();
-                            pattern = pattern.replace(File.separator + File.separator, File.separator);
-                        }
-                    }
-                    String[] nodes = pattern.split(FOLDER_SEPARATOR);
-                    StringBuilder resultPath = new StringBuilder();
-                    for (String node : nodes) {
-                        if (!node.isEmpty()) {
-                            if (resultListTemp == null) {
-                                break;
-                            }
-                            if (!DOUBLED_ASTERISK.equals(node)) {
-                                node = translateToRegex(node);
-                            }
-                            if (DOUBLED_ASTERISK.equals(node)) {
-                                resultListTemp = filterFiles(DOUBLED_ASTERISK, resultListTemp, node, resultPath);
-                            } else if (node.contains(ASTERISK) || node.contains(QUESTION_MARK) || (node.contains(SET_OPEN_BRECKET) && node.contains(SET_CLOSE_BRECKET))) {
-                                resultListTemp = filterFiles(REGEX, resultListTemp, node, resultPath);
-                            } else {
-                                resultListTemp = filterFiles(REGEX, resultListTemp, node, resultPath);
-                            }
-                        }
-                    }
-                    if (resultListTemp != null && resultListTemp.size() > 0) {
-                        for (File f : resultListTemp) {
-                            if (f.isDirectory()) {
-                                resultList.addAll(this.getFilesFromDirectory(f));
-                            } else {
-                                resultList.add(f);
-                            }
-                        }
-                    }
+    /**
+     * Filters the provided list of source files using the configured filters.
+     *
+     * @param sources the source files.
+     * @param fileBean the file bean from the config.
+     * @return the list of source files withoug the ignores.
+     */
+    public List<File> filterOutIgnoredFiles(List<File> sources, FileBean fileBean, PropertiesBean propertiesBean) {
+        if (fileBean == null) {
+            return sources;
+        }
+
+        List<String> ignores = fileBean.getIgnore();
+        if (ignores == null || ignores.isEmpty()) {
+            return sources;
+        }
+
+        List<FileMatcher> matchers = new ArrayList<>(ignores.size());
+        for (String pattern : ignores) {
+            matchers.add(new FileMatcher(pattern, fileBean, propertiesBean));
+        }
+
+        List<File> results = new ArrayList<>(sources.size());
+        for (File source : sources) {
+            boolean noneMatch = true;
+            for (FileMatcher matcher : matchers) {
+                if (matcher.matches(source)) {
+                    noneMatch = false;
+                    break;
                 }
             }
+            if (noneMatch) {
+                results.add(source);
+            }
         }
-        return resultList;
+        return results;
     }
 
     private String translateToRegex(String node) {
@@ -160,43 +148,31 @@ public class FileHelper {
         return node;
     }
 
-    private List<File> getFilesFromDirectory(File dir) {
-        List<File> result = new ArrayList<>();
-        if (dir != null) {
-            if (dir.isDirectory()) {
-                File[] files = dir.listFiles();
-                if (files != null) {
-                    for (File f : files) {
-                        if (f.isDirectory()) {
-                            result.addAll(this.getFilesFromDirectory(f));
-                        } else {
-                            result.add(f);
-                        }
-                    }
-                }
-            }
-        }
-        if (result == null) {
-            result = new ArrayList<>();
-        }
-        return result;
-    }
-
-    private List<File> filterFiles(String patternName, List<File> resultList, String node, StringBuilder resultPath) {
+    /**
+     * Finds files at the path specified by the current contents of {@code resultPath}, putting files matching
+     * the next level of the pattern into {@code resultList} for the next iteration.
+     *
+     * @param patternName either {@link #DOUBLED_ASTERISK} or {@link #REGEX}.
+     * @param resultList the list of results.  <strong>Mutated as a side-effect!</strong>
+     * @param node the current element of the pattern being matched.
+     * @param resultPath the current path being matched.  <strong>Mutated as a side-effect!</strong>
+     * @return the new list of results.
+     */
+    private List<File> findFiles(String patternName, List<File> resultList, String node, StringBuilder resultPath) {
         if (!resultList.isEmpty()) {
             List<File> tmpResultList = new ArrayList<>();
             tmpResultList.addAll(resultList);
             resultList.clear();
             for (File file : tmpResultList) {
                 StringBuilder absolutePath = new StringBuilder(file.getAbsolutePath());
-                absolutePath.append(FOLDER_SEPARATOR);
+                absolutePath.append(Utils.PATH_SEPARATOR);
                 if (null != patternName) {
                     if (DOUBLED_ASTERISK.equals(patternName)) {
                         List<File> files = getlistDirectory(absolutePath.toString());
                         if (!files.isEmpty()) {
                             for (File f : files) {
                                 File tmpFile = new File(f.getAbsolutePath());
-                                if (tmpFile.isDirectory()) {
+                                if (Files.isDirectory(tmpFile.toPath(), LinkOption.NOFOLLOW_LINKS)) {
                                     resultList.add(tmpFile);
                                 }
                             }
@@ -220,9 +196,9 @@ public class FileHelper {
             }
         } else {
             if (node != null && node.endsWith(":")) {
-                resultPath.append(node + FOLDER_SEPARATOR);
+                resultPath.append(node + Utils.PATH_SEPARATOR);
             } else {
-                resultPath.append(FOLDER_SEPARATOR);
+                resultPath.append(Utils.PATH_SEPARATOR);
             }
             if (null != patternName) {
                 if (DOUBLED_ASTERISK.equals(patternName)) {
@@ -230,9 +206,12 @@ public class FileHelper {
                     if (!files.isEmpty()) {
                         resultList.clear();
                         for (File f : files) {
-                            File tmpF = new File(resultPath.toString() + FOLDER_SEPARATOR + f.getName());
-                            if (tmpF.isDirectory()) {
-                                resultList.add(tmpF);
+                            //TODO: Seems questionable - f.getName() is just the last name, but the method above
+                            //      listed the directory recursively, so it may not be directly inside resultPath.
+                            //      I couldn't get this code to actually be executed, so it's hard to know.
+                            File tmpFile = new File(resultPath.toString(), f.getName());
+                            if (Files.isDirectory(tmpFile.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+                                resultList.add(tmpFile);
                             }
                         }
                     }
@@ -272,7 +251,7 @@ public class FileHelper {
         File[] fList = directory.listFiles();
         if (fList != null) {
             for (File file : fList) {
-                if (file.isDirectory()) {
+                if (Files.isDirectory(file.toPath(), LinkOption.NOFOLLOW_LINKS)) {
                     resultList.addAll(getlistDirectory(file.getAbsolutePath()));
                 }
             }
