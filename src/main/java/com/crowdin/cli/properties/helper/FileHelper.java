@@ -7,6 +7,8 @@ import org.apache.commons.io.filefilter.RegexFileFilter;
 
 import java.io.File;
 import java.io.FileFilter;
+import java.nio.file.Files;
+import java.nio.file.LinkOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -170,7 +172,7 @@ public class FileHelper {
                         if (!files.isEmpty()) {
                             for (File f : files) {
                                 File tmpFile = new File(f.getAbsolutePath());
-                                if (tmpFile.isDirectory()) {
+                                if (Files.isDirectory(tmpFile.toPath(), LinkOption.NOFOLLOW_LINKS)) {
                                     resultList.add(tmpFile);
                                 }
                             }
@@ -204,9 +206,12 @@ public class FileHelper {
                     if (!files.isEmpty()) {
                         resultList.clear();
                         for (File f : files) {
-                            File tmpF = new File(resultPath.toString(), f.getName());
-                            if (tmpF.isDirectory()) {
-                                resultList.add(tmpF);
+                            //TODO: Seems questionable - f.getName() is just the last name, but the method above
+                            //      listed the directory recursively, so it may not be directly inside resultPath.
+                            //      I couldn't get this code to actually be executed, so it's hard to know.
+                            File tmpFile = new File(resultPath.toString(), f.getName());
+                            if (Files.isDirectory(tmpFile.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+                                resultList.add(tmpFile);
                             }
                         }
                     }
@@ -246,7 +251,7 @@ public class FileHelper {
         File[] fList = directory.listFiles();
         if (fList != null) {
             for (File file : fList) {
-                if (file.isDirectory()) {
+                if (Files.isDirectory(file.toPath(), LinkOption.NOFOLLOW_LINKS)) {
                     resultList.addAll(getlistDirectory(file.getAbsolutePath()));
                 }
             }
