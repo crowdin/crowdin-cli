@@ -223,8 +223,9 @@ public class Commands extends BaseCli {
                 boolean isAutoApproveImported = commandLine.hasOption(CrowdinCliOptions.AUTO_APPROVE_IMPORTED);
                 if (this.help) {
                     this.cliOptions.cmdUploadTranslationsOptions();
+                } else if (this.dryrun) {
+                    dryrunTranslation(commandLine);
                 } else {
-                    //TODO: Bug, ignores this.dryrun
                     this.uploadTranslation(isImportDuplicates, isImportEqSuggestions, isAutoApproveImported);
                 }
                 break;
