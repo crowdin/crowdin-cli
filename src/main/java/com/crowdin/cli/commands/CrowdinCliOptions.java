@@ -191,7 +191,7 @@ public class CrowdinCliOptions {
         options.addOption(null, VERSION_LONG, false, VERSION_DESCRIPTION);
         options.addOption(null, BASE_PATH_LONG, true, BASE_PATH_DESCRIPTION);
         options.addOption(SOURCE_SHORT, SOURCE_LONG, true, SOURCE_DESCRIPTION);
-        options.addOption(TRANSLATION_SHORT, TRANSLATION_LONG, true, TRANSLATION_DESCRIPTION);
+        options.addOption(TRANSLATION_SHORT, TRANSLATION_LONG, false, TRANSLATION_DESCRIPTION);
         return options;
     }
 

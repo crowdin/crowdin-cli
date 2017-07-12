@@ -45,6 +45,11 @@ public class CrowdinCliCommands {
 
     private static final String COMMAND_SEPARATOR = " ";
 
+    public static final String COMMAND_PULL = "pull";
+
+    public static final String COMMAND_PUSH = "push";
+
+
     public String init(CommandLine cl) {
         HashSet<String> commands = new HashSet<>();
         commands.add(COMMAND_UPLOAD);
@@ -62,6 +67,9 @@ public class CrowdinCliCommands {
         commands.add(COMMAND_LIST_SOURCES);
         commands.add(COMMAND_LIST_TRANSLATIONS);
         commands.add(COMMAND_HELP);
+        commands.add(COMMAND_PUSH);
+        commands.add(COMMAND_PULL);
+
         List<String> arguments = cl.getArgList();
         StringBuilder resultCmd = new StringBuilder();
         boolean isArgumentsParsed = true;
@@ -116,6 +124,8 @@ public class CrowdinCliCommands {
         crowdinCommands.add(COMMAND_LIST_SOURCES);
         crowdinCommands.add(COMMAND_LIST_TRANSLATIONS);
         crowdinCommands.add(COMMAND_HELP);
+        crowdinCommands.add(COMMAND_PUSH);
+        crowdinCommands.add(COMMAND_PULL);
         for (String cmd : crowdinCommands) {
             s = service.score(cmd, command);
             if (s > score) {

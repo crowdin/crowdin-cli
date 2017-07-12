@@ -208,29 +208,33 @@ public class Commands extends BaseCli {
         switch (resultCmd) {
             case UPLOAD :
             case UPLOAD_SOURCES :
-                boolean isAutoUpdate = commandLine.getOptionValue(COMMAND_NO_AUTO_UPDATE) == null;
-                if (this.help) {
-                    cliOptions.cmdUploadSourcesOptions();
-                } else if (this.dryrun) {
-                    this.dryrunSources(commandLine);
-                } else {
-                    this.uploadSources(isAutoUpdate);
-                }
-                break;
+            case PUSH:
             case UPLOAD_TRANSLATIONS :
-                boolean isImportDuplicates = commandLine.hasOption(CrowdinCliOptions.IMPORT_DUPLICATES);
-                boolean isImportEqSuggestions = commandLine.hasOption(CrowdinCliOptions.IMPORT_EQ_SUGGESTIONS);
-                boolean isAutoApproveImported = commandLine.hasOption(CrowdinCliOptions.AUTO_APPROVE_IMPORTED);
-                if (this.help) {
-                    this.cliOptions.cmdUploadTranslationsOptions();
-                } else if (this.dryrun) {
-                    dryrunTranslation(commandLine);
+                boolean isPushTranslation = commandLine.hasOption(CrowdinCliOptions.TRANSLATION_SHORT)
+                        || commandLine.hasOption(CrowdinCliOptions.TRANSLATION_LONG);
+                if (UPLOAD_TRANSLATIONS.equalsIgnoreCase(resultCmd) || isPushTranslation) {
+                    boolean isImportDuplicates = commandLine.hasOption(CrowdinCliOptions.IMPORT_DUPLICATES);
+                    boolean isImportEqSuggestions = commandLine.hasOption(CrowdinCliOptions.IMPORT_EQ_SUGGESTIONS);
+                    boolean isAutoApproveImported = commandLine.hasOption(CrowdinCliOptions.AUTO_APPROVE_IMPORTED);
+                    if (this.help) {
+                        this.cliOptions.cmdUploadTranslationsOptions();
+                    } else {
+                        this.uploadTranslation(isImportDuplicates, isImportEqSuggestions, isAutoApproveImported);
+                    }
                 } else {
-                    this.uploadTranslation(isImportDuplicates, isImportEqSuggestions, isAutoApproveImported);
+                    boolean isAutoUpdate = commandLine.getOptionValue(COMMAND_NO_AUTO_UPDATE) == null;
+                    if (this.help) {
+                        cliOptions.cmdUploadSourcesOptions();
+                    } else if (this.dryrun) {
+                        this.dryrunSources(commandLine);
+                    } else {
+                        this.uploadSources(isAutoUpdate);
+                    }
                 }
                 break;
             case DOWNLOAD:
             case DOWNLOAD_TRANSLATIONS:
+            case PULL:
                 boolean ignoreMatch = commandLine.hasOption(IGNORE_MATCH);
                 if (this.help) {
                     this.cliOptions.cmdDownloadOptions();
