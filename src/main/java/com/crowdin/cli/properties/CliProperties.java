@@ -266,6 +266,9 @@ public class CliProperties {
                 if (Utils.isWindows() && file.getSource() != null && file.getSource().contains("/")) {
                     file.setSource(file.getSource().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
                 }
+                if (!Utils.isWindows() && file.getSource() != null && file.getSource().contains("\\")) {
+                    file.setSource(file.getSource().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
+                }
                 //Translation
                 if (file.getTranslation() == null || file.getTranslation().isEmpty()) {
                     System.out.println(RESOURCE_BUNDLE.getString("error_empty_translation_section"));
@@ -289,24 +292,34 @@ public class CliProperties {
                 if (Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("/")) {
                     file.setTranslation(file.getTranslation().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
                 }
+                if (!Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("\\")) {
+                    file.setTranslation(file.getTranslation().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
+                }
+
                 //Ignore
                 if (file.getIgnore() == null || file.getIgnore().isEmpty()) {
                 } else {
-                    if (Utils.isWindows()) {
-                        List<String> ignores = new ArrayList<>();
-                        for (String ignore : file.getIgnore()) {
-                            if (ignore.contains("/")) {
-                                ignores.add(ignore.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-                            } else {
-                                ignores.add(ignore);
-                            }
+                    List<String> ignores = new ArrayList<>();
+                    for (String ignore : file.getIgnore()) {
+                        if (Utils.isWindows() && ignore.contains("/")) {
+                            ignores.add(ignore.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
+                        } else if (!Utils.isWindows() && ignore.contains("\\")) {
+                            ignores.add(ignore.replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
+                        } else {
+                            ignores.add(ignore);
                         }
-                        file.setIgnore(ignores);
                     }
+                    file.setIgnore(ignores);
                 }
                 //dest
                 if (file.getDest() == null || file.getDest().isEmpty()) {
                 } else {
+                    if (Utils.isWindows() && file.getDest() != null && file.getDest().contains("/")) {
+                        file.setDest(file.getDest().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
+                    }
+                    if (!Utils.isWindows() && file.getDest() != null && file.getDest().contains("\\")) {
+                        file.setDest(file.getDest().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
+                    }
                 }
                 //Type
                 if (file.getType() == null || file.getType().isEmpty()) {

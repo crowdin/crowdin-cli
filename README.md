@@ -817,6 +817,10 @@ Example of configuration file:
 ```
 
 ### Change log
+**Version 2.0.17**
++ Performance improved (thanks to https://github.com/trejkaz)
++ Added short aliases for commands (push, pull)
+
 **Version 2.0.16**
 + Bugs fixed
 + Added spell checker for commands

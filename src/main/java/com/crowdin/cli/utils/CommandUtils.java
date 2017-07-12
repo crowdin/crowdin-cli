@@ -129,7 +129,9 @@ public class CommandUtils extends BaseCli {
 
         List<String> result = new ArrayList<>();
         for (File source : sourcesWithoutIgnores) {
-            result.add(source.getAbsolutePath());
+            if (source.isFile()) {
+                result.add(source.getAbsolutePath());
+            }
         }
         return result;
     }
