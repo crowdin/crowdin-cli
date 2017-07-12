@@ -1,5 +1,7 @@
 package com.crowdin.cli.properties;
 
+import com.crowdin.cli.utils.Utils;
+
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -60,8 +62,8 @@ public class PropertiesBean {
     }
 
     public void setBasePath(String basePath) {
-        if (basePath != null && !basePath.isEmpty() && !basePath.endsWith(File.separator) && !".".equals(basePath)) {
-            this.basePath = basePath + File.separator;
+        if (basePath != null && !basePath.isEmpty() && !basePath.endsWith(Utils.PATH_SEPARATOR) && !".".equals(basePath)) {
+            this.basePath = basePath + Utils.PATH_SEPARATOR;
         } else {
             this.basePath = basePath;
         }
