@@ -131,6 +131,11 @@ public class Commands extends BaseCli {
             } else {
                 this.propertiesBean.setBasePath("");
             }
+            if (configFromParameters == null) {
+                if (commandLine.getOptionValue("base-path") != null && !commandLine.getOptionValue("base-path").isEmpty()) {
+                    propertiesBean.setBasePath(commandLine.getOptionValue("base-path"));
+                }
+            }
             this.propertiesBean = cliProperties.validateProperties(propertiesBean);
             this.projectInfo = this.commandUtils.projectInfo(this.credentials, this.isVerbose, this.isDebug);
             if (this.isVerbose) {
