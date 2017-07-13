@@ -291,8 +291,6 @@ public class CommandUtils extends BaseCli {
         }
         if (commandLine.getOptionValue("translation") != null && !commandLine.getOptionValue("translation").isEmpty()) {
             fileBean.setTranslation(commandLine.getOptionValue("translation"));
-        } else if (commandLine.getOptionValue("t") != null && !commandLine.getOptionValue("t").isEmpty()) {
-            fileBean.setTranslation(commandLine.getOptionValue("t"));
         }
         if ((fileBean.getSource() != null && !fileBean.getSource().isEmpty())
                 || (fileBean.getTranslation() != null && !fileBean.getTranslation().isEmpty())) {

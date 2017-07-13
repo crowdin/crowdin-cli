@@ -191,7 +191,8 @@ public class CrowdinCliOptions {
         options.addOption(null, VERSION_LONG, false, VERSION_DESCRIPTION);
         options.addOption(null, BASE_PATH_LONG, true, BASE_PATH_DESCRIPTION);
         options.addOption(SOURCE_SHORT, SOURCE_LONG, true, SOURCE_DESCRIPTION);
-        options.addOption(TRANSLATION_SHORT, TRANSLATION_LONG, false, TRANSLATION_DESCRIPTION);
+        options.addOption(TRANSLATION_SHORT, null, false, TRANSLATION_DESCRIPTION);
+        options.addOption(null, TRANSLATION_LONG, true, TRANSLATION_DESCRIPTION);
         return options;
     }
 
@@ -210,12 +211,12 @@ public class CrowdinCliOptions {
         header.append(NEW_LINE).append(Utils.getAppVersion());
         header.append(DOUBLE_NEW_LINE).append(RESOURCE_BUNDLE.getString("global_options").toUpperCase());
         footer.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("commands").toUpperCase());
-        footer.append(NEW_LINE + "help        - ").append(RESOURCE_BUNDLE.getString("command_help_description"));
-        footer.append(NEW_LINE + "upload      - ").append(RESOURCE_BUNDLE.getString("command_upload_description"));
-        footer.append(NEW_LINE + "download    - ").append(RESOURCE_BUNDLE.getString("command_download_description"));
-        footer.append(NEW_LINE + "list        - ").append(RESOURCE_BUNDLE.getString("command_list"));
-        footer.append(NEW_LINE + "lint        - ").append(RESOURCE_BUNDLE.getString("command_lint_description"));
-        footer.append(NEW_LINE + "generate    - ").append(RESOURCE_BUNDLE.getString("command_generate_description"));
+        footer.append(NEW_LINE + "help               - ").append(RESOURCE_BUNDLE.getString("command_help_description"));
+        footer.append(NEW_LINE + "upload             - ").append(RESOURCE_BUNDLE.getString("command_upload_description"));
+        footer.append(NEW_LINE + "download | pull    - ").append(RESOURCE_BUNDLE.getString("command_download_description"));
+        footer.append(NEW_LINE + "list               - ").append(RESOURCE_BUNDLE.getString("command_list"));
+        footer.append(NEW_LINE + "lint               - ").append(RESOURCE_BUNDLE.getString("command_lint_description"));
+        footer.append(NEW_LINE + "generate           - ").append(RESOURCE_BUNDLE.getString("command_generate_description"));
         formatter.printHelp(cmdLineSyntax, header.toString(), options, footer.toString(), false);
     }
 
@@ -234,8 +235,8 @@ public class CrowdinCliOptions {
         header.append(DOUBLE_NEW_LINE).append(RESOURCE_BUNDLE.getString("description").toUpperCase());
         header.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("command_upload_description_long"));
         footer.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("commands").toUpperCase());
-        footer.append(NEW_LINE + "sources    -     ").append(RESOURCE_BUNDLE.getString("subcommand_sources"));
-        footer.append(NEW_LINE + "translations -   ").append(RESOURCE_BUNDLE.getString("subcommand_translations"));
+        footer.append(NEW_LINE + "sources | push         -   ").append(RESOURCE_BUNDLE.getString("subcommand_sources"));
+        footer.append(NEW_LINE + "translations | push -t -   ").append(RESOURCE_BUNDLE.getString("subcommand_translations"));
         footer.append(NEW_LINE);
         formatter.printHelp(cmdLineSyntax, header.toString(), options, footer.toString(), false);
     }
@@ -246,7 +247,7 @@ public class CrowdinCliOptions {
         formatter.setWidth(STRING_WIDTH);
         StringBuilder header = new StringBuilder();
         StringBuilder footer = new StringBuilder();
-        String cmdLineSyntax = "upload sources";
+        String cmdLineSyntax = "upload sources | push";
         header.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("name").toUpperCase());
         header.append(NEW_LINE + "source - ").append(RESOURCE_BUNDLE.getString("subcommand_sources"));
         header.append(DOUBLE_NEW_LINE).append(RESOURCE_BUNDLE.getString("synopsis").toUpperCase());
@@ -280,7 +281,7 @@ public class CrowdinCliOptions {
         formatter.setWidth(STRING_WIDTH);
         StringBuilder header = new StringBuilder();
         StringBuilder footer = new StringBuilder();
-        String cmdLineSyntax = "upload translation";
+        String cmdLineSyntax = "upload translation | push -t";
         header.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("name").toUpperCase());
         header.append(NEW_LINE + "translation - ").append(RESOURCE_BUNDLE.getString("subcommand_translations"));
         header.append(DOUBLE_NEW_LINE).append(RESOURCE_BUNDLE.getString("synopsis").toUpperCase());
@@ -297,7 +298,7 @@ public class CrowdinCliOptions {
         formatter.setWidth(STRING_WIDTH);
         StringBuilder header = new StringBuilder();
         StringBuilder footer = new StringBuilder();
-        String cmdLineSyntax = "download";
+        String cmdLineSyntax = "download | pull";
         header.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("name").toUpperCase());
         header.append(NEW_LINE + "download - ").append(RESOURCE_BUNDLE.getString("command_download_description"));
         header.append(DOUBLE_NEW_LINE).append(RESOURCE_BUNDLE.getString("synopsis").toUpperCase());

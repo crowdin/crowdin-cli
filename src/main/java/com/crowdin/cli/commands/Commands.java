@@ -215,8 +215,7 @@ public class Commands extends BaseCli {
             case UPLOAD_SOURCES :
             case PUSH:
             case UPLOAD_TRANSLATIONS :
-                boolean isPushTranslation = commandLine.hasOption(CrowdinCliOptions.TRANSLATION_SHORT)
-                        || commandLine.hasOption(CrowdinCliOptions.TRANSLATION_LONG);
+                boolean isPushTranslation = commandLine.hasOption(CrowdinCliOptions.TRANSLATION_SHORT);
                 if (UPLOAD_TRANSLATIONS.equalsIgnoreCase(resultCmd) || isPushTranslation) {
                     boolean isImportDuplicates = commandLine.hasOption(CrowdinCliOptions.IMPORT_DUPLICATES);
                     boolean isImportEqSuggestions = commandLine.hasOption(CrowdinCliOptions.IMPORT_EQ_SUGGESTIONS);
