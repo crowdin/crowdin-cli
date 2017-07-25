@@ -1032,11 +1032,10 @@ public class Commands extends BaseCli {
                 for (String translation : translations) {
                     translation = translation.replaceAll("/+", "/");
                     if (!files.contains(translation)) {
-                        //TODO: This usage is a bit unclear. Is the string supposed to be a regex or not?
                         if (translation.contains(Utils.PATH_SEPARATOR_REGEX)) {
                             translation = translation.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
                         } else if (translation.contains(Utils.PATH_SEPARATOR)) {
-                            translation = translation.replaceAll(Utils.PATH_SEPARATOR_REGEX + Utils.PATH_SEPARATOR_REGEX, "/");
+                            translation = translation.replaceAll(Utils.PATH_SEPARATOR + Utils.PATH_SEPARATOR, "/");
                         }
                         translation = translation.replaceAll("/+", "/");
                         files.add(translation);
