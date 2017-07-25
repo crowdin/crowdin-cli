@@ -4,3 +4,7 @@
 *.iml
 *.ipr
 *.iws
+crowdin.yml
+gradle
+gradlew
+gradlew.bat
