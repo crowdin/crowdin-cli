@@ -26,7 +26,7 @@ class FileMatcher implements PathMatcher {
                 pattern = pattern.replace(Utils.PATH_SEPARATOR_REGEX + Utils.PATH_SEPARATOR_REGEX, Utils.PATH_SEPARATOR_REGEX);
             }
         }
-        pattern = pattern.replaceAll("\\\\+", "\\\\");
+        pattern = pattern.replaceAll("\\\\+", Utils.PATH_SEPARATOR_REGEX + Utils.PATH_SEPARATOR_REGEX);
         pattern = pattern.replaceAll("/+", "/");
 
         // We *could* implement exactly what's documented. The idea would be to implement something like
