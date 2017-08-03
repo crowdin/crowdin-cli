@@ -102,9 +102,16 @@ public class CommandUtils extends BaseCli {
                 for (int i=0; i<sourceNodes.length; i++) {
                     if (sources.contains(sourceNodes[i])) {
                         sources = sources.replaceFirst(sourceNodes[i], "");
-                    } else if (sourceNodes.length - 1 == i && StringUtils.indexOfAny(sourceNodes[i], new String[]{"*", "?", "[", "]"}) > 0) {
-                        if (sources.lastIndexOf("/") > 0) {
-                            sources = sources.substring(0, sources.lastIndexOf("/"));
+                    } else if (sourceNodes.length - 1 == i) {
+                        if (sourceNodes[i].contains("/")) {
+                            String[] sourceNodesTmp = sourceNodes[i].split("/");
+                            for(int j=0; j< sourceNodesTmp.length; j++) {
+                                if (sources.contains(sourceNodesTmp[j])) {
+                                    sources = sources.replaceFirst(sourceNodesTmp[j], "");
+                                } else if (StringUtils.indexOfAny(sourceNodesTmp[j], new String[]{"*", "?", "[", "]", "."}) >= 0) {
+                                    sources = sources.substring(0, sources.lastIndexOf("/"));
+                                }
+                            }
                         } else if (sources.contains(".")) {
                             sources = "";
                         }
@@ -242,7 +249,6 @@ public class CommandUtils extends BaseCli {
                             System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - OK");
                         } else if (dir != null && !dir.getBoolean("success") && dir.getJSONObject("error") != null && dir.getJSONObject("error").getInt("code") == 50
                                 && "Directory with such name already exists".equals(dir.getJSONObject("error").getString("message"))) {
-
                             //SKIPPED
                             if (!directories.contains(resultDirs.toString())) {
                                 System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - SKIPPED");
