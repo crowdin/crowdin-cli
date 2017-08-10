@@ -357,8 +357,9 @@ public class CommandUtils extends BaseCli {
                 langInfo.put("two_letters_code", lang.getString("iso_639_1"));
                 langInfo.put("three_letters_code", lang.getString("iso_639_3"));
                 langInfo.put("crowdin_code", lang.getString("crowdin_code"));
-                langInfo.put("android_code", lang.getString("locale"));
+                langInfo.put("android_code", lang.getString("android_code"));
                 langInfo.put("osx_code", lang.getString("locale"));
+                langInfo.put("osx_locale", lang.getString("osx_locale"));
                 break;
             }
         }
@@ -550,9 +551,11 @@ public class CommandUtils extends BaseCli {
             translations = translations.replace(pattern, localWithUnderscore);
         }
         if (PLACEHOLDER_ANDROID_CODE.equals(pattern)) {
-            translations = translations.replace(pattern, Utils.getAndoidLocaleCode(languageInfo.getString("locale")));
+            translations = translations.replace(pattern, languageInfo.getString("android_code"));
         } else if (PLACEHOLDER_OSX_CODE.equals(pattern)) {
             translations = translations.replace(pattern, Utils.getOsXLocaleCode(languageInfo.getString("crowdin_code")));
+        } else if (PLACEHOLDER_OSX_LOCALE.equals(pattern)) {
+            translations = translations.replace(pattern, languageInfo.getString("osx_locale"));
         } else {
             translations = translations.replace(pattern, languageInfo.getString(placeholder));
         }
@@ -578,9 +581,11 @@ public class CommandUtils extends BaseCli {
         if (!isMapped) {
             String replacement;
             if (PLACEHOLDER_ANDROID_CODE.equals(pattern)) {
-                replacement = Utils.getAndoidLocaleCode(languageInfo.getString("locale"));
+                replacement = languageInfo.getString("android_code");
             } else if (PLACEHOLDER_OSX_CODE.equals(pattern)) {
                 replacement = Utils.getOsXLocaleCode(languageInfo.getString("crowdin_code"));
+            }else if (PLACEHOLDER_OSX_LOCALE.equals(pattern)) {
+                replacement = languageInfo.getString("osx_locale");
             } else {
                 replacement = (localWithUnderscore == null) ? languageInfo.getString(placeholder) : localWithUnderscore;
             }
@@ -590,7 +595,7 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
-    public Map<String, String> doLanguagesMapping(JSONObject projectInfo, JSONArray supportedLanguages, PropertiesBean propertiesBean) {
+    public Map<String, String> doLanguagesMapping(JSONObject projectInfo, JSONArray supportedLanguages, PropertiesBean propertiesBean, String lang) {
         Map<String, String> mapping = new HashMap<>();
         JSONArray projectLanguages = projectInfo.getJSONArray("languages");
         Parser parser = new Parser();
@@ -607,6 +612,11 @@ public class CommandUtils extends BaseCli {
             String languageName = languages.getString("name");
             if (languageName != null && !languageName.isEmpty()) {
                 JSONObject languageInfo = this.getLanguageInfo(languageName, supportedLanguages);
+                if (lang != null && !lang.isEmpty()) {
+                    if (!lang.equals(languageInfo.getString("crowdin_code"))) {
+                        continue;
+                    }
+                }
                 for (FileBean file : files) {
                     List<String> projectFiles = sourcesByFileBean.get(file);
                     String translationsBase = file.getTranslation();
@@ -659,18 +669,27 @@ public class CommandUtils extends BaseCli {
                             }
                         }
                         if (translationsBase.contains(PLACEHOLDER_ANDROID_CODE)) {
-                            Map<String, String> threeLettersCode = this.map(translationsBase, translationsMapping, languageInfo, file, "android_code", PLACEHOLDER_ANDROID_CODE);
-                            if (threeLettersCode != null) {
-                                for (Map.Entry<String, String> language: threeLettersCode.entrySet()) {
+                            Map<String, String> androidCode = this.map(translationsBase, translationsMapping, languageInfo, file, "android_code", PLACEHOLDER_ANDROID_CODE);
+                            if (androidCode != null) {
+                                for (Map.Entry<String, String> language: androidCode.entrySet()) {
                                     translationsBase = language.getKey();
                                     translationsMapping = language.getValue();
                                 }
                             }
                         }
                         if (translationsBase.contains(PLACEHOLDER_OSX_CODE)) {
-                            Map<String, String> threeLettersCode = this.map(translationsBase, translationsMapping, languageInfo, file, "osx_code", PLACEHOLDER_OSX_CODE);
-                            if (threeLettersCode != null) {
-                                for (Map.Entry<String, String> language: threeLettersCode.entrySet()) {
+                            Map<String, String> osxCode = this.map(translationsBase, translationsMapping, languageInfo, file, "osx_code", PLACEHOLDER_OSX_CODE);
+                            if (osxCode != null) {
+                                for (Map.Entry<String, String> language: osxCode.entrySet()) {
+                                    translationsBase = language.getKey();
+                                    translationsMapping = language.getValue();
+                                }
+                            }
+                        }
+                        if (translationsBase.contains(PLACEHOLDER_OSX_LOCALE)) {
+                            Map<String, String> osxLocale = this.map(translationsBase, translationsMapping, languageInfo, file, "osx_locale", PLACEHOLDER_OSX_LOCALE);
+                            if (osxLocale != null) {
+                                for (Map.Entry<String, String> language: osxLocale.entrySet()) {
                                     translationsBase = language.getKey();
                                     translationsMapping = language.getValue();
                                 }
@@ -681,7 +700,8 @@ public class CommandUtils extends BaseCli {
                                 || translationsBase.contains(PLACEHOLDER_FILE_EXTENTION)
                                 || translationsBase.contains(PLACEHOLDER_ORIGINAL_PATH)
                                 || translationsBase.contains(PLACEHOLDER_ANDROID_CODE)
-                                || translationsBase.contains(PLACEHOLDER_OSX_CODE)) {
+                                || translationsBase.contains(PLACEHOLDER_OSX_CODE)
+                                || translationsBase.contains(PLACEHOLDER_OSX_LOCALE)){
                             for (String projectFile : projectFiles) {
                                 File f = new File(projectFile);
                                 String temporaryTranslation = translationsBase;
@@ -699,8 +719,9 @@ public class CommandUtils extends BaseCli {
                                 temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_NAME, FilenameUtils.removeExtension(f.getName()));
                                 temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_EXTENTION, FilenameUtils.getExtension(f.getName()));
                                 temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
-                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, Utils.getAndoidLocaleCode(languageInfo.getString("locale")));
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, languageInfo.getString("android_code"));
                                 temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_CODE, Utils.getOsXLocaleCode(languageInfo.getString("crowdin_code")));
+                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_LOCALE, languageInfo.getString("osx_locale"));
                                 String k = this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean);
                                 String v = this.replaceDoubleAsteriskInTranslation(temporaryTranslationsMapping, f.getAbsolutePath(), file.getSource(), propertiesBean);
                                 k = k.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
@@ -756,7 +777,10 @@ public class CommandUtils extends BaseCli {
                             translations = translations.replace(PLACEHOLDER_THREE_LETTERS_CODE, langsInfo.getString("three_letters_code"));
                         }
                         if (translations.contains(PLACEHOLDER_ANDROID_CODE)) {
-                            translations = translations.replace(PLACEHOLDER_ANDROID_CODE, Utils.getAndoidLocaleCode(langsInfo.getString("locale")));
+                            translations = translations.replace(PLACEHOLDER_ANDROID_CODE, langsInfo.getString("android_code"));
+                        }
+                        if (translations.contains(PLACEHOLDER_OSX_LOCALE)) {
+                            translations = translations.replace(PLACEHOLDER_OSX_LOCALE, langsInfo.getString("osx_locale"));
                         }
                         if (translations.contains(PLACEHOLDER_OSX_CODE)) {
                             translations = translations.replace(PLACEHOLDER_OSX_CODE, Utils.getOsXLocaleCode(langsInfo.getString("crowdin_code")));
@@ -787,14 +811,16 @@ public class CommandUtils extends BaseCli {
                                 fileParent = Utils.replaceBasePath(fileParent, propertiesBean);
                             }
                             fileParent = fileParent.replaceAll("/+", "/");
-                            String androidLocaleCode = Utils.getAndoidLocaleCode(langsInfo.getString("locale"));
-                            String osXLocaleCode = Utils.getOsXLocaleCode(langsInfo.getString("crowdin_code"));
+                            String androidLocaleCode = langsInfo.getString("android_code");
+                            String osxLocaleCode = langsInfo.getString("osx_locale");
+                            String osxCode = Utils.getOsXLocaleCode(langsInfo.getString("crowdin_code"));
                             temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, originalFileName);
                             temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt);
                             temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_EXTENTION, fileExt);
                             temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
                             temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, androidLocaleCode);
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_CODE, osXLocaleCode);
+                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_CODE, osxCode);
+                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_LOCALE, osxLocaleCode);
                             if (sourceFile != null) {
                                 if (sourceFile.equals(projectFile)) {
                                     result.add(this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean));

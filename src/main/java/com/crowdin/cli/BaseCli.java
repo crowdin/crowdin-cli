@@ -72,6 +72,8 @@ public class BaseCli {
 
     protected static final String PLACEHOLDER_OSX_CODE = "%osx_code%";
 
+    protected static final String PLACEHOLDER_OSX_LOCALE = "%osx_locale%";
+
     protected static final String PLACEHOLDER_ORIGINAL_FILE_NAME = "%original_file_name%";
 
     protected static final String PLACEHOLDER_ORIGINAL_PATH = "%original_path%";
