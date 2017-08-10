@@ -817,6 +817,11 @@ Example of configuration file:
 ```
 
 ### Change log
+**Version 2.0.18**
++ osx_locale
++ Cleaned `title`
++ Bugs fixed
+
 **Version 2.0.17**
 + Performance improved (thanks to https://github.com/trejkaz)
 + Added short aliases for commands (push, pull)
