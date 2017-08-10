@@ -665,7 +665,7 @@ public class Commands extends BaseCli {
                                 .headers(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
                         String lng = (language == null || language.isEmpty()) ? languages.getString("code") : language;
                         List<String> translations = commandUtils.getTranslations(lng, sourcesWithoutIgnore, file, projectInfo, supportedLanguages, propertiesBean, "translations");
-                        Map<String,String> mapping = commandUtils.doLanguagesMapping(projectInfo, supportedLanguages, propertiesBean);
+                        Map<String,String> mapping = commandUtils.doLanguagesMapping(projectInfo, supportedLanguages, propertiesBean, languageInfo.getString("crowdin_code"));
                         List<File> translationFiles = new ArrayList<>();
 
                         String commonPath = "";
@@ -1027,7 +1027,7 @@ public class Commands extends BaseCli {
                     downloadedFilesProc.add(downloadedFile);
                 }
                 List<String> files = new ArrayList<>();
-                Map<String, String> mapping = commandUtils.doLanguagesMapping(projectInfo, supportedLanguages, propertiesBean);
+                Map<String, String> mapping = commandUtils.doLanguagesMapping(projectInfo, supportedLanguages, propertiesBean, lang);
                 List<String> translations = this.list(TRANSLATIONS, "download");
                 for (String translation : translations) {
                     translation = translation.replaceAll("/+", "/");
@@ -1249,7 +1249,17 @@ public class Commands extends BaseCli {
     private void dryrunTranslation(CommandLine commandLine) {
         List<String> files = new ArrayList<>();
         Set<String> translations = new HashSet<>();
-        Map<String, String> mappingTranslations = commandUtils.doLanguagesMapping(projectInfo, supportedLanguages, propertiesBean);
+        Parser parser = new Parser();
+        JSONArray projectLanguages = projectInfo.getJSONArray("languages");
+        Map<String, String> mappingTranslations = new HashMap<>();
+        for (Object projectLanguage : projectLanguages) {
+            JSONObject languages = parser.parseJson(projectLanguage.toString());
+            if (languages != null && languages.getString("code") != null) {
+                JSONObject languageInfo = commandUtils.getLanguageInfo(languages.getString("name"), supportedLanguages);
+                String crowdinCode = languageInfo.getString("crowdin_code");
+                mappingTranslations.putAll(commandUtils.doLanguagesMapping(projectInfo, supportedLanguages, propertiesBean, crowdinCode));
+            }
+        }
         String commonPath;
         String[] common = new String[mappingTranslations.values().size()];
         common = mappingTranslations.values().toArray(common);

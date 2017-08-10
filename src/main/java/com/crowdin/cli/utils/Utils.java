@@ -83,21 +83,6 @@ public class Utils {
         return applicationBaseUrl;
     }
 
-    public static String getAndoidLocaleCode(String localeCode) {
-        String androidLocaleCode = null;
-        if (localeCode != null && !localeCode.isEmpty()) {
-            if ("he-IL".equals(localeCode.trim())) {
-                localeCode = "iw-IL";
-            } else if ("yi-DE".equals(localeCode.trim())) {
-                localeCode = "ji-DE";
-            } else if ("id-ID".equals(localeCode.trim())) {
-                localeCode = "in-ID";
-            }
-            androidLocaleCode = localeCode.replace("-", "-r");
-        }
-        return androidLocaleCode;
-    }
-
     public static String getOsXLocaleCode(String localeCode) {
         String osXLocaleCode = null;
         if (localeCode != null && !localeCode.isEmpty()) {
