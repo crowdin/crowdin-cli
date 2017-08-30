@@ -91,6 +91,9 @@ public class FileHelper {
      * @return the list of source files withoug the ignores.
      */
     public List<File> filterOutIgnoredFiles(List<File> sources, FileBean fileBean, PropertiesBean propertiesBean) {
+        if (sources == null) {
+            return sources;
+        }
         if (fileBean == null) {
             return sources;
         }

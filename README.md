@@ -817,6 +817,9 @@ Example of configuration file:
 ```
 
 ### Change log
+**Version 2.0.19**
++ ** in export pattern
+
 **Version 2.0.18**
 + osx_locale
 + Cleaned `title`
