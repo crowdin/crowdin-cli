@@ -1,6 +1,5 @@
 package com.crowdin.cli.properties;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
@@ -37,6 +36,8 @@ public class FileBean {
     private Boolean contentSegmentation;
 
     private short escapeQuotes = 3;
+
+    private HashMap<String, String> translationReplace;
 
     public String getTranslation() {
         return translation;
@@ -156,5 +157,13 @@ public class FileBean {
 
     public void setEscapeQuotes(short escapeQuotes) {
         this.escapeQuotes = escapeQuotes;
+    }
+
+    public HashMap<String, String> getTranslationReplace() {
+        return translationReplace;
+    }
+
+    public void setTranslationReplace(HashMap<String, String> translationReplace) {
+        this.translationReplace = translationReplace;
     }
 }

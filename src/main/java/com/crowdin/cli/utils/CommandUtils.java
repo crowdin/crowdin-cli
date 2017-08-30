@@ -109,7 +109,11 @@ public class CommandUtils extends BaseCli {
                                 if (sources.contains(sourceNodesTmp[j])) {
                                     sources = sources.replaceFirst(sourceNodesTmp[j], "");
                                 } else if (StringUtils.indexOfAny(sourceNodesTmp[j], new String[]{"*", "?", "[", "]", "."}) >= 0) {
-                                    sources = sources.substring(0, sources.lastIndexOf("/"));
+                                    if (sources.lastIndexOf("/") > 0) {
+                                        sources = sources.substring(0, sources.lastIndexOf("/"));
+                                    } else {
+                                        sources = "";
+                                    }
                                 }
                             }
                         } else if (sources.contains(".")) {
@@ -135,9 +139,11 @@ public class CommandUtils extends BaseCli {
         List<File> sourcesWithoutIgnores = fileHelper.filterOutIgnoredFiles(sources, file, propertiesBean);
 
         List<String> result = new ArrayList<>();
-        for (File source : sourcesWithoutIgnores) {
-            if (source.isFile()) {
-                result.add(source.getAbsolutePath());
+        if (sourcesWithoutIgnores != null) {
+            for (File source : sourcesWithoutIgnores) {
+                if (source.isFile()) {
+                    result.add(source.getAbsolutePath());
+                }
             }
         }
         return result;
@@ -726,6 +732,9 @@ public class CommandUtils extends BaseCli {
                                 String v = this.replaceDoubleAsteriskInTranslation(temporaryTranslationsMapping, f.getAbsolutePath(), file.getSource(), propertiesBean);
                                 k = k.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
                                 k = k.replaceAll("/+", "/");
+                                if (file.getTranslationReplace() != null && !file.getTranslationReplace().isEmpty()) {
+                                    v = this.doTranslationReplace(v, file.getTranslationReplace());
+                                }
                                 mapping.put(k, v);
                             }
                         } else {
@@ -734,6 +743,9 @@ public class CommandUtils extends BaseCli {
                                 String v = this.replaceDoubleAsteriskInTranslation(translationsMapping, projectFiles.get(0), file.getSource(), propertiesBean);
                                 k = k.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
                                 k = k.replaceAll("/+", "/");
+                                if (file.getTranslationReplace() != null && !file.getTranslationReplace().isEmpty()) {
+                                    v = this.doTranslationReplace(v, file.getTranslationReplace());
+                                }
                                 mapping.put(k, v);
                             }
                         }
@@ -742,6 +754,17 @@ public class CommandUtils extends BaseCli {
             }
         }
         return mapping;
+    }
+
+    private String doTranslationReplace(String value, Map<String, String> translationReplace) {
+        for (Map.Entry<String, String> translationReplaceEntry : translationReplace.entrySet()) {
+            String translationReplaceKey = translationReplaceEntry.getKey();
+            String translationReplaceValue = translationReplaceEntry.getValue();
+            if (value.contains(translationReplaceKey)) {
+                value = value.replaceAll(translationReplaceKey, translationReplaceValue);
+            }
+        }
+        return value;
     }
 
     public List<String> getTranslations(String lang, String sourceFile, FileBean file, JSONObject projectInfo,

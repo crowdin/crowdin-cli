@@ -3,7 +3,6 @@ package com.crowdin.cli.properties;
 import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
 
-import java.io.File;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -71,6 +70,8 @@ public class CliProperties {
     private static final String MULTILINGUAL_SPREADSHEET = "multilingual_spreadsheet";
 
     private static final String SCHEME = "scheme";
+
+    private static final String TRANSLATION_REPLACE = "translation_replace";
 
     public PropertiesBean loadProperties(HashMap<String, Object> properties) {
         if (properties == null || properties.isEmpty()) {
@@ -218,6 +219,11 @@ public class CliProperties {
                                         break;
                                     case SCHEME :
                                         fileBean.setScheme(fileObjVal.toString());
+                                        break;
+                                    case TRANSLATION_REPLACE:
+                                        HashMap<String, String> translationReplace;
+                                        translationReplace = (HashMap<String, String>) fileObjVal;
+                                        fileBean.setTranslationReplace(translationReplace);
                                         break;
                                 }
                             }
@@ -369,6 +375,10 @@ public class CliProperties {
                 }
                 //scheme
                 if (file.getScheme() == null || file.getScheme().isEmpty()) {
+                } else {
+                }
+                //translation repalce
+                if (file.getTranslationReplace() == null || file.getTranslationReplace().isEmpty()) {
                 } else {
                 }
                 if (hasError == false) {
