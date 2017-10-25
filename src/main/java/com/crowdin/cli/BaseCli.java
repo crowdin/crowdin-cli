@@ -60,6 +60,8 @@ public class BaseCli {
 
     protected static final String PLACEHOLDER_FILE_NAME = "%file_name%";
 
+    protected static final String PLACEHOLDER_FILE_NAME_WITHOUT_ANY_EXT = "%file_name_without_any_extensions%";
+
     protected static final String PLACEHOLDER_LANGUAGE = "%language%";
 
     protected static final String PLACEHOLDER_LOCALE = "%locale%";

@@ -818,6 +818,7 @@ public class CommandUtils extends BaseCli {
                             String temporaryTranslation = translations;
                             String originalFileName = f.getName();
                             String fileNameWithoutExt = FilenameUtils.removeExtension(f.getName());
+                            String fileNameWithoutAnyExt = f.getName().replaceFirst("[.].+$", "");
                             String fileExt = FilenameUtils.getExtension(f.getName());
                             String fileParent = new File(f.getParent()).getAbsolutePath();
                             if (!propertiesBean.getPreserveHierarchy() && "download".equals(command)) {
@@ -839,6 +840,7 @@ public class CommandUtils extends BaseCli {
                             String osxCode = Utils.getOsXLocaleCode(langsInfo.getString("crowdin_code"));
                             temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, originalFileName);
                             temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt);
+                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_NAME_WITHOUT_ANY_EXT, fileNameWithoutAnyExt);
                             temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_EXTENTION, fileExt);
                             temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
                             temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, androidLocaleCode);

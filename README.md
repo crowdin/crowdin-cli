@@ -375,7 +375,11 @@ Crowdin CLI allows to use the following placeholders to put appropriate variable
     </tr>
     <tr>
       <td>%file_name%</td>
-      <td>File name without extension</td>
+      <td>File name without the last extension</td>
+    </tr>
+    <tr>
+      <td>%file_name_without_any_extensions%</td>
+      <td>File name without any extensions</td>
     </tr>
   </tbody>
 </table>
