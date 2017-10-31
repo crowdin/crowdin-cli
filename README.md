@@ -815,6 +815,8 @@ Example of configuration file:
   }
 ]
 ```
+**Version 2.0.20**
++ escape round brackets
 
 ### Change log
 **Version 2.0.19**
