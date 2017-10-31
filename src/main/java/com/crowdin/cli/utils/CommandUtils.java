@@ -761,7 +761,7 @@ public class CommandUtils extends BaseCli {
             String translationReplaceKey = translationReplaceEntry.getKey();
             String translationReplaceValue = translationReplaceEntry.getValue();
             if (value.contains(translationReplaceKey)) {
-                value = value.replaceAll(translationReplaceKey, translationReplaceValue);
+                value = value.replace(translationReplaceKey, translationReplaceValue);
             }
         }
         return value;

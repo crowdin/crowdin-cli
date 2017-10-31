@@ -605,6 +605,9 @@ public class Commands extends BaseCli {
                 }
                 if (result != null && result.getBoolean(RESPONSE_SUCCESS)) {
                     if (result.has("files") && result.getJSONObject("files") != null) {
+                        if (this.branch != null && !this.branch.isEmpty()) {
+                            preservePath = this.branch + "/" + preservePath;
+                        }
                         if (result.getJSONObject("files").has(preservePath) && "updated".equals(result.getJSONObject("files").getString(preservePath))) {
                             System.out.println(" - OK");
                         } else {

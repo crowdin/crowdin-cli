@@ -34,6 +34,14 @@ public class FileHelper {
 
     private static final String SET_CLOSE_BRECKET = "]";
 
+    private static final String ROUND_BRACKET_OPEN = "(";
+
+    private static final String ROUND_BRACKET_CLOSE = ")";
+
+    private static final String ESCAPE_ROUND_BRACKET_OPEN = "\\(";
+
+    private static final String ESCAPE_ROUND_BRACKET_CLOSE = "\\)";
+
     private static final String ESCAPE_DOT = "\\.";
 
     private static final String ESCAPE_DOT_PLACEHOLDER = "{ESCAPE_DOT}";
@@ -146,6 +154,12 @@ public class FileHelper {
                 }
                 node = node.replace(ASTERISK, DOT_PLUS);
                 node = node.replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK);
+            }
+            if (node.contains(ROUND_BRACKET_OPEN)) {
+                node = node.replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN);
+            }
+            if (node.contains(ROUND_BRACKET_CLOSE)) {
+                node = node.replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE);
             }
         }
         return node;
