@@ -815,6 +815,9 @@ Example of configuration file:
   }
 ]
 ```
+**Version 2.0.21**
++ osx_code updated
+
 **Version 2.0.20**
 + escape round brackets
 

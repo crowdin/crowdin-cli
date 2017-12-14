@@ -83,19 +83,6 @@ public class Utils {
         return applicationBaseUrl;
     }
 
-    public static String getOsXLocaleCode(String localeCode) {
-        String osXLocaleCode = null;
-        if (localeCode != null && !localeCode.isEmpty()) {
-            if ("zh-CN".equals(localeCode.trim())) {
-                localeCode = "zh-Hans";
-            } else if ("zh-TW".equals(localeCode.trim())) {
-                localeCode = "zh-Hant";
-            }
-            osXLocaleCode = localeCode.replace("-", "_") + ".lproj";
-        }
-        return osXLocaleCode;
-    }
-
     public static String replaceBasePath(String path, PropertiesBean propertiesBean) {
         if (path == null || path.isEmpty()) {
             System.out.println(RESOURCE_BUNDLE.getString("error_empty_path"));
