@@ -701,53 +701,34 @@ public class CommandUtils extends BaseCli {
                                 }
                             }
                         }
-                        if (translationsBase.contains(PLACEHOLDER_ORIGINAL_FILE_NAME)
-                                || translationsBase.contains(PLACEHOLDER_FILE_NAME)
-                                || translationsBase.contains(PLACEHOLDER_FILE_EXTENTION)
-                                || translationsBase.contains(PLACEHOLDER_ORIGINAL_PATH)
-                                || translationsBase.contains(PLACEHOLDER_ANDROID_CODE)
-                                || translationsBase.contains(PLACEHOLDER_OSX_CODE)
-                                || translationsBase.contains(PLACEHOLDER_OSX_LOCALE)){
-                            for (String projectFile : projectFiles) {
-                                File f = new File(projectFile);
-                                String temporaryTranslation = translationsBase;
-                                String temporaryTranslationsMapping = translationsMapping;
-                                String fileParent = new File(f.getParent()).getAbsolutePath();
-                                fileParent = Utils.replaceBasePath(fileParent, propertiesBean);
-                                if (fileParent.startsWith(Utils.PATH_SEPARATOR)) {
-                                    fileParent = fileParent.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
-                                }
-                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, f.getName());
-                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_NAME, FilenameUtils.removeExtension(f.getName()));
-                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_EXTENTION, FilenameUtils.getExtension(f.getName()));
-                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
-                                temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, f.getName());
-                                temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_NAME, FilenameUtils.removeExtension(f.getName()));
-                                temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_EXTENTION, FilenameUtils.getExtension(f.getName()));
-                                temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
-                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, languageInfo.getString("android_code"));
-                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_CODE, languageInfo.getString("osx_code"));
-                                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_LOCALE, languageInfo.getString("osx_locale"));
-                                String k = this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean);
-                                String v = this.replaceDoubleAsteriskInTranslation(temporaryTranslationsMapping, f.getAbsolutePath(), file.getSource(), propertiesBean);
-                                k = k.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
-                                k = k.replaceAll("/+", "/");
-                                if (file.getTranslationReplace() != null && !file.getTranslationReplace().isEmpty()) {
-                                    v = this.doTranslationReplace(v, file.getTranslationReplace());
-                                }
-                                mapping.put(k, v);
+                        for (String projectFile : projectFiles) {
+                            File f = new File(projectFile);
+                            String temporaryTranslation = translationsBase;
+                            String temporaryTranslationsMapping = translationsMapping;
+                            String fileParent = new File(f.getParent()).getAbsolutePath();
+                            fileParent = Utils.replaceBasePath(fileParent, propertiesBean);
+                            if (fileParent.startsWith(Utils.PATH_SEPARATOR)) {
+                                fileParent = fileParent.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
                             }
-                        } else {
-                            if (projectFiles != null && !projectFiles.isEmpty()) {
-                                String k = this.replaceDoubleAsteriskInTranslation(translationsBase, projectFiles.get(0), file.getSource(), propertiesBean);
-                                String v = this.replaceDoubleAsteriskInTranslation(translationsMapping, projectFiles.get(0), file.getSource(), propertiesBean);
-                                k = k.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
-                                k = k.replaceAll("/+", "/");
-                                if (file.getTranslationReplace() != null && !file.getTranslationReplace().isEmpty()) {
-                                    v = this.doTranslationReplace(v, file.getTranslationReplace());
-                                }
-                                mapping.put(k, v);
+                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, f.getName());
+                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_NAME, FilenameUtils.removeExtension(f.getName()));
+                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_EXTENTION, FilenameUtils.getExtension(f.getName()));
+                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
+                            temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, f.getName());
+                            temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_NAME, FilenameUtils.removeExtension(f.getName()));
+                            temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_EXTENTION, FilenameUtils.getExtension(f.getName()));
+                            temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
+                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, languageInfo.getString("android_code"));
+                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_CODE, languageInfo.getString("osx_code"));
+                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_LOCALE, languageInfo.getString("osx_locale"));
+                            String k = this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean);
+                            String v = this.replaceDoubleAsteriskInTranslation(temporaryTranslationsMapping, f.getAbsolutePath(), file.getSource(), propertiesBean);
+                            k = k.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
+                            k = k.replaceAll("/+", "/");
+                            if (file.getTranslationReplace() != null && !file.getTranslationReplace().isEmpty()) {
+                                v = this.doTranslationReplace(v, file.getTranslationReplace());
                             }
+                            mapping.put(k, v);
                         }
                     }
                 }
