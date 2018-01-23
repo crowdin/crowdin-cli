@@ -815,13 +815,17 @@ Example of configuration file:
   }
 ]
 ```
+### Change log
+
+**Version 2.0.22**
++ Fix bug with translation downloading
+
 **Version 2.0.21**
 + osx_code updated
 
 **Version 2.0.20**
 + escape round brackets
 
-### Change log
 **Version 2.0.19**
 + ** in export pattern
 
