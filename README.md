@@ -54,7 +54,7 @@ If you don't have Java installed, download it from <a href="https://www.java.com
   * Click <b>Start</b>
   * In the <i>Start Search box</i>, type <b>cmd</b>, and then press CTRL+SHIFT+ENTER
   * If the <i>User Account Control</i> dialog box appears, confirm that the action it displays is what you want, and then click <b>Continue</b>
-4. Run <code>setup-crowdin.bat</code> script in order to add <code>crowdin</code> command to the <i>Command Promt</i>
+4. Run <code>setup_crowdin.bat</code> script in order to add <code>crowdin</code> command to the <i>Command Promt</i>
 
 ### Running the App
 
