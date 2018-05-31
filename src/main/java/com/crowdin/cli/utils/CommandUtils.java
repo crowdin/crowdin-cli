@@ -141,7 +141,7 @@ public class CommandUtils extends BaseCli {
         List<String> result = new ArrayList<>();
         if (sourcesWithoutIgnores != null) {
             for (File source : sourcesWithoutIgnores) {
-                if (source.isFile()) {
+                if (source.isFile() || Files.isSymbolicLink(source.toPath())) {
                     result.add(source.getAbsolutePath());
                 }
             }
