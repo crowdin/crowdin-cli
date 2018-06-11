@@ -14,6 +14,7 @@ import com.crowdin.parameters.CrowdinApiParametersBuilder;
 import com.sun.jersey.api.client.ClientResponse;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
@@ -161,16 +162,36 @@ public class Commands extends BaseCli {
 
         if (this.identityCliConfig != null) {
             if (this.identityCliConfig.get("project_identifier_env") != null) {
-                propertiesBean.setProjectIdentifier(this.identityCliConfig.get("project_identifier_env").toString());
+                String projectIdentifierEnv = this.identityCliConfig.get("project_identifier_env").toString();
+                String projectIdentifier = System.getenv(projectIdentifierEnv);
+
+                if (StringUtils.isNotEmpty(projectIdentifier)) {
+                    propertiesBean.setProjectIdentifier(projectIdentifier);
+                }
             }
             if (this.identityCliConfig.get("api_key_env") != null) {
-                propertiesBean.setApiKey(this.identityCliConfig.get("api_key_env").toString());
+                String apiKeyEnv = this.identityCliConfig.get("api_key_env").toString();
+                String apiKey = System.getenv(apiKeyEnv);
+
+                if (StringUtils.isNotEmpty(apiKey)) {
+                    propertiesBean.setApiKey(apiKey);
+                }
             }
             if (this.identityCliConfig.get("base_path_env") != null) {
-                propertiesBean.setBasePath(this.identityCliConfig.get("base_path_env").toString());
+                String basePathEnv = this.identityCliConfig.get("base_path_env").toString();
+                String basePath = System.getenv(basePathEnv);
+
+                if (StringUtils.isNotEmpty(basePath)) {
+                    propertiesBean.setBasePath(basePath);
+                }
             }
             if (this.identityCliConfig.get("base_url_env") != null) {
-                propertiesBean.setBaseUrl(this.identityCliConfig.get("base_url_env").toString());
+                String baseUrlEnv = this.identityCliConfig.get("base_url_env").toString();
+                String baseUrl = System.getenv(baseUrlEnv);
+
+                if (StringUtils.isNotEmpty(baseUrl)) {
+                    propertiesBean.setBaseUrl(baseUrl);
+                }
             }
             if (this.identityCliConfig.get("project_identifier") != null) {
                 propertiesBean.setProjectIdentifier(this.identityCliConfig.get("project_identifier").toString());
