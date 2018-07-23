@@ -54,7 +54,7 @@ If you don't have Java installed, download it from <a href="https://www.java.com
   * Click <b>Start</b>
   * In the <i>Start Search box</i>, type <b>cmd</b>, and then press CTRL+SHIFT+ENTER
   * If the <i>User Account Control</i> dialog box appears, confirm that the action it displays is what you want, and then click <b>Continue</b>
-4. Run <code>setup_crowdin.bat</code> script in order to add <code>crowdin</code> command to the <i>Command Promt</i>
+4. Run <code>setup_crowdin.bat</code> script in order to add <code>crowdin</code> command to the <i>Command Prompt</i>
 
 ### Running the App
 
@@ -163,7 +163,7 @@ To download latest translations from Crowdin:
 $ crowdin download
 ```
 
-To download latest translations for the specific langauge (<a href="https://support.crowdin.com/api/language-codes/" target="_blank">language codes</a>):
+To download latest translations for the specific language (<a href="https://support.crowdin.com/api/language-codes/" target="_blank">language codes</a>):
 ```
 $ crowdin download -l {language_code}
 ```
