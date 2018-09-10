@@ -1,3 +1,7 @@
+**Unreleased**
++ Allow symlinks as source files
++ Fix bug with configuration loading from environment variables
+
 **Version 2.0.22**
 + Fix bug with translation downloading
 
