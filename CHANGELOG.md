@@ -1,4 +1,6 @@
 **Unreleased**
+
+**Version 2.0.23**
 + Allow symlinks as source files
 + Fix bug with configuration loading from environment variables
 
