@@ -1,5 +1,7 @@
 **Unreleased**
-+ support proxy
+
+**Version 2.0.23**
++ Add support proxy via env variables `HTTP_PROXY_HOST` and `HTTP_PROXY_PORT`
 
 **Version 2.0.23**
 + Allow symlinks as source files
