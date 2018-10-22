@@ -384,7 +384,7 @@ public class CommandUtils extends BaseCli {
                 if (preservedKey.startsWith(commonPath)) {
                     for (FileBean file : propertiesBean.getFiles()) {
                         String ep = file.getTranslation();
-                        if (ep != null && !ep.startsWith(commonPath) && !this.isSourceContainsPattern(ep)) {
+                        if (ep != null && !ep.startsWith(commonPath) && !this.isSourceContainsPattern(ep)  && !entry.getValue().startsWith(commonPath)) {
                             preservedKey = preservedKey.replaceFirst(commonPath, "");
                         }
                     }
@@ -479,7 +479,7 @@ public class CommandUtils extends BaseCli {
                 if (k.startsWith(commonPath)) {
                     for (FileBean file : propertiesBean.getFiles()) {
                         String ep = file.getTranslation();
-                        if (ep != null && !ep.startsWith(commonPath) && !this.isSourceContainsPattern(ep)) {
+                        if (ep != null && !ep.startsWith(commonPath) && !this.isSourceContainsPattern(ep) && !extractingMappingFile.getValue().startsWith(commonPath)) {
                             k = k.replaceFirst(commonPath, "");
                         }
                     }
