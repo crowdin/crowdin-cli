@@ -11,7 +11,6 @@ import com.crowdin.parameters.CrowdinApiParametersBuilder;
 import com.sun.jersey.api.client.ClientResponse;
 import net.lingala.zip4j.core.ZipFile;
 import org.apache.commons.cli.CommandLine;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -458,7 +457,12 @@ public class CommandUtils extends BaseCli {
                 }
             } else {
                 if (branch != null && !branch.isEmpty()) {
-                    extractingFiles.add(downloadedFile.replaceFirst("/" + branch + "/", ""));
+                    if (downloadedFile.startsWith("/" + branch + "/")) {
+                        downloadedFile = downloadedFile.replaceFirst("/", "");
+                        downloadedFile = downloadedFile.replaceFirst(branch, "");
+                        downloadedFile = downloadedFile.replaceFirst("/", "");
+                    }
+                    extractingFiles.add(downloadedFile);
                 } else {
                     extractingFiles.add(downloadedFile);
                 }
