@@ -1,5 +1,6 @@
 **Unreleased**
 + Fix issue with `preserve_hierarchy` option when target and source languages are the same
++ Fix escaping symbols in branch's name
 
 **Version 2.0.24**
 + Add support proxy via env variables `HTTP_PROXY_HOST` and `HTTP_PROXY_PORT`
