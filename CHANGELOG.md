@@ -1,6 +1,7 @@
 **Unreleased**
++ Fix issue with `preserve_hierarchy` option when target and source languages are the same
 
-**Version 2.0.23**
+**Version 2.0.24**
 + Add support proxy via env variables `HTTP_PROXY_HOST` and `HTTP_PROXY_PORT`
 
 **Version 2.0.23**
@@ -62,10 +63,10 @@
 + Fix bug: improved export pattern on Windows OS
 
 **Version 2.0.8**
-+ Fix bug: when download translations on Windows OS
++ Fix bug: when downloading translations on Windows OS
 
 **Version 2.0.7**
-+ Fix bug: when download translations from branch
++ Fix bug: when downloading translations from branch
 
 **Version 2.0.6**
 + Fix bug: when adding directories or branches with same names
