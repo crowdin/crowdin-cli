@@ -1,6 +1,6 @@
 **Unreleased**
 
-**Version 2.0.24**
+**Version 2.0.25**
 + Fix issue with `preserve_hierarchy` option when target and source languages are the same
 + Fix escaping symbols in branch's name
 
