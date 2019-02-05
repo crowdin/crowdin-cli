@@ -105,9 +105,11 @@ public class CommandUtils extends BaseCli {
                         if (sourceNodes[i].contains("/")) {
                             String[] sourceNodesTmp = sourceNodes[i].split("/");
                             for(int j=0; j< sourceNodesTmp.length; j++) {
-                                if (sources.contains(sourceNodesTmp[j])) {
-                                    sources = sources.replaceFirst(sourceNodesTmp[j], "");
-                                } else if (StringUtils.indexOfAny(sourceNodesTmp[j], new String[]{"*", "?", "[", "]", "."}) >= 0) {
+                                String s = "/" + sourceNodesTmp[j] + "/";
+                                s = s.replaceAll("/+", "/");
+                                if (sources.contains(s)) {
+                                    sources = sources.replaceFirst(s, "/");
+                                } else if (StringUtils.indexOfAny(s, new String[]{"*", "?", "[", "]", "."}) >= 0) {
                                     if (sources.lastIndexOf("/") > 0) {
                                         sources = sources.substring(0, sources.lastIndexOf("/"));
                                     } else {
