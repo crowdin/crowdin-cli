@@ -1,4 +1,5 @@
 **Unreleased**
++ Fix issue with replacement `**` in translation pattern
 
 **Version 2.0.25**
 + Fix issue with `preserve_hierarchy` option when target and source languages are the same
@@ -21,7 +22,7 @@
 + escape round brackets
 
 **Version 2.0.19**
-+ ** in export pattern
++ `**` in export pattern
 
 **Version 2.0.18**
 + osx_locale
