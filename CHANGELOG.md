@@ -1,4 +1,6 @@
 **Unreleased**
+
+**Version 2.0.26**
 + Fix issue with replacement `**` in translation pattern
 
 **Version 2.0.25**
