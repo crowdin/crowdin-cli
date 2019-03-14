@@ -1,4 +1,6 @@
 **Unreleased**
+
+**Version 2.0.27**
 + Increase version of jackson databind
 
 **Version 2.0.26**
