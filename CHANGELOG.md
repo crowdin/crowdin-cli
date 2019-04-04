@@ -1,4 +1,6 @@
 **Unreleased**
+
+**Version 2.0.28**
 + Increase version of log4j
 
 **Version 2.0.27**
