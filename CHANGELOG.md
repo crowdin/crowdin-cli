@@ -1,4 +1,5 @@
 **Unreleased**
++ Increase version of log4j
 
 **Version 2.0.27**
 + Increase version of jackson databind
