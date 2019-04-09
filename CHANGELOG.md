@@ -1,4 +1,5 @@
 **Unreleased**
++ Decrease version of log4j (fix [#109](https://github.com/crowdin/crowdin-cli-2/issues/109))
 
 **Version 2.0.28**
 + Increase version of log4j
