@@ -49,7 +49,7 @@ public class FileReader {
             if (isDebug) {
                 e.printStackTrace();
             }
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         return result;
     }

@@ -99,11 +99,11 @@ public class Commands extends BaseCli {
                         if (this.isDebug) {
                             e.printStackTrace();
                         }
-                        System.exit(0);
+                        ConsoleUtil.exitError();
                     }
                 } else {
                     System.out.println("Configuration file '" + this.configFile.getAbsolutePath() + "' does not exist");
-                    System.exit(0);
+                    ConsoleUtil.exitError();
                 }
                 if (this.cliConfig != null) {
                     try {
@@ -113,11 +113,11 @@ public class Commands extends BaseCli {
                         if (this.isDebug) {
                             e.printStackTrace();
                         }
-                        System.exit(0);
+                        ConsoleUtil.exitError();
                     }
                 } else {
                     System.out.println("Configuration file '" + this.configFile.getAbsolutePath() + "' does not exist");
-                    System.exit(0);
+                    ConsoleUtil.exitError();
                 }
                 if (this.identity != null && this.identity.isFile()) {
                     this.propertiesBean = this.readIdentityProperties(this.propertiesBean);
@@ -157,7 +157,7 @@ public class Commands extends BaseCli {
             if (this.isDebug) {
                 e.printStackTrace();
             }
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
 
         if (this.identityCliConfig != null) {
@@ -213,11 +213,11 @@ public class Commands extends BaseCli {
 
         if (commandLine == null) {
             System.out.println(RESOURCE_BUNDLE.getString("commandline_null"));
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         if (resultCmd == null) {
             System.out.println(RESOURCE_BUNDLE.getString("command_not_found"));
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
 
         this.branch = this.commandUtils.getBranch(commandLine);
@@ -411,7 +411,7 @@ public class Commands extends BaseCli {
             if (this.isDebug) {
                 e.printStackTrace();
             }
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         JSONObject branch = parser.parseJson(clientResponse.getEntity(String.class));
         if (this.isVerbose) {
@@ -428,7 +428,7 @@ public class Commands extends BaseCli {
             if (branch != null && branch.getJSONObject(RESPONSE_ERROR) != null && branch.getJSONObject(RESPONSE_ERROR).getString(RESPONSE_MESSAGE) != null) {
                 System.out.println(branch.getJSONObject(RESPONSE_ERROR).getString(RESPONSE_MESSAGE));
             }
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
     }
 
@@ -653,7 +653,7 @@ public class Commands extends BaseCli {
         if (noFiles) {
             System.out.println("Error: No source files to upload.\n" +
                     "Check your configuration file to ensure that they contain valid directives.");
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         return result;
     }
@@ -840,7 +840,7 @@ public class Commands extends BaseCli {
     public void initCli() {
         if (credentials == null) {
             System.out.println(RESOURCE_BUNDLE.getString("wrong_connection"));
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         if (credentials.getProjectIdentifier() == null || credentials.getProjectKey() == null || credentials.getBaseUrl() == null
             ||credentials.getProjectIdentifier().isEmpty() || credentials.getProjectKey().isEmpty() || credentials.getBaseUrl().isEmpty()) {
@@ -853,7 +853,7 @@ public class Commands extends BaseCli {
             if (credentials.getBaseUrl() == null || credentials.getBaseUrl().isEmpty()) {
                 System.out.println("Base url is empty");
             }
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         CrowdinApiClient crwdn = new Crwdn();
         JSONObject result = null;
@@ -875,11 +875,11 @@ public class Commands extends BaseCli {
             if (isDebug) {
                 e.printStackTrace();
             }
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         if (result == null) {
             System.out.println(RESOURCE_BUNDLE.getString("initialisation_failed"));
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         if (result.has(RESPONSE_SUCCESS)) {
             Boolean responseStatus = result.getBoolean(RESPONSE_SUCCESS);
@@ -895,7 +895,7 @@ public class Commands extends BaseCli {
                     JSONObject error = result.getJSONObject(RESPONSE_ERROR);
                     if (error == null) {
                         System.out.println("Initialization failed");
-                        System.exit(0);
+                        ConsoleUtil.exitError();
                     }
                     if (error.has(RESPONSE_CODE)) {
                         if ("0".equals(error.get(RESPONSE_CODE).toString())) {
@@ -903,7 +903,7 @@ public class Commands extends BaseCli {
                                 String message = error.getString(RESPONSE_MESSAGE);
                                 if (message != null) {
                                     System.out.println(message);
-                                    System.exit(0);
+                                    ConsoleUtil.exitError();
                                 }
                             }
                         }
@@ -912,7 +912,7 @@ public class Commands extends BaseCli {
             }
         } else {
             System.out.println(RESOURCE_BUNDLE.getString("initialisation_failed"));
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
     }
 
@@ -958,7 +958,7 @@ public class Commands extends BaseCli {
             if (isDebug) {
                 e.printStackTrace();
             }
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         result = parser.parseJson(clientResponse.getEntity(String.class));
         if (result != null) {
@@ -979,7 +979,7 @@ public class Commands extends BaseCli {
                     System.out.println("error");
                     System.out.println("branch '" + branch + "' does not exist in the project");
                 }
-                System.exit(0);
+                ConsoleUtil.exitError();
             }
         }
         if (isVerbose) {
@@ -1170,7 +1170,7 @@ public class Commands extends BaseCli {
     private void dryrunSources(CommandLine commandLine) {
         List<String> files = this.list(SOURCES, "sources");
         if (files.size() < 1 ) {
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         commandUtils.sortFilesName(files);
         String commonPath = "";
@@ -1333,7 +1333,7 @@ public class Commands extends BaseCli {
     private void lint() {
         if (cliConfig == null) {
             System.out.println(RESOURCE_BUNDLE.getString("configuration_file_empty"));
-            System.exit(0);
+            ConsoleUtil.exitError();
         } else {
             CliProperties cliProperties = new CliProperties();
             PropertiesBean propertiesBean = cliProperties.loadProperties(cliConfig);
@@ -1343,20 +1343,20 @@ public class Commands extends BaseCli {
             }
             if (propertiesBean == null && propertiesBeanIdentity == null) {
                 System.out.println(RESOURCE_BUNDLE.getString("configuration_file_empty"));
-                System.exit(0);
+                ConsoleUtil.exitError();
             }
 
             if (propertiesBean == null || (propertiesBean != null && propertiesBean.getProjectIdentifier() == null)) {
                 if (propertiesBeanIdentity == null || (propertiesBeanIdentity != null && propertiesBeanIdentity.getProjectIdentifier() == null)) {
                     System.out.println(RESOURCE_BUNDLE.getString("error_missed_project_identifier"));
-                    System.exit(0);
+                    ConsoleUtil.exitError();
                 }
             }
 
             if (propertiesBean == null || (propertiesBean != null && propertiesBean.getApiKey() == null)) {
                 if (propertiesBeanIdentity == null || (propertiesBeanIdentity != null && propertiesBeanIdentity.getApiKey() == null)) {
                     System.out.println(RESOURCE_BUNDLE.getString("error_missed_api_key"));
-                    System.exit(0);
+                    ConsoleUtil.exitError();
                 }
             }
 
@@ -1365,7 +1365,7 @@ public class Commands extends BaseCli {
                     String baseUrl = Utils.getBaseUrl();
                     if (baseUrl == null || baseUrl.isEmpty()) {
                         System.out.println(RESOURCE_BUNDLE.getString("missed_base_url"));
-                        System.exit(0);
+                        ConsoleUtil.exitError();
                     }
                 }
             }
@@ -1383,25 +1383,25 @@ public class Commands extends BaseCli {
                 File base = new File(basePath);
                 if (!base.exists()) {
                     System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
-                    System.exit(0);
+                    ConsoleUtil.exitError();
                 }
             }
 
             if (propertiesBean.getFiles() == null) {
                 System.out.println(RESOURCE_BUNDLE.getString("error_missed_section_files"));
-                System.exit(0);
+                ConsoleUtil.exitError();
             } else if (propertiesBean.getFiles().isEmpty()) {
                 System.out.println(RESOURCE_BUNDLE.getString("empty_section_file"));
-                System.exit(0);
+                ConsoleUtil.exitError();
             } else {
                 for (FileBean fileBean : propertiesBean.getFiles()) {
                     if (fileBean.getSource() == null || fileBean.getSource().isEmpty()) {
                         System.out.println(RESOURCE_BUNDLE.getString("error_empty_section_source_or_translation"));
-                        System.exit(0);
+                        ConsoleUtil.exitError();
                     }
                     if (fileBean.getTranslation() == null || fileBean.getTranslation().isEmpty()) {
                         System.out.println(RESOURCE_BUNDLE.getString("error_empty_section_source_or_translation"));
-                        System.exit(0);
+                        ConsoleUtil.exitError();
                     }
                 }
             }

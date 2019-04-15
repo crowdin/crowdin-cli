@@ -3,7 +3,11 @@ package com.crowdin.cli;
 import com.crowdin.cli.commands.Commands;
 import com.crowdin.cli.commands.CrowdinCliCommands;
 import com.crowdin.cli.commands.CrowdinCliOptions;
-import org.apache.commons.cli.*;
+import com.crowdin.cli.utils.ConsoleUtil;
+import org.apache.commons.cli.CommandLine;
+import org.apache.commons.cli.CommandLineParser;
+import org.apache.commons.cli.DefaultParser;
+import org.apache.commons.cli.Options;
 
 public class Cli {
 
@@ -17,7 +21,7 @@ public class Cli {
             c.run(command, commandLine);
         } catch (Exception e) {
             System.out.println("Error: " + e.getMessage());
-            System.exit(1);
+            ConsoleUtil.exitError();
         }
     }
 }
