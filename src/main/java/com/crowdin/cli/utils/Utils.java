@@ -86,7 +86,7 @@ public class Utils {
     public static String replaceBasePath(String path, PropertiesBean propertiesBean) {
         if (path == null || path.isEmpty()) {
             System.out.println(RESOURCE_BUNDLE.getString("error_empty_path"));
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         String result;
         if (propertiesBean !=  null && propertiesBean.getBasePath() != null && !propertiesBean.getBasePath().isEmpty()) {

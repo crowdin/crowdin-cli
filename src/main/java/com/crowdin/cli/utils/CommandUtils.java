@@ -29,11 +29,11 @@ public class CommandUtils extends BaseCli {
     public static final String USER_HOME = "user.home";
 
     /*
-    *
-    * Return file ".crowdin.yaml" or ".crowdin.yml".
-    *
-    */
-    public File getIdentityFile (CommandLine commandLine) {
+     *
+     * Return file ".crowdin.yaml" or ".crowdin.yml".
+     *
+     */
+    public File getIdentityFile(CommandLine commandLine) {
         File identity = null;
         if (commandLine == null) {
             return identity;
@@ -50,7 +50,7 @@ public class CommandUtils extends BaseCli {
         return identity;
     }
 
-    private File getIdentity (String fileName) {
+    private File getIdentity(String fileName) {
         File identity = null;
         if (fileName == null) {
             return identity;
@@ -78,12 +78,12 @@ public class CommandUtils extends BaseCli {
         }
     }
 
-    public String replaceDoubleAsteriskInTranslation(String translations, String sources, String source,  PropertiesBean propertiesBean) {
+    public String replaceDoubleAsteriskInTranslation(String translations, String sources, String source, PropertiesBean propertiesBean) {
         if (translations == null || translations.isEmpty()) {
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         if (sources == null || sources.isEmpty()) {
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         if (translations.contains("**")) {
             sources = Utils.replaceBasePath(sources, propertiesBean);
@@ -98,13 +98,13 @@ public class CommandUtils extends BaseCli {
                     sources = sources.replaceAll("/+", "/");
                 }
                 String[] sourceNodes = source.split("\\*\\*");
-                for (int i=0; i<sourceNodes.length; i++) {
+                for (int i = 0; i < sourceNodes.length; i++) {
                     if (sources.contains(sourceNodes[i])) {
                         sources = sources.replaceFirst(sourceNodes[i], "");
                     } else if (sourceNodes.length - 1 == i) {
                         if (sourceNodes[i].contains("/")) {
                             String[] sourceNodesTmp = sourceNodes[i].split("/");
-                            for(int j=0; j< sourceNodesTmp.length; j++) {
+                            for (int j = 0; j < sourceNodesTmp.length; j++) {
                                 String s = "/" + sourceNodesTmp[j] + "/";
                                 s = s.replaceAll("/+", "/");
                                 if (sources.contains(s)) {
@@ -232,7 +232,7 @@ public class CommandUtils extends BaseCli {
                         String directoryName = resultDirs.toString();
                         if (directoryName.indexOf(Utils.PATH_SEPARATOR) != -1) {
                             directoryName = directoryName.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
-                            directoryName = directoryName.replaceAll("/+","/");
+                            directoryName = directoryName.replaceAll("/+", "/");
                         }
                         parametersBuilder.name(directoryName);
                         JSONObject dir = null;
@@ -265,7 +265,7 @@ public class CommandUtils extends BaseCli {
                             if (dir != null) {
                                 System.out.println(dir.getJSONObject("error").getString("message"));
                             }
-                            System.exit(0);
+                            ConsoleUtil.exitError();
                         }
                     }
                 }
@@ -277,11 +277,11 @@ public class CommandUtils extends BaseCli {
     public PropertiesBean makeConfigFromParameters(CommandLine commandLine, PropertiesBean propertiesBean) {
         if (propertiesBean == null) {
             System.out.println(RESOURCE_BUNDLE.getString("error_property_bean_null"));
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         if (commandLine == null) {
             System.out.println(RESOURCE_BUNDLE.getString("commandline_null"));
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         FileBean fileBean = new FileBean();
         if (commandLine.getOptionValue("identifier") != null && !commandLine.getOptionValue("identifier").isEmpty()) {
@@ -347,10 +347,10 @@ public class CommandUtils extends BaseCli {
 
     public JSONObject getLanguageInfo(String language, JSONArray supportedLanguages) {
         if (language == null || language.isEmpty()) {
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         if (supportedLanguages == null) {
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         Parser parser = new Parser();
         JSONObject langInfo = new JSONObject();
@@ -385,7 +385,7 @@ public class CommandUtils extends BaseCli {
                 if (preservedKey.startsWith(commonPath)) {
                     for (FileBean file : propertiesBean.getFiles()) {
                         String ep = file.getTranslation();
-                        if (ep != null && !ep.startsWith(commonPath) && !this.isSourceContainsPattern(ep)  && !entry.getValue().startsWith(commonPath)) {
+                        if (ep != null && !ep.startsWith(commonPath) && !this.isSourceContainsPattern(ep) && !entry.getValue().startsWith(commonPath)) {
                             preservedKey = preservedKey.replaceFirst(commonPath, "");
                         }
                     }
@@ -406,9 +406,9 @@ public class CommandUtils extends BaseCli {
                 File newFile = new File(value);
                 if (oldFile.isFile()) {
                     newFile.getParentFile().mkdirs();
-                    if(!oldFile.renameTo(newFile)) {
+                    if (!oldFile.renameTo(newFile)) {
                         if (newFile.delete()) {
-                            if(!oldFile.renameTo(newFile)) {
+                            if (!oldFile.renameTo(newFile)) {
                                 System.out.println("Replacing file '" + newFile.getAbsolutePath() + "' failed. Try to run an application with Administrator permission.");
                             }
                         }
@@ -428,7 +428,7 @@ public class CommandUtils extends BaseCli {
             System.out.println("An archive '" + downloadedZipArchive.getAbsolutePath() + "' does not exist");
             if (isDebug) {
                 e.printStackTrace();
-                System.exit(0);
+                ConsoleUtil.exitError();
             }
         }
         File tmpDir = new File(baseTempDir);
@@ -445,7 +445,7 @@ public class CommandUtils extends BaseCli {
             System.out.println("Extracting an archive '" + downloadedZipArchive + "' failed");
             if (isDebug) {
                 e.printStackTrace();
-                System.exit(0);
+                ConsoleUtil.exitError();
             }
         }
         List<String> ommitedFiles = new ArrayList<>();
@@ -525,7 +525,7 @@ public class CommandUtils extends BaseCli {
             System.out.println("Extracting archive '" + downloadedZipArchive + "' failed");
             if (isDebug) {
                 e.printStackTrace();
-                System.exit(0);
+                ConsoleUtil.exitError();
             }
         }
         Enumeration zipEntries = zipFile.entries();
@@ -544,7 +544,8 @@ public class CommandUtils extends BaseCli {
         }
         try {
             zipFile.close();
-        } catch (IOException e) {}
+        } catch (IOException e) {
+        }
         return downloadedFiles;
     }
 
@@ -596,7 +597,7 @@ public class CommandUtils extends BaseCli {
                 replacement = languageInfo.getString("android_code");
             } else if (PLACEHOLDER_OSX_CODE.equals(pattern)) {
                 replacement = languageInfo.getString("osx_code");
-            }else if (PLACEHOLDER_OSX_LOCALE.equals(pattern)) {
+            } else if (PLACEHOLDER_OSX_LOCALE.equals(pattern)) {
                 replacement = languageInfo.getString("osx_locale");
             } else {
                 replacement = (localWithUnderscore == null) ? languageInfo.getString(placeholder) : localWithUnderscore;
@@ -637,7 +638,7 @@ public class CommandUtils extends BaseCli {
                         if (translationsBase.contains(PLACEHOLDER_LANGUAGE)) {
                             Map<String, String> locale = this.map(translationsBase, translationsMapping, languageInfo, file, "name", PLACEHOLDER_LANGUAGE);
                             if (locale != null) {
-                                for (Map.Entry<String, String> language: locale.entrySet()) {
+                                for (Map.Entry<String, String> language : locale.entrySet()) {
                                     translationsBase = language.getKey();
                                     translationsMapping = language.getValue();
                                 }
@@ -646,7 +647,7 @@ public class CommandUtils extends BaseCli {
                         if (translationsBase.contains(PLACEHOLDER_LOCALE)) {
                             Map<String, String> locale = this.map(translationsBase, translationsMapping, languageInfo, file, "locale", PLACEHOLDER_LOCALE);
                             if (locale != null) {
-                                for (Map.Entry<String, String> language: locale.entrySet()) {
+                                for (Map.Entry<String, String> language : locale.entrySet()) {
                                     translationsBase = language.getKey();
                                     translationsMapping = language.getValue();
                                 }
@@ -655,7 +656,7 @@ public class CommandUtils extends BaseCli {
                         if (translationsBase.contains(PLACEHOLDER_LOCALE_WITH_UNDERSCORE)) {
                             Map<String, String> undersoceLocale = this.map(translationsBase, translationsMapping, languageInfo, file, "locale", PLACEHOLDER_LOCALE_WITH_UNDERSCORE);
                             if (undersoceLocale != null) {
-                                for (Map.Entry<String, String> language: undersoceLocale.entrySet()) {
+                                for (Map.Entry<String, String> language : undersoceLocale.entrySet()) {
                                     translationsBase = language.getKey();
                                     translationsMapping = language.getValue();
                                 }
@@ -664,7 +665,7 @@ public class CommandUtils extends BaseCli {
                         if (translationsBase.contains(PLACEHOLDER_TWO_LETTERS_CODE)) {
                             Map<String, String> twoLettersCode = this.map(translationsBase, translationsMapping, languageInfo, file, "two_letters_code", PLACEHOLDER_TWO_LETTERS_CODE);
                             if (twoLettersCode != null) {
-                                for (Map.Entry<String, String> language: twoLettersCode.entrySet()) {
+                                for (Map.Entry<String, String> language : twoLettersCode.entrySet()) {
                                     translationsBase = language.getKey();
                                     translationsMapping = language.getValue();
                                 }
@@ -674,7 +675,7 @@ public class CommandUtils extends BaseCli {
                         if (translationsBase.contains(PLACEHOLDER_THREE_LETTERS_CODE)) {
                             Map<String, String> threeLettersCode = this.map(translationsBase, translationsMapping, languageInfo, file, "three_letters_code", PLACEHOLDER_THREE_LETTERS_CODE);
                             if (threeLettersCode != null) {
-                                for (Map.Entry<String, String> language: threeLettersCode.entrySet()) {
+                                for (Map.Entry<String, String> language : threeLettersCode.entrySet()) {
                                     translationsBase = language.getKey();
                                     translationsMapping = language.getValue();
                                 }
@@ -683,7 +684,7 @@ public class CommandUtils extends BaseCli {
                         if (translationsBase.contains(PLACEHOLDER_ANDROID_CODE)) {
                             Map<String, String> androidCode = this.map(translationsBase, translationsMapping, languageInfo, file, "android_code", PLACEHOLDER_ANDROID_CODE);
                             if (androidCode != null) {
-                                for (Map.Entry<String, String> language: androidCode.entrySet()) {
+                                for (Map.Entry<String, String> language : androidCode.entrySet()) {
                                     translationsBase = language.getKey();
                                     translationsMapping = language.getValue();
                                 }
@@ -692,7 +693,7 @@ public class CommandUtils extends BaseCli {
                         if (translationsBase.contains(PLACEHOLDER_OSX_CODE)) {
                             Map<String, String> osxCode = this.map(translationsBase, translationsMapping, languageInfo, file, "osx_code", PLACEHOLDER_OSX_CODE);
                             if (osxCode != null) {
-                                for (Map.Entry<String, String> language: osxCode.entrySet()) {
+                                for (Map.Entry<String, String> language : osxCode.entrySet()) {
                                     translationsBase = language.getKey();
                                     translationsMapping = language.getValue();
                                 }
@@ -701,7 +702,7 @@ public class CommandUtils extends BaseCli {
                         if (translationsBase.contains(PLACEHOLDER_OSX_LOCALE)) {
                             Map<String, String> osxLocale = this.map(translationsBase, translationsMapping, languageInfo, file, "osx_locale", PLACEHOLDER_OSX_LOCALE);
                             if (osxLocale != null) {
-                                for (Map.Entry<String, String> language: osxLocale.entrySet()) {
+                                for (Map.Entry<String, String> language : osxLocale.entrySet()) {
                                     translationsBase = language.getKey();
                                     translationsMapping = language.getValue();
                                 }
@@ -863,7 +864,7 @@ public class CommandUtils extends BaseCli {
             if (isDebug) {
                 e.printStackTrace();
             }
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         if (isVerbose) {
             System.out.println(clientResponse.getHeaders());
@@ -877,7 +878,7 @@ public class CommandUtils extends BaseCli {
                 System.out.println("code: " + error.getInt("code"));
                 System.out.println("message: " + error.getString("message"));
             }
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         return o;
     }
@@ -899,7 +900,7 @@ public class CommandUtils extends BaseCli {
             if (isDebug) {
                 e.printStackTrace();
             }
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         if (isVerbose) {
             System.out.println(clientResponse.getHeaders());
@@ -976,7 +977,7 @@ public class CommandUtils extends BaseCli {
             }
         } else if (configurationFile != null && configurationFile.isFile()) {
             basePath = (basePath == null) ? "" : basePath;
-            result =  Paths.get(configurationFile.getAbsolutePath()).getParent() + Utils.PATH_SEPARATOR + basePath;
+            result = Paths.get(configurationFile.getAbsolutePath()).getParent() + Utils.PATH_SEPARATOR + basePath;
             result = result.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
         }
         return result;

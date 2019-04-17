@@ -1,5 +1,6 @@
 package com.crowdin.cli.properties;
 
+import com.crowdin.cli.utils.ConsoleUtil;
 import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
 
@@ -76,7 +77,7 @@ public class CliProperties {
     public PropertiesBean loadProperties(HashMap<String, Object> properties) {
         if (properties == null || properties.isEmpty()) {
             System.out.println(RESOURCE_BUNDLE.getString("error_empty_properties_file"));
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         PropertiesBean pb = new PropertiesBean();
         for (Map.Entry<String, Object> property : properties.entrySet()) {
@@ -243,7 +244,7 @@ public class CliProperties {
         //Property bean
         if (pb == null) {
             System.out.println(RESOURCE_BUNDLE.getString("error_property_bean_null"));
-            System.exit(0);
+            ConsoleUtil.exitError();
         }
         //Preserve hierarchy
         if (pb.getPreserveHierarchy() == null) {
@@ -252,7 +253,7 @@ public class CliProperties {
         if (pb.getBasePath() != null && !pb.getBasePath().isEmpty()) {
             if (!Paths.get(pb.getBasePath()).isAbsolute()){
                 System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
-                System.exit(0);
+                ConsoleUtil.exitError();
             }
         } else {
             pb.setBasePath("");
@@ -386,7 +387,7 @@ public class CliProperties {
                 }
             }
             if (!hasValidFile) {
-                System.exit(0);
+                ConsoleUtil.exitError();
             }
         }
         return pb;
