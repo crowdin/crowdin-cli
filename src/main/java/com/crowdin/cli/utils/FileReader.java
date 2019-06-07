@@ -1,5 +1,7 @@
 package com.crowdin.cli.utils;
 
+import org.yaml.snakeyaml.Yaml;
+
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -7,20 +9,16 @@ import java.io.InputStream;
 import java.util.HashMap;
 import java.util.ResourceBundle;
 
-import org.yaml.snakeyaml.Yaml;
 
-/**
- * @author ihor
- */
 public class FileReader {
 
     private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
 
     private static final String DEFAULT_CONFIG_FILE_NAME = "crowdin.yml";
 
-    private static final String YAML_EXTENTION = ".yaml";
+    private static final String YAML_EXTENSION = ".yaml";
 
-    private static final String YML_EXTENTION = ".yml";
+    private static final String YML_EXTENSION = ".yml";
 
     public HashMap<String, Object> readCliConfig(String pathname, boolean isDebug) throws FileNotFoundException {
 
@@ -34,7 +32,7 @@ public class FileReader {
             fileCfg = new File(DEFAULT_CONFIG_FILE_NAME);
         }
         if (fileCfg.isFile()) {
-            if (fileCfg.getAbsolutePath().endsWith(YAML_EXTENTION) || fileCfg.getAbsolutePath().endsWith(YML_EXTENTION)) {
+            if (fileCfg.getAbsolutePath().endsWith(YAML_EXTENSION) || fileCfg.getAbsolutePath().endsWith(YML_EXTENSION)) {
                 inputStream = new FileInputStream(fileCfg);
             } else {
                 System.out.println("Configuration file with name '" + pathname + "' has different type from YAML");
@@ -44,12 +42,12 @@ public class FileReader {
         }
         try {
             result = (HashMap<String, Object>) yaml.load(inputStream);
-        } catch (Exception e ) {
+        } catch (Exception e) {
             System.out.println(RESOURCE_BUNDLE.getString("error_loading_config"));
             if (isDebug) {
                 e.printStackTrace();
             }
-            ConsoleUtil.exitError();
+            ConsoleUtils.exitError();
         }
         return result;
     }

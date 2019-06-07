@@ -2,9 +2,7 @@ package com.crowdin.cli.utils.tree;
 
 import com.crowdin.cli.utils.tree.interfaces.Visitor;
 
-/**
- * @author ihor
- */
+
 public class PrintIndentedVisitor implements Visitor<String> {
     private final int indent;
 

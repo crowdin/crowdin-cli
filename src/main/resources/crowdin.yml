@@ -3,8 +3,9 @@
 #
 "project_identifier" : ""
 "api_key" : ""
+"login":""
 "base_path" : ""
-#"base_url" : ""
+"base_url": ""
 
 #
 # Choose file structure in crowdin

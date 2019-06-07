@@ -5,12 +5,11 @@ import org.apache.commons.lang3.SystemUtils;
 
 import java.io.InputStream;
 import java.nio.file.FileSystems;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.ResourceBundle;
 
-/**
- * @author ihor
- */
+
 public class Utils {
 
     private static final String APPLICATION_BASE_URL = "application.base_url";
@@ -24,7 +23,7 @@ public class Utils {
     private static final String USER_AGENT = "application.user_agent";
 
     /**
-     * Path separator for use when concatenating or using non-regex find/replace methods.
+     * Path separator for use when concatenating or using non-regex findLanguage/replace methods.
      */
     public static final String PATH_SEPARATOR = FileSystems.getDefault().getSeparator();
 
@@ -61,7 +60,7 @@ public class Utils {
         } catch (Exception e) {
             System.out.println(RESOURCE_BUNDLE.getString("exception_app_version"));
         }
-        if (properties != null && properties.get(APPLICATION_VERSION) != null) {
+        if (properties.get(APPLICATION_VERSION) != null) {
             applicationVersion = properties.get(APPLICATION_VERSION).toString();
         }
         return applicationVersion;
@@ -77,7 +76,7 @@ public class Utils {
         } catch (Exception e) {
             System.out.println(RESOURCE_BUNDLE.getString("error_get_base_url"));
         }
-        if (properties != null && properties.get(APPLICATION_BASE_URL) != null) {
+        if (properties.get(APPLICATION_BASE_URL) != null) {
             applicationBaseUrl = properties.get(APPLICATION_BASE_URL).toString();
         }
         return applicationBaseUrl;
@@ -86,7 +85,7 @@ public class Utils {
     public static String replaceBasePath(String path, PropertiesBean propertiesBean) {
         if (path == null || path.isEmpty()) {
             System.out.println(RESOURCE_BUNDLE.getString("error_empty_path"));
-            ConsoleUtil.exitError();
+            ConsoleUtils.exitError();
         }
         String result;
         if (propertiesBean !=  null && propertiesBean.getBasePath() != null && !propertiesBean.getBasePath().isEmpty()) {
@@ -105,7 +104,6 @@ public class Utils {
 
     public static String getUserAgent() {
         Properties prop = new Properties();
-        String userAgent = null;
         try {
             InputStream in = Utils.class.getResourceAsStream(PROPERTIES_FILE);
             prop.load(in);
@@ -113,10 +111,9 @@ public class Utils {
         } catch (Exception e) {
             System.out.println(RESOURCE_BUNDLE.getString("error_get_user_agent"));
         }
-        if (prop != null && prop.get(USER_AGENT) != null) {
-            userAgent = prop.get(USER_AGENT).toString();
-        }
-        return userAgent;
+        return Optional.ofNullable(prop.get(USER_AGENT))
+                .map(Object::toString)
+                .orElse(null);
     }
 
     public static String commonPath(String[] paths){

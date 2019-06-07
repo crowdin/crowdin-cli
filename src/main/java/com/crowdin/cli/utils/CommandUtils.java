@@ -1,38 +1,44 @@
 package com.crowdin.cli.utils;
 
-import com.crowdin.Credentials;
-import com.crowdin.Crwdn;
 import com.crowdin.cli.BaseCli;
+import com.crowdin.cli.client.BranchClient;
+import com.crowdin.cli.client.ProjectWrapper;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.helper.FileHelper;
-import com.crowdin.client.CrowdinApiClient;
-import com.crowdin.parameters.CrowdinApiParametersBuilder;
-import com.sun.jersey.api.client.ClientResponse;
+import com.crowdin.client.CrowdinRequestBuilder;
+import com.crowdin.client.api.DirectoriesApi;
+import com.crowdin.common.Settings;
+import com.crowdin.common.models.*;
+import com.crowdin.common.request.DirectoryPayload;
+import com.crowdin.common.response.Page;
+import com.crowdin.common.response.SimpleResponse;
+import com.crowdin.util.ObjectMapperUtil;
+import com.crowdin.util.PaginationUtil;
+import com.crowdin.util.ResponseUtil;
+import com.fasterxml.jackson.core.type.TypeReference;
 import net.lingala.zip4j.core.ZipFile;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import org.json.JSONArray;
-import org.json.JSONObject;
 
+import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Field;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
 public class CommandUtils extends BaseCli {
 
-    public static final String USER_HOME = "user.home";
+    private static final String USER_HOME = "user.home";
 
-    /*
-     *
-     * Return file ".crowdin.yaml" or ".crowdin.yml".
-     *
-     */
     public File getIdentityFile(CommandLine commandLine) {
         File identity = null;
         if (commandLine == null) {
@@ -70,20 +76,19 @@ public class CommandUtils extends BaseCli {
         if (source == null) {
             return false;
         }
-        if (source.contains("**") || source.contains("*") || source.contains("?")
-                || (source.contains("[") && source.contains("]")) || (source.contains("\\") && !Utils.isWindows())) {
-            return true;
-        } else {
-            return false;
-        }
+        return source.contains("**")
+                || source.contains("*")
+                || source.contains("?")
+                || (source.contains("[") && source.contains("]"))
+                || (source.contains("\\") && !Utils.isWindows());
     }
 
     public String replaceDoubleAsteriskInTranslation(String translations, String sources, String source, PropertiesBean propertiesBean) {
         if (translations == null || translations.isEmpty()) {
-            ConsoleUtil.exitError();
+            ConsoleUtils.exitError();
         }
         if (sources == null || sources.isEmpty()) {
-            ConsoleUtil.exitError();
+            ConsoleUtils.exitError();
         }
         if (translations.contains("**")) {
             sources = Utils.replaceBasePath(sources, propertiesBean);
@@ -104,8 +109,8 @@ public class CommandUtils extends BaseCli {
                     } else if (sourceNodes.length - 1 == i) {
                         if (sourceNodes[i].contains("/")) {
                             String[] sourceNodesTmp = sourceNodes[i].split("/");
-                            for (int j = 0; j < sourceNodesTmp.length; j++) {
-                                String s = "/" + sourceNodesTmp[j] + "/";
+                            for (String sourceNode : sourceNodesTmp) {
+                                String s = "/" + sourceNode + "/";
                                 s = s.replaceAll("/+", "/");
                                 if (sources.contains(s)) {
                                     sources = sources.replaceFirst(s, "/");
@@ -150,16 +155,19 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
-    public String preserveHierarchy(FileBean file, String sourcePath, String commonPath, PropertiesBean propertiesBean,
-                                    String branch, Credentials credentials, boolean isVerbose) {
-        CrowdinApiParametersBuilder parametersBuilder = new CrowdinApiParametersBuilder();
-        Parser parser = new Parser();
-        CrowdinApiClient crwdn = new Crwdn();
+    /**
+     * return Pair of preserved path and deepest directory id
+     */
+    public Pair<String, Long> preserveHierarchy(FileBean file,
+                                                String sourcePath,
+                                                String commonPath,
+                                                PropertiesBean propertiesBean,
+                                                String branch,
+                                                Settings settings,
+                                                Long projectId,
+                                                boolean isVerbose) {
         Set<String> directories = new HashSet<>();
-        parametersBuilder.headers(HEADER_ACCEPT, HEADER_ACCAEPT_VALUE)
-                .headers(HEADER_CLI_VERSION, HEADER_CLI_VERSION_VALUE)
-                .headers(HEADER_JAVA_VERSION, HEADER_JAVA_VERSION_VALUE)
-                .headers(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
+
         String[] nodes = null;
         StringBuilder dirs = new StringBuilder();
         StringBuilder resultDirs = new StringBuilder();
@@ -206,11 +214,15 @@ public class CommandUtils extends BaseCli {
                 nodes = filePath.split("/");
             }
         }
+        Optional<Long> branchId = new BranchClient(settings).getProjectBranchByName(projectId, branch)
+                .map(Branch::getId);
+
+        Long parentId = null;
         if (nodes != null) {
             for (String node : nodes) {
                 if (node != null && !node.isEmpty()) {
                     if (!node.equals(nodes[nodes.length - 1])) {
-                        if (dirs.length() == 0) {
+                        /*if (dirs.length() == 0) {
                             dirs.append(node);
                         } else {
                             dirs.append(Utils.PATH_SEPARATOR)
@@ -225,63 +237,76 @@ public class CommandUtils extends BaseCli {
                         if (directories.contains(resultDirs.toString())) {
                             continue;
                         }
-                        if (branch != null && !branch.isEmpty()) {
-                            parametersBuilder.branch(branch);
-                        }
-                        parametersBuilder.json();
-                        String directoryName = resultDirs.toString();
-                        if (directoryName.indexOf(Utils.PATH_SEPARATOR) != -1) {
+*/
+
+                        DirectoriesApi api = new DirectoriesApi(settings);
+                        DirectoryPayload directoryPayload = new DirectoryPayload();
+                        branchId.ifPresent(directoryPayload::setBranchId);
+
+
+                        /*if (directoryName.contains(Utils.PATH_SEPARATOR)) {
                             directoryName = directoryName.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
                             directoryName = directoryName.replaceAll("/+", "/");
+                        }*/
+
+                        directoryPayload.setName(node);
+                        if (parentId != null) {
+                            directoryPayload.setParentId(parentId);
                         }
-                        parametersBuilder.name(directoryName);
-                        JSONObject dir = null;
+
                         try {
-                            directories.add(resultDirs.toString());
-                            ClientResponse clientResponse;
-                            clientResponse = crwdn.addDirectory(credentials, parametersBuilder);
-                            dir = parser.parseJson(clientResponse.getEntity(String.class));
+                            Response response = api.createDirectory(projectId.toString(), directoryPayload).execute();
+
+                            Directory directory = ResponseUtil.getResponceBody(response, new TypeReference<SimpleResponse<Directory>>() {
+                            }).getEntity();
+
+                            parentId = directory.getId();
+
                             if (isVerbose) {
-                                System.out.println(clientResponse.getHeaders());
-                                System.out.println(dir);
+                                System.out.println(response.getHeaders());
+                                System.out.println(ObjectMapperUtil.getEntityAsString(directory));
+                            }
+                            if (directory.getId() != null) {
+                                directories.add(resultDirs.toString());
+                                System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' - OK");
+
                             }
                         } catch (Exception ex) {
-                            System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + parametersBuilder.getName() + "' failed");
-                        }
-                        if (branch != null && !branch.isEmpty()) {
-                            directoryName = branch + "/" + directoryName;
-                        }
-                        if (dir != null && dir.getBoolean("success")) {
-                            directories.add(resultDirs.toString());
-                            System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - OK");
-                        } else if (dir != null && !dir.getBoolean("success") && dir.getJSONObject("error") != null && dir.getJSONObject("error").getInt("code") == 50
-                                && "Directory with such name already exists".equals(dir.getJSONObject("error").getString("message"))) {
-                            //SKIPPED
-                            if (!directories.contains(resultDirs.toString())) {
-                                System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - SKIPPED");
+                            if (ex.getMessage().contains("Name must be unique")) {
+                                System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' - SKIPPED");
+                                //todo potentially slowly part
+                                CrowdinRequestBuilder<Page<Directory>> projectDirectories = new DirectoriesApi(settings).getProjectDirectories(projectId.toString(), Pageable.unpaged());
+                                parentId = PaginationUtil.unpaged(projectDirectories)
+                                        .stream()
+                                        .filter(directory -> directory.getName().equalsIgnoreCase(node))
+                                        .findFirst()
+                                        .map(Directory::getId)
+                                        .orElse(null);
+                                /*if (branch != null && !branch.isEmpty()) {
+                                    directoryName = branch + "/" + directoryName;
+                                }*/
+
+                            } else {
+                                System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' - ERROR");
+                                System.out.println(ex.getMessage());
+                                ConsoleUtils.exitError();
                             }
-                        } else {
-                            System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + directoryName + "' - ERROR");
-                            if (dir != null) {
-                                System.out.println(dir.getJSONObject("error").getString("message"));
-                            }
-                            ConsoleUtil.exitError();
                         }
                     }
                 }
             }
         }
-        return resultDirs.toString();
+        return Pair.of(resultDirs.toString(), parentId);
     }
 
     public PropertiesBean makeConfigFromParameters(CommandLine commandLine, PropertiesBean propertiesBean) {
         if (propertiesBean == null) {
             System.out.println(RESOURCE_BUNDLE.getString("error_property_bean_null"));
-            ConsoleUtil.exitError();
+            ConsoleUtils.exitError();
         }
         if (commandLine == null) {
             System.out.println(RESOURCE_BUNDLE.getString("commandline_null"));
-            ConsoleUtil.exitError();
+            ConsoleUtils.exitError();
         }
         FileBean fileBean = new FileBean();
         if (commandLine.getOptionValue("identifier") != null && !commandLine.getOptionValue("identifier").isEmpty()) {
@@ -316,13 +341,7 @@ public class CommandUtils extends BaseCli {
     }
 
     public void sortFilesName(List<String> files) {
-        Collections.sort(files,
-                new Comparator<String>() {
-                    @Override
-                    public int compare(String f1, String f2) {
-                        return f1.toString().compareTo(f2.toString());
-                    }
-                });
+        files.sort(Comparator.comparing(String::toString));
     }
 
     public String getBranch(CommandLine commandLine) {
@@ -343,34 +362,6 @@ public class CommandUtils extends BaseCli {
             language = commandLine.getOptionValue(COMMAND_LANGUAGE_LONG).trim();
         }
         return language;
-    }
-
-    public JSONObject getLanguageInfo(String language, JSONArray supportedLanguages) {
-        if (language == null || language.isEmpty()) {
-            ConsoleUtil.exitError();
-        }
-        if (supportedLanguages == null) {
-            ConsoleUtil.exitError();
-        }
-        Parser parser = new Parser();
-        JSONObject langInfo = new JSONObject();
-        for (Object supportedLanguage : supportedLanguages) {
-            JSONObject lang = parser.parseJson(supportedLanguage.toString());
-            String langName = lang.getString("name");
-            if (langName != null && language.equalsIgnoreCase(langName)) {
-                langInfo.put("name", lang.getString("name"));
-                langInfo.put("editor_code", lang.getString("editor_code"));
-                langInfo.put("locale", lang.getString("locale"));
-                langInfo.put("two_letters_code", lang.getString("iso_639_1"));
-                langInfo.put("three_letters_code", lang.getString("iso_639_3"));
-                langInfo.put("crowdin_code", lang.getString("crowdin_code"));
-                langInfo.put("android_code", lang.getString("android_code"));
-                langInfo.put("osx_code", lang.getString("osx_code"));
-                langInfo.put("osx_locale", lang.getString("osx_locale"));
-                break;
-            }
-        }
-        return langInfo;
     }
 
     public void renameMappingFiles(Map<String, String> mapping, String baseTempDir, PropertiesBean propertiesBean, String commonPath) {
@@ -428,7 +419,7 @@ public class CommandUtils extends BaseCli {
             System.out.println("An archive '" + downloadedZipArchive.getAbsolutePath() + "' does not exist");
             if (isDebug) {
                 e.printStackTrace();
-                ConsoleUtil.exitError();
+                ConsoleUtils.exitError();
             }
         }
         File tmpDir = new File(baseTempDir);
@@ -445,7 +436,7 @@ public class CommandUtils extends BaseCli {
             System.out.println("Extracting an archive '" + downloadedZipArchive + "' failed");
             if (isDebug) {
                 e.printStackTrace();
-                ConsoleUtil.exitError();
+                ConsoleUtils.exitError();
             }
         }
         List<String> ommitedFiles = new ArrayList<>();
@@ -474,11 +465,11 @@ public class CommandUtils extends BaseCli {
         for (Map.Entry<String, String> extractingMappingFile : mapping.entrySet()) {
             String k = extractingMappingFile.getKey();
             k = k.replaceAll("/+", "/");
-            if (k.indexOf(Utils.PATH_SEPARATOR) != -1) {
+            if (k.contains(Utils.PATH_SEPARATOR)) {
                 k = k.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
                 k = k.replaceAll("/+", "/");
             }
-            if (k.indexOf("/") != -1) {
+            if (k.contains("/")) {
                 k = k.replaceAll("/+", "/");
             }
             if (!propertiesBean.getPreserveHierarchy()) {
@@ -495,7 +486,7 @@ public class CommandUtils extends BaseCli {
                 k = k.replaceFirst("/", "");
             }
             String v = extractingMappingFile.getValue();
-            if (v.indexOf(Utils.PATH_SEPARATOR) != -1) {
+            if (v.contains(Utils.PATH_SEPARATOR)) {
                 v = v.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
                 v = v.replaceAll("/+", "/");
             }
@@ -525,7 +516,7 @@ public class CommandUtils extends BaseCli {
             System.out.println("Extracting archive '" + downloadedZipArchive + "' failed");
             if (isDebug) {
                 e.printStackTrace();
-                ConsoleUtil.exitError();
+                ConsoleUtils.exitError();
             }
         }
         Enumeration zipEntries = zipFile.entries();
@@ -549,29 +540,30 @@ public class CommandUtils extends BaseCli {
         return downloadedFiles;
     }
 
-    private Map<String, String> map(String translations, String mappingTranslations, JSONObject languageInfo, FileBean file, String placeholder, String pattern) {
-        if (file == null || languageInfo == null) {
-            return null;
-        }
-        if (translations == null || mappingTranslations == null) {
+    private Map<String, String> map(String translations, String mappingTranslations, Language languageInfo, FileBean file, String placeholder, String pattern) {
+        if (file == null || languageInfo == null || translations == null || mappingTranslations == null) {
             return null;
         }
         Map<String, String> result = new HashMap<>();
         boolean isMapped = false;
         String localWithUnderscore = null;
         if (PLACEHOLDER_LOCALE_WITH_UNDERSCORE.equals(pattern)) {
-            localWithUnderscore = languageInfo.getString(placeholder).replace("-", "_");
+            localWithUnderscore = languageInfo.getLocale().replace("-", "_");
             translations = translations.replace(pattern, localWithUnderscore);
         }
         if (PLACEHOLDER_ANDROID_CODE.equals(pattern)) {
-            translations = translations.replace(pattern, languageInfo.getString("android_code"));
+            translations = translations.replace(pattern, languageInfo.getAndroidCode());
         } else if (PLACEHOLDER_OSX_CODE.equals(pattern)) {
-            translations = translations.replace(pattern, languageInfo.getString("osx_code"));
+            translations = translations.replace(pattern, languageInfo.getOsxCode());
         } else if (PLACEHOLDER_OSX_LOCALE.equals(pattern)) {
-            translations = translations.replace(pattern, languageInfo.getString("osx_locale"));
+            translations = translations.replace(pattern, languageInfo.getOsxLocale());
         } else {
-            translations = translations.replace(pattern, languageInfo.getString(placeholder));
+            try {
+                String fieldValue = getLanguageFieldValueAsString(languageInfo, placeholder);
+                translations = translations.replace(pattern, fieldValue);
+            } catch (NoSuchFieldException | IllegalAccessException ignore) {/*ignore*/}
         }
+
         Map<String, String> map = new HashMap<>();
         if (file.getLanguagesMapping() != null) {
             if ("name".equals(placeholder)) {
@@ -584,7 +576,7 @@ public class CommandUtils extends BaseCli {
         }
         if (map != null) {
             for (Map.Entry<String, String> hashMap : map.entrySet()) {
-                if (languageInfo.getString("crowdin_code").equals(hashMap.getKey())) {
+                if (languageInfo.getCrowdinCode().equals(hashMap.getKey())) {
                     mappingTranslations = mappingTranslations.replace(pattern, hashMap.getValue());
                     isMapped = true;
                     break;
@@ -594,13 +586,17 @@ public class CommandUtils extends BaseCli {
         if (!isMapped) {
             String replacement;
             if (PLACEHOLDER_ANDROID_CODE.equals(pattern)) {
-                replacement = languageInfo.getString("android_code");
+                replacement = languageInfo.getAndroidCode();
             } else if (PLACEHOLDER_OSX_CODE.equals(pattern)) {
-                replacement = languageInfo.getString("osx_code");
+                replacement = languageInfo.getOsxCode();
             } else if (PLACEHOLDER_OSX_LOCALE.equals(pattern)) {
-                replacement = languageInfo.getString("osx_locale");
+                replacement = languageInfo.getOsxLocale();
             } else {
-                replacement = (localWithUnderscore == null) ? languageInfo.getString(placeholder) : localWithUnderscore;
+                String fieldValue = "";
+                try {
+                    fieldValue = getLanguageFieldValueAsString(languageInfo, placeholder);
+                } catch (NoSuchFieldException | IllegalAccessException ignore) {/*ignore*/}
+                replacement = (localWithUnderscore == null) ? fieldValue : localWithUnderscore;
             }
             mappingTranslations = mappingTranslations.replace(pattern, replacement);
         }
@@ -608,139 +604,139 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
-    public Map<String, String> doLanguagesMapping(JSONObject projectInfo, JSONArray supportedLanguages, PropertiesBean propertiesBean, String lang) {
-        Map<String, String> mapping = new HashMap<>();
-        JSONArray projectLanguages = projectInfo.getJSONArray("languages");
-        Parser parser = new Parser();
+    private String getLanguageFieldValueAsString(Language language, String fieldName) throws NoSuchFieldException, IllegalAccessException {
+        Class<? extends Language> languageInfoClass = language.getClass();
+        Field field = languageInfoClass.getDeclaredField(fieldName);
+        field.setAccessible(true);
+        String fieldValue = field.get(language).toString();
+        field.setAccessible(false);
+        return fieldValue;
+    }
 
-        // Iterating the project is slow, so fetch all source files up-front, not once per translation.
+    public Map<String, String> doLanguagesMapping(ProjectWrapper projectInfo, PropertiesBean propertiesBean, String lang) {
+        Map<String, String> mapping = new HashMap<>();
+
         Map<FileBean, List<String>> sourcesByFileBean = new IdentityHashMap<>();
         List<FileBean> files = propertiesBean.getFiles();
         for (FileBean file : files) {
             sourcesByFileBean.put(file, getSourcesWithoutIgnores(file, propertiesBean));
         }
 
-        for (Object projectLanguage : projectLanguages) {
-            JSONObject languages = parser.parseJson(projectLanguage.toString());
-            String languageName = languages.getString("name");
-            if (languageName != null && !languageName.isEmpty()) {
-                JSONObject languageInfo = this.getLanguageInfo(languageName, supportedLanguages);
-                if (lang != null && !lang.isEmpty()) {
-                    if (!lang.equals(languageInfo.getString("crowdin_code"))) {
-                        continue;
+        Optional<Language> projectLanguageOrNull = projectInfo.getProjectLanguageByCrowdinCode(lang);
+        if (!projectLanguageOrNull.isPresent()) return mapping;
+
+        Language projectLanguage = projectLanguageOrNull.get();
+
+        for (FileBean file : files) {
+            List<String> projectFiles = sourcesByFileBean.get(file);
+            String translationsBase = file.getTranslation();
+            String translationsMapping = file.getTranslation();
+            if (translationsBase != null && !translationsBase.isEmpty()) {
+                if (translationsBase.contains(PLACEHOLDER_LANGUAGE)) {
+                    Map<String, String> locale = this.map(translationsBase, translationsMapping, projectLanguage, file, "name", PLACEHOLDER_LANGUAGE);
+                    if (locale != null) {
+                        for (Map.Entry<String, String> language : locale.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
                     }
                 }
-                for (FileBean file : files) {
-                    List<String> projectFiles = sourcesByFileBean.get(file);
-                    String translationsBase = file.getTranslation();
-                    String translationsMapping = file.getTranslation();
-                    if (translationsBase != null && !translationsBase.isEmpty()) {
-                        if (translationsBase.contains(PLACEHOLDER_LANGUAGE)) {
-                            Map<String, String> locale = this.map(translationsBase, translationsMapping, languageInfo, file, "name", PLACEHOLDER_LANGUAGE);
-                            if (locale != null) {
-                                for (Map.Entry<String, String> language : locale.entrySet()) {
-                                    translationsBase = language.getKey();
-                                    translationsMapping = language.getValue();
-                                }
-                            }
-                        }
-                        if (translationsBase.contains(PLACEHOLDER_LOCALE)) {
-                            Map<String, String> locale = this.map(translationsBase, translationsMapping, languageInfo, file, "locale", PLACEHOLDER_LOCALE);
-                            if (locale != null) {
-                                for (Map.Entry<String, String> language : locale.entrySet()) {
-                                    translationsBase = language.getKey();
-                                    translationsMapping = language.getValue();
-                                }
-                            }
-                        }
-                        if (translationsBase.contains(PLACEHOLDER_LOCALE_WITH_UNDERSCORE)) {
-                            Map<String, String> undersoceLocale = this.map(translationsBase, translationsMapping, languageInfo, file, "locale", PLACEHOLDER_LOCALE_WITH_UNDERSCORE);
-                            if (undersoceLocale != null) {
-                                for (Map.Entry<String, String> language : undersoceLocale.entrySet()) {
-                                    translationsBase = language.getKey();
-                                    translationsMapping = language.getValue();
-                                }
-                            }
-                        }
-                        if (translationsBase.contains(PLACEHOLDER_TWO_LETTERS_CODE)) {
-                            Map<String, String> twoLettersCode = this.map(translationsBase, translationsMapping, languageInfo, file, "two_letters_code", PLACEHOLDER_TWO_LETTERS_CODE);
-                            if (twoLettersCode != null) {
-                                for (Map.Entry<String, String> language : twoLettersCode.entrySet()) {
-                                    translationsBase = language.getKey();
-                                    translationsMapping = language.getValue();
-                                }
-
-                            }
-                        }
-                        if (translationsBase.contains(PLACEHOLDER_THREE_LETTERS_CODE)) {
-                            Map<String, String> threeLettersCode = this.map(translationsBase, translationsMapping, languageInfo, file, "three_letters_code", PLACEHOLDER_THREE_LETTERS_CODE);
-                            if (threeLettersCode != null) {
-                                for (Map.Entry<String, String> language : threeLettersCode.entrySet()) {
-                                    translationsBase = language.getKey();
-                                    translationsMapping = language.getValue();
-                                }
-                            }
-                        }
-                        if (translationsBase.contains(PLACEHOLDER_ANDROID_CODE)) {
-                            Map<String, String> androidCode = this.map(translationsBase, translationsMapping, languageInfo, file, "android_code", PLACEHOLDER_ANDROID_CODE);
-                            if (androidCode != null) {
-                                for (Map.Entry<String, String> language : androidCode.entrySet()) {
-                                    translationsBase = language.getKey();
-                                    translationsMapping = language.getValue();
-                                }
-                            }
-                        }
-                        if (translationsBase.contains(PLACEHOLDER_OSX_CODE)) {
-                            Map<String, String> osxCode = this.map(translationsBase, translationsMapping, languageInfo, file, "osx_code", PLACEHOLDER_OSX_CODE);
-                            if (osxCode != null) {
-                                for (Map.Entry<String, String> language : osxCode.entrySet()) {
-                                    translationsBase = language.getKey();
-                                    translationsMapping = language.getValue();
-                                }
-                            }
-                        }
-                        if (translationsBase.contains(PLACEHOLDER_OSX_LOCALE)) {
-                            Map<String, String> osxLocale = this.map(translationsBase, translationsMapping, languageInfo, file, "osx_locale", PLACEHOLDER_OSX_LOCALE);
-                            if (osxLocale != null) {
-                                for (Map.Entry<String, String> language : osxLocale.entrySet()) {
-                                    translationsBase = language.getKey();
-                                    translationsMapping = language.getValue();
-                                }
-                            }
-                        }
-                        for (String projectFile : projectFiles) {
-                            File f = new File(projectFile);
-                            String temporaryTranslation = translationsBase;
-                            String temporaryTranslationsMapping = translationsMapping;
-                            String fileParent = new File(f.getParent()).getAbsolutePath();
-                            fileParent = Utils.replaceBasePath(fileParent, propertiesBean);
-                            if (fileParent.startsWith(Utils.PATH_SEPARATOR)) {
-                                fileParent = fileParent.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
-                            }
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, f.getName());
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_NAME, FilenameUtils.removeExtension(f.getName()));
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_EXTENTION, FilenameUtils.getExtension(f.getName()));
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
-                            temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, f.getName());
-                            temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_NAME, FilenameUtils.removeExtension(f.getName()));
-                            temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_EXTENTION, FilenameUtils.getExtension(f.getName()));
-                            temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, languageInfo.getString("android_code"));
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_CODE, languageInfo.getString("osx_code"));
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_LOCALE, languageInfo.getString("osx_locale"));
-                            String k = this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean);
-                            String v = this.replaceDoubleAsteriskInTranslation(temporaryTranslationsMapping, f.getAbsolutePath(), file.getSource(), propertiesBean);
-                            k = k.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
-                            k = k.replaceAll("/+", "/");
-                            if (file.getTranslationReplace() != null && !file.getTranslationReplace().isEmpty()) {
-                                v = this.doTranslationReplace(v, file.getTranslationReplace());
-                            }
-                            mapping.put(k, v);
+                if (translationsBase.contains(PLACEHOLDER_LOCALE)) {
+                    Map<String, String> locale = this.map(translationsBase, translationsMapping, projectLanguage, file, "locale", PLACEHOLDER_LOCALE);
+                    if (locale != null) {
+                        for (Map.Entry<String, String> language : locale.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
                         }
                     }
+                }
+                if (translationsBase.contains(PLACEHOLDER_LOCALE_WITH_UNDERSCORE)) {
+                    Map<String, String> undersoceLocale = this.map(translationsBase, translationsMapping, projectLanguage, file, "locale", PLACEHOLDER_LOCALE_WITH_UNDERSCORE);
+                    if (undersoceLocale != null) {
+                        for (Map.Entry<String, String> language : undersoceLocale.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+                    }
+                }
+                if (translationsBase.contains(PLACEHOLDER_TWO_LETTERS_CODE)) {
+                    Map<String, String> twoLettersCode = this.map(translationsBase, translationsMapping, projectLanguage, file, "twoLettersCode", PLACEHOLDER_TWO_LETTERS_CODE);
+                    if (twoLettersCode != null) {
+                        for (Map.Entry<String, String> language : twoLettersCode.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+
+                    }
+                }
+                if (translationsBase.contains(PLACEHOLDER_THREE_LETTERS_CODE)) {
+                    Map<String, String> threeLettersCode = this.map(translationsBase, translationsMapping, projectLanguage, file, "threeLettersCode", PLACEHOLDER_THREE_LETTERS_CODE);
+                    if (threeLettersCode != null) {
+                        for (Map.Entry<String, String> language : threeLettersCode.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+                    }
+                }
+                if (translationsBase.contains(PLACEHOLDER_ANDROID_CODE)) {
+                    Map<String, String> androidCode = this.map(translationsBase, translationsMapping, projectLanguage, file, "androidCode", PLACEHOLDER_ANDROID_CODE);
+                    if (androidCode != null) {
+                        for (Map.Entry<String, String> language : androidCode.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+                    }
+                }
+                if (translationsBase.contains(PLACEHOLDER_OSX_CODE)) {
+                    Map<String, String> osxCode = this.map(translationsBase, translationsMapping, projectLanguage, file, "osxCode", PLACEHOLDER_OSX_CODE);
+                    if (osxCode != null) {
+                        for (Map.Entry<String, String> language : osxCode.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+                    }
+                }
+                if (translationsBase.contains(PLACEHOLDER_OSX_LOCALE)) {
+                    Map<String, String> osxLocale = this.map(translationsBase, translationsMapping, projectLanguage, file, "osxLocale", PLACEHOLDER_OSX_LOCALE);
+                    if (osxLocale != null) {
+                        for (Map.Entry<String, String> language : osxLocale.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+                    }
+                }
+                for (String projectFile : projectFiles) {
+                    File f = new File(projectFile);
+                    String temporaryTranslation = translationsBase;
+                    String temporaryTranslationsMapping = translationsMapping;
+                    String fileParent = new File(f.getParent()).getAbsolutePath();
+                    fileParent = Utils.replaceBasePath(fileParent, propertiesBean);
+                    if (fileParent.startsWith(Utils.PATH_SEPARATOR)) {
+                        fileParent = fileParent.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
+                    }
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, f.getName());
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_NAME, FilenameUtils.removeExtension(f.getName()));
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_EXTENTION, FilenameUtils.getExtension(f.getName()));
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
+                    temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, f.getName());
+                    temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_NAME, FilenameUtils.removeExtension(f.getName()));
+                    temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_EXTENTION, FilenameUtils.getExtension(f.getName()));
+                    temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, projectLanguage.getAndroidCode());
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_CODE, projectLanguage.getOsxCode());
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_LOCALE, projectLanguage.getOsxLocale());
+                    String k = this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean);
+                    String v = this.replaceDoubleAsteriskInTranslation(temporaryTranslationsMapping, f.getAbsolutePath(), file.getSource(), propertiesBean);
+                    k = k.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
+                    k = k.replaceAll("/+", "/");
+                    if (file.getTranslationReplace() != null && !file.getTranslationReplace().isEmpty()) {
+                        v = this.doTranslationReplace(v, file.getTranslationReplace());
+                    }
+                    mapping.put(k, v);
                 }
             }
         }
+
         return mapping;
     }
 
@@ -755,46 +751,57 @@ public class CommandUtils extends BaseCli {
         return value;
     }
 
-    public List<String> getTranslations(String lang, String sourceFile, FileBean file, JSONObject projectInfo,
-                                        JSONArray supportedLanguages, PropertiesBean propertiesBean, String command) {
+    public List<String> getTranslations(String lang,
+                                        String sourceFile,
+                                        FileBean file,
+                                        ProjectWrapper projectInfo,
+                                        PropertiesBean propertiesBean,
+                                        String command) {
         List<String> result = new ArrayList<>();
-        JSONArray projectLanguages = projectInfo.getJSONArray("languages");
-        Parser parser = new Parser();
-        for (Object projectLanguage : projectLanguages) {
-            JSONObject language = parser.parseJson(projectLanguage.toString());
-            String langName = language.getString("name");
+        List<Language> projectLanguages = projectInfo.getProjectLanguages();
+        for (Language projectLanguage : projectLanguages) {
+            String langName = projectLanguage.getName();
             if (langName != null && !langName.isEmpty()) {
-                JSONObject langsInfo = this.getLanguageInfo(langName, supportedLanguages);
-                if (lang != null && !lang.isEmpty() && !lang.equals(langsInfo.getString("crowdin_code"))) {
+
+                Language language = EntityUtil
+                        .find(l -> l.getName().equalsIgnoreCase(langName), projectInfo.getSupportedLanguages())
+                        .orElse(null);
+                if (language == null) {
+                    ConsoleUtils.exitError();
+                }
+
+                if (lang != null && !lang.isEmpty() && !lang.equals(language.getCrowdinCode())) {
                     continue;
                 }
+
+
                 if (file != null) {
                     String translations = file.getTranslation();
                     if (translations != null && !translations.isEmpty()) {
                         if (translations.contains(PLACEHOLDER_LANGUAGE)) {
-                            translations = translations.replace(PLACEHOLDER_LANGUAGE, langsInfo.getString("name"));
+                            translations = translations.replace(PLACEHOLDER_LANGUAGE, language.getName() /*langsInfo.getString("name")*/);
                         }
                         if (translations.contains(PLACEHOLDER_LOCALE)) {
-                            translations = translations.replace(PLACEHOLDER_LOCALE, langsInfo.getString("locale"));
+                            translations = translations.replace(PLACEHOLDER_LOCALE, language.getLocale() /*langsInfo.getString("locale")*/);
                         }
                         if (translations.contains(PLACEHOLDER_LOCALE_WITH_UNDERSCORE)) {
-                            String localWithUnderscore = langsInfo.getString("locale").replace("-", "_");
+                            String localWithUnderscore = language.getLocale().replace("-", "_");///*langsInfo.getString("locale")*/
                             translations = translations.replace(PLACEHOLDER_LOCALE_WITH_UNDERSCORE, localWithUnderscore);
                         }
                         if (translations.contains(PLACEHOLDER_TWO_LETTERS_CODE)) {
-                            translations = translations.replace(PLACEHOLDER_TWO_LETTERS_CODE, langsInfo.getString("two_letters_code"));
+                            translations = translations.replace(PLACEHOLDER_TWO_LETTERS_CODE, language.getTwoLettersCode()); //langsInfo.getString("two_letters_code"));
                         }
                         if (translations.contains(PLACEHOLDER_THREE_LETTERS_CODE)) {
-                            translations = translations.replace(PLACEHOLDER_THREE_LETTERS_CODE, langsInfo.getString("three_letters_code"));
+                            translations = translations.replace(PLACEHOLDER_THREE_LETTERS_CODE, language.getThreeLettersCode()); // langsInfo.getString("three_letters_code"));
                         }
                         if (translations.contains(PLACEHOLDER_ANDROID_CODE)) {
-                            translations = translations.replace(PLACEHOLDER_ANDROID_CODE, langsInfo.getString("android_code"));
+                            translations = translations.replace(PLACEHOLDER_ANDROID_CODE, language.getAndroidCode()); //langsInfo.getString("android_code"));
                         }
                         if (translations.contains(PLACEHOLDER_OSX_LOCALE)) {
-                            translations = translations.replace(PLACEHOLDER_OSX_LOCALE, langsInfo.getString("osx_locale"));
+                            translations = translations.replace(PLACEHOLDER_OSX_LOCALE, language.getOsxLocale());//langsInfo.getString("osx_locale"));
                         }
                         if (translations.contains(PLACEHOLDER_OSX_CODE)) {
-                            translations = translations.replace(PLACEHOLDER_OSX_CODE, langsInfo.getString("osx_code"));
+                            translations = translations.replace(PLACEHOLDER_OSX_CODE, language.getOsxCode()); // langsInfo.getString("osx_code"));
                         }
                         List<String> projectFiles = this.getSourcesWithoutIgnores(file, propertiesBean);
                         String commonPath;
@@ -822,9 +829,9 @@ public class CommandUtils extends BaseCli {
                                 fileParent = Utils.replaceBasePath(fileParent, propertiesBean);
                             }
                             fileParent = fileParent.replaceAll("/+", "/");
-                            String androidLocaleCode = langsInfo.getString("android_code");
-                            String osxLocaleCode = langsInfo.getString("osx_locale");
-                            String osxCode = langsInfo.getString("osx_code");
+                            String androidLocaleCode = language.getAndroidCode();
+                            String osxLocaleCode = language.getOsxCode();
+                            String osxCode = language.getOsxCode();
                             temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, originalFileName);
                             temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt);
                             temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_EXTENTION, fileExt);
@@ -844,104 +851,106 @@ public class CommandUtils extends BaseCli {
                 }
             }
         }
+
         return result;
     }
 
-    public JSONObject projectInfo(Credentials credentials, boolean isVerbose, boolean isDebug) {
-        CrowdinApiClient crwdn = new Crwdn();
-        Parser parser = new Parser();
-        CrowdinApiParametersBuilder parameters = new CrowdinApiParametersBuilder();
-        parameters.headers(HEADER_ACCEPT, HEADER_ACCAEPT_VALUE)
-                .headers(HEADER_CLI_VERSION, HEADER_CLI_VERSION_VALUE)
-                .headers(HEADER_JAVA_VERSION, HEADER_JAVA_VERSION_VALUE)
-                .headers(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
-        parameters.json();
-        ClientResponse clientResponse = null;
-        try {
-            clientResponse = crwdn.getInfo(credentials, parameters);
-        } catch (Exception e) {
-            System.out.println(RESOURCE_BUNDLE.getString("wrong_connection"));
-            if (isDebug) {
-                e.printStackTrace();
-            }
-            ConsoleUtil.exitError();
-        }
-        if (isVerbose) {
-            System.out.println(clientResponse.getHeaders());
-        }
-        String response = clientResponse.getEntity(String.class);
-        JSONObject o = parser.parseJson(response);
-        if (o != null && o.has("success") && !o.getBoolean("success")) {
-            JSONObject error = o.getJSONObject("error");
-            if (error != null) {
-                System.out.println("ERROR");
-                System.out.println("code: " + error.getInt("code"));
-                System.out.println("message: " + error.getString("message"));
-            }
-            ConsoleUtil.exitError();
-        }
-        return o;
+    /* public Project projectInfo(Settings settings, String projectId, boolean isVerbose, boolean isDebug) {
+         ProjectsApi api = new ProjectsApi(settings);
+
+         Project project = null;
+         try {
+             Response getProjectResponse = api.getProject(projectId).execute();
+             if (isVerbose) {
+                 System.out.println(getProjectResponse.getHeaders());
+             }
+
+             project = ResponseUtil.getResponceBody(getProjectResponse, new TypeReference<SimpleResponse<Project>>() {
+             }).getEntity();
+         } catch (Exception e) {
+             System.out.println(" - ERROR");
+             System.out.println("message : " + e.getMessage());
+
+             if (isDebug) {
+                 e.printStackTrace();
+             }
+             ConsoleUtils.exitError();
+         }
+
+         return project;
+     }
+ */
+    public List<Language> getProjectLanguage(Collection<String> languagesIds) {
+
+        return Collections.emptyList();
     }
 
-    public JSONArray getSupportedLanguages(Credentials credentials, boolean isVerbose, boolean isDebug) {
-        CrowdinApiClient crwdn = new Crwdn();
-        Parser parser = new Parser();
-        CrowdinApiParametersBuilder crowdinApiParametersBuilder = new CrowdinApiParametersBuilder();
-        crowdinApiParametersBuilder.headers(HEADER_ACCEPT, HEADER_ACCAEPT_VALUE)
-                .headers(HEADER_CLI_VERSION, HEADER_CLI_VERSION_VALUE)
-                .headers(HEADER_JAVA_VERSION, HEADER_JAVA_VERSION_VALUE)
-                .headers(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
-        crowdinApiParametersBuilder.json();
-        ClientResponse clientResponse = null;
+    //todo realize that
+    public JSONArray getSupportedLanguages(Settings settings, boolean isVerbose, boolean isDebug) {
+
         try {
-            clientResponse = crwdn.getSupportedLanguages(credentials, crowdinApiParametersBuilder);
+//            clientResponse = crwdn.getSupportedLanguages(settings,   );
         } catch (Exception e) {
             System.out.println("\n" + RESOURCE_BUNDLE.getString("error_getting_supported_languages"));
             if (isDebug) {
                 e.printStackTrace();
             }
-            ConsoleUtil.exitError();
+            ConsoleUtils.exitError();
         }
         if (isVerbose) {
-            System.out.println(clientResponse.getHeaders());
+//            System.out.println(clientResponse.getHeaders());
         }
-        String response = clientResponse.getEntity(String.class);
-        return parser.parseJsonArray(response);
+//        String response = clientResponse.getEntity(String.class);
+        return null;
     }
 
-    public List<String> projectList(JSONArray files, String path) {
-        List<String> result = new ArrayList<>();
-        if (path == null) {
-            path = Utils.PATH_SEPARATOR;
+    public List<String> projectList(List<FileEntity> files, List<Directory> directories) {
+        if (files == null) {
+            return Collections.emptyList();
         }
-        if (files != null) {
-            String s = path;
-            for (int i = 0; i < files.length(); i++) {
-                JSONObject file = files.getJSONObject(i);
-                if ("".equalsIgnoreCase(path)) {
-                    path = s;
-                }
-                if (file != null && file.get("node_type") != null && ("branch".equals(file.get("node_type")) || "directory".equals(file.get("node_type")))) {
-                    path += Utils.PATH_SEPARATOR + file.get("name").toString() + Utils.PATH_SEPARATOR;
-                    path = path.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-                    result.addAll(projectList(file.getJSONArray("files"), path));
-                    path = "";
-                } else if (file != null && file.get("node_type") != null && "file".equals(file.get("node_type"))) {
-                    if (file.get("name") != null) {
-                        result.add(path + file.get("name").toString());
-                    }
-                }
-            }
+        return files
+                .stream()
+                .map(file -> {
+                    String name = file.getName();
+                    return directories.stream()
+                            .filter(directory -> directory.getId() != null)
+                            .filter(directory -> directory.getId().equals(file.getDirectoryId()))
+                            .findAny()
+                            .map(directory -> getDirectoryHierarchy(directory, directories, name))
+                            .orElse(Utils.PATH_SEPARATOR + name);
+                }).collect(Collectors.toList());
+    }
+
+    private static String getDirectoryHierarchy(Directory directory, List<Directory> directories, String
+            hierarchy) {
+        if (directory == null) return hierarchy;
+        Long parentId = directory.getParentId();
+        hierarchy = directory.getName() + Utils.PATH_SEPARATOR + hierarchy;
+
+        if (directories == null || directories.isEmpty()) return Utils.PATH_SEPARATOR + hierarchy;
+
+        Directory parentDirectory = directories.stream()
+                .filter(directoryEntity -> directoryEntity.getId().equals(parentId))
+                .findFirst()
+                .orElse(null);
+
+
+        if (parentDirectory == null) {
+            return Utils.PATH_SEPARATOR + hierarchy;
         }
-        return result;
+
+        return getDirectoryHierarchy(parentDirectory, directories, hierarchy);
     }
 
     public String getBaseUrl(PropertiesBean propertiesBean) {
         String baseUrl;
         if (propertiesBean.getBaseUrl() != null && !propertiesBean.getBaseUrl().isEmpty()) {
             baseUrl = propertiesBean.getBaseUrl();
-            if (!(baseUrl.endsWith("/api") || baseUrl.endsWith("/api/"))) {
-                baseUrl = baseUrl + "/api/";
+            if (!(baseUrl.endsWith("api/v2") || baseUrl.endsWith("/api/v2/"))) {
+                baseUrl = baseUrl + "/api/v2";
+                if (baseUrl.endsWith("/")) {
+                    baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
+                }
                 if (baseUrl.contains("://")) {
                     baseUrl = baseUrl.replaceAll("://", "%crwdn-url%");
                 }
@@ -963,7 +972,7 @@ public class CommandUtils extends BaseCli {
             if (Paths.get(basePath).isAbsolute()) {
                 result = basePath;
             } else if (configurationFile != null && configurationFile.isFile()) {
-                basePath = (basePath == null || ".".equals(basePath)) ? "" : basePath;
+                basePath = ".".equals(basePath) ? "" : basePath;
                 Path parentPath = Paths.get(configurationFile.getAbsolutePath()).getParent();
                 File base = new File(parentPath.toFile(), basePath);
                 try {

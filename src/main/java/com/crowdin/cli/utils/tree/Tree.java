@@ -6,9 +6,7 @@ import com.crowdin.cli.utils.tree.interfaces.Visitor;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-/**
- * @author ihor
- */
+
 public class Tree<T> implements Visitable<T> {
     private final Set<Tree> children = new LinkedHashSet<>();
     private final T data;

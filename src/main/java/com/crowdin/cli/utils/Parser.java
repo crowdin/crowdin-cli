@@ -3,9 +3,7 @@ package com.crowdin.cli.utils;
 import org.json.JSONArray;
 import org.json.JSONObject;
 
-/**
- * @author ihor
- */
+
 public class Parser {
 
     public JSONObject parseJson(String source) {
@@ -15,5 +13,4 @@ public class Parser {
     public JSONArray parseJsonArray(String source) {
         return new JSONArray(source);
     }
-
 }

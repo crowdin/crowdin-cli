@@ -1,16 +1,17 @@
 package com.crowdin.cli.commands;
 
-import java.util.*;
-
 import net.ricecode.similarity.LevenshteinDistanceStrategy;
 import net.ricecode.similarity.SimilarityStrategy;
 import net.ricecode.similarity.StringSimilarityService;
 import net.ricecode.similarity.StringSimilarityServiceImpl;
 import org.apache.commons.cli.CommandLine;
 
-/**
- * @author ihor
- */
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.List;
+import java.util.Scanner;
+
+
 public class CrowdinCliCommands {
 
     private static final String COMMAND_UPLOAD = "upload";

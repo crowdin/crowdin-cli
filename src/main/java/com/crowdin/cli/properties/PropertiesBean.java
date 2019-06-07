@@ -2,13 +2,10 @@ package com.crowdin.cli.properties;
 
 import com.crowdin.cli.utils.Utils;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * @author ihor
- */
+
 public class PropertiesBean {
 
     private Boolean preserveHierarchy;
@@ -24,6 +21,8 @@ public class PropertiesBean {
     private String baseUrl;
 
     private String accountKey;
+
+    private String login;
 
     public List<FileBean> getFiles() {
         return files;
@@ -85,4 +84,11 @@ public class PropertiesBean {
         this.accountKey = accountKey;
     }
 
+    public String getLogin() {
+        return login;
+    }
+
+    public void setLogin(String login) {
+        this.login = login;
+    }
 }

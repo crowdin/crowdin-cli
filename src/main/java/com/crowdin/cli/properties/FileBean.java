@@ -3,9 +3,7 @@ package com.crowdin.cli.properties;
 import java.util.HashMap;
 import java.util.List;
 
-/**
- * @author ihor
- */
+
 public class FileBean {
     private String source;
 

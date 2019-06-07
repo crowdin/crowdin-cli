@@ -1,16 +1,9 @@
 package com.crowdin.cli;
 
-import com.crowdin.Credentials;
-import com.crowdin.cli.commands.CrowdinCliOptions;
-import com.crowdin.cli.properties.CliProperties;
-import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.*;
-import org.json.JSONArray;
-import org.json.JSONObject;
+import com.crowdin.cli.utils.MessageSource;
+import com.crowdin.cli.utils.Utils;
 
 import javax.ws.rs.core.HttpHeaders;
-import java.io.File;
-import java.util.HashMap;
 import java.util.ResourceBundle;
 
 /**

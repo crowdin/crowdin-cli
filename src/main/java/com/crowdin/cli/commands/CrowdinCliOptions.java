@@ -2,18 +2,12 @@ package com.crowdin.cli.commands;
 
 import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
-
-import java.io.IOException;
-import java.util.ResourceBundle;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-
 import org.apache.commons.cli.HelpFormatter;
 import org.apache.commons.cli.Options;
 
-/**
- * @author ihor
- */
+import java.util.ResourceBundle;
+
+
 public class CrowdinCliOptions {
 
     private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;

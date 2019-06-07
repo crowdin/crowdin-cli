@@ -1,38 +1,64 @@
 package com.crowdin.cli.utils;
 
-import java.io.Console;
-
-/**
- * Created by ihor on 10/28/16.
- */
 public class ConsoleSpinner {
 
-    int counter;
+    private static final int SPINNER_TIMEOUT = 250;
+    private Spinner worker;
 
-    public void turn()
-    {
-        counter++;
-        switch (counter % 4)
-        {
-            case 0:
-                System.out.print("/");
-                counter = 0;
-                break;
-            case 1:
-                System.out.print("-");
-                break;
-            case 2:
-                System.out.print("\\");
-                break;
-            case 3:
-                System.out.print("|");
-                break;
+    public void start() {
+        tryStopWorker();
+        worker = new Spinner();
+        worker.start();
+    }
+
+    public void stop() {
+        tryStopWorker();
+    }
+
+    private void tryStopWorker() {
+        if (worker != null) {
+            worker.isSpin = false;
+            try {
+                worker.join();
+            } catch (InterruptedException e) {
+                /*ignore*/
+            }
+            worker = null;
         }
-        System.out.print("\b");
-        try {
-            Thread.sleep(150);
-        } catch (InterruptedException e) {
+    }
 
+    private class Spinner extends Thread {
+
+        private int counter;
+        private boolean isSpin;
+
+        private Spinner() {
+            setDaemon(true);
+        }
+
+        @Override
+        public void run() {
+            isSpin = true;
+            while (isSpin) {
+                switch (counter++ % 4) {
+                    case 0:
+                        System.out.print("/");
+                        break;
+                    case 1:
+                        System.out.print("-");
+                        break;
+                    case 2:
+                        System.out.print("\\");
+                        break;
+                    case 3:
+                        System.out.print("|");
+                        break;
+                }
+                try {
+                    Thread.sleep(SPINNER_TIMEOUT);
+                } catch (InterruptedException e) { /*ignore*/}
+                System.out.print("\b");
+            }
         }
     }
 }

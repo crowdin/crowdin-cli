@@ -2,12 +2,9 @@ package com.crowdin.cli.utils.tree;
 
 import com.crowdin.cli.utils.Utils;
 
-import java.io.File;
 import java.util.List;
 
-/**
- * @author ihor
- */
+
 public class DrawTree {
 
     public void draw(List<String> l, int ident) {

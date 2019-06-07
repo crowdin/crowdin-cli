@@ -1,19 +1,15 @@
 package com.crowdin.cli.properties;
 
-import com.crowdin.cli.utils.ConsoleUtil;
+import com.crowdin.cli.utils.ConsoleUtils;
 import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
 
 import java.nio.file.Paths;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 
-/**
- * @author ihor
- */
+import static com.crowdin.cli.utils.MessageSource.MISSING_LOGIN;
+
+
 public class CliProperties {
 
     private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
@@ -25,6 +21,10 @@ public class CliProperties {
     private static final String API_KEY = "api_key";
 
     private static final String API_KEY_ENV = "api_key_env";
+
+    private static final String LOGIN = "login";
+
+    private static final String LOGIN_ENV = "login_env";
 
     private static final String BASE_PATH = "base_path";
 
@@ -77,26 +77,29 @@ public class CliProperties {
     public PropertiesBean loadProperties(HashMap<String, Object> properties) {
         if (properties == null || properties.isEmpty()) {
             System.out.println(RESOURCE_BUNDLE.getString("error_empty_properties_file"));
-            ConsoleUtil.exitError();
+            ConsoleUtils.exitError();
         }
         PropertiesBean pb = new PropertiesBean();
         for (Map.Entry<String, Object> property : properties.entrySet()) {
             //From environment variables
             if (property != null && property.getKey() != null) {
                 switch (property.getKey()) {
-                    case ACCOUNT_KEY_ENV :
+                    case ACCOUNT_KEY_ENV:
                         pb.setAccountKey(Utils.getEnvironmentVariable(property.getValue().toString()));
                         break;
-                    case API_KEY_ENV :
+                    case API_KEY_ENV:
                         pb.setApiKey(Utils.getEnvironmentVariable(property.getValue().toString()));
                         break;
-                    case BASE_PATH_ENV :
+                    case LOGIN_ENV:
+                        pb.setLogin(Utils.getEnvironmentVariable(property.getValue().toString()));
+                        break;
+                    case BASE_PATH_ENV:
                         pb.setBasePath(Utils.getEnvironmentVariable(property.getValue().toString()));
                         break;
-                    case BASE_URL_ENV :
+                    case BASE_URL_ENV:
                         pb.setBaseUrl(Utils.getEnvironmentVariable(property.getValue().toString()));
                         break;
-                    case PROJECT_IDENTIFIER_ENV :
+                    case PROJECT_IDENTIFIER_ENV:
                         pb.setProjectIdentifier(Utils.getEnvironmentVariable(property.getValue().toString()));
                         break;
                     default:
@@ -107,35 +110,40 @@ public class CliProperties {
         for (Map.Entry<String, Object> property : properties.entrySet()) {
             if (property != null && property.getKey() != null) {
                 switch (property.getKey()) {
-                    case ACCOUNT_KEY :
+                    case ACCOUNT_KEY:
                         if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
                             pb.setAccountKey(property.getValue().toString());
                         }
                         break;
-                    case API_KEY :
+                    case API_KEY:
                         if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
                             pb.setApiKey(property.getValue().toString());
                         }
                         break;
-                    case BASE_PATH :
+                    case LOGIN:
+                        if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
+                            pb.setLogin(property.getValue().toString());
+                        }
+                        break;
+                    case BASE_PATH:
                         if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
                             pb.setBasePath(property.getValue().toString());
                         }
                         break;
-                    case BASE_URL :
+                    case BASE_URL:
                         if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
                             pb.setBaseUrl(property.getValue().toString());
                         }
                         break;
-                    case PROJECT_IDENTIFIER :
+                    case PROJECT_IDENTIFIER:
                         if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
                             pb.setProjectIdentifier(property.getValue().toString());
                         }
                         break;
-                    case PRESERVE_HIERARCHY :
+                    case PRESERVE_HIERARCHY:
                         pb.setPreserveHierarchy(Boolean.parseBoolean(property.getValue().toString()));
                         break;
-                    case FILES :
+                    case FILES:
                         ArrayList files = (ArrayList) property.getValue();
                         for (Object file : files) {
                             FileBean fileBean = new FileBean();
@@ -144,30 +152,30 @@ public class CliProperties {
                                 String fileObjKey = entry.getKey();
                                 Object fileObjVal = entry.getValue();
                                 switch (fileObjKey) {
-                                    case SOURCE :
+                                    case SOURCE:
                                         fileBean.setSource(fileObjVal.toString());
                                         break;
-                                    case IGNORE :
+                                    case IGNORE:
                                         fileBean.setIgnore((List<String>) fileObjVal);
                                         break;
-                                    case DEST :
+                                    case DEST:
                                         fileBean.setDest(fileObjVal.toString());
                                         break;
-                                    case TYPE :
+                                    case TYPE:
                                         fileBean.setType(fileObjVal.toString());
                                         break;
-                                    case TRANSLATION :
+                                    case TRANSLATION:
                                         fileBean.setTranslation(fileObjVal.toString());
                                         break;
-                                    case UPDATE_OPTION :
+                                    case UPDATE_OPTION:
                                         fileBean.setUpdateOption(fileObjVal.toString());
                                         break;
-                                    case LANGUAGES_MAPPING :
+                                    case LANGUAGES_MAPPING:
                                         HashMap<String, HashMap<String, String>> languagesMapping = new HashMap<String, HashMap<String, String>>();
                                         languagesMapping = (HashMap<String, HashMap<String, String>>) fileObjVal;
                                         fileBean.setLanguagesMapping(languagesMapping);
                                         break;
-                                    case FIRST_LINE_CONTAINS_HEADER :
+                                    case FIRST_LINE_CONTAINS_HEADER:
                                         if ("1".equals(fileObjVal.toString())) {
                                             fileBean.setFirstLineContainsHeader(Boolean.TRUE);
                                         } else if ("0".equals(fileObjVal.toString())) {
@@ -176,7 +184,7 @@ public class CliProperties {
                                             fileBean.setFirstLineContainsHeader(Boolean.valueOf(fileObjVal.toString()));
                                         }
                                         break;
-                                    case TRANSLATE_ATTRIBUTES :
+                                    case TRANSLATE_ATTRIBUTES:
                                         if ("1".equals(fileObjVal.toString())) {
                                             fileBean.setTranslateAttributes(Boolean.TRUE);
                                         } else if ("0".equals(fileObjVal.toString())) {
@@ -185,7 +193,7 @@ public class CliProperties {
                                             fileBean.setTranslateAttributes(Boolean.valueOf(fileObjVal.toString()));
                                         }
                                         break;
-                                    case TRANSLATE_CONTENT :
+                                    case TRANSLATE_CONTENT:
                                         if ("1".equals(fileObjVal.toString())) {
                                             fileBean.setTranslateContent(Boolean.TRUE);
                                         } else if ("0".equals(fileObjVal.toString())) {
@@ -194,10 +202,10 @@ public class CliProperties {
                                             fileBean.setTranslateContent(Boolean.valueOf(fileObjVal.toString()));
                                         }
                                         break;
-                                    case TRANSLATABLE_ELEMENTS :
+                                    case TRANSLATABLE_ELEMENTS:
                                         fileBean.setTranslatableElements((List<String>) fileObjVal);
                                         break;
-                                    case CONTENT_SEGMENTATION :
+                                    case CONTENT_SEGMENTATION:
                                         if ("1".equals(fileObjVal.toString())) {
                                             fileBean.setContentSegmentation(Boolean.TRUE);
                                         } else if ("0".equals(fileObjVal.toString())) {
@@ -206,10 +214,10 @@ public class CliProperties {
                                             fileBean.setContentSegmentation(Boolean.valueOf(fileObjVal.toString()));
                                         }
                                         break;
-                                    case ESCAPE_QUOTES :
+                                    case ESCAPE_QUOTES:
                                         fileBean.setEscapeQuotes(Short.valueOf(fileObjVal.toString()));
                                         break;
-                                    case MULTILINGUAL_SPREADSHEET :
+                                    case MULTILINGUAL_SPREADSHEET:
                                         if ("1".equals(fileObjVal.toString())) {
                                             fileBean.setMultilingualSpreadsheet(Boolean.TRUE);
                                         } else if ("0".equals(fileObjVal.toString())) {
@@ -218,7 +226,7 @@ public class CliProperties {
                                             fileBean.setMultilingualSpreadsheet(Boolean.valueOf(fileObjVal.toString()));
                                         }
                                         break;
-                                    case SCHEME :
+                                    case SCHEME:
                                         fileBean.setScheme(fileObjVal.toString());
                                         break;
                                     case TRANSLATION_REPLACE:
@@ -244,16 +252,21 @@ public class CliProperties {
         //Property bean
         if (pb == null) {
             System.out.println(RESOURCE_BUNDLE.getString("error_property_bean_null"));
-            ConsoleUtil.exitError();
+            ConsoleUtils.exitError();
+        }
+        //Mandatory params for api
+        if (pb.getLogin() == null || pb.getLogin().isEmpty()) {
+            System.out.println(RESOURCE_BUNDLE.getString(MISSING_LOGIN));
+            ConsoleUtils.exitError();
         }
         //Preserve hierarchy
         if (pb.getPreserveHierarchy() == null) {
             pb.setPreserveHierarchy(Boolean.FALSE);
         }
         if (pb.getBasePath() != null && !pb.getBasePath().isEmpty()) {
-            if (!Paths.get(pb.getBasePath()).isAbsolute()){
+            if (!Paths.get(pb.getBasePath()).isAbsolute()) {
                 System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
-                ConsoleUtil.exitError();
+                ConsoleUtils.exitError();
             }
         } else {
             pb.setBasePath("");
@@ -387,7 +400,7 @@ public class CliProperties {
                 }
             }
             if (!hasValidFile) {
-                ConsoleUtil.exitError();
+                ConsoleUtils.exitError();
             }
         }
         return pb;
