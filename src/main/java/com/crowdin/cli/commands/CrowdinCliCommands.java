@@ -89,11 +89,9 @@ public class CrowdinCliCommands {
             if (hint != null && !hint.isEmpty()) {
                 System.out.println("Command '" + cliArgs.toString().trim() + "' does not exist. Did you mean '" + hint + "'? Y/n");
                 Scanner scanner = new Scanner(System.in);
-                if (scanner != null) {
-                    if ("y".equalsIgnoreCase(scanner.next())) {
-                        resultCmd = new StringBuilder();
-                        resultCmd.append(hint);
-                    }
+                if ("y".equalsIgnoreCase(scanner.next())) {
+                    resultCmd = new StringBuilder();
+                    resultCmd.append(hint);
                 }
             }
         }

@@ -1,6 +1,6 @@
 package com.crowdin.cli.client;
 
-import com.crowdin.cli.utils.EntityUtil;
+import com.crowdin.cli.utils.EntityUtils;
 import com.crowdin.common.models.Directory;
 import com.crowdin.common.models.FileEntity;
 import com.crowdin.common.models.Language;
@@ -30,24 +30,16 @@ public class ProjectWrapper {
         this.projectLanguages = projectLanguages;
     }
 
+    public String getProjectId() {
+        return this.project.getId().toString();
+    }
+
     public Optional<Language> getProjectLanguageByCrowdinCode(String crowdinCode) {
-        Optional<Language> supportedLangByCode = EntityUtil.find(byCrowdinCode(crowdinCode), supportedLanguages);
+        Optional<Language> supportedLangByCode = EntityUtils.find(supportedLanguages, byCrowdinCode(crowdinCode));
 
         if (!supportedLangByCode.isPresent()) return Optional.empty();
 
-        return EntityUtil.find(byCrowdinCode(crowdinCode), projectLanguages);
-    }
-
-    public Optional<Language> getProjectLanguageByCrowdinName(String name) {
-        Optional<Language> supportedLangByCode = EntityUtil.find(byNamePredicate(name), supportedLanguages);
-
-        if (!supportedLangByCode.isPresent()) return Optional.empty();
-
-        return EntityUtil.find(byNamePredicate(name), projectLanguages);
-    }
-
-    public static Predicate<Language> byNamePredicate(String name) {
-        return language -> language.getName().equalsIgnoreCase(name);
+        return EntityUtils.find(projectLanguages, byCrowdinCode(crowdinCode));
     }
 
     public static Predicate<Language> byCrowdinCode(String crowdinCode) {
@@ -66,31 +58,16 @@ public class ProjectWrapper {
         return supportedLanguages;
     }
 
-    public void setSupportedLanguages(List<Language> supportedLanguages) {
-        this.supportedLanguages = supportedLanguages;
-    }
-
     public List<Language> getProjectLanguages() {
         return projectLanguages;
     }
 
-    public void setProjectLanguages(List<Language> projectLanguages) {
-        this.projectLanguages = projectLanguages;
-    }
 
     public List<FileEntity> getFiles() {
         return files;
     }
 
-    public void setFiles(List<FileEntity> files) {
-        this.files = files;
-    }
-
     public List<Directory> getDirectories() {
         return directories;
-    }
-
-    public void setDirectories(List<Directory> directories) {
-        this.directories = directories;
     }
 }

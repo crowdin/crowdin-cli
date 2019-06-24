@@ -38,6 +38,10 @@ public class CrowdinCliOptions {
 
     public static final String BASE_PATH_DESCRIPTION = RESOURCE_BUNDLE.getString("base_path_description");
 
+    public static final String BASE_URL_DESCRIPTION = RESOURCE_BUNDLE.getString("base_url_description");
+
+    public static final String LOGIN_DESCRIPTION = RESOURCE_BUNDLE.getString("login_description");
+
     public static final String BASE_PATH_LONG = "base-path";
 
     public static final String BRANCH_DESCRIPTION = RESOURCE_BUNDLE.getString("branch_description");
@@ -154,6 +158,12 @@ public class CrowdinCliOptions {
 
     public static final String DOUBLE_NEW_LINE = NEW_LINE + NEW_LINE;
 
+    public static final String LOGIN_LONG = "login";
+
+    public static final String LOGIN_SHORT = "l";
+
+    public static final String BASE_URL_LONG = "base-url";
+
     public static final int STRING_WIDTH = 140;
 
     public Options init() {
@@ -184,6 +194,9 @@ public class CrowdinCliOptions {
         options.addOption(PROJECT_KEY_SHORT, PROJECT_KEY_LONG, true, PROJECT_KEY_DESCRIPTION);
         options.addOption(null, VERSION_LONG, false, VERSION_DESCRIPTION);
         options.addOption(null, BASE_PATH_LONG, true, BASE_PATH_DESCRIPTION);
+        options.addOption(null, BASE_URL_LONG, true, BASE_URL_DESCRIPTION);
+        options.addOption(null, LOGIN_LONG, true, LOGIN_DESCRIPTION);
+        options.addOption(null, LOGIN_SHORT, true, BASE_PATH_DESCRIPTION);
         options.addOption(SOURCE_SHORT, SOURCE_LONG, true, SOURCE_DESCRIPTION);
         options.addOption(TRANSLATION_SHORT, null, false, TRANSLATION_DESCRIPTION);
         options.addOption(null, TRANSLATION_LONG, true, TRANSLATION_DESCRIPTION);

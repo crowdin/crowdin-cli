@@ -1,7 +1,7 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.cli.utils.ConsoleUtils;
-import com.crowdin.cli.utils.EntityUtil;
+import com.crowdin.cli.utils.EntityUtils;
 import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.client.CrowdinRequestBuilder;
 import com.crowdin.client.api.DirectoriesApi;
@@ -49,7 +49,7 @@ public class ProjectClient extends Client {
 
         try {
             List<Project> allProjects = PaginationUtil.unpaged(api.getRootGroupProjects(Pageable.unpaged()));
-            Optional<Project> projectOrNull = EntityUtil.find(o -> o.getName().equalsIgnoreCase(projectName), allProjects);
+            Optional<Project> projectOrNull = EntityUtils.find(allProjects, o -> o.getName().equalsIgnoreCase(projectName));
 
             if (!projectOrNull.isPresent()) {
                 System.out.println(" - ERROR");

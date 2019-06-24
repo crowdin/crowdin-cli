@@ -171,7 +171,7 @@ public class CliProperties {
                                         fileBean.setUpdateOption(fileObjVal.toString());
                                         break;
                                     case LANGUAGES_MAPPING:
-                                        HashMap<String, HashMap<String, String>> languagesMapping = new HashMap<String, HashMap<String, String>>();
+                                        HashMap<String, HashMap<String, String>> languagesMapping = new HashMap<>();
                                         languagesMapping = (HashMap<String, HashMap<String, String>>) fileObjVal;
                                         fileBean.setLanguagesMapping(languagesMapping);
                                         break;
@@ -395,7 +395,7 @@ public class CliProperties {
                 if (file.getTranslationReplace() == null || file.getTranslationReplace().isEmpty()) {
                 } else {
                 }
-                if (hasError == false) {
+                if (!hasError) {
                     hasValidFile = true;
                 }
             }

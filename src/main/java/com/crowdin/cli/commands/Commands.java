@@ -9,10 +9,7 @@ import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.*;
 import com.crowdin.cli.utils.tree.DrawTree;
-import com.crowdin.client.api.BranchesApi;
-import com.crowdin.client.api.FilesApi;
-import com.crowdin.client.api.StorageApi;
-import com.crowdin.client.api.TranslationsApi;
+import com.crowdin.client.api.*;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.*;
 import com.crowdin.common.request.*;
@@ -79,8 +76,6 @@ public class Commands extends BaseCli {
     private PropertiesBean propertiesBean = new PropertiesBean();
 
     private ConsoleSpinner spinner = new ConsoleSpinner();
-
-    private List<Language> supportedLanguages = null;
 
     private boolean version = false;
 
@@ -156,9 +151,8 @@ public class Commands extends BaseCli {
         if (this.isVerbose) {
             System.out.println(this.projectInfo);
         }
-        this.supportedLanguages = this.projectInfo.getSupportedLanguages();
         if (this.isVerbose) {
-            System.out.println(this.supportedLanguages);
+            System.out.println(this.projectInfo.getSupportedLanguages());
         }
     }
 
@@ -501,20 +495,6 @@ public class Commands extends BaseCli {
 
                 preservePath = preservePath.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
 
-
-                /*
-                //todo discus about that
-                //param branch is name of branch
-                filePayload.setBranchId(branchId);
-                if (this.branch != null && !this.branch.isEmpty()) {
-                    parameters.branch(this.branch);
-                }*/
-                /*
-                if (sourceFile.getAbsoluteFile().isFile()) {
-                    parameters.files(sourceFile.getAbsolutePath());
-                }*/
-
-
                 FilePayload filePayload = new FilePayload();
 
                 filePayload.setDirectoryId(parentId);
@@ -553,7 +533,6 @@ public class Commands extends BaseCli {
                             translationWithReplacedAsterisk = translationWithReplacedAsterisk.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
                             translationWithReplacedAsterisk = translationWithReplacedAsterisk.replaceAll("/+", "/");
                         }
-                        //todo discus about that ?preservePath
                         GeneralFileExportOptions generalFileExportOptions = new GeneralFileExportOptions();
                         generalFileExportOptions.setExportPattern(translationWithReplacedAsterisk);
                         exportOptions = generalFileExportOptions;
@@ -564,7 +543,6 @@ public class Commands extends BaseCli {
                             pattern = pattern.replaceAll("/+", "/");
                         }
 
-                        //todo discus about that ?preservePath
                         GeneralFileExportOptions generalFileExportOptions = new GeneralFileExportOptions();
                         generalFileExportOptions.setExportPattern(pattern);
                         exportOptions = generalFileExportOptions;
@@ -573,29 +551,33 @@ public class Commands extends BaseCli {
 
                 filePayload.setExportOptions(exportOptions);
 
-               /* String outPath;
-                if (this.branch != null && !this.branch.isEmpty()) {
-                    outPath = this.branch + "/" + preservePath;
-                    outPath = outPath.replaceAll("/+", "/");
-                    outPath = outPath.replaceAll("\\+", "\\");
-                } else {
-                    outPath = preservePath;
-                }*/
-                System.out.println(RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'");
-//                if (autoUpdate) {
+                System.out.print(RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'");
                 Response response;
                 try {
                     spinner.start();
-//
+
                     Long storageId = createStorage(sourceFile);
                     filePayload.setStorageId(storageId);
                     filePayload.setName(preservePath);
+                    FilesApi filesApi = new FilesApi(settings);
+                    if (autoUpdate) {
+                        response = EntityUtils.find(projectInfo.getFiles(), filePayload.getName(), FileEntity::getName)
+                                .map(fileEntity -> {
+                                    String fileId = fileEntity.getId().toString();
+                                    String projectId = projectInfo.getProjectId();
+                                    Map<String, Integer> schemeObject = getSchemeObject(file);
+                                    Integer updateOption = getUpdateOption(file);
+                                    Integer escapeQuotes = (int) file.getEscapeQuotes();
+                                    RevisionPayload revisionPayload = new RevisionPayload(storageId, schemeObject, file.getFirstLineContainsHeader(), updateOption, escapeQuotes);
 
-                    response = new FilesApi(settings)
-                            .createFile(this.projectInfo.getProject().getId().toString(), filePayload)
-                            .execute();
+                                    return new RevisionsApi(this.settings).createRevision(projectId, fileId, revisionPayload).execute();
+                                }).orElseGet(() -> uploadFile(filePayload, filesApi));
+                    } else {
+                        response = uploadFile(filePayload, filesApi);
+                    }
 
                     spinner.stop();
+                    System.out.println(" - OK");
                 } catch (Exception e) {
                     spinner.stop();
                     System.out.println(" - ERROR");
@@ -605,76 +587,10 @@ public class Commands extends BaseCli {
                     }
                     continue;
                 }
-                if (this.isVerbose) {
+                if (this.isVerbose && response != null) {
                     System.out.println(response.getHeaders());
                     System.out.println(ResponseUtil.getResponceBody(response));
                 }
-                //todo discus about ?autoUpdate
-                    /*if (result != null && !result.getBoolean(RESPONSE_SUCCESS)) {
-                        if (result.getJSONObject(RESPONSE_ERROR) != null && result.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE) == 5) {
-                            try {
-                                clientResponse = crwdn.updateFile(settings, parameters);
-                                spinner.stop();
-                            } catch (Exception e) {
-                                System.out.println(" - ERROR");
-                                System.out.println("code : " + result.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE));
-                                System.out.println("message : " + result.getJSONObject(RESPONSE_ERROR).getString(RESPONSE_MESSAGE));
-                                if (this.isDebug) {
-                                    e.printStackTrace();
-                                }
-                                continue;
-                            }
-                            result = parser.parseJson(clientResponse.getEntity(String.class));
-                            if (this.isVerbose) {
-                                System.out.println(clientResponse.getHeaders());
-                                System.out.println(result);
-                            }
-                        }
-                    }*/
-                /*}*/ /*else {
-                    ClientResponse clientResponse;
-                    try {
-                        clientResponse = crwdn.addFile(settings, parameters);
-                        spinner.stop();
-                    } catch (Exception e) {
-                        System.out.println(" - ERROR");
-                        System.out.println("code : " + result.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE));
-                        System.out.println("message : " + result.getJSONObject(RESPONSE_ERROR).getString(RESPONSE_MESSAGE));
-                        if (this.isDebug) {
-                            e.printStackTrace();
-                        }
-                        continue;
-                    }
-                    result = parser.parseJson(clientResponse.getEntity(String.class));
-                    if (this.isVerbose) {
-                        System.out.println(clientResponse.getHeaders());
-                        System.out.println(result);
-                    }
-                }
-                if (result != null && result.getBoolean(RESPONSE_SUCCESS)) {
-                    if (result.has("files") && result.getJSONObject("files") != null) {
-                        if (this.branch != null && !this.branch.isEmpty()) {
-                            preservePath = this.branch + "/" + preservePath;
-                        }
-                        if (result.getJSONObject("files").has(preservePath) && "updated".equals(result.getJSONObject("files").getString(preservePath))) {
-                            System.out.println(" - OK");
-                        } else {
-                            System.out.println(" - SKIPPED");
-                        }git pu
-                    } else if (result.has("stats")) {
-                        System.out.println(" - OK");
-                    } else if (result.getJSONObject("notes") != null && result.getJSONObject("notes").getJSONArray("files") != null) {
-                        System.out.println(" - OK");
-                    } else {
-                        System.out.println(" - SKIPPED");
-                    }
-                } else if (result != null && !result.getBoolean(RESPONSE_SUCCESS) && result.getJSONObject(RESPONSE_ERROR) != null && result.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE) == 5) {
-                    System.out.println(" - SKIPPED");
-                } else if (result != null && !result.getBoolean(RESPONSE_SUCCESS)) {
-                    System.out.println(" - ERROR");
-                    System.out.println("code : " + result.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE));
-                    System.out.println("message : " + result.getJSONObject(RESPONSE_ERROR).getString(RESPONSE_MESSAGE));
-                }*/
             }
         }
         if (noFiles) {
@@ -682,6 +598,30 @@ public class Commands extends BaseCli {
                     "Check your configuration file to ensure that they contain valid directives.");
             ConsoleUtils.exitError();
         }
+    }
+
+    private Integer getUpdateOption(FileBean file) {
+        String fileUpdateOption = file.getUpdateOption();
+        if (fileUpdateOption == null || fileUpdateOption.isEmpty()) {
+            return null;
+        }
+
+        Integer updateOption = null;
+        if ("update as unapproved".equalsIgnoreCase(fileUpdateOption)) {
+            updateOption = 2;
+        } else if ("update as untranslated".equalsIgnoreCase(fileUpdateOption)) {
+            updateOption = 3;
+        } else if ("update only".equalsIgnoreCase(fileUpdateOption)) {
+            updateOption = 1;
+        }
+        return updateOption;
+    }
+
+    private Response uploadFile(FilePayload filePayload, FilesApi filesApi) {
+        String projectId = this.projectInfo.getProject().getId().toString();
+        return filesApi
+                .createFile(projectId, filePayload)
+                .execute();
     }
 
     private Map<String, Integer> getSchemeObject(FileBean file) {
@@ -705,7 +645,7 @@ public class Commands extends BaseCli {
     }
 
 
-    public void uploadTranslation(boolean importDuplicates, boolean importEqSuggestions, boolean autoApproveImported) {
+    private void uploadTranslation(boolean importDuplicates, boolean importEqSuggestions, boolean autoApproveImported) {
         String projectId = projectInfo.getProject().getId().toString();
         List<FileBean> files = propertiesBean.getFiles();
         List<FileEntity> projectFiles = PaginationUtil.unpaged(new FilesApi(settings).getProjectFiles(projectId, Pageable.unpaged()));
@@ -721,14 +661,13 @@ public class Commands extends BaseCli {
                     Map<String, String> mapping = commandUtils.doLanguagesMapping(projectInfo, propertiesBean, languageEntity.getCrowdinCode());
                     List<File> translationFiles = new ArrayList<>();
 
-                    String commonPath = "";
-                    if (!propertiesBean.getPreserveHierarchy()) {
-                        String[] common = new String[sourcesWithoutIgnores.size()];
-                        common = sourcesWithoutIgnores.toArray(common);
-                        commonPath = Utils.commonPath(common);
-                        commonPath = Utils.replaceBasePath(commonPath, propertiesBean);
-                    }
+
+                    String[] common = new String[sourcesWithoutIgnores.size()];
+                    common = sourcesWithoutIgnores.toArray(common);
+                    String commonPath = Utils.commonPath(common);
+                    commonPath = Utils.replaceBasePath(commonPath, propertiesBean);
                     commonPath = (commonPath == null) ? "" : commonPath;
+
                     for (String translation : translations) {
                         translation = Utils.PATH_SEPARATOR + translation;
                         translation = translation.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
@@ -753,25 +692,23 @@ public class Commands extends BaseCli {
                             continue;
                         }
                         String translationSrc = Utils.replaceBasePath(sourcesWithoutIgnoreFile.getAbsolutePath(), propertiesBean);
-                        if (!propertiesBean.getPreserveHierarchy()) {
-                            if (Utils.isWindows()) {
-                                if (translationSrc.contains("\\")) {
-                                    translationSrc = translationSrc.replaceAll("\\\\", "/");
-                                    translationSrc = translationSrc.replaceAll("/+", "/");
-                                }
-                                if (commonPath.contains("\\")) {
-                                    commonPath = commonPath.replaceAll("\\\\", "/");
-                                    commonPath = commonPath.replaceAll("/+", "/");
-                                }
+                        if (Utils.isWindows()) {
+                            if (translationSrc.contains("\\")) {
+                                translationSrc = translationSrc.replaceAll("\\\\", "/");
+                                translationSrc = translationSrc.replaceAll("/+", "/");
                             }
-                            if (translationSrc.startsWith(commonPath)) {
-                                translationSrc = translationSrc.replaceFirst(commonPath, "");
+                            if (commonPath.contains("\\")) {
+                                commonPath = commonPath.replaceAll("\\\\", "/");
+                                commonPath = commonPath.replaceAll("/+", "/");
                             }
-                            if (Utils.isWindows() && translationSrc.contains("/")) {
-                                translationSrc = translationSrc.replaceAll("/", Utils.PATH_SEPARATOR_REGEX);
-                            }
-
                         }
+                        if (translationSrc.startsWith(commonPath)) {
+                            translationSrc = translationSrc.replaceFirst(commonPath, "");
+                        }
+                        if (Utils.isWindows() && translationSrc.contains("/")) {
+                            translationSrc = translationSrc.replaceAll("/", Utils.PATH_SEPARATOR_REGEX);
+                        }
+
 
                         if (Utils.isWindows()) {
                             translationSrc = translationSrc.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
@@ -796,21 +733,15 @@ public class Commands extends BaseCli {
                             }
                         }
 
-                        //todo discus about that
-                           /* if (file.getUpdateOption() != null) {
-                                parameters.updateOption(file.getUpdateOption());
-                            }*/
-
-
                         try {
-                            System.out.println("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean) + "'");
+                            System.out.print("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean) + "'");
                             spinner.start();
 
                             TranslationsApi api = new TranslationsApi(settings);
                             TranslationPayload translationPayload = new TranslationPayload();
                             String translationSrcFinal = translationSrc;
 
-                            Optional<FileEntity> projectFileOrNone = EntityUtil.find(o -> o.getName().equalsIgnoreCase(translationSrcFinal), projectFiles);
+                            Optional<FileEntity> projectFileOrNone = EntityUtils.find(projectFiles, o -> o.getName().equalsIgnoreCase(translationSrcFinal));
                             if (!projectFileOrNone.isPresent()) {
                                 spinner.stop();
                                 System.out.println(" - failed");
@@ -831,10 +762,11 @@ public class Commands extends BaseCli {
                             translationPayload.setStorageId(storageId);
 
                             Response uploadTransactionsResponse = api
-                                    .uploadTranslation(projectId, Long.toString(languageEntity.getId()), translationPayload)
+                                    .uploadTranslation(projectId, languageEntity.getId().toString(), translationPayload)
                                     .execute();
 
                             spinner.stop();
+                            System.out.println(" - OK");
                             if (isVerbose) {
                                 System.out.println(uploadTransactionsResponse.getHeaders());
                                 System.out.println(ResponseUtil.getResponceBody(uploadTransactionsResponse));
@@ -874,87 +806,10 @@ public class Commands extends BaseCli {
                 .getId();
     }
 
-
-//    public void initCli() {
-//        if (settings == null) {
-//            System.out.println(RESOURCE_BUNDLE.getString("wrong_connection"));
-//            ConsoleUtils.exitError();
-//        }
-//        if (Strings.isEmpty(settings.getApiKey())) {
-//            if (Strings.isEmpty(settings.getApiKey())) {
-//                System.out.println("Api key is empty");
-//            }
-//            /*if (settings.getBaseUrl() == null || settings.getBaseUrl().isEmpty()) {
-//                System.out.println("Base url is empty");
-//            }*/
-//            ConsoleUtils.exitError();
-//        }
-        /*CrowdinApiClient crwdn = new Crwdn();
-        JSONObject result = null;
-        Parser parser = new Parser();
-        String cliVersion = Utils.getAppVersion();
-        CrowdinApiParametersBuilder crowdinApiParametersBuilder = new CrowdinApiParametersBuilder();
-        crowdinApiParametersBuilder.json()
-                .version(cliVersion)
-                .headers(HEADER_ACCEPT, HEADER_ACCAEPT_VALUE)
-                .headers(HEADER_CLI_VERSION, HEADER_CLI_VERSION_VALUE)
-                .headers(HEADER_JAVA_VERSION, HEADER_JAVA_VERSION_VALUE)
-                .headers(HEADER_USER_AGENT, HEADER_USER_AGENT_VALUE);
-        ClientResponse clientResponse;
-        try {
-            clientResponse = crwdn.init(settings, crowdinApiParametersBuilder);
-            result = parser.parseJson(clientResponse.getEntity(String.class));
-        } catch (Exception e) {
-            System.out.println(RESOURCE_BUNDLE.getString("initialisation_failed"));
-            if (isDebug) {
-                e.printStackTrace();
-            }
-            ConsoleUtils.exitError();
-        }
-        if (result == null) {
-            System.out.println(RESOURCE_BUNDLE.getString("initialisation_failed"));
-            ConsoleUtils.exitError();
-        }
-        if (result.has(RESPONSE_SUCCESS)) {
-            Boolean responseStatus = result.getBoolean(RESPONSE_SUCCESS);
-            if (responseStatus) {
-                if (result.has(RESPONSE_MESSAGE)) {
-                    String message = result.getString(RESPONSE_MESSAGE);
-                    if (message != null) {
-                        System.out.println(message);
-                    }
-                }
-            } else {
-                if (result.has(RESPONSE_ERROR)) {
-                    JSONObject error = result.getJSONObject(RESPONSE_ERROR);
-                    if (error == null) {
-                        System.out.println("Initialization failed");
-                        ConsoleUtils.exitError();
-                    }
-                    if (error.has(RESPONSE_CODE)) {
-                        if ("0".equals(error.get(RESPONSE_CODE).toString())) {
-                            if (error.has(RESPONSE_MESSAGE)) {
-                                String message = error.getString(RESPONSE_MESSAGE);
-                                if (message != null) {
-                                    System.out.println(message);
-                                    ConsoleUtils.exitError();
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            */
-       /* } else {
-            System.out.println(RESOURCE_BUNDLE.getString("initialisation_failed"));
-            ConsoleUtils.exitError();
-        }*/
-//    }
-
     private void download(String lang, boolean ignoreMatch) {
 
         String languageCode = Optional.ofNullable(language).orElse(lang);
-        Optional<Language> languageOrNull = EntityUtil.find(ProjectWrapper.byCrowdinCode(languageCode), this.projectInfo.getProjectLanguages());
+        Optional<Language> languageOrNull = EntityUtils.find(this.projectInfo.getProjectLanguages(), ProjectWrapper.byCrowdinCode(languageCode));
 
         if (!languageOrNull.isPresent()) {
             System.out.println(" - error");
@@ -976,9 +831,8 @@ public class Commands extends BaseCli {
             BuildTranslationPayload buildTranslation = new BuildTranslationPayload();
             branchOrNull.map(Branch::getId).ifPresent(buildTranslation::setBranchId);
             buildTranslation.setExportApprovedOnly(true);
-            buildTranslation.setForce(true);
             buildTranslation.setExportTranslatedOnly(true);
-
+            buildTranslation.setForce(true);
             buildTranslation.setTargetLanguagesId(Collections.singletonList(languageEntity.getId()));
             spinner.start();
             clientResponse = api.buildTranslation(Long.toString(projectId), buildTranslation).execute();
@@ -1004,56 +858,8 @@ public class Commands extends BaseCli {
             System.out.println(ObjectMapperUtil.getEntityAsString(translationBuild));
         }
 
-
-        /*result = parser.parseJson(clientResponse.getEntity(String.class));
-        if (result != null) {
-            if (result.get(RESPONSE_SUCCESS) instanceof JSONObject) {
-                if ("built".equals(result.getJSONObject(RESPONSE_SUCCESS).getString(RESPONSE_STATUS))) {
-                    System.out.println(" - OK");
-                } else if ("skipped".equals(result.getJSONObject(RESPONSE_SUCCESS).getString(RESPONSE_STATUS))) {
-                    System.out.println(" - skipped");
-                    System.out.println(RESOURCE_BUNDLE.getString("export_skipped"));
-                }
-            } else if (!result.getBoolean(RESPONSE_SUCCESS)) {
-                if (result.getJSONObject(RESPONSE_ERROR) != null && result.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE) == 10
-                        && "Language was not found".equals(result.getJSONObject(RESPONSE_ERROR).getString(RESPONSE_MESSAGE))) {
-                    System.out.println(" - error");
-                    System.out.println("language '" + projectLanguage + "' does not exist in the project");
-                } else if (result.getJSONObject(RESPONSE_ERROR) != null && result.getJSONObject(RESPONSE_ERROR).getInt(RESPONSE_CODE) == 17
-                        && "Specified directory was not found".equals(result.getJSONObject(RESPONSE_ERROR).getString(RESPONSE_MESSAGE))) {
-                    System.out.println("error");
-                    System.out.println("branch '" + branch + "' does not exist in the project");
-                }
-                ConsoleUtils.exitError();
-            }
-        }*/
-
-//        if (result != null && result.get(RESPONSE_SUCCESS) instanceof JSONObject) {
         String fileName = languageCode + ".zip";
 
-//        if (languageEntity != null) {
-//            crowdinApiParametersBuilder.downloadPackage(projectLanguage);
-//            fileName = languageCode + ".zip";
-//        } else {
-//            crowdinApiParametersBuilder.downloadPackage("all");
-//            fileName = "all.zip";
-//        }
-        List<Translation> projectTranslations = PaginationUtil.unpaged(api.getTranslations(projectId.toString(), Pageable.unpaged()));
-
-        Optional<Translation> translationEntityOrNull = EntityUtil.find(translation ->
-                branchOrNull.map(branchEntity -> branchEntity.getId().equals(translation.getBranchId())).orElse(true)
-                        || languageEntity.getId().equals(translation.getLanguageId()), projectTranslations);
-        if (!translationEntityOrNull.isPresent()) {
-            System.out.println(" - error");
-            System.out.println("translation for language '" + languageCode + "' and branch '" + branch + "' does not exist in the project");
-            ConsoleUtils.exitError();
-        }
-        Translation translationEntity = translationEntityOrNull.get();
-
-
-//        if (this.branch != null) {
-//            crowdinApiParametersBuilder.branch(this.branch);
-//        }
         String basePath = propertiesBean.getBasePath();
         String baseTempDir;
         if (basePath.endsWith(Utils.PATH_SEPARATOR)) {
@@ -1065,16 +871,14 @@ public class Commands extends BaseCli {
         String downloadedZipArchivePath = propertiesBean.getBasePath() != null && !propertiesBean.getBasePath().endsWith(Utils.PATH_SEPARATOR)
                 ? propertiesBean.getBasePath() + Utils.PATH_SEPARATOR + fileName
                 : propertiesBean.getBasePath() + fileName;
-//        crowdinApiParametersBuilder.destinationFolder(basePath);
 
         File downloadedZipArchive = new File(downloadedZipArchivePath);
 
         try {
             spinner.start();
-            Response fileRawResponse = api.getTranslationRaw(Long.toString(projectId), Long.toString(translationEntity.getId())).execute();
+            Response fileRawResponse = api.getTranslationRaw(Long.toString(projectId), Long.toString(translationBuild.getId())).execute();
             FileRaw fileRaw = ResponseUtil.getResponceBody(fileRawResponse, new TypeReference<SimpleResponse<FileRaw>>() {
             }).getEntity();
-//        clientResponse = crwdn.downloadTranslations(settings, translationEntity.getId());
             InputStream download = CrowdinHttpClient.download(fileRaw.getUrl());
 
             FileUtil.writeToFile(download, downloadedZipArchivePath);
@@ -1153,7 +957,6 @@ public class Commands extends BaseCli {
             List<Language> projectLanguages = projectInfo.getProjectLanguages();
             for (Language projectLanguage : projectLanguages) {
                 if (projectLanguage != null && projectLanguage.getCode() != null) {
-//                    JSONObject languageInfo = commandUtils.getLanguageInfo(projectLanguage.getName(), supportedLanguages);
                     String crowdinCode = projectLanguage.getCrowdinCode();
                     this.download(crowdinCode, ignoreMatch);
                 }

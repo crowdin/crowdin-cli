@@ -212,7 +212,7 @@ public class FileHelper {
             }
         } else {
             if (node != null && node.endsWith(":")) {
-                resultPath.append(node + Utils.PATH_SEPARATOR);
+                resultPath.append(node).append(Utils.PATH_SEPARATOR);
             } else {
                 resultPath.append(Utils.PATH_SEPARATOR);
             }
