@@ -19,6 +19,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 
 import java.io.*;
+import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -72,6 +73,7 @@ public class Commands extends BaseCli {
     private boolean version = false;
 
     private void initialize(String resultCmd, CommandLine commandLine) {
+        this.removeUnsupportedCharsetProperties();
 
         if (!resultCmd.startsWith(HELP)
                 && !GENERATE.equals(resultCmd)
@@ -146,6 +148,17 @@ public class Commands extends BaseCli {
             if (this.isVerbose) {
                 System.out.println(this.supportedLanguages);
             }
+        }
+    }
+
+    private void removeUnsupportedCharsetProperties() {
+        try {
+            String stdoutEncoding = System.getProperties().getProperty("sun.stdout.encoding");
+            if (stdoutEncoding != null && !stdoutEncoding.isEmpty()) {
+                java.nio.charset.Charset.forName(stdoutEncoding);
+            }
+        } catch (UnsupportedCharsetException e) {
+            System.getProperties().remove("sun.stdout.encoding");
         }
     }
 
