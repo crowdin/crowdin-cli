@@ -1,5 +1,9 @@
 **Unreleased**
 
+**Version 3.0.0**
+
++ Support API v2
+
 **Version 2.0.31**
 
 + Fix UnsupportedCharsetException

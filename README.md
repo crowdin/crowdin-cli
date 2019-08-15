@@ -35,8 +35,8 @@ Crowdin CLI can be installed as a stand-alone Java application.
 
 #### Verifying Your Java Version
 
-Check that you have Java 7 or newer installed. Type `java -version` command in the terminal (Command Prompt on Windows) to check Java version.
-For example, *java version "1.7.0_55"* means that you have Java 7 Update 55 installed.
+Check that you have Java 8 or newer installed. Type `java -version` command in the terminal (Command Prompt on Windows) to check Java version.
+For example, *java version "1.8.0_212"* means that you have Java 8 Update 212 installed.
 
 If you don't have Java installed, download it from <a href="https://www.java.com/" target="_blank">Oracle's website</a>.
 
