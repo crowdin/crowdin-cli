@@ -34,18 +34,19 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
 
-import static com.crowdin.cli.commands.CrowdinCliOptions.*;
+import static com.crowdin.cli.commands.CrowdinCliOptions.BASE_URL_LONG;
+import static com.crowdin.cli.commands.CrowdinCliOptions.TRANSLATION_SHORT;
 
 public class CommandUtils extends BaseCli {
 
     private static final String USER_HOME = "user.home";
 
     public File getIdentityFile(CommandLine commandLine) {
-        File identity = null;
         if (commandLine == null) {
-            return identity;
+            return null;
         }
 
+        File identity;
         if (commandLine.hasOption(OPTION_NAME_IDENTITY) && commandLine.getOptionValue(OPTION_NAME_IDENTITY) != null) {
             identity = new File(commandLine.getOptionValue(OPTION_NAME_IDENTITY));
         } else {
@@ -169,7 +170,6 @@ public class CommandUtils extends BaseCli {
                                                 boolean isVerbose) {
 
         String[] nodes = null;
-        StringBuilder resultDirs = new StringBuilder();
         String filePath = Utils.replaceBasePath(sourcePath, propertiesBean);
         if (filePath.startsWith(Utils.PATH_SEPARATOR)) {
             filePath = filePath.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
@@ -274,7 +274,7 @@ public class CommandUtils extends BaseCli {
                 }
             }
         }
-        return Pair.of(resultDirs.toString(), parentId);
+        return Pair.of("", parentId);
     }
 
     public PropertiesBean makeConfigFromParameters(CommandLine commandLine, PropertiesBean propertiesBean) {
@@ -297,11 +297,6 @@ public class CommandUtils extends BaseCli {
         } else if (commandLine.getOptionValue("k") != null && !commandLine.getOptionValue("k").isEmpty()) {
             propertiesBean.setApiKey(commandLine.getOptionValue("k"));
         }
-        if (commandLine.getOptionValue(LOGIN_LONG) != null && !commandLine.getOptionValue(LOGIN_LONG).isEmpty()) {
-            propertiesBean.setLogin(commandLine.getOptionValue(LOGIN_LONG));
-        } else if (commandLine.getOptionValue(LOGIN_SHORT) != null && !commandLine.getOptionValue(LOGIN_SHORT).isEmpty()) {
-            propertiesBean.setLogin(commandLine.getOptionValue(LOGIN_SHORT));
-        }
         if (commandLine.getOptionValue(BASE_URL_LONG) != null && !commandLine.getOptionValue(BASE_URL_LONG).isEmpty()) {
             /* todo need refactor method getBaseUrl */
             propertiesBean.setBaseUrl(commandLine.getOptionValue(BASE_URL_LONG));
@@ -317,7 +312,11 @@ public class CommandUtils extends BaseCli {
         }
         if (commandLine.getOptionValue("translation") != null && !commandLine.getOptionValue("translation").isEmpty()) {
             fileBean.setTranslation(commandLine.getOptionValue("translation"));
+        } else if (commandLine.getOptionValue(TRANSLATION_SHORT) != null && !commandLine.getOptionValue(TRANSLATION_SHORT).isEmpty()) {
+            fileBean.setTranslation(commandLine.getOptionValue(TRANSLATION_SHORT));
         }
+
+
         if ((fileBean.getSource() != null && !fileBean.getSource().isEmpty())
                 || (fileBean.getTranslation() != null && !fileBean.getTranslation().isEmpty())) {
             propertiesBean.getFiles().clear();
@@ -384,6 +383,7 @@ public class CommandUtils extends BaseCli {
                 File oldFile = new File(key);
                 File newFile = new File(value);
                 if (oldFile.isFile()) {
+                    //noinspection ResultOfMethodCallIgnored
                     newFile.getParentFile().mkdirs();
                     if (!oldFile.renameTo(newFile)) {
                         if (newFile.delete()) {
@@ -913,6 +913,15 @@ public class CommandUtils extends BaseCli {
                 File base = new File(parentPath.toFile(), basePath);
                 try {
                     result = base.getCanonicalPath();
+                } catch (IOException e) {
+                    System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
+                    if (isDebug) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                try {
+                    result = new File(basePath).getCanonicalPath();
                 } catch (IOException e) {
                     System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
                     if (isDebug) {

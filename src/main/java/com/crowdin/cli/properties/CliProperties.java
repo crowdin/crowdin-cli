@@ -7,8 +7,6 @@ import com.crowdin.cli.utils.Utils;
 import java.nio.file.Paths;
 import java.util.*;
 
-import static com.crowdin.cli.utils.MessageSource.MISSING_LOGIN;
-
 
 public class CliProperties {
 
@@ -90,9 +88,6 @@ public class CliProperties {
                     case API_KEY_ENV:
                         pb.setApiKey(Utils.getEnvironmentVariable(property.getValue().toString()));
                         break;
-                    case LOGIN_ENV:
-                        pb.setLogin(Utils.getEnvironmentVariable(property.getValue().toString()));
-                        break;
                     case BASE_PATH_ENV:
                         pb.setBasePath(Utils.getEnvironmentVariable(property.getValue().toString()));
                         break;
@@ -118,11 +113,6 @@ public class CliProperties {
                     case API_KEY:
                         if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
                             pb.setApiKey(property.getValue().toString());
-                        }
-                        break;
-                    case LOGIN:
-                        if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
-                            pb.setLogin(property.getValue().toString());
                         }
                         break;
                     case BASE_PATH:
@@ -252,11 +242,6 @@ public class CliProperties {
         //Property bean
         if (pb == null) {
             System.out.println(RESOURCE_BUNDLE.getString("error_property_bean_null"));
-            ConsoleUtils.exitError();
-        }
-        //Mandatory params for api
-        if (pb.getLogin() == null || pb.getLogin().isEmpty()) {
-            System.out.println(RESOURCE_BUNDLE.getString(MISSING_LOGIN));
             ConsoleUtils.exitError();
         }
         //Preserve hierarchy

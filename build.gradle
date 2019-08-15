@@ -32,12 +32,13 @@ dependencies {
     compile group: 'org.glassfish.jersey.core', name: 'jersey-client', version: '2.28'
     compile group: 'org.glassfish.jersey.inject', name: 'jersey-hk2', version: '2.28'
     compile group: 'org.glassfish.jersey.media', name: 'jersey-media-multipart', version: '2.28'
-
+    compile group: 'javax.activation', name: 'activation', version: '1.1.1'
 
     compile group: 'org.apache.commons', name: 'commons-lang3', version: '3.4'
     compile group: 'net.lingala.zip4j', name: 'zip4j', version: '1.3.2'
     compile group: 'net.ricecode', name: 'string-similarity', version: '1.0.0'
     compile group: 'com.github.fge', name: 'json-patch', version: '1.9'
+
 
     compile files('libs/crowdin-1.0.jar')
     testCompile group: 'junit', name: 'junit', version: '4.12'

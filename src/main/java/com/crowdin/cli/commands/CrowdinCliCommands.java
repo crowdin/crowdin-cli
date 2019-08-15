@@ -44,6 +44,8 @@ public class CrowdinCliCommands {
 
     private static final String COMMAND_GENERATE = "generate";
 
+    private static final String COMMAND_INIT = "init";
+
     private static final String COMMAND_SEPARATOR = " ";
 
     public static final String COMMAND_PULL = "pull";
@@ -61,6 +63,7 @@ public class CrowdinCliCommands {
         commands.add(COMMAND_DOWNLAOD);
         commands.add(COMMAND_DOWNLAOD_TRANSLATIONS);
         commands.add(COMMAND_GENERATE);
+        commands.add(COMMAND_INIT);
         commands.add(COMMAND_PROJECT);
         commands.add(COMMAND_LIST_PROJECT);
         commands.add(COMMAND_SOURCES);
@@ -116,6 +119,7 @@ public class CrowdinCliCommands {
         crowdinCommands.add(COMMAND_DOWNLAOD);
         crowdinCommands.add(COMMAND_DOWNLAOD_TRANSLATIONS);
         crowdinCommands.add(COMMAND_GENERATE);
+        crowdinCommands.add(COMMAND_INIT);
         crowdinCommands.add(COMMAND_PROJECT);
         crowdinCommands.add(COMMAND_LIST_PROJECT);
         crowdinCommands.add(COMMAND_SOURCES);

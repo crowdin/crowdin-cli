@@ -22,8 +22,6 @@ public class PropertiesBean {
 
     private String accountKey;
 
-    private String login;
-
     public List<FileBean> getFiles() {
         return files;
     }
@@ -82,13 +80,5 @@ public class PropertiesBean {
 
     public void setAccountKey(String accountKey) {
         this.accountKey = accountKey;
-    }
-
-    public String getLogin() {
-        return login;
-    }
-
-    public void setLogin(String login) {
-        this.login = login;
     }
 }

@@ -1,7 +1,6 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.cli.utils.ConsoleUtils;
-import com.crowdin.cli.utils.EntityUtils;
 import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.client.CrowdinRequestBuilder;
 import com.crowdin.client.api.DirectoriesApi;
@@ -9,11 +8,11 @@ import com.crowdin.client.api.ProjectsApi;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.*;
 import com.crowdin.common.response.Page;
+import com.crowdin.exception.CrowdinException;
 import com.crowdin.util.PaginationUtil;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 public class ProjectClient extends Client {
 
@@ -21,8 +20,8 @@ public class ProjectClient extends Client {
         super(settings);
     }
 
-    public ProjectWrapper getProjectInfo(String projectName, boolean isDebug) {
-        Project project = getProject(projectName, isDebug);
+    public ProjectWrapper getProjectInfo(String projectId, boolean isDebug) {
+        Project project = getProject(projectId, isDebug);
         List<Language> supportedLanguages = Collections.emptyList();
         try {
             supportedLanguages = new LanguagesClient(settings).getAllSupportedLanguages();
@@ -43,23 +42,20 @@ public class ProjectClient extends Client {
         return new ProjectWrapper(project, projectFiles, directories, supportedLanguages, projectLanguages);
     }
 
-    private Project getProject(String projectName, boolean isDebug) {
+    private Project getProject(String projectId, boolean isDebug) {
         ProjectsApi api = new ProjectsApi(settings);
         Project project = null;
 
         try {
-            List<Project> allProjects = PaginationUtil.unpaged(api.getRootGroupProjects(Pageable.unpaged()));
-            Optional<Project> projectOrNull = EntityUtils.find(allProjects, o -> o.getName().equalsIgnoreCase(projectName));
-
-            if (!projectOrNull.isPresent()) {
-                System.out.println(" - ERROR");
-                System.out.println("project'" + projectName + "' does not exist");
-                ConsoleUtils.exitError();
-            }
-            project = projectOrNull.get();
+            project = api.getProject(projectId).getResponseEntity().getEntity();
         } catch (Exception e) {
+            //todo stop spinner
             System.out.println(" - ERROR");
-            System.out.println("message : " + e.getMessage());
+            if (e instanceof CrowdinException && e.getMessage().toLowerCase().contains("404") && e.getMessage().toLowerCase().contains("not found")) {
+                System.out.printf(MessageSource.RESOURCE_BUNDLE.getString(MessageSource.ERROR_PROJECT_NOT_FOUND), projectId);
+            } else {
+                System.out.println("message : " + e.getMessage());
+            }
 
             if (isDebug) {
                 e.printStackTrace();

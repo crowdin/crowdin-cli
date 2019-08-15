@@ -13,4 +13,6 @@ public class MessageSource {
 
     public static final String ERROR_DURING_FILE_WRITE = "file_write_error";
 
+    public static final String ERROR_PROJECT_NOT_FOUND = "error_project_not_found";
+
 }

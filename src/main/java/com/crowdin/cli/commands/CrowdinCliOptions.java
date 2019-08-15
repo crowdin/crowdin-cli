@@ -198,8 +198,7 @@ public class CrowdinCliOptions {
         options.addOption(null, LOGIN_LONG, true, LOGIN_DESCRIPTION);
         options.addOption(null, LOGIN_SHORT, true, BASE_PATH_DESCRIPTION);
         options.addOption(SOURCE_SHORT, SOURCE_LONG, true, SOURCE_DESCRIPTION);
-        options.addOption(TRANSLATION_SHORT, null, false, TRANSLATION_DESCRIPTION);
-        options.addOption(null, TRANSLATION_LONG, true, TRANSLATION_DESCRIPTION);
+        options.addOption(TRANSLATION_SHORT, TRANSLATION_LONG, true, TRANSLATION_DESCRIPTION);
         return options;
     }
 
@@ -223,7 +222,7 @@ public class CrowdinCliOptions {
         footer.append(NEW_LINE + "download | pull    - ").append(RESOURCE_BUNDLE.getString("command_download_description"));
         footer.append(NEW_LINE + "list               - ").append(RESOURCE_BUNDLE.getString("command_list"));
         footer.append(NEW_LINE + "lint               - ").append(RESOURCE_BUNDLE.getString("command_lint_description"));
-        footer.append(NEW_LINE + "generate           - ").append(RESOURCE_BUNDLE.getString("command_generate_description"));
+        footer.append(NEW_LINE + "generate | init    - ").append(RESOURCE_BUNDLE.getString("command_generate_description"));
         formatter.printHelp(cmdLineSyntax, header.toString(), options, footer.toString(), false);
     }
 

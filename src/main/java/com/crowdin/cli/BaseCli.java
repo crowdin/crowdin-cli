@@ -85,6 +85,8 @@ public class BaseCli {
 
     protected static final String GENERATE = "generate";
 
+    protected static final String INIT = "init";
+
     protected static final String HELP = "help";
 
     protected static final String HELP_P = "p";
