@@ -1,5 +1,9 @@
 **Unreleased**
 
+**Version 2.0.31**
+
++ Fix UnsupportedCharsetException
+
 **Version 2.0.30**
 
 + Return non zero exit code if error happened (fix [#77](https://github.com/crowdin/crowdin-cli-2/issues/77))
