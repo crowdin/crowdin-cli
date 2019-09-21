@@ -167,6 +167,7 @@ public class CommandUtils extends BaseCli {
                                                 String branch,
                                                 Settings settings,
                                                 Long projectId,
+                                                Set<String> proceedDirectories,
                                                 boolean isVerbose) {
 
         String[] nodes = null;
@@ -219,7 +220,7 @@ public class CommandUtils extends BaseCli {
         Long parentId = null;
         if (nodes != null) {
             for (String node : nodes) {
-                if (node != null && !node.isEmpty()) {
+                if (node != null && !node.isEmpty() && !proceedDirectories.contains(node)) {
                     if (!node.equals(nodes[nodes.length - 1])) {
                        /* if (resultDirs.length() == 0) {
                             resultDirs.append(node);
@@ -270,6 +271,7 @@ public class CommandUtils extends BaseCli {
                                 ConsoleUtils.exitError();
                             }
                         }
+                        proceedDirectories.add(node);
                     }
                 }
             }

@@ -7,12 +7,28 @@ public class MessageSource {
 
     public static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages/messages");
 
-    public static final String MISSING_PROPERTY_BEAN = "missing_property_bean";
+    public enum Messages {
 
-    public static final String MISSING_LOGIN = "error_missed_login";
+        CONFIGURATION_FILE_IS_INVALID("configuration_file_is_invalid"),
+        ERROR_PROJECT_NOT_FOUND("error_project_not_found"),
+        ERROR_DURING_FILE_WRITE("file_write_error"),
+        MISSING_PROPERTY_BEAN("missing_property_bean"),
 
-    public static final String ERROR_DURING_FILE_WRITE = "file_write_error";
 
-    public static final String ERROR_PROJECT_NOT_FOUND = "error_project_not_found";
+        FETCHING_PROJECT_INFO("fetching_project_info"),
+        BUILDING_TRANSLATION("building_translation"),
+        DOWNLOADING_TRANSLATION("downloading_translation");
+
+
+        Messages(String messageKey) {
+            this.messageKey = messageKey;
+        }
+
+        private String messageKey;
+
+        public String getString() {
+            return RESOURCE_BUNDLE.getString(messageKey);
+        }
+    }
 
 }

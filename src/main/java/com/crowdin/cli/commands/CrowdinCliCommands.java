@@ -48,9 +48,9 @@ public class CrowdinCliCommands {
 
     private static final String COMMAND_SEPARATOR = " ";
 
-    public static final String COMMAND_PULL = "pull";
+    private static final String COMMAND_PULL = "pull";
 
-    public static final String COMMAND_PUSH = "push";
+    private static final String COMMAND_PUSH = "push";
 
 
     public String init(CommandLine cl) {

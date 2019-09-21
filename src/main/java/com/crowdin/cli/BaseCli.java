@@ -151,8 +151,8 @@ public class BaseCli {
 
     protected static final String SKIPPED = "SKIPPED";
 
-    public static final String PULL = "pull";
+    protected static final String PULL = "pull";
 
-    public static final String PUSH = "push";
+    protected static final String PUSH = "push";
 
 }

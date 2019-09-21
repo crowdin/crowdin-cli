@@ -25,11 +25,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.util.Strings;
 
-import java.nio.charset.UnsupportedCharsetException;
 import javax.ws.rs.core.Response;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -37,8 +37,7 @@ import java.nio.file.Paths;
 import java.util.*;
 import java.util.zip.ZipException;
 
-import static com.crowdin.cli.utils.MessageSource.ERROR_DURING_FILE_WRITE;
-import static com.crowdin.cli.utils.MessageSource.MISSING_PROPERTY_BEAN;
+import static com.crowdin.cli.utils.MessageSource.Messages.*;
 
 public class Commands extends BaseCli {
 
@@ -75,8 +74,6 @@ public class Commands extends BaseCli {
     private ProjectWrapper projectInfo = null;
 
     private PropertiesBean propertiesBean = new PropertiesBean();
-
-    private ConsoleSpinner spinner = new ConsoleSpinner();
 
     private boolean version = false;
 
@@ -156,9 +153,10 @@ public class Commands extends BaseCli {
 
     private ProjectWrapper getProjectInfo() {
         if (projectInfo == null) {
-            this.spinner.start();
+            ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString());
             projectInfo = new ProjectClient(this.settings).getProjectInfo(this.propertiesBean.getProjectIdentifier(), this.isDebug);
-            this.spinner.stop();
+            ConsoleSpinner.stop();
+            System.out.println(" - OK");
         }
         return projectInfo;
     }
@@ -451,6 +449,8 @@ public class Commands extends BaseCli {
         List<FileBean> files = this.propertiesBean.getFiles();
         boolean noFiles = true;
         Optional<Long> branchId = getOrCreateBranchId();
+        Set<String> directoriesCache = new HashSet<>();
+
         for (FileBean file : files) {
             if (file.getSource() == null
                     || file.getSource().isEmpty()
@@ -473,7 +473,15 @@ public class Commands extends BaseCli {
                     continue;
                 }
                 boolean isDest = file.getDest() != null && !file.getDest().isEmpty() && !this.commandUtils.isSourceContainsPattern(file.getSource());
-                Pair<String, Long> preservePathToParentId = this.commandUtils.preserveHierarchy(file, sourceFile.getAbsolutePath(), commonPath, this.propertiesBean, this.branch, this.settings, getProjectInfo().getProject().getId(), this.isVerbose);
+                Pair<String, Long> preservePathToParentId = this.commandUtils.preserveHierarchy(file,
+                        sourceFile.getAbsolutePath(),
+                        commonPath,
+                        this.propertiesBean,
+                        this.branch,
+                        this.settings,
+                        getProjectInfo().getProject().getId(),
+                        directoriesCache,
+                        this.isVerbose);
                 String preservePath = preservePathToParentId.getLeft();
                 Long parentId = preservePathToParentId.getRight();
 
@@ -547,10 +555,9 @@ public class Commands extends BaseCli {
 
                 filePayload.setExportOptions(exportOptions);
 
-                System.out.print(RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'");
                 Response response;
                 try {
-                    spinner.start();
+                    ConsoleSpinner.start(RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'");
 
                     Long storageId = createStorage(sourceFile);
                     filePayload.setStorageId(storageId);
@@ -572,10 +579,10 @@ public class Commands extends BaseCli {
                         response = uploadFile(filePayload, filesApi);
                     }
 
-                    spinner.stop();
+                    ConsoleSpinner.stop();
                     System.out.println(" - OK");
                 } catch (Exception e) {
-                    spinner.stop();
+                    ConsoleSpinner.stop();
                     System.out.println(" - ERROR");
                     System.out.println("message : " + e.getMessage());
                     if (this.isDebug) {
@@ -735,8 +742,7 @@ public class Commands extends BaseCli {
                         }
 
                         try {
-                            System.out.print("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean) + "'");
-                            spinner.start();
+                            ConsoleSpinner.start("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean) + "'");
 
                             TranslationsApi api = new TranslationsApi(settings);
                             TranslationPayload translationPayload = new TranslationPayload();
@@ -744,7 +750,7 @@ public class Commands extends BaseCli {
 
                             Optional<FileEntity> projectFileOrNone = EntityUtils.find(projectFiles, o -> o.getName().equalsIgnoreCase(translationSrcFinal));
                             if (!projectFileOrNone.isPresent()) {
-                                spinner.stop();
+                                ConsoleSpinner.stop();
                                 System.out.println(" - failed");
                                 System.out.println("source '" + translationSrcFinal + "' does not exist in the project");
                                 ConsoleUtils.exitError();
@@ -766,14 +772,14 @@ public class Commands extends BaseCli {
                                     .uploadTranslation(projectId, languageEntity.getId().toString(), translationPayload)
                                     .execute();
 
-                            spinner.stop();
+                            ConsoleSpinner.stop();
                             System.out.println(" - OK");
                             if (isVerbose) {
                                 System.out.println(uploadTransactionsResponse.getHeaders());
                                 System.out.println(ResponseUtil.getResponceBody(uploadTransactionsResponse));
                             }
                         } catch (Exception e) {
-                            spinner.stop();
+                            ConsoleSpinner.stop();
                             System.out.println(" - failed");
                             System.out.println("message : " + e.getMessage());
                             if (isDebug) {
@@ -832,7 +838,7 @@ public class Commands extends BaseCli {
             branchOrNull.map(Branch::getId).ifPresent(buildTranslation::setBranchId);
             buildTranslation.setForce(true);
             buildTranslation.setTargetLanguagesId(Collections.singletonList(languageEntity.getId()));
-            spinner.start();
+            ConsoleSpinner.start(BUILDING_TRANSLATION.getString());
             clientResponse = api.buildTranslation(Long.toString(projectId), buildTranslation).execute();
             translationBuild = ResponseUtil.getResponceBody(clientResponse, new TypeReference<SimpleResponse<Translation>>() {
             }).getEntity();
@@ -841,7 +847,7 @@ public class Commands extends BaseCli {
                 translationBuild = api.getTranslationInfo(projectId.toString(), translationBuild.getId().toString()).getResponseEntity().getEntity();
             }
 
-            spinner.stop();
+            ConsoleSpinner.stop();
         } catch (Exception e) {
             System.out.println(" - error");
             System.out.println(e.getMessage());
@@ -873,20 +879,20 @@ public class Commands extends BaseCli {
         File downloadedZipArchive = new File(downloadedZipArchivePath);
 
         try {
-            spinner.start();
+            ConsoleSpinner.start(DOWNLOADING_TRANSLATION.getString());
             Response fileRawResponse = api.getTranslationRaw(Long.toString(projectId), Long.toString(translationBuild.getId())).execute();
             FileRaw fileRaw = ResponseUtil.getResponceBody(fileRawResponse, new TypeReference<SimpleResponse<FileRaw>>() {
             }).getEntity();
             InputStream download = CrowdinHttpClient.download(fileRaw.getUrl());
 
             FileUtil.writeToFile(download, downloadedZipArchivePath);
-            spinner.stop();
+            ConsoleSpinner.stop();
             if (isVerbose) {
                 System.out.println(fileRawResponse.getHeaders());
                 System.out.println(ObjectMapperUtil.getEntityAsString(fileRaw));
             }
         } catch (IOException e) {
-            System.out.println(RESOURCE_BUNDLE.getString(ERROR_DURING_FILE_WRITE));
+            System.out.println(ERROR_DURING_FILE_WRITE.getString());
             if (isDebug) {
                 e.printStackTrace();
             }
@@ -1256,7 +1262,7 @@ public class Commands extends BaseCli {
                 }
             }
             if (propertiesBean == null) {
-                System.out.println(RESOURCE_BUNDLE.getString(MISSING_PROPERTY_BEAN));
+                System.out.println(MISSING_PROPERTY_BEAN.getString());
             } else {
                 if (propertiesBean.getFiles() == null) {
                     System.out.println(RESOURCE_BUNDLE.getString("error_missed_section_files"));

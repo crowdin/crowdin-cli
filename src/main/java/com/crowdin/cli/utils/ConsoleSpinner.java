@@ -1,36 +1,49 @@
 package com.crowdin.cli.utils;
 
+import java.util.concurrent.locks.ReentrantLock;
+import java.util.stream.IntStream;
+
 public class ConsoleSpinner {
 
-    private static final int SPINNER_TIMEOUT = 250;
-    private Spinner worker;
+    private static Spinner worker;
 
-    public void start() {
+    public static void start(String contextMessage) {
+        System.out.print(contextMessage);
         tryStopWorker();
         worker = new Spinner();
         worker.start();
     }
 
-    public void stop() {
+    public static void stop() {
         tryStopWorker();
     }
 
-    private void tryStopWorker() {
-        if (worker != null) {
-            worker.isSpin = false;
-            try {
-                worker.join();
-            } catch (InterruptedException e) {
-                /*ignore*/
-            }
-            worker = null;
+    private static void tryStopWorker() {
+        if (worker == null) {
+            return;
         }
+        worker.isSpin = false;
+        worker.waitSpinnerFinished();
+        worker = null;
     }
 
-    private class Spinner extends Thread {
+    private static class Spinner extends Thread {
+
+        private static final int SPINNER_INTERVAL = 250;
+
+        private static final ReentrantLock lock = new ReentrantLock();
 
         private int counter;
         private boolean isSpin;
+
+        private final String[] frames = new String[]{
+                " - ∙∙∙∙∙",
+                " - ●∙∙∙∙",
+                " - ∙●∙∙∙",
+                " - ∙∙●∙∙",
+                " - ∙∙∙●∙",
+                " - ∙∙∙∙●",
+        };
 
         private Spinner() {
             setDaemon(true);
@@ -39,26 +52,27 @@ public class ConsoleSpinner {
         @Override
         public void run() {
             isSpin = true;
+            lock.lock();
             while (isSpin) {
-                switch (counter++ % 4) {
-                    case 0:
-                        System.out.print("/");
-                        break;
-                    case 1:
-                        System.out.print("-");
-                        break;
-                    case 2:
-                        System.out.print("\\");
-                        break;
-                    case 3:
-                        System.out.print("|");
-                        break;
-                }
+                String frame = frames[counter++ % frames.length];
+                System.out.print(frame);
                 try {
-                    Thread.sleep(SPINNER_TIMEOUT);
+                    Thread.sleep(SPINNER_INTERVAL);
                 } catch (InterruptedException e) { /*ignore*/}
-                System.out.print("\b");
+                clearFrame(frame);
             }
+            lock.unlock();
+        }
+
+        private void clearFrame(String frame) {
+            IntStream
+                    .range(0, frame.length())
+                    .forEach(value -> System.out.print("\b"));
+        }
+
+        private void waitSpinnerFinished() {
+            lock.lock();
+            lock.unlock();
         }
     }
 }

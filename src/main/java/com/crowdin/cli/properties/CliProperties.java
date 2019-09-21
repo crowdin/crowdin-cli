@@ -7,6 +7,8 @@ import com.crowdin.cli.utils.Utils;
 import java.nio.file.Paths;
 import java.util.*;
 
+import static com.crowdin.cli.utils.MessageSource.Messages;
+
 
 public class CliProperties {
 
@@ -239,10 +241,11 @@ public class CliProperties {
 
     //todo set default values
     public PropertiesBean validateProperties(PropertiesBean pb) {
+        List<String> messages = new ArrayList<>();
         //Property bean
         if (pb == null) {
-            System.out.println(RESOURCE_BUNDLE.getString("error_property_bean_null"));
-            ConsoleUtils.exitError();
+            messages.add(RESOURCE_BUNDLE.getString("error_property_bean_null"));
+            printConfigurationFileErrorsAndExit(messages);
         }
         //Preserve hierarchy
         if (pb.getPreserveHierarchy() == null) {
@@ -250,22 +253,22 @@ public class CliProperties {
         }
         if (pb.getBasePath() != null && !pb.getBasePath().isEmpty()) {
             if (!Paths.get(pb.getBasePath()).isAbsolute()) {
-                System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
-                ConsoleUtils.exitError();
+                messages.add(RESOURCE_BUNDLE.getString("bad_base_path"));
+                printConfigurationFileErrorsAndExit(messages);
             }
         } else {
             pb.setBasePath("");
         }
         //Files
         if (pb.getFiles() == null) {
-            System.out.println(RESOURCE_BUNDLE.getString("error_empty_section_files"));
+            messages.add(RESOURCE_BUNDLE.getString("error_empty_section_files"));
         } else {
             boolean hasValidFile = false;
             for (FileBean file : pb.getFiles()) {
                 boolean hasError = false;
                 //Sources
                 if (file.getSource() == null || file.getSource().isEmpty()) {
-                    System.out.println(RESOURCE_BUNDLE.getString("error_empty_source_section"));
+                    messages.add(RESOURCE_BUNDLE.getString("error_empty_source_section"));
                     hasError = true;
                 }
                 if (Utils.isWindows() && file.getSource() != null && file.getSource().contains("/")) {
@@ -276,12 +279,12 @@ public class CliProperties {
                 }
                 //Translation
                 if (file.getTranslation() == null || file.getTranslation().isEmpty()) {
-                    System.out.println(RESOURCE_BUNDLE.getString("error_empty_translation_section"));
+                    messages.add(RESOURCE_BUNDLE.getString("error_empty_translation_section"));
                     hasError = true;
                 }
                 if (file.getTranslation() != null && file.getTranslation().contains("**") && file.getSource() != null && !file.getSource().contains("**")) {
-                    System.out.println("error: Translation pattern " + file.getTranslation() + " is not valid. The mask `**` can't be used.");
-                    System.out.println("When using `**` in 'translation' pattern it will always contain sub-path from 'source' for certain file.");
+                    messages.add("error: Translation pattern " + file.getTranslation() + " is not valid. The mask `**` can't be used.");
+                    messages.add("When using `**` in 'translation' pattern it will always contain sub-path from 'source' for certain file.");
                     hasError = true;
                 }
                 if (file.getTranslation() != null && !file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
@@ -334,7 +337,7 @@ public class CliProperties {
                 if (file.getUpdateOption() == null || file.getUpdateOption().isEmpty()) {
                 } else {
                     if (!"update_as_unapproved".equals(file.getUpdateOption()) && !"update_without_changes".equals(file.getUpdateOption())) {
-                        System.out.println("Parameter 'update_option' in configuration file has unacceptable value");
+                        messages.add("Parameter 'update_option' in configuration file has unacceptable value");
                         hasError = true;
                     }
                 }
@@ -385,10 +388,15 @@ public class CliProperties {
                 }
             }
             if (!hasValidFile) {
-                ConsoleUtils.exitError();
+                printConfigurationFileErrorsAndExit(messages);
             }
         }
         return pb;
     }
 
+    private void printConfigurationFileErrorsAndExit(List<String> errors) {
+        System.out.println(Messages.CONFIGURATION_FILE_IS_INVALID.getString());
+        errors.forEach(System.out::println);
+        ConsoleUtils.exitError();
+    }
 }

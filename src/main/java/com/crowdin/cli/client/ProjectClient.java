@@ -1,5 +1,6 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.cli.utils.ConsoleSpinner;
 import com.crowdin.cli.utils.ConsoleUtils;
 import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.client.CrowdinRequestBuilder;
@@ -13,6 +14,8 @@ import com.crowdin.util.PaginationUtil;
 
 import java.util.Collections;
 import java.util.List;
+
+import static com.crowdin.cli.utils.MessageSource.Messages.ERROR_PROJECT_NOT_FOUND;
 
 public class ProjectClient extends Client {
 
@@ -49,10 +52,10 @@ public class ProjectClient extends Client {
         try {
             project = api.getProject(projectId).getResponseEntity().getEntity();
         } catch (Exception e) {
-            //todo stop spinner
-            System.out.println(" - ERROR");
+            ConsoleSpinner.stop();
+            System.out.println(" - error");
             if (e instanceof CrowdinException && e.getMessage().toLowerCase().contains("404") && e.getMessage().toLowerCase().contains("not found")) {
-                System.out.printf(MessageSource.RESOURCE_BUNDLE.getString(MessageSource.ERROR_PROJECT_NOT_FOUND), projectId);
+                System.out.printf(ERROR_PROJECT_NOT_FOUND.getString(), projectId);
             } else {
                 System.out.println("message : " + e.getMessage());
             }
