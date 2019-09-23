@@ -66,7 +66,7 @@ public class CrowdinCliOptions {
 
     public static final String DEBUG_LONG = "debug";
 
-    public static final String DESTINATION_DESCRIPTION = "where save generated file";
+    public static final String DESTINATION_DESCRIPTION = "where to save generated file";
 
     public static final String DESTINATION_LONG = "destination";
 
