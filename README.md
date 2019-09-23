@@ -214,7 +214,7 @@ The goal of this article is to help you obtain, set up, and execute Crowdin CLI 
 
 Valid Crowdin CLI config file has the following structure:
 
-*   your Crowdin project credentials, project preferences and access information (they are at the head of YAML file). See <a href="https://support.crowdin.com/api/api-integration-setup/" target="_blank">API Integration Setup</a> article to learn where to find your project credentials
+*   your Crowdin project credentials, project preferences and access information (they are at the head of YAML file)
 *   one exact element in files array that describes set of files you will manage
 *   fields _Source_ and _Translation_ from files array that define filters for source files and contains instruction where to store translated files. It shall also specify where to look for translations when you want to upload them for the first time
 
