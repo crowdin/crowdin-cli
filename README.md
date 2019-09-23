@@ -31,7 +31,7 @@ It’s a cross-platform which runs in a terminal on Linux based and macOS operat
 
 Crowdin CLI can be installed as a stand-alone Java application.
 
-<a class="btn btn-lg btn-success" href="https://downloads.crowdin.com/cli/v2/crowdin-cli.zip">Download for macOS, Linux, and Windows</a>
+<a class="btn btn-lg btn-success" href="https://downloads.crowdin.com/cli/v2/crowdin-cli-three.zip">Download for macOS, Linux, and Windows</a>
 
 #### Verifying Your Java Version
 
@@ -44,7 +44,7 @@ If you don't have Java installed, download it from <a href="https://www.java.com
 
 1. Download **crowdin-cli.zip** using the button above
 2. Unpack it
-3. Run `. crowdin.sh` in the terminal with sudo rights to add`crowdin` command to your terminal
+3. Run `. crowdin.sh` in the terminal with sudo rights to add `crowdin` command to your terminal
 
 #### Installation on Windows
 
@@ -87,9 +87,10 @@ Run `crowdin help` to get more details on other commands.
 
 Sample configuration file:
 ```
-"project_identifier" : "your-project-identifier"
-"api_key" : "your-api-key"
-"base_path" : "your-base-path"
+"project_identifier": "12"
+"api_key": "54e01--your-personal-token--2724a"  
+"base_path" : "/your-base-path"
+"base_url": "your-organization's-url"
 
 "preserve_hierarchy": true
 
@@ -101,7 +102,7 @@ Sample configuration file:
 ]
 ```
 
-For more information how to configure Crowdin CLI, check <a href="https://support.crowdin.com/configuration-file/#cli-2" target="_blank">Configuration File</a> article.
+For more information how to configure Crowdin CLI, check <a href="https://support.crowdin.com/enterprise/configuration-file/" target="_blank">Configuration File</a> article.
 
 ### Usage
 
@@ -138,9 +139,9 @@ $ crowdin upload sources
 
 To upload single file without configuration:
 ```
-$ crowdin upload sources -s path/to/your/file -t file/export/pattern -k your-key -i your-identifier
+$ crowdin upload sources -s path/to/your/file -t file/export/pattern -k personal-token -i project-id --base-url https://your-organization.crowdin.com
 ```
-Use <a href="https://support.crowdin.com/configuration-file/#placeholders" target="_blank">placeholders</a> to put appropriate variables.
+Use <a href="https://support.crowdin.com/enterprise/configuration-file/#placeholders" target="_blank">placeholders</a> to put appropriate variables.
 
 To display a list of files that will be uploaded to Crowdin:
 ```
@@ -220,9 +221,10 @@ Valid Crowdin CLI config file has the following structure:
 ### Writing A Simple Configuration File
 
 ```
-"project_identifier": "your-project-identifier"
-"api_key": "54e01e81--your-api-key--f6a2724a"                                   #can be found in project settings
-"base_path": "/home/office/source-code"
+"project_identifier": "12"                                                      #open your project and go to Resources > Integrations & API > API
+"api_key": "54e01--your-personal-token--2724a"                                  #click your profile photo > Account Settings > Access Tokens             
+"base_path" : "/your-base-path"
+"base_url" : "your-organization's-url"
 
 "files": [
   {
@@ -255,20 +257,23 @@ $ crowdin download
 You could load the API Credentials from environment variable. For example:
 
 ```
-"api_key_env": CROWDIN_API_KEY
 "project_identifier_env": CROWDIN_PROJECT_ID
+"api_key_env": CROWDIN_PERSONAL_TOKEN
 "base_path_env": CROWDIN_BASE_PATH
+"base_url_env": CROWDIN_BASE_URL
 ```
 
 If mixed, api_key and project_identifier have priority:
 
 ```
-"api_key_env": CROWDIN_API_KEY            # Low priority
 "project_identifier_env": CROWDIN_PROJECT # Low priority
+"api_key_env": CROWDIN_PERSONAL_TOKEN     # Low priority
 "base_path_env": CROWDIN_BASE_PATH        # Low priority
-"api_key": "xxx"                          # High priority
-"project_identifier": "yyy"               # High priority
-"base_path": "zzz"                        # High priority
+"base_url_env": CROWDIN_BASE_PATH         # Low priority
+"project_identifier": "12"                # High priority
+"api_key": "your-personal-token"          # High priority
+"base_path": "/your-base-path"            # High priority
+"base_url": "your-organization's-url"     # High priority
 ```
 
 ### Split Project Configuration and User Credentials
@@ -538,10 +543,10 @@ Configuration file example:
 Example of file configuration using `preserve_hierarchy` option:
 
 ```
-"project_identifier": "test"
-"api_key": "KeepTheAPIkeySecret"
-"base_url": "https://api.crowdin.com"
-"base_path": ""/path/to/your/project"
+"project_identifier": "12"                                                      #open your project and go to Resources > Integrations & API > API
+"api_key": "54e01--your-personal-token--2724a"                                  #click your profile photo > Account Settings > Access Tokens 
+"base_url": "https://your-organization.crowdin.com"
+"base_path": "/path/to/your/project"
 "preserve_hierarchy": true
 
 "files" : [
@@ -586,8 +591,9 @@ The `dest` parameter allows you to specify a file name in Crowdin.
 Example of configuration file with both parameters:
 
 ```
-"project_identifier": "your-project-identifier"
-"api_key": "54e01e81--your-api-key--f6a2724a"           #can be found in project settings
+"project_identifier": "12"                                                      #open your project and go to Resources > Integrations & API > API
+"api_key": "54e01--your-personal-token--2724a"                                  #click your profile photo > Account Settings > Access Tokens 
+"base_url": "https://your-organization.crowdin.com"
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -618,8 +624,9 @@ The values are:
 Example of configuration file with update_option parameter:
 
 ```
-"project_identifier": "your-project-identifier"
-"api_key": "54e01e81--your-api-key--f6a2724a"           #can be found in project settings
+"project_identifier": "12"                                                      #open your project and go to Resources > Integrations & API > API
+"api_key": "54e01--your-personal-token--2724a"                                  #click your profile photo > Account Settings > Access Tokens 
+"base_url": "https://your-organization.crowdin.com"
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -686,9 +693,10 @@ Note: If no options specified, uploaded translations will be imported even if th
 Example of configuration file with additional parameters:
 
 ```
-"project_identifier": "your-project-identifier"
-"api_key": "54e01e81--your-api-key--f6a2724a"           #can be found in your project settings page
-"base_path": ""/home/office/source-code"
+"project_identifier": "12"                                                      #open your project and go to Resources > Integrations & API > API
+"api_key": "54e01--your-personal-token--2724a"                                  #click your profile photo > Account Settings > Access Tokens 
+"base_url": "https://your-organization.crowdin.com"
+"base_path": "/home/office/source-code"
 
 "files" : [
   {
@@ -724,9 +732,10 @@ The values are:
 Example of configuration file:
 
 ```
-"project_identifier": "your-project-identifier"
-"api_key”: "54e01e81--your-api-key--f6a2724a"           #can be found in project settings
-"base_path”: "/home/office/source-code"
+"project_identifier": "12"                                                      #open your project and go to Resources > Integrations & API > API
+"api_key": "54e01--your-personal-token--2724a"                                  #click your profile photo > Account Settings > Access Tokens 
+"base_url": "https://your-organization.crowdin.com"
+"base_path": "/home/office/source-code"
 
 "files" : [
   {
@@ -821,6 +830,6 @@ Need help working with Crowdin CLI or have any questions? <a href="https://crowd
 
 Author: Ihor Popyk (ihor.popyk@crowdin.com)
 
-Copyright: 2017 crowdin.com
+Copyright: 2019 crowdin.com
 
 This project is licensed under the MIT license, a copy of which can be found in the LICENSE file.
