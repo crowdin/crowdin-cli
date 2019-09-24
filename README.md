@@ -20,7 +20,7 @@ It’s a cross-platform which runs in a terminal on Linux based and macOS operat
   <ul class="no-margin">
     <li>new type of YAML configuration</li>
     <li>configuration file validation with the help of <code>lint</code> command</li>
-    <li>configuration file generation with the help of <code>generate</code> command</li>
+    <li>configuration file generation with the help of <code>init</code> command</li>
     <li>improved process of files upload</li>
     <li>possibility to work with a single file without a configuration</li>
     <li><code>--dryrun</code> option to preview list of managed files</li>
@@ -75,7 +75,7 @@ $ java -jar crowdin-cli.jar
 To use Crowdin CLI you need to have a configuration file. We recommend to name it _crowdin.yaml_. You can create it by running the command:
 
 ```
-$ crowdin generate
+$ crowdin init
 ```
 
 When calling Crowdin CLI in terminal make sure you are in your project root directory. Otherwise, you need to specify a configuration file path using  `--config` option:
@@ -117,7 +117,7 @@ $ crowdin help
 
 To generate skeleton configuration file:
 ```
-$ crowdin generate
+$ crowdin init
 ```
 
 To check configuration file for general mistakes:
@@ -205,7 +205,7 @@ By default, Crowdin CLI looks for config file named _crowdin.yaml_. So you don�
 You can create it by running the command:
 
 ```
-$ crowdin generate
+$ crowdin init
 ```
 
 The goal of this article is to help you obtain, set up, and execute Crowdin CLI correctly for your project. Once you set up Crowdin CLI properly, you do not need to revisit this page, unless you’re starting another project.
@@ -278,7 +278,7 @@ If mixed, api_key and project_identifier have priority:
 
 ### Split Project Configuration and User Credentials
 
-_crowdin.yaml_ file contains project-specific configuration and user credentials (api_key, project_identifier, base_path). And you cannot commit this config file in the code repository, as the API key would leak to other users. Crowdin CLI supports 2 types of configuration file:
+_crowdin.yaml_ file contains project-specific configuration and user credentials (api_key, project_identifier, base_path, base_url). And you cannot commit this config file in the code repository, as the Personal access token would leak to other users. Crowdin CLI supports 2 types of configuration file:
 + project-specific, residing in the project directory (required)
 + user-specific, most probably residing in _$HOME/.crowdin.yaml_ (optional)
 
@@ -752,10 +752,10 @@ Example of configuration file:
 #### Uploading CSV files via API
 
 ```
-"project_identifier": "test"
-"api_key": "KeepTheAPIkeySecret"
-"base_url": "https://api.crowdin.com"
-"base_path": "/path/to/your/project"
+"project_identifier": "12"                                                      #open your project and go to Resources > Integrations & API > API
+"api_key": "54e01--your-personal-token--2724a"                                  #click your profile photo > Account Settings > Access Tokens 
+"base_url": "https://your-organization.crowdin.com"
+"base_path": "/home/office/source-code"
 
 "files" : [
   {
@@ -772,9 +772,10 @@ Example of configuration file:
 #### GetText Project
 
 ```
-"project_identifier": "your-project-identifier"
-"api_key": "54e01e81--your-api-key--f6a2724a"           #can be found in project settings
-"base_path": "/home/website"
+"project_identifier": "12"                                                      #open your project and go to Resources > Integrations & API > API
+"api_key": "54e01--your-personal-token--2724a"                                  #click your profile photo > Account Settings > Access Tokens 
+"base_url": "https://your-organization.crowdin.com"
+"base_path": "/home/office/source-code"
 
 "files" : [
   {
@@ -793,9 +794,10 @@ Example of configuration file:
 #### Android Project
 
 ```
-"project_identifier": "your-project-identifier"
-"api_key": "54e01e81--your-api-key--f6a2724a"           #can be found in project settings
-"base_path": "/home/android-app"
+"project_identifier": "12"                                                      #open your project and go to Resources > Integrations & API > API
+"api_key": "54e01--your-personal-token--2724a"                                  #click your profile photo > Account Settings > Access Tokens 
+"base_url": "https://your-organization.crowdin.com"
+"base_path": "/home/office/sandroid-app"
 
 "files" : [
   {
