@@ -1,11 +1,7 @@
-### Building a crowdin-cli.jar
-You need to use Gradle for the project build.<br/>
-First of all, refresh all dependencies.<br/>
-Run the following command:
-```
-gradle buildCrowdinCliJar
-```
-### Introduction
+[<p align="center"><img src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" data-canonical-src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" width="200" height="200" align="center"/></p>](https://crowdin.com)
+
+# Crowdin CLI (v3)
+
 Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project. Using CLI, you can:
 
 - automate the process of updating your source files in your Crowdin project
@@ -15,17 +11,65 @@ Crowdin CLI is a command line tool that allows you to manage and synchronize you
 
 It’s a cross-platform which runs in a terminal on Linux based and macOS operating systems or Command Prompt on Windows.
 
-<div class="bs-callout bs-callout-info">
-  <h4>What's New</h4>
-  <ul class="no-margin">
-    <li>new type of YAML configuration</li>
-    <li>configuration file validation with the help of <code>lint</code> command</li>
-    <li>configuration file generation with the help of <code>init</code> command</li>
-    <li>improved process of files upload</li>
-    <li>possibility to work with a single file without a configuration</li>
-    <li><code>--dryrun</code> option to preview list of managed files</li>
-  </ul>
-</div>
+
+## Table of Contents
+
+* [What's New](#whats-new)
+* [Building a crowdin-cli.jar](#building-a-crowdin-clijar)
+* [Installation](#installation)
+  * [Verifying Your Java Version](#verifying-your-java-version)
+  * [Installation on Linux and macOS](#installation-on-linux-and-macos)
+  * [Installation on Windows](#installation-on-windows)
+* [Running the App](#running-the-app)
+* [Configuration](#configuration)
+* [Usage](#usage)
+  * [General Commands](#general-commands)
+  * [Uploading Resources](#uploading-resources)
+* [Downloading Translations](#downloading-translations)
+* [Versions Management](#versions-management)
+* [Configuring Crowdin YAML](#configuring-crowdin-yaml)
+* [Writing A Simple Configuration File](#writing-a-simple-configuration-file)
+* [API Credentials from Environment Variables](#api-credentials-from-environment-variables)
+* [Split Project Configuration and User Credentials](#split-project-configuration-and-user-credentials)
+* [General Configuration](#general-configuration)
+* [Placeholders](#placeholders)
+* [Usage of Wildcards](#usage-of-wildcards)
+* [Language Mapping](#language-mapping)
+* [Ignoring Files and Directories](#ignoring-files-and-directories)
+* [Multicolumn CSV](#multicolumn-csv)
+* [Saving Directory Structure on Server](#saving-directory-structure-on-server)
+* [Uploading Files to Specified Path with Specified Type](#uploading-files-to-specified-path-with-specified-type)
+* [Changed Strings Update](#changed-strings-update)
+* [Translations Upload](#translations-upload)
+* [Additional Options for XML Files](#additional-options-for-xml-files)
+* [Escape Quotes Options for .properties File Format](#escape-quotes-options-for-properties-file-format)
+* [Example Configurations](#example-configurations)
+  * [Uploading CSV files via API](#uploading-csv-files-via-api)
+  * [GetText Project](#gettext-project)
+  * [Android Project](#android-project)
+* [Change log](#change-log)
+* [Seeking Assistance](#seeking-assistance)
+* [Contributing](#contributing)
+* [Authors](#authors)
+* [License](#license)
+
+
+### What's New
+* new type of YAML configuration
+* configuration file validation with the help of `lint` command
+* configuration file generation with the help of `init` command
+* improved process of files upload
+* possibility to work with a single file without a configuration
+* `--dryrun` option to preview list of managed files
+
+
+### Building a crowdin-cli.jar
+You need to use Gradle for the project build.<br/>
+First of all, refresh all dependencies.<br/>
+Run the following command:
+```
+gradle buildCrowdinCliJar
+```
 
 ### Installation
 
@@ -828,10 +872,16 @@ Need help working with Crowdin CLI or have any questions? <a href="https://crowd
 4. Push to the branch (git push origin my-new-feature)
 5. Create new Pull Request
 
-### License and Author
+### Authors
 
-Author: Ihor Popyk (ihor.popyk@crowdin.com)
+* Ihor Popyk (ihor.popyk@crowdin.com)
+* Yaroslav Medentsii (medentsiy.y@gmail.com)
 
-Copyright: 2019 crowdin.com
+### License
+<pre>
+Copyright © 2019 Crowdin
 
-This project is licensed under the MIT license, a copy of which can be found in the LICENSE file.
+The Crowdin iOS SDK for is licensed under the MIT License. 
+See the LICENSE.md file distributed with this work for additional 
+information regarding copyright ownership.
+</pre>
