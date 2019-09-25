@@ -1,11 +1,7 @@
-### Building a crowdin-cli.jar
-You need to use Gradle for the project build.<br/>
-First of all, refresh all dependencies.<br/>
-Run the following command:
-```
-gradle buildCrowdinCliJar
-```
-### Introduction
+[<p align="center"><img src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" data-canonical-src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" width="200" height="200" align="center"/></p>](https://crowdin.com)
+
+# Crowdin CLI (v3)
+
 Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project. Using CLI, you can:
 
 - automate the process of updating your source files in your Crowdin project
@@ -13,40 +9,89 @@ Crowdin CLI is a command line tool that allows you to manage and synchronize you
 - upload all your existing translations to Crowdin in minutes
 - integrate Crowdin with GIT, SVN, Mercurial, and other software
 
-It’s a cross-platform which runs in a terminal on Linux based and macOS operating systems or Command Prompt on Windows.
+This is a cross-platform and it runs in a terminal on Linux based and macOS operating systems or in Command Prompt on Windows.
 
-<div class="bs-callout bs-callout-info">
-  <h4>What's New</h4>
-  <ul class="no-margin">
-    <li>new type of YAML configuration</li>
-    <li>configuration file validation with the help of <code>lint</code> command</li>
-    <li>configuration file generation with the help of <code>init</code> command</li>
-    <li>improved process of files upload</li>
-    <li>possibility to work with a single file without a configuration</li>
-    <li><code>--dryrun</code> option to preview list of managed files</li>
-  </ul>
-</div>
 
-### Installation
+## Table of Contents
+
+* [What's New](#whats-new)
+* [Building a crowdin-cli.jar](#building-a-crowdin-clijar)
+* [Installation](#installation)
+  * [Verifying Your Java Version](#verifying-your-java-version)
+  * [Installation on Linux and macOS](#installation-on-linux-and-macos)
+  * [Installation on Windows](#installation-on-windows)
+* [Running the App](#running-the-app)
+* [Configuration](#configuration)
+* [Usage](#usage)
+  * [General Commands](#general-commands)
+  * [Uploading Resources](#uploading-resources)
+* [Downloading Translations](#downloading-translations)
+* [Versions Management](#versions-management)
+* [Configuring Crowdin YAML](#configuring-crowdin-yaml)
+* [Writing A Simple Configuration File](#writing-a-simple-configuration-file)
+* [API Credentials from Environment Variables](#api-credentials-from-environment-variables)
+* [Split Project Configuration and User Credentials](#split-project-configuration-and-user-credentials)
+* [General Configuration](#general-configuration)
+* [Placeholders](#placeholders)
+* [Usage of Wildcards](#usage-of-wildcards)
+* [Language Mapping](#language-mapping)
+* [Ignoring Files and Directories](#ignoring-files-and-directories)
+* [Multicolumn CSV](#multicolumn-csv)
+* [Saving Directory Structure on Server](#saving-directory-structure-on-server)
+* [Uploading Files to Specified Path with Specified Type](#uploading-files-to-specified-path-with-specified-type)
+* [Changed Strings Update](#changed-strings-update)
+* [Translations Upload](#translations-upload)
+* [Additional Options for XML Files](#additional-options-for-xml-files)
+* [Escape Quotes Options for .properties File Format](#escape-quotes-options-for-properties-file-format)
+* [Example Configurations](#example-configurations)
+  * [Uploading CSV files via API](#uploading-csv-files-via-api)
+  * [GetText Project](#gettext-project)
+  * [Android Project](#android-project)
+* [Change log](#change-log)
+* [Seeking Assistance](#seeking-assistance)
+* [Contributing](#contributing)
+* [Authors](#authors)
+* [License](#license)
+
+---
+
+## What's New
+* new type of YAML configuration
+* configuration file validation with the help of `lint` command
+* configuration file generation with the help of `init` command
+* improved process of files upload
+* possibility to work with a single file without a configuration
+* `--dryrun` option to preview list of managed files
+
+
+### Building a crowdin-cli.jar
+You need to use Gradle for the project build.<br/>
+First of all, refresh all dependencies.<br/>
+Run the following command:
+```
+gradle buildCrowdinCliJar
+```
+
+## Installation
 
 Crowdin CLI can be installed as a stand-alone Java application.
 
 <a class="btn btn-lg btn-success" href="https://downloads.crowdin.com/cli/v2/crowdin-cli-three.zip">Download for macOS, Linux, and Windows</a>
 
-#### Verifying Your Java Version
+### Verifying Your Java Version
 
 Check if you have Java 8 or newer installed. Type java -version command in the terminal (Command Prompt on Windows) to check Java version.
 For example, java version "1.8.0_212" means that you have Java 8 Update 212 installed.
 
 If you don't have Java installed, download it from <a href="https://www.java.com/" target="_blank">Oracle's website</a>.
 
-#### Installation on Linux and macOS
+### Installation on Linux and macOS
 
 1. Download **crowdin-cli.zip** using the button above
 2. Unpack it
 3. Run `. crowdin.sh` in the terminal with sudo rights to add `crowdin` command to your terminal
 
-#### Installation on Windows
+### Installation on Windows
 
 1. Download <b>crowdin-cli.zip</b> using the button above
 2. Extract its content to the place where you want Crowdin CLI to be stored
@@ -56,7 +101,7 @@ If you don't have Java installed, download it from <a href="https://www.java.com
   * if the <i>User Account Control</i> dialog box appears, check that action displayed is the one you need, and then click <b>Continue</b>
 4. Run <code>setup_crowdin.bat</code> script in order to add <code>crowdin</code> command to the <i>Command Prompt</i>
 
-### Running the App
+## Running the App
 
 Use the following method to run the app:
 ```
@@ -70,7 +115,7 @@ $ java -jar crowdin-cli.jar
 
 ![](https://support.crowdin.com/assets/docs/cli.png)
 
-### Configuration
+## Configuration
 
 To use Crowdin CLI you need to have a configuration file. We recommend to name it _crowdin.yaml_. You can create it by running the command:
 
@@ -104,11 +149,11 @@ Sample configuration file:
 
 For more information how to configure Crowdin CLI, check <a href="https://support.crowdin.com/enterprise/configuration-file/" target="_blank">Configuration File</a> article.
 
-### Usage
+## Usage
 
 Once the configuration file is created, you can use Crowdin CLI to manage your localization resources and automate file synchronization.
 
-#### General Commands
+### General Commands
 
 To display help information:
 ```
@@ -130,7 +175,7 @@ To display a list of files uploaded to Crowdin:
 $ crowdin list project
 ```
 
-#### Uploading Resources
+### Uploading Resources
 
 To upload source files to Crowdin:
 ```
@@ -157,7 +202,7 @@ To show detailed information about the `upload` command:
 $ crowdin upload --help
 ```
 
-#### Downloading Translations
+## Downloading Translations
 
 To download latest translations from Crowdin:
 ```
@@ -179,7 +224,7 @@ To show detailed information about the `download` command:
 $ crowdin download --help
 ```
 
-### Versions Management
+## Versions Management
 
 There is no need to run specific command to create version branches if you sue synchronization tool. The version branch is created automatically during the files upload.
 
@@ -198,7 +243,7 @@ To download translations from the specified version branch:
 $ crowdin download -b {branch_name}
 ```
 
-### Configuring Crowdin YAML
+## Configuring Crowdin YAML
 
 Crowdin CLI uses YAML configuration file, which contains a description of all resources to manage. Config file consists of sections that contain the actual information about each file set that shall be uploaded to Crowdin and locations where the translations are stored. To use Crowdin CLI, you should first write your YAML config and then run the tool.
 By default, Crowdin CLI looks for config file named _crowdin.yaml_. So you don’t have to specify the config name unless it is different from _crowdin.yaml_.
@@ -210,7 +255,7 @@ $ crowdin init
 
 The goal of this article is to help you obtain, set up, and execute Crowdin CLI correctly for your project. Once you set up Crowdin CLI properly, you do not need to revisit this page, unless you’re starting another project.
 
-### Configuration File Structure
+## Configuration File Structure
 
 Valid Crowdin CLI config file has the following structure:
 
@@ -218,7 +263,7 @@ Valid Crowdin CLI config file has the following structure:
 *   one exact element in files array that describes set of files you will manage
 *   fields _Source_ and _Translation_ from files array that define filters for source files and contains instruction where to store translated files. It shall also specify where to look for translations when you want to upload them for the first time
 
-### Writing A Simple Configuration File
+## Writing A Simple Configuration File
 
 ```
 "project_identifier": "12"                                                      #open your project and go to Resources > Integrations & API > API
@@ -252,7 +297,7 @@ Get translations from Crowdin:
 $ crowdin download
 ```
 
-### API Credentials from Environment Variables
+## API Credentials from Environment Variables
 
 You could load the API Credentials from environment variable. For example:
 
@@ -276,7 +321,7 @@ If mixed, api_key and project_identifier have priority:
 "base_url": "your-organization's-url"     # High priority
 ```
 
-### Split Project Configuration and User Credentials
+## Split Project Configuration and User Credentials
 
 _crowdin.yaml_ file contains project-specific configuration and user credentials (api_key, project_identifier, base_path, base_url). And you cannot commit this config file in the code repository, as the Personal access token would leak to other users. Crowdin CLI supports 2 types of configuration file:
 + project-specific, residing in the project directory (required)
@@ -294,7 +339,7 @@ But if user-specific credentials file residing in _$HOME/.crowdin.yaml_ you can 
 $ crowdin upload sources
 ```
 
-### General Configuration
+## General Configuration
 
 Sample configuration provided above has source and translation attributes containing standard wildcards (also known as globbing patterns) to make it easier to work with multiple files.
 
@@ -314,7 +359,7 @@ The translation pattern will be: '/%two_letters_code%/\*\*/%original_file_name%'
 
 **\\** (backslash) – escapes next metacharacter.
 
-### Placeholders
+## Placeholders
 
 Crowdin CLI allows to use the following placeholders to put appropriate variables into the resulting file name:
 
@@ -378,7 +423,7 @@ You can also define files path in the resulting archive by putting a slash (/) a
 
 For example, your `translation` option can look like: "/locale/%two_letters_code%/LC_MESSAGES/%original_file_name%".
 
-### Usage of Wildcards
+## Usage of Wildcards
 
 Structure of files and directories on the local machine:
 ```
@@ -445,7 +490,7 @@ Example 2. Usage of wildcards for ignoring files:
 ]
 ```
 
-### Language Mapping
+## Language Mapping
 
 Software projects often have custom names for locale directories. Crowdin CLI allows you to map your languages to be recognized by Crowdin.
 
@@ -499,7 +544,7 @@ If you have files and directories you don't need to translate in Crowdin you can
 ]
 ```
 
-### Multicolumn CSV
+## Multicolumn CSV
 
 If CSV file contains translations for all target languages, you can use `multilingual_spreadsheet` option:
 
@@ -534,7 +579,7 @@ Configuration file example:
 ]
 ```
 
-### Saving Directory Structure on Server
+## Saving Directory Structure on Server
 
 ```
 "preserve_hierarchy": true
@@ -580,7 +625,7 @@ Using option `preserve_hierarchy`, file structure in Crowdin is the following:
       |-- bar.po
 ```
 
-### Uploading Files to Specified Path with Specified Type
+## Uploading Files to Specified Path with Specified Type
 
 This feature adds support for 2 optional parameters in the YAML file section: `dest` and `type`.
 This is useful typically for some projects, where the uploaded name must be different, so Crowdin can detect the type correctly.
@@ -611,7 +656,7 @@ Example of configuration file with both parameters:
 ]
 ```
 
-### Changed Strings Update
+## Changed Strings Update
 
 The parameter `update_option` is optional. If it is not set, translations for changed strings will be lost. Useful for typo fixes and minor changes in source strings.
 
@@ -645,7 +690,7 @@ Example of configuration file with update_option parameter:
 ]
 ```
 
-### Translations Upload
+## Translations Upload
 
 The command **upload translations** adds existing translations to Crowdin.
 
@@ -716,7 +761,7 @@ Example of configuration file with additional parameters:
 ]
 ```
 
-### Escape Quotes Options for .properties File Format
+## Escape Quotes Options for .properties File Format
 
 Defines whether a single quote should be escaped by another single quote or backslash in exported translations.
 You can add `escape_quote` per-file option.
@@ -747,9 +792,9 @@ Example of configuration file:
 ```
 
 
-### Example Configurations
+## Example Configurations
 
-#### Uploading CSV files via API
+### Uploading CSV files via API
 
 ```
 "project_identifier": "12"                                                      #open your project and go to Resources > Integrations & API > API
@@ -769,7 +814,7 @@ Example of configuration file:
 ]
 ```
 
-#### GetText Project
+### GetText Project
 
 ```
 "project_identifier": "12"                                                      #open your project and go to Resources > Integrations & API > API
@@ -791,7 +836,7 @@ Example of configuration file:
 ]
 ```
 
-#### Android Project
+### Android Project
 
 ```
 "project_identifier": "12"                                                      #open your project and go to Resources > Integrations & API > API
@@ -812,26 +857,32 @@ Example of configuration file:
   }
 ]
 ```
-### Change log
+## Change log
 
 For latest changes check [CHANGELOG.md](CHANGELOG.md) file.
 
-### Seeking Assistance
+## Seeking Assistance
 
 Need help working with Crowdin CLI or have any questions? <a href="https://crowdin.com/contacts" target="_blank">Contact Support Team</a>.
 
 
-### Contributing
+## Contributing
 1. Fork it
 2. Create your feature branch (git checkout -b my-new-feature)
 3. Commit your changes (git commit -am 'Added some feature')
 4. Push to the branch (git push origin my-new-feature)
 5. Create new Pull Request
 
-### License and Author
+## Authors
 
-Author: Ihor Popyk (ihor.popyk@crowdin.com)
+* Ihor Popyk (ihor.popyk@crowdin.com)
+* Yaroslav Medentsii (medentsiy.y@gmail.com)
 
-Copyright: 2019 crowdin.com
+## License
+<pre>
+Copyright © 2019 Crowdin
 
-This project is licensed under the MIT license, a copy of which can be found in the LICENSE file.
+The Crowdin CLI is licensed under the MIT License. 
+See the LICENSE.md file distributed with this work for additional 
+information regarding copyright ownership.
+</pre>
