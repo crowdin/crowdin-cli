@@ -147,10 +147,6 @@ public class BaseCli {
 
     protected static final String PROJECT = "project";
 
-    protected static final String OK = "OK";
-
-    protected static final String SKIPPED = "SKIPPED";
-
     protected static final String PULL = "pull";
 
     protected static final String PUSH = "push";

@@ -7,7 +7,14 @@ import com.crowdin.cli.client.ProjectWrapper;
 import com.crowdin.cli.properties.CliProperties;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.*;
+import com.crowdin.cli.utils.CommandUtils;
+import com.crowdin.cli.utils.EntityUtils;
+import com.crowdin.cli.utils.Utils;
+import com.crowdin.cli.utils.console.ConsoleSpinner;
+import com.crowdin.cli.utils.console.ConsoleUtils;
+import com.crowdin.cli.utils.console.ExecutionStatus;
+import com.crowdin.cli.utils.file.FileReader;
+import com.crowdin.cli.utils.file.FileUtil;
 import com.crowdin.cli.utils.tree.DrawTree;
 import com.crowdin.client.api.*;
 import com.crowdin.common.Settings;
@@ -30,14 +37,17 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.UnsupportedCharsetException;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 import java.util.zip.ZipException;
 
+import static com.crowdin.cli.properties.CliProperties.*;
 import static com.crowdin.cli.utils.MessageSource.Messages.*;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class Commands extends BaseCli {
 
@@ -155,8 +165,7 @@ public class Commands extends BaseCli {
         if (projectInfo == null) {
             ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString());
             projectInfo = new ProjectClient(this.settings).getProjectInfo(this.propertiesBean.getProjectIdentifier(), this.isDebug);
-            ConsoleSpinner.stop();
-            System.out.println(" - OK");
+            ConsoleSpinner.stop(OK);
         }
         return projectInfo;
     }
@@ -398,17 +407,34 @@ public class Commands extends BaseCli {
         } else {
             skeleton = new File("crowdin.yml");
         }
-        InputStream is = Commands.class.getResourceAsStream("/crowdin.yml");
+
         Path destination = Paths.get(skeleton.toURI());
-        System.out.print(RESOURCE_BUNDLE.getString("command_generate_description") + " '" + destination + "'- ");
+        System.out.println(RESOURCE_BUNDLE.getString("command_generate_description") + " '" + destination + "'");
+        if (Files.exists(destination)) {
+            System.out.println(ExecutionStatus.SKIPPED.getIcon() + "File '" + destination + "' already exists.");
+            return;
+        }
+
         try {
-            Files.copy(is, destination);
-            System.out.println(OK);
-        } catch (FileAlreadyExistsException ex) {
-            System.out.println(SKIPPED);
-            System.out.println("File '" + destination + "' already exists.");
-            if (this.isDebug) {
-                ex.printStackTrace();
+            List<String> dummyConfig = Files.lines(Paths.get(Commands.class.getResource("/crowdin.yml").toURI())).collect(Collectors.toList());
+            Files.write(destination, dummyConfig);
+
+            System.out.println(GENERATE_HELP_MESSAGE.getString());
+            Scanner consoleScanner = new Scanner(System.in);
+            for (String param : Arrays.asList(API_KEY, PROJECT_IDENTIFIER, BASE_PATH, BASE_URL)) {
+                System.out.print(param.replaceAll("_", " ") + " : ");
+                String userInput = consoleScanner.next();
+
+                ListIterator<String> dummyConfigIterator = dummyConfig.listIterator();
+                while (dummyConfigIterator.hasNext()) {
+                    String defaultLine = dummyConfigIterator.next();
+                    if (defaultLine.contains(param)) {
+                        String lineWithUserInput = defaultLine.replaceFirst(": \"*\"", String.format(": \"%s\"", userInput));
+                        dummyConfigIterator.set(lineWithUserInput);
+                        Files.write(destination, dummyConfig);
+                        break;
+                    }
+                }
             }
         } catch (Exception ex) {
             System.out.println(RESOURCE_BUNDLE.getString("error_generate"));
@@ -417,6 +443,7 @@ public class Commands extends BaseCli {
             }
         }
     }
+
 
     private Branch createBranch(String name) {
         try {
@@ -430,10 +457,10 @@ public class Commands extends BaseCli {
                 System.out.println(ResponseUtil.getResponceBody(createBranchResponse));
             }
 
-            System.out.println(RESOURCE_BUNDLE.getString("creating_branch") + " '" + name + "' - OK");
+            System.out.println(OK.withIcon(RESOURCE_BUNDLE.getString("creating_branch") + " '" + name + "'"));
             return branch;
         } catch (Exception e) {
-            System.out.println(RESOURCE_BUNDLE.getString("creating_branch") + " '" + name + "' - ERROR");
+            System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("creating_branch") + " '" + name + "'"));
             System.out.println(e.getMessage());
             if (this.isDebug) {
                 e.printStackTrace();
@@ -579,11 +606,9 @@ public class Commands extends BaseCli {
                         response = uploadFile(filePayload, filesApi);
                     }
 
-                    ConsoleSpinner.stop();
-                    System.out.println(" - OK");
+                    ConsoleSpinner.stop(OK);
                 } catch (Exception e) {
-                    ConsoleSpinner.stop();
-                    System.out.println(" - ERROR");
+                    ConsoleSpinner.stop(ExecutionStatus.ERROR);
                     System.out.println("message : " + e.getMessage());
                     if (this.isDebug) {
                         e.printStackTrace();
@@ -750,8 +775,7 @@ public class Commands extends BaseCli {
 
                             Optional<FileEntity> projectFileOrNone = EntityUtils.find(projectFiles, o -> o.getName().equalsIgnoreCase(translationSrcFinal));
                             if (!projectFileOrNone.isPresent()) {
-                                ConsoleSpinner.stop();
-                                System.out.println(" - failed");
+                                ConsoleSpinner.stop(ExecutionStatus.ERROR);
                                 System.out.println("source '" + translationSrcFinal + "' does not exist in the project");
                                 ConsoleUtils.exitError();
 
@@ -772,15 +796,13 @@ public class Commands extends BaseCli {
                                     .uploadTranslation(projectId, languageEntity.getId().toString(), translationPayload)
                                     .execute();
 
-                            ConsoleSpinner.stop();
-                            System.out.println(" - OK");
+                            ConsoleSpinner.stop(OK);
                             if (isVerbose) {
                                 System.out.println(uploadTransactionsResponse.getHeaders());
                                 System.out.println(ResponseUtil.getResponceBody(uploadTransactionsResponse));
                             }
                         } catch (Exception e) {
-                            ConsoleSpinner.stop();
-                            System.out.println(" - failed");
+                            ConsoleSpinner.stop(ExecutionStatus.ERROR);
                             System.out.println("message : " + e.getMessage());
                             if (isDebug) {
                                 e.printStackTrace();
@@ -819,8 +841,7 @@ public class Commands extends BaseCli {
         Optional<Language> languageOrNull = EntityUtils.find(this.getProjectInfo().getProjectLanguages(), ProjectWrapper.byCrowdinCode(languageCode));
 
         if (!languageOrNull.isPresent()) {
-            System.out.println(" - error");
-            System.out.println("language '" + languageCode + "' does not exist in the project");
+            System.out.println(ERROR.withIcon("language '" + languageCode + "' does not exist in the project"));
             ConsoleUtils.exitError();
         }
         TranslationsApi api = new TranslationsApi(this.settings);
@@ -847,9 +868,9 @@ public class Commands extends BaseCli {
                 translationBuild = api.getTranslationInfo(projectId.toString(), translationBuild.getId().toString()).getResponseEntity().getEntity();
             }
 
-            ConsoleSpinner.stop();
+            ConsoleSpinner.stop(OK);
         } catch (Exception e) {
-            System.out.println(" - error");
+            ConsoleSpinner.stop(ExecutionStatus.ERROR);
             System.out.println(e.getMessage());
             if (isDebug) {
                 e.printStackTrace();
@@ -886,7 +907,7 @@ public class Commands extends BaseCli {
             InputStream download = CrowdinHttpClient.download(fileRaw.getUrl());
 
             FileUtil.writeToFile(download, downloadedZipArchivePath);
-            ConsoleSpinner.stop();
+            ConsoleSpinner.stop(OK);
             if (isVerbose) {
                 System.out.println(fileRawResponse.getHeaders());
                 System.out.println(ObjectMapperUtil.getEntityAsString(fileRaw));
@@ -897,7 +918,7 @@ public class Commands extends BaseCli {
                 e.printStackTrace();
             }
         } catch (Exception e) {
-            System.out.println(" - error");
+            ConsoleSpinner.stop(ExecutionStatus.ERROR);
             System.out.println(e.getMessage());
             ConsoleUtils.exitError();
         }

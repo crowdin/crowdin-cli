@@ -6,6 +6,8 @@ import com.crowdin.cli.client.ProjectWrapper;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.helper.FileHelper;
+import com.crowdin.cli.utils.console.ConsoleUtils;
+import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.client.CrowdinRequestBuilder;
 import com.crowdin.client.api.DirectoriesApi;
 import com.crowdin.common.Settings;
@@ -248,11 +250,11 @@ public class CommandUtils extends BaseCli {
                                 System.out.println(ObjectMapperUtil.getEntityAsString(directory));
                             }
                             if (directory.getId() != null) {
-                                System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' - OK");
+                                System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' "));
                             }
                         } catch (Exception ex) {
                             if (ex.getMessage().contains("Name must be unique")) {
-                                System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' - SKIPPED");
+                                System.out.println(ExecutionStatus.SKIPPED.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
                                 /*only if we go do this case we fetch all directories, lazy fetch*/
                                 if (projectDirectories == null) {
                                     CrowdinRequestBuilder<Page<Directory>> directoriesApi = new DirectoriesApi(settings).getProjectDirectories(projectId.toString(), Pageable.unpaged());
@@ -266,7 +268,7 @@ public class CommandUtils extends BaseCli {
                                         .map(Directory::getId)
                                         .orElse(null);
                             } else {
-                                System.out.println(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' - ERROR");
+                                System.out.println(ExecutionStatus.ERROR.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
                                 System.out.println(ex.getMessage());
                                 ConsoleUtils.exitError();
                             }

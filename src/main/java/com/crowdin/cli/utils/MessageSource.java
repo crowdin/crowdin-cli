@@ -17,7 +17,9 @@ public class MessageSource {
 
         FETCHING_PROJECT_INFO("fetching_project_info"),
         BUILDING_TRANSLATION("building_translation"),
-        DOWNLOADING_TRANSLATION("downloading_translation");
+        DOWNLOADING_TRANSLATION("downloading_translation"),
+
+        GENERATE_HELP_MESSAGE("command_generate_help_message");
 
 
         Messages(String messageKey) {

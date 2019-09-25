@@ -1,4 +1,4 @@
-package com.crowdin.cli.utils;
+package com.crowdin.cli.utils.console;
 
 public class ConsoleUtils {
 
@@ -12,4 +12,11 @@ public class ConsoleUtils {
     public static void exitSuccess() {
         System.exit(SUCCESS_CODE);
     }
+
+    private static String OS = System.getProperty("os.name").toLowerCase();
+
+    public static boolean isWindows() {
+        return (OS.contains("win"));
+    }
+
 }

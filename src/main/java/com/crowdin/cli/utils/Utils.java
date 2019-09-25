@@ -1,6 +1,7 @@
 package com.crowdin.cli.utils;
 
 import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.utils.console.ConsoleUtils;
 import org.apache.commons.lang3.SystemUtils;
 
 import java.io.InputStream;

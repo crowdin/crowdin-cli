@@ -1,4 +1,4 @@
-package com.crowdin.cli.utils;
+package com.crowdin.cli.utils.file;
 
 import org.apache.commons.io.IOUtils;
 
