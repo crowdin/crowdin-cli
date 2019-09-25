@@ -9,7 +9,7 @@ Crowdin CLI is a command line tool that allows you to manage and synchronize you
 - upload all your existing translations to Crowdin in minutes
 - integrate Crowdin with GIT, SVN, Mercurial, and other software
 
-It’s a cross-platform which runs in a terminal on Linux based and macOS operating systems or Command Prompt on Windows.
+This is a cross-platform and it runs in a terminal on Linux based and macOS operating systems or in Command Prompt on Windows.
 
 
 ## Table of Contents
