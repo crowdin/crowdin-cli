@@ -882,7 +882,7 @@ Need help working with Crowdin CLI or have any questions? <a href="https://crowd
 <pre>
 Copyright © 2019 Crowdin
 
-The Crowdin iOS SDK for is licensed under the MIT License. 
+The Crowdin CLI is licensed under the MIT License. 
 See the LICENSE.md file distributed with this work for additional 
 information regarding copyright ownership.
 </pre>
