@@ -53,6 +53,7 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 * [Authors](#authors)
 * [License](#license)
 
+---
 
 ### What's New
 * new type of YAML configuration
