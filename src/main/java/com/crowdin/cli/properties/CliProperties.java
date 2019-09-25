@@ -1,8 +1,8 @@
 package com.crowdin.cli.properties;
 
-import com.crowdin.cli.utils.ConsoleUtils;
 import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.cli.utils.console.ConsoleUtils;
 
 import java.nio.file.Paths;
 import java.util.*;
@@ -14,11 +14,11 @@ public class CliProperties {
 
     private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
 
-    private static final String PROJECT_IDENTIFIER = "project_identifier";
+    public static final String PROJECT_IDENTIFIER = "project_identifier";
 
     private static final String PROJECT_IDENTIFIER_ENV = "project_identifier_env";
 
-    private static final String API_KEY = "api_key";
+    public static final String API_KEY = "api_key";
 
     private static final String API_KEY_ENV = "api_key_env";
 
@@ -26,11 +26,11 @@ public class CliProperties {
 
     private static final String LOGIN_ENV = "login_env";
 
-    private static final String BASE_PATH = "base_path";
+    public static final String BASE_PATH = "base_path";
 
     private static final String BASE_PATH_ENV = "base_path_env";
 
-    private static final String BASE_URL = "base_url";
+    public static final String BASE_URL = "base_url";
 
     private static final String BASE_URL_ENV = "base_url_env";
 

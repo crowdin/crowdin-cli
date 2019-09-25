@@ -1,5 +1,7 @@
-package com.crowdin.cli.utils;
+package com.crowdin.cli.utils.file;
 
+import com.crowdin.cli.utils.MessageSource;
+import com.crowdin.cli.utils.console.ConsoleUtils;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
