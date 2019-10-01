@@ -11,6 +11,12 @@ Crowdin CLI is a command line tool that allows you to manage and synchronize you
 
 This is a cross-platform and it runs in a terminal on Linux based and macOS operating systems or in Command Prompt on Windows.
 
+## Status
+
+[![Build Status](https://dev.azure.com/crowdin/crowdin-cli-3/_apis/build/status/crowdin-cli-3?branchName=cli3)](https://dev.azure.com/crowdin/crowdin-cli-3/_build/latest?definitionId=10&branchName=cli3)
+![Azure DevOps tests (branch)](https://img.shields.io/azure-devops/tests/crowdin/crowdin-cli-3/10/cli3)
+![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/crowdin/crowdin-cli-3/10/cli3)
+![GitHub](https://img.shields.io/github/license/crowdin/crowdin-cli-2)
 
 ## Table of Contents
 
