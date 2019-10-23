@@ -608,7 +608,7 @@ public class Commands extends BaseCli {
                                     String fileId = fileEntity.getId().toString();
                                     String projectId = getProjectInfo().getProjectId();
                                     Map<String, Integer> schemeObject = getSchemeObject(file);
-                                    Integer updateOption = getUpdateOption(file);
+                                    String updateOption = getUpdateOption(file);
                                     Integer escapeQuotes = (int) file.getEscapeQuotes();
                                     RevisionPayload revisionPayload = new RevisionPayload(storageId, schemeObject, file.getFirstLineContainsHeader(), updateOption, escapeQuotes);
 
@@ -640,22 +640,13 @@ public class Commands extends BaseCli {
         }
     }
 
-    private Integer getUpdateOption(FileBean file) {
+    private String getUpdateOption(FileBean file) {
         String fileUpdateOption = file.getUpdateOption();
         if (fileUpdateOption == null || fileUpdateOption.isEmpty()) {
             return null;
         }
 
-        Integer updateOption = null;
-        if ("update_as_unapproved".equalsIgnoreCase(fileUpdateOption)) {
-            updateOption = 2;
-        } else if ("update_without_changes".equalsIgnoreCase(fileUpdateOption)) {
-            updateOption = 1;
-        } else if ("update_only".equalsIgnoreCase(fileUpdateOption)) {
-            updateOption = 1;
-        }
-
-        return updateOption;
+        return fileUpdateOption;
     }
 
     private Response uploadFile(FilePayload filePayload, FilesApi filesApi) {
