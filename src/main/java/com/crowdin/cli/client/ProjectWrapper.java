@@ -43,7 +43,7 @@ public class ProjectWrapper {
     }
 
     public static Predicate<Language> byCrowdinCode(String crowdinCode) {
-        return language -> language.getCrowdinCode().equalsIgnoreCase(crowdinCode);
+        return language -> language.getId().equalsIgnoreCase(crowdinCode);
     }
 
     public Project getProject() {

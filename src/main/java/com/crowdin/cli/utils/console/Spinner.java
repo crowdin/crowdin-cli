@@ -11,10 +11,12 @@ class Spinner extends Thread {
     private int counter;
     private boolean isSpin;
     private String message;
+    private boolean noProgress;
 
-    Spinner(String message) {
+    Spinner(String message, boolean noProgress) {
         this();
         this.message = message;
+        this.noProgress = noProgress;
     }
 
     private final String[] unixFrames = new String[]{
@@ -37,6 +39,10 @@ class Spinner extends Thread {
 
     @Override
     public void run() {
+        if (noProgress) {
+            return;
+        }
+
         isSpin = true;
         lock.lock();
 

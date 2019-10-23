@@ -87,6 +87,10 @@ public class Commands extends BaseCli {
 
     private boolean version = false;
 
+    private boolean noProgress = false;
+
+    private boolean skipGenerateDescription = false;
+
     private void initialize(String resultCmd, CommandLine commandLine) {
         this.removeUnsupportedCharsetProperties();
 
@@ -163,7 +167,7 @@ public class Commands extends BaseCli {
 
     private ProjectWrapper getProjectInfo() {
         if (projectInfo == null) {
-            ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString());
+            ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
             projectInfo = new ProjectClient(this.settings).getProjectInfo(this.propertiesBean.getProjectIdentifier(), this.isDebug);
             ConsoleSpinner.stop(OK);
         }
@@ -268,7 +272,8 @@ public class Commands extends BaseCli {
         this.dryrun = commandLine.hasOption(CrowdinCliOptions.DRY_RUN_LONG);
         this.help = commandLine.hasOption(HELP) || commandLine.hasOption(HELP_SHORT);
         this.version = commandLine.hasOption(CrowdinCliOptions.VERSION_LONG);
-
+        this.noProgress = commandLine.hasOption(CrowdinCliOptions.NO_PROGRESS);
+        this.skipGenerateDescription = commandLine.hasOption(CrowdinCliOptions.SKIP_GENERATE_DESCRIPTION);
         this.initialize(resultCmd, commandLine);
 
         switch (resultCmd) {
@@ -416,6 +421,13 @@ public class Commands extends BaseCli {
         }
 
         try {
+            if (skipGenerateDescription) {
+                InputStream is = Commands.class.getResourceAsStream("/crowdin.yml");
+                Files.copy(is, destination);
+                return;
+            }
+
+            //This does not work from JAR :(
             List<String> dummyConfig = Files.lines(Paths.get(Commands.class.getResource("/crowdin.yml").toURI())).collect(Collectors.toList());
             Files.write(destination, dummyConfig);
 
@@ -584,7 +596,7 @@ public class Commands extends BaseCli {
 
                 Response response;
                 try {
-                    ConsoleSpinner.start(RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'");
+                    ConsoleSpinner.start(RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'", this.noProgress);
 
                     Long storageId = createStorage(sourceFile);
                     filePayload.setStorageId(storageId);
@@ -682,16 +694,16 @@ public class Commands extends BaseCli {
 
         for (FileBean file : files) {
             for (Language languageEntity : getProjectInfo().getSupportedLanguages()) {
-                if (language != null && !language.isEmpty() && languageEntity != null && !language.equals(languageEntity.getCrowdinCode())) {
+                if (language != null && !language.isEmpty() && languageEntity != null && !language.equals(languageEntity.getEditorCode())) {
                     continue;
                 }
 
-                String lng = (this.language == null || this.language.isEmpty()) ? languageEntity.getCode() : this.language;
+                String lng = (this.language == null || this.language.isEmpty()) ? languageEntity.getId() : this.language;
                 List<String> sourcesWithoutIgnores = commandUtils.getSourcesWithoutIgnores(file, propertiesBean);
                 for (String sourcesWithoutIgnore : sourcesWithoutIgnores) {
                     File sourcesWithoutIgnoreFile = new File(sourcesWithoutIgnore);
                     List<String> translations = commandUtils.getTranslations(lng, sourcesWithoutIgnore, file, this.getProjectInfo(), propertiesBean, "translations");
-                    Map<String, String> mapping = commandUtils.doLanguagesMapping(getProjectInfo(), propertiesBean, languageEntity.getCrowdinCode());
+                    Map<String, String> mapping = commandUtils.doLanguagesMapping(getProjectInfo(), propertiesBean, languageEntity.getEditorCode());
                     List<File> translationFiles = new ArrayList<>();
 
 
@@ -767,7 +779,7 @@ public class Commands extends BaseCli {
                         }
 
                         try {
-                            ConsoleSpinner.start("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean) + "'");
+                            ConsoleSpinner.start("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean) + "'", this.noProgress);
 
                             TranslationsApi api = new TranslationsApi(settings);
                             TranslationPayload translationPayload = new TranslationPayload();
@@ -858,8 +870,8 @@ public class Commands extends BaseCli {
             BuildTranslationPayload buildTranslation = new BuildTranslationPayload();
             branchOrNull.map(Branch::getId).ifPresent(buildTranslation::setBranchId);
             buildTranslation.setForce(true);
-            buildTranslation.setTargetLanguagesId(Collections.singletonList(languageEntity.getId()));
-            ConsoleSpinner.start(BUILDING_TRANSLATION.getString());
+            buildTranslation.setTargetLanguageIds(Collections.singletonList(languageEntity.getId()));
+            ConsoleSpinner.start(BUILDING_TRANSLATION.getString(), this.noProgress);
             clientResponse = api.buildTranslation(Long.toString(projectId), buildTranslation).execute();
             translationBuild = ResponseUtil.getResponceBody(clientResponse, new TypeReference<SimpleResponse<Translation>>() {
             }).getEntity();
@@ -900,7 +912,7 @@ public class Commands extends BaseCli {
         File downloadedZipArchive = new File(downloadedZipArchivePath);
 
         try {
-            ConsoleSpinner.start(DOWNLOADING_TRANSLATION.getString());
+            ConsoleSpinner.start(DOWNLOADING_TRANSLATION.getString(), this.noProgress);
             Response fileRawResponse = api.getTranslationRaw(Long.toString(projectId), Long.toString(translationBuild.getId())).execute();
             FileRaw fileRaw = ResponseUtil.getResponceBody(fileRawResponse, new TypeReference<SimpleResponse<FileRaw>>() {
             }).getEntity();
@@ -981,8 +993,8 @@ public class Commands extends BaseCli {
         } else {
             List<Language> projectLanguages = getProjectInfo().getProjectLanguages();
             for (Language projectLanguage : projectLanguages) {
-                if (projectLanguage != null && projectLanguage.getCode() != null) {
-                    String crowdinCode = projectLanguage.getCrowdinCode();
+                if (projectLanguage != null && projectLanguage.getEditorCode() != null) {
+                    String crowdinCode = projectLanguage.getEditorCode();
                     this.download(crowdinCode, ignoreMatch);
                 }
             }
@@ -1175,10 +1187,10 @@ public class Commands extends BaseCli {
         List<Language> projectLanguages = getProjectInfo().getProjectLanguages();
         Map<String, String> mappingTranslations = new HashMap<>();
         for (Language projectLanguage : projectLanguages) {
-            if (projectLanguage != null && projectLanguage.getCode() != null) {
+            if (projectLanguage != null && projectLanguage.getId() != null) {
 //                JSONObject languageInfo = commandUtils.getLanguageInfo(projectLanguage.getName(), supportedLanguages);
-                String crowdinCode = projectLanguage.getCrowdinCode();
-                mappingTranslations.putAll(commandUtils.doLanguagesMapping(getProjectInfo(), propertiesBean, crowdinCode));
+                String projectLanguageId = projectLanguage.getId();
+                mappingTranslations.putAll(commandUtils.doLanguagesMapping(getProjectInfo(), propertiesBean, projectLanguageId));
             }
         }
         String commonPath;
