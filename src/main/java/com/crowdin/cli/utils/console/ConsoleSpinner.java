@@ -4,9 +4,9 @@ public class ConsoleSpinner {
 
     private static Spinner worker;
 
-    public static void start(String contextMessage) {
+    public static void start(String contextMessage, boolean noProgress) {
         stop(ExecutionStatus.EMPTY);
-        worker = new Spinner(contextMessage);
+        worker = new Spinner(contextMessage, noProgress);
         worker.start();
     }
 

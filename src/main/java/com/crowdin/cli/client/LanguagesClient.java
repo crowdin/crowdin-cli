@@ -20,7 +20,7 @@ public class LanguagesClient extends Client {
     }
 
     public List<Language> getProjectLanguages(Project project) {
-        Set<Long> targetLanguageIds = new HashSet<>(project.getTargetLanguageIds());
+        Set<String> targetLanguageIds = new HashSet<>(project.getTargetLanguageIds());
         return getAllSupportedLanguages().stream()
                 .filter(language -> targetLanguageIds.contains(language.getId()))
                 .collect(Collectors.toList());

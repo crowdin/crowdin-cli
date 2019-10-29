@@ -154,6 +154,12 @@ public class CrowdinCliOptions {
 
     public static final String VERSION_LONG = "version";
 
+    public static final String NO_PROGRESS = "no-progress";
+
+    public static final String NO_PROGRESS_DESCRIPTION = RESOURCE_BUNDLE.getString("no_progress_description");
+
+    public static final String SKIP_GENERATE_DESCRIPTION = "skip-generate-description";
+
     public static final String NEW_LINE = "\n";
 
     public static final String DOUBLE_NEW_LINE = NEW_LINE + NEW_LINE;
@@ -193,6 +199,8 @@ public class CrowdinCliOptions {
         options.addOption(null, TREE_LONG, false, null);
         options.addOption(PROJECT_KEY_SHORT, PROJECT_KEY_LONG, true, PROJECT_KEY_DESCRIPTION);
         options.addOption(null, VERSION_LONG, false, VERSION_DESCRIPTION);
+        options.addOption(null, NO_PROGRESS, false, NO_PROGRESS_DESCRIPTION);
+        options.addOption(null, SKIP_GENERATE_DESCRIPTION, false, null);
         options.addOption(null, BASE_PATH_LONG, true, BASE_PATH_DESCRIPTION);
         options.addOption(null, BASE_URL_LONG, true, BASE_URL_DESCRIPTION);
         options.addOption(null, LOGIN_LONG, true, LOGIN_DESCRIPTION);
@@ -416,6 +424,8 @@ public class CrowdinCliOptions {
         o.addOption(null, IDENTITY, true, IDENTITY_DESCRIPTION);
         o.addOption(VERBOSE_SHORT, VERBOSE_LONG, false, VERBOSE_DESCRIPTION);
         o.addOption(null, VERSION_LONG, false, VERSION_DESCRIPTION);
+        o.addOption(null, NO_PROGRESS, false, NO_PROGRESS_DESCRIPTION);
+        o.addOption(null, SKIP_GENERATE_DESCRIPTION, false, null);
         return o;
     }
 

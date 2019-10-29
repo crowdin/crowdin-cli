@@ -276,6 +276,18 @@ public class CommandUtils extends BaseCli {
                         proceedDirectories.add(node);
                     }
                 }
+
+                if (proceedDirectories.contains(node)) {
+                    CrowdinRequestBuilder<Page<Directory>> directoriesApi = new DirectoriesApi(settings).getProjectDirectories(projectId.toString(), Pageable.unpaged());
+                    projectDirectories = PaginationUtil.unpaged(directoriesApi);
+                    parentId = projectDirectories
+                            .stream()
+                            .filter(directory -> directory.getName().equalsIgnoreCase(node))
+                            .findFirst()
+                            .map(Directory::getId)
+                            .orElse(null);
+
+                }
             }
         }
         return Pair.of("", parentId);
@@ -572,7 +584,7 @@ public class CommandUtils extends BaseCli {
         }
         if (map != null) {
             for (Map.Entry<String, String> hashMap : map.entrySet()) {
-                if (languageInfo.getCrowdinCode().equals(hashMap.getKey())) {
+                if (languageInfo.getEditorCode().equals(hashMap.getKey())) {
                     mappingTranslations = mappingTranslations.replace(pattern, hashMap.getValue());
                     isMapped = true;
                     break;
@@ -759,7 +771,7 @@ public class CommandUtils extends BaseCli {
                     ConsoleUtils.exitError();
                 }
 
-                if (lang != null && !lang.isEmpty() && !lang.equals(language.getCrowdinCode())) {
+                if (lang != null && !lang.isEmpty() && !lang.equals(language.getId())) {
                     continue;
                 }
 
