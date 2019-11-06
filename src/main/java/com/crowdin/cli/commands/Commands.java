@@ -28,14 +28,14 @@ import com.crowdin.util.ResponseUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.util.Strings;
 
 import javax.ws.rs.core.Response;
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
+import java.nio.charset.Charset;
 import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -427,9 +427,9 @@ public class Commands extends BaseCli {
                 return;
             }
 
-            //This does not work from JAR :(
-            List<String> dummyConfig = Files.lines(Paths.get(Commands.class.getResource("/crowdin.yml").toURI())).collect(Collectors.toList());
-            Files.write(destination, dummyConfig);
+            InputStream is = Commands.class.getResourceAsStream("/crowdin.yml");
+            Files.copy(is, destination);
+            List<String> dummyConfig = IOUtils.readLines(new InputStreamReader(is));
 
             System.out.println(GENERATE_HELP_MESSAGE.getString());
             Scanner consoleScanner = new Scanner(System.in);
