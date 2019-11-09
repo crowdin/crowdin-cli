@@ -2,6 +2,7 @@ package com.crowdin.cli.utils;
 
 import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.BranchClient;
+import com.crowdin.cli.client.DirectoryClient;
 import com.crowdin.cli.client.ProjectWrapper;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -253,7 +254,7 @@ public class CommandUtils extends BaseCli {
                                 System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' "));
                             }
                         } catch (Exception ex) {
-                            if (ex.getMessage().contains("Name must be unique")) {
+                            if (ex.getMessage().contains("Name must be unique") || ex.getMessage().contains("Already creating directory")) {
                                 System.out.println(ExecutionStatus.SKIPPED.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
                                 /*only if we go do this case we fetch all directories, lazy fetch*/
                                 if (projectDirectories == null) {
@@ -278,15 +279,10 @@ public class CommandUtils extends BaseCli {
                 }
 
                 if (proceedDirectories.contains(node)) {
-                    CrowdinRequestBuilder<Page<Directory>> directoriesApi = new DirectoriesApi(settings).getProjectDirectories(projectId.toString(), Pageable.unpaged());
-                    projectDirectories = PaginationUtil.unpaged(directoriesApi);
-                    parentId = projectDirectories
-                            .stream()
-                            .filter(directory -> directory.getName().equalsIgnoreCase(node))
-                            .findFirst()
+                    parentId = new DirectoryClient(settings)
+                            .getProjectBranchByName(projectId, node)
                             .map(Directory::getId)
                             .orElse(null);
-
                 }
             }
         }

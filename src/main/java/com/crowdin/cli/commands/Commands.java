@@ -8,6 +8,7 @@ import com.crowdin.cli.properties.CliProperties;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.CommandUtils;
+import com.crowdin.cli.utils.ConcurrencyUtil;
 import com.crowdin.cli.utils.EntityUtils;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -506,132 +507,135 @@ public class Commands extends BaseCli {
                 commonPath = this.commandUtils.getCommonPath(sources, this.propertiesBean);
             }
 
-            for (String source : sources) {
-                File sourceFile = new File(source);
-                if (!sourceFile.isFile()) {
-                    continue;
-                }
-                boolean isDest = file.getDest() != null && !file.getDest().isEmpty() && !this.commandUtils.isSourceContainsPattern(file.getSource());
-                Pair<String, Long> preservePathToParentId = this.commandUtils.preserveHierarchy(file,
-                        sourceFile.getAbsolutePath(),
-                        commonPath,
-                        this.propertiesBean,
-                        this.branch,
-                        this.settings,
-                        getProjectInfo().getProject().getId(),
-                        directoriesCache,
-                        this.isVerbose);
-                String preservePath = preservePathToParentId.getLeft();
-                Long parentId = preservePathToParentId.getRight();
-
-                String fName;
-                if (isDest) {
-                    fName = new File(file.getDest()).getName();
-                } else {
-                    fName = sourceFile.getName();
-                }
-                preservePath = preservePath + Utils.PATH_SEPARATOR + fName;
-                preservePath = preservePath.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-                if (preservePath.startsWith(Utils.PATH_SEPARATOR)) {
-                    preservePath = preservePath.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
-                }
-
-                preservePath = preservePath.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
-
-                FilePayload filePayload = new FilePayload();
-
-                filePayload.setDirectoryId(parentId);
-                filePayload.setTitle(preservePath);
-                filePayload.setType(file.getType());
-                branchId.ifPresent(filePayload::setBranchId);
-
-                ImportOptions importOptions;
-                if (source.endsWith(".xml")) {
-                    XmlFileImportOptions xmlFileImportOptions = new XmlFileImportOptions();
-                    xmlFileImportOptions.setContentSegmentation(unboxingBoolean(file.getContentSegmentation()));
-                    xmlFileImportOptions.setTranslateAttributes(unboxingBoolean(file.getTranslateAttributes()));
-                    xmlFileImportOptions.setTranslateContent(unboxingBoolean(file.getTranslateContent()));
-                    xmlFileImportOptions.setTranslatableElements(file.getTranslatableElements());
-                    importOptions = xmlFileImportOptions;
-                } else {
-                    SpreadsheetFileImportOptions spreadsheetFileImportOptions = new SpreadsheetFileImportOptions();
-                    spreadsheetFileImportOptions.setImportTranslations(true);
-                    spreadsheetFileImportOptions.setFirstLineContainsHeader(unboxingBoolean(file.getFirstLineContainsHeader()));
-                    spreadsheetFileImportOptions.setScheme(getSchemeObject(file));
-
-                    importOptions = spreadsheetFileImportOptions;
-                }
-
-                filePayload.setImportOptions(importOptions);
-
-                ExportOptions exportOptions = null;
-                String translationWithReplacedAsterisk = null;
-                if (Strings.isNotEmpty(sourceFile.getAbsolutePath()) && file.getTranslation() != null && !file.getTranslation().isEmpty()) {
-                    String translations = file.getTranslation();
-                    if (translations.contains("**")) {
-                        translationWithReplacedAsterisk = this.commandUtils.replaceDoubleAsteriskInTranslation(file.getTranslation(), sourceFile.getAbsolutePath(), file.getSource(), this.propertiesBean);
-                    }
-                    if (translationWithReplacedAsterisk != null) {
-                        if (translationWithReplacedAsterisk.contains("\\")) {
-                            translationWithReplacedAsterisk = translationWithReplacedAsterisk.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
-                            translationWithReplacedAsterisk = translationWithReplacedAsterisk.replaceAll("/+", "/");
+            final String finalCommonPath = commonPath;
+            final ProjectWrapper projectInfo = getProjectInfo();
+            List<Runnable> tasks = sources.stream()
+                    .map(source -> (Runnable) () -> {
+                        File sourceFile = new File(source);
+                        if (!sourceFile.isFile()) {
+                            return;
                         }
-                        GeneralFileExportOptions generalFileExportOptions = new GeneralFileExportOptions();
-                        generalFileExportOptions.setExportPattern(translationWithReplacedAsterisk);
-                        exportOptions = generalFileExportOptions;
-                    } else {
-                        String pattern = file.getTranslation();
-                        if (pattern != null && pattern.contains("\\")) {
-                            pattern = pattern.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
-                            pattern = pattern.replaceAll("/+", "/");
+                        boolean isDest = file.getDest() != null && !file.getDest().isEmpty() && !this.commandUtils.isSourceContainsPattern(file.getSource());
+                        Pair<String, Long> preservePathToParentId = this.commandUtils.preserveHierarchy(file,
+                                sourceFile.getAbsolutePath(),
+                                finalCommonPath,
+                                this.propertiesBean,
+                                this.branch,
+                                this.settings,
+                                projectInfo.getProject().getId(),
+                                directoriesCache,
+                                this.isVerbose);
+                        String preservePath = preservePathToParentId.getLeft();
+                        Long parentId = preservePathToParentId.getRight();
+
+                        String fName;
+                        if (isDest) {
+                            fName = new File(file.getDest()).getName();
+                        } else {
+                            fName = sourceFile.getName();
+                        }
+                        preservePath = preservePath + Utils.PATH_SEPARATOR + fName;
+                        preservePath = preservePath.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+                        if (preservePath.startsWith(Utils.PATH_SEPARATOR)) {
+                            preservePath = preservePath.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
                         }
 
-                        GeneralFileExportOptions generalFileExportOptions = new GeneralFileExportOptions();
-                        generalFileExportOptions.setExportPattern(pattern);
-                        exportOptions = generalFileExportOptions;
-                    }
-                }
+                        preservePath = preservePath.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
 
-                filePayload.setExportOptions(exportOptions);
+                        FilePayload filePayload = new FilePayload();
 
-                Response response;
-                try {
-                    ConsoleSpinner.start(RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'", this.noProgress);
+                        filePayload.setDirectoryId(parentId);
+                        filePayload.setTitle(preservePath);
+                        filePayload.setType(file.getType());
+                        branchId.ifPresent(filePayload::setBranchId);
 
-                    Long storageId = createStorage(sourceFile);
-                    filePayload.setStorageId(storageId);
-                    filePayload.setName(preservePath);
-                    FilesApi filesApi = new FilesApi(settings);
-                    if (autoUpdate) {
-                        response = EntityUtils.find(getProjectInfo().getFiles(), filePayload.getName(), FileEntity::getName)
-                                .map(fileEntity -> {
-                                    String fileId = fileEntity.getId().toString();
-                                    String projectId = getProjectInfo().getProjectId();
-                                    Map<String, Integer> schemeObject = getSchemeObject(file);
-                                    String updateOption = getUpdateOption(file);
-                                    Integer escapeQuotes = (int) file.getEscapeQuotes();
-                                    RevisionPayload revisionPayload = new RevisionPayload(storageId, schemeObject, file.getFirstLineContainsHeader(), updateOption, escapeQuotes);
+                        ImportOptions importOptions;
+                        if (source.endsWith(".xml")) {
+                            XmlFileImportOptions xmlFileImportOptions = new XmlFileImportOptions();
+                            xmlFileImportOptions.setContentSegmentation(unboxingBoolean(file.getContentSegmentation()));
+                            xmlFileImportOptions.setTranslateAttributes(unboxingBoolean(file.getTranslateAttributes()));
+                            xmlFileImportOptions.setTranslateContent(unboxingBoolean(file.getTranslateContent()));
+                            xmlFileImportOptions.setTranslatableElements(file.getTranslatableElements());
+                            importOptions = xmlFileImportOptions;
+                        } else {
+                            SpreadsheetFileImportOptions spreadsheetFileImportOptions = new SpreadsheetFileImportOptions();
+                            spreadsheetFileImportOptions.setImportTranslations(true);
+                            spreadsheetFileImportOptions.setFirstLineContainsHeader(unboxingBoolean(file.getFirstLineContainsHeader()));
+                            spreadsheetFileImportOptions.setScheme(getSchemeObject(file));
 
-                                    return new RevisionsApi(this.settings).createRevision(projectId, fileId, revisionPayload).execute();
-                                }).orElseGet(() -> uploadFile(filePayload, filesApi));
-                    } else {
-                        response = uploadFile(filePayload, filesApi);
-                    }
+                            importOptions = spreadsheetFileImportOptions;
+                        }
 
-                    ConsoleSpinner.stop(OK);
-                } catch (Exception e) {
-                    ConsoleSpinner.stop(ExecutionStatus.ERROR);
-                    System.out.println("message : " + e.getMessage());
-                    if (this.isDebug) {
-                        e.printStackTrace();
-                    }
-                    continue;
-                }
-                if (this.isVerbose && response != null) {
-                    System.out.println(response.getHeaders());
-                    System.out.println(ResponseUtil.getResponceBody(response));
-                }
-            }
+                        filePayload.setImportOptions(importOptions);
+
+                        ExportOptions exportOptions = null;
+                        String translationWithReplacedAsterisk = null;
+                        if (Strings.isNotEmpty(sourceFile.getAbsolutePath()) && file.getTranslation() != null && !file.getTranslation().isEmpty()) {
+                            String translations = file.getTranslation();
+                            if (translations.contains("**")) {
+                                translationWithReplacedAsterisk = this.commandUtils.replaceDoubleAsteriskInTranslation(file.getTranslation(), sourceFile.getAbsolutePath(), file.getSource(), this.propertiesBean);
+                            }
+                            if (translationWithReplacedAsterisk != null) {
+                                if (translationWithReplacedAsterisk.contains("\\")) {
+                                    translationWithReplacedAsterisk = translationWithReplacedAsterisk.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
+                                    translationWithReplacedAsterisk = translationWithReplacedAsterisk.replaceAll("/+", "/");
+                                }
+                                GeneralFileExportOptions generalFileExportOptions = new GeneralFileExportOptions();
+                                generalFileExportOptions.setExportPattern(translationWithReplacedAsterisk);
+                                exportOptions = generalFileExportOptions;
+                            } else {
+                                String pattern = file.getTranslation();
+                                if (pattern != null && pattern.contains("\\")) {
+                                    pattern = pattern.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
+                                    pattern = pattern.replaceAll("/+", "/");
+                                }
+
+                                GeneralFileExportOptions generalFileExportOptions = new GeneralFileExportOptions();
+                                generalFileExportOptions.setExportPattern(pattern);
+                                exportOptions = generalFileExportOptions;
+                            }
+                        }
+
+                        filePayload.setExportOptions(exportOptions);
+
+                        Response response;
+                        try {
+                            System.out.println("Uploading " + RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'");
+
+                            Long storageId = createStorage(sourceFile);
+                            filePayload.setStorageId(storageId);
+                            filePayload.setName(preservePath);
+                            FilesApi filesApi = new FilesApi(settings);
+                            if (autoUpdate) {
+                                response = EntityUtils.find(projectInfo.getFiles(), filePayload.getName(), FileEntity::getName)
+                                        .map(fileEntity -> {
+                                            String fileId = fileEntity.getId().toString();
+                                            String projectId = projectInfo.getProjectId();
+                                            Map<String, Integer> schemeObject = getSchemeObject(file);
+                                            String updateOption = getUpdateOption(file);
+                                            Integer escapeQuotes = (int) file.getEscapeQuotes();
+                                            RevisionPayload revisionPayload = new RevisionPayload(storageId, schemeObject, file.getFirstLineContainsHeader(), updateOption, escapeQuotes);
+
+                                            return new RevisionsApi(this.settings).createRevision(projectId, fileId, revisionPayload).execute();
+                                        }).orElseGet(() -> uploadFile(filePayload, filesApi));
+                            } else {
+                                response = uploadFile(filePayload, filesApi);
+                            }
+
+                        } catch (Exception e) {
+                            System.out.println("message : " + e.getMessage());
+                            if (this.isDebug) {
+                                e.printStackTrace();
+                            }
+                            return;
+                        }
+                        if (this.isVerbose && response != null) {
+                            System.out.println(response.getHeaders());
+                            System.out.println(ResponseUtil.getResponceBody(response));
+                        }
+                    })
+                    .collect(Collectors.toList());
+            ConcurrencyUtil.executeAndWait(tasks);
         }
         if (noFiles) {
             System.out.println("Error: No source files to upload.\n" +
@@ -683,136 +687,133 @@ public class Commands extends BaseCli {
         List<FileEntity> projectFiles = PaginationUtil.unpaged(new FilesApi(settings).getProjectFiles(projectId, Pageable.unpaged()));
 
 
+        final ProjectWrapper projectInfo = getProjectInfo();
         for (FileBean file : files) {
-            for (Language languageEntity : getProjectInfo().getSupportedLanguages()) {
+            for (Language languageEntity : projectInfo.getSupportedLanguages()) {
                 if (language != null && !language.isEmpty() && languageEntity != null && !language.equals(languageEntity.getEditorCode())) {
                     continue;
                 }
 
                 String lng = (this.language == null || this.language.isEmpty()) ? languageEntity.getId() : this.language;
                 List<String> sourcesWithoutIgnores = commandUtils.getSourcesWithoutIgnores(file, propertiesBean);
-                for (String sourcesWithoutIgnore : sourcesWithoutIgnores) {
-                    File sourcesWithoutIgnoreFile = new File(sourcesWithoutIgnore);
-                    List<String> translations = commandUtils.getTranslations(lng, sourcesWithoutIgnore, file, this.getProjectInfo(), propertiesBean, "translations");
-                    Map<String, String> mapping = commandUtils.doLanguagesMapping(getProjectInfo(), propertiesBean, languageEntity.getEditorCode());
-                    List<File> translationFiles = new ArrayList<>();
+                List<Runnable> tasks = sourcesWithoutIgnores.stream()
+                        .map(sourcesWithoutIgnore -> (Runnable) () -> {
+                            File sourcesWithoutIgnoreFile = new File(sourcesWithoutIgnore);
+                            List<String> translations = commandUtils.getTranslations(lng, sourcesWithoutIgnore, file, projectInfo, propertiesBean, "translations");
+                            Map<String, String> mapping = commandUtils.doLanguagesMapping(projectInfo, propertiesBean, languageEntity.getEditorCode());
+                            List<File> translationFiles = new ArrayList<>();
 
+                            String[] common = new String[sourcesWithoutIgnores.size()];
+                            common = sourcesWithoutIgnores.toArray(common);
+                            String commonPath = Utils.commonPath(common);
+                            commonPath = Utils.replaceBasePath(commonPath, propertiesBean);
 
-                    String[] common = new String[sourcesWithoutIgnores.size()];
-                    common = sourcesWithoutIgnores.toArray(common);
-                    String commonPath = Utils.commonPath(common);
-                    commonPath = Utils.replaceBasePath(commonPath, propertiesBean);
-                    commonPath = (commonPath == null) ? "" : commonPath;
-
-                    for (String translation : translations) {
-                        translation = Utils.PATH_SEPARATOR + translation;
-                        translation = translation.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-                        String mappedTranslations = translation;
-                        if (Utils.isWindows() && translation.contains("\\")) {
-                            translation = translation.replaceAll("\\\\+", "/").replaceAll(" {2}\\+", "/");
-                        }
-                        if (mapping != null && (mapping.get(translation) != null || mapping.get("/" + translation) != null)) {
-                            mappedTranslations = mapping.get(translation);
-                        }
-                        mappedTranslations = propertiesBean.getBasePath() + Utils.PATH_SEPARATOR + mappedTranslations;
-                        mappedTranslations = mappedTranslations.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-                        translationFiles.add(new File(mappedTranslations));
-                    }
-                    for (File translationFile : translationFiles) {
-                        if (!translationFile.isFile()) {
-                            System.out.println("Translation file '" + translationFile.getAbsolutePath() + "' does not exist");
-                            continue;
-                        }
-                        if (!sourcesWithoutIgnoreFile.isFile()) {
-                            System.out.println("Source file '" + Utils.replaceBasePath(sourcesWithoutIgnoreFile.getAbsolutePath(), propertiesBean) + "' does not exist");
-                            continue;
-                        }
-                        String translationSrc = Utils.replaceBasePath(sourcesWithoutIgnoreFile.getAbsolutePath(), propertiesBean);
-                        if (Utils.isWindows()) {
-                            if (translationSrc.contains("\\")) {
-                                translationSrc = translationSrc.replaceAll("\\\\", "/");
-                                translationSrc = translationSrc.replaceAll("/+", "/");
-                            }
-                            if (commonPath.contains("\\")) {
-                                commonPath = commonPath.replaceAll("\\\\", "/");
-                                commonPath = commonPath.replaceAll("/+", "/");
-                            }
-                        }
-                        if (translationSrc.startsWith(commonPath)) {
-                            translationSrc = translationSrc.replaceFirst(commonPath, "");
-                        }
-                        if (Utils.isWindows() && translationSrc.contains("/")) {
-                            translationSrc = translationSrc.replaceAll("/", Utils.PATH_SEPARATOR_REGEX);
-                        }
-
-
-                        if (Utils.isWindows()) {
-                            translationSrc = translationSrc.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
-                        }
-                        if (translationSrc.startsWith("/")) {
-                            translationSrc = translationSrc.replaceFirst("/", "");
-                        }
-                        boolean isDest = file.getDest() != null && !file.getDest().isEmpty() && !this.commandUtils.isSourceContainsPattern(file.getSource());
-                        if (isDest) {
-                            translationSrc = file.getDest();
-                            if (!propertiesBean.getPreserveHierarchy()) {
-                                if (translationSrc.lastIndexOf(Utils.PATH_SEPARATOR) != -1) {
-                                    translationSrc = translationSrc.substring(translationSrc.lastIndexOf(Utils.PATH_SEPARATOR));
+                            for (String translation : translations) {
+                                translation = Utils.PATH_SEPARATOR + translation;
+                                translation = translation.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+                                String mappedTranslations = translation;
+                                if (Utils.isWindows() && translation.contains("\\")) {
+                                    translation = translation.replaceAll("\\\\+", "/").replaceAll(" {2}\\+", "/");
                                 }
-                                translationSrc = translationSrc.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+                                if (mapping != null && (mapping.get(translation) != null || mapping.get("/" + translation) != null)) {
+                                    mappedTranslations = mapping.get(translation);
+                                }
+                                mappedTranslations = propertiesBean.getBasePath() + Utils.PATH_SEPARATOR + mappedTranslations;
+                                mappedTranslations = mappedTranslations.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+                                translationFiles.add(new File(mappedTranslations));
                             }
-                            if (Utils.isWindows()) {
-                                translationSrc = translationSrc.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
+                            for (File translationFile : translationFiles) {
+                                if (!translationFile.isFile()) {
+                                    System.out.println("Translation file '" + translationFile.getAbsolutePath() + "' does not exist");
+                                    continue;
+                                }
+                                if (!sourcesWithoutIgnoreFile.isFile()) {
+                                    System.out.println("Source file '" + Utils.replaceBasePath(sourcesWithoutIgnoreFile.getAbsolutePath(), propertiesBean) + "' does not exist");
+                                    continue;
+                                }
+                                String translationSrc = Utils.replaceBasePath(sourcesWithoutIgnoreFile.getAbsolutePath(), propertiesBean);
+                                if (Utils.isWindows()) {
+                                    if (translationSrc.contains("\\")) {
+                                        translationSrc = translationSrc.replaceAll("\\\\", "/");
+                                        translationSrc = translationSrc.replaceAll("/+", "/");
+                                    }
+                                    if (commonPath.contains("\\")) {
+                                        commonPath = commonPath.replaceAll("\\\\", "/");
+                                        commonPath = commonPath.replaceAll("/+", "/");
+                                    }
+                                }
+                                if (translationSrc.startsWith(commonPath)) {
+                                    translationSrc = translationSrc.replaceFirst(commonPath, "");
+                                }
+                                if (Utils.isWindows() && translationSrc.contains("/")) {
+                                    translationSrc = translationSrc.replaceAll("/", Utils.PATH_SEPARATOR_REGEX);
+                                }
+
+                                if (Utils.isWindows()) {
+                                    translationSrc = translationSrc.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
+                                }
+                                if (translationSrc.startsWith("/")) {
+                                    translationSrc = translationSrc.replaceFirst("/", "");
+                                }
+                                boolean isDest = file.getDest() != null && !file.getDest().isEmpty() && !this.commandUtils.isSourceContainsPattern(file.getSource());
+                                if (isDest) {
+                                    translationSrc = file.getDest();
+                                    if (!propertiesBean.getPreserveHierarchy()) {
+                                        if (translationSrc.lastIndexOf(Utils.PATH_SEPARATOR) != -1) {
+                                            translationSrc = translationSrc.substring(translationSrc.lastIndexOf(Utils.PATH_SEPARATOR));
+                                        }
+                                        translationSrc = translationSrc.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+                                    }
+                                    if (Utils.isWindows()) {
+                                        translationSrc = translationSrc.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
+                                    }
+                                    if (translationSrc.startsWith("/")) {
+                                        translationSrc = translationSrc.replaceFirst("/", "");
+                                    }
+                                }
+
+                                try {
+                                    System.out.println("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean) + "'");
+
+                                    TranslationsApi api = new TranslationsApi(settings);
+                                    TranslationPayload translationPayload = new TranslationPayload();
+                                    String translationSrcFinal = translationSrc;
+
+                                    Optional<FileEntity> projectFileOrNone = EntityUtils.find(projectFiles, o -> o.getName().equalsIgnoreCase(translationSrcFinal));
+                                    if (!projectFileOrNone.isPresent()) {
+                                        System.out.println("source '" + translationSrcFinal + "' does not exist in the project");
+                                        ConsoleUtils.exitError();
+
+                                    }
+                                    FileEntity projectFile = projectFileOrNone.get();
+
+                                    translationPayload.setFileId(projectFile.getId());
+
+                                    if (importDuplicates) translationPayload.setImportDuplicates(true);
+                                    if (importEqSuggestions) translationPayload.setImportEqSuggestions(true);
+                                    if (autoApproveImported) translationPayload.setAutoApproveImported(true);
+
+                                    Long storageId = createStorage(translationFile);
+                                    translationPayload.setStorageId(storageId);
+
+                                    Response uploadTransactionsResponse = api
+                                            .uploadTranslation(projectId, languageEntity.getId(), translationPayload)
+                                            .execute();
+
+                                    if (isVerbose) {
+                                        System.out.println(uploadTransactionsResponse.getHeaders());
+                                        System.out.println(ResponseUtil.getResponceBody(uploadTransactionsResponse));
+                                    }
+                                } catch (Exception e) {
+                                    System.out.println("message : " + e.getMessage());
+                                    if (isDebug) {
+                                        e.printStackTrace();
+                                    }
+                                }
                             }
-                            if (translationSrc.startsWith("/")) {
-                                translationSrc = translationSrc.replaceFirst("/", "");
-                            }
-                        }
-
-                        try {
-                            ConsoleSpinner.start("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean) + "'", this.noProgress);
-
-                            TranslationsApi api = new TranslationsApi(settings);
-                            TranslationPayload translationPayload = new TranslationPayload();
-                            String translationSrcFinal = translationSrc;
-
-                            Optional<FileEntity> projectFileOrNone = EntityUtils.find(projectFiles, o -> o.getName().equalsIgnoreCase(translationSrcFinal));
-                            if (!projectFileOrNone.isPresent()) {
-                                ConsoleSpinner.stop(ExecutionStatus.ERROR);
-                                System.out.println("source '" + translationSrcFinal + "' does not exist in the project");
-                                ConsoleUtils.exitError();
-
-                            }
-                            FileEntity projectFile = projectFileOrNone.get();
-
-
-                            translationPayload.setFileId(projectFile.getId());
-
-                            if (importDuplicates) translationPayload.setImportDuplicates(true);
-                            if (importEqSuggestions) translationPayload.setImportEqSuggestions(true);
-                            if (autoApproveImported) translationPayload.setAutoApproveImported(true);
-
-                            Long storageId = createStorage(translationFile);
-                            translationPayload.setStorageId(storageId);
-
-                            Response uploadTransactionsResponse = api
-                                    .uploadTranslation(projectId, languageEntity.getId().toString(), translationPayload)
-                                    .execute();
-
-                            ConsoleSpinner.stop(OK);
-                            if (isVerbose) {
-                                System.out.println(uploadTransactionsResponse.getHeaders());
-                                System.out.println(ResponseUtil.getResponceBody(uploadTransactionsResponse));
-                            }
-                        } catch (Exception e) {
-                            ConsoleSpinner.stop(ExecutionStatus.ERROR);
-                            System.out.println("message : " + e.getMessage());
-                            if (isDebug) {
-                                e.printStackTrace();
-                            }
-                        }
-                    }
-                }
+                        })
+                        .collect(Collectors.toList());
+                ConcurrencyUtil.executeAndWait(tasks);
             }
         }
 
