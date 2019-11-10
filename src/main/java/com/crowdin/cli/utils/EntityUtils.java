@@ -23,9 +23,15 @@ public class EntityUtils {
                 .findFirst();
     }
 
-    public static <T, R> Optional<T> find(Collection<T> entities, R conditionValue, Function<T, R> extractor) {
+    public static <T, R> Optional<T> find(
+            Collection<T> entities,
+            R conditionValue,
+            R conditionValue1,
+            Function<T, R> extractor,
+            Function<T, R> extractor1) {
         return entities.stream()
                 .filter(entity -> extractor.apply(entity).equals(conditionValue))
+                .filter(entity -> extractor1.apply(entity).equals(conditionValue1))
                 .findFirst();
     }
 

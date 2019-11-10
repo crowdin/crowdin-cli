@@ -160,6 +160,9 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
+
+    public HashMap<String, Long> parentIdMap = new HashMap<>();
+
     /**
      * return Pair of preserved path and deepest directory id
      */
@@ -178,6 +181,7 @@ public class CommandUtils extends BaseCli {
         if (filePath.startsWith(Utils.PATH_SEPARATOR)) {
             filePath = filePath.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
         }
+
         if (!propertiesBean.getPreserveHierarchy()) {
             if (Utils.isWindows()) {
                 if (filePath.contains("\\")) {
@@ -221,68 +225,76 @@ public class CommandUtils extends BaseCli {
                 .map(Branch::getId);
         List<Directory> projectDirectories = null;
         Long parentId = null;
+        StringBuilder parentPath = new StringBuilder();
         if (nodes != null) {
             for (String node : nodes) {
-                if (node != null && !node.isEmpty() && !proceedDirectories.contains(node)) {
-                    if (!node.equals(nodes[nodes.length - 1])) {
-                       /* if (resultDirs.length() == 0) {
-                            resultDirs.append(node);
+                if (node != null && !node.isEmpty()) {
+                    if (!node.equals(nodes[nodes.length - 1]) && branch == null) {
+                        parentPath.append(node).append(Utils.PATH_SEPARATOR);
+                        if (!parentIdMap.isEmpty() && parentIdMap.containsKey(parentPath.toString())) {
+                            parentId = parentIdMap.get(parentPath.toString());
                         } else {
-                            resultDirs.append(Utils.PATH_SEPARATOR).append(node);
-                        }*/
+                            DirectoriesApi api = new DirectoriesApi(settings);
+                            DirectoryPayload directoryPayload = new DirectoryPayload();
+                            branchId.ifPresent(directoryPayload::setBranchId);
+                            directoryPayload.setName(node);
 
-                        DirectoriesApi api = new DirectoriesApi(settings);
-                        DirectoryPayload directoryPayload = new DirectoryPayload();
-                        branchId.ifPresent(directoryPayload::setBranchId);
-                        directoryPayload.setName(node);
-
-                        if (parentId != null) {
-                            directoryPayload.setParentId(parentId);
-                        }
-
-                        try {
-                            Response response = api.createDirectory(projectId.toString(), directoryPayload).execute();
-                            Directory directory = ResponseUtil.getResponceBody(response, new TypeReference<SimpleResponse<Directory>>() {
-                            }).getEntity();
-                            parentId = directory.getId();
-
-                            if (isVerbose) {
-                                System.out.println(response.getHeaders());
-                                System.out.println(ObjectMapperUtil.getEntityAsString(directory));
+                            if (parentId != null) {
+                                directoryPayload.setParentId(parentId);
                             }
-                            if (directory.getId() != null) {
-                                System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' "));
-                            }
-                        } catch (Exception ex) {
-                            if (ex.getMessage().contains("Name must be unique") || ex.getMessage().contains("Already creating directory")) {
-                                System.out.println(ExecutionStatus.SKIPPED.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
-                                /*only if we go do this case we fetch all directories, lazy fetch*/
-                                if (projectDirectories == null) {
-                                    CrowdinRequestBuilder<Page<Directory>> directoriesApi = new DirectoriesApi(settings).getProjectDirectories(projectId.toString(), Pageable.unpaged());
-                                    projectDirectories = PaginationUtil.unpaged(directoriesApi);
+                            try {
+                                Response response = api.createDirectory(projectId.toString(), directoryPayload).execute();
+                                Directory directory = ResponseUtil.getResponceBody(response, new TypeReference<SimpleResponse<Directory>>() {
+                                }).getEntity();
+                                parentId = directory.getId();
+                                if (isVerbose) {
+                                    System.out.println(response.getHeaders());
+                                    System.out.println(ObjectMapperUtil.getEntityAsString(directory));
                                 }
+                                if (directory.getId() != null) {
+                                    System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' "));
+                                }
+                                parentIdMap.put(parentPath.toString(), parentId);
+                            } catch (Exception ex) {
+                                if (
+                                        ex.getMessage().contains("Name must be unique") ||
+                                                ex.getMessage().contains("Already creating directory") ||
+                                                ex.getMessage().contains("This file is currently being updated")
 
-                                parentId = projectDirectories
-                                        .stream()
-                                        .filter(directory -> directory.getName().equalsIgnoreCase(node))
-                                        .findFirst()
-                                        .map(Directory::getId)
-                                        .orElse(null);
-                            } else {
-                                System.out.println(ExecutionStatus.ERROR.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
-                                System.out.println(ex.getMessage());
-                                ConsoleUtils.exitError();
+                                ) {
+                                    System.out.println(ExecutionStatus.SKIPPED.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
+                                    /*only if we go do this case we fetch all directories, lazy fetch*/
+
+                                    if (projectDirectories == null) {
+                                        CrowdinRequestBuilder<Page<Directory>> directoriesApi = new DirectoriesApi(settings).getProjectDirectories(projectId.toString(), Pageable.unpaged());
+                                        projectDirectories = PaginationUtil.unpaged(directoriesApi);
+                                    }
+
+                                    parentId = null;
+                                    StringBuilder directoryPath_1 = new StringBuilder();
+
+                                    for (Directory dir : projectDirectories) {
+                                        if (filePath.contains(dir.getName())) {
+                                            directoryPath_1.append(dir.getName()).append(Utils.PATH_SEPARATOR);
+                                            parentId = dir.getId();
+                                            parentIdMap.put(directoryPath_1.toString(), dir.getId());
+                                        }
+                                    }
+                                } else {
+                                    System.out.println(ExecutionStatus.ERROR.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
+                                    System.out.println(ex.getMessage());
+                                    ConsoleUtils.exitError();
+                                }
                             }
+                            proceedDirectories.add(node);
                         }
-                        proceedDirectories.add(node);
                     }
-                }
-
-                if (proceedDirectories.contains(node)) {
-                    parentId = new DirectoryClient(settings)
-                            .getProjectBranchByName(projectId, node)
-                            .map(Directory::getId)
-                            .orElse(null);
+                    if (proceedDirectories.contains(node) && branch != null) {
+                        parentId = new DirectoryClient(settings)
+                                .getProjectBranchByName(projectId, node)
+                                .map(Directory::getId)
+                                .orElse(null);
+                    }
                 }
             }
         }

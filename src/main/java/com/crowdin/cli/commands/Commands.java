@@ -509,6 +509,7 @@ public class Commands extends BaseCli {
 
             final String finalCommonPath = commonPath;
             final ProjectWrapper projectInfo = getProjectInfo();
+            HashMap<String, Long> parentFileIdMap = new HashMap<>();
             List<Runnable> tasks = sources.stream()
                     .map(source -> (Runnable) () -> {
                         File sourceFile = new File(source);
@@ -527,7 +528,7 @@ public class Commands extends BaseCli {
                                 this.isVerbose);
                         String preservePath = preservePathToParentId.getLeft();
                         Long parentId = preservePathToParentId.getRight();
-
+                        parentFileIdMap.put(sourceFile.getAbsolutePath(), parentId);
                         String fName;
                         if (isDest) {
                             fName = new File(file.getDest()).getName();
@@ -544,7 +545,7 @@ public class Commands extends BaseCli {
 
                         FilePayload filePayload = new FilePayload();
 
-                        filePayload.setDirectoryId(parentId);
+                        filePayload.setDirectoryId(parentFileIdMap.get(sourceFile.getAbsolutePath()));
                         filePayload.setTitle(preservePath);
                         filePayload.setType(file.getType());
                         branchId.ifPresent(filePayload::setBranchId);
@@ -607,7 +608,12 @@ public class Commands extends BaseCli {
                             filePayload.setName(preservePath);
                             FilesApi filesApi = new FilesApi(settings);
                             if (autoUpdate) {
-                                response = EntityUtils.find(projectInfo.getFiles(), filePayload.getName(), FileEntity::getName)
+                                response = EntityUtils.find(
+                                        projectInfo.getFiles(),
+                                        filePayload.getName(),
+                                        filePayload.getDirectoryId(),
+                                        FileEntity::getName,
+                                        FileEntity::getDirectoryId)
                                         .map(fileEntity -> {
                                             String fileId = fileEntity.getId().toString();
                                             String projectId = projectInfo.getProjectId();
