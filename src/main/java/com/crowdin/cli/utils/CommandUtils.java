@@ -224,7 +224,6 @@ public class CommandUtils extends BaseCli {
         }
         Optional<Long> branchId = new BranchClient(settings).getProjectBranchByName(projectId, branch)
                 .map(Branch::getId);
-        List<Directory> projectDirectories = null;
         Long parentId = null;
         StringBuilder parentPath = new StringBuilder();
         if (nodes != null) {
@@ -243,7 +242,7 @@ public class CommandUtils extends BaseCli {
                             if (parentId != null) {
                                 directoryPayload.setParentId(parentId);
                             }
-                            parentId = createDirectory(api, projectId, directoryPayload, parentId, parentPath, filePath, isVerbose, settings, node);
+                            parentId = createDirectory(api, projectId, directoryPayload, parentId, parentPath, isVerbose, settings, node);
                             proceedDirectories.add(node);
                         }
                     }
@@ -264,8 +263,9 @@ public class CommandUtils extends BaseCli {
                                  DirectoryPayload directoryPayload,
                                  Long parentId,
                                  StringBuilder parentPath,
-                                 String filePath,
-                                 boolean isVerbose, Settings settings, String node) {
+                                 boolean isVerbose,
+                                 Settings settings,
+                                 String node) {
         try {
             Response response = api.createDirectory(projectId.toString(), directoryPayload).execute();
             Directory directory = ResponseUtil.getResponceBody(response, new TypeReference<SimpleResponse<Directory>>() {
@@ -286,17 +286,16 @@ public class CommandUtils extends BaseCli {
 
             ) {
                 System.out.println(ExecutionStatus.SKIPPED.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
-                CrowdinRequestBuilder<Page<Directory>> directoriesApi = new DirectoriesApi(settings).getProjectDirectories(projectId.toString(), Pageable.unpaged());
+                CrowdinRequestBuilder<Page<Directory>> directoriesApi = new DirectoriesApi(settings).getProjectDirectories(projectId.toString(), Pageable.of(0, 500));
                 List<Directory> projectDirectories = PaginationUtil.unpaged(directoriesApi);
 
+                Long copyParentId = parentId;
                 parentId = null;
-                StringBuilder directoryPath_1 = new StringBuilder();
 
                 for (Directory dir : projectDirectories) {
-                    if (filePath.contains(dir.getName())) {
-                        directoryPath_1.append(dir.getName()).append(Utils.PATH_SEPARATOR);
+                    if (node.equals(dir.getName()) && Objects.equals(copyParentId, dir.getParentId())) {
                         parentId = dir.getId();
-                        parentIdMap.put(directoryPath_1.toString(), dir.getId());
+                        parentIdMap.put(parentPath.toString(), dir.getId());
                     }
                 }
             } else if (ex.getMessage().contains("Already creating directory")) {
@@ -308,7 +307,7 @@ public class CommandUtils extends BaseCli {
                         e.printStackTrace();
                     }
                 }
-                return createDirectory(api, projectId, directoryPayload, parentId, parentPath, filePath, isVerbose, settings, node);
+                return createDirectory(api, projectId, directoryPayload, parentId, parentPath, isVerbose, settings, node);
             } else {
                 System.out.println(ExecutionStatus.ERROR.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
                 System.out.println(ex.getMessage());
