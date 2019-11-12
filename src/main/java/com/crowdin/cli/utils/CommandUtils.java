@@ -242,7 +242,7 @@ public class CommandUtils extends BaseCli {
                             if (parentId != null) {
                                 directoryPayload.setParentId(parentId);
                             }
-                            parentId = createDirectory(api, projectId, directoryPayload, parentId, parentPath, isVerbose, settings, node);
+                            parentId = createDirectory(api, projectId, directoryPayload, parentId, parentPath, isVerbose, settings, node, branchId);
                             proceedDirectories.add(node);
                         }
                     }
@@ -265,7 +265,8 @@ public class CommandUtils extends BaseCli {
                                  StringBuilder parentPath,
                                  boolean isVerbose,
                                  Settings settings,
-                                 String node) {
+                                 String node,
+                                 Optional<Long> branchId) {
         try {
             Response response = api.createDirectory(projectId.toString(), directoryPayload).execute();
             Directory directory = ResponseUtil.getResponceBody(response, new TypeReference<SimpleResponse<Directory>>() {
@@ -293,7 +294,9 @@ public class CommandUtils extends BaseCli {
                 parentId = null;
 
                 for (Directory dir : projectDirectories) {
-                    if (node.equals(dir.getName()) && Objects.equals(copyParentId, dir.getParentId())) {
+                    if (node.equals(dir.getName())
+                            && Objects.equals(copyParentId, dir.getParentId())
+                            && Objects.equals(branchId.orElse(null), dir.getBranchId())) {
                         parentId = dir.getId();
                         parentIdMap.put(parentPath.toString(), dir.getId());
                     }
@@ -307,7 +310,7 @@ public class CommandUtils extends BaseCli {
                         e.printStackTrace();
                     }
                 }
-                return createDirectory(api, projectId, directoryPayload, parentId, parentPath, isVerbose, settings, node);
+                return createDirectory(api, projectId, directoryPayload, parentId, parentPath, isVerbose, settings, node, branchId);
             } else {
                 System.out.println(ExecutionStatus.ERROR.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
                 System.out.println(ex.getMessage());
