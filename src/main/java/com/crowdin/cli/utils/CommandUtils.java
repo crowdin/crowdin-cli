@@ -33,6 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -161,7 +162,7 @@ public class CommandUtils extends BaseCli {
     }
 
 
-    public HashMap<String, Long> parentIdMap = new HashMap<>();
+    private Map<String, Long> parentIdMap = new ConcurrentHashMap<>();
 
     /**
      * return Pair of preserved path and deepest directory id
@@ -242,50 +243,7 @@ public class CommandUtils extends BaseCli {
                             if (parentId != null) {
                                 directoryPayload.setParentId(parentId);
                             }
-                            try {
-                                Response response = api.createDirectory(projectId.toString(), directoryPayload).execute();
-                                Directory directory = ResponseUtil.getResponceBody(response, new TypeReference<SimpleResponse<Directory>>() {
-                                }).getEntity();
-                                parentId = directory.getId();
-                                if (isVerbose) {
-                                    System.out.println(response.getHeaders());
-                                    System.out.println(ObjectMapperUtil.getEntityAsString(directory));
-                                }
-                                if (directory.getId() != null) {
-                                    System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' "));
-                                }
-                                parentIdMap.put(parentPath.toString(), parentId);
-                            } catch (Exception ex) {
-                                if (
-                                        ex.getMessage().contains("Name must be unique") ||
-                                                ex.getMessage().contains("Already creating directory") ||
-                                                ex.getMessage().contains("This file is currently being updated")
-
-                                ) {
-                                    System.out.println(ExecutionStatus.SKIPPED.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
-                                    /*only if we go do this case we fetch all directories, lazy fetch*/
-
-                                    if (projectDirectories == null) {
-                                        CrowdinRequestBuilder<Page<Directory>> directoriesApi = new DirectoriesApi(settings).getProjectDirectories(projectId.toString(), Pageable.unpaged());
-                                        projectDirectories = PaginationUtil.unpaged(directoriesApi);
-                                    }
-
-                                    parentId = null;
-                                    StringBuilder directoryPath_1 = new StringBuilder();
-
-                                    for (Directory dir : projectDirectories) {
-                                        if (filePath.contains(dir.getName())) {
-                                            directoryPath_1.append(dir.getName()).append(Utils.PATH_SEPARATOR);
-                                            parentId = dir.getId();
-                                            parentIdMap.put(directoryPath_1.toString(), dir.getId());
-                                        }
-                                    }
-                                } else {
-                                    System.out.println(ExecutionStatus.ERROR.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
-                                    System.out.println(ex.getMessage());
-                                    ConsoleUtils.exitError();
-                                }
-                            }
+                            parentId = createDirectory(api, projectId, directoryPayload, parentId, parentPath, filePath, isVerbose, settings, node);
                             proceedDirectories.add(node);
                         }
                     }
@@ -299,6 +257,65 @@ public class CommandUtils extends BaseCli {
             }
         }
         return Pair.of("", parentId);
+    }
+
+    private Long createDirectory(DirectoriesApi api,
+                                 Long projectId,
+                                 DirectoryPayload directoryPayload,
+                                 Long parentId,
+                                 StringBuilder parentPath,
+                                 String filePath,
+                                 boolean isVerbose, Settings settings, String node) {
+        try {
+            Response response = api.createDirectory(projectId.toString(), directoryPayload).execute();
+            Directory directory = ResponseUtil.getResponceBody(response, new TypeReference<SimpleResponse<Directory>>() {
+            }).getEntity();
+            parentId = directory.getId();
+            if (isVerbose) {
+                System.out.println(response.getHeaders());
+                System.out.println(ObjectMapperUtil.getEntityAsString(directory));
+            }
+            if (directory.getId() != null) {
+                System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' "));
+            }
+            parentIdMap.put(parentPath.toString(), parentId);
+        } catch (Exception ex) {
+            if (
+                    ex.getMessage().contains("Name must be unique") ||
+                            ex.getMessage().contains("This file is currently being updated")
+
+            ) {
+                System.out.println(ExecutionStatus.SKIPPED.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
+                CrowdinRequestBuilder<Page<Directory>> directoriesApi = new DirectoriesApi(settings).getProjectDirectories(projectId.toString(), Pageable.unpaged());
+                List<Directory> projectDirectories = PaginationUtil.unpaged(directoriesApi);
+
+                parentId = null;
+                StringBuilder directoryPath_1 = new StringBuilder();
+
+                for (Directory dir : projectDirectories) {
+                    if (filePath.contains(dir.getName())) {
+                        directoryPath_1.append(dir.getName()).append(Utils.PATH_SEPARATOR);
+                        parentId = dir.getId();
+                        parentIdMap.put(directoryPath_1.toString(), dir.getId());
+                    }
+                }
+            } else if (ex.getMessage().contains("Already creating directory")) {
+                //wait until directory is fully created
+                try {
+                    Thread.sleep(500);
+                } catch (InterruptedException e) {
+                    if (isVerbose) {
+                        e.printStackTrace();
+                    }
+                }
+                return createDirectory(api, projectId, directoryPayload, parentId, parentPath, filePath, isVerbose, settings, node);
+            } else {
+                System.out.println(ExecutionStatus.ERROR.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
+                System.out.println(ex.getMessage());
+                ConsoleUtils.exitError();
+            }
+        }
+        return parentId;
     }
 
     public PropertiesBean makeConfigFromParameters(CommandLine commandLine, PropertiesBean propertiesBean) {
