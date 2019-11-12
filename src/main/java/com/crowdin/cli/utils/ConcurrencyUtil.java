@@ -27,9 +27,7 @@ public class ConcurrencyUtil {
         tasks.forEach(executor::submit);
         executor.shutdown();
         try {
-            //30 seconds for each task should be enough
-            int minutesForWait = (tasks.size() / 2) + 1;
-            if (!executor.awaitTermination(minutesForWait, TimeUnit.MINUTES)) {
+            if (!executor.awaitTermination(tasks.size() * 2, TimeUnit.MINUTES)) {
                 executor.shutdownNow();
             }
         } catch (InterruptedException ex) {
