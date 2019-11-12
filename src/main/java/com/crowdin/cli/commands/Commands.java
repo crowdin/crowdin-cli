@@ -42,6 +42,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.zip.ZipException;
 
@@ -509,7 +510,7 @@ public class Commands extends BaseCli {
 
             final String finalCommonPath = commonPath;
             final ProjectWrapper projectInfo = getProjectInfo();
-            HashMap<String, Long> parentFileIdMap = new HashMap<>();
+            Map<String, Long> parentFileIdMap = new ConcurrentHashMap<>();
             List<Runnable> tasks = sources.stream()
                     .map(source -> (Runnable) () -> {
                         File sourceFile = new File(source);
