@@ -602,8 +602,6 @@ public class Commands extends BaseCli {
 
                         Response response;
                         try {
-                            System.out.println("Uploading " + RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'");
-
                             Long storageId = createStorage(sourceFile);
                             filePayload.setStorageId(storageId);
                             filePayload.setName(preservePath);
@@ -628,8 +626,9 @@ public class Commands extends BaseCli {
                             } else {
                                 response = uploadFile(filePayload, filesApi);
                             }
-
+                            System.out.println(OK.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'"));
                         } catch (Exception e) {
+                            System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'"));
                             System.out.println("message : " + e.getMessage());
                             if (this.isDebug) {
                                 e.printStackTrace();

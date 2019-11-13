@@ -8,7 +8,7 @@ import java.util.concurrent.TimeUnit;
 
 public class ConcurrencyUtil {
 
-    private static final int CROWDIN_API_MAX_CONCURRENT_REQUESTS = 15;
+    private static final int CROWDIN_API_MAX_CONCURRENT_REQUESTS = 8;
 
     private ConcurrencyUtil() {
         throw new UnsupportedOperationException();
