@@ -2,7 +2,6 @@ package com.crowdin.cli.utils;
 
 import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.BranchClient;
-import com.crowdin.cli.client.DirectoryClient;
 import com.crowdin.cli.client.ProjectWrapper;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -229,7 +228,7 @@ public class CommandUtils extends BaseCli {
         if (nodes != null) {
             for (String node : nodes) {
                 if (node != null && !node.isEmpty()) {
-                    if (!node.equals(nodes[nodes.length - 1]) && branch == null) {
+                    if (!node.equals(nodes[nodes.length - 1])) {
                         parentPath.append(node).append(Utils.PATH_SEPARATOR);
                         if (!parentIdMap.isEmpty() && parentIdMap.containsKey(parentPath.toString())) {
                             parentId = parentIdMap.get(parentPath.toString());
@@ -245,12 +244,6 @@ public class CommandUtils extends BaseCli {
                             parentId = createDirectory(api, projectId, directoryPayload, parentId, parentPath, isVerbose, settings, node, branchId);
                             proceedDirectories.add(node);
                         }
-                    }
-                    if (proceedDirectories.contains(node) && branch != null) {
-                        parentId = new DirectoryClient(settings)
-                                .getProjectBranchByName(projectId, node)
-                                .map(Directory::getId)
-                                .orElse(null);
                     }
                 }
             }
