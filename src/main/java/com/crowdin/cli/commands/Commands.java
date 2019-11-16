@@ -492,7 +492,6 @@ public class Commands extends BaseCli {
         List<FileBean> files = this.propertiesBean.getFiles();
         boolean noFiles = true;
         Optional<Long> branchId = getOrCreateBranchId();
-        Set<String> directoriesCache = new HashSet<>();
 
         for (FileBean file : files) {
             if (file.getSource() == null
@@ -527,7 +526,6 @@ public class Commands extends BaseCli {
                                 this.branch,
                                 this.settings,
                                 projectInfo.getProject().getId(),
-                                directoriesCache,
                                 this.isVerbose);
                         String preservePath = preservePathToParentId.getLeft();
                         Long parentId = preservePathToParentId.getRight();
@@ -693,6 +691,7 @@ public class Commands extends BaseCli {
         String projectId = getProjectInfo().getProject().getId().toString();
         List<FileBean> files = propertiesBean.getFiles();
         List<FileEntity> projectFiles = PaginationUtil.unpaged(new FilesApi(settings).getProjectFiles(projectId, Pageable.unpaged()));
+        Map<Long, String> filesFullPath = commandUtils.getFilesFullPath(projectFiles, settings, getProjectInfo().getProject().getId());
 
 
         final ProjectWrapper projectInfo = getProjectInfo();
@@ -710,11 +709,6 @@ public class Commands extends BaseCli {
                             List<String> translations = commandUtils.getTranslations(lng, sourcesWithoutIgnore, file, projectInfo, propertiesBean, "translations");
                             Map<String, String> mapping = commandUtils.doLanguagesMapping(projectInfo, propertiesBean, languageEntity.getEditorCode());
                             List<File> translationFiles = new ArrayList<>();
-
-                            String[] common = new String[sourcesWithoutIgnores.size()];
-                            common = sourcesWithoutIgnores.toArray(common);
-                            String commonPath = Utils.commonPath(common);
-                            commonPath = Utils.replaceBasePath(commonPath, propertiesBean);
 
                             for (String translation : translations) {
                                 translation = Utils.PATH_SEPARATOR + translation;
@@ -745,13 +739,6 @@ public class Commands extends BaseCli {
                                         translationSrc = translationSrc.replaceAll("\\\\", "/");
                                         translationSrc = translationSrc.replaceAll("/+", "/");
                                     }
-                                    if (commonPath.contains("\\")) {
-                                        commonPath = commonPath.replaceAll("\\\\", "/");
-                                        commonPath = commonPath.replaceAll("/+", "/");
-                                    }
-                                }
-                                if (translationSrc.startsWith(commonPath)) {
-                                    translationSrc = translationSrc.replaceFirst(commonPath, "");
                                 }
                                 if (Utils.isWindows() && translationSrc.contains("/")) {
                                     translationSrc = translationSrc.replaceAll("/", Utils.PATH_SEPARATOR_REGEX);
@@ -780,19 +767,18 @@ public class Commands extends BaseCli {
                                     }
                                 }
 
+                                String translationSrcFinal = translationSrc;
+                                Optional<FileEntity> projectFileOrNone = EntityUtils.find(projectFiles, o -> filesFullPath.get(o.getId()).equalsIgnoreCase(translationSrcFinal));
+                                if (!projectFileOrNone.isPresent()) {
+                                    System.out.println("source '" + translationSrcFinal + "' does not exist in the project");
+                                    continue;
+                                }
                                 try {
                                     System.out.println("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean) + "'");
 
                                     TranslationsApi api = new TranslationsApi(settings);
                                     TranslationPayload translationPayload = new TranslationPayload();
-                                    String translationSrcFinal = translationSrc;
 
-                                    Optional<FileEntity> projectFileOrNone = EntityUtils.find(projectFiles, o -> o.getName().equalsIgnoreCase(translationSrcFinal));
-                                    if (!projectFileOrNone.isPresent()) {
-                                        System.out.println("source '" + translationSrcFinal + "' does not exist in the project");
-                                        ConsoleUtils.exitError();
-
-                                    }
                                     FileEntity projectFile = projectFileOrNone.get();
 
                                     translationPayload.setFileId(projectFile.getId());
