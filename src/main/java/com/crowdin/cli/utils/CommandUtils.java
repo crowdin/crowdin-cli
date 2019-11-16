@@ -173,7 +173,6 @@ public class CommandUtils extends BaseCli {
                                                 String branch,
                                                 Settings settings,
                                                 Long projectId,
-                                                Set<String> proceedDirectories,
                                                 boolean isVerbose) {
 
         String[] nodes = null;
@@ -242,13 +241,42 @@ public class CommandUtils extends BaseCli {
                                 directoryPayload.setParentId(parentId);
                             }
                             parentId = createDirectory(api, projectId, directoryPayload, parentId, parentPath, isVerbose, settings, node, branchId);
-                            proceedDirectories.add(node);
                         }
                     }
                 }
             }
         }
         return Pair.of("", parentId);
+    }
+
+    public Map<Long, String> getFilesFullPath(List<FileEntity> fileEntities, Settings settings, Long projectId) {
+        CrowdinRequestBuilder<Page<Directory>> directoriesApi = new DirectoriesApi(settings).getProjectDirectories(projectId.toString(), Pageable.of(0, 500));
+        List<Directory> projectDirectories = PaginationUtil.unpaged(directoriesApi);
+        return fileEntities.stream()
+                .map(fileEntity -> {
+                    List<String> path = new ArrayList<>();
+                    Long parentId = fileEntity.getDirectoryId();
+                    Long branchId = fileEntity.getBranchId();
+                    while (parentId != null) {
+                        final Long finalParentId = parentId;
+                        final Long finalBranchId = branchId;
+                        Optional<Directory> directory = projectDirectories.stream()
+                                .filter(pd -> Objects.equals(pd.getId(), finalParentId) && Objects.equals(pd.getBranchId(), finalBranchId))
+                                .findFirst();
+                        if (directory.isPresent()) {
+                            Directory dir = directory.get();
+                            path.add(dir.getName().toLowerCase());
+                            parentId = dir.getParentId();
+                            branchId = dir.getBranchId();
+                        } else {
+                            break;
+                        }
+                    }
+                    Collections.reverse(path);
+                    String fullFilePath = path.stream().collect(Collectors.joining("/", "", "/")) + fileEntity.getName().toLowerCase();
+                    return Pair.of(fileEntity.getId(), fullFilePath);
+                })
+                .collect(Collectors.toConcurrentMap(Pair::getLeft, Pair::getRight));
     }
 
     private Long createDirectory(DirectoriesApi api,
