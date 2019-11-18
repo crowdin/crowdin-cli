@@ -40,7 +40,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 import java.util.zip.ZipException;
 
@@ -511,7 +510,6 @@ public class Commands extends BaseCli {
 
             final String finalCommonPath = commonPath;
             final ProjectWrapper projectInfo = getProjectInfo();
-            Map<String, Long> parentFileIdMap = new ConcurrentHashMap<>();
             List<Runnable> tasks = sources.stream()
                     .map(source -> (Runnable) () -> {
                         File sourceFile = new File(source);
@@ -529,7 +527,6 @@ public class Commands extends BaseCli {
                                 this.isVerbose);
                         String preservePath = preservePathToParentId.getLeft();
                         Long parentId = preservePathToParentId.getRight();
-                        parentFileIdMap.put(sourceFile.getAbsolutePath(), parentId);
                         String fName;
                         if (isDest) {
                             fName = new File(file.getDest()).getName();
@@ -546,7 +543,7 @@ public class Commands extends BaseCli {
 
                         FilePayload filePayload = new FilePayload();
 
-                        filePayload.setDirectoryId(parentFileIdMap.get(sourceFile.getAbsolutePath()));
+                        filePayload.setDirectoryId(parentId);
                         filePayload.setTitle(preservePath);
                         filePayload.setType(file.getType());
                         branchId.ifPresent(filePayload::setBranchId);
