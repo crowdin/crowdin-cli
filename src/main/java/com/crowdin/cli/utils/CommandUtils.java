@@ -791,13 +791,22 @@ public class CommandUtils extends BaseCli {
 
     private String doTranslationReplace(String value, Map<String, String> translationReplace) {
         for (Map.Entry<String, String> translationReplaceEntry : translationReplace.entrySet()) {
-            String translationReplaceKey = translationReplaceEntry.getKey();
+            String translationReplaceKey = this.normalizeTranslationReplaceKey(translationReplaceEntry.getKey());
             String translationReplaceValue = translationReplaceEntry.getValue();
             if (value.contains(translationReplaceKey)) {
                 value = value.replace(translationReplaceKey, translationReplaceValue);
             }
         }
         return value;
+    }
+
+    private String normalizeTranslationReplaceKey(String translationReplaceKey) {
+        String normalizedValue = translationReplaceKey;
+        normalizedValue = normalizedValue.replaceAll("\\\\", "");
+        normalizedValue = normalizedValue.replaceAll("/+", "");
+        normalizedValue = normalizedValue.replaceAll("/", "");
+        normalizedValue = normalizedValue.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "");
+        return normalizedValue;
     }
 
     public List<String> getTranslations(String lang,
