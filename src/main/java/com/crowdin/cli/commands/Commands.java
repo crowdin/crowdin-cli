@@ -700,6 +700,16 @@ public class Commands extends BaseCli {
 
                 String lng = (this.language == null || this.language.isEmpty()) ? languageEntity.getId() : this.language;
                 List<String> sourcesWithoutIgnores = commandUtils.getSourcesWithoutIgnores(file, propertiesBean);
+                String[] common = new String[sourcesWithoutIgnores.size()];
+                common = sourcesWithoutIgnores.toArray(common);
+                String commonPath = Utils.replaceBasePath(Utils.commonPath(sourcesWithoutIgnores.toArray(common)), propertiesBean);
+                if (Utils.isWindows()) {
+                    if (commonPath.contains("\\")) {
+                        commonPath = commonPath.replaceAll("\\\\", "/");
+                        commonPath = commonPath.replaceAll("/+", "/");
+                    }
+                }
+                final String finalCommonPath = commonPath;
                 List<Runnable> tasks = sourcesWithoutIgnores.stream()
                         .map(sourcesWithoutIgnore -> (Runnable) () -> {
                             File sourcesWithoutIgnoreFile = new File(sourcesWithoutIgnore);
@@ -736,6 +746,9 @@ public class Commands extends BaseCli {
                                         translationSrc = translationSrc.replaceAll("\\\\", "/");
                                         translationSrc = translationSrc.replaceAll("/+", "/");
                                     }
+                                }
+                                if (!propertiesBean.getPreserveHierarchy() && translationSrc.startsWith(finalCommonPath)) {
+                                    translationSrc = translationSrc.replaceFirst(finalCommonPath, "");
                                 }
                                 if (Utils.isWindows() && translationSrc.contains("/")) {
                                     translationSrc = translationSrc.replaceAll("/", Utils.PATH_SEPARATOR_REGEX);
