@@ -29,14 +29,14 @@ import com.crowdin.util.ResponseUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.util.Strings;
 
 import javax.ws.rs.core.Response;
-import java.io.*;
-import java.nio.charset.Charset;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -407,6 +407,7 @@ public class Commands extends BaseCli {
         }
     }
 
+
     private void generate(String path) {
         File skeleton;
         if (path != null && !path.isEmpty()) {
@@ -431,7 +432,11 @@ public class Commands extends BaseCli {
 
             InputStream is = Commands.class.getResourceAsStream("/crowdin.yml");
             Files.copy(is, destination);
-            List<String> dummyConfig = IOUtils.readLines(new InputStreamReader(is));
+            List<String> dummyConfig = new ArrayList<>();
+
+            Scanner in = new Scanner(skeleton);
+            while (in.hasNextLine())
+                dummyConfig.add(in.nextLine());
 
             System.out.println(GENERATE_HELP_MESSAGE.getString());
             Scanner consoleScanner = new Scanner(System.in);
