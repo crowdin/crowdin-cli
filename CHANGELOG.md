@@ -1,5 +1,15 @@
 **Unreleased**
 
+**Version 3.0.1**
+
++ Increased performance in 6-7 times (multithreading)
++ Fixed: translations upload with `translation_replace` option
++ Fixed: sources upload with `preserve_hierarchy` option
++ Fixed: translations upload with `preserve_hierarchy` option
++ Fixed: CLI crash in the absence of source file on the Crowdin side
++ Fixed: Wrong files structure after upload for complex file trees
++ Fixed: Upload sources into branch
+
 **Version 3.0.0**
 
 + API v2 Support
