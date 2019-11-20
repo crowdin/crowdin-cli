@@ -407,7 +407,6 @@ public class Commands extends BaseCli {
         }
     }
 
-
     private void generate(String path) {
         File skeleton;
         if (path != null && !path.isEmpty()) {
