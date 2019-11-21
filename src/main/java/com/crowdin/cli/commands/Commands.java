@@ -429,7 +429,11 @@ public class Commands extends BaseCli {
 
             InputStream is = Commands.class.getResourceAsStream("/crowdin.yml");
             Files.copy(is, destination);
-            List<String> dummyConfig = IOUtils.readLines(new InputStreamReader(is));
+            List<String> dummyConfig = new ArrayList<>();
+
+            Scanner in = new Scanner(skeleton);
+            while (in.hasNextLine())
+                dummyConfig.add(in.nextLine());
 
             System.out.println(GENERATE_HELP_MESSAGE.getString());
             Scanner consoleScanner = new Scanner(System.in);
