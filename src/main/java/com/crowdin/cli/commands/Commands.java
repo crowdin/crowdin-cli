@@ -429,13 +429,17 @@ public class Commands extends BaseCli {
 
             InputStream is = Commands.class.getResourceAsStream("/crowdin.yml");
             Files.copy(is, destination);
-            List<String> dummyConfig = IOUtils.readLines(new InputStreamReader(is));
+            List<String> dummyConfig = new ArrayList<>();
+
+            Scanner in = new Scanner(skeleton);
+            while (in.hasNextLine())
+                dummyConfig.add(in.nextLine());
 
             System.out.println(GENERATE_HELP_MESSAGE.getString());
             Scanner consoleScanner = new Scanner(System.in);
             for (String param : Arrays.asList(API_KEY, PROJECT_IDENTIFIER, BASE_PATH, BASE_URL)) {
                 System.out.print(param.replaceAll("_", " ") + " : ");
-                String userInput = consoleScanner.next();
+                String userInput = consoleScanner.nextLine();
 
                 ListIterator<String> dummyConfigIterator = dummyConfig.listIterator();
                 while (dummyConfigIterator.hasNext()) {
