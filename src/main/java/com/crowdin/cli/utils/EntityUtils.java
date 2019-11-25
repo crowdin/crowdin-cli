@@ -11,6 +11,7 @@ import java.io.IOException;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -30,8 +31,8 @@ public class EntityUtils {
             Function<T, R> extractor,
             Function<T, R> extractor1) {
         return entities.stream()
-                .filter(entity -> extractor.apply(entity).equals(conditionValue))
-                .filter(entity -> extractor1.apply(entity).equals(conditionValue1))
+                .filter(entity -> Objects.equals(extractor.apply(entity), conditionValue))
+                .filter(entity -> Objects.equals(extractor1.apply(entity), conditionValue1))
                 .findFirst();
     }
 
