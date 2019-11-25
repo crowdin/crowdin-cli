@@ -274,6 +274,9 @@ public class CommandUtils extends BaseCli {
                     }
                     Collections.reverse(path);
                     String fullFilePath = path.stream().collect(Collectors.joining("/", "", "/")) + fileEntity.getName().toLowerCase();
+                    if (fullFilePath.startsWith("/")) {
+                        fullFilePath = fullFilePath.replaceFirst("/", "");
+                    }
                     return Pair.of(fileEntity.getId(), fullFilePath);
                 })
                 .collect(Collectors.toConcurrentMap(Pair::getLeft, Pair::getRight));
