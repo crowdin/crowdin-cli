@@ -635,7 +635,7 @@ public class CommandUtils extends BaseCli {
         }
         if (map != null) {
             for (Map.Entry<String, String> hashMap : map.entrySet()) {
-                if (languageInfo.getEditorCode().equals(hashMap.getKey())) {
+                if (languageInfo.getId().equals(hashMap.getKey())) {
                     mappingTranslations = mappingTranslations.replace(pattern, hashMap.getValue());
                     isMapped = true;
                     break;

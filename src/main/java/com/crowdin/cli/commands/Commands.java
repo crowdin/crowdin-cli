@@ -695,7 +695,7 @@ public class Commands extends BaseCli {
         final ProjectWrapper projectInfo = getProjectInfo();
         for (FileBean file : files) {
             for (Language languageEntity : projectInfo.getSupportedLanguages()) {
-                if (language != null && !language.isEmpty() && languageEntity != null && !language.equals(languageEntity.getEditorCode())) {
+                if (language != null && !language.isEmpty() && languageEntity != null && !language.equals(languageEntity.getId())) {
                     continue;
                 }
 
@@ -715,7 +715,7 @@ public class Commands extends BaseCli {
                         .map(sourcesWithoutIgnore -> (Runnable) () -> {
                             File sourcesWithoutIgnoreFile = new File(sourcesWithoutIgnore);
                             List<String> translations = commandUtils.getTranslations(lng, sourcesWithoutIgnore, file, projectInfo, propertiesBean, "translations");
-                            Map<String, String> mapping = commandUtils.doLanguagesMapping(projectInfo, propertiesBean, languageEntity.getEditorCode());
+                            Map<String, String> mapping = commandUtils.doLanguagesMapping(projectInfo, propertiesBean, languageEntity.getId());
                             List<File> translationFiles = new ArrayList<>();
 
                             for (String translation : translations) {
@@ -990,9 +990,8 @@ public class Commands extends BaseCli {
         } else {
             List<Language> projectLanguages = getProjectInfo().getProjectLanguages();
             for (Language projectLanguage : projectLanguages) {
-                if (projectLanguage != null && projectLanguage.getEditorCode() != null) {
-                    String crowdinCode = projectLanguage.getEditorCode();
-                    this.download(crowdinCode, ignoreMatch);
+                if (projectLanguage != null && projectLanguage.getId() != null) {
+                    this.download(projectLanguage.getId(), ignoreMatch);
                 }
             }
         }
