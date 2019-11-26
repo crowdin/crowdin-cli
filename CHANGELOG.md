@@ -1,5 +1,11 @@
 **Unreleased**
 
+**Version 3.0.2**
+
++ Fixed: problem writing to a configuration file
++ Fixed: upload sources/translations on a root dir level 
++ Fixed: Fix language codes
+
 **Version 3.0.1**
 
 + Increased performance in 6-7 times (multithreading)
