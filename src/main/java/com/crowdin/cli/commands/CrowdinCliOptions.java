@@ -12,12 +12,6 @@ public class CrowdinCliOptions {
 
     private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
 
-    public static final String ACCOUNT_KEY_DESCRIPTION = RESOURCE_BUNDLE.getString("account_key_description");
-
-    public static final String ACCOUNT_KEY_LONG = "account";
-
-    public static final String ACCOUNT_KEY_SHORT = "a";
-
     public static final String APPLICATION_NAME = "crowdin";
 
     public static final String AUTO_UPDATE = "auto-update";
@@ -174,7 +168,6 @@ public class CrowdinCliOptions {
 
     public Options init() {
         Options options = new Options();
-        options.addOption(ACCOUNT_KEY_SHORT, ACCOUNT_KEY_LONG, true, ACCOUNT_KEY_DESCRIPTION);
         options.addOption(null, AUTO_APPROVE_IMPORTED, false, null);
         options.addOption(null, NO_AUTO_APPROVE_IMPORTED, false, null);
         options.addOption(null, AUTO_UPDATE, false, null);

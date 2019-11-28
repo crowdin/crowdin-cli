@@ -34,10 +34,6 @@ public class CliProperties {
 
     private static final String BASE_URL_ENV = "base_url_env";
 
-    private static final String ACCOUNT_KEY = "account_key";
-
-    private static final String ACCOUNT_KEY_ENV = "account_key_env";
-
     private static final String PRESERVE_HIERARCHY = "preserve_hierarchy";
 
     private static final String FILES = "files";
@@ -84,9 +80,6 @@ public class CliProperties {
             //From environment variables
             if (property != null && property.getKey() != null) {
                 switch (property.getKey()) {
-                    case ACCOUNT_KEY_ENV:
-                        pb.setAccountKey(Utils.getEnvironmentVariable(property.getValue().toString()));
-                        break;
                     case API_TOKEN_ENV:
                         pb.setApiToken(Utils.getEnvironmentVariable(property.getValue().toString()));
                         break;
@@ -104,14 +97,10 @@ public class CliProperties {
                 }
             }
         }
+
         for (Map.Entry<String, Object> property : properties.entrySet()) {
             if (property != null && property.getKey() != null) {
                 switch (property.getKey()) {
-                    case ACCOUNT_KEY:
-                        if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
-                            pb.setAccountKey(property.getValue().toString());
-                        }
-                        break;
                     case API_TOKEN:
                         if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
                             pb.setApiToken(property.getValue().toString());

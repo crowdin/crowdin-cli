@@ -20,8 +20,6 @@ public class PropertiesBean {
 
     private String baseUrl;
 
-    private String accountKey;
-
     public List<FileBean> getFiles() {
         return files;
     }
@@ -72,13 +70,5 @@ public class PropertiesBean {
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
-    }
-
-    public String getAccountKey() {
-        return accountKey;
-    }
-
-    public void setAccountKey(String accountKey) {
-        this.accountKey = accountKey;
     }
 }
