@@ -12,9 +12,9 @@ public class PropertiesBean {
 
     private final List<FileBean> files = new ArrayList<FileBean>();
 
-    private String projectIdentifier;
+    private String projectId;
 
-    private String apiKey;
+    private String apiToken;
 
     private String basePath;
 
@@ -38,20 +38,20 @@ public class PropertiesBean {
         this.preserveHierarchy = preserveHierarchy;
     }
 
-    public String getProjectIdentifier() {
-        return projectIdentifier;
+    public String getProjectId() {
+        return projectId;
     }
 
-    public void setProjectIdentifier(String projectIdentifier) {
-        this.projectIdentifier = projectIdentifier;
+    public void setProjectId(String projectId) {
+        this.projectId = projectId;
     }
 
-    public String getApiKey() {
-        return apiKey;
+    public String getApiToken() {
+        return apiToken;
     }
 
-    public void setApiKey(String apiKey) {
-        this.apiKey = apiKey;
+    public void setApiToken(String apiToken) {
+        this.apiToken = apiToken;
     }
 
     public String getBasePath() {

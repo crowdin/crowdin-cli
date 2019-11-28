@@ -112,21 +112,21 @@ public class CrowdinCliOptions {
 
     public static final String LANGUAGE_SHORT = "l";
 
-    public static final String PROJECT_IDENTIFIER_DESCRIPTION = RESOURCE_BUNDLE.getString("project_identifier_description");
+    public static final String PROJECT_ID_DESCRIPTION = RESOURCE_BUNDLE.getString("project_id_description");
 
-    public static final String PROJECT_IDENTIFIER_LONG = "identifier";
+    public static final String PROJECT_ID_LONG = "id";
 
-    public static final String PROJECT_IDENTIFIER_SHORT = "i";
+    public static final String PROJECT_ID_SHORT = "i";
 
     public static final String IDENTITY = "identity";
 
     public static final String IDENTITY_DESCRIPTION = RESOURCE_BUNDLE.getString("identity_description");
 
-    public static final String PROJECT_KEY_DESCRIPTION = RESOURCE_BUNDLE.getString("project_key_description");
+    public static final String TOKEN_DESCRIPTION = RESOURCE_BUNDLE.getString("token_description");
 
-    public static final String PROJECT_KEY_LONG = "key";
+    public static final String TOKEN_LONG = "token";
 
-    public static final String PROJECT_KEY_SHORT = "k";
+    public static final String TOKEN_SHORT = "pat";
 
     public static final String SOURCE_DESCRIPTION = RESOURCE_BUNDLE.getString("source_description");
 
@@ -195,9 +195,9 @@ public class CrowdinCliOptions {
         options.addOption(null, NO_IMPORT_EQ_SUGGESTIONS, false, null);
         options.addOption(LANGUAGE_SHORT, LANGUAGE_LONG, true, null);
         options.addOption(VERBOSE_SHORT, VERBOSE_LONG, false, VERBOSE_DESCRIPTION);
-        options.addOption(PROJECT_IDENTIFIER_SHORT, PROJECT_IDENTIFIER_LONG, true, PROJECT_IDENTIFIER_DESCRIPTION);
+        options.addOption(PROJECT_ID_SHORT, PROJECT_ID_LONG, true, PROJECT_ID_DESCRIPTION);
         options.addOption(null, TREE_LONG, false, null);
-        options.addOption(PROJECT_KEY_SHORT, PROJECT_KEY_LONG, true, PROJECT_KEY_DESCRIPTION);
+        options.addOption(TOKEN_SHORT, TOKEN_LONG, true, TOKEN_DESCRIPTION);
         options.addOption(null, VERSION_LONG, false, VERSION_DESCRIPTION);
         options.addOption(null, NO_PROGRESS, false, NO_PROGRESS_DESCRIPTION);
         options.addOption(null, SKIP_GENERATE_DESCRIPTION, false, null);

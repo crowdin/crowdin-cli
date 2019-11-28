@@ -14,13 +14,13 @@ public class CliProperties {
 
     private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
 
-    public static final String PROJECT_IDENTIFIER = "project_identifier";
+    public static final String PROJECT_ID = "project_id";
 
-    private static final String PROJECT_IDENTIFIER_ENV = "project_identifier_env";
+    private static final String PROJECT_ID_ENV = "project_id_env";
 
-    public static final String API_KEY = "api_key";
+    public static final String API_TOKEN = "api_token";
 
-    private static final String API_KEY_ENV = "api_key_env";
+    private static final String API_TOKEN_ENV = "api_token_env";
 
     private static final String LOGIN = "login";
 
@@ -87,8 +87,8 @@ public class CliProperties {
                     case ACCOUNT_KEY_ENV:
                         pb.setAccountKey(Utils.getEnvironmentVariable(property.getValue().toString()));
                         break;
-                    case API_KEY_ENV:
-                        pb.setApiKey(Utils.getEnvironmentVariable(property.getValue().toString()));
+                    case API_TOKEN_ENV:
+                        pb.setApiToken(Utils.getEnvironmentVariable(property.getValue().toString()));
                         break;
                     case BASE_PATH_ENV:
                         pb.setBasePath(Utils.getEnvironmentVariable(property.getValue().toString()));
@@ -96,8 +96,8 @@ public class CliProperties {
                     case BASE_URL_ENV:
                         pb.setBaseUrl(Utils.getEnvironmentVariable(property.getValue().toString()));
                         break;
-                    case PROJECT_IDENTIFIER_ENV:
-                        pb.setProjectIdentifier(Utils.getEnvironmentVariable(property.getValue().toString()));
+                    case PROJECT_ID_ENV:
+                        pb.setProjectId(Utils.getEnvironmentVariable(property.getValue().toString()));
                         break;
                     default:
                         break;
@@ -112,9 +112,9 @@ public class CliProperties {
                             pb.setAccountKey(property.getValue().toString());
                         }
                         break;
-                    case API_KEY:
+                    case API_TOKEN:
                         if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
-                            pb.setApiKey(property.getValue().toString());
+                            pb.setApiToken(property.getValue().toString());
                         }
                         break;
                     case BASE_PATH:
@@ -127,9 +127,9 @@ public class CliProperties {
                             pb.setBaseUrl(property.getValue().toString());
                         }
                         break;
-                    case PROJECT_IDENTIFIER:
+                    case PROJECT_ID:
                         if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
-                            pb.setProjectIdentifier(property.getValue().toString());
+                            pb.setProjectId(property.getValue().toString());
                         }
                         break;
                     case PRESERVE_HIERARCHY:
