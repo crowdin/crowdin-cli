@@ -1,8 +1,8 @@
 #
 # Your Crowdin credentials
 #
-"project_identifier" : ""
-"api_key" : ""
+"project_id" : ""
+"api_token" : ""
 "base_path" : ""
 "base_url": ""
 

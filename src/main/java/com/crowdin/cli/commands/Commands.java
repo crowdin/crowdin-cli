@@ -143,7 +143,7 @@ public class Commands extends BaseCli {
             }
         }
         this.propertiesBean.setBaseUrl(commandUtils.getBaseUrl(this.propertiesBean));
-        this.settings = Settings.withBaseUrl(this.propertiesBean.getApiKey(), this.propertiesBean.getBaseUrl());
+        this.settings = Settings.withBaseUrl(this.propertiesBean.getApiToken(), this.propertiesBean.getBaseUrl());
         String basePath = commandUtils.getBasePath(this.propertiesBean, this.configFile, this.isDebug);
         if (basePath != null) {
             this.propertiesBean.setBasePath(basePath);
@@ -168,7 +168,7 @@ public class Commands extends BaseCli {
     private ProjectWrapper getProjectInfo() {
         if (projectInfo == null) {
             ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
-            projectInfo = new ProjectClient(this.settings).getProjectInfo(this.propertiesBean.getProjectIdentifier(), this.isDebug);
+            projectInfo = new ProjectClient(this.settings).getProjectInfo(this.propertiesBean.getProjectId(), this.isDebug);
             ConsoleSpinner.stop(OK);
         }
         return projectInfo;
@@ -205,20 +205,20 @@ public class Commands extends BaseCli {
         }
 
         if (this.identityCliConfig != null) {
-            if (this.identityCliConfig.get("project_identifier_env") != null) {
-                String projectIdentifierEnv = this.identityCliConfig.get("project_identifier_env").toString();
-                String projectIdentifier = System.getenv(projectIdentifierEnv);
+            if (this.identityCliConfig.get("project_idr_env") != null) {
+                String projectIdEnv = this.identityCliConfig.get("project_id_env").toString();
+                String projectId = System.getenv(projectIdEnv);
 
-                if (StringUtils.isNotEmpty(projectIdentifier)) {
-                    propertiesBean.setProjectIdentifier(projectIdentifier);
+                if (StringUtils.isNotEmpty(projectId)) {
+                    propertiesBean.setProjectId(projectId);
                 }
             }
-            if (this.identityCliConfig.get("api_key_env") != null) {
-                String apiKeyEnv = this.identityCliConfig.get("api_key_env").toString();
-                String apiKey = System.getenv(apiKeyEnv);
+            if (this.identityCliConfig.get("api_token_env") != null) {
+                String apiTokenEnv = this.identityCliConfig.get("api_token_env").toString();
+                String apiToken = System.getenv(apiTokenEnv);
 
-                if (StringUtils.isNotEmpty(apiKey)) {
-                    propertiesBean.setApiKey(apiKey);
+                if (StringUtils.isNotEmpty(apiToken)) {
+                    propertiesBean.setApiToken(apiToken);
                 }
             }
             if (this.identityCliConfig.get("base_path_env") != null) {
@@ -237,11 +237,11 @@ public class Commands extends BaseCli {
                     propertiesBean.setBaseUrl(baseUrl);
                 }
             }
-            if (this.identityCliConfig.get("project_identifier") != null) {
-                propertiesBean.setProjectIdentifier(this.identityCliConfig.get("project_identifier").toString());
+            if (this.identityCliConfig.get("project_id") != null) {
+                propertiesBean.setProjectId(this.identityCliConfig.get("project_id").toString());
             }
-            if (this.identityCliConfig.get("api_key") != null) {
-                propertiesBean.setApiKey(this.identityCliConfig.get("api_key").toString());
+            if (this.identityCliConfig.get("api_token") != null) {
+                propertiesBean.setApiToken(this.identityCliConfig.get("api_token").toString());
             }
             if (this.identityCliConfig.get("base_path") != null) {
                 propertiesBean.setBasePath(this.identityCliConfig.get("base_path").toString());
@@ -437,7 +437,7 @@ public class Commands extends BaseCli {
 
             System.out.println(GENERATE_HELP_MESSAGE.getString());
             Scanner consoleScanner = new Scanner(System.in);
-            for (String param : Arrays.asList(API_KEY, PROJECT_IDENTIFIER, BASE_PATH, BASE_URL)) {
+            for (String param : Arrays.asList(API_TOKEN, PROJECT_ID, BASE_PATH, BASE_URL)) {
                 System.out.print(param.replaceAll("_", " ") + " : ");
                 String userInput = consoleScanner.nextLine();
 
@@ -1251,16 +1251,16 @@ public class Commands extends BaseCli {
                 ConsoleUtils.exitError();
             }
 
-            if (propertiesBean == null || propertiesBean.getProjectIdentifier() == null) {
-                if (propertiesBeanIdentity == null || propertiesBeanIdentity.getProjectIdentifier() == null) {
-                    System.out.println(RESOURCE_BUNDLE.getString("error_missed_project_identifier"));
+            if (propertiesBean == null || propertiesBean.getProjectId() == null) {
+                if (propertiesBeanIdentity == null || propertiesBeanIdentity.getProjectId() == null) {
+                    System.out.println(RESOURCE_BUNDLE.getString("error_missed_project_id"));
                     ConsoleUtils.exitError();
                 }
             }
 
-            if (propertiesBean == null || propertiesBean.getApiKey() == null) {
-                if (propertiesBeanIdentity == null || propertiesBeanIdentity.getApiKey() == null) {
-                    System.out.println(RESOURCE_BUNDLE.getString("error_missed_api_key"));
+            if (propertiesBean == null || propertiesBean.getApiToken() == null) {
+                if (propertiesBeanIdentity == null || propertiesBeanIdentity.getApiToken() == null) {
+                    System.out.println(RESOURCE_BUNDLE.getString("error_missed_api_token"));
                     ConsoleUtils.exitError();
                 }
             }

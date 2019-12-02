@@ -354,15 +354,15 @@ public class CommandUtils extends BaseCli {
             ConsoleUtils.exitError();
         }
         FileBean fileBean = new FileBean();
-        if (commandLine.getOptionValue("identifier") != null && !commandLine.getOptionValue("identifier").isEmpty()) {
-            propertiesBean.setProjectIdentifier(commandLine.getOptionValue("identifier"));
+        if (commandLine.getOptionValue("id") != null && !commandLine.getOptionValue("id").isEmpty()) {
+            propertiesBean.setProjectId(commandLine.getOptionValue("id"));
         } else if (commandLine.getOptionValue("i") != null && !commandLine.getOptionValue("i").isEmpty()) {
-            propertiesBean.setProjectIdentifier(commandLine.getOptionValue("i"));
+            propertiesBean.setProjectId(commandLine.getOptionValue("i"));
         }
-        if (commandLine.getOptionValue("key") != null && !commandLine.getOptionValue("key").isEmpty()) {
-            propertiesBean.setApiKey(commandLine.getOptionValue("key"));
-        } else if (commandLine.getOptionValue("k") != null && !commandLine.getOptionValue("k").isEmpty()) {
-            propertiesBean.setApiKey(commandLine.getOptionValue("k"));
+        if (commandLine.getOptionValue("token") != null && !commandLine.getOptionValue("token").isEmpty()) {
+            propertiesBean.setApiToken(commandLine.getOptionValue("token"));
+        } else if (commandLine.getOptionValue("pat") != null && !commandLine.getOptionValue("pat").isEmpty()) {
+            propertiesBean.setApiToken(commandLine.getOptionValue("pat"));
         }
         if (commandLine.getOptionValue(BASE_URL_LONG) != null && !commandLine.getOptionValue(BASE_URL_LONG).isEmpty()) {
             /* todo need refactor method getBaseUrl */
