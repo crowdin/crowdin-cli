@@ -916,12 +916,13 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
-    public List<String> projectList(List<FileEntity> files, List<Directory> directories) {
+    public List<String> projectList(List<FileEntity> files, List<Directory> directories, Long branchId) {
         if (files == null) {
             return Collections.emptyList();
         }
         return files
                 .stream()
+                .filter(f -> branchId == null || Objects.equals(f.getBranchId(), branchId))
                 .map(file -> {
                     String name = file.getName();
                     return directories.stream()

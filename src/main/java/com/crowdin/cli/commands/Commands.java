@@ -17,10 +17,12 @@ import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.cli.utils.file.FileReader;
 import com.crowdin.cli.utils.file.FileUtil;
 import com.crowdin.cli.utils.tree.DrawTree;
+import com.crowdin.client.CrowdinRequestBuilder;
 import com.crowdin.client.api.*;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.*;
 import com.crowdin.common.request.*;
+import com.crowdin.common.response.Page;
 import com.crowdin.common.response.SimpleResponse;
 import com.crowdin.util.CrowdinHttpClient;
 import com.crowdin.util.ObjectMapperUtil;
@@ -1002,16 +1004,17 @@ public class Commands extends BaseCli {
         if (subcommand != null && !subcommand.isEmpty()) {
             switch (subcommand) {
                 case PROJECT: {
-                    List<String> files = commandUtils.projectList(getProjectInfo().getFiles(), getProjectInfo().getDirectories());
+                    Long branchId = null;
                     if (branch != null) {
-                        for (String file : files) {
-                            if (file.startsWith(branch) || file.startsWith("/" + branch)) {
-                                result.add(Utils.PATH_SEPARATOR + file);
-                            }
+                        CrowdinRequestBuilder<Page<Branch>> branches = new BranchesApi(settings).getBranches(getProjectInfo().getProjectId(), null);
+                        Optional<Branch> branchOp = PaginationUtil.unpaged(branches).stream()
+                                .filter(br -> br.getName().equalsIgnoreCase(branch))
+                                .findFirst();
+                        if (branchOp.isPresent()) {
+                            branchId = branchOp.get().getId();
                         }
-                    } else {
-                        result = files;
                     }
+                    result = commandUtils.projectList(getProjectInfo().getFiles(), getProjectInfo().getDirectories(), branchId);
                     break;
                 }
                 case SOURCES: {
