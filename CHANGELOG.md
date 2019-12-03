@@ -1,5 +1,11 @@
 **Unreleased**
 
+**Version 3.0.3**
++ update config options (api_key -> api_token, project_identifier -> project_id)
++ fix: fixed list project command with specified branch
++ fix: fixed error message when project id is not specified
++ fix: added missing checkboxes
+
 **Version 3.0.2**
 
 + Fixed: problem writing to a configuration file
