@@ -787,7 +787,7 @@ public class Commands extends BaseCli {
                                     continue;
                                 }
                                 try {
-                                    System.out.println("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean) + "'");
+                                    System.out.println(OK.withIcon("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean) + "'"));
 
                                     TranslationsApi api = new TranslationsApi(settings);
                                     TranslationPayload translationPayload = new TranslationPayload();

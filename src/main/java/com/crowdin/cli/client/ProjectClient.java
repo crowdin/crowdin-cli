@@ -50,6 +50,12 @@ public class ProjectClient extends Client {
         ProjectsApi api = new ProjectsApi(settings);
         Project project = null;
 
+        if (projectId == null || projectId.isEmpty()) {
+            ConsoleSpinner.stop(ExecutionStatus.ERROR);
+            System.out.println("message : project id is not defined");
+            ConsoleUtils.exitError();
+        }
+
         try {
             project = api.getProject(projectId).getResponseEntity().getEntity();
         } catch (Exception e) {
