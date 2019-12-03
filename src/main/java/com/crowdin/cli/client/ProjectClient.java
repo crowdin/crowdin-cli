@@ -52,7 +52,7 @@ public class ProjectClient extends Client {
 
         if (projectId == null || projectId.isEmpty()) {
             ConsoleSpinner.stop(ExecutionStatus.ERROR);
-            System.out.println("message : project identifier is not defined");
+            System.out.println("message : project id is not defined");
             ConsoleUtils.exitError();
         }
 
