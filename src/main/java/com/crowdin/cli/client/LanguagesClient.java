@@ -28,6 +28,6 @@ public class LanguagesClient extends Client {
 
     public List<Language> getAllSupportedLanguages() {
         CrowdinRequestBuilder<Page<Language>> getLanguages = new LanguagesApi(settings).getLanguages(null);
-        return PaginationUtil.unpaged(getLanguages);
+        return PaginationUtil.unpaged(getLanguages, 500);
     }
 }
