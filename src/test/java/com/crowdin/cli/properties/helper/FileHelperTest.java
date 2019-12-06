@@ -1,111 +1,52 @@
 package com.crowdin.cli.properties.helper;
 
-import com.crowdin.cli.properties.FileBean;
-import com.crowdin.cli.properties.PropertiesBean;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Ignore;
-import org.junit.Test;
+import org.apache.commons.io.FilenameUtils;
+import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.BeforeAll;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.FileVisitResult;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.SimpleFileVisitor;
-import java.nio.file.attribute.BasicFileAttributes;
-import java.util.Collections;
-import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Stream;
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-/**
- * Created by daniel on 10/7/17.
- */
 public class FileHelperTest {
 
-    private Path projectDir;
-    private FileBean fileBean;
-    private PropertiesBean propertiesBean;
+    static TempProject project;
+    static String javaClass = "src/java/com/danya/Source.java";
+    static String xmlClass = "src/resources/messages.xml";
+    static String en_xmlClass = "src/java/com/danya/en_messages.xml";
 
-    @Before
-    public void setUp() throws Exception {
-        // Mocking up a fake project.
-        //XXX: Currently creates no files, because the only test does no I/O.
-        projectDir = Files.createTempDirectory("FileHelperTest.");
 
-        mockFile("module/src/main/java/com/acme/module/Source.java");
-        mockFile("module/src/main/resources/com/acme/module/Bundle.properties");
-        mockFile("module/src/main/resources/com/acme/module/Bundle_ar.properties");
-        mockFile("module/build/main/java/com/acme/module/Source.class");
-        mockFile("module/build/main/resources/com/acme/module/Bundle.properties");
-        mockFile("module/build/main/resources/com/acme/module/Bundle_ar.properties");
-
-        propertiesBean = new PropertiesBean();
-
-        fileBean = new FileBean();
-        fileBean.setSource("**/*.properties");
-        List<String> ignorePatterns = new LinkedList<>();
-        ignorePatterns.add("**/*_*.properties");
-        ignorePatterns.add("**/build/**/*");
-        fileBean.setIgnore(ignorePatterns);
+    @BeforeAll
+    static void createProj() {
+        project = new TempProject(FileHelperTest.class);
+        project.addFile(javaClass);
+        project.addFile(xmlClass);
+        project.addFile(en_xmlClass);
     }
 
-    private void mockFile(String path) throws Exception {
-        Path file = projectDir.resolve(path);
-        Files.createDirectories(file.getParent());
-        Files.createFile(file);
+    @AfterAll
+    static void deleteProj() {
+        project.delete();
     }
 
-    @After
-    public void tearDown() throws Exception {
-        //XXX: Would delete temp here if we had created it.
-        insecureRecursiveDelete(projectDir);
+    @ParameterizedTest
+    @MethodSource
+    public void testGetFileSource(String source, int numOfFiles) {
+        FileHelper fileHelper = new FileHelper(project.getBasePath());
+        List<File> sources = fileHelper.getFileSource(source);
+        assertEquals(numOfFiles, sources.size());
     }
 
-    private void insecureRecursiveDelete(Path dir) throws Exception {
-        Files.walkFileTree(dir, new SimpleFileVisitor<Path>() {
-            @Override
-            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
-                Files.delete(file);
-                return FileVisitResult.CONTINUE;
-            }
-
-            @Override
-            public FileVisitResult postVisitDirectory(Path dir, IOException exc) throws IOException {
-                Files.delete(dir);
-                return FileVisitResult.CONTINUE;
-            }
-        });
-    }
-
-    @Test
-    @Ignore
-    public void testGetFileSource() {
-        List<File> results = new FileHelper().getFileSource(fileBean, propertiesBean);
-
-        List<File> expectedResults = new LinkedList<>();
-        expectedResults.add(projectDir.resolve("module/build/main/resources/com/acme/module/Bundle.properties").toFile());
-        expectedResults.add(projectDir.resolve("module/build/main/resources/com/acme/module/Bundle_ar.properties").toFile());
-        expectedResults.add(projectDir.resolve("module/src/main/resources/com/acme/module/Bundle.properties").toFile());
-        expectedResults.add(projectDir.resolve("module/src/main/resources/com/acme/module/Bundle_ar.properties").toFile());
-        Collections.sort(results);
-        assertEquals(expectedResults, results);
-    }
-
-    @Test
-    public void testGetFileSourceWithoutIgnores() {
-        List<File> sources = new LinkedList<>();
-        sources.add(projectDir.resolve("module/src/main/resources/com/acme/module/Bundle.properties").toFile());
-        sources.add(projectDir.resolve("module/src/main/resources/com/acme/module/Bundle_ar.properties").toFile());
-        sources.add(projectDir.resolve("module/build/main/resources/com/acme/module/Bundle.properties").toFile());
-        sources.add(projectDir.resolve("module/build/main/resources/com/acme/module/Bundle_ar.properties").toFile());
-
-        List<File> results = new FileHelper().filterOutIgnoredFiles(sources, fileBean, propertiesBean);
-
-        List<File> expectedResults = new LinkedList<>();
-        expectedResults.add(projectDir.resolve("module/src/main/resources/com/acme/module/Bundle.properties").toFile());
-        assertEquals(expectedResults, results);
+    static Stream<Arguments> testGetFileSource() {
+        return Stream.of(
+                arguments(FilenameUtils.separatorsToSystem("/**/*.*"), 3),
+                arguments(FilenameUtils.separatorsToSystem("/**/*.xml"), 2)
+        );
     }
 }

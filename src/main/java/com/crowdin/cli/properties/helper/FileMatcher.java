@@ -15,14 +15,14 @@ import java.nio.file.PathMatcher;
 class FileMatcher implements PathMatcher {
     private final PathMatcher delegate;
 
-    FileMatcher(String pattern, FileBean fileBean, PropertiesBean propertiesBean) {
+    FileMatcher(String pattern, String basePath) {
 
         // Making matchers match the full path.
-        if (propertiesBean != null && propertiesBean.getBasePath() != null) {
-            if (!propertiesBean.getBasePath().trim().endsWith(Utils.PATH_SEPARATOR) && !pattern.trim().startsWith(Utils.PATH_SEPARATOR)) {
-                pattern = propertiesBean.getBasePath() + Utils.PATH_SEPARATOR + pattern;
+        if (basePath != null) {
+            if (!basePath.trim().endsWith(Utils.PATH_SEPARATOR) && !pattern.trim().startsWith(Utils.PATH_SEPARATOR)) {
+                pattern = basePath + Utils.PATH_SEPARATOR + pattern;
             } else {
-                pattern = propertiesBean.getBasePath().trim() + pattern.trim();
+                pattern = basePath.trim() + pattern.trim();
                 pattern = pattern.replace(Utils.PATH_SEPARATOR_REGEX + Utils.PATH_SEPARATOR_REGEX, Utils.PATH_SEPARATOR_REGEX);
             }
         }

@@ -145,9 +145,9 @@ public class CommandUtils extends BaseCli {
             return Collections.emptyList();
         }
 
-        FileHelper fileHelper = new FileHelper();
-        List<File> sources = fileHelper.getFileSource(file, propertiesBean);
-        List<File> sourcesWithoutIgnores = fileHelper.filterOutIgnoredFiles(sources, file, propertiesBean);
+        FileHelper fileHelper = new FileHelper(propertiesBean.getBasePath());
+        List<File> sources = fileHelper.getFileSource(file.getSource());
+        List<File> sourcesWithoutIgnores = fileHelper.filterOutIgnoredFiles(sources, file.getIgnore());
 
         List<String> result = new ArrayList<>();
         if (sourcesWithoutIgnores != null) {
