@@ -140,14 +140,15 @@ public class CommandUtils extends BaseCli {
         return translations;
     }
 
-    public List<String> getSourcesWithoutIgnores(FileBean file, PropertiesBean propertiesBean) {
+    public List<String> getSourcesWithoutIgnores(FileBean file, PropertiesBean propertiesBean, PlaceholderUtil placeholderUtil) {
         if (propertiesBean == null || file == null) {
             return Collections.emptyList();
         }
 
         FileHelper fileHelper = new FileHelper(propertiesBean.getBasePath());
         List<File> sources = fileHelper.getFileSource(file.getSource());
-        List<File> sourcesWithoutIgnores = fileHelper.filterOutIgnoredFiles(sources, file.getIgnore());
+        List<String> formattedIgnores = placeholderUtil.format(sources, file.getIgnore());
+        List<File> sourcesWithoutIgnores = fileHelper.filterOutIgnoredFiles(sources, formattedIgnores);
 
         List<String> result = new ArrayList<>();
         if (sourcesWithoutIgnores != null) {
@@ -665,13 +666,16 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
-    public Map<String, String> doLanguagesMapping(ProjectWrapper projectInfo, PropertiesBean propertiesBean, String lang) {
+    public Map<String, String> doLanguagesMapping(ProjectWrapper projectInfo,
+                                                  PropertiesBean propertiesBean,
+                                                  String lang,
+                                                  PlaceholderUtil placeholderUtil) {
         Map<String, String> mapping = new HashMap<>();
 
         Map<FileBean, List<String>> sourcesByFileBean = new IdentityHashMap<>();
         List<FileBean> files = propertiesBean.getFiles();
         for (FileBean file : files) {
-            sourcesByFileBean.put(file, getSourcesWithoutIgnores(file, propertiesBean));
+            sourcesByFileBean.put(file, getSourcesWithoutIgnores(file, propertiesBean, placeholderUtil));
         }
 
         Optional<Language> projectLanguageOrNull = projectInfo.getProjectLanguageByCrowdinCode(lang);
@@ -812,12 +816,14 @@ public class CommandUtils extends BaseCli {
         return normalizedValue;
     }
 
+//    TODO: remove this method and replace it with PlaceholderUtil.format where necessary
     public List<String> getTranslations(String lang,
                                         String sourceFile,
                                         FileBean file,
                                         ProjectWrapper projectInfo,
                                         PropertiesBean propertiesBean,
-                                        String command) {
+                                        String command,
+                                        PlaceholderUtil placeholderUtil) {
         List<String> result = new ArrayList<>();
         List<Language> projectLanguages = projectInfo.getProjectLanguages();
         for (Language projectLanguage : projectLanguages) {
@@ -864,7 +870,7 @@ public class CommandUtils extends BaseCli {
                         if (translations.contains(PLACEHOLDER_OSX_CODE)) {
                             translations = translations.replace(PLACEHOLDER_OSX_CODE, language.getOsxCode()); // langsInfo.getString("osx_code"));
                         }
-                        List<String> projectFiles = this.getSourcesWithoutIgnores(file, propertiesBean);
+                        List<String> projectFiles = this.getSourcesWithoutIgnores(file, propertiesBean, placeholderUtil);
                         String commonPath;
                         String[] common = new String[projectFiles.size()];
                         common = projectFiles.toArray(common);

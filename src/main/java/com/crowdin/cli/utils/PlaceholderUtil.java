@@ -10,6 +10,7 @@ import java.util.List;
 
 public class PlaceholderUtil {
 
+//    TODO: deal with PLACEHOLDER_%PLACEHOLDER_NAME%
     protected static final String PLACEHOLDER_ANDROID_CODE = "%android_code%";
     protected static final String PLACEHOLDER_FILE_EXTENTION = "%file_extension%";
     protected static final String PLACEHOLDER_FILE_NAME = "%file_name%";
@@ -23,8 +24,6 @@ public class PlaceholderUtil {
     protected static final String PLACEHOLDER_ORIGINAL_FILE_NAME = "%original_file_name%";
     protected static final String PLACEHOLDER_ORIGINAL_PATH = "%original_path%";
 
-    private List<Language> supportedLangs;
-    private List<Language> projectLangs;
     private List<Language> langs;
     private String basePath;
 
@@ -80,6 +79,7 @@ public class PlaceholderUtil {
                         .replace(PLACEHOLDER_FILE_EXTENTION, fileExt)
                         .replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
 //                now sure about double asterisks
+//                TODO: Make sure the next line works as it should
                 changed2ToFormat = changed2ToFormat.replace("/**", fileParent);
                 result.add(basePath + changed2ToFormat);
             }

@@ -2,6 +2,7 @@ package com.crowdin.cli.utils;
 
 import com.crowdin.common.models.Language;
 
+//TODO: make it for real Language
 public enum LanguageBuilder {
     UKR("Ukrainian", "ua", "ukr", "uk-UA"),
     RUS("Russian", "ru", "rus", "ru-RU"),
