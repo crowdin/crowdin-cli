@@ -57,7 +57,7 @@ public class FileHelper {
 
     public FileHelper(String basePath) {
         if (basePath == null)
-            throw new NullPointerException("Passed Null to the constructor");
+            throw new NullPointerException("in FileHelper.constructor");
         this.basePath = basePath;
     }
 
