@@ -27,7 +27,7 @@ public class PlaceholderUtilTest {
                                       String[] expected) {
         PlaceholderUtil placeholderUtil =
                 new PlaceholderUtil(Arrays.asList(supportedLangs), Arrays.asList(projectLangs), "/proj/path/");
-        List<String> result = placeholderUtil.format(Arrays.asList(sources), toFormat);
+        List<String> result = placeholderUtil.format(Arrays.asList(sources), toFormat, true);
         assertEquals(Arrays.asList(expected), result);
     }
 
@@ -63,7 +63,7 @@ public class PlaceholderUtilTest {
                                       String[] expected) {
         PlaceholderUtil placeholderUtil =
                 new PlaceholderUtil(Arrays.asList(supportedLangs), Arrays.asList(projectLangs), "/proj/path/");
-        List<String> result = placeholderUtil.format(Arrays.asList(sources), Arrays.asList(toFormat));
+        List<String> result = placeholderUtil.format(Arrays.asList(sources), Arrays.asList(toFormat), true);
         assertEquals(Arrays.asList(expected), result);
     }
 
