@@ -46,7 +46,9 @@ public class PlaceholderUtil {
 
     public List<String> format(List<File> sources, List<String> toFormat, boolean onProjectLangs) {
         if (sources == null || toFormat == null)
-            throw new NullPointerException("in PlaceholderUtil.format(for multiple)");
+//            TODO: maybe fields of FileBean must be empty lists, but not nulls?
+            return new ArrayList<>();
+//            throw new NullPointerException("PlaceholderUtil.format(multiple)");
         List<String> res = new ArrayList<>();
         for(String str : toFormat) {
             res.addAll(format(sources, str, onProjectLangs));
