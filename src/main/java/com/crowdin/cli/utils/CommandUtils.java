@@ -815,7 +815,6 @@ public class CommandUtils extends BaseCli {
         return normalizedValue;
     }
 
-//    TODO: remove this method and replace it with PlaceholderUtil.format where necessary
     public List<String> getTranslations(String lang,
                                         String sourceFile,
                                         FileBean file,

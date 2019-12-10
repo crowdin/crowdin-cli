@@ -258,7 +258,6 @@ public class FileHelper {
                 resultPath.append(node);
             }
         }
-//        How could that be a good idea to send Null back?
 //        if (resultList == null || resultList.isEmpty()) {
 //            return null;
 //        }

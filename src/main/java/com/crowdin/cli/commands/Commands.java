@@ -173,7 +173,6 @@ public class Commands extends BaseCli {
         return projectInfo;
     }
 
-//    TODO: change it
     private PlaceholderUtil getPlaceholderUtil() {
         ProjectWrapper proj = getProjectInfo();
         return new PlaceholderUtil(proj.getSupportedLanguages(), proj.getProjectLanguages(), propertiesBean.getBasePath());
@@ -719,7 +718,6 @@ public class Commands extends BaseCli {
                 List<Runnable> tasks = sourcesWithoutIgnores.stream()
                         .map(sourcesWithoutIgnore -> (Runnable) () -> {
                             File sourcesWithoutIgnoreFile = new File(sourcesWithoutIgnore);
-//                            TODO: change command.getTranslations to PlaceholderUtil.format
                             List<String> translations = commandUtils.getTranslations(lng, sourcesWithoutIgnore, file, projectInfo, propertiesBean, "translations", getPlaceholderUtil());
                             Map<String, String> mapping = commandUtils.doLanguagesMapping(projectInfo, propertiesBean, languageEntity.getId(), getPlaceholderUtil());
                             List<File> translationFiles = new ArrayList<>();
@@ -1031,7 +1029,6 @@ public class Commands extends BaseCli {
                 case TRANSLATIONS: {
                     List<FileBean> files = propertiesBean.getFiles();
                     for (FileBean file : files) {
-//                        TODO: change command.getTranslations to PlaceholderUtil.format
                         List<String> translations = commandUtils.getTranslations(null, null, file, this.getProjectInfo(), propertiesBean, command, getPlaceholderUtil());
                         result.addAll(translations);
                     }
