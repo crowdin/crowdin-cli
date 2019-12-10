@@ -2,10 +2,6 @@ plugins {
     id 'java'
 }
 
-//tasks.test {
-//    useJUnitPlatform()
-//}
-
 group 'com.crowdin'
 version '3.0.3'
 

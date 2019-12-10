@@ -258,9 +258,6 @@ public class FileHelper {
                 resultPath.append(node);
             }
         }
-//        if (resultList == null || resultList.isEmpty()) {
-//            return null;
-//        }
         return resultList;
     }
 
