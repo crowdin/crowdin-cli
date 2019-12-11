@@ -56,13 +56,16 @@ public class FileHelper {
     private final String basePath;
 
     public FileHelper(String basePath) {
-        if (basePath == null)
+        if (basePath == null) {
             throw new NullPointerException("in FileHelper.constructor");
+        }
         this.basePath = basePath;
     }
 
     public List<File> getFileSource(String source) {
-        if (source == null) return Collections.emptyList();
+        if (source == null) {
+            return Collections.emptyList();
+        }
 
         List<File> resultList = new ArrayList<>();
 
