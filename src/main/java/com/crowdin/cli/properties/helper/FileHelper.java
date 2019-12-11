@@ -106,7 +106,7 @@ public class FileHelper {
      * Filters the provided list of source files using the configured filters.
      *
      * @param sources  the source files.
-//     * @param fileBean the file bean from the config.
+     * @param ignores the configured filters.
      * @return the list of source files withoug the ignores.
      */
     public List<File> filterOutIgnoredFiles(List<File> sources, List<String> ignores) {
