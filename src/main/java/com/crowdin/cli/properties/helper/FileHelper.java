@@ -53,17 +53,28 @@ public class FileHelper {
 
     private static final String ESCAPE_ASTERISK_PLACEHOLDER = "{ESCAPE_ASTERISK}";
 
-    public List<File> getFileSource(FileBean file, PropertiesBean propertiesBean) {
-        if (file == null) return Collections.emptyList();
+    private final String basePath;
+
+    public FileHelper(String basePath) {
+        if (basePath == null) {
+            throw new NullPointerException("in FileHelper.constructor");
+        }
+        this.basePath = basePath;
+    }
+
+    public List<File> getFileSource(String source) {
+        if (source == null) {
+            return Collections.emptyList();
+        }
 
         List<File> resultList = new ArrayList<>();
 
-        String pattern = file.getSource();
-        if (propertiesBean != null && propertiesBean.getBasePath() != null) {
-            if (!propertiesBean.getBasePath().trim().endsWith(Utils.PATH_SEPARATOR) && !file.getSource().trim().startsWith(Utils.PATH_SEPARATOR)) {
-                pattern = propertiesBean.getBasePath() + Utils.PATH_SEPARATOR + file.getSource();
+        String pattern = source;
+        if (basePath != null) {
+            if (!basePath.trim().endsWith(Utils.PATH_SEPARATOR) && !source.trim().startsWith(Utils.PATH_SEPARATOR)) {
+                pattern = basePath + Utils.PATH_SEPARATOR + source;
             } else {
-                pattern = propertiesBean.getBasePath().trim() + file.getSource().trim();
+                pattern = basePath.trim() + source.trim();
                 pattern = pattern.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
             }
         }
@@ -95,25 +106,21 @@ public class FileHelper {
      * Filters the provided list of source files using the configured filters.
      *
      * @param sources  the source files.
-     * @param fileBean the file bean from the config.
+     * @param ignores the configured filters.
      * @return the list of source files withoug the ignores.
      */
-    public List<File> filterOutIgnoredFiles(List<File> sources, FileBean fileBean, PropertiesBean propertiesBean) {
+    public List<File> filterOutIgnoredFiles(List<File> sources, List<String> ignores) {
         if (sources == null) {
             return sources;
         }
-        if (fileBean == null) {
-            return sources;
-        }
 
-        List<String> ignores = fileBean.getIgnore();
         if (ignores == null || ignores.isEmpty()) {
             return sources;
         }
 
         List<FileMatcher> matchers = new ArrayList<>(ignores.size());
         for (String pattern : ignores) {
-            matchers.add(new FileMatcher(pattern, fileBean, propertiesBean));
+            matchers.add(new FileMatcher(pattern, basePath));
         }
 
         List<File> results = new ArrayList<>(sources.size());
@@ -253,9 +260,6 @@ public class FileHelper {
             } else {
                 resultPath.append(node);
             }
-        }
-        if (resultList == null || resultList.isEmpty()) {
-            return null;
         }
         return resultList;
     }

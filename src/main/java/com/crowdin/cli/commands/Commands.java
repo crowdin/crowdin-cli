@@ -7,10 +7,7 @@ import com.crowdin.cli.client.ProjectWrapper;
 import com.crowdin.cli.properties.CliProperties;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.CommandUtils;
-import com.crowdin.cli.utils.ConcurrencyUtil;
-import com.crowdin.cli.utils.EntityUtils;
-import com.crowdin.cli.utils.Utils;
+import com.crowdin.cli.utils.*;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ConsoleUtils;
 import com.crowdin.cli.utils.console.ExecutionStatus;
@@ -174,6 +171,11 @@ public class Commands extends BaseCli {
             ConsoleSpinner.stop(OK);
         }
         return projectInfo;
+    }
+
+    private PlaceholderUtil getPlaceholderUtil() {
+        ProjectWrapper proj = getProjectInfo();
+        return new PlaceholderUtil(proj.getSupportedLanguages(), proj.getProjectLanguages(), propertiesBean.getBasePath());
     }
 
     private boolean notNeedInitialisation(String resultCmd, CommandLine commandLine) {
@@ -502,7 +504,7 @@ public class Commands extends BaseCli {
                     || file.getTranslation().isEmpty()) {
                 continue;
             }
-            List<String> sources = this.commandUtils.getSourcesWithoutIgnores(file, this.propertiesBean);
+            List<String> sources = this.commandUtils.getSourcesWithoutIgnores(file, this.propertiesBean, getPlaceholderUtil());
             if (!sources.isEmpty()) {
                 noFiles = false;
             }
@@ -702,7 +704,7 @@ public class Commands extends BaseCli {
                 }
 
                 String lng = (this.language == null || this.language.isEmpty()) ? languageEntity.getId() : this.language;
-                List<String> sourcesWithoutIgnores = commandUtils.getSourcesWithoutIgnores(file, propertiesBean);
+                List<String> sourcesWithoutIgnores = commandUtils.getSourcesWithoutIgnores(file, propertiesBean, getPlaceholderUtil());
                 String[] common = new String[sourcesWithoutIgnores.size()];
                 common = sourcesWithoutIgnores.toArray(common);
                 String commonPath = Utils.replaceBasePath(Utils.commonPath(sourcesWithoutIgnores.toArray(common)), propertiesBean);
@@ -716,8 +718,8 @@ public class Commands extends BaseCli {
                 List<Runnable> tasks = sourcesWithoutIgnores.stream()
                         .map(sourcesWithoutIgnore -> (Runnable) () -> {
                             File sourcesWithoutIgnoreFile = new File(sourcesWithoutIgnore);
-                            List<String> translations = commandUtils.getTranslations(lng, sourcesWithoutIgnore, file, projectInfo, propertiesBean, "translations");
-                            Map<String, String> mapping = commandUtils.doLanguagesMapping(projectInfo, propertiesBean, languageEntity.getId());
+                            List<String> translations = commandUtils.getTranslations(lng, sourcesWithoutIgnore, file, projectInfo, propertiesBean, "translations", getPlaceholderUtil());
+                            Map<String, String> mapping = commandUtils.doLanguagesMapping(projectInfo, propertiesBean, languageEntity.getId(), getPlaceholderUtil());
                             List<File> translationFiles = new ArrayList<>();
 
                             for (String translation : translations) {
@@ -944,7 +946,7 @@ public class Commands extends BaseCli {
                 downloadedFilesProc.add(downloadedFile);
             }
             List<String> files = new ArrayList<>();
-            Map<String, String> mapping = commandUtils.doLanguagesMapping(getProjectInfo(), propertiesBean, lang);
+            Map<String, String> mapping = commandUtils.doLanguagesMapping(getProjectInfo(), propertiesBean, lang, getPlaceholderUtil());
             List<String> translations = this.list(TRANSLATIONS, "download");
             for (String translation : translations) {
                 translation = translation.replaceAll("/+", "/");
@@ -1020,14 +1022,14 @@ public class Commands extends BaseCli {
                 case SOURCES: {
                     List<FileBean> files = propertiesBean.getFiles();
                     for (FileBean file : files) {
-                        result.addAll(commandUtils.getSourcesWithoutIgnores(file, propertiesBean));
+                        result.addAll(commandUtils.getSourcesWithoutIgnores(file, propertiesBean, getPlaceholderUtil()));
                     }
                     break;
                 }
                 case TRANSLATIONS: {
                     List<FileBean> files = propertiesBean.getFiles();
                     for (FileBean file : files) {
-                        List<String> translations = commandUtils.getTranslations(null, null, file, this.getProjectInfo(), propertiesBean, command);
+                        List<String> translations = commandUtils.getTranslations(null, null, file, this.getProjectInfo(), propertiesBean, command, getPlaceholderUtil());
                         result.addAll(translations);
                     }
                     break;
@@ -1189,7 +1191,7 @@ public class Commands extends BaseCli {
             if (projectLanguage != null && projectLanguage.getId() != null) {
 //                JSONObject languageInfo = commandUtils.getLanguageInfo(projectLanguage.getName(), supportedLanguages);
                 String projectLanguageId = projectLanguage.getId();
-                mappingTranslations.putAll(commandUtils.doLanguagesMapping(getProjectInfo(), propertiesBean, projectLanguageId));
+                mappingTranslations.putAll(commandUtils.doLanguagesMapping(getProjectInfo(), propertiesBean, projectLanguageId, getPlaceholderUtil()));
             }
         }
         String commonPath;
