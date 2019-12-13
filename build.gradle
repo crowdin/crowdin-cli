@@ -2,6 +2,10 @@ plugins {
     id 'java'
 }
 
+plugins {
+    id 'jacoco'
+}
+
 group 'com.crowdin'
 version '3.0.3'
 
@@ -42,6 +46,7 @@ dependencies {
 
     compile files('libs/crowdin-1.0.jar')
     testCompile('org.junit.jupiter:junit-jupiter:5.5.2')
+    implementation 'org.jetbrains:annotations:15.0'
 }
 
 
@@ -58,4 +63,19 @@ task buildCrowdinCliJar(type: Jar) {
 
 test {
     useJUnitPlatform()
+}
+
+jacoco {
+    toolVersion = "0.8.5"
+    reportsDir = file("$buildDir/reports")
+}
+
+jacocoTestReport {
+    reports {
+        xml.enabled true
+        csv.enabled false
+        xml.destination file("${buildDir}/coverage.xml")
+    }
+
+    getExecutionData().setFrom("$buildDir/jacoco/test.exec")
 }
