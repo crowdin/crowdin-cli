@@ -55,3 +55,7 @@ task buildCrowdinCliJar(type: Jar) {
     from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
     with jar
 }
+
+test {
+    useJUnitPlatform()
+}
