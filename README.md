@@ -13,10 +13,10 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 
 ## Status
 
-[![Build Status](https://dev.azure.com/crowdin/crowdin-cli-3/_apis/build/status/crowdin-cli-3?branchName=cli3)](https://dev.azure.com/crowdin/crowdin-cli-3/_build/latest?definitionId=10&branchName=cli3)
-![Azure DevOps tests (branch)](https://img.shields.io/azure-devops/tests/crowdin/crowdin-cli-3/10/cli3)
-![Azure DevOps coverage (branch)](https://img.shields.io/azure-devops/coverage/crowdin/crowdin-cli-3/10/cli3)
-![GitHub](https://img.shields.io/github/license/crowdin/crowdin-cli-2)
+[![Build Status](https://dev.azure.com/crowdin/crowdin-cli-3/_apis/build/status/crowdin-cli-3?branchName=cli3&cacheSeconds=1000)](https://dev.azure.com/crowdin/crowdin-cli-3/_build/latest?definitionId=10&branchName=cli3)
+![Azure DevOps tests (branch)](https://img.shields.io/azure-devops/tests/crowdin/crowdin-cli-3/10/cli3?cacheSeconds=2000)
+[![codecov](https://codecov.io/gh/crowdin/crowdin-cli-2/branch/cli3/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli-2)
+![GitHub](https://img.shields.io/github/license/crowdin/crowdin-cli-2?cacheSeconds=50000)
 
 ## Table of Contents
 
