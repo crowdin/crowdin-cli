@@ -1,5 +1,9 @@
 **Unreleased**
 
+**Version 3.0.4**
++ Fixed: language placeholders for ignore pattern
++ Updated: Unit-tests and CI/CD
+
 **Version 3.0.3**
 + update config options (api_key -> api_token, project_identifier -> project_id)
 + fix: fixed list project command with specified branch
