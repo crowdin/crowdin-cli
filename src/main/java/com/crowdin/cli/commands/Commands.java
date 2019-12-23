@@ -870,7 +870,6 @@ public class Commands extends BaseCli {
         try {
             BuildTranslationPayload buildTranslation = new BuildTranslationPayload();
             branchOrNull.map(Branch::getId).ifPresent(buildTranslation::setBranchId);
-            buildTranslation.setForce(true);
             buildTranslation.setTargetLanguageIds(Collections.singletonList(languageEntity.getId()));
             ConsoleSpinner.start(BUILDING_TRANSLATION.getString(), this.noProgress);
             clientResponse = api.buildTranslation(Long.toString(projectId), buildTranslation).execute();
