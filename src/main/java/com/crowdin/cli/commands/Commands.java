@@ -848,17 +848,15 @@ public class Commands extends BaseCli {
                 .getId();
     }
 
-    private void download(String lang, boolean ignoreMatch) {
+    private void download(String languageCode, boolean ignoreMatch) {
 
-        String languageCode = Optional.ofNullable(language).orElse(lang);
-        Optional<Language> languageOrNull = EntityUtils.find(this.getProjectInfo().getProjectLanguages(), ProjectWrapper.byCrowdinCode(languageCode));
+        Language languageEntity = getProjectInfo().getProjectLanguages()
+                .stream()
+                .filter(language -> language.getId().equals(languageCode))
+                .findAny()
+                .orElseThrow(() -> new RuntimeException("language '" + languageCode + "' does not exist in the project"));
 
-        if (!languageOrNull.isPresent()) {
-            System.out.println(ERROR.withIcon("language '" + languageCode + "' does not exist in the project"));
-            ConsoleUtils.exitError();
-        }
         TranslationsApi api = new TranslationsApi(this.settings);
-        Language languageEntity = languageOrNull.get();
 
         Long projectId = this.getProjectInfo().getProject().getId();
         Optional<Branch> branchOrNull = Optional.ofNullable(this.branch)
@@ -945,7 +943,7 @@ public class Commands extends BaseCli {
                 downloadedFilesProc.add(downloadedFile);
             }
             List<String> files = new ArrayList<>();
-            Map<String, String> mapping = commandUtils.doLanguagesMapping(getProjectInfo(), propertiesBean, lang, getPlaceholderUtil());
+            Map<String, String> mapping = commandUtils.doLanguagesMapping(getProjectInfo(), propertiesBean, languageCode, getPlaceholderUtil());
             List<String> translations = this.list(TRANSLATIONS, "download");
             for (String translation : translations) {
                 translation = translation.replaceAll("/+", "/");
