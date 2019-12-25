@@ -27,8 +27,9 @@ public class ProjectClient extends Client {
     public ProjectWrapper getProjectInfo(String projectId, boolean isDebug) {
         Project project = getProject(projectId, isDebug);
         List<Language> supportedLanguages = Collections.emptyList();
+        LanguagesClient languagesClient = new LanguagesClient(settings);
         try {
-            supportedLanguages = new LanguagesClient(settings).getAllSupportedLanguages();
+            supportedLanguages = languagesClient.getAllSupportedLanguages();
         } catch (Exception e) {
             System.out.println("\n" + MessageSource.RESOURCE_BUNDLE.getString("error_getting_supported_languages"));
             if (isDebug) {
@@ -37,7 +38,13 @@ public class ProjectClient extends Client {
             ConsoleUtils.exitError();
         }
 
-        List<Language> projectLanguages = new LanguagesClient(settings).getProjectLanguages(project);
+        List<Language> projectLanguages = languagesClient.getProjectLanguages(project);
+
+        new SettingsClient(settings)
+            .getJiptPseudoLanguageId(projectId)
+            .map(languagesClient::getLanguage)
+            .ifPresent(projectLanguages::add);
+
         List<FileEntity> projectFiles = new FileClient(settings).getProjectFiles(project.getId());
         CrowdinRequestBuilder<Page<Directory>> projectDirectories = new DirectoriesApi(this.settings)
                 .getProjectDirectories(project.getId().toString(), Pageable.unpaged());
