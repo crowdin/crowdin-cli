@@ -4,6 +4,7 @@ import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.BranchClient;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ProjectWrapper;
+import com.crowdin.cli.client.TranslationsClient;
 import com.crowdin.cli.properties.CliProperties;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -791,28 +792,17 @@ public class Commands extends BaseCli {
                                 try {
                                     System.out.println(OK.withIcon("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean) + "'"));
 
-                                    TranslationsApi api = new TranslationsApi(settings);
-                                    TranslationPayload translationPayload = new TranslationPayload();
-
-                                    FileEntity projectFile = projectFileOrNone.get();
-
-                                    translationPayload.setFileId(projectFile.getId());
-
-                                    if (importDuplicates) translationPayload.setImportDuplicates(true);
-                                    if (importEqSuggestions) translationPayload.setImportEqSuggestions(true);
-                                    if (autoApproveImported) translationPayload.setAutoApproveImported(true);
-
                                     Long storageId = createStorage(translationFile);
-                                    translationPayload.setStorageId(storageId);
 
-                                    Response uploadTransactionsResponse = api
-                                            .uploadTranslation(projectId, languageEntity.getId(), translationPayload)
-                                            .execute();
-
-                                    if (isVerbose) {
-                                        System.out.println(uploadTransactionsResponse.getHeaders());
-                                        System.out.println(ResponseUtil.getResponceBody(uploadTransactionsResponse));
-                                    }
+                                    TranslationsClient translationsClient = new TranslationsClient(settings, projectId);
+                                    translationsClient.uploadTranslations(
+                                        languageEntity.getId(),
+                                        projectFileOrNone.get().getId(),
+                                        importDuplicates,
+                                        importEqSuggestions,
+                                        autoApproveImported,
+                                        storageId
+                                    );
                                 } catch (Exception e) {
                                     System.out.println("message : " + e.getMessage());
                                     if (isDebug) {
@@ -851,31 +841,25 @@ public class Commands extends BaseCli {
     private void download(String languageCode, boolean ignoreMatch) {
 
         Language languageEntity = getProjectInfo().getProjectLanguages()
-                .stream()
-                .filter(language -> language.getId().equals(languageCode))
-                .findAny()
-                .orElseThrow(() -> new RuntimeException("language '" + languageCode + "' does not exist in the project"));
-
-        TranslationsApi api = new TranslationsApi(this.settings);
+            .stream()
+            .filter(language -> language.getId().equals(languageCode))
+            .findAny()
+            .orElseThrow(() -> new RuntimeException("language '" + languageCode + "' does not exist in the project"));
 
         Long projectId = this.getProjectInfo().getProject().getId();
         Optional<Branch> branchOrNull = Optional.ofNullable(this.branch)
                 .flatMap(branchName -> new BranchClient(this.settings).getProjectBranchByName(projectId, branchName));
 
+        TranslationsClient translationsClient = new TranslationsClient(this.settings, projectId.toString());
+
         System.out.println(RESOURCE_BUNDLE.getString("build_archive") + " for '" + languageCode + "'");
-        Response clientResponse = null;
         Translation translationBuild = null;
         try {
-            BuildTranslationPayload buildTranslation = new BuildTranslationPayload();
-            branchOrNull.map(Branch::getId).ifPresent(buildTranslation::setBranchId);
-            buildTranslation.setTargetLanguageIds(Collections.singletonList(languageEntity.getId()));
             ConsoleSpinner.start(BUILDING_TRANSLATION.getString(), this.noProgress);
-            clientResponse = api.buildTranslation(Long.toString(projectId), buildTranslation).execute();
-            translationBuild = ResponseUtil.getResponceBody(clientResponse, new TypeReference<SimpleResponse<Translation>>() {
-            }).getEntity();
+            translationBuild = translationsClient.startBuildingTranslation(branchOrNull.map(b -> b.getId()), languageEntity.getId());
             while (!translationBuild.getStatus().equalsIgnoreCase("finished")) {
                 Thread.sleep(100);
-                translationBuild = api.getTranslationInfo(projectId.toString(), translationBuild.getId().toString()).getResponseEntity().getEntity();
+                translationBuild = translationsClient.checkBuildingStatus(translationBuild.getId().toString());
             }
 
             ConsoleSpinner.stop(OK);
@@ -889,7 +873,6 @@ public class Commands extends BaseCli {
         }
 
         if (isVerbose) {
-            System.out.println(clientResponse.getHeaders());
             System.out.println(ObjectMapperUtil.getEntityAsString(translationBuild));
         }
 
@@ -911,15 +894,12 @@ public class Commands extends BaseCli {
 
         try {
             ConsoleSpinner.start(DOWNLOADING_TRANSLATION.getString(), this.noProgress);
-            Response fileRawResponse = api.getTranslationRaw(Long.toString(projectId), Long.toString(translationBuild.getId())).execute();
-            FileRaw fileRaw = ResponseUtil.getResponceBody(fileRawResponse, new TypeReference<SimpleResponse<FileRaw>>() {
-            }).getEntity();
+            FileRaw fileRaw = translationsClient.getFileRaw(translationBuild.getId().toString());
             InputStream download = CrowdinHttpClient.download(fileRaw.getUrl());
 
             FileUtil.writeToFile(download, downloadedZipArchivePath);
             ConsoleSpinner.stop(OK);
             if (isVerbose) {
-                System.out.println(fileRawResponse.getHeaders());
                 System.out.println(ObjectMapperUtil.getEntityAsString(fileRaw));
             }
         } catch (IOException e) {
