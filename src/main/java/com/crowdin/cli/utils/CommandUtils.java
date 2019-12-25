@@ -161,7 +161,7 @@ public class CommandUtils extends BaseCli {
     }
 
 
-    private Map<String, Long> parentIdMap = new ConcurrentHashMap<>();
+    private Map<String, Long> directoryIdMap = new ConcurrentHashMap<>();
 
     /**
      * return Pair of preserved path and deepest directory id
@@ -222,31 +222,31 @@ public class CommandUtils extends BaseCli {
         }
         Optional<Long> branchId = new BranchClient(settings).getProjectBranchByName(projectId, branch)
                 .map(Branch::getId);
-        Long parentId = null;
+        Long directoryId = null;
         StringBuilder parentPath = new StringBuilder();
         if (nodes != null) {
             for (String node : nodes) {
                 if (node != null && !node.isEmpty()) {
                     if (!node.equals(nodes[nodes.length - 1])) {
                         parentPath.append(node).append(Utils.PATH_SEPARATOR);
-                        if (!parentIdMap.isEmpty() && parentIdMap.containsKey(parentPath.toString())) {
-                            parentId = parentIdMap.get(parentPath.toString());
+                        if (!directoryIdMap.isEmpty() && directoryIdMap.containsKey(parentPath.toString())) {
+                            directoryId = directoryIdMap.get(parentPath.toString());
                         } else {
                             DirectoriesApi api = new DirectoriesApi(settings);
                             DirectoryPayload directoryPayload = new DirectoryPayload();
                             branchId.ifPresent(directoryPayload::setBranchId);
                             directoryPayload.setName(node);
 
-                            if (parentId != null) {
-                                directoryPayload.setParentId(parentId);
+                            if (directoryId != null) {
+                                directoryPayload.setDirectoryId(directoryId);
                             }
-                            parentId = createDirectory(api, projectId, directoryPayload, parentId, parentPath, isVerbose, settings, node, branchId);
+                            directoryId = createDirectory(api, projectId, directoryPayload, directoryId, parentPath, isVerbose, node, branchId);
                         }
                     }
                 }
             }
         }
-        return Pair.of("", parentId);
+        return Pair.of("", directoryId);
     }
 
     public Map<Long, String> getFilesFullPath(List<FileEntity> fileEntities, Settings settings, Long projectId) {
@@ -255,18 +255,18 @@ public class CommandUtils extends BaseCli {
         return fileEntities.stream()
                 .map(fileEntity -> {
                     List<String> path = new ArrayList<>();
-                    Long parentId = fileEntity.getDirectoryId();
+                    Long directoryId = fileEntity.getDirectoryId();
                     Long branchId = fileEntity.getBranchId();
-                    while (parentId != null) {
-                        final Long finalParentId = parentId;
+                    while (directoryId != null) {
+                        final Long finalDirectoryId = directoryId;
                         final Long finalBranchId = branchId;
                         Optional<Directory> directory = projectDirectories.stream()
-                                .filter(pd -> Objects.equals(pd.getId(), finalParentId) && Objects.equals(pd.getBranchId(), finalBranchId))
+                                .filter(pd -> Objects.equals(pd.getId(), finalDirectoryId) && Objects.equals(pd.getBranchId(), finalBranchId))
                                 .findFirst();
                         if (directory.isPresent()) {
                             Directory dir = directory.get();
                             path.add(dir.getName().toLowerCase());
-                            parentId = dir.getParentId();
+                            directoryId = dir.getDirectoryId();
                             branchId = dir.getBranchId();
                         } else {
                             break;
@@ -285,17 +285,16 @@ public class CommandUtils extends BaseCli {
     private Long createDirectory(DirectoriesApi api,
                                  Long projectId,
                                  DirectoryPayload directoryPayload,
-                                 Long parentId,
+                                 Long directoryId,
                                  StringBuilder parentPath,
                                  boolean isVerbose,
-                                 Settings settings,
                                  String node,
                                  Optional<Long> branchId) {
         try {
             Response response = api.createDirectory(projectId.toString(), directoryPayload).execute();
             Directory directory = ResponseUtil.getResponceBody(response, new TypeReference<SimpleResponse<Directory>>() {
             }).getEntity();
-            parentId = directory.getId();
+            directoryId = directory.getId();
             if (isVerbose) {
                 System.out.println(response.getHeaders());
                 System.out.println(ObjectMapperUtil.getEntityAsString(directory));
@@ -303,26 +302,26 @@ public class CommandUtils extends BaseCli {
             if (directory.getId() != null) {
                 System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' "));
             }
-            parentIdMap.put(parentPath.toString(), parentId);
+            directoryIdMap.put(parentPath.toString(), directoryId);
         } catch (Exception ex) {
             if (
                     ex.getMessage().contains("Name must be unique") ||
-                            ex.getMessage().contains("This file is currently being updated")
+                        ex.getMessage().contains("This file is currently being updated")
 
             ) {
                 System.out.println(ExecutionStatus.SKIPPED.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
-                CrowdinRequestBuilder<Page<Directory>> directoriesApi = new DirectoriesApi(settings).getProjectDirectories(projectId.toString(), Pageable.of(0, 500));
+                CrowdinRequestBuilder<Page<Directory>> directoriesApi = api.getProjectDirectories(projectId.toString(), Pageable.of(0, 500));
                 List<Directory> projectDirectories = PaginationUtil.unpaged(directoriesApi);
 
-                Long copyParentId = parentId;
-                parentId = null;
+                Long copyDirectoryId = directoryId;
+                directoryId = null;
 
                 for (Directory dir : projectDirectories) {
                     if (node.equals(dir.getName())
-                            && Objects.equals(copyParentId, dir.getParentId())
+                            && Objects.equals(copyDirectoryId, dir.getDirectoryId())
                             && Objects.equals(branchId.orElse(null), dir.getBranchId())) {
-                        parentId = dir.getId();
-                        parentIdMap.put(parentPath.toString(), dir.getId());
+                        directoryId = dir.getId();
+                        directoryIdMap.put(parentPath.toString(), dir.getId());
                     }
                 }
             } else if (ex.getMessage().contains("Already creating directory")) {
@@ -334,14 +333,14 @@ public class CommandUtils extends BaseCli {
                         e.printStackTrace();
                     }
                 }
-                return createDirectory(api, projectId, directoryPayload, parentId, parentPath, isVerbose, settings, node, branchId);
+                return createDirectory(api, projectId, directoryPayload, directoryId, parentPath, isVerbose, node, branchId);
             } else {
                 System.out.println(ExecutionStatus.ERROR.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
                 System.out.println(ex.getMessage());
                 ConsoleUtils.exitError();
             }
         }
-        return parentId;
+        return directoryId;
     }
 
     public PropertiesBean makeConfigFromParameters(CommandLine commandLine, PropertiesBean propertiesBean) {
@@ -941,13 +940,13 @@ public class CommandUtils extends BaseCli {
     private static String getDirectoryHierarchy(Directory directory, List<Directory> directories, String
             hierarchy) {
         if (directory == null) return hierarchy;
-        Long parentId = directory.getParentId();
+        Long directoryId = directory.getDirectoryId();
         hierarchy = directory.getName() + Utils.PATH_SEPARATOR + hierarchy;
 
         if (directories == null || directories.isEmpty()) return Utils.PATH_SEPARATOR + hierarchy;
 
         Directory parentDirectory = directories.stream()
-                .filter(directoryEntity -> directoryEntity.getId().equals(parentId))
+                .filter(directoryEntity -> directoryEntity.getId().equals(directoryId))
                 .findFirst()
                 .orElse(null);
 
