@@ -291,14 +291,14 @@ public class Commands extends BaseCli {
                     boolean isImportEqSuggestions = commandLine.hasOption(CrowdinCliOptions.IMPORT_EQ_SUGGESTIONS);
                     boolean isAutoApproveImported = commandLine.hasOption(CrowdinCliOptions.AUTO_APPROVE_IMPORTED);
                     if (this.help) {
-                        this.cliOptions.cmdUploadTranslationsOptions();
+                        this.help("help " + resultCmd);
                     } else {
                         this.uploadTranslation(isImportDuplicates, isImportEqSuggestions, isAutoApproveImported);
                     }
                 } else {
                     boolean isAutoUpdate = commandLine.getOptionValue(COMMAND_NO_AUTO_UPDATE) == null;
                     if (this.help) {
-                        cliOptions.cmdUploadSourcesOptions();
+                        this.help("help " + resultCmd);
                     } else if (this.dryrun) {
                         this.dryrunSources(commandLine);
                     } else {
@@ -311,7 +311,7 @@ public class Commands extends BaseCli {
             case PULL:
                 boolean ignoreMatch = commandLine.hasOption(IGNORE_MATCH);
                 if (this.help) {
-                    this.cliOptions.cmdDownloadOptions();
+                    this.help("help " + resultCmd);
                 } else if (this.dryrun) {
                     this.dryrunTranslation(commandLine);
                 } else {
@@ -319,32 +319,32 @@ public class Commands extends BaseCli {
                 }
                 break;
             case LIST:
-                this.cliOptions.cmdListOptions();
+                this.help("help " + resultCmd);
                 break;
             case LIST_PROJECT:
                 if (this.help) {
-                    this.cliOptions.cmdListProjectOptions();
+                    this.help("help " + resultCmd);
                 } else {
                     this.dryrunProject(commandLine);
                 }
                 break;
             case LIST_SOURCES:
                 if (this.help) {
-                    this.cliOptions.cmdListSourcesOptions();
+                    this.help("help " + resultCmd);
                 } else {
                     this.dryrunSources(commandLine);
                 }
                 break;
             case LIST_TRANSLATIONS:
                 if (this.help) {
-                    this.cliOptions.cmdListTranslationsIOptions();
+                    this.help("help " + resultCmd);
                 } else {
                     this.dryrunTranslation(commandLine);
                 }
                 break;
             case LINT:
                 if (this.help) {
-                    this.cliOptions.cmdLintOptions();
+                    this.help("help " + resultCmd);
                 } else {
                     this.lint();
                 }
@@ -352,7 +352,7 @@ public class Commands extends BaseCli {
             case INIT:
             case GENERATE:
                 if (this.help) {
-                    this.cliOptions.cmdGenerateOptions();
+                    this.help("help " + resultCmd);
                 } else {
                     String config = null;
                     if (commandLine.getOptionValue(DESTINATION_LONG) != null && !commandLine.getOptionValue(DESTINATION_LONG).isEmpty()) {
@@ -404,7 +404,7 @@ public class Commands extends BaseCli {
                     if (!"".equalsIgnoreCase(wrongArgs.toString().trim())) {
                         System.out.println("Command '" + wrongArgs.toString().trim() + "' not found");
                     }
-                    this.cliOptions.cmdGeneralOptions();
+                    this.help("help");
                 }
                 break;
         }

@@ -219,7 +219,7 @@ public class CrowdinCliOptions {
         header.append(DOUBLE_NEW_LINE).append(RESOURCE_BUNDLE.getString("global_options").toUpperCase());
         footer.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("commands").toUpperCase());
         footer.append(NEW_LINE + "help               - ").append(RESOURCE_BUNDLE.getString("command_help_description"));
-        footer.append(NEW_LINE + "upload             - ").append(RESOURCE_BUNDLE.getString("command_upload_description"));
+        footer.append(NEW_LINE + "upload | push      - ").append(RESOURCE_BUNDLE.getString("command_upload_description"));
         footer.append(NEW_LINE + "download | pull    - ").append(RESOURCE_BUNDLE.getString("command_download_description"));
         footer.append(NEW_LINE + "list               - ").append(RESOURCE_BUNDLE.getString("command_list"));
         footer.append(NEW_LINE + "lint               - ").append(RESOURCE_BUNDLE.getString("command_lint_description"));
