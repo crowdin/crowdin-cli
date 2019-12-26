@@ -42,6 +42,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 import java.util.zip.ZipException;
 
 import static com.crowdin.cli.properties.CliProperties.*;
@@ -93,75 +94,42 @@ public class Commands extends BaseCli {
 
     private void initialize(String resultCmd, CommandLine commandLine) {
         this.removeUnsupportedCharsetProperties();
-
         if (notNeedInitialisation(resultCmd, commandLine)) {
             return;
         }
 
-        PropertiesBean configFromParameters = commandUtils.makeConfigFromParameters(commandLine, this.propertiesBean);
-        if (configFromParameters != null) {
-            this.propertiesBean = configFromParameters;
-        } else {
-            if (commandLine.getOptionValue(CrowdinCliOptions.CONFIG_LONG) != null && !commandLine.getOptionValue(CrowdinCliOptions.CONFIG_LONG).isEmpty()) {
-                this.configFile = new File(commandLine.getOptionValue(CrowdinCliOptions.CONFIG_LONG));
+        try {
+            PropertiesBean configFromParameters = commandUtils.makeConfigFromParameters(commandLine, this.propertiesBean);
+            if (configFromParameters != null) {
+                this.propertiesBean = configFromParameters;
             } else {
-                this.configFile = new File("crowdin.yml");
-                if (!this.configFile.isFile()) {
-                    this.configFile = new File("crowdin.yaml");
-                }
-            }
-            if (this.configFile.isFile()) {
                 try {
-                    this.cliConfig = this.fileReader.readCliConfig(this.configFile.getAbsolutePath(), this.isDebug);
-                } catch (Exception e) {
-                    System.out.println(RESOURCE_BUNDLE.getString("error_reading_configuration_file") + " '" + this.configFile.getAbsolutePath() + "'");
-                    if (this.isDebug) {
-                        e.printStackTrace();
-                    }
-                    ConsoleUtils.exitError();
-                }
-            } else {
-                System.out.println("Configuration file '" + this.configFile.getAbsolutePath() + "' does not exist");
-                ConsoleUtils.exitError();
-            }
-            if (this.cliConfig != null) {
-                try {
+                    this.configFile = Stream.of(commandLine.getOptionValue(CrowdinCliOptions.CONFIG_LONG), "crowdin.yml", "crowdin.yaml")
+                            .filter(StringUtils::isNoneEmpty)
+                            .map(File::new)
+                            .filter(File::isFile)
+                            .findFirst()
+                            .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_empty")));
+                    this.cliConfig = this.fileReader.readCliConfig(this.configFile);
                     this.propertiesBean = this.cliProperties.loadProperties(this.cliConfig);
-                } catch (Exception e) {
-                    System.out.println(RESOURCE_BUNDLE.getString("load_properties_error"));
-                    if (this.isDebug) {
-                        e.printStackTrace();
+                    if (this.identity != null && this.identity.isFile()) {
+                        this.propertiesBean = this.readIdentityProperties(this.propertiesBean);
                     }
-                    ConsoleUtils.exitError();
+                } catch (Exception e) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error_loading_config"), e);
                 }
-            } else {
-                System.out.println("Configuration file '" + this.configFile.getAbsolutePath() + "' does not exist");
-                ConsoleUtils.exitError();
             }
-            if (this.identity != null && this.identity.isFile()) {
-                this.propertiesBean = this.readIdentityProperties(this.propertiesBean);
-            }
-        }
-        this.propertiesBean.setBaseUrl(commandUtils.getBaseUrl(this.propertiesBean));
-        this.settings = Settings.withBaseUrl(this.propertiesBean.getApiToken(), this.propertiesBean.getBaseUrl());
-        String basePath = commandUtils.getBasePath(this.propertiesBean, this.configFile, this.isDebug);
-        if (basePath != null) {
-            this.propertiesBean.setBasePath(basePath);
-        } else {
-            this.propertiesBean.setBasePath("");
-        }
-        if (configFromParameters == null) {
-            if (commandLine.getOptionValue("base-path") != null && !commandLine.getOptionValue("base-path").isEmpty()) {
+
+            this.propertiesBean.setBaseUrl(commandUtils.getBaseUrl(this.propertiesBean));
+            this.settings = Settings.withBaseUrl(this.propertiesBean.getApiToken(), this.propertiesBean.getBaseUrl());
+            this.propertiesBean.setBasePath(commandUtils.getBasePath(this.propertiesBean.getBasePath(), this.configFile, this.isDebug));
+
+            if (configFromParameters == null && StringUtils.isNoneEmpty(commandLine.getOptionValue("base-path"))) {
                 propertiesBean.setBasePath(commandLine.getOptionValue("base-path"));
             }
-        }
-        this.propertiesBean = cliProperties.validateProperties(propertiesBean);
-
-        if (this.isVerbose) {
-            System.out.println(this.getProjectInfo());
-        }
-        if (this.isVerbose) {
-            System.out.println(this.getProjectInfo().getSupportedLanguages());
+            this.propertiesBean = cliProperties.validateProperties(propertiesBean);
+        } catch (Exception e) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("initialisation_failed"), e);
         }
     }
 
@@ -200,7 +168,7 @@ public class Commands extends BaseCli {
 
     private PropertiesBean readIdentityProperties(PropertiesBean propertiesBean) {
         try {
-            this.identityCliConfig = this.fileReader.readCliConfig(this.identity.getAbsolutePath(), this.isDebug);
+            this.identityCliConfig = this.fileReader.readCliConfig(this.identity);
         } catch (Exception e) {
             System.out.println(RESOURCE_BUNDLE.getString("error_reading_configuration_file") + " '" + this.identity.getAbsolutePath() + "'");
             if (this.isDebug) {
