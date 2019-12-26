@@ -291,14 +291,14 @@ public class Commands extends BaseCli {
                     boolean isImportEqSuggestions = commandLine.hasOption(CrowdinCliOptions.IMPORT_EQ_SUGGESTIONS);
                     boolean isAutoApproveImported = commandLine.hasOption(CrowdinCliOptions.AUTO_APPROVE_IMPORTED);
                     if (this.help) {
-                        this.help("help " + resultCmd);
+                        this.help(resultCmd);
                     } else {
                         this.uploadTranslation(isImportDuplicates, isImportEqSuggestions, isAutoApproveImported);
                     }
                 } else {
                     boolean isAutoUpdate = commandLine.getOptionValue(COMMAND_NO_AUTO_UPDATE) == null;
                     if (this.help) {
-                        this.help("help " + resultCmd);
+                        this.help(resultCmd);
                     } else if (this.dryrun) {
                         this.dryrunSources(commandLine);
                     } else {
@@ -311,7 +311,7 @@ public class Commands extends BaseCli {
             case PULL:
                 boolean ignoreMatch = commandLine.hasOption(IGNORE_MATCH);
                 if (this.help) {
-                    this.help("help " + resultCmd);
+                    this.help(resultCmd);
                 } else if (this.dryrun) {
                     this.dryrunTranslation(commandLine);
                 } else {
@@ -319,32 +319,32 @@ public class Commands extends BaseCli {
                 }
                 break;
             case LIST:
-                this.help("help " + resultCmd);
+                this.help(resultCmd);
                 break;
             case LIST_PROJECT:
                 if (this.help) {
-                    this.help("help " + resultCmd);
+                    this.help(resultCmd);
                 } else {
                     this.dryrunProject(commandLine);
                 }
                 break;
             case LIST_SOURCES:
                 if (this.help) {
-                    this.help("help " + resultCmd);
+                    this.help(resultCmd);
                 } else {
                     this.dryrunSources(commandLine);
                 }
                 break;
             case LIST_TRANSLATIONS:
                 if (this.help) {
-                    this.help("help " + resultCmd);
+                    this.help(resultCmd);
                 } else {
                     this.dryrunTranslation(commandLine);
                 }
                 break;
             case LINT:
                 if (this.help) {
-                    this.help("help " + resultCmd);
+                    this.help(resultCmd);
                 } else {
                     this.lint();
                 }
@@ -352,7 +352,7 @@ public class Commands extends BaseCli {
             case INIT:
             case GENERATE:
                 if (this.help) {
-                    this.help("help " + resultCmd);
+                    this.help(resultCmd);
                 } else {
                     String config = null;
                     if (commandLine.getOptionValue(DESTINATION_LONG) != null && !commandLine.getOptionValue(DESTINATION_LONG).isEmpty()) {
@@ -366,7 +366,7 @@ public class Commands extends BaseCli {
             case HELP:
                 boolean p = commandLine.hasOption(HELP_P);
                 if (this.help) {
-                    this.cliOptions.cmdHelpOptions();
+                    this.help(resultCmd);
                 } else if (p) {
                     System.out.println(UPLOAD);
                     System.out.println(DOWNLOAD);
@@ -379,8 +379,6 @@ public class Commands extends BaseCli {
                 }
                 break;
             case HELP_HELP:
-                this.cliOptions.cmdHelpOptions();
-                break;
             case HELP_UPLOAD:
             case HELP_UPLOAD_SOURCES:
             case HELP_UPLOAD_TRANSLATIONS:
@@ -404,7 +402,7 @@ public class Commands extends BaseCli {
                     if (!"".equalsIgnoreCase(wrongArgs.toString().trim())) {
                         System.out.println("Command '" + wrongArgs.toString().trim() + "' not found");
                     }
-                    this.help("help");
+                    this.help(HELP);
                 }
                 break;
         }
@@ -1019,37 +1017,49 @@ public class Commands extends BaseCli {
     public void help(String resultCmd) {
         if (null != resultCmd) {
             switch (resultCmd) {
-                case HELP:
                 case "":
                     cliOptions.cmdGeneralOptions();
                     break;
+                case HELP:
+                    cliOptions.cmdHelpOptions();
+                    break;
+                case UPLOAD:
                 case HELP_UPLOAD:
                     cliOptions.cmdUploadOptions();
                     break;
+                case UPLOAD_SOURCES:
                 case HELP_UPLOAD_SOURCES:
                     cliOptions.cmdUploadSourcesOptions();
                     break;
+                case UPLOAD_TRANSLATIONS:
                 case HELP_UPLOAD_TRANSLATIONS:
                     cliOptions.cmdUploadTranslationsOptions();
                     break;
+                case DOWNLOAD:
                 case HELP_DOWNLOAD:
                     cliOptions.cmdDownloadOptions();
                     break;
+                case LIST:
                 case HELP_LIST:
                     cliOptions.cmdListOptions();
                     break;
+                case LINT:
                 case HELP_LINT:
                     cliOptions.cmdLintOptions();
                     break;
+                case LIST_PROJECT:
                 case HELP_LIST_PROJECT:
                     cliOptions.cmdListProjectOptions();
                     break;
+                case LIST_SOURCES:
                 case HELP_LIST_SOURCES:
                     cliOptions.cmdListSourcesOptions();
                     break;
+                case LIST_TRANSLATIONS:
                 case HELP_LIST_TRANSLATIONS:
                     cliOptions.cmdListTranslationsIOptions();
                     break;
+                case GENERATE:
                 case HELP_GENERATE:
                     cliOptions.cmdGenerateOptions();
                     break;
