@@ -986,10 +986,8 @@ public class Commands extends BaseCli {
         if (null != resultCmd) {
             switch (resultCmd) {
                 case "":
-                    cliOptions.cmdGeneralOptions();
-                    break;
                 case HELP:
-                    cliOptions.cmdHelpOptions();
+                    cliOptions.cmdGeneralOptions();
                     break;
                 case UPLOAD:
                 case HELP_UPLOAD:
@@ -1031,6 +1029,8 @@ public class Commands extends BaseCli {
                 case HELP_GENERATE:
                     cliOptions.cmdGenerateOptions();
                     break;
+                case HELP_HELP:
+                    cliOptions.cmdHelpOptions();
             }
         }
     }
