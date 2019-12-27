@@ -228,7 +228,6 @@ public class CrowdinCliOptions {
     }
 
     public void cmdUploadOptions() {
-//        Options options = new Options();
         Options options = this.cmdUploadSources();
         HelpFormatter formatter = new HelpFormatter();
         formatter.setWidth(STRING_WIDTH);
