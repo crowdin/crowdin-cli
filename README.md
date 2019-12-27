@@ -1,12 +1,8 @@
-### Building a crowdin-cli.jar
-For building the project you need to use Gradle.<br/>
-First of all refresh all dependencies.<br/>
-Run the command
-```
-gradle buildCrowdinCliJar
-```
-### Introduction
-Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project:
+[<p align="center"><img src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" data-canonical-src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" width="200" height="200" align="center"/></p>](https://crowdin.com)
+
+# Crowdin CLI
+
+Crowdin CLI v2 is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project:
 
 - Automate the process of updating your source files in your Crowdin project
 - Download translations from Crowdin and automatically save them in the correct locations
@@ -26,6 +22,12 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
     <li><code>--dryrun</code> option to preview the list of managed files</li>
   </ul>
 </div>
+
+##
+
+:sparkles: **Note:** New cool CLI v3 *[beta]* is already available. [Enjoy it](https://github.com/crowdin/crowdin-cli-2/tree/cli3#readme)! :tada: :rocket:
+
+##
 
 ### Installation
 
@@ -55,6 +57,14 @@ If you don't have Java installed, download it from <a href="https://www.java.com
   * In the <i>Start Search box</i>, type <b>cmd</b>, and then press CTRL+SHIFT+ENTER
   * If the <i>User Account Control</i> dialog box appears, confirm that the action it displays is what you want, and then click <b>Continue</b>
 4. Run <code>setup_crowdin.bat</code> script in order to add <code>crowdin</code> command to the <i>Command Prompt</i>
+
+### Building a crowdin-cli.jar
+For building the project you need to use Gradle.<br/>
+First of all refresh all dependencies.<br/>
+Run the command
+```
+gradle buildCrowdinCliJar
+```
 
 ### Running the App
 
@@ -819,22 +829,33 @@ Example of configuration file:
 
 For latest changes see [CHANGELOG.md](CHANGELOG.md) file.
 
+### Contribution
+We are happy to accept contributions to the Crowdin CLI. To contribute please do the following:
+1. Fork the repository on GitHub.
+2. Decide which code you want to submit. Commit your changes and push to the new branch.
+3. Ensure that your code adheres to standard conventions, as used in the rest of the library.
+4. Ensure that there are unit tests for your code.
+5. Submit a pull request with your patch on Github.
+
 ### Seeking Assistance
+If you find any problems or would like to suggest a feature, please feel free to file an issue on Github at [Issues Page](https://github.com/crowdin/crowdin-cli-2/issues).
 
-Need help working with Crowdin CLI or have any questions? <a href="https://crowdin.com/contacts" target="_blank">Contact Support Team</a>.
+Need help working with Crowdin CLI or have any questions?
+[Contact Customer Success Service](https://crowdin.com/contacts).
 
+### Authors
 
-### Contributing
-1. Fork it
-2. Create your feature branch (git checkout -b my-new-feature)
-3. Commit your changes (git commit -am 'Added some feature')
-4. Push to the branch (git push origin my-new-feature)
-5. Create new Pull Request
+- Ihor Popyk (ihor.popyk@crowdin.com)
 
-### License and Author
+### License
+<pre>
+Copyright © 2019 Crowdin
 
-Author: Ihor Popyk (ihor.popyk@crowdin.com)
+The Crowdin CLI is licensed under the MIT License.
+See the LICENSE file distributed with this work for additional
+information regarding copyright ownership.
 
-Copyright: 2017 crowdin.com
-
-This project is licensed under the MIT license, a copy of which can be found in the LICENSE file.
+Except as contained in the LICENSE file, the name(s) of the above copyright
+holders shall not be used in advertising or otherwise to promote the sale,
+use or other dealings in this Software without prior written authorization.
+</pre>
