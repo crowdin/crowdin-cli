@@ -219,7 +219,7 @@ public class CrowdinCliOptions {
         header.append(DOUBLE_NEW_LINE).append(RESOURCE_BUNDLE.getString("global_options").toUpperCase());
         footer.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("commands").toUpperCase());
         footer.append(NEW_LINE + "help               - ").append(RESOURCE_BUNDLE.getString("command_help_description"));
-        footer.append(NEW_LINE + "upload             - ").append(RESOURCE_BUNDLE.getString("command_upload_description"));
+        footer.append(NEW_LINE + "upload | push      - ").append(RESOURCE_BUNDLE.getString("command_upload_description"));
         footer.append(NEW_LINE + "download | pull    - ").append(RESOURCE_BUNDLE.getString("command_download_description"));
         footer.append(NEW_LINE + "list               - ").append(RESOURCE_BUNDLE.getString("command_list"));
         footer.append(NEW_LINE + "lint               - ").append(RESOURCE_BUNDLE.getString("command_lint_description"));
@@ -228,12 +228,13 @@ public class CrowdinCliOptions {
     }
 
     public void cmdUploadOptions() {
-        Options options = new Options();
+//        Options options = new Options();
+        Options options = this.cmdUploadSources();
         HelpFormatter formatter = new HelpFormatter();
         formatter.setWidth(STRING_WIDTH);
         StringBuilder header = new StringBuilder();
         StringBuilder footer = new StringBuilder();
-        String cmdLineSyntax = "upload";
+        String cmdLineSyntax = "upload | push";
         header.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("name").toUpperCase());
         header.append(NEW_LINE + "upload - ").append(RESOURCE_BUNDLE.getString("command_upload_description"));
         header.append(DOUBLE_NEW_LINE).append(RESOURCE_BUNDLE.getString("synopsis").toUpperCase());
@@ -241,7 +242,8 @@ public class CrowdinCliOptions {
         header.append(NEW_LINE + "<script> [global options] upload translations [--auto-approve-imported] [--import-duplicates] [--import-eq-suggestions] [-b branch_name|--branch branch_name] [-l crowdin_language_code|--language crowdin_language_code]");
         header.append(DOUBLE_NEW_LINE).append(RESOURCE_BUNDLE.getString("description").toUpperCase());
         header.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("command_upload_description_long"));
-        footer.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("commands").toUpperCase());
+        header.append(DOUBLE_NEW_LINE).append(RESOURCE_BUNDLE.getString("command_options").toUpperCase());
+        footer.append(NEW_LINE).append(RESOURCE_BUNDLE.getString("subcommands").toUpperCase());
         footer.append(NEW_LINE + "sources | push         -   ").append(RESOURCE_BUNDLE.getString("subcommand_sources"));
         footer.append(NEW_LINE + "translations | push -t -   ").append(RESOURCE_BUNDLE.getString("subcommand_translations"));
         footer.append(NEW_LINE);
