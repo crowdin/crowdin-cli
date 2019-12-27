@@ -420,7 +420,7 @@ public class CrowdinCliOptions {
         o.addOption(VERBOSE_SHORT, VERBOSE_LONG, false, VERBOSE_DESCRIPTION);
         o.addOption(null, VERSION_LONG, false, VERSION_DESCRIPTION);
         o.addOption(null, NO_PROGRESS, false, NO_PROGRESS_DESCRIPTION);
-        o.addOption(null, SKIP_GENERATE_DESCRIPTION, false, null);
+
         return o;
     }
 
