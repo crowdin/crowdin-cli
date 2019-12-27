@@ -71,13 +71,14 @@ public class CliProperties {
     private static final String TRANSLATION_REPLACE = "translation_replace";
 
     public PropertiesBean loadProperties(HashMap<String, Object> properties) {
-        if (properties == null || properties.isEmpty()) {
-            System.out.println(RESOURCE_BUNDLE.getString("error_empty_properties_file"));
-            ConsoleUtils.exitError();
+        if (properties == null) {
+            throw new NullPointerException("CliProperties.loadProperties has null args");
+        }
+        if (properties.isEmpty()) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error_empty_properties_file"));
         }
         PropertiesBean pb = new PropertiesBean();
         for (Map.Entry<String, Object> property : properties.entrySet()) {
-            //From environment variables
             if (property != null && property.getKey() != null) {
                 switch (property.getKey()) {
                     case API_TOKEN_ENV:
@@ -230,11 +231,12 @@ public class CliProperties {
 
     //todo set default values
     public PropertiesBean validateProperties(PropertiesBean pb) {
-        List<String> messages = new ArrayList<>();
         //Property bean
         if (pb == null) {
-            messages.add(RESOURCE_BUNDLE.getString("error_property_bean_null"));
-            printConfigurationFileErrorsAndExit(messages);
+            throw new RuntimeException(
+                RESOURCE_BUNDLE.getString("configuration_file_is_invalid")
+                    .concat("\n\t- ")
+                    .concat(RESOURCE_BUNDLE.getString("error_property_bean_null")));
         }
         //Preserve hierarchy
         if (pb.getPreserveHierarchy() == null) {
@@ -242,23 +244,23 @@ public class CliProperties {
         }
         if (pb.getBasePath() != null && !pb.getBasePath().isEmpty()) {
             if (!Paths.get(pb.getBasePath()).isAbsolute()) {
-                messages.add(RESOURCE_BUNDLE.getString("bad_base_path"));
-                printConfigurationFileErrorsAndExit(messages);
+                throw new RuntimeException(
+                    RESOURCE_BUNDLE.getString("configuration_file_is_invalid")
+                        .concat("\n\t- ")
+                        .concat(RESOURCE_BUNDLE.getString("bad_base_path")));
             }
         } else {
             pb.setBasePath("");
         }
         //Files
+        List<String> messages = new ArrayList<>();
         if (pb.getFiles() == null) {
             messages.add(RESOURCE_BUNDLE.getString("error_empty_section_files"));
         } else {
-            boolean hasValidFile = false;
             for (FileBean file : pb.getFiles()) {
-                boolean hasError = false;
                 //Sources
                 if (file.getSource() == null || file.getSource().isEmpty()) {
                     messages.add(RESOURCE_BUNDLE.getString("error_empty_source_section"));
-                    hasError = true;
                 }
                 if (Utils.isWindows() && file.getSource() != null && file.getSource().contains("/")) {
                     file.setSource(file.getSource().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
@@ -269,12 +271,10 @@ public class CliProperties {
                 //Translation
                 if (file.getTranslation() == null || file.getTranslation().isEmpty()) {
                     messages.add(RESOURCE_BUNDLE.getString("error_empty_translation_section"));
-                    hasError = true;
                 }
                 if (file.getTranslation() != null && file.getTranslation().contains("**") && file.getSource() != null && !file.getSource().contains("**")) {
                     messages.add("error: Translation pattern " + file.getTranslation() + " is not valid. The mask `**` can't be used.");
                     messages.add("When using `**` in 'translation' pattern it will always contain sub-path from 'source' for certain file.");
-                    hasError = true;
                 }
                 if (file.getTranslation() != null && !file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
                     if (file.getTranslation().contains("%language%")
@@ -327,7 +327,6 @@ public class CliProperties {
                 } else {
                     if (!"update_as_unapproved".equals(file.getUpdateOption()) && !"update_without_changes".equals(file.getUpdateOption())) {
                         messages.add("Parameter 'update_option' in configuration file has unacceptable value");
-                        hasError = true;
                     }
                 }
                 //Translate attributes
@@ -372,12 +371,10 @@ public class CliProperties {
                 if (file.getTranslationReplace() == null || file.getTranslationReplace().isEmpty()) {
                 } else {
                 }
-                if (!hasError) {
-                    hasValidFile = true;
-                }
             }
-            if (!hasValidFile) {
-                printConfigurationFileErrorsAndExit(messages);
+            if (!messages.isEmpty()) {
+                String messagesInOne = String.join("\n\t- ", messages.toArray(new String[0]));
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_is_invalid")+"\n\t- "+messagesInOne);
             }
         }
         return pb;

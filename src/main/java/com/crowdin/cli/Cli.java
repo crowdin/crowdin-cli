@@ -19,7 +19,11 @@ public class Cli {
             Commands c = new Commands();
             c.run(command, commandLine);
         } catch (Exception e) {
-            System.out.println("Error: " + e.getMessage());
+            Throwable tempE = e;
+            System.out.println(e.getMessage());
+            while ((tempE = tempE.getCause()) != null) {
+                System.out.println(tempE.getMessage());
+            }
             System.exit(1);
         }
     }

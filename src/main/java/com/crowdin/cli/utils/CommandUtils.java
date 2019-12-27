@@ -344,14 +344,10 @@ public class CommandUtils extends BaseCli {
     }
 
     public PropertiesBean makeConfigFromParameters(CommandLine commandLine, PropertiesBean propertiesBean) {
-        if (propertiesBean == null) {
-            System.out.println(RESOURCE_BUNDLE.getString("error_property_bean_null"));
-            ConsoleUtils.exitError();
+        if (propertiesBean == null || commandLine == null) {
+            throw new NullPointerException("CommandUtils.makeConfigFromParameters has empty arguments");
         }
-        if (commandLine == null) {
-            System.out.println(RESOURCE_BUNDLE.getString("commandline_null"));
-            ConsoleUtils.exitError();
-        }
+
         FileBean fileBean = new FileBean();
         if (commandLine.getOptionValue("id") != null && !commandLine.getOptionValue("id").isEmpty()) {
             propertiesBean.setProjectId(commandLine.getOptionValue("id"));
@@ -981,9 +977,8 @@ public class CommandUtils extends BaseCli {
         return baseUrl;
     }
 
-    public String getBasePath(PropertiesBean propertiesBean, File configurationFile, boolean isDebug) {
-        String basePath = propertiesBean.getBasePath();
-        String result = null;
+    public String getBasePath(String basePath, File configurationFile, boolean isDebug) {
+        String result = "";
         if (basePath != null && Paths.get(basePath) != null) {
             if (Paths.get(basePath).isAbsolute()) {
                 result = basePath;
