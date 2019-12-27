@@ -20,9 +20,9 @@ public class Cli {
             c.run(command, commandLine);
         } catch (Exception e) {
             Throwable tempE = e;
-            System.out.println("ERROR: " + e.getMessage());
+            System.out.println(e.getMessage());
             while ((tempE = tempE.getCause()) != null) {
-                System.out.println("CAUSED BY: " + tempE.getMessage());
+                System.out.println(tempE.getMessage());
             }
             System.exit(1);
         }
