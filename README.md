@@ -18,14 +18,27 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 [![codecov](https://codecov.io/gh/crowdin/crowdin-cli-2/branch/cli3/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli-2)
 ![GitHub](https://img.shields.io/github/license/crowdin/crowdin-cli-2?cacheSeconds=50000)
 
+
+## What's New
+
+- Multithreading for source and translation files upload
+- Interactive generation of a configuration file
+- Added `init` alias to `generate` command
+- UX improvements: beautiful process indicators, loading states, emojis
+- Improved help screen for commands
+- Based on new RESTful Crowdin API v2
+- Bug fixes and other minor improvements
+
+
 ## Table of Contents
 
-* [What's New](#whats-new)
-* [Building a crowdin-cli.jar](#building-a-crowdin-clijar)
 * [Installation](#installation)
   * [Verifying Your Java Version](#verifying-your-java-version)
-  * [Installation on Linux and macOS](#installation-on-linux-and-macos)
-  * [Installation on Windows](#installation-on-windows)
+  * [Windows](#windows)
+  * [Debian](#debian)
+  * [RMP](#rpm)
+  * [Standalone Version](#standalone-version)
+  * [Building a crowdin-cli.jar](#building-a-crowdin-clijar)
 * [Running the App](#running-the-app)
 * [Configuration](#configuration)
 * [Usage](#usage)
@@ -61,13 +74,102 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 
 ---
 
-## What's New
-* new type of YAML configuration
-* configuration file validation with the help of `lint` command
-* configuration file generation with the help of `init` command
-* improved process of files upload
-* possibility to work with a single file without a configuration
-* `--dryrun` option to preview list of managed files
+## Installation
+
+### Verifying Your Java Version
+
+Check if you have Java 8 or newer installed. Type `java -version` command in the terminal (Command Prompt on Windows) to check Java version.
+For example, java version "1.8.0_212" means that you have Java 8 Update 212 installed.
+
+If you don't have Java installed, download it from <a href="https://www.java.com/" target="_blank">Oracle's website</a>.
+
+
+### Windows
+
+Download and run [installer for Windows](https://downloads.crowdin.com/cli/v3/crowdin.exe).
+
+### Debian
+
+We sign all our packages with the Crowdin Signing Key.
+
+Download and install the public signing key:
+
+`wget -qO - https://artifacts.crowdin.com/repo/GPG-KEY-crowdin | sudo apt-key add -`
+
+Create a file called *crowdin.list* in the */etc/apt/sources.list.d* directory containing:
+
+*/etc/apt/sources.list.d/crowdin.list*:
+```
+deb https://artifacts.crowdin.com/repo/deb/ /
+```
+
+And your repository is ready for use. You can install the Crowdin CLI Debian package with:
+
+`sudo apt-get update && sudo apt-get install crowdin3`
+
+To install the Crowdin CLI manually:
+
+`wget https://artifacts.crowdin.com/repo/deb/crowdin3.deb -O crowdin.deb`
+
+`sudo dpkg -i crowdin.deb`
+
+
+### RPM
+
+We sign all our packages with the Crowdin Signing Key.
+
+Download and install the public signing key:
+
+`rpm --import https://artifacts.crowdin.com/repo/GPG-KEY-crowdin`
+
+Installing from the RPM repository
+
+Create a file called *crowdin.repo* in the */etc/yum.repos.d* directory containing:
+
+*/etc/yum.repos.d/crowdin.repo*:
+```
+[crowdin]
+name=Crowdin repository
+baseurl=https://artifacts.crowdin.com/repo/rpm
+gpgcheck=1
+gpgkey=https://artifacts.crowdin.com/repo/GPG-KEY-crowdin
+enabled=1
+```
+
+And your repository is ready for use. You can now install Crowdin CLI with one of the following commands:
+
+`sudo yum install crowdin3`
+
+`sudo dnf install crowdin3`
+
+To install the Crowdin CLI manually:
+
+`wget https://artifacts.crowdin.com/repo/rpm/crowdin3.rpm -O crowdin.rpm`
+
+`sudo rpm -U crowdin3.rpm`
+
+### Standalone Version
+
+Crowdin CLI can be installed as a stand-alone Java application.
+
+[Download for MacOS, Linux and Windows](https://downloads.crowdin.com/cli/v3/crowdin-cli.zip)
+
+#### Installation on Linux and macOS
+
+- Download crowdin-cli.zip using the button above
+- Unpack it
+- Run `./install-crowdin-cli.sh` in the terminal with sudo rights in order to add crowdin command to your terminal
+
+#### Installation on Windows
+
+- Download *crowdin-cli.zip* using the button above
+- Extract it's content to the place where you want Crowdin CLI to be stored
+- Open *Command Prompt* as an Administrator
+  - Click *Start*
+  - In the *Start Search box*, type `cmd`, and then press CTRL+SHIFT+ENTER
+  - If the *User Account Control* dialog box appears, confirm that the action it displays is what you want, and then click *Continue*
+- Run `setup-crowdin.bat` script in order to add crowdin command to the *Command Prompt*
+- Restart your *Command Prompt*
 
 
 ### Building a crowdin-cli.jar
@@ -77,35 +179,6 @@ Run the following command:
 ```
 gradle buildCrowdinCliJar
 ```
-
-## Installation
-
-Crowdin CLI can be installed as a stand-alone Java application.
-
-<a class="btn btn-lg btn-success" href="https://downloads.crowdin.com/cli/v2/crowdin-cli-three.zip">Download for macOS, Linux, and Windows</a>
-
-### Verifying Your Java Version
-
-Check if you have Java 8 or newer installed. Type java -version command in the terminal (Command Prompt on Windows) to check Java version.
-For example, java version "1.8.0_212" means that you have Java 8 Update 212 installed.
-
-If you don't have Java installed, download it from <a href="https://www.java.com/" target="_blank">Oracle's website</a>.
-
-### Installation on Linux and macOS
-
-1. Download **crowdin-cli.zip** using the button above
-2. Unpack it
-3. Run `. crowdin.sh` in the terminal with sudo rights to add `crowdin` command to your terminal
-
-### Installation on Windows
-
-1. Download <b>crowdin-cli.zip</b> using the button above
-2. Extract its content to the place where you want Crowdin CLI to be stored
-3. Open <i>Command Prompt</i> as an Administrator and do the following
-  * click <b>Start</b>
-  * in the <i>Start Search box</i>, type <b>cmd</b>, and then press CTRL+SHIFT+ENTER
-  * if the <i>User Account Control</i> dialog box appears, check that action displayed is the one you need, and then click <b>Continue</b>
-4. Run <code>setup_crowdin.bat</code> script in order to add <code>crowdin</code> command to the <i>Command Prompt</i>
 
 ## Running the App
 
