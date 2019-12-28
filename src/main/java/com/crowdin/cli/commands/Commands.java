@@ -550,12 +550,16 @@ public class Commands extends BaseCli {
                                         .map(fileEntity -> {
                                             String fileId = fileEntity.getId().toString();
                                             String projectId = projectInfo.getProjectId();
-                                            Map<String, Integer> schemeObject = getSchemeObject(file);
-                                            String updateOption = getUpdateOption(file);
-                                            Integer escapeQuotes = (int) file.getEscapeQuotes();
-                                            RevisionPayload revisionPayload = new RevisionPayload(storageId, schemeObject, file.getFirstLineContainsHeader(), updateOption, escapeQuotes);
 
-                                            return new RevisionsApi(this.settings).createRevision(projectId, fileId, revisionPayload).execute();
+                                            UpdateFilePayload updateFilePayload = new UpdateFilePayload() {{
+                                                setStorageId(storageId);
+                                                setExportOptions(filePayload.getExportOptions());
+                                                setImportOptions(filePayload.getImportOptions());
+                                            }};
+                                            getUpdateOption(file.getUpdateOption())
+                                                    .ifPresent(updateFilePayload::setUpdateOption);
+
+                                            return filesApi.updateFile(projectId, fileId, updateFilePayload).execute();
                                         }).orElseGet(() -> uploadFile(filePayload, filesApi));
                             } else {
                                 response = uploadFile(filePayload, filesApi);
@@ -587,13 +591,16 @@ public class Commands extends BaseCli {
         }
     }
 
-    private String getUpdateOption(FileBean file) {
-        String fileUpdateOption = file.getUpdateOption();
-        if (fileUpdateOption == null || fileUpdateOption.isEmpty()) {
-            return null;
-        }
+    private Optional<String> getUpdateOption(String fileUpdateOption) {
+        switch(fileUpdateOption) {
+            case UPDATE_OPTION_KEEP_TRANSLATIONS_CONF:
+                return Optional.of(UPDATE_OPTION_KEEP_TRANSLATIONS);
+            case UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS_CONF:
+                return Optional.of(UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS);
+            default:
+                return Optional.empty();
 
-        return fileUpdateOption;
+        }
     }
 
     private Response uploadFile(FilePayload filePayload, FilesApi filesApi) {

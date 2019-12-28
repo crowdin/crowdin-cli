@@ -151,4 +151,9 @@ public class BaseCli {
 
     protected static final String PUSH = "push";
 
+    protected static final String UPDATE_OPTION_KEEP_TRANSLATIONS_CONF = "update_as_unapproved";
+    protected static final String UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS_CONF = "update_without_changes";
+    protected static final String UPDATE_OPTION_KEEP_TRANSLATIONS = "keep_translations";
+    protected static final String UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS = "keep_translations_and_approvals";
+
 }
