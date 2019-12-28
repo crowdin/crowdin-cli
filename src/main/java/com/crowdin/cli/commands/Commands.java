@@ -249,38 +249,32 @@ public class Commands extends BaseCli {
         this.skipGenerateDescription = commandLine.hasOption(CrowdinCliOptions.SKIP_GENERATE_DESCRIPTION);
         this.initialize(resultCmd, commandLine);
 
+        if (this.help) {
+            this.help(resultCmd);
+            return;
+        }
         switch (resultCmd) {
             case UPLOAD:
             case UPLOAD_SOURCES:
             case PUSH:
-            case UPLOAD_TRANSLATIONS:
-                if (UPLOAD_TRANSLATIONS.equalsIgnoreCase(resultCmd)) {
-                    boolean isImportDuplicates = commandLine.hasOption(CrowdinCliOptions.IMPORT_DUPLICATES);
-                    boolean isImportEqSuggestions = commandLine.hasOption(CrowdinCliOptions.IMPORT_EQ_SUGGESTIONS);
-                    boolean isAutoApproveImported = commandLine.hasOption(CrowdinCliOptions.AUTO_APPROVE_IMPORTED);
-                    if (this.help) {
-                        this.help(resultCmd);
-                    } else {
-                        this.uploadTranslation(isImportDuplicates, isImportEqSuggestions, isAutoApproveImported);
-                    }
+                boolean isAutoUpdate = commandLine.getOptionValue(COMMAND_NO_AUTO_UPDATE) == null;
+                if (this.dryrun) {
+                    this.dryrunSources(commandLine);
                 } else {
-                    boolean isAutoUpdate = commandLine.getOptionValue(COMMAND_NO_AUTO_UPDATE) == null;
-                    if (this.help) {
-                        this.help(resultCmd);
-                    } else if (this.dryrun) {
-                        this.dryrunSources(commandLine);
-                    } else {
-                        this.uploadSources(isAutoUpdate);
-                    }
+                    this.uploadSources(isAutoUpdate);
                 }
+                break;
+            case UPLOAD_TRANSLATIONS:
+                boolean isImportDuplicates = commandLine.hasOption(CrowdinCliOptions.IMPORT_DUPLICATES);
+                boolean isImportEqSuggestions = commandLine.hasOption(CrowdinCliOptions.IMPORT_EQ_SUGGESTIONS);
+                boolean isAutoApproveImported = commandLine.hasOption(CrowdinCliOptions.AUTO_APPROVE_IMPORTED);
+                this.uploadTranslation(isImportDuplicates, isImportEqSuggestions, isAutoApproveImported);
                 break;
             case DOWNLOAD:
             case DOWNLOAD_TRANSLATIONS:
             case PULL:
                 boolean ignoreMatch = commandLine.hasOption(IGNORE_MATCH);
-                if (this.help) {
-                    this.help(resultCmd);
-                } else if (this.dryrun) {
+                if (this.dryrun) {
                     this.dryrunTranslation(commandLine);
                 } else {
                     this.downloadTranslation(ignoreMatch);
@@ -290,52 +284,30 @@ public class Commands extends BaseCli {
                 this.help(resultCmd);
                 break;
             case LIST_PROJECT:
-                if (this.help) {
-                    this.help(resultCmd);
-                } else {
-                    this.dryrunProject(commandLine);
-                }
+                this.dryrunProject(commandLine);
                 break;
             case LIST_SOURCES:
-                if (this.help) {
-                    this.help(resultCmd);
-                } else {
-                    this.dryrunSources(commandLine);
-                }
+                this.dryrunSources(commandLine);
                 break;
             case LIST_TRANSLATIONS:
-                if (this.help) {
-                    this.help(resultCmd);
-                } else {
-                    this.dryrunTranslation(commandLine);
-                }
+                this.dryrunTranslation(commandLine);
                 break;
             case LINT:
-                if (this.help) {
-                    this.help(resultCmd);
-                } else {
-                    this.lint();
-                }
+                this.lint();
                 break;
             case INIT:
             case GENERATE:
-                if (this.help) {
-                    this.help(resultCmd);
-                } else {
-                    String config = null;
-                    if (commandLine.getOptionValue(DESTINATION_LONG) != null && !commandLine.getOptionValue(DESTINATION_LONG).isEmpty()) {
-                        config = commandLine.getOptionValue(DESTINATION_LONG);
-                    } else if (commandLine.getOptionValue(DESTINATION_SHORT) != null && !commandLine.getOptionValue(DESTINATION_SHORT).isEmpty()) {
-                        config = commandLine.getOptionValue(DESTINATION_SHORT);
-                    }
-                    this.generate(config);
+                String config = null;
+                if (commandLine.getOptionValue(DESTINATION_LONG) != null && !commandLine.getOptionValue(DESTINATION_LONG).isEmpty()) {
+                    config = commandLine.getOptionValue(DESTINATION_LONG);
+                } else if (commandLine.getOptionValue(DESTINATION_SHORT) != null && !commandLine.getOptionValue(DESTINATION_SHORT).isEmpty()) {
+                    config = commandLine.getOptionValue(DESTINATION_SHORT);
                 }
+                this.generate(config);
                 break;
             case HELP:
                 boolean p = commandLine.hasOption(HELP_P);
-                if (this.help) {
-                    this.help(resultCmd);
-                } else if (p) {
+                if (p) {
                     System.out.println(UPLOAD);
                     System.out.println(DOWNLOAD);
                     System.out.println(LIST);
