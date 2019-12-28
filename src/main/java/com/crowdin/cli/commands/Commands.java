@@ -595,9 +595,12 @@ public class Commands extends BaseCli {
                             } else {
                                 response = uploadFile(filePayload, filesApi);
                             }
-                            System.out.println(OK.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'"));
+
+                            String relativeSourceFile = source.replaceFirst(propertiesBean.getBasePath().replaceAll("\\\\+", "\\\\\\\\"), "");
+                            System.out.println(OK.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + relativeSourceFile + "'"));
                         } catch (Exception e) {
-                            System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + preservePath + "'"));
+                            String relativeSourceFile = source.replaceFirst(propertiesBean.getBasePath().replaceAll("\\\\+", "\\\\\\\\"), "");
+                            System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + relativeSourceFile + "'"));
                             System.out.println("message : " + e.getMessage());
                             if (this.isDebug) {
                                 e.printStackTrace();
