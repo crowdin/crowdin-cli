@@ -512,33 +512,26 @@ public class Commands extends BaseCli {
                         filePayload.setImportOptions(importOptions);
 
                         ExportOptions exportOptions = null;
-                        String translationWithReplacedAsterisk = null;
-                        if (Strings.isNotEmpty(sourceFile.getAbsolutePath()) && file.getTranslation() != null && !file.getTranslation().isEmpty()) {
+                        if (StringUtils.isNoneEmpty(sourceFile.getAbsolutePath()) && StringUtils.isNoneEmpty(file.getTranslation())) {
                             String translations = file.getTranslation();
                             if (translations.contains("**")) {
-                                translationWithReplacedAsterisk = this.commandUtils.replaceDoubleAsteriskInTranslation(file.getTranslation(), sourceFile.getAbsolutePath(), file.getSource(), this.propertiesBean);
+                                translations =
+                                    this.commandUtils.replaceDoubleAsteriskInTranslation(
+                                        file.getTranslation(),
+                                        sourceFile.getAbsolutePath(),
+                                        file.getSource(),
+                                        this.propertiesBean.getBasePath()
+                                    );
                             }
-                            if (translationWithReplacedAsterisk != null) {
-                                if (translationWithReplacedAsterisk.contains("\\")) {
-                                    translationWithReplacedAsterisk = translationWithReplacedAsterisk.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
-                                    translationWithReplacedAsterisk = translationWithReplacedAsterisk.replaceAll("/+", "/");
-                                }
-                                GeneralFileExportOptions generalFileExportOptions = new GeneralFileExportOptions();
-                                generalFileExportOptions.setExportPattern(translationWithReplacedAsterisk);
-                                exportOptions = generalFileExportOptions;
-                            } else {
-                                String pattern = file.getTranslation();
-                                if (pattern != null && pattern.contains("\\")) {
-                                    pattern = pattern.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
-                                    pattern = pattern.replaceAll("/+", "/");
-                                }
-
-                                GeneralFileExportOptions generalFileExportOptions = new GeneralFileExportOptions();
-                                generalFileExportOptions.setExportPattern(pattern);
-                                exportOptions = generalFileExportOptions;
+                            if (translations.contains("\\")) {
+                                translations = translations.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
+                                translations = translations.replaceAll("/+", "/");
                             }
+                            PropertyFileExportOptions propertyFileExportOptions = new PropertyFileExportOptions();
+                            propertyFileExportOptions.setEscapeQuotes((int)file.getEscapeQuotes());
+                            propertyFileExportOptions.setExportPattern(translations);
+                            exportOptions = propertyFileExportOptions;
                         }
-
                         filePayload.setExportOptions(exportOptions);
 
                         Response response;
@@ -646,7 +639,7 @@ public class Commands extends BaseCli {
                 List<String> sourcesWithoutIgnores = commandUtils.getSourcesWithoutIgnores(file, propertiesBean, getPlaceholderUtil());
                 String[] common = new String[sourcesWithoutIgnores.size()];
                 common = sourcesWithoutIgnores.toArray(common);
-                String commonPath = Utils.replaceBasePath(Utils.commonPath(sourcesWithoutIgnores.toArray(common)), propertiesBean);
+                String commonPath = Utils.replaceBasePath(Utils.commonPath(sourcesWithoutIgnores.toArray(common)), propertiesBean.getBasePath());
                 if (Utils.isWindows()) {
                     if (commonPath.contains("\\")) {
                         commonPath = commonPath.replaceAll("\\\\", "/");
@@ -681,10 +674,10 @@ public class Commands extends BaseCli {
                                     continue;
                                 }
                                 if (!sourcesWithoutIgnoreFile.isFile()) {
-                                    System.out.println("Source file '" + Utils.replaceBasePath(sourcesWithoutIgnoreFile.getAbsolutePath(), propertiesBean) + "' does not exist");
+                                    System.out.println("Source file '" + Utils.replaceBasePath(sourcesWithoutIgnoreFile.getAbsolutePath(), propertiesBean.getBasePath()) + "' does not exist");
                                     continue;
                                 }
-                                String translationSrc = Utils.replaceBasePath(sourcesWithoutIgnoreFile.getAbsolutePath(), propertiesBean);
+                                String translationSrc = Utils.replaceBasePath(sourcesWithoutIgnoreFile.getAbsolutePath(), propertiesBean.getBasePath());
                                 if (Utils.isWindows()) {
                                     if (translationSrc.contains("\\")) {
                                         translationSrc = translationSrc.replaceAll("\\\\", "/");
@@ -728,7 +721,7 @@ public class Commands extends BaseCli {
                                     continue;
                                 }
                                 try {
-                                    System.out.println(OK.withIcon("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean) + "'"));
+                                    System.out.println(OK.withIcon("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean.getBasePath()) + "'"));
 
                                     Long storageId = createStorage(translationFile);
 
@@ -880,7 +873,7 @@ public class Commands extends BaseCli {
             String[] common = new String[sources.size()];
             common = sources.toArray(common);
             commonPath = Utils.commonPath(common);
-            commonPath = Utils.replaceBasePath(commonPath, propertiesBean);
+            commonPath = Utils.replaceBasePath(commonPath, propertiesBean.getBasePath());
 
             if (commonPath.contains("\\")) {
                 commonPath = commonPath.replaceAll("\\\\+", "/");
@@ -1022,11 +1015,11 @@ public class Commands extends BaseCli {
             List filesTree = new ArrayList();
             for (String file : files) {
                 if (propertiesBean.getPreserveHierarchy()) {
-                    filesTree.add(Utils.replaceBasePath(file, propertiesBean));
+                    filesTree.add(Utils.replaceBasePath(file, propertiesBean.getBasePath()));
                 } else {
                     StringBuilder resultFiles = new StringBuilder();
                     StringBuilder f = new StringBuilder();
-                    String path = Utils.replaceBasePath(file, propertiesBean);
+                    String path = Utils.replaceBasePath(file, propertiesBean.getBasePath());
                     if (Utils.isWindows()) {
                         if (path.contains("\\")) {
                             path = path.replaceAll("\\\\", "/");
@@ -1074,14 +1067,14 @@ public class Commands extends BaseCli {
             String src;
             for (String file : files) {
                 if (propertiesBean.getPreserveHierarchy()) {
-                    src = Utils.replaceBasePath(file, propertiesBean);
+                    src = Utils.replaceBasePath(file, propertiesBean.getBasePath());
                     if (branch != null && !branch.isEmpty()) {
                         src = Utils.PATH_SEPARATOR + branch + Utils.PATH_SEPARATOR + src;
                     }
                     src = src.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
                     System.out.println(src);
                 } else {
-                    src = Utils.replaceBasePath(file, propertiesBean);
+                    src = Utils.replaceBasePath(file, propertiesBean.getBasePath());
                     if (Utils.isWindows()) {
                         if (src.contains("\\")) {
                             src = src.replaceAll("\\\\", "/");

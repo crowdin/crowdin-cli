@@ -2,6 +2,7 @@ package com.crowdin.cli.utils;
 
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.console.ConsoleUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
 import java.io.InputStream;
@@ -83,15 +84,15 @@ public class Utils {
         return applicationBaseUrl;
     }
 
-    public static String replaceBasePath(String path, PropertiesBean propertiesBean) {
+    public static String replaceBasePath(String path, String basePath) {
         if (path == null || path.isEmpty()) {
             System.out.println(RESOURCE_BUNDLE.getString("error_empty_path"));
             ConsoleUtils.exitError();
         }
         String result;
-        if (propertiesBean !=  null && propertiesBean.getBasePath() != null && !propertiesBean.getBasePath().isEmpty()) {
+        if (StringUtils.isNoneEmpty(basePath)) {
             path = path.replaceAll(PATH_SEPARATOR_REGEX + "+", PATH_SEPARATOR_REGEX);
-            result = path.replace(propertiesBean.getBasePath(), PATH_SEPARATOR);
+            result = path.replace(basePath, PATH_SEPARATOR);
         } else {
             result = PATH_SEPARATOR;
         }
