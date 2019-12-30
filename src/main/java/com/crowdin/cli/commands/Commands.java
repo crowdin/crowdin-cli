@@ -1,10 +1,8 @@
 package com.crowdin.cli.commands;
 
 import com.crowdin.cli.BaseCli;
-import com.crowdin.cli.client.BranchClient;
-import com.crowdin.cli.client.ProjectClient;
-import com.crowdin.cli.client.ProjectWrapper;
-import com.crowdin.cli.client.TranslationsClient;
+import com.crowdin.cli.client.*;
+import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
 import com.crowdin.cli.properties.CliProperties;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -29,7 +27,6 @@ import com.crowdin.util.ResponseUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import org.apache.logging.log4j.util.Strings;
@@ -431,6 +428,7 @@ public class Commands extends BaseCli {
 
 
     private void uploadSources(boolean autoUpdate) {
+        FileClient fileClient = new FileClient(this.settings);
         Boolean preserveHierarchy = this.propertiesBean.getPreserveHierarchy();
         List<FileBean> files = this.propertiesBean.getFiles();
         boolean noFiles = true;
@@ -539,7 +537,6 @@ public class Commands extends BaseCli {
                             Long storageId = createStorage(sourceFile);
                             filePayload.setStorageId(storageId);
                             filePayload.setName(preservePath);
-                            FilesApi filesApi = new FilesApi(settings);
                             if (autoUpdate) {
                                 response = EntityUtils.find(
                                         projectInfo.getFiles(),
@@ -551,18 +548,18 @@ public class Commands extends BaseCli {
                                             String fileId = fileEntity.getId().toString();
                                             String projectId = projectInfo.getProjectId();
 
-                                            UpdateFilePayload updateFilePayload = new UpdateFilePayload() {{
-                                                setStorageId(storageId);
-                                                setExportOptions(filePayload.getExportOptions());
-                                                setImportOptions(filePayload.getImportOptions());
-                                            }};
+                                            UpdateFilePayload updateFilePayload = new UpdateFilePayloadWrapper(
+                                                storageId,
+                                                filePayload.getExportOptions(),
+                                                filePayload.getImportOptions()
+                                            );
                                             getUpdateOption(file.getUpdateOption())
                                                     .ifPresent(updateFilePayload::setUpdateOption);
 
-                                            return filesApi.updateFile(projectId, fileId, updateFilePayload).execute();
-                                        }).orElseGet(() -> uploadFile(filePayload, filesApi));
+                                            return fileClient.updateFile(projectId, fileId, updateFilePayload);
+                                        }).orElseGet(() -> fileClient.uploadFile(projectInfo.getProject().getId().toString(), filePayload));
                             } else {
-                                response = uploadFile(filePayload, filesApi);
+                                response = fileClient.uploadFile(projectInfo.getProject().getId().toString(), filePayload);
                             }
 
                             String relativeSourceFile = source.replaceFirst(propertiesBean.getBasePath().replaceAll("\\\\+", "\\\\\\\\"), "");
@@ -601,13 +598,6 @@ public class Commands extends BaseCli {
                 return Optional.empty();
 
         }
-    }
-
-    private Response uploadFile(FilePayload filePayload, FilesApi filesApi) {
-        String projectId = this.getProjectInfo().getProject().getId().toString();
-        return filesApi
-                .createFile(projectId, filePayload)
-                .execute();
     }
 
     private Map<String, Integer> getSchemeObject(FileBean file) {
