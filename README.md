@@ -959,7 +959,7 @@ Need help working with Crowdin CLI or have any questions? <a href="https://crowd
 
 ## License
 <pre>
-Copyright © 2019 Crowdin
+Copyright © 2020 Crowdin
 
 The Crowdin CLI is licensed under the MIT License. 
 See the LICENSE.md file distributed with this work for additional 
