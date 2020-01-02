@@ -300,7 +300,7 @@ public class CommandUtils extends BaseCli {
                 System.out.println(ObjectMapperUtil.getEntityAsString(directory));
             }
             if (directory.getId() != null) {
-                System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "' "));
+                System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + StringUtils.removePattern(parentPath.toString(), "[\\\\/]$") + "' "));
             }
             directoryIdMap.put(parentPath.toString(), directoryId);
         } catch (Exception ex) {
@@ -309,7 +309,7 @@ public class CommandUtils extends BaseCli {
                         ex.getMessage().contains("This file is currently being updated")
 
             ) {
-                System.out.println(ExecutionStatus.SKIPPED.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
+                System.out.println(ExecutionStatus.SKIPPED.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + StringUtils.removePattern(parentPath.toString(), "[\\\\/]$") + "'"));
                 CrowdinRequestBuilder<Page<Directory>> directoriesApi = api.getProjectDirectories(projectId.toString(), Pageable.of(0, 500));
                 List<Directory> projectDirectories = PaginationUtil.unpaged(directoriesApi);
 
@@ -335,7 +335,7 @@ public class CommandUtils extends BaseCli {
                 }
                 return createDirectory(api, projectId, directoryPayload, directoryId, parentPath, isVerbose, node, branchId);
             } else {
-                System.out.println(ExecutionStatus.ERROR.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + node + "'"));
+                System.out.println(ExecutionStatus.ERROR.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + StringUtils.removePattern(parentPath.toString(), "[\\\\/]$") + "'"));
                 System.out.println(ex.getMessage());
                 ConsoleUtils.exitError();
             }
