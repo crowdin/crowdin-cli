@@ -589,6 +589,9 @@ public class Commands extends BaseCli {
     }
 
     private Optional<String> getUpdateOption(String fileUpdateOption) {
+        if (fileUpdateOption == null) {
+            return Optional.empty();
+        }
         switch(fileUpdateOption) {
             case UPDATE_OPTION_KEEP_TRANSLATIONS_CONF:
                 return Optional.of(UPDATE_OPTION_KEEP_TRANSLATIONS);
