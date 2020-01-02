@@ -226,7 +226,7 @@ Sample configuration file:
 ]
 ```
 
-For more information how to configure Crowdin CLI, check <a href="https://support.crowdin.com/enterprise/configuration-file/" target="_blank">Configuration File</a> article.
+For more information how to configure Crowdin CLI, check <a href="https://support.crowdin.com/configuration-file-v3/" target="_blank">Configuration File</a> article.
 
 ## Usage
 
@@ -265,7 +265,7 @@ To upload single file without configuration:
 ```
 $ crowdin upload sources -s path/to/your/file -t file/export/pattern -pat personal-token -i project-id --base-url https://your-organization.crowdin.com
 ```
-Use <a href="https://support.crowdin.com/enterprise/configuration-file/#placeholders" target="_blank">placeholders</a> to put appropriate variables.
+Use <a href="https://support.crowdin.com/configuration-file-v3/#placeholders" target="_blank">placeholders</a> to put appropriate variables.
 
 To display a list of files that will be uploaded to Crowdin:
 ```
