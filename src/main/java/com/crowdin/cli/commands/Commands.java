@@ -2,7 +2,11 @@ package com.crowdin.cli.commands;
 
 import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.*;
+import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.request.PropertyFileExportOptionsWrapper;
+import com.crowdin.cli.client.request.SpreadsheetFileImportOptionsWrapper;
 import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
+import com.crowdin.cli.client.request.XmlFileImportOptionsWrapper;
 import com.crowdin.cli.properties.CliProperties;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -16,7 +20,6 @@ import com.crowdin.cli.utils.tree.DrawTree;
 import com.crowdin.client.CrowdinRequestBuilder;
 import com.crowdin.client.api.BranchesApi;
 import com.crowdin.client.api.FilesApi;
-import com.crowdin.client.api.StorageApi;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.*;
 import com.crowdin.common.request.*;
@@ -30,7 +33,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
@@ -431,117 +433,100 @@ public class Commands extends BaseCli {
 
 
     private void uploadSources(boolean autoUpdate) {
+        final ProjectWrapper projectInfo = getProjectInfo();
+
         FileClient fileClient = new FileClient(this.settings);
         StorageClient storageClient = new StorageClient(this.settings);
+        DirectoriesClient directoriesClient = new DirectoriesClient(this.settings, projectInfo.getProjectId());
+
         Boolean preserveHierarchy = this.propertiesBean.getPreserveHierarchy();
         List<FileBean> files = this.propertiesBean.getFiles();
-        boolean noFiles = true;
         Optional<Long> branchId = getOrCreateBranchId();
 
         for (FileBean file : files) {
-            if (file.getSource() == null
-                    || file.getSource().isEmpty()
-                    || file.getTranslation() == null
-                    || file.getTranslation().isEmpty()) {
-                continue;
+            if (StringUtils.isAnyEmpty(file.getSource(), file.getTranslation())) {
+                throw new RuntimeException("No sources and/or translations in config are included");
             }
             List<String> sources = this.commandUtils.getSourcesWithoutIgnores(file, this.propertiesBean, getPlaceholderUtil());
-            if (!sources.isEmpty()) {
-                noFiles = false;
+            String commonPath =
+                (preserveHierarchy) ? "" : this.commandUtils.getCommonPath(sources, this.propertiesBean.getBasePath());
+
+            boolean isDest = StringUtils.isNotEmpty(file.getDest());
+
+            if (sources.isEmpty()) {
+                throw new RuntimeException("No sources found");
             }
-            String commonPath = "";
-            if (!preserveHierarchy) {
-                commonPath = this.commandUtils.getCommonPath(sources, this.propertiesBean);
+            if (isDest && this.commandUtils.isSourceContainsPattern(file.getSource())) {
+                throw new RuntimeException("Config contains 'dest' and have pattern in source. There can be only one file with 'dest'.");
+            } else if (isDest && !preserveHierarchy) {
+                throw new RuntimeException("The 'dest' parameter only works for single files, and if you use it, the configuration file should also include the 'preserve_hierarchy' parameter with true value.");
             }
 
-            final String finalCommonPath = commonPath;
-            final ProjectWrapper projectInfo = getProjectInfo();
+            try {
+                this.commandUtils.addDirectoryIdMap(directoriesClient.getProjectDirectoriesMapPathId());
+            } catch (ResponseException e) {
+                throw new RuntimeException("Couldn't get list of directories", e);
+            }
+
             List<Runnable> tasks = sources.stream()
-                    .map(source -> (Runnable) () -> {
-                        File sourceFile = new File(source);
-                        if (!sourceFile.isFile()) {
-                            return;
-                        }
-                        boolean isDest = file.getDest() != null && !file.getDest().isEmpty() && !this.commandUtils.isSourceContainsPattern(file.getSource());
-                        Pair<String, Long> preservePathToParentId = this.commandUtils.preserveHierarchy(file,
-                                sourceFile.getAbsolutePath(),
-                                finalCommonPath,
-                                this.propertiesBean,
-                                this.branch,
-                                this.settings,
-                                projectInfo.getProject().getId(),
-                                this.isVerbose);
-                        String preservePath = preservePathToParentId.getLeft();
-                        Long parentId = preservePathToParentId.getRight();
-                        String fName;
+                    .map(File::new)
+                    .filter(File::isFile)
+                    .map(sourceFile -> (Runnable) () -> {
+                        String filePath;
+
                         if (isDest) {
-                            fName = new File(file.getDest()).getName();
+                            filePath = file.getDest();
                         } else {
-                            fName = sourceFile.getName();
+                            filePath = Utils.replaceBasePath(sourceFile.getAbsolutePath(), this.propertiesBean.getBasePath());
+                            filePath = StringUtils.removeStart(filePath, Utils.PATH_SEPARATOR);
+                            filePath = StringUtils.removeStart(filePath, commonPath);
                         }
-                        preservePath = preservePath + Utils.PATH_SEPARATOR + fName;
-                        preservePath = preservePath.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-                        if (preservePath.startsWith(Utils.PATH_SEPARATOR)) {
-                            preservePath = preservePath.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
-                        }
+                        Long directoryId = this.commandUtils.createPath(filePath, branchId, directoriesClient);
+                        String fName = ((isDest) ? new File(file.getDest()) : sourceFile).getName();
 
-                        preservePath = preservePath.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
-
-                        FilePayload filePayload = new FilePayload();
-
-                        filePayload.setDirectoryId(parentId);
-                        filePayload.setTitle(preservePath);
-                        filePayload.setType(file.getType());
-                        branchId.ifPresent(filePayload::setBranchId);
-
-                        ImportOptions importOptions;
-                        if (source.endsWith(".xml")) {
-                            XmlFileImportOptions xmlFileImportOptions = new XmlFileImportOptions();
-                            xmlFileImportOptions.setContentSegmentation(unboxingBoolean(file.getContentSegmentation()));
-                            xmlFileImportOptions.setTranslateAttributes(unboxingBoolean(file.getTranslateAttributes()));
-                            xmlFileImportOptions.setTranslateContent(unboxingBoolean(file.getTranslateContent()));
-                            xmlFileImportOptions.setTranslatableElements(file.getTranslatableElements());
-                            importOptions = xmlFileImportOptions;
-                        } else {
-                            SpreadsheetFileImportOptions spreadsheetFileImportOptions = new SpreadsheetFileImportOptions();
-                            spreadsheetFileImportOptions.setImportTranslations(true);
-                            spreadsheetFileImportOptions.setFirstLineContainsHeader(unboxingBoolean(file.getFirstLineContainsHeader()));
-                            spreadsheetFileImportOptions.setScheme(getSchemeObject(file));
-
-                            importOptions = spreadsheetFileImportOptions;
-                        }
-
-                        filePayload.setImportOptions(importOptions);
+                        ImportOptions importOptions =
+                            (sourceFile.getName().endsWith(".xml"))
+                            ? new XmlFileImportOptionsWrapper(
+                                unboxingBoolean(file.getContentSegmentation()),
+                                unboxingBoolean(file.getTranslateAttributes()),
+                                unboxingBoolean(file.getTranslateContent()),
+                                file.getTranslatableElements())
+                            : new SpreadsheetFileImportOptionsWrapper(
+                                true,
+                                unboxingBoolean(file.getFirstLineContainsHeader()),
+                                getSchemeObject(file));
 
                         ExportOptions exportOptions = null;
-
                         if (StringUtils.isNoneEmpty(sourceFile.getAbsolutePath(), file.getTranslation())) {
-                            String translations = file.getTranslation();
-                            if (translations.contains("**")) {
-                                translations =
-                                    this.commandUtils.replaceDoubleAsteriskInTranslation(
-                                        file.getTranslation(),
-                                        sourceFile.getAbsolutePath(),
-                                        file.getSource(),
-                                        this.propertiesBean.getBasePath()
-                                    );
-                            }
-                            if (translations.contains("\\")) {
-                                translations = translations.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
-                                translations = translations.replaceAll("/+", "/");
-                            }
-                            PropertyFileExportOptions propertyFileExportOptions = new PropertyFileExportOptions();
-                            propertyFileExportOptions.setEscapeQuotes((int)file.getEscapeQuotes());
-                            propertyFileExportOptions.setExportPattern(translations);
-                            exportOptions = propertyFileExportOptions;
+                            String exportPattern = this.commandUtils.replaceDoubleAsteriskInTranslation(
+                                file.getTranslation(),
+                                sourceFile.getAbsolutePath(),
+                                file.getSource(),
+                                this.propertiesBean.getBasePath()
+                            );
+                            exportPattern = StringUtils.replacePattern(exportPattern, "[\\\\/]+", "/");
+                            exportOptions = new PropertyFileExportOptionsWrapper(file.getEscapeQuotes(), exportPattern);
                         }
-                        filePayload.setExportOptions(exportOptions);
 
-                        Response response;
+                        Long storageId;
                         try {
-                            Long storageId = storageClient.uploadStorage(sourceFile, fName);
-                            filePayload.setStorageId(storageId);
-                            filePayload.setName(preservePath);
+                            storageId = storageClient.uploadStorage(sourceFile, fName);
+                        } catch (Exception e) {
+                            throw new RuntimeException("Couldn't upload file '" + sourceFile.getAbsolutePath() + "' to storage");
+                        }
+
+                        FilePayload filePayload = new FilePayload();
+                        filePayload.setName(fName);
+                        filePayload.setDirectoryId(directoryId);
+                        filePayload.setType(file.getType());
+                        filePayload.setImportOptions(importOptions);
+                        filePayload.setExportOptions(exportOptions);
+                        filePayload.setStorageId(storageId);
+                        branchId.ifPresent(filePayload::setBranchId);
+
+
+                        Response response = null;
+                        try {
                             if (autoUpdate) {
                                 response = EntityUtils.find(
                                         projectInfo.getFiles(),
@@ -554,7 +539,7 @@ public class Commands extends BaseCli {
                                             String projectId = projectInfo.getProjectId();
 
                                             UpdateFilePayload updateFilePayload = new UpdateFilePayloadWrapper(
-                                                storageId,
+                                                filePayload.getStorageId(),
                                                 filePayload.getExportOptions(),
                                                 filePayload.getImportOptions()
                                             );
@@ -567,16 +552,12 @@ public class Commands extends BaseCli {
                                 response = fileClient.uploadFile(projectInfo.getProject().getId().toString(), filePayload);
                             }
 
-                            String relativeSourceFile = source.replaceFirst(propertiesBean.getBasePath().replaceAll("\\\\+", "\\\\\\\\"), "");
-                            System.out.println(OK.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + relativeSourceFile + "'"));
+                            System.out.println(OK.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + filePath + "'"));
                         } catch (Exception e) {
-                            String relativeSourceFile = source.replaceFirst(propertiesBean.getBasePath().replaceAll("\\\\+", "\\\\\\\\"), "");
-                            System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + relativeSourceFile + "'"));
-                            System.out.println("message : " + e.getMessage());
+                            System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + filePath + "'"));
                             if (this.isDebug) {
                                 e.printStackTrace();
                             }
-                            return;
                         }
                         if (this.isVerbose && response != null) {
                             System.out.println(response.getHeaders());
@@ -585,11 +566,6 @@ public class Commands extends BaseCli {
                     })
                     .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks);
-        }
-        if (noFiles) {
-            System.out.println("Error: No source files to upload.\n" +
-                    "Check your configuration file to ensure that they contain valid directives.");
-            ConsoleUtils.exitError();
         }
     }
 
@@ -1009,7 +985,7 @@ public class Commands extends BaseCli {
         commandUtils.sortFilesName(files);
         String commonPath = "";
         if (!propertiesBean.getPreserveHierarchy()) {
-            commonPath = commandUtils.getCommonPath(files, propertiesBean);
+            commonPath = commandUtils.getCommonPath(files, propertiesBean.getBasePath());
         }
         if (commandLine.hasOption(COMMAND_TREE)) {
             DrawTree drawTree = new DrawTree();
