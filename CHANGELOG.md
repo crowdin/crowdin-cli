@@ -1,5 +1,19 @@
 **Unreleased**
 
+**Version 3.0.5**
++ Updated: increase Pagination util limit
++ Updated: removed 'force' parameter for the 'Build Project Translation' api method
++ Fixed: in-Context support
++ Updated: refactoring: making Commands a little bit smaller
++ Fixed: directories API
++ Updated: refactored initialize-method
++ Updated: help-text for upload
++ Fixed: general help (drop redundant option, showing the correct message)
++ Updated: refactor run()
++ Fixed: fix escape_quotes
++ Updated: show relative path in messages in upload source
++ Updated: change createRevision to updateFile
+
 **Version 3.0.4**
 + Fixed: language placeholders for ignore pattern
 + Updated: Unit-tests and CI/CD
