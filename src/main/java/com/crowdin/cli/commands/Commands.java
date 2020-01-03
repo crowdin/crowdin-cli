@@ -14,7 +14,9 @@ import com.crowdin.cli.utils.file.FileReader;
 import com.crowdin.cli.utils.file.FileUtil;
 import com.crowdin.cli.utils.tree.DrawTree;
 import com.crowdin.client.CrowdinRequestBuilder;
-import com.crowdin.client.api.*;
+import com.crowdin.client.api.BranchesApi;
+import com.crowdin.client.api.FilesApi;
+import com.crowdin.client.api.StorageApi;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.*;
 import com.crowdin.common.request.*;
@@ -29,10 +31,11 @@ import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.util.Strings;
 
 import javax.ws.rs.core.Response;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -429,6 +432,7 @@ public class Commands extends BaseCli {
 
     private void uploadSources(boolean autoUpdate) {
         FileClient fileClient = new FileClient(this.settings);
+        StorageClient storageClient = new StorageClient(this.settings);
         Boolean preserveHierarchy = this.propertiesBean.getPreserveHierarchy();
         List<FileBean> files = this.propertiesBean.getFiles();
         boolean noFiles = true;
@@ -510,7 +514,8 @@ public class Commands extends BaseCli {
                         filePayload.setImportOptions(importOptions);
 
                         ExportOptions exportOptions = null;
-                        if (StringUtils.isNoneEmpty(sourceFile.getAbsolutePath()) && StringUtils.isNoneEmpty(file.getTranslation())) {
+
+                        if (StringUtils.isNoneEmpty(sourceFile.getAbsolutePath(), file.getTranslation())) {
                             String translations = file.getTranslation();
                             if (translations.contains("**")) {
                                 translations =
@@ -534,7 +539,7 @@ public class Commands extends BaseCli {
 
                         Response response;
                         try {
-                            Long storageId = createStorage(sourceFile);
+                            Long storageId = storageClient.uploadStorage(sourceFile, fName);
                             filePayload.setStorageId(storageId);
                             filePayload.setName(preservePath);
                             if (autoUpdate) {
@@ -630,6 +635,7 @@ public class Commands extends BaseCli {
         List<FileEntity> projectFiles = PaginationUtil.unpaged(new FilesApi(settings).getProjectFiles(projectId, Pageable.unpaged()));
         Map<Long, String> filesFullPath = commandUtils.getFilesFullPath(projectFiles, settings, getProjectInfo().getProject().getId());
 
+        StorageClient storageClient = new StorageClient(this.settings);
 
         final ProjectWrapper projectInfo = getProjectInfo();
         for (FileBean file : files) {
@@ -726,7 +732,7 @@ public class Commands extends BaseCli {
                                 try {
                                     System.out.println(OK.withIcon("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean.getBasePath()) + "'"));
 
-                                    Long storageId = createStorage(translationFile);
+                                    Long storageId = storageClient.uploadStorage(translationFile, translationFile.getName());
 
                                     TranslationsClient translationsClient = new TranslationsClient(settings, projectId);
                                     translationsClient.uploadTranslations(
@@ -762,14 +768,6 @@ public class Commands extends BaseCli {
         } else {
             return Optional.ofNullable(this.createBranch(branch)).map(Branch::getId);
         }
-    }
-
-    private Long createStorage(File uploadData) {
-        return new StorageApi(settings)
-                .uploadFile(uploadData)
-                .getResponseEntity()
-                .getEntity()
-                .getId();
     }
 
     private void download(String languageCode, boolean ignoreMatch) {
