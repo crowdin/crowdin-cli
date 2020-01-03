@@ -1,10 +1,8 @@
 package com.crowdin.cli.commands;
 
 import com.crowdin.cli.BaseCli;
-import com.crowdin.cli.client.BranchClient;
-import com.crowdin.cli.client.ProjectClient;
-import com.crowdin.cli.client.ProjectWrapper;
-import com.crowdin.cli.client.TranslationsClient;
+import com.crowdin.cli.client.*;
+import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
 import com.crowdin.cli.properties.CliProperties;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -16,7 +14,9 @@ import com.crowdin.cli.utils.file.FileReader;
 import com.crowdin.cli.utils.file.FileUtil;
 import com.crowdin.cli.utils.tree.DrawTree;
 import com.crowdin.client.CrowdinRequestBuilder;
-import com.crowdin.client.api.*;
+import com.crowdin.client.api.BranchesApi;
+import com.crowdin.client.api.FilesApi;
+import com.crowdin.client.api.StorageApi;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.*;
 import com.crowdin.common.request.*;
@@ -29,13 +29,13 @@ import com.crowdin.util.ResponseUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import org.apache.logging.log4j.util.Strings;
 
 import javax.ws.rs.core.Response;
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.UnsupportedCharsetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -431,6 +431,8 @@ public class Commands extends BaseCli {
 
 
     private void uploadSources(boolean autoUpdate) {
+        FileClient fileClient = new FileClient(this.settings);
+        StorageClient storageClient = new StorageClient(this.settings);
         Boolean preserveHierarchy = this.propertiesBean.getPreserveHierarchy();
         List<FileBean> files = this.propertiesBean.getFiles();
         boolean noFiles = true;
@@ -512,7 +514,8 @@ public class Commands extends BaseCli {
                         filePayload.setImportOptions(importOptions);
 
                         ExportOptions exportOptions = null;
-                        if (StringUtils.isNoneEmpty(sourceFile.getAbsolutePath()) && StringUtils.isNoneEmpty(file.getTranslation())) {
+
+                        if (StringUtils.isNoneEmpty(sourceFile.getAbsolutePath(), file.getTranslation())) {
                             String translations = file.getTranslation();
                             if (translations.contains("**")) {
                                 translations =
@@ -536,10 +539,9 @@ public class Commands extends BaseCli {
 
                         Response response;
                         try {
-                            Long storageId = createStorage(sourceFile);
+                            Long storageId = storageClient.uploadStorage(sourceFile, fName);
                             filePayload.setStorageId(storageId);
                             filePayload.setName(preservePath);
-                            FilesApi filesApi = new FilesApi(settings);
                             if (autoUpdate) {
                                 response = EntityUtils.find(
                                         projectInfo.getFiles(),
@@ -550,15 +552,19 @@ public class Commands extends BaseCli {
                                         .map(fileEntity -> {
                                             String fileId = fileEntity.getId().toString();
                                             String projectId = projectInfo.getProjectId();
-                                            Map<String, Integer> schemeObject = getSchemeObject(file);
-                                            String updateOption = getUpdateOption(file);
-                                            Integer escapeQuotes = (int) file.getEscapeQuotes();
-                                            RevisionPayload revisionPayload = new RevisionPayload(storageId, schemeObject, file.getFirstLineContainsHeader(), updateOption, escapeQuotes);
 
-                                            return new RevisionsApi(this.settings).createRevision(projectId, fileId, revisionPayload).execute();
-                                        }).orElseGet(() -> uploadFile(filePayload, filesApi));
+                                            UpdateFilePayload updateFilePayload = new UpdateFilePayloadWrapper(
+                                                storageId,
+                                                filePayload.getExportOptions(),
+                                                filePayload.getImportOptions()
+                                            );
+                                            getUpdateOption(file.getUpdateOption())
+                                                    .ifPresent(updateFilePayload::setUpdateOption);
+
+                                            return fileClient.updateFile(projectId, fileId, updateFilePayload);
+                                        }).orElseGet(() -> fileClient.uploadFile(projectInfo.getProject().getId().toString(), filePayload));
                             } else {
-                                response = uploadFile(filePayload, filesApi);
+                                response = fileClient.uploadFile(projectInfo.getProject().getId().toString(), filePayload);
                             }
 
                             String relativeSourceFile = source.replaceFirst(propertiesBean.getBasePath().replaceAll("\\\\+", "\\\\\\\\"), "");
@@ -587,20 +593,19 @@ public class Commands extends BaseCli {
         }
     }
 
-    private String getUpdateOption(FileBean file) {
-        String fileUpdateOption = file.getUpdateOption();
-        if (fileUpdateOption == null || fileUpdateOption.isEmpty()) {
-            return null;
+    private Optional<String> getUpdateOption(String fileUpdateOption) {
+        if (fileUpdateOption == null) {
+            return Optional.empty();
         }
+        switch(fileUpdateOption) {
+            case UPDATE_OPTION_KEEP_TRANSLATIONS_CONF:
+                return Optional.of(UPDATE_OPTION_KEEP_TRANSLATIONS);
+            case UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS_CONF:
+                return Optional.of(UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS);
+            default:
+                return Optional.empty();
 
-        return fileUpdateOption;
-    }
-
-    private Response uploadFile(FilePayload filePayload, FilesApi filesApi) {
-        String projectId = this.getProjectInfo().getProject().getId().toString();
-        return filesApi
-                .createFile(projectId, filePayload)
-                .execute();
+        }
     }
 
     private Map<String, Integer> getSchemeObject(FileBean file) {
@@ -630,6 +635,7 @@ public class Commands extends BaseCli {
         List<FileEntity> projectFiles = PaginationUtil.unpaged(new FilesApi(settings).getProjectFiles(projectId, Pageable.unpaged()));
         Map<Long, String> filesFullPath = commandUtils.getFilesFullPath(projectFiles, settings, getProjectInfo().getProject().getId());
 
+        StorageClient storageClient = new StorageClient(this.settings);
 
         final ProjectWrapper projectInfo = getProjectInfo();
         for (FileBean file : files) {
@@ -726,7 +732,7 @@ public class Commands extends BaseCli {
                                 try {
                                     System.out.println(OK.withIcon("Uploading translation file '" + Utils.replaceBasePath(translationFile.getAbsolutePath(), propertiesBean.getBasePath()) + "'"));
 
-                                    Long storageId = createStorage(translationFile);
+                                    Long storageId = storageClient.uploadStorage(translationFile, translationFile.getName());
 
                                     TranslationsClient translationsClient = new TranslationsClient(settings, projectId);
                                     translationsClient.uploadTranslations(
@@ -762,14 +768,6 @@ public class Commands extends BaseCli {
         } else {
             return Optional.ofNullable(this.createBranch(branch)).map(Branch::getId);
         }
-    }
-
-    private Long createStorage(File uploadData) {
-        return new StorageApi(settings)
-                .uploadFile(uploadData)
-                .getResponseEntity()
-                .getEntity()
-                .getId();
     }
 
     private void download(String languageCode, boolean ignoreMatch) {
