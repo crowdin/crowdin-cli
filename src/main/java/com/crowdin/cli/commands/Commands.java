@@ -135,6 +135,8 @@ public class Commands extends BaseCli {
         }
     }
 
+
+
     private ProjectWrapper getProjectInfo() {
         if (projectInfo == null) {
             ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);

@@ -42,6 +42,7 @@ dependencies {
     compile group: 'net.ricecode', name: 'string-similarity', version: '1.0.0'
     compile group: 'com.github.fge', name: 'json-patch', version: '1.9'
 
+    compile 'info.picocli:picocli:4.1.4'
 
     compile files('libs/crowdin-1.0.jar')
     testCompile('org.junit.jupiter:junit-jupiter:5.5.2')

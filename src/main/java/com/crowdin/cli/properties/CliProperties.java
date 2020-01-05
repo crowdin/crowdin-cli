@@ -72,7 +72,7 @@ public class CliProperties {
 
     private static final String TRANSLATION_REPLACE = "translation_replace";
 
-    public PropertiesBean loadProperties(HashMap<String, Object> properties) {
+    public PropertiesBean loadProperties(Map<String, Object> properties) {
         if (properties == null) {
             throw new NullPointerException("CliProperties.loadProperties has null args");
         }

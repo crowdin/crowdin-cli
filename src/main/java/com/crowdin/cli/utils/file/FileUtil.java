@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -15,6 +16,10 @@ import java.util.Scanner;
 public class FileUtil {
 
     public static void writeToFile(InputStream data, String filePath) throws IOException {
+        Path parentDirectory = Paths.get(filePath).getParent();
+        if (parentDirectory != null) {
+            Files.createDirectories(parentDirectory);
+        }
         FileOutputStream fileOutputStream = new FileOutputStream(filePath);
         IOUtils.copy(data, fileOutputStream);
         fileOutputStream.flush();

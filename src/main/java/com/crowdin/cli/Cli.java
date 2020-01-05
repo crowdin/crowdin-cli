@@ -1,30 +1,32 @@
 package com.crowdin.cli;
 
-import com.crowdin.cli.commands.Commands;
-import com.crowdin.cli.commands.CrowdinCliCommands;
-import com.crowdin.cli.commands.CrowdinCliOptions;
-import org.apache.commons.cli.CommandLine;
-import org.apache.commons.cli.CommandLineParser;
-import org.apache.commons.cli.DefaultParser;
-import org.apache.commons.cli.Options;
+import com.crowdin.cli.commands.*;
+import picocli.CommandLine;
+//import org.apache.commons.cli.CommandLine;
+//import org.apache.commons.cli.CommandLineParser;
+//import org.apache.commons.cli.DefaultParser;
+//import org.apache.commons.cli.Options;
 
 public class Cli {
 
     public static void main(String[] args) {
         try {
-            Options options = new CrowdinCliOptions().init();
-            CommandLineParser parser = new DefaultParser();
-            CommandLine commandLine = parser.parse(options, args);
-            String command = new CrowdinCliCommands().init(commandLine);
-            Commands c = new Commands();
-            c.run(command, commandLine);
+            CommandLine.Help.ColorScheme colorScheme = new CommandLine.Help.ColorScheme.Builder()
+                    .commands(CommandLine.Help.Ansi.Style.fg_yellow)
+                    .options(CommandLine.Help.Ansi.Style.fg_yellow)
+                    .build();
+            CommandLine commandLine = new CommandLine(new GeneralCommand())
+                .addSubcommand("upload", new CommandLine(new UploadSubcommand())
+                    .addSubcommand("sources", new UploadSourcesSubcommand())
+                    .addSubcommand("translations", new UploadTranslationsSubcommand()))
+                .addSubcommand("download", new DownloadSubcommand())
+                .addSubcommand("list", new ListSubcommand())
+                .addSubcommand("lint", new LintSubcommand())
+                .addSubcommand("generate", new GenerateSubcommand());
+            int exitCode = commandLine.setColorScheme(colorScheme).execute(args);
         } catch (Exception e) {
-            Throwable tempE = e;
-            System.out.println(e.getMessage());
-            while ((tempE = tempE.getCause()) != null) {
-                System.out.println(tempE.getMessage());
-            }
-            System.exit(1);
+            System.out.println("There is exception:");
+            e.printStackTrace();
         }
     }
 }
