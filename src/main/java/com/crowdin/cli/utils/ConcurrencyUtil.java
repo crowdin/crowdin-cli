@@ -22,23 +22,17 @@ public class ConcurrencyUtil {
         if (Objects.isNull(tasks) || tasks.size() == 0) {
             return;
         }
-        ExecutorService executor = Executors.newFixedThreadPool(CROWDIN_API_MAX_CONCURRENT_REQUESTS);
-        List<Future<?>> futures = tasks
-            .stream()
-            .map(executor::submit)
-            .collect(Collectors.toList());
+        ExecutorService executor = CrowdinExecutorService.newFixedThreadPool(CROWDIN_API_MAX_CONCURRENT_REQUESTS);
+        tasks.forEach(executor::submit);
+        executor.shutdown();
         try {
-            for(Future<?> future : futures) {
-                try {
-                    future.get(2, TimeUnit.MINUTES);
-                } catch (ExecutionException e) {
-                    System.out.println(e.getMessage());
-                }
+            if (!executor.awaitTermination(tasks.size() * 2, TimeUnit.MINUTES)) {
+                executor.shutdownNow();
             }
-        } catch (InterruptedException | TimeoutException e) {
+        } catch (InterruptedException ex) {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
-            throw new RuntimeException(e);
         }
+
     }
 }
