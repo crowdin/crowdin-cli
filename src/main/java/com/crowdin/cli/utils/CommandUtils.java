@@ -137,11 +137,11 @@ public class CommandUtils extends BaseCli {
         return translations;
     }
 
-    public List<String> getSourcesWithoutIgnores(FileBean file, PropertiesBean propertiesBean, PlaceholderUtil placeholderUtil) {
-        if (propertiesBean == null || file == null) {
+    public List<String> getSourcesWithoutIgnores(FileBean file, String basePath, PlaceholderUtil placeholderUtil) {
+        if (file == null) {
             return Collections.emptyList();
         }
-        FileHelper fileHelper = new FileHelper(propertiesBean.getBasePath());
+        FileHelper fileHelper = new FileHelper(basePath);
         List<File> sources = fileHelper.getFileSource(file.getSource());
         List<String> formattedIgnores = placeholderUtil.format(sources, file.getIgnore(), false);
         List<File> sourcesWithoutIgnores = fileHelper.filterOutIgnoredFiles(sources, formattedIgnores);
@@ -579,7 +579,7 @@ public class CommandUtils extends BaseCli {
         Map<FileBean, List<String>> sourcesByFileBean = new IdentityHashMap<>();
         List<FileBean> files = propertiesBean.getFiles();
         for (FileBean file : files) {
-            sourcesByFileBean.put(file, getSourcesWithoutIgnores(file, propertiesBean, placeholderUtil));
+            sourcesByFileBean.put(file, getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), placeholderUtil));
         }
 
         Optional<Language> projectLanguageOrNull = projectInfo.getProjectLanguageByCrowdinCode(lang);
@@ -773,7 +773,7 @@ public class CommandUtils extends BaseCli {
                         if (translations.contains(PLACEHOLDER_OSX_CODE)) {
                             translations = translations.replace(PLACEHOLDER_OSX_CODE, language.getOsxCode()); // langsInfo.getString("osx_code"));
                         }
-                        List<String> projectFiles = this.getSourcesWithoutIgnores(file, propertiesBean, placeholderUtil);
+                        List<String> projectFiles = this.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), placeholderUtil);
                         String commonPath;
                         String[] common = new String[projectFiles.size()];
                         common = projectFiles.toArray(common);
@@ -922,33 +922,11 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
-    public String getCommonPath(List<String> sources, String basePath) {
+    public String getCommonPath(List<String> sources) {
         String result = "";
-        if (sources.size() == 1) {
-            result = sources.get(0);
-            if (result.contains(Utils.PATH_SEPARATOR)) {
-                result = result.substring(0, result.lastIndexOf(Utils.PATH_SEPARATOR));
-            } else if (Utils.isWindows() && result.contains("/")) {
-                result = result.substring(0, result.lastIndexOf("/"));
-            } else if (result.contains("\\")) {
-                result = result.substring(0, result.lastIndexOf("\\"));
-            }
-            result = Utils.replaceBasePath(result, basePath);
-            if (result.startsWith(Utils.PATH_SEPARATOR)) {
-                result = result.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
-            }
-        } else if (sources.size() > 1) {
-            String[] common = new String[sources.size()];
-            common = sources.toArray(common);
-            result = Utils.commonPath(common);
-            result = Utils.replaceBasePath(result, basePath);
-            if (result.startsWith(Utils.PATH_SEPARATOR)) {
-                result = result.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
-            }
-            if (Utils.isWindows() && result.contains("\\")) {
-                result = result.replaceFirst("\\\\", Utils.PATH_SEPARATOR_REGEX);
-            }
-        }
+        String commonPrefix = StringUtils.getCommonPrefix(sources.toArray(new String[0]));
+        result = commonPrefix.substring(0, commonPrefix.lastIndexOf(Utils.PATH_SEPARATOR)+1);
+        result = StringUtils.removeStart(result, Utils.PATH_SEPARATOR);
         return result;
     }
 }

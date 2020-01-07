@@ -261,7 +261,8 @@ public class Commands extends BaseCli {
             case PUSH:
                 boolean isAutoUpdate = commandLine.getOptionValue(COMMAND_NO_AUTO_UPDATE) == null;
                 if (this.dryrun) {
-                    this.dryrunSources(commandLine);
+                    boolean treeView = commandLine.hasOption(COMMAND_TREE);
+                    this.dryrunSources(treeView);
                 } else {
                     this.uploadSources(isAutoUpdate);
                 }
@@ -289,7 +290,8 @@ public class Commands extends BaseCli {
                 this.dryrunProject(commandLine);
                 break;
             case LIST_SOURCES:
-                this.dryrunSources(commandLine);
+                boolean treeView = commandLine.hasOption(COMMAND_TREE);
+                this.dryrunSources(treeView);
                 break;
             case LIST_TRANSLATIONS:
                 this.dryrunTranslation(commandLine);
@@ -447,9 +449,9 @@ public class Commands extends BaseCli {
             if (StringUtils.isAnyEmpty(file.getSource(), file.getTranslation())) {
                 throw new RuntimeException("No sources and/or translations in config are included");
             }
-            List<String> sources = this.commandUtils.getSourcesWithoutIgnores(file, this.propertiesBean, getPlaceholderUtil());
+            List<String> sources = this.commandUtils.getSourcesWithoutIgnores(file, this.propertiesBean.getBasePath(), getPlaceholderUtil());
             String commonPath =
-                (preserveHierarchy) ? "" : this.commandUtils.getCommonPath(sources, this.propertiesBean.getBasePath());
+                (preserveHierarchy) ? "" : this.commandUtils.getCommonPath(sources);
 
             boolean isDest = StringUtils.isNotEmpty(file.getDest());
 
@@ -621,7 +623,7 @@ public class Commands extends BaseCli {
                 }
 
                 String lng = (this.language == null || this.language.isEmpty()) ? languageEntity.getId() : this.language;
-                List<String> sourcesWithoutIgnores = commandUtils.getSourcesWithoutIgnores(file, propertiesBean, getPlaceholderUtil());
+                List<String> sourcesWithoutIgnores = commandUtils.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), getPlaceholderUtil());
                 String[] common = new String[sourcesWithoutIgnores.size()];
                 common = sourcesWithoutIgnores.toArray(common);
                 String commonPath = Utils.replaceBasePath(Utils.commonPath(sourcesWithoutIgnores.toArray(common)), propertiesBean.getBasePath());
@@ -905,19 +907,17 @@ public class Commands extends BaseCli {
                     break;
                 }
                 case SOURCES: {
-                    List<FileBean> files = propertiesBean.getFiles();
-                    for (FileBean file : files) {
-                        result.addAll(commandUtils.getSourcesWithoutIgnores(file, propertiesBean, getPlaceholderUtil()));
-                    }
-                    break;
+                    result = propertiesBean.getFiles()
+                        .stream()
+                        .flatMap(file -> commandUtils.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), getPlaceholderUtil()).stream())
+                        .collect(Collectors.toList());
                 }
                 case TRANSLATIONS: {
-                    List<FileBean> files = propertiesBean.getFiles();
-                    for (FileBean file : files) {
-                        List<String> translations = commandUtils.getTranslations(null, null, file, this.getProjectInfo(), propertiesBean, command, getPlaceholderUtil());
-                        result.addAll(translations);
-                    }
-                    break;
+                    result = propertiesBean.getFiles()
+                        .stream()
+                        .flatMap(file ->
+                            commandUtils.getTranslations(null, null, file, this.getProjectInfo(), propertiesBean, command, getPlaceholderUtil()).stream())
+                        .collect(Collectors.toList());
                 }
             }
         }
@@ -977,106 +977,35 @@ public class Commands extends BaseCli {
         }
     }
 
-    private void dryrunSources(CommandLine commandLine) {
-        List<String> files = this.list(SOURCES, "sources");
-        if (files.size() < 1) {
-            ConsoleUtils.exitError();
+    private void dryrunSources(boolean treeView) {
+        List<String> files;
+        try {
+            files = propertiesBean
+                .getFiles()
+                .stream()
+                .flatMap(file -> this.commandUtils.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), getPlaceholderUtil()).stream())
+                .map(source -> StringUtils.removeStart(source, propertiesBean.getBasePath()))
+                .collect(Collectors.toList());
+
+            final String commonPath =
+                (propertiesBean.getPreserveHierarchy()) ? "" : commandUtils.getCommonPath(files);
+
+            files = files.stream()
+                .map(source -> StringUtils.removeStart(source, commonPath))
+                .collect(Collectors.toList());
+
+            files.sort(String::compareTo);
+        } catch (Exception e) {
+            throw new RuntimeException("Couldn't prepare source files", e);
         }
-        commandUtils.sortFilesName(files);
-        String commonPath = "";
-        if (!propertiesBean.getPreserveHierarchy()) {
-            commonPath = commandUtils.getCommonPath(files, propertiesBean.getBasePath());
+
+        if (branch != null) {
+            System.out.println(branch);
         }
-        if (commandLine.hasOption(COMMAND_TREE)) {
-            DrawTree drawTree = new DrawTree();
-            List filesTree = new ArrayList();
-            for (String file : files) {
-                if (propertiesBean.getPreserveHierarchy()) {
-                    filesTree.add(Utils.replaceBasePath(file, propertiesBean.getBasePath()));
-                } else {
-                    StringBuilder resultFiles = new StringBuilder();
-                    StringBuilder f = new StringBuilder();
-                    String path = Utils.replaceBasePath(file, propertiesBean.getBasePath());
-                    if (Utils.isWindows()) {
-                        if (path.contains("\\")) {
-                            path = path.replaceAll("\\\\", "/");
-                            path = path.replaceAll("/+", "/");
-                        }
-                        if (commonPath.contains("\\")) {
-                            commonPath = commonPath.replaceAll("\\\\", "/");
-                            commonPath = commonPath.replaceAll("/+", "/");
-                        }
-                    }
-                    if (path.startsWith(commonPath)) {
-                        path = path.replaceFirst(commonPath, "");
-                    } else if (path.startsWith("/" + commonPath)) {
-                        path = path.replaceFirst("/" + commonPath, "");
-                    }
-                    if (Utils.isWindows() && path.contains("/")) {
-                        path = path.replaceAll("/", Utils.PATH_SEPARATOR_REGEX);
-                    }
-                    if (path.startsWith(Utils.PATH_SEPARATOR)) {
-                        path = path.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
-                    }
-                    String[] nodes = path.split(Utils.PATH_SEPARATOR_REGEX);
-                    for (String node : nodes) {
-                        if (node != null && !node.isEmpty()) {
-                            f.append(node).append(Utils.PATH_SEPARATOR);
-                            String preservePath = propertiesBean.getBasePath() + Utils.PATH_SEPARATOR + commonPath + Utils.PATH_SEPARATOR + f;
-                            preservePath = preservePath.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-                            File treeFile = new File(preservePath);
-                            if (treeFile.isDirectory()) {
-                                resultFiles.append(node).append(Utils.PATH_SEPARATOR);
-                            } else {
-                                resultFiles.append(node);
-                            }
-                        }
-                    }
-                    filesTree.add(resultFiles.toString());
-                }
-            }
-            if (branch != null) {
-                System.out.println(branch);
-            }
-            int ident = propertiesBean.getPreserveHierarchy() ? -1 : 0;
-            drawTree.draw(filesTree, ident);
+        if (treeView) {
+            (new DrawTree()).draw(files, 0);
         } else {
-            String src;
-            for (String file : files) {
-                if (propertiesBean.getPreserveHierarchy()) {
-                    src = Utils.replaceBasePath(file, propertiesBean.getBasePath());
-                    if (branch != null && !branch.isEmpty()) {
-                        src = Utils.PATH_SEPARATOR + branch + Utils.PATH_SEPARATOR + src;
-                    }
-                    src = src.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-                    System.out.println(src);
-                } else {
-                    src = Utils.replaceBasePath(file, propertiesBean.getBasePath());
-                    if (Utils.isWindows()) {
-                        if (src.contains("\\")) {
-                            src = src.replaceAll("\\\\", "/");
-                            src = src.replaceAll("/+", "/");
-                        }
-                        if (commonPath.contains("\\")) {
-                            commonPath = commonPath.replaceAll("\\\\", "/");
-                            commonPath = commonPath.replaceAll("/+", "/");
-                        }
-                    }
-                    if (src.startsWith(commonPath)) {
-                        src = src.replaceFirst(commonPath, "");
-                    } else if (src.startsWith("/" + commonPath)) {
-                        src = src.replaceFirst("/" + commonPath, "");
-                    }
-                    if (Utils.isWindows() && src.contains("/")) {
-                        src = src.replaceAll("/", Utils.PATH_SEPARATOR_REGEX);
-                    }
-                    if (branch != null && !branch.isEmpty()) {
-                        src = branch + Utils.PATH_SEPARATOR + src;
-                    }
-                    src = src.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-                    System.out.println(src);
-                }
-            }
+            files.forEach(System.out::println);
         }
     }
 
