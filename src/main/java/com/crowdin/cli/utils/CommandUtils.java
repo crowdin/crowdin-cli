@@ -922,6 +922,10 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
+    public String getCommonPath(List<String> sources, String basePath) {
+        return StringUtils.removeStart(getCommonPath(sources), basePath);
+    }
+
     public String getCommonPath(List<String> sources) {
         String result = "";
         String commonPrefix = StringUtils.getCommonPrefix(sources.toArray(new String[0]));

@@ -451,7 +451,7 @@ public class Commands extends BaseCli {
             }
             List<String> sources = this.commandUtils.getSourcesWithoutIgnores(file, this.propertiesBean.getBasePath(), getPlaceholderUtil());
             String commonPath =
-                (preserveHierarchy) ? "" : this.commandUtils.getCommonPath(sources);
+                (preserveHierarchy) ? "" : this.commandUtils.getCommonPath(sources, propertiesBean.getBasePath());
 
             boolean isDest = StringUtils.isNotEmpty(file.getDest());
 
