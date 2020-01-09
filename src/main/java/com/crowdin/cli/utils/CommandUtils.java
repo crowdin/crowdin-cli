@@ -923,7 +923,8 @@ public class CommandUtils extends BaseCli {
     }
 
     public String getCommonPath(List<String> sources, String basePath) {
-        return StringUtils.removeStart(getCommonPath(sources), basePath);
+        String prepBasePath = StringUtils.removeStart(basePath, Utils.PATH_SEPARATOR);
+        return StringUtils.removeStart(getCommonPath(sources), prepBasePath);
     }
 
     public String getCommonPath(List<String> sources) {
