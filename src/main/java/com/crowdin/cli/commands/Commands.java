@@ -440,6 +440,7 @@ public class Commands extends BaseCli {
         FileClient fileClient = new FileClient(this.settings);
         StorageClient storageClient = new StorageClient(this.settings);
         DirectoriesClient directoriesClient = new DirectoriesClient(this.settings, projectInfo.getProjectId());
+        BranchClient branchClient = new BranchClient(this.settings);
 
         Boolean preserveHierarchy = this.propertiesBean.getPreserveHierarchy();
         List<FileBean> files = this.propertiesBean.getFiles();
@@ -465,7 +466,10 @@ public class Commands extends BaseCli {
             }
 
             try {
-                this.commandUtils.addDirectoryIdMap(directoriesClient.getProjectDirectoriesMapPathId());
+                Map<Long, String> branchNames = branchClient.getBranchesMapIdName(projectInfo.getProjectId());
+                Map<Long, Directory> directories = directoriesClient.getProjectDirectoriesMapPathId();
+                Map<String, Long> mapDirectoryPathId = buildDirectoryPaths(directories, branchNames);
+                this.commandUtils.addDirectoryIdMap(mapDirectoryPathId, branchNames);
             } catch (ResponseException e) {
                 throw new RuntimeException("Couldn't get list of directories", e);
             }
@@ -577,6 +581,23 @@ public class Commands extends BaseCli {
                     .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks);
         }
+    }
+
+    private Map<String, Long> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, String> branchNames) {
+        Map<String, Long> directoryPaths = new HashMap<>();
+        for (Long id : directories.keySet()) {
+            Directory dir = directories.get(id);
+            StringBuilder sb = new StringBuilder(dir.getName()).append(Utils.PATH_SEPARATOR);
+            while (dir.getDirectoryId() != null) {
+                dir = directories.get(dir.getDirectoryId());
+                sb.insert(0, dir.getName() + Utils.PATH_SEPARATOR);
+            }
+            if (dir.getBranchId() != null) {
+                sb.insert(0, branchNames.get(dir.getBranchId()) + Utils.PATH_SEPARATOR);
+            }
+            directoryPaths.put(sb.toString(), id);
+        }
+        return directoryPaths;
     }
 
     private Optional<String> getUpdateOption(String fileUpdateOption) {

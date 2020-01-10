@@ -60,23 +60,9 @@ public class DirectoriesClient extends Client {
         }
     }
 
-    public Map<String, Long> getProjectDirectoriesMapPathId() throws ResponseException {
-        Map<String, Long> directoryIdMap = new HashMap<>();
-        Map<Long, Directory> directories = getProjectDirectories()
+    public Map<Long, Directory> getProjectDirectoriesMapPathId() throws ResponseException {
+        return getProjectDirectories()
             .stream()
             .collect(Collectors.toMap(Directory::getId, Function.identity()));
-        for (Long id : directories.keySet()) {
-            Directory dir = directories.get(id);
-            StringBuilder sb = new StringBuilder(dir.getName()).append(Utils.PATH_SEPARATOR);
-            while (dir.getDirectoryId() != null) {
-                dir = directories.get(dir.getDirectoryId());
-                sb.insert(0, dir.getName() + Utils.PATH_SEPARATOR);
-            }
-            if (dir.getBranchId() != null) {
-                sb.insert(0, dir.getBranchId() + Utils.PATH_SEPARATOR);
-            }
-            directoryIdMap.put(sb.toString(), id);
-        }
-        return directoryIdMap;
     }
 }
