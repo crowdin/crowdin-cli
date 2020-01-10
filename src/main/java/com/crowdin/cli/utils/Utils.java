@@ -94,7 +94,8 @@ public class Utils {
             path = path.replaceAll(PATH_SEPARATOR_REGEX + "+", PATH_SEPARATOR_REGEX);
             result = path.replace(basePath, PATH_SEPARATOR);
         } else {
-            result = PATH_SEPARATOR;
+            String[] nodes = path.split(PATH_SEPARATOR_REGEX);
+            result = nodes[nodes.length-1];
         }
         result = result.replaceAll(PATH_SEPARATOR_REGEX + "+", PATH_SEPARATOR_REGEX);
         return result;
