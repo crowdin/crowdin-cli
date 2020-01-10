@@ -72,6 +72,9 @@ public class DirectoriesClient extends Client {
                 dir = directories.get(dir.getDirectoryId());
                 sb.insert(0, dir.getName() + Utils.PATH_SEPARATOR);
             }
+            if (dir.getBranchId() != null) {
+                sb.insert(0, dir.getBranchId() + Utils.PATH_SEPARATOR);
+            }
             directoryIdMap.put(sb.toString(), id);
         }
         return directoryIdMap;

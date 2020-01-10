@@ -519,12 +519,15 @@ public class Commands extends BaseCli {
 
                         FilePayload filePayload = new FilePayload();
                         filePayload.setName(fName);
-                        filePayload.setDirectoryId(directoryId);
                         filePayload.setType(file.getType());
                         filePayload.setImportOptions(importOptions);
                         filePayload.setExportOptions(exportOptions);
                         filePayload.setStorageId(storageId);
-                        branchId.ifPresent(filePayload::setBranchId);
+                        if (directoryId == null) {
+                            branchId.ifPresent(filePayload::setBranchId);
+                        } else {
+                            filePayload.setDirectoryId(directoryId);
+                        }
 
 
                         Response response = null;
@@ -553,10 +556,11 @@ public class Commands extends BaseCli {
                             } else {
                                 response = fileClient.uploadFile(projectInfo.getProject().getId().toString(), filePayload);
                             }
-
-                            System.out.println(OK.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + filePath + "'"));
+                            String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
+                            System.out.println(OK.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + fileName + "'"));
                         } catch (Exception e) {
-                            System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + filePath + "'"));
+                            String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
+                            System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + fileName + "'"));
                             if (this.isDebug) {
                                 e.printStackTrace();
                             }

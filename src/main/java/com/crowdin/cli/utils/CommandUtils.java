@@ -177,8 +177,10 @@ public class CommandUtils extends BaseCli {
                 continue;
             }
             parentPath.append(node).append(Utils.PATH_SEPARATOR);
-            if (directoryIdMap.containsKey(parentPath.toString())) {
-                directoryId = directoryIdMap.get(parentPath.toString());
+            String parentPathString =
+                    (branchId.map(aLong -> aLong.toString() + Utils.PATH_SEPARATOR).orElse("")) + parentPath.toString();
+            if (directoryIdMap.containsKey(parentPathString)) {
+                directoryId = directoryIdMap.get(parentPathString);
             } else {
                 DirectoryPayload directoryPayload = new DirectoryPayload();
                 directoryPayload.setName(node);
@@ -188,7 +190,7 @@ public class CommandUtils extends BaseCli {
                 } else {
                     directoryPayload.setDirectoryId(directoryId);
                 }
-                directoryId = createDirectory(directoriesClient, directoryPayload, parentPath.toString());
+                directoryId = createDirectory(directoriesClient, directoryPayload, parentPathString);
             }
         }
         return directoryId;
