@@ -11,4 +11,8 @@ public class PropertyFileExportOptionsWrapper extends PropertyFileExportOptions 
         setEscapeQuotes(escapeQuotes);
         setExportPattern(translations);
     }
+
+    public PropertyFileExportOptionsWrapper(String translations) {
+        setExportPattern(translations);
+    }
 }

@@ -507,7 +507,11 @@ public class Commands extends BaseCli {
                                 this.propertiesBean.getBasePath()
                             );
                             exportPattern = StringUtils.replacePattern(exportPattern, "[\\\\/]+", "/");
-                            exportOptions = new PropertyFileExportOptionsWrapper(file.getEscapeQuotes(), exportPattern);
+                            if (file.getEscapeQuotes() == null) {
+                                exportOptions = new PropertyFileExportOptionsWrapper(exportPattern);
+                            } else {
+                                exportOptions = new PropertyFileExportOptionsWrapper(file.getEscapeQuotes(), exportPattern);
+                            }
                         }
 
                         Long storageId;
