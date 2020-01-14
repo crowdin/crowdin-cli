@@ -36,6 +36,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -160,6 +162,7 @@ public class CommandUtils extends BaseCli {
 
     private Map<String, Long> directoryIdMap = new ConcurrentHashMap<>();
     private Map<Long, String> branchNameMap = new ConcurrentHashMap<>();
+    private final Map<String, Lock> pathLocks = new ConcurrentHashMap<>();
 
     public void addDirectoryIdMap(Map<String, Long> directoryIdMap, Map<Long, String> branchNameMap) {
         this.directoryIdMap.putAll(directoryIdMap);
@@ -232,8 +235,19 @@ public class CommandUtils extends BaseCli {
     }
 
     private Long createDirectory(DirectoriesClient directoriesClient, DirectoryPayload directoryPayload, String path) {
+        Lock lock;
+        synchronized (pathLocks) {
+            if (!pathLocks.containsKey(path)) {
+                pathLocks.put(path, new ReentrantLock());
+            }
+            lock = pathLocks.get(path);
+        }
         Long directoryId;
         try {
+            lock.lock();
+            if (directoryIdMap.containsKey(path)) {
+                return directoryIdMap.get(path);
+            }
             Directory directory = directoriesClient.createDirectory(directoryPayload);
             directoryId = directory.getId();
             directoryIdMap.put(path, directoryId);
@@ -243,7 +257,7 @@ public class CommandUtils extends BaseCli {
             if (directoryIdMap.containsKey(path)) {
                 return directoryIdMap.get(path);
             } else {
-                throw new RuntimeException("Couldn't create folder because it's already here");
+                throw new RuntimeException("Couldn't create directory '" + path + "' because it's already here");
             }
         } catch (WaitResponseException e) {
             try {
@@ -253,6 +267,8 @@ public class CommandUtils extends BaseCli {
             return createDirectory(directoriesClient, directoryPayload, path);
         } catch (ResponseException e) {
             throw new RuntimeException("Unhandled exception", e);
+        } finally {
+            lock.unlock();
         }
         return directoryId;
     }
