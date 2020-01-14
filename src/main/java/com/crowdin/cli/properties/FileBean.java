@@ -33,7 +33,7 @@ public class FileBean {
 
     private Boolean contentSegmentation;
 
-    private short escapeQuotes = 3;
+    private Short escapeQuotes = null;
 
     private HashMap<String, String> translationReplace;
 
@@ -149,11 +149,11 @@ public class FileBean {
         this.contentSegmentation = contentSegmentation;
     }
 
-    public short getEscapeQuotes() {
+    public Short getEscapeQuotes() {
         return escapeQuotes;
     }
 
-    public void setEscapeQuotes(short escapeQuotes) {
+    public void setEscapeQuotes(Short escapeQuotes) {
         this.escapeQuotes = escapeQuotes;
     }
 

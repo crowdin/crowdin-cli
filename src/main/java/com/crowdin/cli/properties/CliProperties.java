@@ -348,7 +348,7 @@ public class CliProperties {
                 } else {
                 }
                 //escape quotes
-                if (file.getEscapeQuotes() < 0 || file.getEscapeQuotes() > 3) {
+                if (file.getEscapeQuotes() != null && (file.getEscapeQuotes() < 0 || file.getEscapeQuotes() > 3)) {
                     file.setEscapeQuotes((short) 3);
                 } else {
                 }

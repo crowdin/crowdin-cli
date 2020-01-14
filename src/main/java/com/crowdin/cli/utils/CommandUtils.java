@@ -2,7 +2,11 @@ package com.crowdin.cli.utils;
 
 import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.BranchClient;
+import com.crowdin.cli.client.DirectoriesClient;
 import com.crowdin.cli.client.ProjectWrapper;
+import com.crowdin.cli.client.exceptions.ExistsResponseException;
+import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.exceptions.WaitResponseException;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.helper.FileHelper;
@@ -15,7 +19,6 @@ import com.crowdin.common.models.*;
 import com.crowdin.common.request.DirectoryPayload;
 import com.crowdin.common.response.Page;
 import com.crowdin.common.response.SimpleResponse;
-import com.crowdin.util.ObjectMapperUtil;
 import com.crowdin.util.PaginationUtil;
 import com.crowdin.util.ResponseUtil;
 import com.fasterxml.jackson.core.type.TypeReference;
@@ -33,6 +36,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.zip.ZipEntry;
@@ -89,62 +94,56 @@ public class CommandUtils extends BaseCli {
     }
 
     public String replaceDoubleAsteriskInTranslation(String translations, String sources, String source, String basePath) {
-        if (translations == null || translations.isEmpty()) {
-            ConsoleUtils.exitError();
+        if (StringUtils.isAnyEmpty(translations, sources)) {
+            throw new RuntimeException("No sources and/or translations");
         }
-        if (sources == null || sources.isEmpty()) {
-            ConsoleUtils.exitError();
+        if (!translations.contains("**")) {
+            return translations;
         }
-        if (translations.contains("**")) {
-            sources = Utils.replaceBasePath(sources, basePath);
-            String replacement = "";
-            if (source.contains("**")) {
-                if (source.contains("\\")) {
-                    source = source.replaceAll("\\\\", "/");
-                    source = source.replaceAll("/+", "/");
-                }
-                if (sources.contains("\\")) {
-                    sources = sources.replaceAll("\\\\", "/");
-                    sources = sources.replaceAll("/+", "/");
-                }
-                String[] sourceNodes = source.split("\\*\\*");
-                for (int i = 0; i < sourceNodes.length; i++) {
-                    if (sources.contains(sourceNodes[i])) {
-                        sources = sources.replaceFirst(sourceNodes[i], "");
-                    } else if (sourceNodes.length - 1 == i) {
-                        if (sourceNodes[i].contains("/")) {
-                            String[] sourceNodesTmp = sourceNodes[i].split("/");
-                            for (String sourceNode : sourceNodesTmp) {
-                                String s = "/" + sourceNode + "/";
-                                s = s.replaceAll("/+", "/");
-                                if (sources.contains(s)) {
-                                    sources = sources.replaceFirst(s, "/");
-                                } else if (StringUtils.indexOfAny(s, new String[]{"*", "?", "[", "]", "."}) >= 0) {
-                                    if (sources.lastIndexOf("/") > 0) {
-                                        sources = sources.substring(0, sources.lastIndexOf("/"));
-                                    } else {
-                                        sources = "";
-                                    }
-                                }
+        sources = Utils.replaceBasePath(sources, basePath);
+        String replacement = "";
+        if (!source.contains("**")) {
+            return translations;
+        }
+        source = StringUtils.replacePattern(source, "[\\\\/]+", "/");
+        sources = StringUtils.replacePattern(sources, "[\\\\/]+", "/");
+
+        String[] sourceNodes = source.split("\\*\\*");
+        for (int i = 0; i < sourceNodes.length; i++) {
+            if (sources.contains(sourceNodes[i])) {
+                sources = sources.replaceFirst(sourceNodes[i], "");
+            } else if (sourceNodes.length - 1 == i) {
+                if (sourceNodes[i].contains("/")) {
+                    String[] sourceNodesTmp = sourceNodes[i].split("/");
+                    for (String sourceNode : sourceNodesTmp) {
+                        String s = "/" + sourceNode + "/";
+                        s = s.replaceAll("/+", "/");
+                        if (sources.contains(s)) {
+                            sources = sources.replaceFirst(s, "/");
+                        } else if (StringUtils.indexOfAny(s, new String[]{"*", "?", "[", "]", "."}) >= 0) {
+                            if (sources.lastIndexOf("/") > 0) {
+                                sources = sources.substring(0, sources.lastIndexOf("/"));
+                            } else {
+                                sources = "";
                             }
-                        } else if (sources.contains(".")) {
-                            sources = "";
                         }
                     }
+                } else if (sources.contains(".")) {
+                    sources = "";
                 }
-                replacement = sources;
             }
-            translations = translations.replace("**", replacement);
-            translations = translations.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
         }
+        replacement = sources;
+        translations = translations.replace("**", replacement);
+        translations = translations.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
         return translations;
     }
 
-    public List<String> getSourcesWithoutIgnores(FileBean file, PropertiesBean propertiesBean, PlaceholderUtil placeholderUtil) {
-        if (propertiesBean == null || file == null) {
+    public List<String> getSourcesWithoutIgnores(FileBean file, String basePath, PlaceholderUtil placeholderUtil) {
+        if (file == null) {
             return Collections.emptyList();
         }
-        FileHelper fileHelper = new FileHelper(propertiesBean.getBasePath());
+        FileHelper fileHelper = new FileHelper(basePath);
         List<File> sources = fileHelper.getFileSource(file.getSource());
         List<String> formattedIgnores = placeholderUtil.format(sources, file.getIgnore(), false);
         List<File> sourcesWithoutIgnores = fileHelper.filterOutIgnoredFiles(sources, formattedIgnores);
@@ -162,91 +161,44 @@ public class CommandUtils extends BaseCli {
 
 
     private Map<String, Long> directoryIdMap = new ConcurrentHashMap<>();
+    private Map<Long, String> branchNameMap = new ConcurrentHashMap<>();
+    private final Map<String, Lock> pathLocks = new ConcurrentHashMap<>();
+
+    public void addDirectoryIdMap(Map<String, Long> directoryIdMap, Map<Long, String> branchNameMap) {
+        this.directoryIdMap.putAll(directoryIdMap);
+        this.branchNameMap.putAll(branchNameMap);
+    }
 
     /**
-     * return Pair of preserved path and deepest directory id
+     * return deepest directory id
      */
-    public Pair<String, Long> preserveHierarchy(FileBean file,
-                                                String sourcePath,
-                                                String commonPath,
-                                                PropertiesBean propertiesBean,
-                                                String branch,
-                                                Settings settings,
-                                                Long projectId,
-                                                boolean isVerbose) {
+    public Long createPath(String filePath, Optional<Long> branchId, DirectoriesClient directoriesClient) {
+        String[] nodes = filePath.split(Utils.PATH_SEPARATOR_REGEX);
 
-        String[] nodes = null;
-        String filePath = Utils.replaceBasePath(sourcePath, propertiesBean.getBasePath());
-        if (filePath.startsWith(Utils.PATH_SEPARATOR)) {
-            filePath = filePath.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
-        }
-
-        if (!propertiesBean.getPreserveHierarchy()) {
-            if (Utils.isWindows()) {
-                if (filePath.contains("\\")) {
-                    filePath = filePath.replaceAll("\\\\", "/");
-                    filePath = filePath.replaceAll("/+", "/");
-                }
-                if (commonPath.contains("\\")) {
-                    commonPath = commonPath.replaceAll("\\\\", "/");
-                    commonPath = commonPath.replaceAll("/+", "/");
-                }
-            }
-            if (filePath.startsWith(commonPath)) {
-                filePath = filePath.replaceFirst(commonPath, "");
-            } else if (filePath.startsWith("/" + commonPath)) {
-                filePath = filePath.replaceFirst("/" + commonPath, "");
-            }
-            if (Utils.isWindows() && filePath.contains("/")) {
-                filePath = filePath.replaceAll("/", Utils.PATH_SEPARATOR_REGEX);
-            }
-        }
-        if (file.getDest() != null && !file.getDest().isEmpty() && !this.isSourceContainsPattern(file.getSource())) {
-            if (propertiesBean.getPreserveHierarchy()) {
-                if (file.getDest().contains(Utils.PATH_SEPARATOR)) {
-                    nodes = file.getDest().split(Utils.PATH_SEPARATOR_REGEX);
-                } else if (file.getDest().contains("\\")) {
-                    nodes = file.getDest().split("\\\\");
-                } else {
-                    nodes = file.getDest().split("/");
-                }
-            }
-        } else {
-            if (filePath.contains(Utils.PATH_SEPARATOR)) {
-                nodes = filePath.split(Utils.PATH_SEPARATOR_REGEX);
-            } else if (filePath.contains("\\")) {
-                nodes = filePath.split("\\\\");
-            } else {
-                nodes = filePath.split("/");
-            }
-        }
-        Optional<Long> branchId = new BranchClient(settings).getProjectBranchByName(projectId, branch)
-                .map(Branch::getId);
         Long directoryId = null;
         StringBuilder parentPath = new StringBuilder();
-        if (nodes != null) {
-            for (String node : nodes) {
-                if (node != null && !node.isEmpty()) {
-                    if (!node.equals(nodes[nodes.length - 1])) {
-                        parentPath.append(node).append(Utils.PATH_SEPARATOR);
-                        if (!directoryIdMap.isEmpty() && directoryIdMap.containsKey(parentPath.toString())) {
-                            directoryId = directoryIdMap.get(parentPath.toString());
-                        } else {
-                            DirectoriesApi api = new DirectoriesApi(settings);
-                            DirectoryPayload directoryPayload = new DirectoryPayload();
-                            branchId.ifPresent(directoryPayload::setBranchId);
-                            directoryPayload.setName(node);
+        String branchPath = (branchId.map(branch -> branchNameMap.get(branch) + Utils.PATH_SEPARATOR).orElse(""));
+        for (String node : nodes) {
+            if (StringUtils.isEmpty(node) || node.equals(nodes[nodes.length - 1])) {
+                continue;
+            }
+            parentPath.append(node).append(Utils.PATH_SEPARATOR);
+            String parentPathString = branchPath + parentPath.toString();
+            if (directoryIdMap.containsKey(parentPathString)) {
+                directoryId = directoryIdMap.get(parentPathString);
+            } else {
+                DirectoryPayload directoryPayload = new DirectoryPayload();
+                directoryPayload.setName(node);
 
-                            if (directoryId != null) {
-                                directoryPayload.setDirectoryId(directoryId);
-                            }
-                            directoryId = createDirectory(api, projectId, directoryPayload, directoryId, parentPath, isVerbose, node, branchId);
-                        }
-                    }
+                if (directoryId == null) {
+                    branchId.ifPresent(directoryPayload::setBranchId);
+                } else {
+                    directoryPayload.setDirectoryId(directoryId);
                 }
+                directoryId = createDirectory(directoriesClient, directoryPayload, parentPathString);
             }
         }
-        return Pair.of("", directoryId);
+        return directoryId;
     }
 
     public Map<Long, String> getFilesFullPath(List<FileEntity> fileEntities, Settings settings, Long projectId) {
@@ -282,63 +234,41 @@ public class CommandUtils extends BaseCli {
                 .collect(Collectors.toConcurrentMap(Pair::getLeft, Pair::getRight));
     }
 
-    private Long createDirectory(DirectoriesApi api,
-                                 Long projectId,
-                                 DirectoryPayload directoryPayload,
-                                 Long directoryId,
-                                 StringBuilder parentPath,
-                                 boolean isVerbose,
-                                 String node,
-                                 Optional<Long> branchId) {
+    private Long createDirectory(DirectoriesClient directoriesClient, DirectoryPayload directoryPayload, String path) {
+        Lock lock;
+        synchronized (pathLocks) {
+            if (!pathLocks.containsKey(path)) {
+                pathLocks.put(path, new ReentrantLock());
+            }
+            lock = pathLocks.get(path);
+        }
+        Long directoryId;
         try {
-            Response response = api.createDirectory(projectId.toString(), directoryPayload).execute();
-            Directory directory = ResponseUtil.getResponceBody(response, new TypeReference<SimpleResponse<Directory>>() {
-            }).getEntity();
+            lock.lock();
+            if (directoryIdMap.containsKey(path)) {
+                return directoryIdMap.get(path);
+            }
+            Directory directory = directoriesClient.createDirectory(directoryPayload);
             directoryId = directory.getId();
-            if (isVerbose) {
-                System.out.println(response.getHeaders());
-                System.out.println(ObjectMapperUtil.getEntityAsString(directory));
-            }
-            if (directory.getId() != null) {
-                System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + StringUtils.removePattern(parentPath.toString(), "[\\\\/]$") + "' "));
-            }
-            directoryIdMap.put(parentPath.toString(), directoryId);
-        } catch (Exception ex) {
-            if (
-                    ex.getMessage().contains("Name must be unique") ||
-                        ex.getMessage().contains("This file is currently being updated")
-
-            ) {
-                System.out.println(ExecutionStatus.SKIPPED.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + StringUtils.removePattern(parentPath.toString(), "[\\\\/]$") + "'"));
-                CrowdinRequestBuilder<Page<Directory>> directoriesApi = api.getProjectDirectories(projectId.toString(), Pageable.of(0, 500));
-                List<Directory> projectDirectories = PaginationUtil.unpaged(directoriesApi);
-
-                Long copyDirectoryId = directoryId;
-                directoryId = null;
-
-                for (Directory dir : projectDirectories) {
-                    if (node.equals(dir.getName())
-                            && Objects.equals(copyDirectoryId, dir.getDirectoryId())
-                            && Objects.equals(branchId.orElse(null), dir.getBranchId())) {
-                        directoryId = dir.getId();
-                        directoryIdMap.put(parentPath.toString(), dir.getId());
-                    }
-                }
-            } else if (ex.getMessage().contains("Already creating directory")) {
-                //wait until directory is fully created
-                try {
-                    Thread.sleep(500);
-                } catch (InterruptedException e) {
-                    if (isVerbose) {
-                        e.printStackTrace();
-                    }
-                }
-                return createDirectory(api, projectId, directoryPayload, directoryId, parentPath, isVerbose, node, branchId);
+            directoryIdMap.put(path, directoryId);
+            System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + StringUtils.removePattern(path.toString(), "[\\\\/]$") + "' "));
+        } catch (ExistsResponseException e) {
+            System.out.println(ExecutionStatus.SKIPPED.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + StringUtils.removePattern(path.toString(), "[\\\\/]$") + "'"));
+            if (directoryIdMap.containsKey(path)) {
+                return directoryIdMap.get(path);
             } else {
-                System.out.println(ExecutionStatus.ERROR.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + StringUtils.removePattern(parentPath.toString(), "[\\\\/]$") + "'"));
-                System.out.println(ex.getMessage());
-                ConsoleUtils.exitError();
+                throw new RuntimeException("Couldn't create directory '" + path + "' because it's already here");
             }
+        } catch (WaitResponseException e) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ignored) {
+            }
+            return createDirectory(directoriesClient, directoryPayload, path);
+        } catch (ResponseException e) {
+            throw new RuntimeException("Unhandled exception", e);
+        } finally {
+            lock.unlock();
         }
         return directoryId;
     }
@@ -669,7 +599,7 @@ public class CommandUtils extends BaseCli {
         Map<FileBean, List<String>> sourcesByFileBean = new IdentityHashMap<>();
         List<FileBean> files = propertiesBean.getFiles();
         for (FileBean file : files) {
-            sourcesByFileBean.put(file, getSourcesWithoutIgnores(file, propertiesBean, placeholderUtil));
+            sourcesByFileBean.put(file, getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), placeholderUtil));
         }
 
         Optional<Language> projectLanguageOrNull = projectInfo.getProjectLanguageByCrowdinCode(lang);
@@ -863,7 +793,7 @@ public class CommandUtils extends BaseCli {
                         if (translations.contains(PLACEHOLDER_OSX_CODE)) {
                             translations = translations.replace(PLACEHOLDER_OSX_CODE, language.getOsxCode()); // langsInfo.getString("osx_code"));
                         }
-                        List<String> projectFiles = this.getSourcesWithoutIgnores(file, propertiesBean, placeholderUtil);
+                        List<String> projectFiles = this.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), placeholderUtil);
                         String commonPath;
                         String[] common = new String[projectFiles.size()];
                         common = projectFiles.toArray(common);
@@ -1012,33 +942,16 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
-    public String getCommonPath(List<String> sources, PropertiesBean propertiesBean) {
+    public String getCommonPath(List<String> sources, String basePath) {
+        String prepBasePath = StringUtils.removeStart(basePath, Utils.PATH_SEPARATOR);
+        return StringUtils.removeStart(getCommonPath(sources), prepBasePath);
+    }
+
+    public String getCommonPath(List<String> sources) {
         String result = "";
-        if (sources.size() == 1) {
-            result = sources.get(0);
-            if (result.contains(Utils.PATH_SEPARATOR)) {
-                result = result.substring(0, result.lastIndexOf(Utils.PATH_SEPARATOR));
-            } else if (Utils.isWindows() && result.contains("/")) {
-                result = result.substring(0, result.lastIndexOf("/"));
-            } else if (result.contains("\\")) {
-                result = result.substring(0, result.lastIndexOf("\\"));
-            }
-            result = Utils.replaceBasePath(result, propertiesBean.getBasePath());
-            if (result.startsWith(Utils.PATH_SEPARATOR)) {
-                result = result.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
-            }
-        } else if (sources.size() > 1) {
-            String[] common = new String[sources.size()];
-            common = sources.toArray(common);
-            result = Utils.commonPath(common);
-            result = Utils.replaceBasePath(result, propertiesBean.getBasePath());
-            if (result.startsWith(Utils.PATH_SEPARATOR)) {
-                result = result.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
-            }
-            if (Utils.isWindows() && result.contains("\\")) {
-                result = result.replaceFirst("\\\\", Utils.PATH_SEPARATOR_REGEX);
-            }
-        }
+        String commonPrefix = StringUtils.getCommonPrefix(sources.toArray(new String[0]));
+        result = commonPrefix.substring(0, commonPrefix.lastIndexOf(Utils.PATH_SEPARATOR)+1);
+        result = StringUtils.removeStart(result, Utils.PATH_SEPARATOR);
         return result;
     }
 }

@@ -2,9 +2,8 @@ package com.crowdin.cli.utils;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
+import java.util.stream.Collectors;
 
 public class ConcurrencyUtil {
 
@@ -23,7 +22,7 @@ public class ConcurrencyUtil {
         if (Objects.isNull(tasks) || tasks.size() == 0) {
             return;
         }
-        ExecutorService executor = Executors.newFixedThreadPool(CROWDIN_API_MAX_CONCURRENT_REQUESTS);
+        ExecutorService executor = CrowdinExecutorService.newFixedThreadPool(CROWDIN_API_MAX_CONCURRENT_REQUESTS);
         tasks.forEach(executor::submit);
         executor.shutdown();
         try {
@@ -34,5 +33,6 @@ public class ConcurrencyUtil {
             executor.shutdownNow();
             Thread.currentThread().interrupt();
         }
+
     }
 }
