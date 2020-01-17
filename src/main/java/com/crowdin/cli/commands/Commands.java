@@ -302,12 +302,14 @@ public class Commands extends BaseCli {
             case INIT:
             case GENERATE:
                 String config = null;
-                if (commandLine.getOptionValue(DESTINATION_LONG) != null && !commandLine.getOptionValue(DESTINATION_LONG).isEmpty()) {
+                if (StringUtils.isNotEmpty(commandLine.getOptionValue(DESTINATION_LONG))) {
                     config = commandLine.getOptionValue(DESTINATION_LONG);
-                } else if (commandLine.getOptionValue(DESTINATION_SHORT) != null && !commandLine.getOptionValue(DESTINATION_SHORT).isEmpty()) {
+                } else if (StringUtils.isNotEmpty(commandLine.getOptionValue(DESTINATION_SHORT))) {
                     config = commandLine.getOptionValue(DESTINATION_SHORT);
+                } else {
+                    config = "crowdin.yml";
                 }
-                this.generate(config);
+                this.generate(config, skipGenerateDescription);
                 break;
             case HELP:
                 boolean p = commandLine.hasOption(HELP_P);
@@ -352,57 +354,68 @@ public class Commands extends BaseCli {
         }
     }
 
-    private void generate(String path) {
-        File skeleton;
-        if (path != null && !path.isEmpty()) {
-            skeleton = new File(path);
-        } else {
-            skeleton = new File("crowdin.yml");
-        }
-
-        Path destination = Paths.get(skeleton.toURI());
-        System.out.println(RESOURCE_BUNDLE.getString("command_generate_description") + " '" + destination + "'");
-        if (Files.exists(destination)) {
-            System.out.println(ExecutionStatus.SKIPPED.getIcon() + "File '" + destination + "' already exists.");
-            return;
-        }
-
+    private void generate(String destination, boolean skipGenerateDescription) {
         try {
-            if (skipGenerateDescription) {
-                InputStream is = Commands.class.getResourceAsStream("/crowdin.yml");
-                Files.copy(is, destination);
+            System.out.println(RESOURCE_BUNDLE.getString("command_generate_description") + " '" + destination + "'");
+            Path destinationPath = Paths.get(destination);
+            if (Files.exists(destinationPath)) {
+                System.out.println(ExecutionStatus.SKIPPED.getIcon() + "File '" + destination + "' already exists.");
                 return;
             }
 
-            InputStream is = Commands.class.getResourceAsStream("/crowdin.yml");
-            Files.copy(is, destination);
-            List<String> dummyConfig = new ArrayList<>();
+            this.writeFromResourceToDestination("/crowdin.yml", destinationPath);
 
-            Scanner in = new Scanner(skeleton);
-            while (in.hasNextLine())
-                dummyConfig.add(in.nextLine());
-
-            System.out.println(GENERATE_HELP_MESSAGE.getString());
-            Scanner consoleScanner = new Scanner(System.in);
-            for (String param : Arrays.asList(API_TOKEN, PROJECT_ID, BASE_PATH, BASE_URL)) {
-                System.out.print(param.replaceAll("_", " ") + " : ");
-                String userInput = consoleScanner.nextLine();
-
-                ListIterator<String> dummyConfigIterator = dummyConfig.listIterator();
-                while (dummyConfigIterator.hasNext()) {
-                    String defaultLine = dummyConfigIterator.next();
-                    if (defaultLine.contains(param)) {
-                        String lineWithUserInput = defaultLine.replaceFirst(": \"*\"", String.format(": \"%s\"", userInput));
-                        dummyConfigIterator.set(lineWithUserInput);
-                        Files.write(destination, dummyConfig);
-                        break;
-                    }
-                }
+            if (!skipGenerateDescription) {
+                System.out.println(GENERATE_HELP_MESSAGE.getString());
+                List<String> dummyConfig = this.readFile(destinationPath);
+                this.writeToFileUserParams(dummyConfig, destinationPath, API_TOKEN, PROJECT_ID, BASE_PATH, BASE_URL);
             }
-        } catch (Exception ex) {
-            System.out.println(RESOURCE_BUNDLE.getString("error_generate"));
-            if (this.isDebug) {
-                ex.printStackTrace();
+        } catch (Exception e) {
+            throw new RuntimeException("Error while creating config file", e);
+        }
+    }
+
+    private void writeFromResourceToDestination(String resourceName, Path destination) {
+        try {
+            InputStream is = this.getClass().getResourceAsStream(resourceName);
+            Files.copy(is, destination);
+        } catch (IOException e) {
+            throw new RuntimeException("Coudln't create destination file", e);
+        }
+    }
+
+    private List<String> readFile(Path file) {
+        List<String> lines = new ArrayList<>();
+        try {
+            Scanner in = new Scanner(file);
+            while (in.hasNextLine()) {
+                lines.add(in.nextLine());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException("Couldn't read from file '" + file.toString() + "'", e);
+        }
+        return lines;
+    }
+
+    private void writeToFileUserParams(List<String> config, Path destination, String... params) {
+        Scanner consoleScanner = new Scanner(System.in);
+        for (String param : params) {
+            System.out.print(param.replaceAll("_", " ") + " : ");
+            String userInput = consoleScanner.nextLine();
+
+            ListIterator<String> dummyConfigIterator = config.listIterator();
+            while (dummyConfigIterator.hasNext()) {
+                String defaultLine = dummyConfigIterator.next();
+                if (defaultLine.contains(param)) {
+                    String lineWithUserInput = defaultLine.replaceFirst(": \"*\"", String.format(": \"%s\"", userInput));
+                    dummyConfigIterator.set(lineWithUserInput);
+                    try {
+                        Files.write(destination, config);
+                    } catch (IOException e) {
+                        throw new RuntimeException("Couldn't write to file '" + destination + "'", e);
+                    }
+                    break;
+                }
             }
         }
     }
@@ -452,7 +465,7 @@ public class Commands extends BaseCli {
             }
             List<String> sources = this.commandUtils.getSourcesWithoutIgnores(file, this.propertiesBean.getBasePath(), getPlaceholderUtil());
             String commonPath =
-                (preserveHierarchy) ? "" : this.commandUtils.getCommonPath(sources, propertiesBean.getBasePath());
+                    (preserveHierarchy) ? "" : this.commandUtils.getCommonPath(sources, propertiesBean.getBasePath());
 
             boolean isDest = StringUtils.isNotEmpty(file.getDest());
 
@@ -491,24 +504,24 @@ public class Commands extends BaseCli {
                         String fName = ((isDest) ? new File(file.getDest()) : sourceFile).getName();
 
                         ImportOptions importOptions =
-                            (sourceFile.getName().endsWith(".xml"))
-                            ? new XmlFileImportOptionsWrapper(
-                                unboxingBoolean(file.getContentSegmentation()),
-                                unboxingBoolean(file.getTranslateAttributes()),
-                                unboxingBoolean(file.getTranslateContent()),
-                                file.getTranslatableElements())
-                            : new SpreadsheetFileImportOptionsWrapper(
-                                true,
-                                unboxingBoolean(file.getFirstLineContainsHeader()),
-                                getSchemeObject(file));
+                                (sourceFile.getName().endsWith(".xml"))
+                                        ? new XmlFileImportOptionsWrapper(
+                                        unboxingBoolean(file.getContentSegmentation()),
+                                        unboxingBoolean(file.getTranslateAttributes()),
+                                        unboxingBoolean(file.getTranslateContent()),
+                                        file.getTranslatableElements())
+                                        : new SpreadsheetFileImportOptionsWrapper(
+                                        true,
+                                        unboxingBoolean(file.getFirstLineContainsHeader()),
+                                        getSchemeObject(file));
 
                         ExportOptions exportOptions = null;
                         if (StringUtils.isNoneEmpty(sourceFile.getAbsolutePath(), file.getTranslation())) {
                             String exportPattern = this.commandUtils.replaceDoubleAsteriskInTranslation(
-                                file.getTranslation(),
-                                sourceFile.getAbsolutePath(),
-                                file.getSource(),
-                                this.propertiesBean.getBasePath()
+                                    file.getTranslation(),
+                                    sourceFile.getAbsolutePath(),
+                                    file.getSource(),
+                                    this.propertiesBean.getBasePath()
                             );
                             exportPattern = StringUtils.replacePattern(exportPattern, "[\\\\/]+", "/");
                             if (file.getEscapeQuotes() == null) {
@@ -552,9 +565,9 @@ public class Commands extends BaseCli {
                                             String projectId = projectInfo.getProjectId();
 
                                             UpdateFilePayload updateFilePayload = new UpdateFilePayloadWrapper(
-                                                filePayload.getStorageId(),
-                                                filePayload.getExportOptions(),
-                                                filePayload.getImportOptions()
+                                                    filePayload.getStorageId(),
+                                                    filePayload.getExportOptions(),
+                                                    filePayload.getImportOptions()
                                             );
                                             getUpdateOption(file.getUpdateOption())
                                                     .ifPresent(updateFilePayload::setUpdateOption);
@@ -743,12 +756,12 @@ public class Commands extends BaseCli {
 
                                     TranslationsClient translationsClient = new TranslationsClient(settings, projectId);
                                     translationsClient.uploadTranslations(
-                                        languageEntity.getId(),
-                                        projectFileOrNone.get().getId(),
-                                        importDuplicates,
-                                        importEqSuggestions,
-                                        autoApproveImported,
-                                        storageId
+                                            languageEntity.getId(),
+                                            projectFileOrNone.get().getId(),
+                                            importDuplicates,
+                                            importEqSuggestions,
+                                            autoApproveImported,
+                                            storageId
                                     );
                                 } catch (Exception e) {
                                     System.out.println("message : " + e.getMessage());
@@ -780,10 +793,10 @@ public class Commands extends BaseCli {
     private void download(String languageCode, boolean ignoreMatch) {
 
         Language languageEntity = getProjectInfo().getProjectLanguages()
-            .stream()
-            .filter(language -> language.getId().equals(languageCode))
-            .findAny()
-            .orElseThrow(() -> new RuntimeException("language '" + languageCode + "' does not exist in the project"));
+                .stream()
+                .filter(language -> language.getId().equals(languageCode))
+                .findAny()
+                .orElseThrow(() -> new RuntimeException("language '" + languageCode + "' does not exist in the project"));
 
         Long projectId = this.getProjectInfo().getProject().getId();
         Optional<Branch> branchOrNull = Optional.ofNullable(this.branch)
@@ -937,16 +950,16 @@ public class Commands extends BaseCli {
                 }
                 case SOURCES: {
                     result = propertiesBean.getFiles()
-                        .stream()
-                        .flatMap(file -> commandUtils.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), getPlaceholderUtil()).stream())
-                        .collect(Collectors.toList());
+                            .stream()
+                            .flatMap(file -> commandUtils.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), getPlaceholderUtil()).stream())
+                            .collect(Collectors.toList());
                 }
                 case TRANSLATIONS: {
                     result = propertiesBean.getFiles()
-                        .stream()
-                        .flatMap(file ->
-                            commandUtils.getTranslations(null, null, file, this.getProjectInfo(), propertiesBean, command, getPlaceholderUtil()).stream())
-                        .collect(Collectors.toList());
+                            .stream()
+                            .flatMap(file ->
+                                    commandUtils.getTranslations(null, null, file, this.getProjectInfo(), propertiesBean, command, getPlaceholderUtil()).stream())
+                            .collect(Collectors.toList());
                 }
             }
         }
@@ -1010,18 +1023,18 @@ public class Commands extends BaseCli {
         List<String> files;
         try {
             files = propertiesBean
-                .getFiles()
-                .stream()
-                .flatMap(file -> this.commandUtils.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), getPlaceholderUtil()).stream())
-                .map(source -> StringUtils.removeStart(source, propertiesBean.getBasePath()))
-                .collect(Collectors.toList());
+                    .getFiles()
+                    .stream()
+                    .flatMap(file -> this.commandUtils.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), getPlaceholderUtil()).stream())
+                    .map(source -> StringUtils.removeStart(source, propertiesBean.getBasePath()))
+                    .collect(Collectors.toList());
 
             final String commonPath =
-                (propertiesBean.getPreserveHierarchy()) ? "" : commandUtils.getCommonPath(files);
+                    (propertiesBean.getPreserveHierarchy()) ? "" : commandUtils.getCommonPath(files);
 
             files = files.stream()
-                .map(source -> StringUtils.removeStart(source, commonPath))
-                .collect(Collectors.toList());
+                    .map(source -> StringUtils.removeStart(source, commonPath))
+                    .collect(Collectors.toList());
 
             files.sort(String::compareTo);
         } catch (Exception e) {
