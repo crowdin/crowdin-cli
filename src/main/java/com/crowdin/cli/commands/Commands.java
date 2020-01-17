@@ -363,60 +363,41 @@ public class Commands extends BaseCli {
                 return;
             }
 
-            this.writeFromResourceToDestination("/crowdin.yml", destinationPath);
+
+            try {
+                FileUtil.writeToFile(this.getClass().getResourceAsStream("/crowdin.yml"), destination);
+            } catch (IOException e) {
+                throw new RuntimeException("Coudln't create destination file", e);
+            }
 
             if (!skipGenerateDescription) {
                 System.out.println(GENERATE_HELP_MESSAGE.getString());
-                List<String> dummyConfig = this.readFile(destinationPath);
-                this.writeToFileUserParams(dummyConfig, destinationPath, API_TOKEN, PROJECT_ID, BASE_PATH, BASE_URL);
+                List<String> dummyConfig = FileUtil.readFile(destinationPath.toFile());
+
+                Scanner consoleScanner = new Scanner(System.in);
+                String[] params = {API_TOKEN, PROJECT_ID, BASE_PATH, BASE_URL};
+                for (String param : params) {
+                    System.out.print(param.replaceAll("_", " ") + " : ");
+                    String userInput = consoleScanner.nextLine();
+
+                    ListIterator<String> dummyConfigIterator = dummyConfig.listIterator();
+                    while (dummyConfigIterator.hasNext()) {
+                        String defaultLine = dummyConfigIterator.next();
+                        if (defaultLine.contains(param)) {
+                            String lineWithUserInput = defaultLine.replaceFirst(": \"*\"", String.format(": \"%s\"", userInput));
+                            dummyConfigIterator.set(lineWithUserInput);
+                            try {
+                                Files.write(destinationPath, dummyConfig);
+                            } catch (IOException e) {
+                                throw new RuntimeException("Couldn't write to file '" + destination + "'", e);
+                            }
+                            break;
+                        }
+                    }
+                }
             }
         } catch (Exception e) {
             throw new RuntimeException("Error while creating config file", e);
-        }
-    }
-
-    private void writeFromResourceToDestination(String resourceName, Path destination) {
-        try {
-            InputStream is = this.getClass().getResourceAsStream(resourceName);
-            Files.copy(is, destination);
-        } catch (IOException e) {
-            throw new RuntimeException("Coudln't create destination file", e);
-        }
-    }
-
-    private List<String> readFile(Path file) {
-        List<String> lines = new ArrayList<>();
-        try {
-            Scanner in = new Scanner(file);
-            while (in.hasNextLine()) {
-                lines.add(in.nextLine());
-            }
-        } catch (IOException e) {
-            throw new RuntimeException("Couldn't read from file '" + file.toString() + "'", e);
-        }
-        return lines;
-    }
-
-    private void writeToFileUserParams(List<String> config, Path destination, String... params) {
-        Scanner consoleScanner = new Scanner(System.in);
-        for (String param : params) {
-            System.out.print(param.replaceAll("_", " ") + " : ");
-            String userInput = consoleScanner.nextLine();
-
-            ListIterator<String> dummyConfigIterator = config.listIterator();
-            while (dummyConfigIterator.hasNext()) {
-                String defaultLine = dummyConfigIterator.next();
-                if (defaultLine.contains(param)) {
-                    String lineWithUserInput = defaultLine.replaceFirst(": \"*\"", String.format(": \"%s\"", userInput));
-                    dummyConfigIterator.set(lineWithUserInput);
-                    try {
-                        Files.write(destination, config);
-                    } catch (IOException e) {
-                        throw new RuntimeException("Couldn't write to file '" + destination + "'", e);
-                    }
-                    break;
-                }
-            }
         }
     }
 
@@ -1109,83 +1090,12 @@ public class Commands extends BaseCli {
     }
 
     private void lint() {
-        if (cliConfig == null) {
-            System.out.println(RESOURCE_BUNDLE.getString("configuration_file_empty"));
-            ConsoleUtils.exitError();
+        List<String> errors = this.cliProperties.checkProperties(this.propertiesBean);
+        if (!errors.isEmpty()) {
+            String errorsInOne = String.join("\n\t- ", errors);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_is_invalid")+"\n\t- " + errorsInOne);
         } else {
-            CliProperties cliProperties = new CliProperties();
-            PropertiesBean propertiesBean = cliProperties.loadProperties(cliConfig);
-            PropertiesBean propertiesBeanIdentity = null;
-            if (identityCliConfig != null) {
-                propertiesBeanIdentity = cliProperties.loadProperties(identityCliConfig);
-            }
-            if (propertiesBean == null && propertiesBeanIdentity == null) {
-                System.out.println(RESOURCE_BUNDLE.getString("configuration_file_empty"));
-                ConsoleUtils.exitError();
-            }
-
-            if (propertiesBean == null || propertiesBean.getProjectId() == null) {
-                if (propertiesBeanIdentity == null || propertiesBeanIdentity.getProjectId() == null) {
-                    System.out.println(RESOURCE_BUNDLE.getString("error_missed_project_id"));
-                    ConsoleUtils.exitError();
-                }
-            }
-
-            if (propertiesBean == null || propertiesBean.getApiToken() == null) {
-                if (propertiesBeanIdentity == null || propertiesBeanIdentity.getApiToken() == null) {
-                    System.out.println(RESOURCE_BUNDLE.getString("error_missed_api_token"));
-                    ConsoleUtils.exitError();
-                }
-            }
-
-            if (propertiesBean == null || propertiesBean.getBaseUrl() == null) {
-                if (propertiesBeanIdentity == null || propertiesBeanIdentity.getBaseUrl() == null) {
-                    String baseUrl = Utils.getBaseUrl();
-                    if (baseUrl == null || baseUrl.isEmpty()) {
-                        System.out.println(RESOURCE_BUNDLE.getString("missed_base_url"));
-                        ConsoleUtils.exitError();
-                    }
-                }
-            }
-
-            String basePath = null;
-            if (propertiesBean == null || propertiesBean.getBasePath() == null) {
-                if (propertiesBeanIdentity != null && propertiesBeanIdentity.getBasePath() != null) {
-                    basePath = propertiesBeanIdentity.getBasePath();
-                }
-            } else {
-                basePath = propertiesBean.getBasePath();
-            }
-            if (basePath != null && !basePath.isEmpty()) {
-                File base = new File(basePath);
-                if (!base.exists()) {
-                    System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
-                    ConsoleUtils.exitError();
-                }
-            }
-            if (propertiesBean == null) {
-                System.out.println(MISSING_PROPERTY_BEAN.getString());
-            } else {
-                if (propertiesBean.getFiles() == null) {
-                    System.out.println(RESOURCE_BUNDLE.getString("error_missed_section_files"));
-                    ConsoleUtils.exitError();
-                } else if (propertiesBean.getFiles().isEmpty()) {
-                    System.out.println(RESOURCE_BUNDLE.getString("empty_section_file"));
-                    ConsoleUtils.exitError();
-                } else {
-                    for (FileBean fileBean : propertiesBean.getFiles()) {
-                        if (fileBean.getSource() == null || fileBean.getSource().isEmpty()) {
-                            System.out.println(RESOURCE_BUNDLE.getString("error_empty_section_source_or_translation"));
-                            ConsoleUtils.exitError();
-                        }
-                        if (fileBean.getTranslation() == null || fileBean.getTranslation().isEmpty()) {
-                            System.out.println(RESOURCE_BUNDLE.getString("error_empty_section_source_or_translation"));
-                            ConsoleUtils.exitError();
-                        }
-                    }
-                }
-            }
+            System.out.println(RESOURCE_BUNDLE.getString("configuration_ok"));
         }
-        System.out.println(RESOURCE_BUNDLE.getString("configuration_ok"));
     }
 }

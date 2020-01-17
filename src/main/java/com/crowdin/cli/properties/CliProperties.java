@@ -3,7 +3,9 @@ package com.crowdin.cli.properties;
 import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
 
@@ -229,155 +231,177 @@ public class CliProperties {
         return pb;
     }
 
-    //todo set default values
     public PropertiesBean validateProperties(PropertiesBean pb) {
-        //Property bean
-        if (pb == null) {
-            throw new RuntimeException(
-                RESOURCE_BUNDLE.getString("configuration_file_is_invalid")
-                    .concat("\n\t- ")
-                    .concat(RESOURCE_BUNDLE.getString("error_property_bean_null")));
-        }
-        //Preserve hierarchy
-        if (pb.getPreserveHierarchy() == null) {
-            pb.setPreserveHierarchy(Boolean.FALSE);
-        }
-        if (pb.getBasePath() != null && !pb.getBasePath().isEmpty()) {
-            if (!Paths.get(pb.getBasePath()).isAbsolute()) {
-                throw new RuntimeException(
-                    RESOURCE_BUNDLE.getString("configuration_file_is_invalid")
-                        .concat("\n\t- ")
-                        .concat(RESOURCE_BUNDLE.getString("bad_base_path")));
-            }
-        } else {
-            pb.setBasePath("");
-        }
-        //Files
-        List<String> messages = new ArrayList<>();
-        if (pb.getFiles() == null) {
-            messages.add(RESOURCE_BUNDLE.getString("error_empty_section_files"));
-        } else {
-            for (FileBean file : pb.getFiles()) {
-                //Sources
-                if (file.getSource() == null || file.getSource().isEmpty()) {
-                    messages.add(RESOURCE_BUNDLE.getString("error_empty_source_section"));
-                }
-                if (Utils.isWindows() && file.getSource() != null && file.getSource().contains("/")) {
-                    file.setSource(file.getSource().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-                }
-                if (!Utils.isWindows() && file.getSource() != null && file.getSource().contains("\\")) {
-                    file.setSource(file.getSource().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
-                }
-                //Translation
-                if (file.getTranslation() == null || file.getTranslation().isEmpty()) {
-                    messages.add(RESOURCE_BUNDLE.getString("error_empty_translation_section"));
-                }
-                if (file.getTranslation() != null && file.getTranslation().contains("**") && file.getSource() != null && !file.getSource().contains("**")) {
-                    messages.add("error: Translation pattern " + file.getTranslation() + " is not valid. The mask `**` can't be used.");
-                    messages.add("When using `**` in 'translation' pattern it will always contain sub-path from 'source' for certain file.");
-                }
-                if (file.getTranslation() != null && !file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
-                    if (file.getTranslation().contains("%language%")
-                            || file.getTranslation().contains("%two_letters_code%")
-                            || file.getTranslation().contains("%three_letters_code%")
-                            || file.getTranslation().contains("%locale%")) {
-                        String translation = Utils.PATH_SEPARATOR + file.getTranslation();
-                        translation = translation.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-                        file.setTranslation(translation);
-                    }
-                }
-                if (Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("/")) {
-                    file.setTranslation(file.getTranslation().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-                }
-                if (!Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("\\")) {
-                    file.setTranslation(file.getTranslation().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
-                }
 
-                //Ignore
-                if (file.getIgnore() == null || file.getIgnore().isEmpty()) {
-                } else {
-                    List<String> ignores = new ArrayList<>();
-                    for (String ignore : file.getIgnore()) {
-                        if (Utils.isWindows() && ignore.contains("/")) {
-                            ignores.add(ignore.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-                        } else if (!Utils.isWindows() && ignore.contains("\\")) {
-                            ignores.add(ignore.replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
-                        } else {
-                            ignores.add(ignore);
-                        }
-                    }
-                    file.setIgnore(ignores);
-                }
-                //dest
-                if (file.getDest() == null || file.getDest().isEmpty()) {
-                } else {
-                    if (Utils.isWindows() && file.getDest() != null && file.getDest().contains("/")) {
-                        file.setDest(file.getDest().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-                    }
-                    if (!Utils.isWindows() && file.getDest() != null && file.getDest().contains("\\")) {
-                        file.setDest(file.getDest().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
-                    }
-                }
-                //Type
-                if (file.getType() == null || file.getType().isEmpty()) {
-                } else {
-                }
-                //Update option
-                if (file.getUpdateOption() == null || file.getUpdateOption().isEmpty()) {
-                } else {
-                    if (!"update_as_unapproved".equals(file.getUpdateOption()) && !"update_without_changes".equals(file.getUpdateOption())) {
-                        messages.add("Parameter 'update_option' in configuration file has unacceptable value");
-                    }
-                }
-                //Translate attributes
-                if (file.getTranslateAttributes() == null) {
-                } else {
-                }
-                //Translate content
-                if (file.getTranslateContent() == null) {
-                    file.setTranslateContent(Boolean.TRUE);
-                } else {
-                }
-                //Translatable elements
-                if (file.getTranslatableElements() == null || file.getTranslatableElements().isEmpty()) {
-                } else {
-                }
-                //Content segmentation
-                if (file.getContentSegmentation() == null) {
-                    file.setContentSegmentation(Boolean.TRUE);
-                } else {
-                }
-                //escape quotes
-                if (file.getEscapeQuotes() != null && (file.getEscapeQuotes() < 0 || file.getEscapeQuotes() > 3)) {
-                    file.setEscapeQuotes((short) 3);
-                } else {
-                }
-                //Language mapping
-                if (file.getLanguagesMapping() == null || file.getLanguagesMapping().isEmpty()) {
-                } else {
-                }
-                //Multilingual spreadsheet
-                if (file.getMultilingualSpreadsheet() == null) {
-                }
-                //first line contain header
-                if (file.getFirstLineContainsHeader() == null) {
-                } else {
-                }
-                //scheme
-                if (file.getScheme() == null || file.getScheme().isEmpty()) {
-                } else {
-                }
-                //translation repalce
-                if (file.getTranslationReplace() == null || file.getTranslationReplace().isEmpty()) {
-                } else {
+        List<String> errors = checkProperties(pb);
+        if (!errors.isEmpty()) {
+            String errorsInOne = String.join("\n\t- ", errors);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_is_invalid")+"\n\t- " + errorsInOne);
+        }
+
+        setDefaultValues(pb);
+
+        return pb;
+    }
+
+    public void setDefaultValues(PropertiesBean pb) {
+        if (pb == null || pb.getFiles() == null) {
+            throw new NullPointerException("null args in CliProperties.setDefaultValues");
+        }
+        pb.setPreserveHierarchy(getOr(pb.getPreserveHierarchy(), Boolean.FALSE));
+        pb.setBasePath(getNotEmptyStringOr(pb.getBasePath(), ""));
+
+        for (FileBean file : pb.getFiles()) {
+            if (Utils.isWindows() && file.getSource() != null) {
+                file.setSource(file.getSource().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
+            }
+            if (!Utils.isWindows() && file.getSource() != null) {
+                file.setSource(file.getSource().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
+            }
+            //Translation
+            if (file.getTranslation() != null && !file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
+                if (file.getTranslation().contains("%language%")
+                        || file.getTranslation().contains("%two_letters_code%")
+                        || file.getTranslation().contains("%three_letters_code%")
+                        || file.getTranslation().contains("%locale%")) {
+                    String translation = Utils.PATH_SEPARATOR + file.getTranslation();
+                    translation = translation.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+                    file.setTranslation(translation);
                 }
             }
-            if (!messages.isEmpty()) {
-                String messagesInOne = String.join("\n\t- ", messages.toArray(new String[0]));
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_is_invalid")+"\n\t- "+messagesInOne);
+            if (Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("/")) {
+                file.setTranslation(file.getTranslation().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
+            }
+            if (!Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("\\")) {
+                file.setTranslation(file.getTranslation().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
+            }
+
+            //Ignore
+            if (file.getIgnore() == null || file.getIgnore().isEmpty()) {
+            } else {
+                List<String> ignores = new ArrayList<>();
+                for (String ignore : file.getIgnore()) {
+                    if (Utils.isWindows() && ignore.contains("/")) {
+                        ignores.add(ignore.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
+                    } else if (!Utils.isWindows() && ignore.contains("\\")) {
+                        ignores.add(ignore.replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
+                    } else {
+                        ignores.add(ignore);
+                    }
+                }
+                file.setIgnore(ignores);
+            }
+            //dest
+            if (StringUtils.isEmpty(file.getDest())) {
+            } else {
+                if (Utils.isWindows() && file.getDest() != null && file.getDest().contains("/")) {
+                    file.setDest(file.getDest().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
+                }
+                if (!Utils.isWindows() && file.getDest() != null && file.getDest().contains("\\")) {
+                    file.setDest(file.getDest().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
+                }
+            }
+            //Type
+            if (StringUtils.isEmpty(file.getType())) {
+            } else {
+            }
+            //Update option
+            if (StringUtils.isEmpty(file.getUpdateOption())) {
+            } else {
+            }
+            //Translate attributes
+            if (file.getTranslateAttributes() == null) {
+            } else {
+            }
+            //Translate content
+            file.setTranslateContent(getOr(file.getTranslateContent(), Boolean.TRUE));
+            //Translatable elements
+            if (file.getTranslatableElements() == null || file.getTranslatableElements().isEmpty()) {
+            } else {
+            }
+            //Content segmentation
+            file.setContentSegmentation(getOr(file.getContentSegmentation(), Boolean.TRUE));
+            //escape quotes
+            if (file.getEscapeQuotes() != null && (file.getEscapeQuotes() < 0 || file.getEscapeQuotes() > 3)) {
+                file.setEscapeQuotes((short) 3);
+            } else {
+            }
+            //Language mapping
+            if (file.getLanguagesMapping() == null || file.getLanguagesMapping().isEmpty()) {
+            } else {
+            }
+            //Multilingual spreadsheet
+            if (file.getMultilingualSpreadsheet() == null) {
+            }
+            //first line contain header
+            if (file.getFirstLineContainsHeader() == null) {
+            } else {
+            }
+            //scheme
+            if (StringUtils.isEmpty(file.getScheme())) {
+            } else {
+            }
+            //translation repalce
+            if (file.getTranslationReplace() == null || file.getTranslationReplace().isEmpty()) {
+            } else {
             }
         }
-        return pb;
+    }
+
+    private String getNotEmptyStringOr(String toGet, String or) {
+        return StringUtils.isNotEmpty(toGet) ? toGet : or;
+    }
+
+    private <T> T getOr(T toGet, T or) {
+        return (toGet != null) ? toGet : or;
+    }
+
+    public List<String> checkProperties(PropertiesBean pb) {
+        List<String> errors = new ArrayList<>();
+        if (pb == null) {
+            errors.add(RESOURCE_BUNDLE.getString("error_property_bean_null"));
+            return errors;
+        }
+        if (StringUtils.isEmpty(pb.getProjectId())) {
+            errors.add(RESOURCE_BUNDLE.getString("error_missed_project_id"));
+        }
+        if (StringUtils.isEmpty(pb.getApiToken())) {
+            errors.add(RESOURCE_BUNDLE.getString("error_missed_api_token"));
+        }
+        if (StringUtils.isEmpty(pb.getBaseUrl())) {
+            errors.add(RESOURCE_BUNDLE.getString("error_missed_base_url"));
+        }
+
+        if (StringUtils.isNotEmpty(pb.getBasePath())) {
+            if (!Paths.get(pb.getBasePath()).isAbsolute()) {
+                errors.add(RESOURCE_BUNDLE.getString("bad_base_path"));
+            } else if (!Files.isDirectory(Paths.get(pb.getBasePath()))) {
+                errors.add(RESOURCE_BUNDLE.getString("bad_base_path"));
+            }
+        }
+
+        if (pb.getFiles() == null) {
+            errors.add(RESOURCE_BUNDLE.getString("error_missed_section_files"));
+        } else if (pb.getFiles().isEmpty()) {
+            errors.add(RESOURCE_BUNDLE.getString("empty_section_file"));
+        } else {
+            for (FileBean fileBean : pb.getFiles()) {
+                if (StringUtils.isEmpty(fileBean.getSource())) {
+                    errors.add(RESOURCE_BUNDLE.getString("error_empty_source_section"));
+                }
+                if (StringUtils.isEmpty(fileBean.getTranslation())) {
+                    errors.add(RESOURCE_BUNDLE.getString("error_empty_translation_section"));
+                } else if (fileBean.getTranslation().contains("**") && fileBean.getSource() != null && !fileBean.getSource().contains("**")) {
+                    errors.add("error: Translation pattern " + fileBean.getTranslation() + " is not valid. The mask `**` can't be used.\n" +
+                            "When using `**` in 'translation' pattern it will always contain sub-path from 'source' for certain file.");
+                }
+                String updateOption = fileBean.getUpdateOption();
+                if (updateOption != null && !(updateOption.equals("update_as_unapproved") || updateOption.equals("update_without_changes"))) {
+                    errors.add("Parameter 'update_option' in configuration file has unacceptable value");
+                }
+            }
+        }
+        return errors;
     }
 
     private void printConfigurationFileErrorsAndExit(List<String> errors) {
