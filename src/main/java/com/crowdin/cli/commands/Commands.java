@@ -278,7 +278,8 @@ public class Commands extends BaseCli {
             case PULL:
                 boolean ignoreMatch = commandLine.hasOption(IGNORE_MATCH);
                 if (this.dryrun) {
-                    this.dryrunTranslation(commandLine);
+                    boolean treeViewTranslations = commandLine.hasOption(COMMAND_TREE);
+                    this.dryrunTranslation(treeViewTranslations);
                 } else {
                     this.downloadTranslation(ignoreMatch);
                 }
@@ -295,7 +296,8 @@ public class Commands extends BaseCli {
                 this.dryrunSources(treeView);
                 break;
             case LIST_TRANSLATIONS:
-                this.dryrunTranslation(commandLine);
+                boolean treeViewTranslations = commandLine.hasOption(COMMAND_TREE);
+                this.dryrunTranslation(treeViewTranslations);
                 break;
             case LINT:
                 this.lint();
@@ -1021,40 +1023,27 @@ public class Commands extends BaseCli {
         }
     }
 
-    private void dryrunTranslation(CommandLine commandLine) {
-        Set<String> translations = new HashSet<>();
-        List<Language> projectLanguages = getProjectInfo().getProjectLanguages();
-        Map<String, String> mappingTranslations = new HashMap<>();
-        for (Language projectLanguage : projectLanguages) {
-            if (projectLanguage != null && projectLanguage.getId() != null) {
-//                JSONObject languageInfo = commandUtils.getLanguageInfo(projectLanguage.getName(), supportedLanguages);
-                String projectLanguageId = projectLanguage.getId();
-                mappingTranslations.putAll(commandUtils.doLanguagesMapping(getProjectInfo(), propertiesBean, projectLanguageId, getPlaceholderUtil()));
-            }
+    private void dryrunTranslation(boolean treeView) {
+
+        List<File> files = propertiesBean
+            .getFiles()
+            .stream()
+            .flatMap(file -> this.commandUtils.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), getPlaceholderUtil()).stream())
+            .map(source -> StringUtils.removeStart(source, propertiesBean.getBasePath()))
+            .map(File::new)
+            .collect(Collectors.toList());
+
+
+        List<String> translations = new ArrayList<>();
+        for (FileBean fileBean : this.propertiesBean.getFiles()) {
+            translations.addAll(this.getPlaceholderUtil().format(files, fileBean.getTranslation(), true));
         }
-        String commonPath;
-        String[] common = new String[mappingTranslations.values().size()];
-        common = mappingTranslations.values().toArray(common);
-        commonPath = Utils.commonPath(common);
-        for (Map.Entry<String, String> mappingTranslation : mappingTranslations.entrySet()) {
-            String s = mappingTranslation.getValue().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX);
-            if (!propertiesBean.getPreserveHierarchy()) {
-                if (s.startsWith(commonPath)) {
-                    s = s.replaceFirst(commonPath, "");
-                }
-            }
-            translations.add(s);
-        }
-        List<String> files = new ArrayList<>(translations);
-        commandUtils.sortFilesName(files);
-        if (commandLine.hasOption(COMMAND_TREE)) {
-            DrawTree drawTree = new DrawTree();
-            int ident = -1;
-            drawTree.draw(files, ident);
+
+        Collections.sort(translations);
+        if (treeView) {
+            (new DrawTree()).draw(translations, -1);
         } else {
-            for (String file : files) {
-                System.out.println(file);
-            }
+            translations.forEach(System.out::println);
         }
     }
 

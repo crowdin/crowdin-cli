@@ -259,6 +259,12 @@ public class CliProperties {
                 file.setSource(file.getSource().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
             }
             //Translation
+            if (Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("/")) {
+                file.setTranslation(file.getTranslation().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
+            }
+            if (!Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("\\")) {
+                file.setTranslation(file.getTranslation().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
+            }
             if (file.getTranslation() != null && !file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
                 if (file.getTranslation().contains("%language%")
                         || file.getTranslation().contains("%two_letters_code%")
@@ -268,12 +274,6 @@ public class CliProperties {
                     translation = translation.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
                     file.setTranslation(translation);
                 }
-            }
-            if (Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("/")) {
-                file.setTranslation(file.getTranslation().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-            }
-            if (!Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("\\")) {
-                file.setTranslation(file.getTranslation().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
             }
 
             //Ignore
