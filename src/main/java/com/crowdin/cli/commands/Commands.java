@@ -287,7 +287,8 @@ public class Commands extends BaseCli {
                 this.help(resultCmd);
                 break;
             case LIST_PROJECT:
-                this.dryrunProject(commandLine);
+                boolean treeViewProject = commandLine.hasOption(COMMAND_TREE);
+                this.dryrunProject(treeViewProject);
                 break;
             case LIST_SOURCES:
                 boolean treeView = commandLine.hasOption(COMMAND_TREE);
@@ -915,25 +916,12 @@ public class Commands extends BaseCli {
         List<String> result = new ArrayList<>();
         if (subcommand != null && !subcommand.isEmpty()) {
             switch (subcommand) {
-                case PROJECT: {
-                    Long branchId = null;
-                    if (branch != null) {
-                        CrowdinRequestBuilder<Page<Branch>> branches = new BranchesApi(settings).getBranches(getProjectInfo().getProjectId(), null);
-                        Optional<Branch> branchOp = PaginationUtil.unpaged(branches).stream()
-                                .filter(br -> br.getName().equalsIgnoreCase(branch))
-                                .findFirst();
-                        if (branchOp.isPresent()) {
-                            branchId = branchOp.get().getId();
-                        }
-                    }
-                    result = commandUtils.projectList(getProjectInfo().getFiles(), getProjectInfo().getDirectories(), branchId);
-                    break;
-                }
                 case SOURCES: {
                     result = propertiesBean.getFiles()
                             .stream()
                             .flatMap(file -> commandUtils.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), getPlaceholderUtil()).stream())
                             .collect(Collectors.toList());
+                    break;
                 }
                 case TRANSLATIONS: {
                     result = propertiesBean.getFiles()
@@ -941,6 +929,7 @@ public class Commands extends BaseCli {
                             .flatMap(file ->
                                     commandUtils.getTranslations(null, null, file, this.getProjectInfo(), propertiesBean, command, getPlaceholderUtil()).stream())
                             .collect(Collectors.toList());
+                    break;
                 }
             }
         }
@@ -1069,23 +1058,42 @@ public class Commands extends BaseCli {
         }
     }
 
-    private void dryrunProject(CommandLine commandLine) {
-        List<String> files = this.list(PROJECT, "project");
-        List<String> filesWin = new ArrayList<>();
-        for (String file : files) {
-            file = file.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-            filesWin.add(file);
+    private void dryrunProject(boolean treeView) {
+        BranchClient branchClient = new BranchClient(this.settings);
+        FileClient fileClient = new FileClient(this.settings);
+        DirectoriesClient directoriesClient = new DirectoriesClient(this.settings, this.propertiesBean.getProjectId());
+
+        Long branchId;
+        List<FileEntity> files;
+        List<Directory> directories;
+        Map<Long, String> branches;
+        try {
+            ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
+
+            branchId = (StringUtils.isNotEmpty(this.branch))
+                ? branchClient.getProjectBranchByName(new Long(this.propertiesBean.getProjectId()), branch)
+                    .map(Branch::getId)
+                    .orElseThrow(() -> new RuntimeException("Couldn't find branchId by that name"))
+                : null;
+            branches = branchClient.getBranchesMapIdName(this.propertiesBean.getProjectId());
+            files = fileClient.getProjectFiles(new Long(this.propertiesBean.getProjectId()));
+            directories = directoriesClient.getProjectDirectories();
+
+            ConsoleSpinner.stop(OK);
+        } catch (ResponseException e) {
+            ConsoleSpinner.stop(ERROR);
+            throw new RuntimeException("Couldn't get files from server", e);
+        } catch (Exception e) {
+            ConsoleSpinner.stop(ERROR);
+            throw new RuntimeException("Unhandled exception", e);
         }
-        commandUtils.sortFilesName(files);
-        commandUtils.sortFilesName(filesWin);
-        if (commandLine.hasOption(COMMAND_TREE)) {
-            DrawTree drawTree = new DrawTree();
-            int ident = -1;
-            drawTree.draw(filesWin, ident);
+
+        List<String> filePaths = this.commandUtils.buildPaths(files, directories, branches, branchId);
+        Collections.sort(filePaths);
+        if (treeView) {
+            (new DrawTree()).draw(filePaths, -1);
         } else {
-            for (String file : files) {
-                System.out.println(file.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX));
-            }
+            filePaths.forEach(System.out::println);
         }
     }
 

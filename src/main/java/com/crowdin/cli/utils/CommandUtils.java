@@ -845,45 +845,6 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
-    public List<String> projectList(List<FileEntity> files, List<Directory> directories, Long branchId) {
-        if (files == null) {
-            return Collections.emptyList();
-        }
-        return files
-                .stream()
-                .filter(f -> branchId == null || Objects.equals(f.getBranchId(), branchId))
-                .map(file -> {
-                    String name = file.getName();
-                    return directories.stream()
-                            .filter(directory -> directory.getId() != null)
-                            .filter(directory -> directory.getId().equals(file.getDirectoryId()))
-                            .findAny()
-                            .map(directory -> getDirectoryHierarchy(directory, directories, name))
-                            .orElse(Utils.PATH_SEPARATOR + name);
-                }).collect(Collectors.toList());
-    }
-
-    private static String getDirectoryHierarchy(Directory directory, List<Directory> directories, String
-            hierarchy) {
-        if (directory == null) return hierarchy;
-        Long directoryId = directory.getDirectoryId();
-        hierarchy = directory.getName() + Utils.PATH_SEPARATOR + hierarchy;
-
-        if (directories == null || directories.isEmpty()) return Utils.PATH_SEPARATOR + hierarchy;
-
-        Directory parentDirectory = directories.stream()
-                .filter(directoryEntity -> directoryEntity.getId().equals(directoryId))
-                .findFirst()
-                .orElse(null);
-
-
-        if (parentDirectory == null) {
-            return Utils.PATH_SEPARATOR + hierarchy;
-        }
-
-        return getDirectoryHierarchy(parentDirectory, directories, hierarchy);
-    }
-
     public String getBaseUrl(PropertiesBean propertiesBean) {
         String baseUrl;
         if (propertiesBean.getBaseUrl() != null && !propertiesBean.getBaseUrl().isEmpty()) {
@@ -953,5 +914,34 @@ public class CommandUtils extends BaseCli {
         result = commonPrefix.substring(0, commonPrefix.lastIndexOf(Utils.PATH_SEPARATOR)+1);
         result = StringUtils.removeStart(result, Utils.PATH_SEPARATOR);
         return result;
+    }
+
+    public List<String> buildPaths(List<FileEntity> files, List<Directory> directories, Map<Long, String> branches, Long branchId) {
+        Map<Long, Directory> directoriesMap = directories.stream()
+                .collect(Collectors.toMap(Directory::getId, Function.identity()));
+        List<String> paths = new ArrayList<>();
+        for (FileEntity file : files) {
+            StringBuilder sb = new StringBuilder(Utils.PATH_SEPARATOR + file.getName());
+            Long directoryId = file.getDirectoryId();
+            if (directoryId == null && !Objects.equals(file.getBranchId(), branchId)) {
+                continue;
+            }
+            Directory parent = null;
+            while (directoryId != null) {
+                parent = directoriesMap.get(directoryId);
+                sb.insert(0, Utils.PATH_SEPARATOR + parent.getName());
+                directoryId = parent.getDirectoryId();
+            }
+            if (parent != null && !Objects.equals(parent.getBranchId(), branchId)) {
+                continue;
+            }
+            if (parent != null && parent.getBranchId() != null) {
+                sb.insert(0, Utils.PATH_SEPARATOR + branches.get(parent.getBranchId()));
+            } else if (file.getBranchId() != null) {
+                sb.insert(0, Utils.PATH_SEPARATOR + branches.get(file.getBranchId()));
+            }
+            paths.add(sb.toString());
+        }
+        return paths;
     }
 }
