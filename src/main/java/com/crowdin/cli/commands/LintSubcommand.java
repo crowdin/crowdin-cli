@@ -28,7 +28,6 @@ public class LintSubcommand extends Command implements Callable<Integer> {
         List<String> errors = cliProperties.checkProperties(pb);
         if (!errors.isEmpty()) {
             String errorsInOne = String.join("\n\t- ", errors);
-//            throw new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_is_invalid")+"\n\t- " + errorsInOne);
             System.out.println(RESOURCE_BUNDLE.getString("configuration_file_is_invalid")+"\n\t- " + errorsInOne);
         } else {
             System.out.println(RESOURCE_BUNDLE.getString("configuration_ok"));

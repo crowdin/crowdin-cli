@@ -4,22 +4,22 @@ import picocli.CommandLine;
 
 public class Params {
 
-    @CommandLine.Option(names = {"--id"}, description = "Set path to the configuration file")
+    @CommandLine.Option(names = {"--id"}, description = "project id")
     private String idParam;
 
-    @CommandLine.Option(names = {"--token", "--pat"}, description = "Set path to the configuration file")
+    @CommandLine.Option(names = {"--token", "--pat"}, description = "token")
     private String tokenParam;
 
-    @CommandLine.Option(names = {"--base-url"}, description = "Set path to the configuration file")
+    @CommandLine.Option(names = {"--base-url"}, description = "Base url")
     private String baseUrlParam;
 
-    @CommandLine.Option(names = {"--base-path"}, description = "Set path to the configuration file")
+    @CommandLine.Option(names = {"--base-path"}, description = "Base path")
     private String basePathParam;
 
-    @CommandLine.Option(names = {"-s", "--source"}, required = true, description = "Set path to the configuration file")
+    @CommandLine.Option(names = {"-s", "--source"}, required = true, description = "Source path")
     private String sourceParam;
 
-    @CommandLine.Option(names = {"-t", "--translation"}, required = true, description = "Set path to the configuration file")
+    @CommandLine.Option(names = {"-t", "--translation"}, required = true, description = "Translation")
     private String translationParam;
 
     public String getIdParam() {
