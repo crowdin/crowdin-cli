@@ -291,8 +291,7 @@ public class CommandUtils extends BaseCli {
         }
         if (commandLine.getOptionValue(BASE_URL_LONG) != null && !commandLine.getOptionValue(BASE_URL_LONG).isEmpty()) {
             /* todo need refactor method getBaseUrl */
-            propertiesBean.setBaseUrl(commandLine.getOptionValue(BASE_URL_LONG));
-            propertiesBean.setBaseUrl(getBaseUrl(propertiesBean));
+            propertiesBean.setBaseUrl(getBaseUrl(commandLine.getOptionValue(BASE_URL_LONG)));
         }
         if (commandLine.getOptionValue("base-path") != null && !commandLine.getOptionValue("base-path").isEmpty()) {
             propertiesBean.setBasePath(commandLine.getOptionValue("base-path"));
@@ -845,27 +844,18 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
-    public String getBaseUrl(PropertiesBean propertiesBean) {
-        String baseUrl;
-        if (propertiesBean.getBaseUrl() != null && !propertiesBean.getBaseUrl().isEmpty()) {
-            baseUrl = propertiesBean.getBaseUrl();
-            if (!(baseUrl.endsWith("api/v2") || baseUrl.endsWith("/api/v2/"))) {
-                baseUrl = baseUrl + "/api/v2";
-                if (baseUrl.endsWith("/")) {
-                    baseUrl = baseUrl.substring(0, baseUrl.length() - 1);
-                }
-                if (baseUrl.contains("://")) {
-                    baseUrl = baseUrl.replaceAll("://", "%crwdn-url%");
-                }
-                baseUrl = baseUrl.replaceAll("/+", "/");
-                if (baseUrl.contains("%crwdn-url%")) {
-                    baseUrl = baseUrl.replaceAll("%crwdn-url%", "://");
-                }
+    public String getBaseUrl(String baseUrl) {
+        String baseUrlResult;
+        if (StringUtils.isNotEmpty(baseUrl)) {
+            baseUrlResult = baseUrl;
+            if (!(baseUrlResult.endsWith("api/v2") || baseUrlResult.endsWith("/api/v2/"))) {
+                baseUrlResult = StringUtils.removeEnd(baseUrlResult, "/");
+                baseUrlResult = baseUrlResult + "/api/v2";
             }
         } else {
-            baseUrl = Utils.getBaseUrl();
+            baseUrlResult = Utils.getBaseUrl();
         }
-        return baseUrl;
+        return baseUrlResult;
     }
 
     public String getBasePath(String basePath, File configurationFile, boolean isDebug) {

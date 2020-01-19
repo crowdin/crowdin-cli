@@ -56,8 +56,6 @@ public class Commands extends BaseCli {
 
     private String branch = null;
 
-    private HashMap<String, Object> cliConfig = new HashMap<>();
-
     private CrowdinCliOptions cliOptions = new CrowdinCliOptions();
 
     private CliProperties cliProperties = new CliProperties();
@@ -94,42 +92,41 @@ public class Commands extends BaseCli {
 
     private boolean skipGenerateDescription = false;
 
-    private void initialize(String resultCmd, CommandLine commandLine) {
+    private PropertiesBean initialize(CommandLine commandLine, File identity) {
+        PropertiesBean pb;
         this.removeUnsupportedCharsetProperties();
-        if (notNeedInitialisation(resultCmd, commandLine)) {
-            return;
-        }
 
+        File configFile = null;
         try {
             PropertiesBean configFromParameters = commandUtils.makeConfigFromParameters(commandLine, this.propertiesBean);
             if (configFromParameters != null) {
-                this.propertiesBean = configFromParameters;
+                pb = configFromParameters;
             } else {
                 try {
-                    this.configFile = Stream.of(commandLine.getOptionValue(CrowdinCliOptions.CONFIG_LONG), "crowdin.yml", "crowdin.yaml")
+                    configFile = Stream.of(commandLine.getOptionValue(CrowdinCliOptions.CONFIG_LONG), "crowdin.yml", "crowdin.yaml")
                             .filter(StringUtils::isNoneEmpty)
                             .map(File::new)
                             .filter(File::isFile)
                             .findFirst()
                             .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_empty")));
-                    this.cliConfig = this.fileReader.readCliConfig(this.configFile);
-                    this.propertiesBean = this.cliProperties.loadProperties(this.cliConfig);
-                    if (this.identity != null && this.identity.isFile()) {
-                        this.propertiesBean = this.readIdentityProperties(this.propertiesBean);
+                    HashMap<String, Object> cliConfig = (new FileReader()).readCliConfig(configFile);
+                    pb = this.cliProperties.loadProperties(cliConfig);
+                    if (identity != null && identity.isFile()) {
+                        pb = this.readIdentityProperties(pb);
                     }
                 } catch (Exception e) {
                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error_loading_config"), e);
                 }
             }
 
-            this.propertiesBean.setBaseUrl(commandUtils.getBaseUrl(this.propertiesBean));
-            this.settings = Settings.withBaseUrl(this.propertiesBean.getApiToken(), this.propertiesBean.getBaseUrl());
-            this.propertiesBean.setBasePath(commandUtils.getBasePath(this.propertiesBean.getBasePath(), this.configFile, this.isDebug));
+            pb.setBaseUrl(commandUtils.getBaseUrl(pb.getBaseUrl()));
+            pb.setBasePath(commandUtils.getBasePath(pb.getBasePath(), configFile, this.isDebug));
 
-            if (configFromParameters == null && StringUtils.isNoneEmpty(commandLine.getOptionValue("base-path"))) {
-                propertiesBean.setBasePath(commandLine.getOptionValue("base-path"));
+            if (configFromParameters == null && StringUtils.isNotEmpty(commandLine.getOptionValue("base-path"))) {
+                pb.setBasePath(commandLine.getOptionValue("base-path"));
             }
-            this.propertiesBean = cliProperties.validateProperties(propertiesBean);
+            pb = cliProperties.validateProperties(pb);
+            return pb;
         } catch (Exception e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("initialisation_failed"), e);
         }
@@ -251,7 +248,10 @@ public class Commands extends BaseCli {
         this.version = commandLine.hasOption(CrowdinCliOptions.VERSION_LONG);
         this.noProgress = commandLine.hasOption(CrowdinCliOptions.NO_PROGRESS);
         this.skipGenerateDescription = commandLine.hasOption(CrowdinCliOptions.SKIP_GENERATE_DESCRIPTION);
-        this.initialize(resultCmd, commandLine);
+        if (!notNeedInitialisation(resultCmd, commandLine)) {
+            this.propertiesBean = this.initialize(commandLine, identity);
+            this.settings = Settings.withBaseUrl(this.propertiesBean.getApiToken(), this.propertiesBean.getBaseUrl());
+        }
 
         if (this.help) {
             this.help(resultCmd);

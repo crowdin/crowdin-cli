@@ -244,6 +244,19 @@ public class CliProperties {
         return pb;
     }
 
+    public PropertiesBean getFromParams(Params params) {
+        PropertiesBean pb = new PropertiesBean();
+        pb.setProjectId(params.getIdParam());
+        pb.setApiToken(params.getTokenParam());
+        pb.setBaseUrl(params.getBaseUrlParam());
+        pb.setBasePath(params.getBasePathParam());
+        FileBean fb = new FileBean();
+        fb.setSource(params.getSourceParam());
+        fb.setTranslation(params.getTranslationParam());
+        pb.setFiles(fb);
+        return pb;
+    }
+
     public void setDefaultValues(PropertiesBean pb) {
         if (pb == null || pb.getFiles() == null) {
             throw new NullPointerException("null args in CliProperties.setDefaultValues");
