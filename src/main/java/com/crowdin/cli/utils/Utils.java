@@ -85,12 +85,12 @@ public class Utils {
     }
 
     public static String replaceBasePath(String path, String basePath) {
-        if (path == null || path.isEmpty()) {
+        if (StringUtils.isEmpty(path)) {
             System.out.println(RESOURCE_BUNDLE.getString("error_empty_path"));
             ConsoleUtils.exitError();
         }
         String result;
-        if (StringUtils.isNoneEmpty(basePath)) {
+        if (StringUtils.isNotEmpty(basePath)) {
             path = path.replaceAll(PATH_SEPARATOR_REGEX + "+", PATH_SEPARATOR_REGEX);
             result = path.replace(basePath, PATH_SEPARATOR);
         } else {

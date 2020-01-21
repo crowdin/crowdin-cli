@@ -11,7 +11,7 @@ import java.util.concurrent.Callable;
 )
 public class GeneralCommand extends Command implements Callable<Integer> {
 
-    @CommandLine.Option(names = {"-c", "--config"}, description = "Set path to the configuration file")
+    @CommandLine.Option(names = {"-c", "--config"}, description = "Set path to the configuration file", defaultValue = "crowdin.yml")
     protected Path configFilePath;
 
     @CommandLine.Option(names = {"--identity"}, description = "Set path to user-specific credentials")

@@ -848,7 +848,8 @@ public class CommandUtils extends BaseCli {
         String baseUrlResult;
         if (StringUtils.isNotEmpty(baseUrl)) {
             baseUrlResult = baseUrl;
-            if (!(baseUrlResult.endsWith("api/v2") || baseUrlResult.endsWith("/api/v2/"))) {
+            System.out.println(!(baseUrlResult.endsWith("api/v2") || baseUrlResult.endsWith("/api/v2")));
+            if (!(baseUrlResult.endsWith("api/v2") || baseUrlResult.endsWith("/api/v2"))) {
                 baseUrlResult = StringUtils.removeEnd(baseUrlResult, "/");
                 baseUrlResult = baseUrlResult + "/api/v2";
             }

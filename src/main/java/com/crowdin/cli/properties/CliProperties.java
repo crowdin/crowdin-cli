@@ -264,29 +264,21 @@ public class CliProperties {
         pb.setPreserveHierarchy(getOr(pb.getPreserveHierarchy(), Boolean.FALSE));
         pb.setBasePath(getNotEmptyStringOr(pb.getBasePath(), ""));
 
+        if (StringUtils.isNotEmpty(pb.getBaseUrl())) {
+            if (!StringUtils.endsWithAny(pb.getBaseUrl(), "api/v2", "/api/v2", "api/v2/", "/api/v2/")) {
+                pb.setBaseUrl(StringUtils.removeEnd(pb.getBaseUrl(), "/") + "/api/v2");
+            }
+        } else {
+            pb.setBaseUrl(Utils.getBaseUrl());
+        }
+
         for (FileBean file : pb.getFiles()) {
-            if (Utils.isWindows() && file.getSource() != null) {
-                file.setSource(file.getSource().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-            }
-            if (!Utils.isWindows() && file.getSource() != null) {
-                file.setSource(file.getSource().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
-            }
+            //Source
+            file.setSource(file.getSource().replaceAll( "[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
             //Translation
-            if (Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("/")) {
-                file.setTranslation(file.getTranslation().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-            }
-            if (!Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("\\")) {
-                file.setTranslation(file.getTranslation().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
-            }
-            if (file.getTranslation() != null && !file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
-                if (file.getTranslation().contains("%language%")
-                        || file.getTranslation().contains("%two_letters_code%")
-                        || file.getTranslation().contains("%three_letters_code%")
-                        || file.getTranslation().contains("%locale%")) {
-                    String translation = Utils.PATH_SEPARATOR + file.getTranslation();
-                    translation = translation.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-                    file.setTranslation(translation);
-                }
+             file.setTranslation(file.getTranslation().replaceAll( "[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
+            if (!file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
+                file.setTranslation(Utils.PATH_SEPARATOR + file.getTranslation());
             }
 
             //Ignore
@@ -294,25 +286,14 @@ public class CliProperties {
             } else {
                 List<String> ignores = new ArrayList<>();
                 for (String ignore : file.getIgnore()) {
-                    if (Utils.isWindows() && ignore.contains("/")) {
-                        ignores.add(ignore.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-                    } else if (!Utils.isWindows() && ignore.contains("\\")) {
-                        ignores.add(ignore.replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
-                    } else {
-                        ignores.add(ignore);
-                    }
+                    ignores.add(ignore.replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
                 }
                 file.setIgnore(ignores);
             }
             //dest
             if (StringUtils.isEmpty(file.getDest())) {
             } else {
-                if (Utils.isWindows() && file.getDest() != null && file.getDest().contains("/")) {
-                    file.setDest(file.getDest().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-                }
-                if (!Utils.isWindows() && file.getDest() != null && file.getDest().contains("\\")) {
-                    file.setDest(file.getDest().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
-                }
+                file.setDest(file.getDest().replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
             }
             //Type
             if (StringUtils.isEmpty(file.getType())) {
@@ -407,6 +388,12 @@ public class CliProperties {
                 } else if (fileBean.getTranslation().contains("**") && fileBean.getSource() != null && !fileBean.getSource().contains("**")) {
                     errors.add("error: Translation pattern " + fileBean.getTranslation() + " is not valid. The mask `**` can't be used.\n" +
                             "When using `**` in 'translation' pattern it will always contain sub-path from 'source' for certain file.");
+                }
+                if (!(fileBean.getTranslation().contains("%language%")
+                        || fileBean.getTranslation().contains("%two_letters_code%")
+                        || fileBean.getTranslation().contains("%three_letters_code%")
+                        || fileBean.getTranslation().contains("%locale%"))) {
+                    errors.add("`Translation` section doesn't contain language variables");
                 }
                 String updateOption = fileBean.getUpdateOption();
                 if (updateOption != null && !(updateOption.equals("update_as_unapproved") || updateOption.equals("update_without_changes"))) {

@@ -767,7 +767,7 @@ public class Commands extends BaseCli {
     private Optional<Long> getOrCreateBranchId() {
         if (this.branch == null || this.branch.isEmpty()) return Optional.empty();
 
-        Optional<Long> existBranch = new BranchClient(this.settings).getProjectBranchByName(this.getProjectInfo().getProject().getId(), branch)
+        Optional<Long> existBranch = new BranchClient(this.settings).getProjectBranchByName(this.getProjectInfo().getProjectId(), branch)
                 .map(Branch::getId);
         if (existBranch.isPresent()) {
             return existBranch;
@@ -786,7 +786,7 @@ public class Commands extends BaseCli {
 
         Long projectId = this.getProjectInfo().getProject().getId();
         Optional<Branch> branchOrNull = Optional.ofNullable(this.branch)
-                .flatMap(branchName -> new BranchClient(this.settings).getProjectBranchByName(projectId, branchName));
+                .flatMap(branchName -> new BranchClient(this.settings).getProjectBranchByName(projectId.toString(), branchName));
 
         TranslationsClient translationsClient = new TranslationsClient(this.settings, projectId.toString());
 
@@ -1062,7 +1062,7 @@ public class Commands extends BaseCli {
             ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
 
             branchId = (StringUtils.isNotEmpty(this.branch))
-                ? branchClient.getProjectBranchByName(new Long(this.propertiesBean.getProjectId()), branch)
+                ? branchClient.getProjectBranchByName(this.propertiesBean.getProjectId(), branch)
                     .map(Branch::getId)
                     .orElseThrow(() -> new RuntimeException("Couldn't find branchId by that name"))
                 : null;
