@@ -719,6 +719,134 @@ public class CommandUtils extends BaseCli {
         return mapping;
     }
 
+    public Map<String, String> doLanguagesMapping(Optional<Language> projectLanguageOrNull,
+                                                  List<FileBean> files,
+                                                  String basePath,
+                                                  PlaceholderUtil placeholderUtil) {
+        Map<String, String> mapping = new HashMap<>();
+
+        Map<FileBean, List<String>> sourcesByFileBean = new IdentityHashMap<>();
+        for (FileBean file : files) {
+            sourcesByFileBean.put(file, getSourcesWithoutIgnores(file, basePath, placeholderUtil));
+        }
+
+        if (!projectLanguageOrNull.isPresent()) return mapping;
+
+        Language projectLanguage = projectLanguageOrNull.get();
+
+        for (FileBean file : files) {
+            List<String> projectFiles = sourcesByFileBean.get(file);
+            String translationsBase = file.getTranslation();
+            String translationsMapping = file.getTranslation();
+            if (translationsBase != null && !translationsBase.isEmpty()) {
+                if (translationsBase.contains(PLACEHOLDER_LANGUAGE)) {
+                    Map<String, String> locale = this.map(translationsBase, translationsMapping, projectLanguage, file, "name", PLACEHOLDER_LANGUAGE, Language::getName);
+                    if (locale != null) {
+                        for (Map.Entry<String, String> language : locale.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+                    }
+                }
+                if (translationsBase.contains(PLACEHOLDER_LOCALE)) {
+                    Map<String, String> locale = this.map(translationsBase, translationsMapping, projectLanguage, file, "locale", PLACEHOLDER_LOCALE, Language::getLocale);
+                    if (locale != null) {
+                        for (Map.Entry<String, String> language : locale.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+                    }
+                }
+                if (translationsBase.contains(PLACEHOLDER_LOCALE_WITH_UNDERSCORE)) {
+                    Map<String, String> undersoceLocale = this.map(translationsBase, translationsMapping, projectLanguage, file, "locale", PLACEHOLDER_LOCALE_WITH_UNDERSCORE, Language::getLocale);
+                    if (undersoceLocale != null) {
+                        for (Map.Entry<String, String> language : undersoceLocale.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+                    }
+                }
+                if (translationsBase.contains(PLACEHOLDER_TWO_LETTERS_CODE)) {
+                    Map<String, String> twoLettersCode = this.map(translationsBase, translationsMapping, projectLanguage, file, "two_letters_code", PLACEHOLDER_TWO_LETTERS_CODE, Language::getTwoLettersCode);
+                    if (twoLettersCode != null) {
+                        for (Map.Entry<String, String> language : twoLettersCode.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+
+                    }
+                }
+                if (translationsBase.contains(PLACEHOLDER_THREE_LETTERS_CODE)) {
+                    Map<String, String> threeLettersCode = this.map(translationsBase, translationsMapping, projectLanguage, file, "three_letters_code", PLACEHOLDER_THREE_LETTERS_CODE, Language::getThreeLettersCode);
+                    if (threeLettersCode != null) {
+                        for (Map.Entry<String, String> language : threeLettersCode.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+                    }
+                }
+                if (translationsBase.contains(PLACEHOLDER_ANDROID_CODE)) {
+                    Map<String, String> androidCode = this.map(translationsBase, translationsMapping, projectLanguage, file, "android_code", PLACEHOLDER_ANDROID_CODE, Language::getAndroidCode);
+                    if (androidCode != null) {
+                        for (Map.Entry<String, String> language : androidCode.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+                    }
+                }
+                if (translationsBase.contains(PLACEHOLDER_OSX_CODE)) {
+                    Map<String, String> osxCode = this.map(translationsBase, translationsMapping, projectLanguage, file, "osx_code", PLACEHOLDER_OSX_CODE, Language::getOsxCode);
+                    if (osxCode != null) {
+                        for (Map.Entry<String, String> language : osxCode.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+                    }
+                }
+                if (translationsBase.contains(PLACEHOLDER_OSX_LOCALE)) {
+                    Map<String, String> osxLocale = this.map(translationsBase, translationsMapping, projectLanguage, file, "osx_locale", PLACEHOLDER_OSX_LOCALE, Language::getOsxLocale);
+                    if (osxLocale != null) {
+                        for (Map.Entry<String, String> language : osxLocale.entrySet()) {
+                            translationsBase = language.getKey();
+                            translationsMapping = language.getValue();
+                        }
+                    }
+                }
+                for (String projectFile : projectFiles) {
+                    File f = new File(projectFile);
+                    String temporaryTranslation = translationsBase;
+                    String temporaryTranslationsMapping = translationsMapping;
+                    String fileParent = new File(f.getParent()).getAbsolutePath();
+                    fileParent = Utils.replaceBasePath(fileParent, basePath);
+                    if (fileParent.startsWith(Utils.PATH_SEPARATOR)) {
+                        fileParent = fileParent.replaceFirst(Utils.PATH_SEPARATOR_REGEX, "");
+                    }
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, f.getName());
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_NAME, FilenameUtils.removeExtension(f.getName()));
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_EXTENTION, FilenameUtils.getExtension(f.getName()));
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
+                    temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, f.getName());
+                    temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_NAME, FilenameUtils.removeExtension(f.getName()));
+                    temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_FILE_EXTENTION, FilenameUtils.getExtension(f.getName()));
+                    temporaryTranslationsMapping = temporaryTranslationsMapping.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, projectLanguage.getAndroidCode());
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_CODE, projectLanguage.getOsxCode());
+                    temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_LOCALE, projectLanguage.getOsxLocale());
+                    String k = this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), basePath);
+                    String v = this.replaceDoubleAsteriskInTranslation(temporaryTranslationsMapping, f.getAbsolutePath(), file.getSource(), basePath);
+                    k = k.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
+                    k = k.replaceAll("/+", "/");
+                    if (file.getTranslationReplace() != null && !file.getTranslationReplace().isEmpty()) {
+                        v = this.doTranslationReplace(v, file.getTranslationReplace());
+                    }
+                    mapping.put(k, v);
+                }
+            }
+        }
+
+        return mapping;
+    }
+
     private String doTranslationReplace(String value, Map<String, String> translationReplace) {
         for (Map.Entry<String, String> translationReplaceEntry : translationReplace.entrySet()) {
             String translationReplaceKey = this.normalizeTranslationReplaceKey(translationReplaceEntry.getKey());
@@ -742,18 +870,18 @@ public class CommandUtils extends BaseCli {
     public List<String> getTranslations(String lang,
                                         String sourceFile,
                                         FileBean file,
-                                        ProjectWrapper projectInfo,
+                                        List<Language> projectLanguages,
+                                        List<Language> supportedLanguages,
                                         PropertiesBean propertiesBean,
                                         String command,
                                         PlaceholderUtil placeholderUtil) {
         List<String> result = new ArrayList<>();
-        List<Language> projectLanguages = projectInfo.getProjectLanguages();
         for (Language projectLanguage : projectLanguages) {
             String langName = projectLanguage.getName();
             if (langName != null && !langName.isEmpty()) {
 
                 Language language = EntityUtils
-                        .find(projectInfo.getSupportedLanguages(), l -> l.getName().equalsIgnoreCase(langName))
+                        .find(supportedLanguages, l -> l.getName().equalsIgnoreCase(langName))
                         .orElse(null);
                 if (language == null) {
                     ConsoleUtils.exitError();

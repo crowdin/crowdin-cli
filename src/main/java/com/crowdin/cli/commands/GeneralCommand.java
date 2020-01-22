@@ -25,10 +25,6 @@ public class GeneralCommand extends Command implements Callable<Integer> {
 
     @Override
     public Integer call() throws Exception {
-        System.out.println("configFilePath: " + configFilePath);
-        System.out.println("identityFilePath: " + identityFilePath);
-        System.out.println("noProgress: " + noProgress);
-        System.out.println("isVerbose: " + isVerbose);
         return 0;
     }
 }

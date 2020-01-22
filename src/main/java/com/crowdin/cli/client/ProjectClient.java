@@ -67,7 +67,6 @@ public class ProjectClient extends Client {
         } catch (Exception e) {
             ConsoleSpinner.stop(ExecutionStatus.ERROR);
             if (e instanceof CrowdinException && e.getMessage().toLowerCase().contains("404") && e.getMessage().toLowerCase().contains("not found")) {
-                System.out.println(e);
                 System.out.printf(ERROR_PROJECT_NOT_FOUND.getString(), projectId);
             } else {
                 System.out.println("message : " + e.getMessage());

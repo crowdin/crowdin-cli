@@ -665,7 +665,7 @@ public class Commands extends BaseCli {
                 List<Runnable> tasks = sourcesWithoutIgnores.stream()
                         .map(sourcesWithoutIgnore -> (Runnable) () -> {
                             File sourcesWithoutIgnoreFile = new File(sourcesWithoutIgnore);
-                            List<String> translations = commandUtils.getTranslations(lng, sourcesWithoutIgnore, file, projectInfo, propertiesBean, "translations", getPlaceholderUtil());
+                            List<String> translations = commandUtils.getTranslations(lng, sourcesWithoutIgnore, file, projectInfo.getProjectLanguages(), projectInfo.getSupportedLanguages(), propertiesBean, "translations", getPlaceholderUtil());
                             Map<String, String> mapping = commandUtils.doLanguagesMapping(projectInfo, propertiesBean, languageEntity.getId(), getPlaceholderUtil());
                             List<File> translationFiles = new ArrayList<>();
 
@@ -784,7 +784,7 @@ public class Commands extends BaseCli {
                 .findAny()
                 .orElseThrow(() -> new RuntimeException("language '" + languageCode + "' does not exist in the project"));
 
-        Long projectId = this.getProjectInfo().getProject().getId();
+        Long projectId = Long.valueOf(this.propertiesBean.getProjectId());
         Optional<Branch> branchOrNull = Optional.ofNullable(this.branch)
                 .flatMap(branchName -> new BranchClient(this.settings).getProjectBranchByName(projectId.toString(), branchName));
 
@@ -794,7 +794,7 @@ public class Commands extends BaseCli {
         Translation translationBuild = null;
         try {
             ConsoleSpinner.start(BUILDING_TRANSLATION.getString(), this.noProgress);
-            translationBuild = translationsClient.startBuildingTranslation(branchOrNull.map(b -> b.getId()), languageEntity.getId());
+            translationBuild = translationsClient.startBuildingTranslation(branchOrNull.map(Branch::getId), languageEntity.getId());
             while (!translationBuild.getStatus().equalsIgnoreCase("finished")) {
                 Thread.sleep(100);
                 translationBuild = translationsClient.checkBuildingStatus(translationBuild.getId().toString());
@@ -931,7 +931,7 @@ public class Commands extends BaseCli {
                     result = propertiesBean.getFiles()
                             .stream()
                             .flatMap(file ->
-                                    commandUtils.getTranslations(null, null, file, this.getProjectInfo(), propertiesBean, command, getPlaceholderUtil()).stream())
+                                    commandUtils.getTranslations(null, null, file, this.getProjectInfo().getProjectLanguages(), this.getProjectInfo().getSupportedLanguages(), propertiesBean, command, getPlaceholderUtil()).stream())
                             .collect(Collectors.toList());
                     break;
                 }

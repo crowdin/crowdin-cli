@@ -77,7 +77,7 @@ public class UploadSubcommand extends GeneralCommand {
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
 
-        ProjectWrapper projectInfo = getProjectInfo(pb, settings);
+        ProjectWrapper projectInfo = getProjectInfo(pb.getProjectId(), settings);
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(projectInfo.getSupportedLanguages(), projectInfo.getProjectLanguages(), pb.getBasePath());
 
@@ -268,9 +268,9 @@ public class UploadSubcommand extends GeneralCommand {
         }
     }
 
-    private ProjectWrapper getProjectInfo(PropertiesBean pb, Settings settings) {
+    private ProjectWrapper getProjectInfo(String projectId, Settings settings) {
         ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
-        ProjectWrapper projectInfo = new ProjectClient(settings).getProjectInfo(pb.getProjectId(), false);
+        ProjectWrapper projectInfo = new ProjectClient(settings).getProjectInfo(projectId, false);
         ConsoleSpinner.stop(OK);
         return projectInfo;
     }
