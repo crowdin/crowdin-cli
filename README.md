@@ -213,8 +213,8 @@ Sample configuration file:
 ```
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
-"base_path" : "/your-base-path"
-"base_url": "https://{organization-name}.crowdin.com"
+"base_path": "/your-base-path"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 
 "preserve_hierarchy": true
 
@@ -347,8 +347,8 @@ Valid Crowdin CLI config file has the following structure:
 ```
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
-"base_path" : "/your-base-path"
-"base_url" : "https://{organization-name}.crowdin.com"
+"base_path": "/your-base-path"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 
 "files": [
   {
@@ -390,14 +390,14 @@ You could load the API Credentials from environment variable. For example:
 If mixed, `api_token` and `project_id` have priority:
 
 ```
-"project_id_env": CROWDIN_PROJECT_ID                   # Low priority
-"api_token_env": CROWDIN_PERSONAL_TOKEN                # Low priority
-"base_path_env": CROWDIN_BASE_PATH                     # Low priority
-"base_url_env": CROWDIN_BASE_PATH                      # Low priority
-"project_id": "12"                                     # High priority
-"api_token": "your-personal-token"                     # High priority
-"base_path": "/your-base-path"                         # High priority
-"base_url": "https://{organization-name}.crowdin.com"  # High priority
+"project_id_env": CROWDIN_PROJECT_ID                                          # Low priority
+"api_token_env": CROWDIN_PERSONAL_TOKEN                                       # Low priority
+"base_path_env": CROWDIN_BASE_PATH                                            # Low priority
+"base_url_env": CROWDIN_BASE_PATH                                             # Low priority
+"project_id": "12"                                                            # High priority
+"api_token": "your-personal-token"                                            # High priority
+"base_path": "/your-base-path"                                                # High priority
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com   # High priority
 ```
 
 ## Split Project Configuration and User Credentials
@@ -669,7 +669,7 @@ Example of file configuration using `preserve_hierarchy` option:
 ```
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://{organization-name}.crowdin.com"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/path/to/your/project"
 "preserve_hierarchy": true
 
@@ -717,7 +717,7 @@ Example of configuration file with both parameters:
 ```
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://{organization-name}.crowdin.com"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -750,7 +750,7 @@ Example of configuration file with update_option parameter:
 ```
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://{organization-name}.crowdin.com"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -819,7 +819,7 @@ Example of configuration file with additional parameters:
 ```
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://{organization-name}.crowdin.com"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -858,7 +858,7 @@ Example of configuration file:
 ```
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://{organization-name}.crowdin.com"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -877,7 +877,7 @@ Example of configuration file:
 ```
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://{organization-name}.crowdin.com"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -897,7 +897,7 @@ Example of configuration file:
 ```
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://{organization-name}.crowdin.com"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -919,7 +919,7 @@ Example of configuration file:
 ```
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://{organization-name}.crowdin.com"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/sandroid-app"
 
 "files" : [
