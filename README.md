@@ -345,15 +345,15 @@ Valid Crowdin CLI config file has the following structure:
 ## Writing A Simple Configuration File
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
 "base_path" : "/your-base-path"
 "base_url" : "https://{organization-name}.crowdin.com"
 
 "files": [
   {
-    "source" : "/resources/en/*.json",                                          #source files filter
-    "translation" : "/resources/%two_letters_code%/%original_file_name%"        #where translations are stored
+    "source" : "/resources/en/*.json",                                    #source files filter
+    "translation" : "/resources/%two_letters_code%/%original_file_name%"  #where translations are stored
   }
 ]
 ```
@@ -667,8 +667,8 @@ Configuration file example:
 Example of file configuration using `preserve_hierarchy` option:
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
 "base_url": "https://{organization-name}.crowdin.com"
 "base_path": "/path/to/your/project"
 "preserve_hierarchy": true
@@ -715,8 +715,8 @@ The `dest` parameter allows you to specify a file name in Crowdin.
 Example of configuration file with both parameters:
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
 "base_url": "https://{organization-name}.crowdin.com"
 "base_path": "/home/office/source-code"
 
@@ -748,8 +748,8 @@ The values are:
 Example of configuration file with update_option parameter:
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
 "base_url": "https://{organization-name}.crowdin.com"
 "base_path": "/home/office/source-code"
 
@@ -817,8 +817,8 @@ Note: If no options specified, uploaded translations will be imported even if th
 Example of configuration file with additional parameters:
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
 "base_url": "https://{organization-name}.crowdin.com"
 "base_path": "/home/office/source-code"
 
@@ -856,8 +856,8 @@ The values are:
 Example of configuration file:
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
 "base_url": "https://{organization-name}.crowdin.com"
 "base_path": "/home/office/source-code"
 
@@ -875,8 +875,8 @@ Example of configuration file:
 ### Uploading CSV files via API
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
 "base_url": "https://{organization-name}.crowdin.com"
 "base_path": "/home/office/source-code"
 
@@ -895,8 +895,8 @@ Example of configuration file:
 ### GetText Project
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
 "base_url": "https://{organization-name}.crowdin.com"
 "base_path": "/home/office/source-code"
 
@@ -917,8 +917,8 @@ Example of configuration file:
 ### Android Project
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
 "base_url": "https://{organization-name}.crowdin.com"
 "base_path": "/home/office/sandroid-app"
 
