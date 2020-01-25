@@ -86,8 +86,7 @@ public class Utils {
 
     public static String replaceBasePath(String path, String basePath) {
         if (StringUtils.isEmpty(path)) {
-            System.out.println(RESOURCE_BUNDLE.getString("error_empty_path"));
-            ConsoleUtils.exitError();
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error_empty_path"));
         }
         String result;
         if (StringUtils.isNotEmpty(basePath)) {

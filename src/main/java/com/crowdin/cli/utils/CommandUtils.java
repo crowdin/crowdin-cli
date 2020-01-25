@@ -140,13 +140,7 @@ public class CommandUtils extends BaseCli {
     }
 
     public List<String> getSourcesWithoutIgnores(FileBean file, String basePath, PlaceholderUtil placeholderUtil) {
-        if (file == null) {
-            return Collections.emptyList();
-        }
-        FileHelper fileHelper = new FileHelper(basePath);
-        List<File> sources = fileHelper.getFileSource(file.getSource());
-        List<String> formattedIgnores = placeholderUtil.format(sources, file.getIgnore(), false);
-        List<File> sourcesWithoutIgnores = fileHelper.filterOutIgnoredFiles(sources, formattedIgnores);
+        List<File> sourcesWithoutIgnores = getFileSourcesWithoutIgnores(file, basePath, placeholderUtil);
 
         List<String> result = new ArrayList<>();
         if (sourcesWithoutIgnores != null) {
@@ -157,6 +151,16 @@ public class CommandUtils extends BaseCli {
             }
         }
         return result;
+    }
+
+    public List<File> getFileSourcesWithoutIgnores(FileBean file, String basePath, PlaceholderUtil placeholderUtil) {
+        if (file == null) {
+            return Collections.emptyList();
+        }
+        FileHelper fileHelper = new FileHelper(basePath);
+        List<File> sources = fileHelper.getFileSource(file.getSource());
+        List<String> formattedIgnores = placeholderUtil.format(sources, file.getIgnore(), false);
+        return fileHelper.filterOutIgnoredFiles(sources, formattedIgnores);
     }
 
 
@@ -875,96 +879,71 @@ public class CommandUtils extends BaseCli {
                                         PropertiesBean propertiesBean,
                                         String command,
                                         PlaceholderUtil placeholderUtil) {
+        if (file == null || StringUtils.isEmpty(file.getTranslation())) {
+            throw new NullPointerException("null arg in CommandUtils.getTranslations()");
+        }
         List<String> result = new ArrayList<>();
         for (Language projectLanguage : projectLanguages) {
             String langName = projectLanguage.getName();
-            if (langName != null && !langName.isEmpty()) {
 
-                Language language = EntityUtils
-                        .find(supportedLanguages, l -> l.getName().equalsIgnoreCase(langName))
-                        .orElse(null);
-                if (language == null) {
-                    ConsoleUtils.exitError();
-                }
+            Language language = EntityUtils
+                .find(supportedLanguages, l -> l.getName().equalsIgnoreCase(langName))
+                .orElseThrow(() -> new RuntimeException("Language doesn't exist in supported languages"));
 
-                if (lang != null && !lang.isEmpty() && !lang.equals(language.getId())) {
-                    continue;
-                }
+            if (lang != null && !lang.isEmpty() && !lang.equals(language.getId())) {
+                continue;
+            }
 
 
-                if (file != null) {
-                    String translations = file.getTranslation();
-                    if (translations != null && !translations.isEmpty()) {
-                        if (translations.contains(PLACEHOLDER_LANGUAGE)) {
-                            translations = translations.replace(PLACEHOLDER_LANGUAGE, language.getName() /*langsInfo.getString("name")*/);
-                        }
-                        if (translations.contains(PLACEHOLDER_LOCALE)) {
-                            translations = translations.replace(PLACEHOLDER_LOCALE, language.getLocale() /*langsInfo.getString("locale")*/);
-                        }
-                        if (translations.contains(PLACEHOLDER_LOCALE_WITH_UNDERSCORE)) {
-                            String localWithUnderscore = language.getLocale().replace("-", "_");///*langsInfo.getString("locale")*/
-                            translations = translations.replace(PLACEHOLDER_LOCALE_WITH_UNDERSCORE, localWithUnderscore);
-                        }
-                        if (translations.contains(PLACEHOLDER_TWO_LETTERS_CODE)) {
-                            translations = translations.replace(PLACEHOLDER_TWO_LETTERS_CODE, language.getTwoLettersCode()); //langsInfo.getString("two_letters_code"));
-                        }
-                        if (translations.contains(PLACEHOLDER_THREE_LETTERS_CODE)) {
-                            translations = translations.replace(PLACEHOLDER_THREE_LETTERS_CODE, language.getThreeLettersCode()); // langsInfo.getString("three_letters_code"));
-                        }
-                        if (translations.contains(PLACEHOLDER_ANDROID_CODE)) {
-                            translations = translations.replace(PLACEHOLDER_ANDROID_CODE, language.getAndroidCode()); //langsInfo.getString("android_code"));
-                        }
-                        if (translations.contains(PLACEHOLDER_OSX_LOCALE)) {
-                            translations = translations.replace(PLACEHOLDER_OSX_LOCALE, language.getOsxLocale());//langsInfo.getString("osx_locale"));
-                        }
-                        if (translations.contains(PLACEHOLDER_OSX_CODE)) {
-                            translations = translations.replace(PLACEHOLDER_OSX_CODE, language.getOsxCode()); // langsInfo.getString("osx_code"));
-                        }
-                        List<String> projectFiles = this.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), placeholderUtil);
-                        String commonPath;
-                        String[] common = new String[projectFiles.size()];
-                        common = projectFiles.toArray(common);
-                        commonPath = Utils.commonPath(common);
-                        for (String projectFile : projectFiles) {
-                            File f = new File(projectFile);
-                            String temporaryTranslation = translations;
-                            String originalFileName = f.getName();
-                            String fileNameWithoutExt = FilenameUtils.removeExtension(f.getName());
-                            String fileExt = FilenameUtils.getExtension(f.getName());
-                            String fileParent = new File(f.getParent()).getAbsolutePath();
-                            if (!propertiesBean.getPreserveHierarchy() && "download".equals(command)) {
-                                if (Utils.isWindows()) {
-                                    fileParent = fileParent.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
-                                    commonPath = commonPath.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
-                                    fileParent = fileParent.replaceFirst(commonPath, "");
-                                    fileParent = fileParent.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX);
-                                    commonPath = commonPath.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX);
-                                } else {
-                                    fileParent = Utils.replaceBasePath(fileParent, propertiesBean.getBasePath());
-                                }
-                            } else {
-                                fileParent = Utils.replaceBasePath(fileParent, propertiesBean.getBasePath());
-                            }
-                            fileParent = fileParent.replaceAll("/+", "/");
-                            String androidLocaleCode = language.getAndroidCode();
-                            String osxLocaleCode = language.getOsxCode();
-                            String osxCode = language.getOsxCode();
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, originalFileName);
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt);
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_EXTENTION, fileExt);
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, androidLocaleCode);
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_CODE, osxCode);
-                            temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_LOCALE, osxLocaleCode);
-                            if (sourceFile != null) {
-                                if (sourceFile.equals(projectFile)) {
-                                    result.add(this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean.getBasePath()));
-                                }
-                            } else {
-                                result.add(this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean.getBasePath()));
-                            }
-                        }
+            String translations = file.getTranslation();
+            translations = translations.replace(PLACEHOLDER_LANGUAGE, language.getName());
+            translations = translations.replace(PLACEHOLDER_LOCALE, language.getLocale());
+            translations = translations.replace(PLACEHOLDER_LOCALE_WITH_UNDERSCORE, language.getLocale().replace("-", "_"));
+            translations = translations.replace(PLACEHOLDER_TWO_LETTERS_CODE, language.getTwoLettersCode());
+            translations = translations.replace(PLACEHOLDER_THREE_LETTERS_CODE, language.getThreeLettersCode());
+            translations = translations.replace(PLACEHOLDER_ANDROID_CODE, language.getAndroidCode());
+            translations = translations.replace(PLACEHOLDER_OSX_LOCALE, language.getOsxLocale());
+            translations = translations.replace(PLACEHOLDER_OSX_CODE, language.getOsxCode());
+
+            List<String> projectFiles = this.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), placeholderUtil);
+            String commonPath;
+            String[] common = new String[projectFiles.size()];
+            common = projectFiles.toArray(common);
+            commonPath = Utils.commonPath(common);
+            for (String projectFile : projectFiles) {
+                File f = new File(projectFile);
+                String temporaryTranslation = translations;
+                String originalFileName = f.getName();
+                String fileNameWithoutExt = FilenameUtils.removeExtension(f.getName());
+                String fileExt = FilenameUtils.getExtension(f.getName());
+                String fileParent = new File(f.getParent()).getAbsolutePath();
+                if (!propertiesBean.getPreserveHierarchy() && "download".equals(command)) {
+                    if (Utils.isWindows()) {
+                        fileParent = fileParent.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
+                        commonPath = commonPath.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
+                        fileParent = fileParent.replaceFirst(commonPath, "");
+                        fileParent = fileParent.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX);
+                        commonPath = commonPath.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX);
+                    } else {
+                        fileParent = Utils.replaceBasePath(fileParent, propertiesBean.getBasePath());
                     }
+                } else {
+                    fileParent = Utils.replaceBasePath(fileParent, propertiesBean.getBasePath());
+                }
+                fileParent = fileParent.replaceAll("/+", "/");
+                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, originalFileName);
+                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt);
+                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_FILE_EXTENTION, fileExt);
+                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
+                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, language.getAndroidCode());
+                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_CODE, language.getOsxCode());
+                temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_LOCALE, language.getOsxLocale());
+                if (sourceFile != null) {
+                    if (sourceFile.equals(projectFile)) {
+                        result.add(this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean.getBasePath()));
+                    }
+                } else {
+                    result.add(this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean.getBasePath()));
                 }
             }
         }

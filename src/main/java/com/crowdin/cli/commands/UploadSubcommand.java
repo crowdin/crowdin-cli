@@ -210,9 +210,9 @@ public class UploadSubcommand extends GeneralCommand {
                                             .ifPresent(updateFilePayload::setUpdateOption);
 
                                     return fileClient.updateFile(projectId, fileId, updateFilePayload);
-                                }).orElseGet(() -> fileClient.uploadFile(projectInfo.getProject().getId().toString(), filePayload));
+                                }).orElseGet(() -> fileClient.uploadFile(pb.getProjectId(), filePayload));
                         } else {
-                            response = fileClient.uploadFile(projectInfo.getProject().getId().toString(), filePayload);
+                            response = fileClient.uploadFile(pb.getProjectId(), filePayload);
                         }
                         String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
                         System.out.println(OK.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + fileName + "'"));

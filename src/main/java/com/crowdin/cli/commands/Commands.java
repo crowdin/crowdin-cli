@@ -3,10 +3,7 @@ package com.crowdin.cli.commands;
 import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.*;
 import com.crowdin.cli.client.exceptions.ResponseException;
-import com.crowdin.cli.client.request.PropertyFileExportOptionsWrapper;
-import com.crowdin.cli.client.request.SpreadsheetFileImportOptionsWrapper;
-import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
-import com.crowdin.cli.client.request.XmlFileImportOptionsWrapper;
+import com.crowdin.cli.client.request.*;
 import com.crowdin.cli.properties.CliProperties;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -741,14 +738,13 @@ public class Commands extends BaseCli {
                                     Long storageId = storageClient.uploadStorage(translationFile, translationFile.getName());
 
                                     TranslationsClient translationsClient = new TranslationsClient(settings, projectId);
-                                    translationsClient.uploadTranslations(
-                                            languageEntity.getId(),
-                                            projectFileOrNone.get().getId(),
-                                            importDuplicates,
-                                            importEqSuggestions,
-                                            autoApproveImported,
-                                            storageId
-                                    );
+                                    TranslationPayload translationPayload = new TranslationPayloadWrapper(
+                                        projectFileOrNone.get().getId(),
+                                        importDuplicates,
+                                        importEqSuggestions,
+                                        autoApproveImported,
+                                        storageId);
+                                    translationsClient.uploadTranslations(languageEntity.getId(), translationPayload);
                                 } catch (Exception e) {
                                     System.out.println("message : " + e.getMessage());
                                     if (isDebug) {

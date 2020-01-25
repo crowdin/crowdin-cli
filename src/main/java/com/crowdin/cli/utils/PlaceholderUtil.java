@@ -6,6 +6,7 @@ import org.apache.commons.io.FilenameUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class PlaceholderUtil {
@@ -65,7 +66,29 @@ public class PlaceholderUtil {
         return result;
     }
 
-    private String replaceLanguageDependentPlaceholders(String toFormat, Language lang) {
+    public List<String> format(File source, String toFormat, boolean onProjectLangs) {
+        if (source == null || toFormat == null)
+            return new ArrayList<>();
+        List<Language> languages = (onProjectLangs ? projectLangs : supportedLangs);
+        List<String> result = languages.stream()
+                .map(lang -> this.replaceLanguageDependentPlaceholders(toFormat, lang))
+                .map(changedToFormat -> this.replaceFileDependentPlaceholders(changedToFormat, source))
+                .collect(Collectors.toList());
+        return result;
+    }
+
+    public String format(File source, String toFormat, Language language) {
+        if (source == null || toFormat == null || language == null) {
+            throw new RuntimeException("null arg in PlaceholderUtil.format()");
+        }
+        String afterLanguageReplaced = this.replaceLanguageDependentPlaceholders(toFormat, language);
+        return this.replaceFileDependentPlaceholders(afterLanguageReplaced, source);
+    }
+
+    public String replaceLanguageDependentPlaceholders(String toFormat, Language lang) {
+        if (toFormat == null || lang == null) {
+            throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");
+        }
         return toFormat
                 .replace(PLACEHOLDER_LANGUAGE, lang.getName())
                 .replace(PLACEHOLDER_LOCALE, lang.getLocale())
@@ -77,7 +100,10 @@ public class PlaceholderUtil {
                 .replace(PLACEHOLDER_OSX_CODE, lang.getOsxCode());
     }
 
-    private String replaceFileDependentPlaceholders(String toFormat, File file) {
+    public String replaceFileDependentPlaceholders(String toFormat, File file) {
+        if (toFormat == null || file == null) {
+            throw new NullPointerException("null args in replaceFileDependentPlaceholders()");
+        }
         String fileName = file.getName();
         String fileNameWithoutExt = FilenameUtils.removeExtension(fileName);
         String fileExt = FilenameUtils.getExtension(fileName);

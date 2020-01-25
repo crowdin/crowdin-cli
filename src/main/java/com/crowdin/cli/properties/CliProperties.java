@@ -392,6 +392,7 @@ public class CliProperties {
                 if (!(fileBean.getTranslation().contains("%language%")
                         || fileBean.getTranslation().contains("%two_letters_code%")
                         || fileBean.getTranslation().contains("%three_letters_code%")
+                        || fileBean.getTranslation().contains("%locale_with_underscore%")
                         || fileBean.getTranslation().contains("%locale%"))) {
                     errors.add("`Translation` section doesn't contain language variables");
                 }

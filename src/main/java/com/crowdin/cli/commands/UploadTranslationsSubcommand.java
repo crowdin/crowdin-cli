@@ -1,12 +1,203 @@
 package com.crowdin.cli.commands;
 
+import com.crowdin.cli.client.*;
+import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.request.TranslationPayloadWrapper;
+import com.crowdin.cli.properties.CliProperties;
+import com.crowdin.cli.properties.FileBean;
+import com.crowdin.cli.properties.Params;
+import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.utils.*;
+import com.crowdin.cli.utils.console.ConsoleSpinner;
+import com.crowdin.cli.utils.file.FileReader;
+import com.crowdin.client.api.FilesApi;
+import com.crowdin.common.Settings;
+import com.crowdin.common.models.Directory;
+import com.crowdin.common.models.FileEntity;
+import com.crowdin.common.models.Language;
+import com.crowdin.common.models.Pageable;
+import com.crowdin.common.request.TranslationPayload;
+import com.crowdin.util.PaginationUtil;
+import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.Pair;
 import picocli.CommandLine;
+
+import java.io.File;
+import java.util.*;
+import java.util.stream.Collectors;
+
+import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(name ="upload translations")
 public class UploadTranslationsSubcommand extends GeneralCommand {
+
+    @CommandLine.Option(names = {"--no-auto-approve-imported"}, negatable = true,
+        description = "Approves uploaded translations automatically")
+    protected boolean autoApproveImported = false;
+
+    @CommandLine.Option(names = {"--no-import-duplicates"}, negatable = true,
+        description = "Defines whether to add translation if the same translation already exists in Crowdin project")
+    protected boolean importDuplicates = false;
+
+    @CommandLine.Option(names = {"--no-import-eq-suggestions"}, negatable = true,
+            description = "Defines whether to add translation if it is the same as the source string in Crowdin project")
+    protected boolean importEqSuggestions = false;
+
+    @CommandLine.Option(names = {"-b", "--branch"}, description = "Defines branch name (default: none)")
+    protected String branch;
+
+    @CommandLine.Option(names = {"-l", "--language"}, description = "If the option is defined the translations will be downloaded for a single specified language. (default: all)")
+    protected String languageId;
+
+    @CommandLine.ArgGroup(exclusive = false, heading = "@|bold config params|@:%n")
+    protected Params params;
+
     @Override
     public Integer call() throws Exception {
-        System.out.println("UploadTranslationsSubcommand");
-        return null;
+        CommandUtils commandUtils = new CommandUtils();
+        CliProperties cliProperties = new CliProperties();
+
+        PropertiesBean pb = (params != null)
+                ? cliProperties.getFromParams(params)
+                : cliProperties.loadProperties((new FileReader()).readCliConfig(configFilePath.toFile()));
+        cliProperties.validateProperties(pb);
+        pb.setBasePath(commandUtils.getBasePath(pb.getBasePath(), configFilePath.toFile(), false));
+        Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
+
+        ProjectWrapper projectInfo = getProjectInfo(pb.getProjectId(), settings);
+        PlaceholderUtil placeholderUtil =
+            new PlaceholderUtil(projectInfo.getSupportedLanguages(), projectInfo.getProjectLanguages(), pb.getBasePath());
+
+        StorageClient storageClient = new StorageClient(settings);
+        BranchClient branchClient = new BranchClient(settings);
+        DirectoriesClient directoriesClient = new DirectoriesClient(settings, pb.getProjectId());
+        TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
+
+        Map<String, Long> filePathsToFileId;
+        try {
+            Map<Long, String> branchNames = branchClient.getBranchesMapIdName(pb.getProjectId());
+            Map<Long, Directory> directories = directoriesClient.getProjectDirectoriesMapPathId();
+            filePathsToFileId = buildFilePaths(buildDirectoryPaths(directories, branchNames), projectInfo.getFiles());
+        } catch (ResponseException e) {
+            throw new RuntimeException("Couldn't get list of directories", e);
+        }
+
+        for (FileBean file : pb.getFiles()) {
+            List<File> fileSourcesWithoutIgnores =
+                    commandUtils.getFileSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil);
+
+            String commonPath =
+                (pb.getPreserveHierarchy())
+                    ? ""
+                    : commandUtils.getCommonPath(
+                        fileSourcesWithoutIgnores.stream().map(File::getAbsolutePath).collect(Collectors.toList()),
+                        pb.getBasePath());
+
+            boolean isDest = StringUtils.isNotEmpty(file.getDest());
+
+            if (fileSourcesWithoutIgnores.isEmpty()) {
+                throw new RuntimeException("No sources found");
+            }
+            if (isDest && commandUtils.isSourceContainsPattern(file.getSource())) {
+                throw new RuntimeException("Config contains 'dest' and have pattern in source. There can be only one file with 'dest'.");
+            } else if (isDest && !pb.getPreserveHierarchy()) {
+                throw new RuntimeException("The 'dest' parameter only works for single files, and if you use it, the configuration file should also include the 'preserve_hierarchy' parameter with true value.");
+            }
+
+            Map<File, Pair<Language, TranslationPayload>> preparedRequests = new HashMap<>();
+            for (File source : fileSourcesWithoutIgnores) {
+                String filePath;
+                if (isDest) {
+                    filePath = file.getDest();
+                } else {
+                    filePath = StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath() + commonPath);
+                }
+                filePath = (StringUtils.isNotEmpty(this.branch) ? branch + Utils.PATH_SEPARATOR : "") + filePath;
+
+                Long fileId = filePathsToFileId.get(filePath);
+                if (fileId == null) {
+                    System.out.println(
+                        "source '" + commonPath + "' from file '"
+                        + StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath())
+                        + "' does not exist in the project");
+                    continue;
+                }
+
+                List<Language> languages = (languageId != null)
+                    ? projectInfo.getProjectLanguageByCrowdinCode(languageId)
+                        .map(Collections::singletonList)
+                        .orElseThrow(() -> new RuntimeException("Couldn't find language by language id: " + languageId))
+                    : projectInfo.getProjectLanguages();
+
+                for (Language language : languages) {
+                    String translation = placeholderUtil.format(source, file.getTranslation(), language);
+                    File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
+                    if (!transFile.exists()) {
+                        System.out.println("Translation file '" + Utils.replaceBasePath(source.getAbsolutePath(), pb.getBasePath()) + "' does not exist");
+                        continue;
+                    }
+                    TranslationPayload translationPayload = new TranslationPayloadWrapper(
+                        fileId,
+                        this.importDuplicates,
+                        this.importEqSuggestions,
+                        this.autoApproveImported);
+                    preparedRequests.put(transFile, Pair.of(language, translationPayload));
+                }
+            }
+
+            List<Runnable> tasks = preparedRequests.entrySet()
+                .stream()
+                .map(entry -> (Runnable) () -> {
+                    try {
+                        Long storageId = storageClient.uploadStorage(entry.getKey(), entry.getKey().getName());
+                        entry.getValue().getRight().setStorageId(storageId);
+                    } catch (Exception e) {
+                        throw new RuntimeException("Exception while uploading translation file to storage", e);
+                    }
+                    try {
+                        translationsClient.uploadTranslations(entry.getValue().getLeft().getId(), entry.getValue().getRight());
+                    } catch (Exception e) {
+                        throw new RuntimeException("Exception while uploading translation file", e);
+                    }
+                    System.out.println(OK.withIcon("translation file '" + Utils.replaceBasePath(entry.getKey().getAbsolutePath(), pb.getBasePath()) + "' is uploaded"));
+                })
+                .collect(Collectors.toList());
+            ConcurrencyUtil.executeAndWait(tasks);
+        }
+        return 0;
+    }
+
+    private ProjectWrapper getProjectInfo(String projectId, Settings settings) {
+        ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
+        ProjectWrapper projectInfo = new ProjectClient(settings).getProjectInfo(projectId, false);
+        ConsoleSpinner.stop(OK);
+        return projectInfo;
+    }
+
+    private Map<Long, String> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, String> branchNames) {
+        Map<Long, String> directoryPaths = new HashMap<>();
+        for (Long id : directories.keySet()) {
+            Directory dir = directories.get(id);
+            StringBuilder sb = new StringBuilder(dir.getName()).append(Utils.PATH_SEPARATOR);
+            while (dir.getDirectoryId() != null) {
+                dir = directories.get(dir.getDirectoryId());
+                sb.insert(0, dir.getName() + Utils.PATH_SEPARATOR);
+            }
+            if (dir.getBranchId() != null) {
+                sb.insert(0, branchNames.get(dir.getBranchId()) + Utils.PATH_SEPARATOR);
+            }
+            directoryPaths.put(id, sb.toString());
+        }
+        return directoryPaths;
+    }
+
+    private Map<String, Long> buildFilePaths(Map<Long, String> directoryPaths, List<FileEntity> files) {
+        Map<String, Long> filePathsToId = new HashMap<>();
+        for (FileEntity fileEntity : files) {
+            Long parentId = (fileEntity.getDirectoryId() != null) ? fileEntity.getDirectoryId() : fileEntity.getBranchId();
+            filePathsToId.put(((parentId != null) ? directoryPaths.get(parentId) : "") + fileEntity.getName(), fileEntity.getId());
+        }
+        return filePathsToId;
     }
 }
