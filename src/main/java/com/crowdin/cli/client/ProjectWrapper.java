@@ -1,10 +1,7 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.cli.utils.EntityUtils;
-import com.crowdin.common.models.Directory;
-import com.crowdin.common.models.FileEntity;
-import com.crowdin.common.models.Language;
-import com.crowdin.common.models.Project;
+import com.crowdin.common.models.*;
 
 import java.util.List;
 import java.util.Optional;
@@ -13,13 +10,13 @@ import java.util.function.Predicate;
 
 public class ProjectWrapper {
 
-    private Project project;
+    private ProjectSettings project;
     private List<FileEntity> files;
     private List<Directory> directories;
     private List<Language> supportedLanguages;
     private List<Language> projectLanguages;
 
-    ProjectWrapper(Project project,
+    ProjectWrapper(ProjectSettings project,
                    List<FileEntity> files,
                    List<Directory> directories, List<Language> supportedLanguages,
                    List<Language> projectLanguages) {
@@ -50,7 +47,7 @@ public class ProjectWrapper {
         return project;
     }
 
-    public void setProject(Project project) {
+    public void setProject(ProjectSettings project) {
         this.project = project;
     }
 

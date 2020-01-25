@@ -25,13 +25,13 @@ public class ProjectClient extends Client {
     }
 
     public ProjectWrapper getProjectInfo(String projectId, boolean isDebug) {
-        Project project = getProject(projectId, isDebug);
+        ProjectSettings project = getProject(projectId, isDebug);
         List<Language> supportedLanguages = Collections.emptyList();
         LanguagesClient languagesClient = new LanguagesClient(settings);
         try {
             supportedLanguages = languagesClient.getAllSupportedLanguages();
-        } catch (Exception e) {
             System.out.println("\n" + MessageSource.RESOURCE_BUNDLE.getString("error_getting_supported_languages"));
+        } catch (Exception e) {
             if (isDebug) {
                 e.printStackTrace();
             }
@@ -40,10 +40,10 @@ public class ProjectClient extends Client {
 
         List<Language> projectLanguages = languagesClient.getProjectLanguages(project);
 
-        new SettingsClient(settings)
-            .getJiptPseudoLanguageId(projectId)
-            .map(languagesClient::getLanguage)
-            .ifPresent(projectLanguages::add);
+        if (project.isInContext()) {
+            Language pseudoLang = languagesClient.getLanguage(project.getInContextPseudoLanguageId());
+            projectLanguages.add(pseudoLang);
+        }
 
         List<FileEntity> projectFiles = new FileClient(settings).getProjectFiles(project.getId());
         CrowdinRequestBuilder<Page<Directory>> projectDirectories = new DirectoriesApi(this.settings)
@@ -53,9 +53,9 @@ public class ProjectClient extends Client {
         return new ProjectWrapper(project, projectFiles, directories, supportedLanguages, projectLanguages);
     }
 
-    private Project getProject(String projectId, boolean isDebug) {
+    private ProjectSettings getProject(String projectId, boolean isDebug) {
         ProjectsApi api = new ProjectsApi(settings);
-        Project project = null;
+        ProjectSettings project = null;
 
         if (projectId == null || projectId.isEmpty()) {
             ConsoleSpinner.stop(ExecutionStatus.ERROR);
