@@ -24,6 +24,7 @@ import com.crowdin.common.models.Language;
 import com.crowdin.common.models.Translation;
 import com.crowdin.util.CrowdinHttpClient;
 import com.crowdin.util.ObjectMapperUtil;
+import net.lingala.zip4j.core.ZipFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
@@ -31,8 +32,10 @@ import picocli.CommandLine;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.*;
@@ -170,7 +173,7 @@ public class DownloadSubcommand extends GeneralCommand {
 
         try {
             List<String> downloadedFilesProc = new ArrayList<>();
-            for (String downloadedFile : commandUtils.getListOfFileFromArchive(downloadedZipArchive, false)) {
+            for (String downloadedFile : getListOfFileFromArchive(downloadedZipArchive, false)) {
                 if (Utils.isWindows()) {
                     downloadedFile = downloadedFile.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
                 }
@@ -209,9 +212,9 @@ public class DownloadSubcommand extends GeneralCommand {
             if (commonPath.contains("\\")) {
                 commonPath = commonPath.replaceAll("\\\\+", "/");
             }
-            commandUtils.sortFilesName(downloadedFilesProc);
-            commandUtils.extractFiles(downloadedFilesProc, files, baseTempDir, ignoreMatch, downloadedZipArchive, mapping, false, this.branch, pb, commonPath);
-            commandUtils.renameMappingFiles(mapping, baseTempDir, pb, commonPath);
+            downloadedFilesProc.sort(String::compareTo);
+            extractFiles(downloadedFilesProc, files, baseTempDir, ignoreMatch, downloadedZipArchive, mapping, false, this.branch, pb, commonPath);
+            renameMappingFiles(mapping, baseTempDir, pb, commonPath);
             FileUtils.deleteDirectory(new File(baseTempDir));
             downloadedZipArchive.delete();
         } catch (ZipException e) {
@@ -251,5 +254,182 @@ public class DownloadSubcommand extends GeneralCommand {
         ProjectWrapper projectInfo = new ProjectClient(settings).getProjectInfo(projectId, false);
         ConsoleSpinner.stop(OK);
         return projectInfo;
+    }
+
+    private List<String> getListOfFileFromArchive(File downloadedZipArchive, boolean isDebug) {
+        List<String> downloadedFiles = new ArrayList<>();
+        java.util.zip.ZipFile zipFile = null;
+        try {
+            zipFile = new java.util.zip.ZipFile(downloadedZipArchive.getAbsolutePath());
+        } catch (Exception e) {
+            System.out.println("Extracting archive '" + downloadedZipArchive + "' failed");
+            if (isDebug) {
+                e.printStackTrace();
+                ConsoleUtils.exitError();
+            }
+        }
+        Enumeration zipEntries = zipFile.entries();
+        while (zipEntries.hasMoreElements()) {
+            ZipEntry ze = (ZipEntry) zipEntries.nextElement();
+            if (!ze.isDirectory()) {
+                String fname = ze.getName();
+                if (!fname.startsWith(Utils.PATH_SEPARATOR)) {
+                    fname = Utils.PATH_SEPARATOR + fname;
+                    if (Utils.isWindows()) {
+                        fname = fname.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
+                    }
+                }
+                downloadedFiles.add(fname);
+            }
+        }
+        try {
+            zipFile.close();
+        } catch (IOException e) {
+        }
+        return downloadedFiles;
+    }
+
+    private void extractFiles(List<String> downloadedFiles, List<String> files, String baseTempDir, boolean ignore_match,
+                             File downloadedZipArchive, Map<String, String> mapping, boolean isDebug, String branch,
+                             PropertiesBean propertiesBean, String commonPath) {
+        ZipFile zFile = null;
+        try {
+            zFile = new ZipFile(downloadedZipArchive.getAbsolutePath());
+        } catch (Exception e) {
+            System.out.println("An archive '" + downloadedZipArchive.getAbsolutePath() + "' does not exist");
+            if (isDebug) {
+                e.printStackTrace();
+                ConsoleUtils.exitError();
+            }
+        }
+        File tmpDir = new File(baseTempDir);
+        if (!tmpDir.exists()) {
+            try {
+                Files.createDirectory(tmpDir.toPath());
+            } catch (IOException ex) {
+                System.out.println(RESOURCE_BUNDLE.getString("error_extracting"));
+            }
+        }
+        try {
+            zFile.extractAll(tmpDir.getAbsolutePath());
+        } catch (Exception e) {
+            System.out.println("Extracting an archive '" + downloadedZipArchive + "' failed");
+            if (isDebug) {
+                e.printStackTrace();
+                ConsoleUtils.exitError();
+            }
+        }
+        List<String> ommitedFiles = new ArrayList<>();
+        List<String> extractingFiles = new ArrayList<>();
+        for (String downloadedFile : downloadedFiles) {
+            if (!files.contains(downloadedFile) && !files.contains(downloadedFile.replaceFirst("/", ""))) {
+                if (branch != null && !branch.isEmpty()) {
+                    ommitedFiles.add(downloadedFile.replaceFirst("/" + branch + "/", ""));
+                } else {
+                    ommitedFiles.add(downloadedFile);
+                }
+            } else {
+                if (branch != null && !branch.isEmpty()) {
+                    if (downloadedFile.startsWith("/" + branch + "/")) {
+                        downloadedFile = downloadedFile.replaceFirst("/", "");
+                        downloadedFile = downloadedFile.replaceFirst(branch, "");
+                        downloadedFile = downloadedFile.replaceFirst("/", "");
+                    }
+                    extractingFiles.add(downloadedFile);
+                } else {
+                    extractingFiles.add(downloadedFile);
+                }
+            }
+        }
+        List<String> sortedExtractingFiles = new ArrayList<>();
+        for (Map.Entry<String, String> extractingMappingFile : mapping.entrySet()) {
+            String k = extractingMappingFile.getKey();
+            k = k.replaceAll("/+", "/");
+            if (k.contains(Utils.PATH_SEPARATOR)) {
+                k = k.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
+                k = k.replaceAll("/+", "/");
+            }
+            if (k.contains("/")) {
+                k = k.replaceAll("/+", "/");
+            }
+            if (!propertiesBean.getPreserveHierarchy()) {
+                if (k.startsWith(commonPath)) {
+                    for (FileBean file : propertiesBean.getFiles()) {
+                        String ep = file.getTranslation();
+                        if (ep != null && !ep.startsWith(commonPath) && !(new CommandUtils()).isSourceContainsPattern(ep) && !extractingMappingFile.getValue().startsWith(commonPath)) {
+                            k = k.replaceFirst(commonPath, "");
+                        }
+                    }
+                }
+            }
+            if (k.startsWith("/")) {
+                k = k.replaceFirst("/", "");
+            }
+            String v = extractingMappingFile.getValue();
+            if (v.contains(Utils.PATH_SEPARATOR)) {
+                v = v.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
+                v = v.replaceAll("/+", "/");
+            }
+            if (extractingFiles.contains(k) || extractingFiles.contains("/" + k)) {
+                sortedExtractingFiles.add(v);
+            }
+        }
+        sortedExtractingFiles.sort(String::compareTo);
+        for (String sortedExtractingFile : sortedExtractingFiles) {
+            System.out.println("Extracting: '" + sortedExtractingFile + "'");
+        }
+        if (ommitedFiles.size() > 0 && !ignore_match) {
+            ommitedFiles.sort(String::compareTo);
+            System.out.println(RESOURCE_BUNDLE.getString("downloaded_file_omitted"));
+            for (String ommitedFile : ommitedFiles) {
+                System.out.println(" - '" + ommitedFile + "'");
+            }
+        }
+    }
+
+    private void renameMappingFiles(Map<String, String> mapping, String baseTempDir, PropertiesBean propertiesBean, String commonPath) {
+        for (Map.Entry<String, String> entry : mapping.entrySet()) {
+            String preservedKey = entry.getKey();
+            if (!propertiesBean.getPreserveHierarchy()) {
+                if (Utils.isWindows() && commonPath != null && commonPath.contains("\\")) {
+                    commonPath = commonPath.replaceAll("\\\\", "/");
+                }
+                commonPath = commonPath.replaceAll("/+", "/");
+                preservedKey = preservedKey.replaceAll("/+", "/");
+                if (preservedKey.startsWith(commonPath)) {
+                    for (FileBean file : propertiesBean.getFiles()) {
+                        String ep = file.getTranslation();
+                        if (ep != null && !ep.startsWith(commonPath) && !(new CommandUtils()).isSourceContainsPattern(ep) && !entry.getValue().startsWith(commonPath)) {
+                            preservedKey = preservedKey.replaceFirst(commonPath, "");
+                        }
+                    }
+                }
+            }
+            String key = baseTempDir + Utils.PATH_SEPARATOR + preservedKey;
+            key = key.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+            String value = propertiesBean.getBasePath() + Utils.PATH_SEPARATOR + entry.getValue();
+            value = value.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+            if (Utils.isWindows()) {
+                key = key.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX);
+                key = key.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+                value = value.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX);
+                value = value.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+            }
+            if (!key.equals(value)) {
+                File oldFile = new File(key);
+                File newFile = new File(value);
+                if (oldFile.isFile()) {
+                    //noinspection ResultOfMethodCallIgnored
+                    newFile.getParentFile().mkdirs();
+                    if (!oldFile.renameTo(newFile)) {
+                        if (newFile.delete()) {
+                            if (!oldFile.renameTo(newFile)) {
+                                System.out.println("Replacing file '" + newFile.getAbsolutePath() + "' failed. Try to run an application with Administrator permission.");
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
