@@ -278,6 +278,9 @@ public class CliProperties {
                 }
                 if (file.getTranslation() != null && !file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
                     if (file.getTranslation().contains("%language%")
+                            || file.getTranslation().contains("%locale_with_underscore%")
+                            || file.getTranslation().contains("%android_code%")
+                            || file.getTranslation().contains("%osx_code%")
                             || file.getTranslation().contains("%two_letters_code%")
                             || file.getTranslation().contains("%three_letters_code%")
                             || file.getTranslation().contains("%locale%")) {
