@@ -1,5 +1,10 @@
 **Unreleased**
 
+**Version 3.0.6**
++ Fix exportPattern with locale_with_underscore, android_code, osx_code
++ Don't pass escapeQuotes if it is not specified
++ Upload sources refactoring
+
 **Version 3.0.5**
 + Updated: increase Pagination util limit
 + Updated: removed 'force' parameter for the 'Build Project Translation' api method
