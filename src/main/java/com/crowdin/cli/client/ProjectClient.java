@@ -30,8 +30,8 @@ public class ProjectClient extends Client {
         LanguagesClient languagesClient = new LanguagesClient(settings);
         try {
             supportedLanguages = languagesClient.getAllSupportedLanguages();
-            System.out.println("\n" + MessageSource.RESOURCE_BUNDLE.getString("error_getting_supported_languages"));
         } catch (Exception e) {
+            System.out.println("\n" + MessageSource.RESOURCE_BUNDLE.getString("error_getting_supported_languages"));
             if (isDebug) {
                 e.printStackTrace();
             }
