@@ -2,14 +2,14 @@ package com.crowdin.cli.properties;
 
 import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
-import com.crowdin.cli.utils.console.ConsoleUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-
-import static com.crowdin.cli.utils.MessageSource.Messages;
 
 
 public class CliProperties {
@@ -72,7 +72,19 @@ public class CliProperties {
 
     private static final String TRANSLATION_REPLACE = "translation_replace";
 
-    public PropertiesBean loadProperties(Map<String, Object> properties) {
+    public static PropertiesBean processProperties(PropertiesBean pb, Path configFilePath) {
+        List<String> errors = checkProperties(pb);
+        if (!errors.isEmpty()) {
+            String errorsInOne = String.join("\n\t- ", errors);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_is_invalid")+"\n\t- " + errorsInOne);
+        }
+
+        setDefaultValues(pb);
+        pb.setBasePath(getBasePath(pb.getBasePath(), configFilePath.toFile(), false));
+        return pb;
+    }
+
+    public static PropertiesBean buildFromMap(Map<String, Object> properties) {
         if (properties == null) {
             throw new NullPointerException("CliProperties.loadProperties has null args");
         }
@@ -231,38 +243,24 @@ public class CliProperties {
         return pb;
     }
 
-    public PropertiesBean validateProperties(PropertiesBean pb) {
-
-        List<String> errors = checkProperties(pb);
-        if (!errors.isEmpty()) {
-            String errorsInOne = String.join("\n\t- ", errors);
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_is_invalid")+"\n\t- " + errorsInOne);
-        }
-
-        setDefaultValues(pb);
-
-        return pb;
+    public static PropertiesBean buildFromParams(Params params) {
+        return new PropertiesBean(
+            params.getIdParam(),
+            params.getTokenParam(),
+            params.getBasePathParam(),
+            params.getBaseUrlParam(),
+            new FileBean(
+                params.getSourceParam(),
+                params.getTranslationParam())
+        );
     }
 
-    public PropertiesBean getFromParams(Params params) {
-        PropertiesBean pb = new PropertiesBean();
-        pb.setProjectId(params.getIdParam());
-        pb.setApiToken(params.getTokenParam());
-        pb.setBaseUrl(params.getBaseUrlParam());
-        pb.setBasePath(params.getBasePathParam());
-        FileBean fb = new FileBean();
-        fb.setSource(params.getSourceParam());
-        fb.setTranslation(params.getTranslationParam());
-        pb.setFiles(fb);
-        return pb;
-    }
-
-    public void setDefaultValues(PropertiesBean pb) {
+    private static void setDefaultValues(PropertiesBean pb) {
         if (pb == null || pb.getFiles() == null) {
             throw new NullPointerException("null args in CliProperties.setDefaultValues");
         }
-        pb.setPreserveHierarchy(getOr(pb.getPreserveHierarchy(), Boolean.FALSE));
-        pb.setBasePath(getNotEmptyStringOr(pb.getBasePath(), ""));
+        pb.setPreserveHierarchy(pb.getPreserveHierarchy() != null ? pb.getPreserveHierarchy() : Boolean.FALSE);
+        pb.setBasePath(pb.getBasePath() != null ? pb.getBasePath() : "");
 
         if (StringUtils.isNotEmpty(pb.getBaseUrl())) {
             if (!StringUtils.endsWithAny(pb.getBaseUrl(), "api/v2", "/api/v2", "api/v2/", "/api/v2/")) {
@@ -308,13 +306,13 @@ public class CliProperties {
             } else {
             }
             //Translate content
-            file.setTranslateContent(getOr(file.getTranslateContent(), Boolean.TRUE));
+            file.setTranslateContent(file.getTranslateContent() != null ? file.getTranslateContent() : Boolean.TRUE);
             //Translatable elements
             if (file.getTranslatableElements() == null || file.getTranslatableElements().isEmpty()) {
             } else {
             }
             //Content segmentation
-            file.setContentSegmentation(getOr(file.getContentSegmentation(), Boolean.TRUE));
+            file.setContentSegmentation(file.getContentSegmentation() != null ? file.getContentSegmentation() : Boolean.TRUE);
             //escape quotes
             if (file.getEscapeQuotes() != null && (file.getEscapeQuotes() < 0 || file.getEscapeQuotes() > 3)) {
                 file.setEscapeQuotes((short) 3);
@@ -342,15 +340,7 @@ public class CliProperties {
         }
     }
 
-    private String getNotEmptyStringOr(String toGet, String or) {
-        return StringUtils.isNotEmpty(toGet) ? toGet : or;
-    }
-
-    private <T> T getOr(T toGet, T or) {
-        return (toGet != null) ? toGet : or;
-    }
-
-    public List<String> checkProperties(PropertiesBean pb) {
+    private static List<String> checkProperties(PropertiesBean pb) {
         List<String> errors = new ArrayList<>();
         if (pb == null) {
             errors.add(RESOURCE_BUNDLE.getString("error_property_bean_null"));
@@ -405,9 +395,38 @@ public class CliProperties {
         return errors;
     }
 
-    private void printConfigurationFileErrorsAndExit(List<String> errors) {
-        System.out.println(Messages.CONFIGURATION_FILE_IS_INVALID.getString());
-        errors.forEach(System.out::println);
-        ConsoleUtils.exitError();
+    private static String getBasePath(String basePath, File configurationFile, boolean isDebug) {
+        String result = "";
+        if (basePath != null && Paths.get(basePath) != null) {
+            if (Paths.get(basePath).isAbsolute()) {
+                result = basePath;
+            } else if (configurationFile != null && configurationFile.isFile()) {
+                basePath = ".".equals(basePath) ? "" : basePath;
+                Path parentPath = Paths.get(configurationFile.getAbsolutePath()).getParent();
+                File base = new File(parentPath.toFile(), basePath);
+                try {
+                    result = base.getCanonicalPath();
+                } catch (IOException e) {
+                    System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
+                    if (isDebug) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                try {
+                    result = new File(basePath).getCanonicalPath();
+                } catch (IOException e) {
+                    System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
+                    if (isDebug) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } else if (configurationFile != null && configurationFile.isFile()) {
+            basePath = (basePath == null) ? "" : basePath;
+            result = Paths.get(configurationFile.getAbsolutePath()).getParent() + Utils.PATH_SEPARATOR + basePath;
+            result = result.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+        }
+        return result;
     }
 }

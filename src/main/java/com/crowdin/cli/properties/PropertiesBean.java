@@ -1,5 +1,6 @@
 package com.crowdin.cli.properties;
 
+import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.utils.Utils;
 
 import java.util.ArrayList;
@@ -19,6 +20,16 @@ public class PropertiesBean {
     private String basePath;
 
     private String baseUrl;
+
+    public PropertiesBean() {}
+
+    public PropertiesBean(String projectId, String apiToken, String basePath, String baseUrl, FileBean files) {
+        this.projectId = projectId;
+        this.apiToken = apiToken;
+        this.basePath = basePath;
+        this.baseUrl = baseUrl;
+        this.files.add(files);
+    }
 
     public List<FileBean> getFiles() {
         return files;

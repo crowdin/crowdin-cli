@@ -37,6 +37,15 @@ public class FileBean {
 
     private HashMap<String, String> translationReplace;
 
+    public FileBean() {
+
+    }
+
+    public FileBean(String source, String translation) {
+        this.source = source;
+        this.translation = translation;
+    }
+
     public String getTranslation() {
         return translation;
     }
