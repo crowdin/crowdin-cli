@@ -1,49 +1,27 @@
 package com.crowdin.cli.utils;
 
 import com.crowdin.cli.BaseCli;
-import com.crowdin.cli.client.BranchClient;
 import com.crowdin.cli.client.DirectoriesClient;
-import com.crowdin.cli.client.ProjectWrapper;
 import com.crowdin.cli.client.exceptions.ExistsResponseException;
 import com.crowdin.cli.client.exceptions.ResponseException;
 import com.crowdin.cli.client.exceptions.WaitResponseException;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.helper.FileHelper;
-import com.crowdin.cli.utils.console.ConsoleUtils;
 import com.crowdin.cli.utils.console.ExecutionStatus;
-import com.crowdin.client.CrowdinRequestBuilder;
-import com.crowdin.client.api.DirectoriesApi;
-import com.crowdin.common.Settings;
-import com.crowdin.common.models.*;
+import com.crowdin.common.models.Directory;
+import com.crowdin.common.models.Language;
 import com.crowdin.common.request.DirectoryPayload;
-import com.crowdin.common.response.Page;
-import com.crowdin.common.response.SimpleResponse;
-import com.crowdin.util.PaginationUtil;
-import com.crowdin.util.ResponseUtil;
-import com.fasterxml.jackson.core.type.TypeReference;
-import net.lingala.zip4j.core.ZipFile;
-import org.apache.commons.cli.CommandLine;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.tuple.Pair;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
-import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
-
-import static com.crowdin.cli.commands.CrowdinCliOptions.BASE_URL_LONG;
-import static com.crowdin.cli.commands.CrowdinCliOptions.TRANSLATION_SHORT;
 
 public class CommandUtils extends BaseCli {
 
@@ -509,41 +487,6 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
-    public String getBasePath(String basePath, File configurationFile, boolean isDebug) {
-        String result = "";
-        if (basePath != null && Paths.get(basePath) != null) {
-            if (Paths.get(basePath).isAbsolute()) {
-                result = basePath;
-            } else if (configurationFile != null && configurationFile.isFile()) {
-                basePath = ".".equals(basePath) ? "" : basePath;
-                Path parentPath = Paths.get(configurationFile.getAbsolutePath()).getParent();
-                File base = new File(parentPath.toFile(), basePath);
-                try {
-                    result = base.getCanonicalPath();
-                } catch (IOException e) {
-                    System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
-                    if (isDebug) {
-                        e.printStackTrace();
-                    }
-                }
-            } else {
-                try {
-                    result = new File(basePath).getCanonicalPath();
-                } catch (IOException e) {
-                    System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
-                    if (isDebug) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        } else if (configurationFile != null && configurationFile.isFile()) {
-            basePath = (basePath == null) ? "" : basePath;
-            result = Paths.get(configurationFile.getAbsolutePath()).getParent() + Utils.PATH_SEPARATOR + basePath;
-            result = result.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-        }
-        return result;
-    }
-
     public String getCommonPath(List<String> sources, String basePath) {
         String prepBasePath = StringUtils.removeStart(basePath, Utils.PATH_SEPARATOR);
         return StringUtils.removeStart(getCommonPath(sources), prepBasePath);
@@ -555,34 +498,5 @@ public class CommandUtils extends BaseCli {
         result = commonPrefix.substring(0, commonPrefix.lastIndexOf(Utils.PATH_SEPARATOR)+1);
         result = StringUtils.removeStart(result, Utils.PATH_SEPARATOR);
         return result;
-    }
-
-    public List<String> buildPaths(List<FileEntity> files, List<Directory> directories, Map<Long, String> branches, Long branchId) {
-        Map<Long, Directory> directoriesMap = directories.stream()
-                .collect(Collectors.toMap(Directory::getId, Function.identity()));
-        List<String> paths = new ArrayList<>();
-        for (FileEntity file : files) {
-            StringBuilder sb = new StringBuilder(Utils.PATH_SEPARATOR + file.getName());
-            Long directoryId = file.getDirectoryId();
-            if (directoryId == null && !Objects.equals(file.getBranchId(), branchId)) {
-                continue;
-            }
-            Directory parent = null;
-            while (directoryId != null) {
-                parent = directoriesMap.get(directoryId);
-                sb.insert(0, Utils.PATH_SEPARATOR + parent.getName());
-                directoryId = parent.getDirectoryId();
-            }
-            if (parent != null && !Objects.equals(parent.getBranchId(), branchId)) {
-                continue;
-            }
-            if (parent != null && parent.getBranchId() != null) {
-                sb.insert(0, Utils.PATH_SEPARATOR + branches.get(parent.getBranchId()));
-            } else if (file.getBranchId() != null) {
-                sb.insert(0, Utils.PATH_SEPARATOR + branches.get(file.getBranchId()));
-            }
-            paths.add(sb.toString());
-        }
-        return paths;
     }
 }

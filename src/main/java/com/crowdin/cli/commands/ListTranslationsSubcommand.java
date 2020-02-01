@@ -2,14 +2,12 @@ package com.crowdin.cli.commands;
 
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ProjectWrapper;
-import com.crowdin.cli.properties.CliProperties;
+import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.FileBean;
-import com.crowdin.cli.properties.Params;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.CommandUtils;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.cli.utils.file.FileReader;
 import com.crowdin.cli.utils.tree.DrawTree;
 import com.crowdin.common.Settings;
 import org.apache.commons.lang3.StringUtils;
@@ -24,25 +22,17 @@ import java.util.stream.Collectors;
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-@CommandLine.Command(name = "list translations", description = "Lists information about the translated files in current project that match the wild-card pattern")
-public class ListTranslationsSubcommand extends GeneralCommand {
+@CommandLine.Command(name = "translations", description = "Lists information about the translated files in current project that match the wild-card pattern")
+public class ListTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")
     protected boolean treeView;
 
-    @CommandLine.ArgGroup(exclusive = false, heading = "@|bold config params|@:%n")
-    protected Params params;
-
     @Override
     public Integer call() throws Exception {
         CommandUtils commandUtils = new CommandUtils();
-        CliProperties cliProperties = new CliProperties();
 
-        PropertiesBean pb = (params != null)
-                ? cliProperties.getFromParams(params)
-                : cliProperties.loadProperties((new FileReader()).readCliConfig(configFilePath.toFile()));
-        cliProperties.validateProperties(pb);
-        pb.setBasePath(commandUtils.getBasePath(pb.getBasePath(), configFilePath.toFile(), false));
+        PropertiesBean pb = this.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
         ProjectWrapper project = getProjectInfo(pb.getProjectId(), settings);

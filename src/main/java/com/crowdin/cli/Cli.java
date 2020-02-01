@@ -1,6 +1,7 @@
 package com.crowdin.cli;
 
-import com.crowdin.cli.commands.*;
+import com.crowdin.cli.commands.RootCommand;
+import com.crowdin.cli.commands.parts.HelpCommand;
 import picocli.CommandLine;
 //import org.apache.commons.cli.CommandLine;
 //import org.apache.commons.cli.CommandLineParser;
@@ -15,18 +16,11 @@ public class Cli {
                 .commands(CommandLine.Help.Ansi.Style.fg_yellow)
                 .options(CommandLine.Help.Ansi.Style.fg_yellow)
                 .build();
-            CommandLine commandLine = new CommandLine(new GeneralCommand())
-                .addSubcommand("upload", new CommandLine(new UploadSubcommand())
-                    .addSubcommand("sources", new UploadSourcesSubcommand())
-                    .addSubcommand("translations", new UploadTranslationsSubcommand()))
-                .addSubcommand("download", new DownloadSubcommand())
-                .addSubcommand("list", new CommandLine(new ListSubcommand())
-                    .addSubcommand("sources", new  ListSourcesSubcommand())
-                    .addSubcommand("translations", new ListTranslationsSubcommand())
-                    .addSubcommand("project", new ListProjectSubcommand()))
-                .addSubcommand("lint", new LintSubcommand())
-                .addSubcommand("generate", new GenerateSubcommand());
-            int exitCode = commandLine.setColorScheme(colorScheme).execute(args);
+            CommandLine commandLine = new CommandLine(new RootCommand())
+                    .setColorScheme(colorScheme);
+
+            HelpCommand.setOptions(System.out, colorScheme);
+            int exitCode = commandLine.execute(args);
         } catch (Exception e) {
             System.out.println("There is exception:");
             e.printStackTrace();

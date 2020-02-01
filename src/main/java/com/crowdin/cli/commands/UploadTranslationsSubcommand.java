@@ -3,34 +3,35 @@ package com.crowdin.cli.commands;
 import com.crowdin.cli.client.*;
 import com.crowdin.cli.client.exceptions.ResponseException;
 import com.crowdin.cli.client.request.TranslationPayloadWrapper;
-import com.crowdin.cli.properties.CliProperties;
+import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.FileBean;
-import com.crowdin.cli.properties.Params;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.*;
+import com.crowdin.cli.utils.CommandUtils;
+import com.crowdin.cli.utils.ConcurrencyUtil;
+import com.crowdin.cli.utils.PlaceholderUtil;
+import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.cli.utils.file.FileReader;
-import com.crowdin.client.api.FilesApi;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.Directory;
 import com.crowdin.common.models.FileEntity;
 import com.crowdin.common.models.Language;
-import com.crowdin.common.models.Pageable;
 import com.crowdin.common.request.TranslationPayload;
-import com.crowdin.util.PaginationUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import picocli.CommandLine;
 
 import java.io.File;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-@CommandLine.Command(name ="upload translations")
-public class UploadTranslationsSubcommand extends GeneralCommand {
+@CommandLine.Command(name ="translations")
+public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"--no-auto-approve-imported"}, negatable = true,
         description = "Approves uploaded translations automatically")
@@ -44,25 +45,17 @@ public class UploadTranslationsSubcommand extends GeneralCommand {
             description = "Defines whether to add translation if it is the same as the source string in Crowdin project")
     protected boolean importEqSuggestions = false;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, description = "Defines branch name (default: none)")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Defines branch name (default: none)")
     protected String branch;
 
-    @CommandLine.Option(names = {"-l", "--language"}, description = "If the option is defined the translations will be downloaded for a single specified language. (default: all)")
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", description = "If the option is defined the translations will be downloaded for a single specified language. (default: all)")
     protected String languageId;
-
-    @CommandLine.ArgGroup(exclusive = false, heading = "@|bold config params|@:%n")
-    protected Params params;
 
     @Override
     public Integer call() throws Exception {
         CommandUtils commandUtils = new CommandUtils();
-        CliProperties cliProperties = new CliProperties();
 
-        PropertiesBean pb = (params != null)
-                ? cliProperties.getFromParams(params)
-                : cliProperties.loadProperties((new FileReader()).readCliConfig(configFilePath.toFile()));
-        cliProperties.validateProperties(pb);
-        pb.setBasePath(commandUtils.getBasePath(pb.getBasePath(), configFilePath.toFile(), false));
+        PropertiesBean pb = this.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
         ProjectWrapper projectInfo = getProjectInfo(pb.getProjectId(), settings);

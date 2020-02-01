@@ -4,9 +4,8 @@ import com.crowdin.cli.client.BranchClient;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ProjectWrapper;
 import com.crowdin.cli.client.TranslationsClient;
-import com.crowdin.cli.properties.CliProperties;
+import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.FileBean;
-import com.crowdin.cli.properties.Params;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.CommandUtils;
 import com.crowdin.cli.utils.PlaceholderUtil;
@@ -14,7 +13,6 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ConsoleUtils;
 import com.crowdin.cli.utils.console.ExecutionStatus;
-import com.crowdin.cli.utils.file.FileReader;
 import com.crowdin.cli.utils.file.FileUtil;
 import com.crowdin.cli.utils.tree.DrawTree;
 import com.crowdin.common.Settings;
@@ -42,12 +40,12 @@ import static com.crowdin.cli.utils.MessageSource.Messages.*;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(name = "download", aliases = "pull", description = "Download latest translations from Crowdin and puts them to the specified place")
-public class DownloadSubcommand extends GeneralCommand {
+public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"--dryrun"}, description = "Runs command without API connection")
     protected boolean dryrun;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, description = "Defines branch name (default: none)")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Defines branch name (default: none)")
     protected String branch;
 
     @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")
@@ -56,22 +54,13 @@ public class DownloadSubcommand extends GeneralCommand {
     @CommandLine.Option(names = {"--ignore--match"}, description = "Ignores warning message about configuration change")
     protected boolean ignoreMatch;
 
-    @CommandLine.Option(names = {"-l", "--language"}, description = "If the option is defined the translations will be downloaded for a single specified language. (default: all)")
-    protected String language;
-
-    @CommandLine.ArgGroup(exclusive = false, heading = "@|bold config params|@:%n")
-    protected Params params;
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", description = "If the option is defined the translations will be downloaded for a single specified language. (default: all)")
+    protected String languageId;
 
     @Override
     public Integer call() {
-        CommandUtils commandUtils = new CommandUtils();
-        CliProperties cliProperties = new CliProperties();
 
-        PropertiesBean pb = (params != null)
-                ? cliProperties.getFromParams(params)
-                : cliProperties.loadProperties((new FileReader()).readCliConfig(configFilePath.toFile()));
-        cliProperties.validateProperties(pb);
-        pb.setBasePath(commandUtils.getBasePath(pb.getBasePath(), configFilePath.toFile(), false));
+        PropertiesBean pb = this.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
         ProjectWrapper project = getProjectInfo(pb.getProjectId(), settings);
@@ -82,8 +71,8 @@ public class DownloadSubcommand extends GeneralCommand {
             return 0;
         }
 
-        if (language != null) {
-            this.download(pb, project, language, placeholderUtil, settings, ignoreMatch);
+        if (languageId != null) {
+            this.download(pb, project, languageId, placeholderUtil, settings, ignoreMatch);
         } else {
             List<Language> projectLanguages = project.getProjectLanguages();
             for (Language projectLanguage : projectLanguages) {

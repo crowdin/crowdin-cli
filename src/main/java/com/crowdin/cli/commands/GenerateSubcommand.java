@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands;
 
+import com.crowdin.cli.commands.parts.Command;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.cli.utils.file.FileUtil;
 import picocli.CommandLine;
@@ -11,18 +12,17 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Scanner;
-import java.util.concurrent.Callable;
 
 import static com.crowdin.cli.properties.CliProperties.*;
 import static com.crowdin.cli.utils.MessageSource.Messages.GENERATE_HELP_MESSAGE;
 
 @CommandLine.Command(name = "generate", aliases = "init", description = "Generate Crowdin CLI configuration skeleton")
-public class GenerateSubcommand extends Command implements Callable<Integer> {
+public class GenerateSubcommand extends Command {
 
-    @CommandLine.Option(names = {"-d", "--destination"}, defaultValue = "crowdin.yml")
+    @CommandLine.Option(names = {"-d", "--destination"}, paramLabel = "...", defaultValue = "crowdin.yml")
     private Path destinationPath;
 
-    @CommandLine.Option(names = "--skip-generate-description")
+    @CommandLine.Option(names = "--skip-generate-description", hidden = true)
     private boolean skipGenerateDescription;
 
     @Override
