@@ -15,8 +15,7 @@ public abstract class HelpCommand extends Command {
     }
 
     @Override
-    public Integer call() {
+    public void run() {
         CommandLine.usage(this, out, colorScheme);
-        return 0;
     }
 }

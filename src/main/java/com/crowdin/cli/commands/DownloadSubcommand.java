@@ -58,7 +58,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
     protected String languageId;
 
     @Override
-    public Integer call() {
+    public void run() {
 
         PropertiesBean pb = this.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
@@ -68,7 +68,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
         if (dryrun) {
             dryrunTranslation(pb, placeholderUtil, treeView);
-            return 0;
+            return;
         }
 
         if (languageId != null) {
@@ -81,7 +81,6 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
                 }
             }
         }
-        return 0;
     }
 
     private void download(

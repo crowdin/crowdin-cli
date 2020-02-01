@@ -28,7 +28,7 @@ public class ListSourcesSubcommand extends PropertiesBuilderCommandPart {
     protected boolean treeView;
 
     @Override
-    public Integer call() throws Exception {
+    public void run() {
         CommandUtils commandUtils = new CommandUtils();
 
         PropertiesBean pb = this.buildPropertiesBean();
@@ -66,8 +66,6 @@ public class ListSourcesSubcommand extends PropertiesBuilderCommandPart {
         } else {
             files.forEach(System.out::println);
         }
-
-        return 0;
     }
 
     private ProjectWrapper getProjectInfo(String projectId, Settings settings) {

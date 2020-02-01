@@ -34,7 +34,7 @@ public class ListProjectSubcommand extends PropertiesBuilderCommandPart {
     protected boolean treeView;
 
     @Override
-    public Integer call() throws Exception {
+    public void run() {
         PropertiesBean pb = this.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
@@ -74,7 +74,6 @@ public class ListProjectSubcommand extends PropertiesBuilderCommandPart {
         } else {
             filePaths.forEach(System.out::println);
         }
-        return 0;
     }
 
     public List<String> buildPaths(List<FileEntity> files, List<Directory> directories, Map<Long, String> branches, Long branchId) {

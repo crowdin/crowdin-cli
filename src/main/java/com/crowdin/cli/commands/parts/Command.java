@@ -4,9 +4,7 @@ import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
 import picocli.CommandLine;
 
-import java.nio.file.Path;
 import java.util.ResourceBundle;
-import java.util.concurrent.Callable;
 
 @CommandLine.Command(
         name = "crowdin",
@@ -19,7 +17,7 @@ import java.util.concurrent.Callable;
         commandListHeading = "%n@|underline COMMANDS|@:%n",
         usageHelpAutoWidth = true
 )
-public abstract class Command implements Callable<Integer> {
+public abstract class Command implements Runnable {
 
     @CommandLine.Option(names = {"--no-progress"}, description = "Disable progress on executing command")
     protected boolean noProgress;
@@ -30,8 +28,7 @@ public abstract class Command implements Callable<Integer> {
     protected static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
 
     @Override
-    public Integer call() throws Exception {
-        return null;
+    public void run() {
     }
 
     public static class VersionProvider implements CommandLine.IVersionProvider {

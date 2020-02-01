@@ -52,7 +52,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
     protected String languageId;
 
     @Override
-    public Integer call() throws Exception {
+    public void run() {
         CommandUtils commandUtils = new CommandUtils();
 
         PropertiesBean pb = this.buildPropertiesBean();
@@ -158,7 +158,6 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                 .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks);
         }
-        return 0;
     }
 
     private ProjectWrapper getProjectInfo(String projectId, Settings settings) {

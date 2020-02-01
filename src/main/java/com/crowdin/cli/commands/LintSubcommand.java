@@ -7,9 +7,8 @@ import picocli.CommandLine;
 public class LintSubcommand extends PropertiesBuilderCommandPart {
 
     @Override
-    public Integer call() throws Exception {
+    public void run() {
         this.buildPropertiesBean();
         System.out.println(RESOURCE_BUNDLE.getString("configuration_ok"));
-        return 0;
     }
 }

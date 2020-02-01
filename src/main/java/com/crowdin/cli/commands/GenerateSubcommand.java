@@ -26,14 +26,14 @@ public class GenerateSubcommand extends Command {
     private boolean skipGenerateDescription;
 
     @Override
-    public Integer call() throws Exception {
+    public void run() {
         System.out.println("destinationPath: " + destinationPath);
         System.out.println("skipGenerateDescription: " + skipGenerateDescription);
         try {
             System.out.println(RESOURCE_BUNDLE.getString("command_generate_description") + " '" + destinationPath + "'");
             if (Files.exists(destinationPath)) {
                 System.out.println(ExecutionStatus.SKIPPED.getIcon() + "File '" + destinationPath + "' already exists.");
-                return 0;
+                return;
             }
 
             try {
@@ -73,6 +73,5 @@ public class GenerateSubcommand extends Command {
         } catch (Exception e) {
             throw new RuntimeException("Error while creating config file", e);
         }
-        return 0;
     }
 }

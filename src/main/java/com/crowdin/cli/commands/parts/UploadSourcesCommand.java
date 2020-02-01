@@ -53,7 +53,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
     protected static final String UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS = "keep_translations_and_approvals";
 
     @Override
-    public Integer call() throws Exception {
+    public void run() {
         CommandUtils commandUtils = new CommandUtils();
 
         PropertiesBean pb = this.buildPropertiesBean();
@@ -65,7 +65,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
 
         if (dryrun) {
             this.dryrunSources(pb, placeholderUtil, treeView);
-            return 0;
+            return;
         }
 
         FileClient fileClient = new FileClient(settings);
@@ -213,7 +213,6 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                     .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks);
         }
-        return null;
     }
 
     private void dryrunSources(PropertiesBean propertiesBean, PlaceholderUtil placeholderUtil, boolean treeView) {
