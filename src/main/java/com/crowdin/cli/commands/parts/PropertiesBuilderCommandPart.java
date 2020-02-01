@@ -23,6 +23,9 @@ public abstract class PropertiesBuilderCommandPart extends Command {
         PropertiesBean pb = (params != null && params.getSourceParam() != null && params.getTranslationParam() != null)
                 ? CliProperties.buildFromParams(params)
                 : CliProperties.buildFromMap(new FileReader().readCliConfig(configFilePath.toFile()));
+        if (identityFilePath != null) {
+            CliProperties.populateWithCredentials(pb, new FileReader().readCliConfig(configFilePath.toFile()));
+        }
         return CliProperties.processProperties(pb, configFilePath);
     }
 }

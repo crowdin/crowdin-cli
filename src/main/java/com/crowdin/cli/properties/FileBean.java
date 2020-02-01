@@ -1,7 +1,7 @@
 package com.crowdin.cli.properties;
 
-import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 
 public class FileBean {
@@ -17,7 +17,7 @@ public class FileBean {
 
     private String updateOption;
 
-    private HashMap<String, HashMap<String, String>> languagesMapping;
+    private Map<String, Map<String, String>> languagesMapping;
 
     private Boolean firstLineContainsHeader;
 
@@ -33,9 +33,9 @@ public class FileBean {
 
     private Boolean contentSegmentation;
 
-    private Short escapeQuotes = null;
+    private Integer escapeQuotes = null;
 
-    private HashMap<String, String> translationReplace;
+    private Map<String, String> translationReplace;
 
     public FileBean() {
 
@@ -54,11 +54,11 @@ public class FileBean {
         this.translation = translation;
     }
 
-    public HashMap<String, HashMap<String, String>> getLanguagesMapping() {
+    public Map<String, Map<String, String>> getLanguagesMapping() {
         return languagesMapping;
     }
 
-    public void setLanguagesMapping(HashMap<String, HashMap<String, String>> languagesMapping) {
+    public void setLanguagesMapping(Map<String, Map<String, String>> languagesMapping) {
         this.languagesMapping = languagesMapping;
     }
 
@@ -158,19 +158,19 @@ public class FileBean {
         this.contentSegmentation = contentSegmentation;
     }
 
-    public Short getEscapeQuotes() {
+    public Integer getEscapeQuotes() {
         return escapeQuotes;
     }
 
-    public void setEscapeQuotes(Short escapeQuotes) {
+    public void setEscapeQuotes(Integer escapeQuotes) {
         this.escapeQuotes = escapeQuotes;
     }
 
-    public HashMap<String, String> getTranslationReplace() {
+    public Map<String, String> getTranslationReplace() {
         return translationReplace;
     }
 
-    public void setTranslationReplace(HashMap<String, String> translationReplace) {
+    public void setTranslationReplace(Map<String, String> translationReplace) {
         this.translationReplace = translationReplace;
     }
 }

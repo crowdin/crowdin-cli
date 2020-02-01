@@ -10,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.function.Consumer;
 
 
 public class CliProperties {
@@ -92,155 +93,71 @@ public class CliProperties {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error_empty_properties_file"));
         }
         PropertiesBean pb = new PropertiesBean();
-        for (Map.Entry<String, Object> property : properties.entrySet()) {
-            if (property != null && property.getKey() != null) {
-                switch (property.getKey()) {
-                    case API_TOKEN_ENV:
-                        pb.setApiToken(Utils.getEnvironmentVariable(property.getValue().toString()));
-                        break;
-                    case BASE_PATH_ENV:
-                        pb.setBasePath(Utils.getEnvironmentVariable(property.getValue().toString()));
-                        break;
-                    case BASE_URL_ENV:
-                        pb.setBaseUrl(Utils.getEnvironmentVariable(property.getValue().toString()));
-                        break;
-                    case PROJECT_ID_ENV:
-                        pb.setProjectId(Utils.getEnvironmentVariable(property.getValue().toString()));
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
 
-        for (Map.Entry<String, Object> property : properties.entrySet()) {
-            if (property != null && property.getKey() != null) {
-                switch (property.getKey()) {
-                    case API_TOKEN:
-                        if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
-                            pb.setApiToken(property.getValue().toString());
-                        }
-                        break;
-                    case BASE_PATH:
-                        if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
-                            pb.setBasePath(property.getValue().toString());
-                        }
-                        break;
-                    case BASE_URL:
-                        if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
-                            pb.setBaseUrl(property.getValue().toString());
-                        }
-                        break;
-                    case PROJECT_ID:
-                        if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
-                            pb.setProjectId(property.getValue().toString());
-                        }
-                        break;
-                    case PRESERVE_HIERARCHY:
-                        pb.setPreserveHierarchy(Boolean.parseBoolean(property.getValue().toString()));
-                        break;
-                    case FILES:
-                        ArrayList files = (ArrayList) property.getValue();
-                        for (Object file : files) {
-                            FileBean fileBean = new FileBean();
-                            HashMap<String, Object> fileObj = (HashMap<String, Object>) file;
-                            for (Map.Entry<String, Object> entry : fileObj.entrySet()) {
-                                String fileObjKey = entry.getKey();
-                                Object fileObjVal = entry.getValue();
-                                switch (fileObjKey) {
-                                    case SOURCE:
-                                        fileBean.setSource(fileObjVal.toString());
-                                        break;
-                                    case IGNORE:
-                                        fileBean.setIgnore((List<String>) fileObjVal);
-                                        break;
-                                    case DEST:
-                                        fileBean.setDest(fileObjVal.toString());
-                                        break;
-                                    case TYPE:
-                                        fileBean.setType(fileObjVal.toString());
-                                        break;
-                                    case TRANSLATION:
-                                        fileBean.setTranslation(fileObjVal.toString());
-                                        break;
-                                    case UPDATE_OPTION:
-                                        fileBean.setUpdateOption(fileObjVal.toString());
-                                        break;
-                                    case LANGUAGES_MAPPING:
-                                        HashMap<String, HashMap<String, String>> languagesMapping = new HashMap<>();
-                                        languagesMapping = (HashMap<String, HashMap<String, String>>) fileObjVal;
-                                        fileBean.setLanguagesMapping(languagesMapping);
-                                        break;
-                                    case FIRST_LINE_CONTAINS_HEADER:
-                                        if ("1".equals(fileObjVal.toString())) {
-                                            fileBean.setFirstLineContainsHeader(Boolean.TRUE);
-                                        } else if ("0".equals(fileObjVal.toString())) {
-                                            fileBean.setFirstLineContainsHeader(Boolean.FALSE);
-                                        } else {
-                                            fileBean.setFirstLineContainsHeader(Boolean.valueOf(fileObjVal.toString()));
-                                        }
-                                        break;
-                                    case TRANSLATE_ATTRIBUTES:
-                                        if ("1".equals(fileObjVal.toString())) {
-                                            fileBean.setTranslateAttributes(Boolean.TRUE);
-                                        } else if ("0".equals(fileObjVal.toString())) {
-                                            fileBean.setTranslateAttributes(Boolean.FALSE);
-                                        } else {
-                                            fileBean.setTranslateAttributes(Boolean.valueOf(fileObjVal.toString()));
-                                        }
-                                        break;
-                                    case TRANSLATE_CONTENT:
-                                        if ("1".equals(fileObjVal.toString())) {
-                                            fileBean.setTranslateContent(Boolean.TRUE);
-                                        } else if ("0".equals(fileObjVal.toString())) {
-                                            fileBean.setTranslateContent(Boolean.FALSE);
-                                        } else {
-                                            fileBean.setTranslateContent(Boolean.valueOf(fileObjVal.toString()));
-                                        }
-                                        break;
-                                    case TRANSLATABLE_ELEMENTS:
-                                        fileBean.setTranslatableElements((List<String>) fileObjVal);
-                                        break;
-                                    case CONTENT_SEGMENTATION:
-                                        if ("1".equals(fileObjVal.toString())) {
-                                            fileBean.setContentSegmentation(Boolean.TRUE);
-                                        } else if ("0".equals(fileObjVal.toString())) {
-                                            fileBean.setContentSegmentation(Boolean.FALSE);
-                                        } else {
-                                            fileBean.setContentSegmentation(Boolean.valueOf(fileObjVal.toString()));
-                                        }
-                                        break;
-                                    case ESCAPE_QUOTES:
-                                        fileBean.setEscapeQuotes(Short.valueOf(fileObjVal.toString()));
-                                        break;
-                                    case MULTILINGUAL_SPREADSHEET:
-                                        if ("1".equals(fileObjVal.toString())) {
-                                            fileBean.setMultilingualSpreadsheet(Boolean.TRUE);
-                                        } else if ("0".equals(fileObjVal.toString())) {
-                                            fileBean.setMultilingualSpreadsheet(Boolean.FALSE);
-                                        } else {
-                                            fileBean.setMultilingualSpreadsheet(Boolean.valueOf(fileObjVal.toString()));
-                                        }
-                                        break;
-                                    case SCHEME:
-                                        fileBean.setScheme(fileObjVal.toString());
-                                        break;
-                                    case TRANSLATION_REPLACE:
-                                        HashMap<String, String> translationReplace;
-                                        translationReplace = (HashMap<String, String>) fileObjVal;
-                                        fileBean.setTranslationReplace(translationReplace);
-                                        break;
-                                }
-                            }
-                            pb.setFiles(fileBean);
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+        populateWithCredentials(pb, properties);
+        getBooleanProperty(pb::setPreserveHierarchy, properties, PRESERVE_HIERARCHY);
+        ((List<Map<String, Object>>) properties.getOrDefault(FILES, Collections.EMPTY_LIST))
+            .stream()
+            .map(CliProperties::buildFileBeanFromMap)
+            .forEach(pb::setFiles);
         return pb;
+    }
+
+    private static FileBean buildFileBeanFromMap(Map<String, Object> fbProperties) {
+        FileBean fileBean = new FileBean();
+        getProperty(        fileBean::setSource,                    fbProperties, SOURCE);
+        getProperty(        fileBean::setDest,                      fbProperties, DEST);
+        getProperty(        fileBean::setType,                      fbProperties, TYPE);
+        getProperty(        fileBean::setTranslation,               fbProperties, TRANSLATION);
+        getProperty(        fileBean::setUpdateOption,              fbProperties, UPDATE_OPTION);
+        getProperty(        fileBean::setScheme,                    fbProperties, SCHEME);
+        getProperty(        fileBean::setIgnore,                    fbProperties, IGNORE);
+        getProperty(        fileBean::setTranslatableElements,      fbProperties, TRANSLATABLE_ELEMENTS);
+        getProperty(        fileBean::setLanguagesMapping,          fbProperties, LANGUAGES_MAPPING);
+        getProperty(        fileBean::setTranslationReplace,        fbProperties, TRANSLATION_REPLACE);
+        getProperty(        fileBean::setEscapeQuotes,              fbProperties, ESCAPE_QUOTES);
+        getBooleanProperty( fileBean::setFirstLineContainsHeader,   fbProperties, FIRST_LINE_CONTAINS_HEADER);
+        getBooleanProperty( fileBean::setTranslateAttributes,       fbProperties, TRANSLATE_ATTRIBUTES);
+        getBooleanProperty( fileBean::setTranslateContent,          fbProperties, TRANSLATE_CONTENT);
+        getBooleanProperty( fileBean::setContentSegmentation,       fbProperties, CONTENT_SEGMENTATION);
+        getBooleanProperty( fileBean::setMultilingualSpreadsheet,   fbProperties, MULTILINGUAL_SPREADSHEET);
+        return fileBean;
+    }
+
+    public static void populateWithCredentials(PropertiesBean pb, Map<String, Object> properties) {
+        getCredentialProperty(pb::setApiToken,    properties,     API_TOKEN_ENV,  API_TOKEN);
+        getCredentialProperty(pb::setBasePath,    properties,     BASE_PATH_ENV,  BASE_PATH);
+        getCredentialProperty(pb::setBaseUrl,     properties,     BASE_URL_ENV,   BASE_URL);
+        getCredentialProperty(pb::setProjectId,   properties,     API_TOKEN_ENV,  API_TOKEN);
+    }
+
+    private static void getCredentialProperty(Consumer<String> setter, Map<String, Object> properties, String envKey, String key) {
+        String param = properties.containsKey(envKey)
+            ? System.getenv(properties.get(envKey).toString())
+            : (properties.containsKey(key))
+                ? properties.get(key).toString()
+                : null;
+        if (param != null) {
+            setter.accept(param);
+        }
+    }
+
+    private static void getBooleanProperty(Consumer<Boolean> setter, Map<String, Object> properties, String key) {
+        Boolean param = properties.containsKey(key)
+            ? properties.get(key).toString().equals("1")
+                ? Boolean.TRUE
+                : Boolean.valueOf(properties.get(key).toString())
+            : null;
+        if (param != null) {
+            setter.accept(param);
+        }
+    }
+
+    private static <T> void getProperty(Consumer<T> setter, Map<String, Object> properties, String key) {
+        T param = (T) properties.getOrDefault(key, null);
+        if (param != null) {
+            setter.accept(param);
+        }
     }
 
     public static PropertiesBean buildFromParams(Params params) {
@@ -315,7 +232,7 @@ public class CliProperties {
             file.setContentSegmentation(file.getContentSegmentation() != null ? file.getContentSegmentation() : Boolean.TRUE);
             //escape quotes
             if (file.getEscapeQuotes() != null && (file.getEscapeQuotes() < 0 || file.getEscapeQuotes() > 3)) {
-                file.setEscapeQuotes((short) 3);
+                file.setEscapeQuotes(3);
             } else {
             }
             //Language mapping
