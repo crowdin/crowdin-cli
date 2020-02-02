@@ -128,7 +128,7 @@ public class CliProperties {
         getCredentialProperty(pb::setApiToken,    properties,     API_TOKEN_ENV,  API_TOKEN);
         getCredentialProperty(pb::setBasePath,    properties,     BASE_PATH_ENV,  BASE_PATH);
         getCredentialProperty(pb::setBaseUrl,     properties,     BASE_URL_ENV,   BASE_URL);
-        getCredentialProperty(pb::setProjectId,   properties,     API_TOKEN_ENV,  API_TOKEN);
+        getCredentialProperty(pb::setProjectId,   properties,     PROJECT_ID_ENV,  PROJECT_ID);
     }
 
     private static void getCredentialProperty(Consumer<String> setter, Map<String, Object> properties, String envKey, String key) {

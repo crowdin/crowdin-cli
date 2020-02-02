@@ -76,6 +76,12 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
             throw new RuntimeException("Couldn't get list of directories", e);
         }
 
+        List<Language> languages = (languageId != null)
+            ? projectInfo.getProjectLanguageByCrowdinCode(languageId)
+            .map(Collections::singletonList)
+            .orElseThrow(() -> new RuntimeException("Couldn't find language by language id: " + languageId))
+            : projectInfo.getProjectLanguages();
+
         for (FileBean file : pb.getFiles()) {
             List<File> fileSourcesWithoutIgnores =
                     commandUtils.getFileSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil);
@@ -99,33 +105,28 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
             }
 
             Map<File, Pair<Language, TranslationPayload>> preparedRequests = new HashMap<>();
+            String branchPath = (StringUtils.isNotEmpty(this.branch) ? branch + Utils.PATH_SEPARATOR : "");
             for (File source : fileSourcesWithoutIgnores) {
-                String filePath;
-                if (isDest) {
-                    filePath = file.getDest();
-                } else {
-                    filePath = StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath() + commonPath);
-                }
-                filePath = (StringUtils.isNotEmpty(this.branch) ? branch + Utils.PATH_SEPARATOR : "") + filePath;
+                String filePath = branchPath + (isDest
+                    ? file.getDest()
+                    : StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath() + commonPath));
 
                 Long fileId = filePathsToFileId.get(filePath);
                 if (fileId == null) {
                     System.out.println(
-                        "source '" + commonPath + "' from file '"
+                        "Source '" + filePath + "' from file '"
                         + StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath())
                         + "' does not exist in the project");
                     continue;
                 }
 
-                List<Language> languages = (languageId != null)
-                    ? projectInfo.getProjectLanguageByCrowdinCode(languageId)
-                        .map(Collections::singletonList)
-                        .orElseThrow(() -> new RuntimeException("Couldn't find language by language id: " + languageId))
-                    : projectInfo.getProjectLanguages();
-
+//                build filePath to each source and project language
+                String translation = placeholderUtil.replaceFileDependentPlaceholders(file.getTranslation(), source);
                 for (Language language : languages) {
-                    String translation = placeholderUtil.format(source, file.getTranslation(), language);
-                    File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
+                    File transFile = new File(
+                    pb.getBasePath()
+                        + Utils.PATH_SEPARATOR
+                        + placeholderUtil.replaceLanguageDependentPlaceholders(translation, language));
                     if (!transFile.exists()) {
                         System.out.println("Translation file '" + Utils.replaceBasePath(source.getAbsolutePath(), pb.getBasePath()) + "' does not exist");
                         continue;
@@ -142,18 +143,25 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
             List<Runnable> tasks = preparedRequests.entrySet()
                 .stream()
                 .map(entry -> (Runnable) () -> {
+                    File translationFile = entry.getKey();
+                    Language lang = entry.getValue().getLeft();
+                    TranslationPayload payload = entry.getValue().getRight();
                     try {
-                        Long storageId = storageClient.uploadStorage(entry.getKey(), entry.getKey().getName());
-                        entry.getValue().getRight().setStorageId(storageId);
+                        Long storageId = storageClient.uploadStorage(translationFile, translationFile.getName());
+                        payload.setStorageId(storageId);
                     } catch (Exception e) {
                         throw new RuntimeException("Exception while uploading translation file to storage", e);
                     }
                     try {
-                        translationsClient.uploadTranslations(entry.getValue().getLeft().getId(), entry.getValue().getRight());
+                        translationsClient.uploadTranslations(lang.getId(), payload);
                     } catch (Exception e) {
                         throw new RuntimeException("Exception while uploading translation file", e);
                     }
-                    System.out.println(OK.withIcon("translation file '" + Utils.replaceBasePath(entry.getKey().getAbsolutePath(), pb.getBasePath()) + "' is uploaded"));
+                    System.out.println(
+                        OK.withIcon(
+                            "translation file '"
+                            + Utils.replaceBasePath(translationFile.getAbsolutePath(), pb.getBasePath())
+                            + "' is uploaded"));
                 })
                 .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks);

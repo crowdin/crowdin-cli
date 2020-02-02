@@ -16,7 +16,7 @@ public abstract class PropertiesBuilderCommandPart extends Command {
     @CommandLine.ArgGroup(exclusive = false, heading = "@|underline CONFIG OPTIONS|@(to use instead configuration file):%n")
     private Params params;
 
-    @CommandLine.Option(names = {"-c", "--config"}, paramLabel = "...", description = "Set path to the configuration file (default: crowdin.yml)", defaultValue = "crowdin.yml")
+    @CommandLine.Option(names = {"-c", "--config"}, paramLabel = "...", description = "Set path to the configuration file (default: ${DEFAULT-VALUE})", defaultValue = "crowdin.yml")
     private Path configFilePath;
 
     protected PropertiesBean buildPropertiesBean() {

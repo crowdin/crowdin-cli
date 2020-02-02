@@ -66,17 +66,6 @@ public class PlaceholderUtil {
         return result;
     }
 
-    public List<String> format(File source, String toFormat, boolean onProjectLangs) {
-        if (source == null || toFormat == null)
-            return new ArrayList<>();
-        List<Language> languages = (onProjectLangs ? projectLangs : supportedLangs);
-        List<String> result = languages.stream()
-                .map(lang -> this.replaceLanguageDependentPlaceholders(toFormat, lang))
-                .map(changedToFormat -> this.replaceFileDependentPlaceholders(changedToFormat, source))
-                .collect(Collectors.toList());
-        return result;
-    }
-
     public String format(File source, String toFormat, Language language) {
         if (source == null || toFormat == null || language == null) {
             throw new RuntimeException("null arg in PlaceholderUtil.format()");
