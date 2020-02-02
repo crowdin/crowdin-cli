@@ -4,6 +4,7 @@ import com.crowdin.cli.client.BranchClient;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ProjectWrapper;
 import com.crowdin.cli.client.TranslationsClient;
+import com.crowdin.cli.commands.functionality.DryrunTranslations;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -14,7 +15,6 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ConsoleUtils;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.cli.utils.file.FileUtil;
-import com.crowdin.cli.utils.tree.DrawTree;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.Branch;
 import com.crowdin.common.models.FileRaw;
@@ -24,7 +24,6 @@ import com.crowdin.util.CrowdinHttpClient;
 import com.crowdin.util.ObjectMapperUtil;
 import net.lingala.zip4j.core.ZipFile;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -67,7 +66,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
         if (dryrun) {
-            dryrunTranslation(pb, placeholderUtil, treeView);
+            (new DryrunTranslations(pb, placeholderUtil)).run(treeView);
             return;
         }
 
@@ -209,31 +208,6 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             System.out.println(RESOURCE_BUNDLE.getString("error_open_zip"));
         } catch (Exception e) {
             System.out.println(RESOURCE_BUNDLE.getString("error_extracting_files"));
-        }
-    }
-
-    private void dryrunTranslation(PropertiesBean pb, PlaceholderUtil placeholderUtil, boolean treeView) {
-        CommandUtils commandUtils = new CommandUtils();
-
-        List<File> files = pb
-            .getFiles()
-            .stream()
-            .flatMap(file -> commandUtils.getSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil).stream())
-            .map(source -> StringUtils.removeStart(source, pb.getBasePath()))
-            .map(File::new)
-            .collect(Collectors.toList());
-
-
-        List<String> translations = new ArrayList<>();
-        for (FileBean fileBean : pb.getFiles()) {
-            translations.addAll(placeholderUtil.format(files, fileBean.getTranslation(), true));
-        }
-
-        Collections.sort(translations);
-        if (treeView) {
-            (new DrawTree()).draw(translations, -1);
-        } else {
-            translations.forEach(System.out::println);
         }
     }
 

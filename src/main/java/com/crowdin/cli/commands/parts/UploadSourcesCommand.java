@@ -6,11 +6,11 @@ import com.crowdin.cli.client.request.PropertyFileExportOptionsWrapper;
 import com.crowdin.cli.client.request.SpreadsheetFileImportOptionsWrapper;
 import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
 import com.crowdin.cli.client.request.XmlFileImportOptionsWrapper;
+import com.crowdin.cli.commands.functionality.DryrunSources;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.*;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.cli.utils.tree.DrawTree;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.Directory;
 import com.crowdin.common.models.FileEntity;
@@ -64,7 +64,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                 new PlaceholderUtil(projectInfo.getSupportedLanguages(), projectInfo.getProjectLanguages(), pb.getBasePath());
 
         if (dryrun) {
-            this.dryrunSources(pb, placeholderUtil, treeView);
+            (new DryrunSources(pb, placeholderUtil)).run(treeView);
             return;
         }
 
@@ -212,39 +212,6 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                     })
                     .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks);
-        }
-    }
-
-    private void dryrunSources(PropertiesBean propertiesBean, PlaceholderUtil placeholderUtil, boolean treeView) {
-        CommandUtils commandUtils = new CommandUtils();
-        List<String> files;
-        try {
-            files = propertiesBean
-                    .getFiles()
-                    .stream()
-                    .flatMap(file -> commandUtils.getSourcesWithoutIgnores(file, propertiesBean.getBasePath(), placeholderUtil).stream())
-                    .map(source -> StringUtils.removeStart(source, propertiesBean.getBasePath()))
-                    .collect(Collectors.toList());
-
-            final String commonPath =
-                    (propertiesBean.getPreserveHierarchy()) ? "" : commandUtils.getCommonPath(files);
-
-            files = files.stream()
-                    .map(source -> StringUtils.removeStart(source, commonPath))
-                    .collect(Collectors.toList());
-
-            files.sort(String::compareTo);
-        } catch (Exception e) {
-            throw new RuntimeException("Couldn't prepare source files", e);
-        }
-
-        if (branch != null) {
-            System.out.println(branch);
-        }
-        if (treeView) {
-            (new DrawTree()).draw(files, 0);
-        } else {
-            files.forEach(System.out::println);
         }
     }
 

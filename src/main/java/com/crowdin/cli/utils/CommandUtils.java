@@ -84,7 +84,7 @@ public class CommandUtils extends BaseCli {
         return translations;
     }
 
-    public List<String> getSourcesWithoutIgnores(FileBean file, String basePath, PlaceholderUtil placeholderUtil) {
+    public static List<String> getSourcesWithoutIgnores(FileBean file, String basePath, PlaceholderUtil placeholderUtil) {
         List<File> sourcesWithoutIgnores = getFileSourcesWithoutIgnores(file, basePath, placeholderUtil);
 
         List<String> result = new ArrayList<>();
@@ -98,7 +98,7 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
-    public List<File> getFileSourcesWithoutIgnores(FileBean file, String basePath, PlaceholderUtil placeholderUtil) {
+    public static List<File> getFileSourcesWithoutIgnores(FileBean file, String basePath, PlaceholderUtil placeholderUtil) {
         if (file == null) {
             return Collections.emptyList();
         }
@@ -487,12 +487,12 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
-    public String getCommonPath(List<String> sources, String basePath) {
+    public static String getCommonPath(List<String> sources, String basePath) {
         String prepBasePath = StringUtils.removeStart(basePath, Utils.PATH_SEPARATOR);
         return StringUtils.removeStart(getCommonPath(sources), prepBasePath);
     }
 
-    public String getCommonPath(List<String> sources) {
+    public static String getCommonPath(List<String> sources) {
         String result = "";
         String commonPrefix = StringUtils.getCommonPrefix(sources.toArray(new String[0]));
         result = commonPrefix.substring(0, commonPrefix.lastIndexOf(Utils.PATH_SEPARATOR)+1);
