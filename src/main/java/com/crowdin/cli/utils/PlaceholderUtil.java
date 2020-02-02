@@ -32,12 +32,6 @@ public class PlaceholderUtil {
         if (supportedLangs == null || projectLangs == null || basePath == null) {
             throw new NullPointerException("in PlaceholderUtil.contructor");
         }
-        projectLangs.stream()
-                .filter(projectLang -> supportedLangs.stream().noneMatch(lang -> lang.getName().equals(projectLang.getName())))
-                .findFirst()
-                .ifPresent(projectLang -> {
-                    throw new RuntimeException("Project contains languages that Crowdin doesn't support: " + projectLang.getName());
-                });
         this.supportedLangs = supportedLangs;
         this.projectLangs = projectLangs;
         this.basePath = basePath;

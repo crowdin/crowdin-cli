@@ -73,7 +73,8 @@ public class CliProperties {
 
     private static final String TRANSLATION_REPLACE = "translation_replace";
 
-    public static PropertiesBean processProperties(PropertiesBean pb, Path configFilePath) {
+    public static PropertiesBean processProperties(PropertiesBean pb, File configFile) {
+        pb.setBasePath(getBasePath(pb.getBasePath(), configFile, false));
         List<String> errors = checkProperties(pb);
         if (!errors.isEmpty()) {
             String errorsInOne = String.join("\n\t- ", errors);
@@ -81,7 +82,6 @@ public class CliProperties {
         }
 
         setDefaultValues(pb);
-        pb.setBasePath(getBasePath(pb.getBasePath(), configFilePath.toFile(), false));
         return pb;
     }
 

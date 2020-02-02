@@ -25,6 +25,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
@@ -64,13 +65,15 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
         StorageClient storageClient = new StorageClient(settings);
         BranchClient branchClient = new BranchClient(settings);
-        DirectoriesClient directoriesClient = new DirectoriesClient(settings, pb.getProjectId());
         TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
 
         Map<String, Long> filePathsToFileId;
         try {
             Map<Long, String> branchNames = branchClient.getBranchesMapIdName(pb.getProjectId());
-            Map<Long, Directory> directories = directoriesClient.getProjectDirectoriesMapPathId();
+            Map<Long, Directory> directories = projectInfo
+                    .getDirectories()
+                    .stream()
+                    .collect(Collectors.toMap(Directory::getId, Function.identity()));
             filePathsToFileId = buildFilePaths(buildDirectoryPaths(directories, branchNames), projectInfo.getFiles());
         } catch (ResponseException e) {
             throw new RuntimeException("Couldn't get list of directories", e);

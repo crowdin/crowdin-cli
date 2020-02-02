@@ -22,8 +22,6 @@ public class ListTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
     @Override
     public void run() {
-        CommandUtils commandUtils = new CommandUtils();
-
         PropertiesBean pb = this.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 

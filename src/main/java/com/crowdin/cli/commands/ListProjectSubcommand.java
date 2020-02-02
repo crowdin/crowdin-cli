@@ -52,7 +52,7 @@ public class ListProjectSubcommand extends PropertiesBuilderCommandPart {
                     .orElseThrow(() -> new RuntimeException("Couldn't find branchId by that name"))
                     : null;
             branches = branchClient.getBranchesMapIdName(pb.getProjectId());
-            files = fileClient.getProjectFiles(new Long(pb.getProjectId()));
+            files = fileClient.getProjectFiles(pb.getProjectId());
             directories = directoriesClient.getProjectDirectories();
 
             ConsoleSpinner.stop(OK);

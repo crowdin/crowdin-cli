@@ -44,7 +44,7 @@ public class ProjectClient extends Client {
             .map(languagesClient::getLanguage)
             .ifPresent(projectLanguages::add);
 
-        List<FileEntity> projectFiles = new FileClient(settings).getProjectFiles(project.getId());
+        List<FileEntity> projectFiles = new FileClient(settings).getProjectFiles(project.getId().toString());
         CrowdinRequestBuilder<Page<Directory>> projectDirectories = new DirectoriesApi(this.settings)
                 .getProjectDirectories(project.getId().toString(), Pageable.unpaged());
         List<Directory> directories = PaginationUtil.unpaged(projectDirectories);
