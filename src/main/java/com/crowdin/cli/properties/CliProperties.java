@@ -74,14 +74,16 @@ public class CliProperties {
     private static final String TRANSLATION_REPLACE = "translation_replace";
 
     public static PropertiesBean processProperties(PropertiesBean pb, File configFile) {
+
         pb.setBasePath(getBasePath(pb.getBasePath(), configFile, false));
+        setDefaultValues(pb);
+
         List<String> errors = checkProperties(pb);
         if (!errors.isEmpty()) {
             String errorsInOne = String.join("\n\t- ", errors);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_is_invalid")+"\n\t- " + errorsInOne);
         }
 
-        setDefaultValues(pb);
         return pb;
     }
 
@@ -180,9 +182,10 @@ public class CliProperties {
         pb.setBasePath(pb.getBasePath() != null ? pb.getBasePath() : "");
 
         if (StringUtils.isNotEmpty(pb.getBaseUrl())) {
-            if (!StringUtils.endsWithAny(pb.getBaseUrl(), "api/v2", "/api/v2", "api/v2/", "/api/v2/")) {
-                pb.setBaseUrl(StringUtils.removeEnd(pb.getBaseUrl(), "/") + "/api/v2");
-            }
+            String baseUrl = pb.getBaseUrl();
+            baseUrl = "https://" + StringUtils.removePattern(baseUrl, "^(https?)?:?//");
+            baseUrl = StringUtils.removePattern(baseUrl, "/(api(/|/v2/?)?)?$") + "/api/v2";
+            pb.setBaseUrl(baseUrl);
         } else {
             pb.setBaseUrl(Utils.getBaseUrl());
         }
@@ -270,7 +273,9 @@ public class CliProperties {
             errors.add(RESOURCE_BUNDLE.getString("error_missed_api_token"));
         }
         if (StringUtils.isEmpty(pb.getBaseUrl())) {
-            errors.add(RESOURCE_BUNDLE.getString("error_missed_base_url"));
+            errors.add(RESOURCE_BUNDLE.getString("missed_base_url"));
+        } else if (!pb.getBaseUrl().matches("https://(.+\\.)?crowdin.com/api/v2")) {
+            errors.add(RESOURCE_BUNDLE.getString("wrong_base_url"));
         }
 
         if (StringUtils.isNotEmpty(pb.getBasePath())) {
