@@ -92,7 +92,7 @@ public class PlaceholderUtil {
         String fileExt = FilenameUtils.getExtension(fileName);
         String tempBasePath =
                 (Utils.isWindows()) ? basePath.replace("\\", "\\\\") : basePath;
-        String fileParent = file.getParent().replaceFirst(tempBasePath, "");
+        String fileParent = (file.getParent() != null ? file.getParent() : "").replaceFirst(tempBasePath, "");
         return toFormat
                 .replace(PLACEHOLDER_ORIGINAL_FILE_NAME, fileName)
                 .replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt)
