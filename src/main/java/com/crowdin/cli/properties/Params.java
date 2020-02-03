@@ -4,10 +4,10 @@ import picocli.CommandLine;
 
 public class Params {
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...", description = "project id")
+    @CommandLine.Option(names = {"-i", "--project-id"}, paramLabel = "...", description = "project id")
     private String idParam;
 
-    @CommandLine.Option(names = {"--token"}, paramLabel = "...", description = "token")
+    @CommandLine.Option(names = {"-pat", "--token"}, paramLabel = "...", description = "token")
     private String tokenParam;
 
     @CommandLine.Option(names = {"--base-url"}, paramLabel = "...", description = "Base url")
