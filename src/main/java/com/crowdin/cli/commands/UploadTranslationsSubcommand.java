@@ -131,7 +131,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                         + Utils.PATH_SEPARATOR
                         + placeholderUtil.replaceLanguageDependentPlaceholders(translation, language));
                     if (!transFile.exists()) {
-                        System.out.println("Translation file '" + Utils.replaceBasePath(source.getAbsolutePath(), pb.getBasePath()) + "' does not exist");
+                        System.out.println("Translation file '" + Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath()) + "' does not exist");
                         continue;
                     }
                     TranslationPayload translationPayload = new TranslationPayloadWrapper(
