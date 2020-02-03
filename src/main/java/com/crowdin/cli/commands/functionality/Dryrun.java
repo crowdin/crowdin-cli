@@ -13,7 +13,7 @@ public abstract class Dryrun {
         List<String> files = getFiles();
         Collections.sort(files);
         if (treeView) {
-            (new DrawTree()).draw(files, -1);
+            (new DrawTree()).draw(files, 0);
         } else {
             files.forEach(System.out::println);
         }
