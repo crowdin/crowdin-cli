@@ -24,6 +24,7 @@ import com.crowdin.util.CrowdinHttpClient;
 import com.crowdin.util.ObjectMapperUtil;
 import net.lingala.zip4j.core.ZipFile;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -32,7 +33,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.zip.ZipEntry;
 import java.util.zip.ZipException;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.*;
@@ -124,19 +124,11 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             System.out.println(ObjectMapperUtil.getEntityAsString(translationBuild));
         }
 
-        String fileName = languageCode + ".zip";
+        String baseTempDir =
+            StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + System.currentTimeMillis();
 
-        String basePath = pb.getBasePath();
-        String baseTempDir;
-        if (basePath.endsWith(Utils.PATH_SEPARATOR)) {
-            baseTempDir = basePath + System.currentTimeMillis();
-        } else {
-            baseTempDir = basePath + Utils.PATH_SEPARATOR + System.currentTimeMillis();
-        }
-
-        String downloadedZipArchivePath = pb.getBasePath() != null && !pb.getBasePath().endsWith(Utils.PATH_SEPARATOR)
-                ? pb.getBasePath() + Utils.PATH_SEPARATOR + fileName
-                : pb.getBasePath() + fileName;
+        String downloadedZipArchivePath =
+            StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + languageCode + ".zip";
 
         File downloadedZipArchive = new File(downloadedZipArchivePath);
 
@@ -151,20 +143,14 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
                 System.out.println(ObjectMapperUtil.getEntityAsString(fileRaw));
             }
         } catch (IOException e) {
-            System.out.println(ERROR_DURING_FILE_WRITE.getString());
-        } catch (Exception e) {
             ConsoleSpinner.stop(ExecutionStatus.ERROR);
-            System.out.println(e.getMessage());
-            ConsoleUtils.exitError();
+            throw new RuntimeException(ERROR_DURING_FILE_WRITE.getString(), e);
         }
 
         try {
             List<String> downloadedFilesProc = new ArrayList<>();
-            for (String downloadedFile : getListOfFileFromArchive(downloadedZipArchive, false)) {
-                if (Utils.isWindows()) {
-                    downloadedFile = downloadedFile.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
-                }
-                downloadedFilesProc.add(downloadedFile);
+            for (String downloadedFile : getListOfFileFromArchive(downloadedZipArchive)) {
+                downloadedFilesProc.add(downloadedFile.replaceAll("[\\\\/]+", "/"));
             }
             List<String> files = new ArrayList<>();
             Optional<Language> projectLanguage = projectWrapper.getProjectLanguageByCrowdinCode(languageCode);
@@ -175,32 +161,20 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
                             commandUtils.getTranslations(null, null, file, projectWrapper.getProjectLanguages(), projectWrapper.getSupportedLanguages(), pb, "download", placeholderUtil).stream())
                     .collect(Collectors.toList());
             for (String translation : translations) {
-                translation = translation.replaceAll("/+", "/");
                 if (!files.contains(translation)) {
-                    if (translation.contains(Utils.PATH_SEPARATOR_REGEX)) {
-                        translation = translation.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
-                    } else if (translation.contains(Utils.PATH_SEPARATOR)) {
-                        translation = translation.replaceAll(Utils.PATH_SEPARATOR + Utils.PATH_SEPARATOR, "/");
-                    }
-                    translation = translation.replaceAll("/+", "/");
-                    files.add(translation);
+                    files.add(translation.replaceAll("[\\\\/]+", "/"));
                 }
             }
             List<String> sources = pb.getFiles()
                 .stream()
-                .flatMap(file -> commandUtils.getSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil).stream())
+                .flatMap(file -> CommandUtils.getSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil).stream())
                 .collect(Collectors.toList());
-            String commonPath;
-            String[] common = new String[sources.size()];
-            common = sources.toArray(common);
-            commonPath = Utils.commonPath(common);
-            commonPath = Utils.replaceBasePath(commonPath, pb.getBasePath());
 
-            if (commonPath.contains("\\")) {
-                commonPath = commonPath.replaceAll("\\\\+", "/");
-            }
-            downloadedFilesProc.sort(String::compareTo);
-            extractFiles(downloadedFilesProc, files, baseTempDir, ignoreMatch, downloadedZipArchive, mapping, false, this.branch, pb, commonPath);
+            String commonPath = CommandUtils.getCommonPath(sources, pb.getBasePath()).replaceAll("[\\\\/]+", "/");
+
+            Collections.sort(downloadedFilesProc);
+
+            extractFiles(downloadedFilesProc, files, baseTempDir, ignoreMatch, downloadedZipArchive, mapping, this.branch, pb, commonPath);
             renameMappingFiles(mapping, baseTempDir, pb, commonPath);
             FileUtils.deleteDirectory(new File(baseTempDir));
             downloadedZipArchive.delete();
@@ -218,51 +192,26 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         return projectInfo;
     }
 
-    private List<String> getListOfFileFromArchive(File downloadedZipArchive, boolean isDebug) {
-        List<String> downloadedFiles = new ArrayList<>();
-        java.util.zip.ZipFile zipFile = null;
-        try {
-            zipFile = new java.util.zip.ZipFile(downloadedZipArchive.getAbsolutePath());
-        } catch (Exception e) {
-            System.out.println("Extracting archive '" + downloadedZipArchive + "' failed");
-            if (isDebug) {
-                e.printStackTrace();
-                ConsoleUtils.exitError();
-            }
-        }
-        Enumeration zipEntries = zipFile.entries();
-        while (zipEntries.hasMoreElements()) {
-            ZipEntry ze = (ZipEntry) zipEntries.nextElement();
-            if (!ze.isDirectory()) {
-                String fname = ze.getName();
-                if (!fname.startsWith(Utils.PATH_SEPARATOR)) {
-                    fname = Utils.PATH_SEPARATOR + fname;
-                    if (Utils.isWindows()) {
-                        fname = fname.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
-                    }
-                }
-                downloadedFiles.add(fname);
-            }
-        }
-        try {
-            zipFile.close();
+    private List<String> getListOfFileFromArchive(File downloadedZipArchive) {
+        try (java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(downloadedZipArchive.getAbsolutePath())) {
+            return zipFile
+                .stream()
+                .filter(ze -> !ze.isDirectory())
+                .map(ze -> ("/" + ze.getName()).replaceAll("[\\\\/]+", "/"))
+                .collect(Collectors.toList());
         } catch (IOException e) {
+            throw new RuntimeException("Extracting archive '" + downloadedZipArchive + "' failed");
         }
-        return downloadedFiles;
     }
 
     private void extractFiles(List<String> downloadedFiles, List<String> files, String baseTempDir, boolean ignore_match,
-                             File downloadedZipArchive, Map<String, String> mapping, boolean isDebug, String branch,
+                             File downloadedZipArchive, Map<String, String> mapping, String branch,
                              PropertiesBean propertiesBean, String commonPath) {
-        ZipFile zFile = null;
+        ZipFile zFile;
         try {
             zFile = new ZipFile(downloadedZipArchive.getAbsolutePath());
-        } catch (Exception e) {
-            System.out.println("An archive '" + downloadedZipArchive.getAbsolutePath() + "' does not exist");
-            if (isDebug) {
-                e.printStackTrace();
-                ConsoleUtils.exitError();
-            }
+        } catch (net.lingala.zip4j.exception.ZipException e) {
+            throw new RuntimeException("An archive '" + downloadedZipArchive.getAbsolutePath() + "' does not exist");
         }
         File tmpDir = new File(baseTempDir);
         if (!tmpDir.exists()) {
@@ -274,12 +223,8 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         }
         try {
             zFile.extractAll(tmpDir.getAbsolutePath());
-        } catch (Exception e) {
-            System.out.println("Extracting an archive '" + downloadedZipArchive + "' failed");
-            if (isDebug) {
-                e.printStackTrace();
-                ConsoleUtils.exitError();
-            }
+        } catch (net.lingala.zip4j.exception.ZipException e) {
+            throw new RuntimeException("Extracting an archive '" + downloadedZipArchive + "' failed");
         }
         List<String> ommitedFiles = new ArrayList<>();
         List<String> extractingFiles = new ArrayList<>();
@@ -291,13 +236,8 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
                     ommitedFiles.add(downloadedFile);
                 }
             } else {
-                if (branch != null && !branch.isEmpty()) {
-                    if (downloadedFile.startsWith("/" + branch + "/")) {
-                        downloadedFile = downloadedFile.replaceFirst("/", "");
-                        downloadedFile = downloadedFile.replaceFirst(branch, "");
-                        downloadedFile = downloadedFile.replaceFirst("/", "");
-                    }
-                    extractingFiles.add(downloadedFile);
+                if (StringUtils.isNotEmpty(branch)) {
+                    extractingFiles.add(downloadedFile.replaceAll("^/?" + branch + "/?", ""));
                 } else {
                     extractingFiles.add(downloadedFile);
                 }
@@ -306,14 +246,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         List<String> sortedExtractingFiles = new ArrayList<>();
         for (Map.Entry<String, String> extractingMappingFile : mapping.entrySet()) {
             String k = extractingMappingFile.getKey();
-            k = k.replaceAll("/+", "/");
-            if (k.contains(Utils.PATH_SEPARATOR)) {
-                k = k.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
-                k = k.replaceAll("/+", "/");
-            }
-            if (k.contains("/")) {
-                k = k.replaceAll("/+", "/");
-            }
+            k = k.replaceAll("[\\\\/]+", "/");
             if (!propertiesBean.getPreserveHierarchy()) {
                 if (k.startsWith(commonPath)) {
                     for (FileBean file : propertiesBean.getFiles()) {
@@ -324,24 +257,17 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
                     }
                 }
             }
-            if (k.startsWith("/")) {
-                k = k.replaceFirst("/", "");
-            }
-            String v = extractingMappingFile.getValue();
-            if (v.contains(Utils.PATH_SEPARATOR)) {
-                v = v.replaceAll(Utils.PATH_SEPARATOR_REGEX, "/");
-                v = v.replaceAll("/+", "/");
-            }
+            k = StringUtils.removeStart(k, "/");
             if (extractingFiles.contains(k) || extractingFiles.contains("/" + k)) {
-                sortedExtractingFiles.add(v);
+                sortedExtractingFiles.add(extractingMappingFile.getValue().replaceAll("[\\\\/]+", "/"));
             }
         }
-        sortedExtractingFiles.sort(String::compareTo);
+        Collections.sort(sortedExtractingFiles);
         for (String sortedExtractingFile : sortedExtractingFiles) {
             System.out.println("Extracting: '" + sortedExtractingFile + "'");
         }
         if (ommitedFiles.size() > 0 && !ignore_match) {
-            ommitedFiles.sort(String::compareTo);
+            Collections.sort(ommitedFiles);
             System.out.println(RESOURCE_BUNDLE.getString("downloaded_file_omitted"));
             for (String ommitedFile : ommitedFiles) {
                 System.out.println(" - '" + ommitedFile + "'");
@@ -353,10 +279,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         for (Map.Entry<String, String> entry : mapping.entrySet()) {
             String preservedKey = entry.getKey();
             if (!propertiesBean.getPreserveHierarchy()) {
-                if (Utils.isWindows() && commonPath != null && commonPath.contains("\\")) {
-                    commonPath = commonPath.replaceAll("\\\\", "/");
-                }
-                commonPath = commonPath.replaceAll("/+", "/");
+                commonPath = commonPath.replaceAll("[\\\\/]+", "/");
                 preservedKey = preservedKey.replaceAll("/+", "/");
                 if (preservedKey.startsWith(commonPath)) {
                     for (FileBean file : propertiesBean.getFiles()) {
@@ -367,10 +290,9 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
                     }
                 }
             }
-            String key = baseTempDir + Utils.PATH_SEPARATOR + preservedKey;
-            key = key.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-            String value = propertiesBean.getBasePath() + Utils.PATH_SEPARATOR + entry.getValue();
-            value = value.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+            String key = StringUtils.removeEnd(baseTempDir, Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + preservedKey;
+            String value =
+                StringUtils.removeEnd(propertiesBean.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + entry.getValue();
             if (Utils.isWindows()) {
                 key = key.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX);
                 key = key.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
