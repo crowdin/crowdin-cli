@@ -126,10 +126,16 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 //                build filePath to each source and project language
                 String translation = placeholderUtil.replaceFileDependentPlaceholders(file.getTranslation(), source);
                 for (Language language : languages) {
-                    File transFile = new File(
-                    pb.getBasePath()
-                        + Utils.PATH_SEPARATOR
-                        + placeholderUtil.replaceLanguageDependentPlaceholders(translation, language));
+                    String transFileName = placeholderUtil.replaceLanguageDependentPlaceholders(translation, language);
+                    if (file.getTranslationReplace() != null) {
+                        for (String key : file.getTranslationReplace().keySet()) {
+                            transFileName = StringUtils.replace(
+                                transFileName, 
+                                key.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX),
+                                file.getTranslationReplace().get(key));
+                        }
+                    }
+                    File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
                     if (!transFile.exists()) {
                         System.out.println("Translation file '" + Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath()) + "' does not exist");
                         continue;
