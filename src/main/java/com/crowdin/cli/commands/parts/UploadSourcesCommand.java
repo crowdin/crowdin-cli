@@ -11,7 +11,9 @@ import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.*;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
+import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.common.Settings;
+import com.crowdin.common.models.Branch;
 import com.crowdin.common.models.Directory;
 import com.crowdin.common.models.FileEntity;
 import com.crowdin.common.request.*;
@@ -241,10 +243,14 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
             throw new RuntimeException("branch is empty");
         }
         try {
-            return branchClient
-                    .getProjectBranchByName(projectId, branch)
-                    .orElse(branchClient.createBranch(projectId, new BranchPayload(branch)))
-                    .getId();
+            Optional<Branch> branchOpt = branchClient.getProjectBranchByName(projectId, branch);
+            if (branchOpt.isPresent()) {
+                return branchOpt.get().getId();
+            } else {
+                Long newBranchId = branchClient.createBranch(projectId, new BranchPayload(branch)).getId();
+                System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_branch") + " '" + branch + "' "));
+                return newBranchId;
+            }
         } catch (ResponseException e) {
             throw new RuntimeException("Exception while working with branches", e);
         }
