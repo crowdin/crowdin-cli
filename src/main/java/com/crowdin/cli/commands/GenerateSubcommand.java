@@ -23,7 +23,7 @@ import static com.crowdin.cli.utils.MessageSource.Messages.GENERATE_HELP_MESSAGE
     description = "Generate Crowdin CLI configuration skeleton")
 public class GenerateSubcommand extends Command {
 
-    @CommandLine.Option(names = {"-d", "--destination"}, paramLabel = "...", defaultValue = "crowdin.yml")
+    @CommandLine.Option(names = {"-d", "--destination"}, description = "Where to save generated file", paramLabel = "...", defaultValue = "crowdin.yml")
     private Path destinationPath;
 
     @CommandLine.Option(names = "--skip-generate-description", hidden = true)
