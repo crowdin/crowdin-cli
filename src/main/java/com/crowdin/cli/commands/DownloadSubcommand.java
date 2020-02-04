@@ -156,19 +156,16 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             for (String downloadedFile : getListOfFileFromArchive(downloadedZipArchive)) {
                 downloadedFilesProc.add(downloadedFile.replaceAll("[\\\\/]+", "/"));
             }
-            List<String> files = new ArrayList<>();
-            Optional<Language> projectLanguage = projectWrapper.getProjectLanguageByCrowdinCode(languageCode);
-            Map<String, String> mapping = commandUtils.doLanguagesMapping(projectLanguage, pb.getFiles(), languageCode, placeholderUtil);
-            List<String> translations = pb.getFiles()
-                    .stream()
-                    .flatMap(file ->
-                            commandUtils.getTranslations(null, null, file, projectWrapper.getProjectLanguages(), projectWrapper.getSupportedLanguages(), pb, "download", placeholderUtil).stream())
-                    .collect(Collectors.toList());
-            for (String translation : translations) {
-                if (!files.contains(translation)) {
-                    files.add(translation.replaceAll("[\\\\/]+", "/"));
-                }
-            }
+            Map<String, String> mapping = projectWrapper.getProjectLanguageByCrowdinCode(languageCode)
+                .map(lang -> commandUtils.doLanguagesMapping(lang, pb.getFiles(), pb.getBasePath(), placeholderUtil))
+                .orElse(Collections.emptyMap());
+            List<String> files = pb.getFiles()
+                .stream()
+                .flatMap(file ->
+                    commandUtils.getTranslations(file, projectWrapper.getProjectLanguages(), projectWrapper.getSupportedLanguages(), pb, placeholderUtil).stream())
+                .distinct()
+                .map(translation -> translation.replaceAll("[\\\\/]+", "/"))
+                .collect(Collectors.toList());
             List<String> sources = pb.getFiles()
                 .stream()
                 .flatMap(file -> CommandUtils.getSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil).stream())

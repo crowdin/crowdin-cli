@@ -259,7 +259,7 @@ public class CommandUtils extends BaseCli {
         return result;
     }
 
-    public Map<String, String> doLanguagesMapping(Optional<Language> projectLanguageOrNull,
+    public Map<String, String> doLanguagesMapping(Language projectLanguage,
                                                   List<FileBean> files,
                                                   String basePath,
                                                   PlaceholderUtil placeholderUtil) {
@@ -269,10 +269,6 @@ public class CommandUtils extends BaseCli {
         for (FileBean file : files) {
             sourcesByFileBean.put(file, getSourcesWithoutIgnores(file, basePath, placeholderUtil));
         }
-
-        if (!projectLanguageOrNull.isPresent()) return mapping;
-
-        Language projectLanguage = projectLanguageOrNull.get();
 
         for (FileBean file : files) {
             List<String> projectFiles = sourcesByFileBean.get(file);
@@ -407,13 +403,10 @@ public class CommandUtils extends BaseCli {
         return normalizedValue;
     }
 
-    public List<String> getTranslations(String lang,
-                                        String sourceFile,
-                                        FileBean file,
+    public List<String> getTranslations(FileBean file,
                                         List<Language> projectLanguages,
                                         List<Language> supportedLanguages,
                                         PropertiesBean propertiesBean,
-                                        String command,
                                         PlaceholderUtil placeholderUtil) {
         if (file == null || StringUtils.isEmpty(file.getTranslation())) {
             throw new NullPointerException("null arg in CommandUtils.getTranslations()");
@@ -425,10 +418,6 @@ public class CommandUtils extends BaseCli {
             Language language = EntityUtils
                 .find(supportedLanguages, l -> l.getName().equalsIgnoreCase(langName))
                 .orElseThrow(() -> new RuntimeException("Language doesn't exist in supported languages"));
-
-            if (lang != null && !lang.isEmpty() && !lang.equals(language.getId())) {
-                continue;
-            }
 
 
             String translations = file.getTranslation();
@@ -453,7 +442,7 @@ public class CommandUtils extends BaseCli {
                 String fileNameWithoutExt = FilenameUtils.removeExtension(f.getName());
                 String fileExt = FilenameUtils.getExtension(f.getName());
                 String fileParent = new File(f.getParent()).getAbsolutePath();
-                if (!propertiesBean.getPreserveHierarchy() && "download".equals(command)) {
+                if (!propertiesBean.getPreserveHierarchy()) {
                     if (Utils.isWindows()) {
                         fileParent = fileParent.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
                         commonPath = commonPath.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", "/");
@@ -474,13 +463,8 @@ public class CommandUtils extends BaseCli {
                 temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_ANDROID_CODE, language.getAndroidCode());
                 temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_CODE, language.getOsxCode());
                 temporaryTranslation = temporaryTranslation.replace(PLACEHOLDER_OSX_LOCALE, language.getOsxLocale());
-                if (sourceFile != null) {
-                    if (sourceFile.equals(projectFile)) {
-                        result.add(this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean.getBasePath()));
-                    }
-                } else {
-                    result.add(this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean.getBasePath()));
-                }
+
+                result.add(this.replaceDoubleAsteriskInTranslation(temporaryTranslation, f.getAbsolutePath(), file.getSource(), propertiesBean.getBasePath()));
             }
         }
 
