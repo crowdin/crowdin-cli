@@ -31,7 +31,11 @@ import java.util.stream.Collectors;
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-@CommandLine.Command(name ="translations")
+@CommandLine.Command(
+    name ="translations",
+    customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) upload|@|@|fg(yellow) push|@) @|fg(yellow) translations|@ [CONFIG OPTIONS] [OPTIONS]",
+    description = "Uploads existing translations to Crowdin project"
+)
 public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"--no-auto-approve-imported"}, negatable = true,
@@ -130,7 +134,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                     if (file.getTranslationReplace() != null) {
                         for (String key : file.getTranslationReplace().keySet()) {
                             transFileName = StringUtils.replace(
-                                transFileName, 
+                                transFileName,
                                 key.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX),
                                 file.getTranslationReplace().get(key));
                         }

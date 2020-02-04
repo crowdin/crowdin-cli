@@ -6,6 +6,7 @@ import picocli.CommandLine;
 @CommandLine.Command(
     name = "list",
     description = "Show a list of files",
+    customSynopsis = "@|fg(yellow) crowdin list|@ [SUBCOMMAND] [CONFIG OPTIONS] [OPTIONS]",
     subcommands = {
         ListProjectSubcommand.class,
         ListSourcesSubcommand.class,

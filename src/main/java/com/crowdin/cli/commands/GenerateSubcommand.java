@@ -16,7 +16,11 @@ import java.util.Scanner;
 import static com.crowdin.cli.properties.CliProperties.*;
 import static com.crowdin.cli.utils.MessageSource.Messages.GENERATE_HELP_MESSAGE;
 
-@CommandLine.Command(name = "generate", aliases = "init", description = "Generate Crowdin CLI configuration skeleton")
+@CommandLine.Command(
+    name = "generate",
+    aliases = "init",
+    customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) generate|@|@|fg(yellow) init|@) [CONFIG OPTIONS] [OPTIONS]",
+    description = "Generate Crowdin CLI configuration skeleton")
 public class GenerateSubcommand extends Command {
 
     @CommandLine.Option(names = {"-d", "--destination"}, paramLabel = "...", defaultValue = "crowdin.yml")

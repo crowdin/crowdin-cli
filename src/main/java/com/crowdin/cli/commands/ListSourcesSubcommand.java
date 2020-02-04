@@ -13,7 +13,10 @@ import picocli.CommandLine;
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-@CommandLine.Command(name = "sources", description = "Lists information about the sources files in current project that match the wild-card pattern")
+@CommandLine.Command(
+    name = "sources",
+    customSynopsis = "@|fg(yellow) crowdin list sources|@ [CONFIG OPTIONS] [OPTIONS]",
+    description = "Lists information about the sources files in current project that match the wild-card pattern")
 public class ListSourcesSubcommand extends PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Defines branch name (default: none)")

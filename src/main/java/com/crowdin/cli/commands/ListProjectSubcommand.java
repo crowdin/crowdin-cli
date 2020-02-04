@@ -21,7 +21,10 @@ import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-@CommandLine.Command(name = "project", description = "Show a list of files (in the current project)")
+@CommandLine.Command(
+    name = "project",
+    customSynopsis = "@|fg(yellow) crowdin list project|@ [CONFIG OPTIONS] [OPTIONS]",
+    description = "Show a list of files (in the current project)")
 public class ListProjectSubcommand extends PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Defines branch name (default: none)")

@@ -14,7 +14,10 @@ import picocli.CommandLine;
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-@CommandLine.Command(name = "translations", description = "Lists information about the translated files in current project that match the wild-card pattern")
+@CommandLine.Command(
+    name = "translations",
+    customSynopsis = "@|fg(yellow) crowdin list translations|@ [CONFIG OPTIONS] [OPTIONS]",
+    description = "Lists information about the translated files in current project that match the wild-card pattern")
 public class ListTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")

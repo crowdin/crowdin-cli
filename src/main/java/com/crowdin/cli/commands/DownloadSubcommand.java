@@ -38,7 +38,11 @@ import java.util.zip.ZipException;
 import static com.crowdin.cli.utils.MessageSource.Messages.*;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-@CommandLine.Command(name = "download", aliases = "pull", description = "Download latest translations from Crowdin and puts them to the specified place")
+@CommandLine.Command(
+    name = "download",
+    aliases = "pull",
+    customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) download|@|@|fg(yellow) pull|@) [CONFIG OPTIONS] [OPTIONS]",
+    description = "Download latest translations from Crowdin and puts them to the specified place")
 public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"--dryrun"}, description = "Runs command without API connection")
