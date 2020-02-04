@@ -182,10 +182,7 @@ public class CliProperties {
         pb.setBasePath(pb.getBasePath() != null ? pb.getBasePath() : "");
 
         if (StringUtils.isNotEmpty(pb.getBaseUrl())) {
-            String baseUrl = pb.getBaseUrl();
-            baseUrl = "https://" + StringUtils.removePattern(baseUrl, "^(https?)?:?//");
-            baseUrl = StringUtils.removePattern(baseUrl, "/(api(/|/v2/?)?)?$") + "/api/v2";
-            pb.setBaseUrl(baseUrl);
+            pb.setBaseUrl(StringUtils.removePattern(pb.getBaseUrl(), "/(api(/|/v2/?)?)?$") + "/api/v2");
         } else {
             pb.setBaseUrl(Utils.getBaseUrl());
         }
@@ -274,7 +271,7 @@ public class CliProperties {
         }
         if (StringUtils.isEmpty(pb.getBaseUrl())) {
             errors.add(RESOURCE_BUNDLE.getString("missed_base_url"));
-        } else if (!pb.getBaseUrl().matches("https://(.+\\.)?crowdin.com/api/v2")) {
+        } else if (!pb.getBaseUrl().matches("(https://(.+\\.)?|http://(.+\\.)?.+\\.dev\\.)crowdin\\.com/api/v2")) {
             errors.add(RESOURCE_BUNDLE.getString("wrong_base_url"));
         }
 
