@@ -6,7 +6,7 @@ import org.apache.commons.io.FilenameUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PlaceholderUtil {
@@ -81,6 +81,28 @@ public class PlaceholderUtil {
                 .replace(PLACEHOLDER_ANDROID_CODE, lang.getAndroidCode())
                 .replace(PLACEHOLDER_OSX_LOCALE, lang.getOsxLocale())
                 .replace(PLACEHOLDER_OSX_CODE, lang.getOsxCode());
+    }
+
+    public String replaceLanguageDependentPlaceholders(String toFormat, Language lang, Map<String, Map<String, String>> languageMapping) {
+        if (toFormat == null || lang == null || languageMapping == null) {
+            throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");
+        }
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LANGUAGE, lang.getName(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LOCALE, lang.getLocale(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LOCALE_WITH_UNDERSCORE, lang.getLocale().replace("-", "_"), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_TWO_LETTERS_CODE, lang.getTwoLettersCode(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_THREE_LETTERS_CODE, lang.getThreeLettersCode(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_ANDROID_CODE, lang.getAndroidCode(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_OSX_LOCALE, lang.getOsxLocale(), languageMapping);
+        return replaceWithMapping(toFormat, PLACEHOLDER_OSX_CODE, lang.getOsxCode(), languageMapping);
+    }
+
+    private String replaceWithMapping(String toFormat, String placeholder, String code, Map<String, Map<String, String>> langMapping) {
+        return toFormat.replace(
+                placeholder,
+                langMapping.containsKey(placeholder.replaceAll("%", ""))
+                    ? langMapping.get(placeholder.replaceAll("%", "")).getOrDefault(code, code)
+                    : code);
     }
 
     public String replaceFileDependentPlaceholders(String toFormat, File file) {

@@ -130,7 +130,9 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 //                build filePath to each source and project language
                 String translation = placeholderUtil.replaceFileDependentPlaceholders(file.getTranslation(), source);
                 for (Language language : languages) {
-                    String transFileName = placeholderUtil.replaceLanguageDependentPlaceholders(translation, language);
+                    String transFileName = (file.getLanguagesMapping() != null)
+                        ? placeholderUtil.replaceLanguageDependentPlaceholders(translation, language, file.getLanguagesMapping())
+                        : placeholderUtil.replaceLanguageDependentPlaceholders(translation, language);
                     if (file.getTranslationReplace() != null) {
                         for (String key : file.getTranslationReplace().keySet()) {
                             transFileName = StringUtils.replace(
