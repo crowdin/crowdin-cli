@@ -1,5 +1,8 @@
 **Unreleased**
 
+**Version 3.0.7**
++ Updated: Change api use for settings
+
 **Version 3.0.6**
 + Fix exportPattern with locale_with_underscore, android_code, osx_code
 + Don't pass escapeQuotes if it is not specified
