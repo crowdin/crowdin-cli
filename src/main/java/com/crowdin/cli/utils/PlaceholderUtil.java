@@ -2,6 +2,7 @@ package com.crowdin.cli.utils;
 
 import com.crowdin.common.models.Language;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -126,9 +127,8 @@ public class PlaceholderUtil {
         String fileName = file.getName();
         String fileNameWithoutExt = FilenameUtils.removeExtension(fileName);
         String fileExt = FilenameUtils.getExtension(fileName);
-        String tempBasePath =
-                (Utils.isWindows()) ? basePath.replace("\\", "\\\\") : basePath;
-        String fileParent = (file.getParent() != null ? file.getParent() : "").replaceFirst(tempBasePath, "");
+        String tempBasePath = basePath;
+        String fileParent = StringUtils.removeStart((file.getParent() != null ? file.getParent() : ""), tempBasePath);
         return toFormat
                 .replace(PLACEHOLDER_ORIGINAL_FILE_NAME, fileName)
                 .replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt)
