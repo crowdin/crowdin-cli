@@ -195,6 +195,10 @@ public class CliProperties {
             if (!file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
                 file.setTranslation(Utils.PATH_SEPARATOR + file.getTranslation());
             }
+            if (!containsLangPlaceholders(file.getTranslation()) && file.getScheme() != null) {
+                file.setTranslation(StringUtils.removeStart(file.getTranslation(), Utils.PATH_SEPARATOR));
+            }
+
 
             //Ignore
             if (file.getIgnore() == null || file.getIgnore().isEmpty()) {
@@ -298,11 +302,7 @@ public class CliProperties {
                     errors.add("error: Translation pattern " + fileBean.getTranslation() + " is not valid. The mask `**` can't be used.\n" +
                             "When using `**` in 'translation' pattern it will always contain sub-path from 'source' for certain file.");
                 }
-                if (!(fileBean.getTranslation().contains("%language%")
-                        || fileBean.getTranslation().contains("%two_letters_code%")
-                        || fileBean.getTranslation().contains("%three_letters_code%")
-                        || fileBean.getTranslation().contains("%locale_with_underscore%")
-                        || fileBean.getTranslation().contains("%locale%"))) {
+                if (!containsLangPlaceholders(fileBean.getTranslation()) && fileBean.getScheme() == null) {
                     errors.add("`Translation` section doesn't contain language variables");
                 }
                 String updateOption = fileBean.getUpdateOption();
@@ -312,6 +312,18 @@ public class CliProperties {
             }
         }
         return errors;
+    }
+
+    private static boolean containsLangPlaceholders(String translation) {
+        return StringUtils.containsAny(translation,
+                "%language%",
+                "%two_letters_code%",
+                "%three_letters_code%",
+                "%locale_with_underscore%",
+                "%locale%",
+                "%android_code%",
+                "%osx_code%",
+                "%osx_locale%");
     }
 
     private static String getBasePath(String basePath, File configurationFile, boolean isDebug) {

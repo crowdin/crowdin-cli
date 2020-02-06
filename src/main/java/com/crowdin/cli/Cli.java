@@ -3,10 +3,6 @@ package com.crowdin.cli;
 import com.crowdin.cli.commands.RootCommand;
 import com.crowdin.cli.commands.parts.HelpCommand;
 import picocli.CommandLine;
-//import org.apache.commons.cli.CommandLine;
-//import org.apache.commons.cli.CommandLineParser;
-//import org.apache.commons.cli.DefaultParser;
-//import org.apache.commons.cli.Options;
 
 public class Cli {
 

@@ -202,10 +202,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                         } catch (Exception e) {
                             String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
                             System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + fileName + "'"));
-                            e.printStackTrace();
-//                            if (this.isDebug) {
-//                                e.printStackTrace();
-//                            }
+                            System.out.println(e.getMessage());
                         }
                         if (this.isVerbose && response != null) {
                             System.out.println(response.getHeaders());
