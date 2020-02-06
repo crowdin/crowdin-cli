@@ -204,6 +204,9 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
             }
             directoryPaths.put(id, sb.toString());
         }
+        for (Long id : branchNames.keySet()) {
+            directoryPaths.put(id, branchNames.get(id) + Utils.PATH_SEPARATOR);
+        }
         return directoryPaths;
     }
 
