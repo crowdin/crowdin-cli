@@ -31,12 +31,10 @@ public class GenerateSubcommand extends Command {
 
     @Override
     public void run() {
-        System.out.println("destinationPath: " + destinationPath);
-        System.out.println("skipGenerateDescription: " + skipGenerateDescription);
         try {
-            System.out.println(RESOURCE_BUNDLE.getString("command_generate_description") + " '" + destinationPath + "'");
+            System.out.println(RESOURCE_BUNDLE.getString("command_generate_description") + " '" + destinationPath.toAbsolutePath() + "'");
             if (Files.exists(destinationPath)) {
-                System.out.println(ExecutionStatus.SKIPPED.getIcon() + "File '" + destinationPath + "' already exists.");
+                System.out.println(ExecutionStatus.SKIPPED.getIcon() + "File '" + destinationPath.toAbsolutePath() + "' already exists.");
                 return;
             }
 
@@ -67,7 +65,7 @@ public class GenerateSubcommand extends Command {
                             try {
                                 Files.write(destinationPath, dummyConfig);
                             } catch (IOException e) {
-                                throw new RuntimeException("Couldn't write to file '" + destinationPath + "'", e);
+                                throw new RuntimeException("Couldn't write to file '" + destinationPath.toAbsolutePath() + "'", e);
                             }
                             break;
                         }
