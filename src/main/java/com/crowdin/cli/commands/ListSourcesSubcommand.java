@@ -16,10 +16,10 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 @CommandLine.Command(
     name = "sources",
     customSynopsis = "@|fg(yellow) crowdin list sources|@ [CONFIG OPTIONS] [OPTIONS]",
-    description = "Lists information about the sources files in current project that match the wild-card pattern")
+    description = "List information about the source files that match the wild-card pattern contained in the current project")
 public class ListSourcesSubcommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Defines branch name (default: none)")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Specify branch name. Default: none")
     protected String branch;
 
     @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")

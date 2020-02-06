@@ -5,7 +5,7 @@ import picocli.CommandLine;
 
 @CommandLine.Command(
     name ="sources",
-    description = "Uploads source files to Crowdin project",
+    description = "Uploads source files to a Crowdin project",
     customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) upload|@|@|fg(yellow) push|@) @|fg(yellow) sources|@ [CONFIG OPTIONS] [OPTIONS]"
 )
 public class UploadSourcesSubcommand extends UploadSourcesCommand {

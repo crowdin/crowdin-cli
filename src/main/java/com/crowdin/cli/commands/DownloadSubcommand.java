@@ -42,22 +42,22 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
     name = "download",
     aliases = "pull",
     customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) download|@|@|fg(yellow) pull|@) [CONFIG OPTIONS] [OPTIONS]",
-    description = "Download latest translations from Crowdin and puts them to the specified place")
+    description = "Download latest translations from Crowdin to the specified place")
 public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"--dryrun"}, description = "Runs command without API connection")
+    @CommandLine.Option(names = {"--dryrun"}, description = "Run command without API connection")
     protected boolean dryrun;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Defines branch name (default: none)")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Specify branch name. Default: none")
     protected String branch;
 
     @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")
     protected boolean treeView;
 
-    @CommandLine.Option(names = {"--ignore--match"}, description = "Ignores warning message about configuration change")
+    @CommandLine.Option(names = {"--ignore--match"}, description = "Ignore warning message about a configuration change")
     protected boolean ignoreMatch;
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", description = "If the option is defined the translations will be downloaded for a single specified language. (default: all)")
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", description = "Use this option to download translations for a single specified language. Default: all")
     protected String languageId;
 
     @Override

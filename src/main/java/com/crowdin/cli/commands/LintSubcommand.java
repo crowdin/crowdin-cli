@@ -6,7 +6,7 @@ import picocli.CommandLine;
 @CommandLine.Command(
     name = "lint",
     customSynopsis = "@|fg(yellow) crowdin lint|@ [CONFIG OPTIONS] [OPTIONS]",
-    description = "Check your configuration file")
+    description = "Analyze your configuration file for potential errors")
 public class LintSubcommand extends PropertiesBuilderCommandPart {
 
     @Override

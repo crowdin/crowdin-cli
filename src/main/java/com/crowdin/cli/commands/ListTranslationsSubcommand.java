@@ -17,7 +17,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 @CommandLine.Command(
     name = "translations",
     customSynopsis = "@|fg(yellow) crowdin list translations|@ [CONFIG OPTIONS] [OPTIONS]",
-    description = "Lists information about the translated files in current project that match the wild-card pattern")
+    description = "List information about the translation files that match the wild-card pattern contained in the current project")
 public class ListTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")

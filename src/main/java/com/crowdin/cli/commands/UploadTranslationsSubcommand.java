@@ -34,26 +34,26 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 @CommandLine.Command(
     name ="translations",
     customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) upload|@|@|fg(yellow) push|@) @|fg(yellow) translations|@ [CONFIG OPTIONS] [OPTIONS]",
-    description = "Uploads existing translations to Crowdin project"
+    description = "Upload existing translations to a Crowdin project"
 )
 public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"--no-auto-approve-imported"}, negatable = true,
-        description = "Approves uploaded translations automatically")
+        description = "Approve added translations automatically")
     protected boolean autoApproveImported = false;
 
     @CommandLine.Option(names = {"--no-import-duplicates"}, negatable = true,
-        description = "Defines whether to add translation if the same translation already exists in Crowdin project")
+        description = "Add translations even if the same translations already exist in your Crowdin project")
     protected boolean importDuplicates = false;
 
     @CommandLine.Option(names = {"--no-import-eq-suggestions"}, negatable = true,
-            description = "Defines whether to add translation if it is the same as the source string in Crowdin project")
+            description = "Add translations even if they’re the same as the source strings in your Crowdin project")
     protected boolean importEqSuggestions = false;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Defines branch name (default: none)")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Specify branch name. Default: none")
     protected String branch;
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", description = "If the option is defined the translations will be downloaded for a single specified language. (default: all)")
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", description = "Use this option to download translations for a single specified language. Default: all")
     protected String languageId;
 
     @Override

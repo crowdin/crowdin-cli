@@ -35,18 +35,18 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"--dryrun"}, description = "Runs command without API connection")
+    @CommandLine.Option(names = {"--dryrun"}, description = "Run command without API connection")
     protected boolean dryrun;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Defines branch name (default: none)")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Specify branch name. Default: none")
     protected String branch;
 
     @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")
     protected boolean treeView;
 
     @CommandLine.Option(names = {"--no-auto-update"}, negatable = true, description = "" +
-            "Defines whether to update the source files in Crowdin project. " +
-            "Use --no-auto-update when you want to upload new files without updating those that already exist.")
+            "Choose whether or not to update the source files in your Crowdin project. " +
+            "Use this option if you want to upload new source files without updating the existing ones.")
     protected boolean autoUpdate = true;
 
     protected static final String UPDATE_OPTION_KEEP_TRANSLATIONS_CONF = "update_as_unapproved";
