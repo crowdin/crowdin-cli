@@ -68,6 +68,13 @@ public class PlaceholderUtil {
         return this.replaceFileDependentPlaceholders(afterLanguageReplaced, source);
     }
 
+    public List<String> replaceLanguageDependentPlaceholders(String toFormat) {
+        return projectLangs
+            .stream()
+            .map(lang -> replaceLanguageDependentPlaceholders(toFormat, lang))
+            .collect(Collectors.toList());
+    }
+
     public String replaceLanguageDependentPlaceholders(String toFormat, Language lang) {
         if (toFormat == null || lang == null) {
             throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");
@@ -83,7 +90,14 @@ public class PlaceholderUtil {
                 .replace(PLACEHOLDER_OSX_CODE, lang.getOsxCode());
     }
 
-    public String replaceLanguageDependentPlaceholders(String toFormat, Language lang, Map<String, Map<String, String>> languageMapping) {
+    public List<String> replaceLanguageDependentPlaceholders(String toFormat, Map<String, Map<String, String>> languageMapping) {
+        return projectLangs
+            .stream()
+            .map(lang -> replaceLanguageDependentPlaceholders(toFormat, languageMapping, lang))
+            .collect(Collectors.toList());
+    }
+
+    public String replaceLanguageDependentPlaceholders(String toFormat, Map<String, Map<String, String>> languageMapping, Language lang) {
         if (toFormat == null || lang == null || languageMapping == null) {
             throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");
         }

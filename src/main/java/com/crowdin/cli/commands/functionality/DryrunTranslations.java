@@ -21,18 +21,15 @@ public class DryrunTranslations extends Dryrun {
 
     @Override
     protected List<String> getFiles() {
-
-        List<File> files = pb
-            .getFiles()
-            .stream()
-            .flatMap(file -> CommandUtils.getSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil).stream())
-            .map(source -> StringUtils.removeStart(source, pb.getBasePath()))
-            .map(File::new)
-            .collect(Collectors.toList());
-
         return pb.getFiles()
             .stream()
-            .flatMap(fileBean -> placeholderUtil.format(files, fileBean.getTranslation(), true).stream())
+            .flatMap(file -> CommandUtils.getFileSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil)
+                .stream()
+                .map(source -> placeholderUtil.replaceFileDependentPlaceholders(file.getTranslation(), source))
+                .flatMap(translation -> ((file.getLanguagesMapping() != null)
+                    ? placeholderUtil.replaceLanguageDependentPlaceholders(translation, file.getLanguagesMapping())
+                    : placeholderUtil.replaceLanguageDependentPlaceholders(translation)).stream()))
+            .map(source -> StringUtils.removeStart(source, pb.getBasePath()))
             .collect(Collectors.toList());
     }
 }
