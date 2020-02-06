@@ -68,7 +68,7 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
   * [Android Project](#android-project)
 * [Change log](#change-log)
 * [Seeking Assistance](#seeking-assistance)
-* [Contributing](#contributing)
+* [Contribution](#contribution)
 * [Authors](#authors)
 * [License](#license)
 
@@ -213,8 +213,8 @@ Sample configuration file:
 ```
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
-"base_path" : "/your-base-path"
-"base_url": "your-organization's-url"
+"base_path": "/your-base-path"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 
 "preserve_hierarchy": true
 
@@ -345,15 +345,15 @@ Valid Crowdin CLI config file has the following structure:
 ## Writing A Simple Configuration File
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
-"base_path" : "/your-base-path"
-"base_url" : "your-organization's-url"
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
+"base_path": "/your-base-path"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 
 "files": [
   {
-    "source" : "/resources/en/*.json",                                          #source files filter
-    "translation" : "/resources/%two_letters_code%/%original_file_name%"        #where translations are stored
+    "source" : "/resources/en/*.json",                                    #source files filter
+    "translation" : "/resources/%two_letters_code%/%original_file_name%"  #where translations are stored
   }
 ]
 ```
@@ -390,14 +390,14 @@ You could load the API Credentials from environment variable. For example:
 If mixed, `api_token` and `project_id` have priority:
 
 ```
-"project_id_env": CROWDIN_PROJECT_ID     # Low priority
-"api_token_env": CROWDIN_PERSONAL_TOKEN  # Low priority
-"base_path_env": CROWDIN_BASE_PATH       # Low priority
-"base_url_env": CROWDIN_BASE_PATH        # Low priority
-"project_id": "12"                       # High priority
-"api_token": "your-personal-token"       # High priority
-"base_path": "/your-base-path"           # High priority
-"base_url": "your-organization's-url"    # High priority
+"project_id_env": CROWDIN_PROJECT_ID                                          # Low priority
+"api_token_env": CROWDIN_PERSONAL_TOKEN                                       # Low priority
+"base_path_env": CROWDIN_BASE_PATH                                            # Low priority
+"base_url_env": CROWDIN_BASE_PATH                                             # Low priority
+"project_id": "12"                                                            # High priority
+"api_token": "your-personal-token"                                            # High priority
+"base_path": "/your-base-path"                                                # High priority
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com   # High priority
 ```
 
 ## Split Project Configuration and User Credentials
@@ -667,9 +667,9 @@ Configuration file example:
 Example of file configuration using `preserve_hierarchy` option:
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
-"base_url": "https://your-organization.crowdin.com"
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/path/to/your/project"
 "preserve_hierarchy": true
 
@@ -715,9 +715,9 @@ The `dest` parameter allows you to specify a file name in Crowdin.
 Example of configuration file with both parameters:
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
-"base_url": "https://your-organization.crowdin.com"
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -748,9 +748,9 @@ The values are:
 Example of configuration file with update_option parameter:
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
-"base_url": "https://your-organization.crowdin.com"
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -817,9 +817,9 @@ Note: If no options specified, uploaded translations will be imported even if th
 Example of configuration file with additional parameters:
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
-"base_url": "https://your-organization.crowdin.com"
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -856,9 +856,9 @@ The values are:
 Example of configuration file:
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
-"base_url": "https://your-organization.crowdin.com"
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -870,15 +870,14 @@ Example of configuration file:
 ]
 ```
 
-
 ## Example Configurations
 
 ### Uploading CSV files via API
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
-"base_url": "https://your-organization.crowdin.com"
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -896,9 +895,9 @@ Example of configuration file:
 ### GetText Project
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
-"base_url": "https://your-organization.crowdin.com"
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/source-code"
 
 "files" : [
@@ -918,9 +917,9 @@ Example of configuration file:
 ### Android Project
 
 ```
-"project_id": "12"                                                      #open your project and go to Resources > Integrations & API > API
-"api_token": "54e01--your-personal-token--2724a"                        #click your profile photo > Account Settings > Access Tokens
-"base_url": "https://your-organization.crowdin.com"
+"project_id": "12"
+"api_token": "54e01--your-personal-token--2724a"
+"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
 "base_path": "/home/office/sandroid-app"
 
 "files" : [
@@ -941,16 +940,17 @@ Example of configuration file:
 For latest changes check [CHANGELOG.md](CHANGELOG.md) file.
 
 ## Seeking Assistance
+If you find any problems or would like to suggest a feature, please feel free to file an issue on Github at [Issues Page](https://github.com/crowdin/crowdin-cli-2/issues) and use **CLI3** label.
 
-Need help working with Crowdin CLI or have any questions? <a href="https://crowdin.com/contacts" target="_blank">Contact Support Team</a>.
+Need help working with Crowdin CLI or have any questions? [Contact](https://crowdin.com/contacts) Customer Success Service.
 
-
-## Contributing
-1. Fork it
-2. Create your feature branch (git checkout -b my-new-feature)
-3. Commit your changes (git commit -am 'Added some feature')
-4. Push to the branch (git push origin my-new-feature)
-5. Create new Pull Request
+## Contribution
+We are happy to accept contributions to the Crowdin CLI. To contribute please do the following:
+1. Fork the repository on GitHub.
+2. Decide which code you want to submit. Commit your changes and push to the new branch.
+3. Ensure that your code adheres to standard conventions, as used in the rest of the project.
+4. Ensure that there are Unit tests for your code.
+5. Submit a pull request with your patch on Github.
 
 ## Authors
 
@@ -964,4 +964,8 @@ Copyright © 2020 Crowdin
 The Crowdin CLI is licensed under the MIT License. 
 See the LICENSE.md file distributed with this work for additional 
 information regarding copyright ownership.
+
+Except as contained in the LICENSE file, the name(s) of the above copyright
+holders shall not be used in advertising or otherwise to promote the sale,
+use or other dealings in this Software without prior written authorization.
 </pre>
