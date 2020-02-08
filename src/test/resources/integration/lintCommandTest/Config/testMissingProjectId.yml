@@ -1,0 +1,12 @@
+"api_token" : "a"
+"base_path" : ""
+"base_url": ""
+
+"preserve_hierarchy": true
+
+files: [
+    {
+        "source" : "source.md",
+        "translation" : "%two_letters_code%.md",
+    }
+]

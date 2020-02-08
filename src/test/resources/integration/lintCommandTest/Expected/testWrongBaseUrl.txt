@@ -1,0 +1,2 @@
+Configuration file is invalid. Check the following parameters in your configuration file:
+	- Configuration file has bad base_url. It must be in format 'https://crowdin.com' or 'https://{domain_name}.crowdin.com'

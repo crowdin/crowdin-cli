@@ -13,8 +13,8 @@ pool:
 
 steps:
   - task: Gradle@2
+    displayName: 'Gradle build, tests, code coverage report'
     inputs:
-      workingDirectory: ''
       gradleWrapperFile: 'gradlew'
       gradleOptions: '-Xmx3072m'
       javaHomeOption: 'JDKVersion'
@@ -22,10 +22,7 @@ steps:
       jdkArchitectureOption: 'x64'
       publishJUnitResults: true
       testResultsFiles: '**/TEST-*.xml'
-      tasks: 'build'
-  - script: |
-      ./gradlew build jacocoTestReport
-    displayName: 'Generating code coverage report'
+      tasks: 'doJacocoOfflineInstrumentation buildCrowdinCliJar test jacocoTestReport'
   - bash: |
       bash <(curl -s https://codecov.io/bash) -t $(CODECOV_TOKEN)
     displayName: 'Upload coverage to codecov.io'

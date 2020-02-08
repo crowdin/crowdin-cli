@@ -1,0 +1,2 @@
+Configuration file is invalid. Check the following parameters in your configuration file:
+	- Configuration file misses required option API TOKEN

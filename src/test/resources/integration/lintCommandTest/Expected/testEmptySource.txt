@@ -1,0 +1,3 @@
+Crowdin CLI initialization has failed. Please check your configuration file and credentials.
+Configuration file is invalid. Check the following parameters in your configuration file:
+	- `Source` parameter is empty
