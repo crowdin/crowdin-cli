@@ -39,6 +39,7 @@ public class DryrunTranslations extends Dryrun {
                         file.getTranslationReplace().get(k)))
                 )
             )
+            .distinct()
             .map(source -> StringUtils.removeStart(source, pb.getBasePath()))
             .collect(Collectors.toList());
     }

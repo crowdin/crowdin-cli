@@ -25,6 +25,9 @@ public abstract class Command implements Runnable {
     @CommandLine.Option(names = {"-v", "--verbose"}, description = "Provide more information on the command processing")
     protected boolean isVerbose;
 
+    @CommandLine.Option(names = {"--debug"}, hidden = true)
+    protected boolean debug;
+
     protected static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
 
     @Override

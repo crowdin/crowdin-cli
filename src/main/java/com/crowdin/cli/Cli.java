@@ -13,10 +13,14 @@ public class Cli {
                 .options(CommandLine.Help.Ansi.Style.fg_yellow)
                 .build();
             CommandLine.IExecutionExceptionHandler executionExceptionHandler = (ex, cmd, pr) -> {
-                cmd.getErr().println(ex.getMessage());
-                Throwable cause = ex;
-                while((cause = cause.getCause()) != null) {
-                    cmd.getErr().println(cause.getMessage());
+                if (pr.originalArgs().contains("--debug")) {
+                    ex.printStackTrace();
+                } else {
+                    cmd.getErr().println(ex.getMessage());
+                    Throwable cause = ex;
+                    while ((cause = cause.getCause()) != null) {
+                        cmd.getErr().println(cause.getMessage());
+                    }
                 }
                 return cmd.getExitCodeExceptionMapper() != null
                         ? cmd.getExitCodeExceptionMapper().getExitCode(ex)
