@@ -120,8 +120,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ExecutionStatus.ERROR);
-            System.out.println(e.getMessage());
-            ConsoleUtils.exitError();
+            throw new RuntimeException("Error while building translation", e);
         }
 
         if (isVerbose) {
@@ -149,6 +148,9 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         } catch (IOException e) {
             ConsoleSpinner.stop(ExecutionStatus.ERROR);
             throw new RuntimeException(ERROR_DURING_FILE_WRITE.getString(), e);
+        } catch (Exception e) {
+            ConsoleSpinner.stop(ExecutionStatus.ERROR);
+            throw new RuntimeException("Error while downloading file", e);
         }
 
         try {
