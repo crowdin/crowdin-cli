@@ -3,6 +3,7 @@ package com.crowdin.cli.commands;
 import com.crowdin.cli.client.*;
 import com.crowdin.cli.client.exceptions.ResponseException;
 import com.crowdin.cli.client.request.TranslationPayloadWrapper;
+import com.crowdin.cli.commands.functionality.DryrunTranslations;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -56,6 +57,12 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
     @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", description = "Use this option to download translations for a single specified language. Default: all")
     protected String languageId;
 
+    @CommandLine.Option(names = {"--dryrun"}, description = "Run command without API connection")
+    protected boolean dryrun;
+
+    @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")
+    protected boolean treeView;
+
     @Override
     public void run() {
         CommandUtils commandUtils = new CommandUtils();
@@ -66,6 +73,11 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         ProjectWrapper projectInfo = getProjectInfo(pb.getProjectId(), settings);
         PlaceholderUtil placeholderUtil =
             new PlaceholderUtil(projectInfo.getSupportedLanguages(), projectInfo.getProjectLanguages(), pb.getBasePath());
+
+        if (dryrun) {
+            (new DryrunTranslations(pb, placeholderUtil, true)).run(treeView);
+            return;
+        }
 
         StorageClient storageClient = new StorageClient(settings);
         BranchClient branchClient = new BranchClient(settings);

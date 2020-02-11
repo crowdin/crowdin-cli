@@ -31,7 +31,7 @@ public class ListTranslationsSubcommand extends PropertiesBuilderCommandPart {
         ProjectWrapper project = getProjectInfo(pb.getProjectId(), settings);
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
-        (new DryrunTranslations(pb, placeholderUtil)).run(treeView);
+        (new DryrunTranslations(pb, placeholderUtil, false)).run(treeView);
     }
 
     private ProjectWrapper getProjectInfo(String projectId, Settings settings) {
