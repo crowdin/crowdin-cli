@@ -1,5 +1,13 @@
 **Unreleased**
 
+**Version 3.1.0**
++ Added: use picocli library for commands
++ Added: help messages color highlight
++ Added: 'base_url' validation and default value
++ Updated: texts on help screens
++ Fixed: high CPU usage on translation upload
++ Fixed: a lot of minor fixes and refactoring
+
 **Version 3.0.7**
 + Updated: Change api use for settings
 
