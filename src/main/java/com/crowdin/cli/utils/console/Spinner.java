@@ -19,6 +19,10 @@ class Spinner extends Thread {
         this.noProgress = noProgress;
     }
 
+    public void setMessage(String message) {
+        this.message = message;
+    }
+
     private final String[] unixFrames = new String[]{
             "[●∙∙∙∙] ",
             "[∙●∙∙∙] ",

@@ -12,7 +12,6 @@ import com.crowdin.cli.utils.CommandUtils;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.cli.utils.console.ConsoleUtils;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.cli.utils.file.FileUtil;
 import com.crowdin.common.Settings;
@@ -113,10 +112,12 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             ConsoleSpinner.start(BUILDING_TRANSLATION.getString(), this.noProgress);
             translationBuild = translationsClient.startBuildingTranslation(branchOrNull.map(Branch::getId), languageEntity.getId());
             while (!translationBuild.getStatus().equalsIgnoreCase("finished")) {
+                ConsoleSpinner.update("Building translation (" + translationBuild.getProgress().toString() + "%)");
                 Thread.sleep(100);
                 translationBuild = translationsClient.checkBuildingStatus(translationBuild.getId().toString());
             }
 
+            ConsoleSpinner.update("Building translation (100%)");
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ExecutionStatus.ERROR);
