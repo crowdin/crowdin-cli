@@ -31,7 +31,6 @@ public class ProjectClient extends Client {
         try {
             supportedLanguages = languagesClient.getAllSupportedLanguages();
         } catch (Exception e) {
-            System.out.println("\n" + MessageSource.RESOURCE_BUNDLE.getString("error_getting_supported_languages"));
             if (isDebug) {
                 e.printStackTrace();
             }
@@ -45,7 +44,7 @@ public class ProjectClient extends Client {
             projectLanguages.add(pseudoLang);
         }
 
-        List<FileEntity> projectFiles = new FileClient(settings).getProjectFiles(project.getId());
+        List<FileEntity> projectFiles = new FileClient(settings).getProjectFiles(project.getId().toString());
         CrowdinRequestBuilder<Page<Directory>> projectDirectories = new DirectoriesApi(this.settings)
                 .getProjectDirectories(project.getId().toString(), Pageable.unpaged());
         List<Directory> directories = PaginationUtil.unpaged(projectDirectories);

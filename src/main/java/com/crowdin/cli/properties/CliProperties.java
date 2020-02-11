@@ -2,12 +2,15 @@ package com.crowdin.cli.properties;
 
 import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
-import com.crowdin.cli.utils.console.ConsoleUtils;
+import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
-
-import static com.crowdin.cli.utils.MessageSource.Messages;
+import java.util.function.Consumer;
 
 
 public class CliProperties {
@@ -70,7 +73,21 @@ public class CliProperties {
 
     private static final String TRANSLATION_REPLACE = "translation_replace";
 
-    public PropertiesBean loadProperties(HashMap<String, Object> properties) {
+    public static PropertiesBean processProperties(PropertiesBean pb, File configFile) {
+
+        pb.setBasePath(getBasePath(pb.getBasePath(), configFile, false));
+        setDefaultValues(pb);
+
+        List<String> errors = checkProperties(pb);
+        if (!errors.isEmpty()) {
+            String errorsInOne = String.join("\n\t- ", errors);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_is_invalid")+"\n\t- " + errorsInOne);
+        }
+
+        return pb;
+    }
+
+    public static PropertiesBean buildFromMap(Map<String, Object> properties) {
         if (properties == null) {
             throw new NullPointerException("CliProperties.loadProperties has null args");
         }
@@ -78,314 +95,269 @@ public class CliProperties {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error_empty_properties_file"));
         }
         PropertiesBean pb = new PropertiesBean();
-        for (Map.Entry<String, Object> property : properties.entrySet()) {
-            if (property != null && property.getKey() != null) {
-                switch (property.getKey()) {
-                    case API_TOKEN_ENV:
-                        pb.setApiToken(Utils.getEnvironmentVariable(property.getValue().toString()));
-                        break;
-                    case BASE_PATH_ENV:
-                        pb.setBasePath(Utils.getEnvironmentVariable(property.getValue().toString()));
-                        break;
-                    case BASE_URL_ENV:
-                        pb.setBaseUrl(Utils.getEnvironmentVariable(property.getValue().toString()));
-                        break;
-                    case PROJECT_ID_ENV:
-                        pb.setProjectId(Utils.getEnvironmentVariable(property.getValue().toString()));
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
 
-        for (Map.Entry<String, Object> property : properties.entrySet()) {
-            if (property != null && property.getKey() != null) {
-                switch (property.getKey()) {
-                    case API_TOKEN:
-                        if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
-                            pb.setApiToken(property.getValue().toString());
-                        }
-                        break;
-                    case BASE_PATH:
-                        if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
-                            pb.setBasePath(property.getValue().toString());
-                        }
-                        break;
-                    case BASE_URL:
-                        if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
-                            pb.setBaseUrl(property.getValue().toString());
-                        }
-                        break;
-                    case PROJECT_ID:
-                        if (property.getValue() != null && !property.getValue().toString().isEmpty()) {
-                            pb.setProjectId(property.getValue().toString());
-                        }
-                        break;
-                    case PRESERVE_HIERARCHY:
-                        pb.setPreserveHierarchy(Boolean.parseBoolean(property.getValue().toString()));
-                        break;
-                    case FILES:
-                        ArrayList files = (ArrayList) property.getValue();
-                        for (Object file : files) {
-                            FileBean fileBean = new FileBean();
-                            HashMap<String, Object> fileObj = (HashMap<String, Object>) file;
-                            for (Map.Entry<String, Object> entry : fileObj.entrySet()) {
-                                String fileObjKey = entry.getKey();
-                                Object fileObjVal = entry.getValue();
-                                switch (fileObjKey) {
-                                    case SOURCE:
-                                        fileBean.setSource(fileObjVal.toString());
-                                        break;
-                                    case IGNORE:
-                                        fileBean.setIgnore((List<String>) fileObjVal);
-                                        break;
-                                    case DEST:
-                                        fileBean.setDest(fileObjVal.toString());
-                                        break;
-                                    case TYPE:
-                                        fileBean.setType(fileObjVal.toString());
-                                        break;
-                                    case TRANSLATION:
-                                        fileBean.setTranslation(fileObjVal.toString());
-                                        break;
-                                    case UPDATE_OPTION:
-                                        fileBean.setUpdateOption(fileObjVal.toString());
-                                        break;
-                                    case LANGUAGES_MAPPING:
-                                        HashMap<String, HashMap<String, String>> languagesMapping = new HashMap<>();
-                                        languagesMapping = (HashMap<String, HashMap<String, String>>) fileObjVal;
-                                        fileBean.setLanguagesMapping(languagesMapping);
-                                        break;
-                                    case FIRST_LINE_CONTAINS_HEADER:
-                                        if ("1".equals(fileObjVal.toString())) {
-                                            fileBean.setFirstLineContainsHeader(Boolean.TRUE);
-                                        } else if ("0".equals(fileObjVal.toString())) {
-                                            fileBean.setFirstLineContainsHeader(Boolean.FALSE);
-                                        } else {
-                                            fileBean.setFirstLineContainsHeader(Boolean.valueOf(fileObjVal.toString()));
-                                        }
-                                        break;
-                                    case TRANSLATE_ATTRIBUTES:
-                                        if ("1".equals(fileObjVal.toString())) {
-                                            fileBean.setTranslateAttributes(Boolean.TRUE);
-                                        } else if ("0".equals(fileObjVal.toString())) {
-                                            fileBean.setTranslateAttributes(Boolean.FALSE);
-                                        } else {
-                                            fileBean.setTranslateAttributes(Boolean.valueOf(fileObjVal.toString()));
-                                        }
-                                        break;
-                                    case TRANSLATE_CONTENT:
-                                        if ("1".equals(fileObjVal.toString())) {
-                                            fileBean.setTranslateContent(Boolean.TRUE);
-                                        } else if ("0".equals(fileObjVal.toString())) {
-                                            fileBean.setTranslateContent(Boolean.FALSE);
-                                        } else {
-                                            fileBean.setTranslateContent(Boolean.valueOf(fileObjVal.toString()));
-                                        }
-                                        break;
-                                    case TRANSLATABLE_ELEMENTS:
-                                        fileBean.setTranslatableElements((List<String>) fileObjVal);
-                                        break;
-                                    case CONTENT_SEGMENTATION:
-                                        if ("1".equals(fileObjVal.toString())) {
-                                            fileBean.setContentSegmentation(Boolean.TRUE);
-                                        } else if ("0".equals(fileObjVal.toString())) {
-                                            fileBean.setContentSegmentation(Boolean.FALSE);
-                                        } else {
-                                            fileBean.setContentSegmentation(Boolean.valueOf(fileObjVal.toString()));
-                                        }
-                                        break;
-                                    case ESCAPE_QUOTES:
-                                        fileBean.setEscapeQuotes(Short.valueOf(fileObjVal.toString()));
-                                        break;
-                                    case MULTILINGUAL_SPREADSHEET:
-                                        if ("1".equals(fileObjVal.toString())) {
-                                            fileBean.setMultilingualSpreadsheet(Boolean.TRUE);
-                                        } else if ("0".equals(fileObjVal.toString())) {
-                                            fileBean.setMultilingualSpreadsheet(Boolean.FALSE);
-                                        } else {
-                                            fileBean.setMultilingualSpreadsheet(Boolean.valueOf(fileObjVal.toString()));
-                                        }
-                                        break;
-                                    case SCHEME:
-                                        fileBean.setScheme(fileObjVal.toString());
-                                        break;
-                                    case TRANSLATION_REPLACE:
-                                        HashMap<String, String> translationReplace;
-                                        translationReplace = (HashMap<String, String>) fileObjVal;
-                                        fileBean.setTranslationReplace(translationReplace);
-                                        break;
-                                }
-                            }
-                            pb.setFiles(fileBean);
-                        }
-                        break;
-                    default:
-                        break;
-                }
-            }
-        }
+        populateWithCredentials(pb, properties);
+        getBooleanProperty(pb::setPreserveHierarchy, properties, PRESERVE_HIERARCHY);
+        ((List<Map<String, Object>>) properties.getOrDefault(FILES, Collections.EMPTY_LIST))
+            .stream()
+            .map(CliProperties::buildFileBeanFromMap)
+            .forEach(pb::setFiles);
         return pb;
     }
 
-    //todo set default values
-    public PropertiesBean validateProperties(PropertiesBean pb) {
-        //Property bean
+    private static FileBean buildFileBeanFromMap(Map<String, Object> fbProperties) {
+        FileBean fileBean = new FileBean();
+        getProperty(        fileBean::setSource,                    fbProperties, SOURCE);
+        getProperty(        fileBean::setDest,                      fbProperties, DEST);
+        getProperty(        fileBean::setType,                      fbProperties, TYPE);
+        getProperty(        fileBean::setTranslation,               fbProperties, TRANSLATION);
+        getProperty(        fileBean::setUpdateOption,              fbProperties, UPDATE_OPTION);
+        getProperty(        fileBean::setScheme,                    fbProperties, SCHEME);
+        getProperty(        fileBean::setIgnore,                    fbProperties, IGNORE);
+        getProperty(        fileBean::setTranslatableElements,      fbProperties, TRANSLATABLE_ELEMENTS);
+        getProperty(        fileBean::setLanguagesMapping,          fbProperties, LANGUAGES_MAPPING);
+        getProperty(        fileBean::setTranslationReplace,        fbProperties, TRANSLATION_REPLACE);
+        getProperty(        fileBean::setEscapeQuotes,              fbProperties, ESCAPE_QUOTES);
+        getBooleanProperty( fileBean::setFirstLineContainsHeader,   fbProperties, FIRST_LINE_CONTAINS_HEADER);
+        getBooleanProperty( fileBean::setTranslateAttributes,       fbProperties, TRANSLATE_ATTRIBUTES);
+        getBooleanProperty( fileBean::setTranslateContent,          fbProperties, TRANSLATE_CONTENT);
+        getBooleanProperty( fileBean::setContentSegmentation,       fbProperties, CONTENT_SEGMENTATION);
+        getBooleanProperty( fileBean::setMultilingualSpreadsheet,   fbProperties, MULTILINGUAL_SPREADSHEET);
+        return fileBean;
+    }
+
+    public static void populateWithCredentials(PropertiesBean pb, Map<String, Object> properties) {
+        getCredentialProperty(pb::setApiToken,    properties,     API_TOKEN_ENV,  API_TOKEN);
+        getCredentialProperty(pb::setBasePath,    properties,     BASE_PATH_ENV,  BASE_PATH);
+        getCredentialProperty(pb::setBaseUrl,     properties,     BASE_URL_ENV,   BASE_URL);
+        getCredentialProperty(pb::setProjectId,   properties,     PROJECT_ID_ENV,  PROJECT_ID);
+    }
+
+    private static void getCredentialProperty(Consumer<String> setter, Map<String, Object> properties, String envKey, String key) {
+        String param = properties.containsKey(envKey)
+            ? System.getenv(properties.get(envKey).toString())
+            : (properties.containsKey(key))
+                ? properties.get(key).toString()
+                : null;
+        if (param != null) {
+            setter.accept(param);
+        }
+    }
+
+    private static void getBooleanProperty(Consumer<Boolean> setter, Map<String, Object> properties, String key) {
+        Boolean param = properties.containsKey(key)
+            ? properties.get(key).toString().equals("1")
+                ? Boolean.TRUE
+                : Boolean.valueOf(properties.get(key).toString())
+            : null;
+        if (param != null) {
+            setter.accept(param);
+        }
+    }
+
+    private static <T> void getProperty(Consumer<T> setter, Map<String, Object> properties, String key) {
+        T param = (T) properties.getOrDefault(key, null);
+        if (param != null) {
+            setter.accept(param);
+        }
+    }
+
+    public static PropertiesBean buildFromParams(Params params) {
+        return new PropertiesBean(
+            params.getIdParam(),
+            params.getTokenParam(),
+            params.getBasePathParam(),
+            params.getBaseUrlParam(),
+            new FileBean(
+                params.getSourceParam(),
+                params.getTranslationParam())
+        );
+    }
+
+    private static void setDefaultValues(PropertiesBean pb) {
+        if (pb == null || pb.getFiles() == null) {
+            throw new NullPointerException("null args in CliProperties.setDefaultValues");
+        }
+        pb.setPreserveHierarchy(pb.getPreserveHierarchy() != null ? pb.getPreserveHierarchy() : Boolean.FALSE);
+        pb.setBasePath(pb.getBasePath() != null ? pb.getBasePath() : "");
+
+        if (StringUtils.isNotEmpty(pb.getBaseUrl())) {
+            pb.setBaseUrl(StringUtils.removePattern(pb.getBaseUrl(), "/(api(/|/v2/?)?)?$") + "/api/v2");
+        } else {
+            pb.setBaseUrl(Utils.getBaseUrl());
+        }
+
+        for (FileBean file : pb.getFiles()) {
+            //Source
+            file.setSource(file.getSource().replaceAll( "[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
+            //Translation
+             file.setTranslation(file.getTranslation().replaceAll( "[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
+            if (!file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
+                file.setTranslation(Utils.PATH_SEPARATOR + file.getTranslation());
+            }
+            if (!containsLangPlaceholders(file.getTranslation()) && file.getScheme() != null) {
+                file.setTranslation(StringUtils.removeStart(file.getTranslation(), Utils.PATH_SEPARATOR));
+            }
+
+
+            //Ignore
+            if (file.getIgnore() == null || file.getIgnore().isEmpty()) {
+            } else {
+                List<String> ignores = new ArrayList<>();
+                for (String ignore : file.getIgnore()) {
+                    ignores.add(ignore.replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
+                }
+                file.setIgnore(ignores);
+            }
+            //dest
+            if (StringUtils.isEmpty(file.getDest())) {
+            } else {
+                file.setDest(file.getDest().replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
+            }
+            //Type
+            if (StringUtils.isEmpty(file.getType())) {
+            } else {
+            }
+            //Update option
+            if (StringUtils.isEmpty(file.getUpdateOption())) {
+            } else {
+            }
+            //Translate attributes
+            if (file.getTranslateAttributes() == null) {
+            } else {
+            }
+            //Translate content
+            file.setTranslateContent(file.getTranslateContent() != null ? file.getTranslateContent() : Boolean.TRUE);
+            //Translatable elements
+            if (file.getTranslatableElements() == null || file.getTranslatableElements().isEmpty()) {
+            } else {
+            }
+            //Content segmentation
+            file.setContentSegmentation(file.getContentSegmentation() != null ? file.getContentSegmentation() : Boolean.TRUE);
+            //escape quotes
+            if (file.getEscapeQuotes() != null && (file.getEscapeQuotes() < 0 || file.getEscapeQuotes() > 3)) {
+                file.setEscapeQuotes(3);
+            } else {
+            }
+            //Language mapping
+            if (file.getLanguagesMapping() == null || file.getLanguagesMapping().isEmpty()) {
+            } else {
+            }
+            //Multilingual spreadsheet
+            if (file.getMultilingualSpreadsheet() == null) {
+            }
+            //first line contain header
+            if (file.getFirstLineContainsHeader() == null) {
+            } else {
+            }
+            //scheme
+            if (StringUtils.isEmpty(file.getScheme())) {
+            } else {
+            }
+            //translation repalce
+            if (file.getTranslationReplace() == null || file.getTranslationReplace().isEmpty()) {
+            } else {
+            }
+        }
+    }
+
+    private static List<String> checkProperties(PropertiesBean pb) {
+        List<String> errors = new ArrayList<>();
         if (pb == null) {
-            throw new RuntimeException(
-                RESOURCE_BUNDLE.getString("configuration_file_is_invalid")
-                    .concat("\n\t- ")
-                    .concat(RESOURCE_BUNDLE.getString("error_property_bean_null")));
+            errors.add(RESOURCE_BUNDLE.getString("error_property_bean_null"));
+            return errors;
         }
-        //Preserve hierarchy
-        if (pb.getPreserveHierarchy() == null) {
-            pb.setPreserveHierarchy(Boolean.FALSE);
+        if (StringUtils.isEmpty(pb.getProjectId())) {
+            errors.add(RESOURCE_BUNDLE.getString("error_missed_project_id"));
         }
-        if (pb.getBasePath() != null && !pb.getBasePath().isEmpty()) {
-            if (!Paths.get(pb.getBasePath()).isAbsolute()) {
-                throw new RuntimeException(
-                    RESOURCE_BUNDLE.getString("configuration_file_is_invalid")
-                        .concat("\n\t- ")
-                        .concat(RESOURCE_BUNDLE.getString("bad_base_path")));
-            }
-        } else {
-            pb.setBasePath("");
+        if (StringUtils.isEmpty(pb.getApiToken())) {
+            errors.add(RESOURCE_BUNDLE.getString("error_missed_api_token"));
         }
-        //Files
-        List<String> messages = new ArrayList<>();
-        if (pb.getFiles() == null) {
-            messages.add(RESOURCE_BUNDLE.getString("error_empty_section_files"));
-        } else {
-            for (FileBean file : pb.getFiles()) {
-                //Sources
-                if (file.getSource() == null || file.getSource().isEmpty()) {
-                    messages.add(RESOURCE_BUNDLE.getString("error_empty_source_section"));
-                }
-                if (Utils.isWindows() && file.getSource() != null && file.getSource().contains("/")) {
-                    file.setSource(file.getSource().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-                }
-                if (!Utils.isWindows() && file.getSource() != null && file.getSource().contains("\\")) {
-                    file.setSource(file.getSource().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
-                }
-                //Translation
-                if (file.getTranslation() == null || file.getTranslation().isEmpty()) {
-                    messages.add(RESOURCE_BUNDLE.getString("error_empty_translation_section"));
-                }
-                if (file.getTranslation() != null && file.getTranslation().contains("**") && file.getSource() != null && !file.getSource().contains("**")) {
-                    messages.add("error: Translation pattern " + file.getTranslation() + " is not valid. The mask `**` can't be used.");
-                    messages.add("When using `**` in 'translation' pattern it will always contain sub-path from 'source' for certain file.");
-                }
-                if (file.getTranslation() != null && !file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
-                    if (file.getTranslation().contains("%language%")
-                            || file.getTranslation().contains("%locale_with_underscore%")
-                            || file.getTranslation().contains("%android_code%")
-                            || file.getTranslation().contains("%osx_code%")
-                            || file.getTranslation().contains("%two_letters_code%")
-                            || file.getTranslation().contains("%three_letters_code%")
-                            || file.getTranslation().contains("%locale%")) {
-                        String translation = Utils.PATH_SEPARATOR + file.getTranslation();
-                        translation = translation.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-                        file.setTranslation(translation);
-                    }
-                }
-                if (Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("/")) {
-                    file.setTranslation(file.getTranslation().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-                }
-                if (!Utils.isWindows() && file.getTranslation() != null && file.getTranslation().contains("\\")) {
-                    file.setTranslation(file.getTranslation().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
-                }
+        if (StringUtils.isEmpty(pb.getBaseUrl())) {
+            errors.add(RESOURCE_BUNDLE.getString("missed_base_url"));
+        } else if (!pb.getBaseUrl().matches("(https://(.+\\.)?|http://(.+\\.)?.+\\.dev\\.)crowdin\\.com/api/v2")) {
+            errors.add(RESOURCE_BUNDLE.getString("wrong_base_url"));
+        }
 
-                //Ignore
-                if (file.getIgnore() == null || file.getIgnore().isEmpty()) {
-                } else {
-                    List<String> ignores = new ArrayList<>();
-                    for (String ignore : file.getIgnore()) {
-                        if (Utils.isWindows() && ignore.contains("/")) {
-                            ignores.add(ignore.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-                        } else if (!Utils.isWindows() && ignore.contains("\\")) {
-                            ignores.add(ignore.replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
-                        } else {
-                            ignores.add(ignore);
-                        }
-                    }
-                    file.setIgnore(ignores);
-                }
-                //dest
-                if (file.getDest() == null || file.getDest().isEmpty()) {
-                } else {
-                    if (Utils.isWindows() && file.getDest() != null && file.getDest().contains("/")) {
-                        file.setDest(file.getDest().replaceAll("/+", Utils.PATH_SEPARATOR_REGEX));
-                    }
-                    if (!Utils.isWindows() && file.getDest() != null && file.getDest().contains("\\")) {
-                        file.setDest(file.getDest().replaceAll("\\\\", Utils.PATH_SEPARATOR_REGEX));
-                    }
-                }
-                //Type
-                if (file.getType() == null || file.getType().isEmpty()) {
-                } else {
-                }
-                //Update option
-                if (file.getUpdateOption() == null || file.getUpdateOption().isEmpty()) {
-                } else {
-                    if (!"update_as_unapproved".equals(file.getUpdateOption()) && !"update_without_changes".equals(file.getUpdateOption())) {
-                        messages.add("Parameter 'update_option' in configuration file has unacceptable value");
-                    }
-                }
-                //Translate attributes
-                if (file.getTranslateAttributes() == null) {
-                } else {
-                }
-                //Translate content
-                if (file.getTranslateContent() == null) {
-                    file.setTranslateContent(Boolean.TRUE);
-                } else {
-                }
-                //Translatable elements
-                if (file.getTranslatableElements() == null || file.getTranslatableElements().isEmpty()) {
-                } else {
-                }
-                //Content segmentation
-                if (file.getContentSegmentation() == null) {
-                    file.setContentSegmentation(Boolean.TRUE);
-                } else {
-                }
-                //escape quotes
-                if (file.getEscapeQuotes() != null && (file.getEscapeQuotes() < 0 || file.getEscapeQuotes() > 3)) {
-                    file.setEscapeQuotes((short) 3);
-                } else {
-                }
-                //Language mapping
-                if (file.getLanguagesMapping() == null || file.getLanguagesMapping().isEmpty()) {
-                } else {
-                }
-                //Multilingual spreadsheet
-                if (file.getMultilingualSpreadsheet() == null) {
-                }
-                //first line contain header
-                if (file.getFirstLineContainsHeader() == null) {
-                } else {
-                }
-                //scheme
-                if (file.getScheme() == null || file.getScheme().isEmpty()) {
-                } else {
-                }
-                //translation repalce
-                if (file.getTranslationReplace() == null || file.getTranslationReplace().isEmpty()) {
-                } else {
-                }
-            }
-            if (!messages.isEmpty()) {
-                String messagesInOne = String.join("\n\t- ", messages.toArray(new String[0]));
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_is_invalid")+"\n\t- "+messagesInOne);
+        if (StringUtils.isNotEmpty(pb.getBasePath())) {
+            if (!Paths.get(pb.getBasePath()).isAbsolute()) {
+                errors.add(RESOURCE_BUNDLE.getString("bad_base_path"));
+            } else if (!Files.isDirectory(Paths.get(pb.getBasePath()))) {
+                errors.add(RESOURCE_BUNDLE.getString("bad_base_path"));
             }
         }
-        return pb;
+
+        if (pb.getFiles() == null) {
+            errors.add(RESOURCE_BUNDLE.getString("error_missed_section_files"));
+        } else if (pb.getFiles().isEmpty()) {
+            errors.add(RESOURCE_BUNDLE.getString("empty_section_file"));
+        } else {
+            for (FileBean fileBean : pb.getFiles()) {
+                if (StringUtils.isEmpty(fileBean.getSource())) {
+                    errors.add(RESOURCE_BUNDLE.getString("error_empty_source_section"));
+                }
+                if (StringUtils.isEmpty(fileBean.getTranslation())) {
+                    errors.add(RESOURCE_BUNDLE.getString("error_empty_translation_section"));
+                } else if (fileBean.getTranslation().contains("**") && fileBean.getSource() != null && !fileBean.getSource().contains("**")) {
+                    errors.add("error: Translation pattern " + fileBean.getTranslation() + " is not valid. The mask `**` can't be used.\n" +
+                            "When using `**` in 'translation' pattern it will always contain sub-path from 'source' for certain file.");
+                }
+                if (!containsLangPlaceholders(fileBean.getTranslation()) && fileBean.getScheme() == null) {
+                    errors.add("`Translation` section doesn't contain language variables");
+                }
+                String updateOption = fileBean.getUpdateOption();
+                if (updateOption != null && !(updateOption.equals("update_as_unapproved") || updateOption.equals("update_without_changes"))) {
+                    errors.add("Parameter 'update_option' in configuration file has unacceptable value");
+                }
+            }
+        }
+        return errors;
     }
 
-    private void printConfigurationFileErrorsAndExit(List<String> errors) {
-        System.out.println(Messages.CONFIGURATION_FILE_IS_INVALID.getString());
-        errors.forEach(System.out::println);
-        ConsoleUtils.exitError();
+    private static boolean containsLangPlaceholders(String translation) {
+        return StringUtils.containsAny(translation,
+                "%language%",
+                "%two_letters_code%",
+                "%three_letters_code%",
+                "%locale_with_underscore%",
+                "%locale%",
+                "%android_code%",
+                "%osx_code%",
+                "%osx_locale%");
+    }
+
+    private static String getBasePath(String basePath, File configurationFile, boolean isDebug) {
+        String result = "";
+        if (basePath != null && Paths.get(basePath) != null) {
+            if (Paths.get(basePath).isAbsolute()) {
+                result = basePath;
+            } else if (configurationFile != null && configurationFile.isFile()) {
+                basePath = ".".equals(basePath) ? "" : basePath;
+                Path parentPath = Paths.get(configurationFile.getAbsolutePath()).getParent();
+                File base = new File(parentPath.toFile(), basePath);
+                try {
+                    result = base.getCanonicalPath();
+                } catch (IOException e) {
+                    System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
+                    if (isDebug) {
+                        e.printStackTrace();
+                    }
+                }
+            } else {
+                try {
+                    result = new File(basePath).getCanonicalPath();
+                } catch (IOException e) {
+                    System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
+                    if (isDebug) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        } else if (configurationFile != null && configurationFile.isFile()) {
+            basePath = (basePath == null) ? "" : basePath;
+            result = Paths.get(configurationFile.getAbsolutePath()).getParent() + Utils.PATH_SEPARATOR + basePath;
+            result = result.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+        }
+        return result;
     }
 }

@@ -44,19 +44,8 @@ public class TranslationsClient extends Client {
 
     public void uploadTranslations(
         String languageId,
-        Long fileId,
-        boolean importDuplicates,
-        boolean importEqSuggestions,
-        boolean autoApproveImported,
-        Long storageId
+        TranslationPayload translationPayload
     ) {
-        TranslationPayload translationPayload = new TranslationPayload() {{
-            setFileId(fileId);
-            setImportDuplicates(importDuplicates);
-            setImportEqSuggestions(importEqSuggestions);
-            setAutoApproveImported(autoApproveImported);
-            setStorageId(storageId);
-        }};
         Response response = api.uploadTranslation(projectId, languageId, translationPayload).execute();
     }
 

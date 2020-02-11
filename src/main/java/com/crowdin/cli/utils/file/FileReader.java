@@ -1,15 +1,13 @@
 package com.crowdin.cli.utils.file;
 
 import com.crowdin.cli.utils.MessageSource;
-import com.crowdin.cli.utils.console.ConsoleUtils;
-import org.omg.PortableInterceptor.SYSTEM_EXCEPTION;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
-import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 
@@ -23,7 +21,7 @@ public class FileReader {
 
     private static final String YML_EXTENSION = ".yml";
 
-    public HashMap<String, Object> readCliConfig( File fileCfg) {
+    public Map<String, Object> readCliConfig(File fileCfg) {
         if (fileCfg == null) {
             throw new NullPointerException("FileReader.readCliConfig has null args");
         }
@@ -38,9 +36,9 @@ public class FileReader {
         } catch (FileNotFoundException e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_empty"));
         }
-        HashMap<String, Object> result = null;
+        Map<String, Object> result = null;
         try {
-            result = (HashMap<String, Object>) yaml.load(inputStream);
+            result = (Map<String, Object>) yaml.load(inputStream);
         } catch (Exception e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error_reading_configuration_file"), e);
         }

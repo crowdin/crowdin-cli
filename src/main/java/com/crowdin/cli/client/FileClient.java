@@ -19,9 +19,9 @@ public class FileClient extends Client {
         super(settings);
     }
 
-    public List<FileEntity> getProjectFiles(Long projectId) {
+    public List<FileEntity> getProjectFiles(String projectId) {
         FilesApi filesApi = new FilesApi(settings);
-        CrowdinRequestBuilder<Page<FileEntity>> getProjectFilesRequest = filesApi.getProjectFiles(projectId.toString(), Pageable.unpaged());
+        CrowdinRequestBuilder<Page<FileEntity>> getProjectFilesRequest = filesApi.getProjectFiles(projectId, Pageable.unpaged());
         return PaginationUtil.unpaged(getProjectFilesRequest);
     }
 

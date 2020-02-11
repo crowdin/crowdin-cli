@@ -2,10 +2,12 @@ package com.crowdin.cli.utils;
 
 import com.crowdin.common.models.Language;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 public class PlaceholderUtil {
@@ -31,12 +33,6 @@ public class PlaceholderUtil {
         if (supportedLangs == null || projectLangs == null || basePath == null) {
             throw new NullPointerException("in PlaceholderUtil.contructor");
         }
-        projectLangs.stream()
-                .filter(projectLang -> supportedLangs.stream().noneMatch(lang -> lang.getName().equals(projectLang.getName())))
-                .findFirst()
-                .ifPresent(projectLang -> {
-                    throw new RuntimeException("Project contains languages that Crowdin doesn't support: " + projectLang.getName());
-                });
         this.supportedLangs = supportedLangs;
         this.projectLangs = projectLangs;
         this.basePath = basePath;
@@ -65,7 +61,25 @@ public class PlaceholderUtil {
         return result;
     }
 
-    private String replaceLanguageDependentPlaceholders(String toFormat, Language lang) {
+    public String format(File source, String toFormat, Language language) {
+        if (source == null || toFormat == null || language == null) {
+            throw new RuntimeException("null arg in PlaceholderUtil.format()");
+        }
+        String afterLanguageReplaced = this.replaceLanguageDependentPlaceholders(toFormat, language);
+        return this.replaceFileDependentPlaceholders(afterLanguageReplaced, source);
+    }
+
+    public List<String> replaceLanguageDependentPlaceholders(String toFormat) {
+        return projectLangs
+            .stream()
+            .map(lang -> replaceLanguageDependentPlaceholders(toFormat, lang))
+            .collect(Collectors.toList());
+    }
+
+    public String replaceLanguageDependentPlaceholders(String toFormat, Language lang) {
+        if (toFormat == null || lang == null) {
+            throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");
+        }
         return toFormat
                 .replace(PLACEHOLDER_LANGUAGE, lang.getName())
                 .replace(PLACEHOLDER_LOCALE, lang.getLocale())
@@ -77,13 +91,44 @@ public class PlaceholderUtil {
                 .replace(PLACEHOLDER_OSX_CODE, lang.getOsxCode());
     }
 
-    private String replaceFileDependentPlaceholders(String toFormat, File file) {
+    public List<String> replaceLanguageDependentPlaceholders(String toFormat, Map<String, Map<String, String>> languageMapping) {
+        return projectLangs
+            .stream()
+            .map(lang -> replaceLanguageDependentPlaceholders(toFormat, languageMapping, lang))
+            .collect(Collectors.toList());
+    }
+
+    public String replaceLanguageDependentPlaceholders(String toFormat, Map<String, Map<String, String>> languageMapping, Language lang) {
+        if (toFormat == null || lang == null || languageMapping == null) {
+            throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");
+        }
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LANGUAGE, lang.getName(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LOCALE, lang.getLocale(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LOCALE_WITH_UNDERSCORE, lang.getLocale().replace("-", "_"), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_TWO_LETTERS_CODE, lang.getTwoLettersCode(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_THREE_LETTERS_CODE, lang.getThreeLettersCode(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_ANDROID_CODE, lang.getAndroidCode(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_OSX_LOCALE, lang.getOsxLocale(), languageMapping);
+        return replaceWithMapping(toFormat, PLACEHOLDER_OSX_CODE, lang.getOsxCode(), languageMapping);
+    }
+
+    private String replaceWithMapping(String toFormat, String placeholder, String code, Map<String, Map<String, String>> langMapping) {
+        return toFormat.replace(
+                placeholder,
+                langMapping.containsKey(placeholder.replaceAll("%", ""))
+                    ? langMapping.get(placeholder.replaceAll("%", "")).getOrDefault(code, code)
+                    : code);
+    }
+
+    public String replaceFileDependentPlaceholders(String toFormat, File file) {
+        if (toFormat == null || file == null) {
+            throw new NullPointerException("null args in replaceFileDependentPlaceholders()");
+        }
         String fileName = file.getName();
         String fileNameWithoutExt = FilenameUtils.removeExtension(fileName);
         String fileExt = FilenameUtils.getExtension(fileName);
-        String tempBasePath =
-                (Utils.isWindows()) ? basePath.replace("\\", "\\\\") : basePath;
-        String fileParent = file.getParent().replaceFirst(tempBasePath, "");
+        String tempBasePath = basePath;
+        String fileParent = StringUtils.removeStart((file.getParent() != null ? file.getParent() : ""), tempBasePath);
         return toFormat
                 .replace(PLACEHOLDER_ORIGINAL_FILE_NAME, fileName)
                 .replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt)
