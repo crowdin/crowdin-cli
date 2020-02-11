@@ -9,7 +9,6 @@ import java.util.ResourceBundle;
 @CommandLine.Command(
         name = "crowdin",
         versionProvider = Command.VersionProvider.class,
-        mixinStandardHelpOptions = true,
         synopsisHeading = "%n@|underline SYNOPSIS|@:%n",
         descriptionHeading = "%n@|underline DESCRIPTION|@:%n",
         parameterListHeading = "%n@|underline PARAMETERS|@:%n",
@@ -18,6 +17,12 @@ import java.util.ResourceBundle;
         usageHelpAutoWidth = true
 )
 public abstract class Command implements Runnable {
+
+    @CommandLine.Option(names = {"-V", "--version"}, versionHelp = true, description = "Print version information and exit")
+    boolean versionInfoRequested;
+
+    @CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Show this help message and exit")
+    boolean usageHelpRequested;
 
     @CommandLine.Option(names = {"--no-progress"}, description = "Disable progress on executing command")
     protected boolean noProgress;
