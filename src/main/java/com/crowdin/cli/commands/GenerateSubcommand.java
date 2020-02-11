@@ -44,42 +44,52 @@ public class GenerateSubcommand extends Command {
                 return;
             }
 
-            List<String> file;
-            try {
-                file = IOUtils.readLines(this.getClass().getResourceAsStream("/crowdin.yml"), "UTF-8");
-            } catch (IOException e) {
-                throw new RuntimeException("Couldn't read from resource file", e);
-            }
-
+            List<String> fileLines = this.readResource("/crowdin.yml");
             if (!skipGenerateDescription) {
-                Map<String, String> values = new HashMap<>();
-
-                values.put(BASE_PATH, askParamWithDefault(BASE_PATH, BASE_PATH_DEFAULT));
-                values.put(BASE_URL,
-                        askParamWithDefault(BASE_URL,
-                                StringUtils.startsWithAny(ask("Is it enterprise: (N/y) "), "y", "Y", "+")
-                                        ? String.format(BASE_ENTERPRISE_URL_DEFAULT, ask("Enter your organization: "))
-                                        : BASE_URL_DEFAULT));
-                values.put(PROJECT_ID, askParam(PROJECT_ID));
-                values.put(API_TOKEN, askParam(API_TOKEN));
-
-                for (String key : values.keySet()) {
-                    for (int i = 0; i < file.size(); i++) {
-                        if (file.get(i).contains(key)) {
-                            file.set(i, file.get(i).replaceFirst(": \"*\"", String.format(": \"%s\"", values.get(key))));
-                            break;
-                        }
-                    }
-                }
+                this.updateWithUserInputs(fileLines);
             }
+            this.write(destinationPath, fileLines);
 
-            try {
-                Files.write(destinationPath, file);
-            } catch (IOException e) {
-                throw new RuntimeException("Couldn't write to file '" + destinationPath.toAbsolutePath() + "'", e);
-            }
         } catch (Exception e) {
             throw new RuntimeException("Error while creating config file", e);
+        }
+    }
+
+    private void write(Path path, List<String> fileLines) {
+        try {
+            Files.write(destinationPath, fileLines);
+        } catch (IOException e) {
+            throw new RuntimeException("Couldn't write to file '" + destinationPath.toAbsolutePath() + "'", e);
+        }
+    }
+
+    private void updateWithUserInputs(List<String> fileLines) {
+        Map<String, String> values = new HashMap<>();
+
+        values.put(BASE_PATH, askParamWithDefault(BASE_PATH, BASE_PATH_DEFAULT));
+        values.put(BASE_URL,
+            askParamWithDefault(BASE_URL,
+                StringUtils.startsWithAny(ask("Is it enterprise: (N/y) "), "y", "Y", "+")
+                    ? String.format(BASE_ENTERPRISE_URL_DEFAULT, ask("Enter your organization: "))
+                    : BASE_URL_DEFAULT));
+        values.put(PROJECT_ID, askParam(PROJECT_ID));
+        values.put(API_TOKEN, askParam(API_TOKEN));
+
+        for (String key : values.keySet()) {
+            for (int i = 0; i < fileLines.size(); i++) {
+                if (fileLines.get(i).contains(key)) {
+                    fileLines.set(i, fileLines.get(i).replaceFirst(": \"*\"", String.format(": \"%s\"", values.get(key))));
+                    break;
+                }
+            }
+        }
+    }
+
+    private List<String> readResource(String fileName) {
+        try {
+            return IOUtils.readLines(this.getClass().getResourceAsStream(fileName), "UTF-8");
+        } catch (IOException e) {
+            throw new RuntimeException("Couldn't read from resource file", e);
         }
     }
 
