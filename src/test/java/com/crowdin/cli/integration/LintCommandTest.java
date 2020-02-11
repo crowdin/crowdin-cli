@@ -40,21 +40,21 @@ public class LintCommandTest extends BaseIntegrationTest {
         this.executeCliCommand("lint");
     }
 
-    @Test
-    public void testEmptySource() {
-        this.initConfig("testEmptySource.yml");
-        this.expectErrorOutput("testEmptySource.txt");
-
-        this.executeCliCommand("lint");
-    }
-
-    @Test
-    public void testEmptyTranslation() {
-        this.initConfig("testEmptyTranslation.yml");
-        this.expectErrorOutput("testEmptyTranslation.txt");
-
-        this.executeCliCommand("lint");
-    }
+//    @Test
+//    public void testEmptySource() {
+//        this.initConfig("testEmptySource.yml");
+//        this.expectErrorOutput("testEmptySource.txt");
+//
+//        this.executeCliCommand("lint");
+//    }
+//
+//    @Test
+//    public void testEmptyTranslation() {
+//        this.initConfig("testEmptyTranslation.yml");
+//        this.expectErrorOutput("testEmptyTranslation.txt");
+//
+//        this.executeCliCommand("lint");
+//    }
 
     @Test
     public void testEmptyFiles() {
