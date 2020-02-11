@@ -23,10 +23,7 @@ import picocli.CommandLine;
 
 import javax.ws.rs.core.Response;
 import java.io.File;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
@@ -174,12 +171,12 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                         Response response = null;
                         try {
                             if (autoUpdate) {
-                                response = EntityUtils.find(
-                                        projectInfo.getFiles(),
-                                        filePayload.getName(),
-                                        filePayload.getDirectoryId(),
-                                        FileEntity::getName,
-                                        FileEntity::getDirectoryId)
+                                response = projectInfo.getFiles()
+                                        .stream()
+                                        .filter(fileEntity -> Objects.equals(fileEntity.getName(), filePayload.getName()))
+                                        .filter(fileEntity -> Objects.equals(fileEntity.getDirectoryId(), filePayload.getDirectoryId()))
+                                        .filter(fileEntity -> Objects.equals(fileEntity.getBranchId(), filePayload.getBranchId()))
+                                        .findFirst()
                                         .map(fileEntity -> {
                                             String fileId = fileEntity.getId().toString();
                                             String projectId = projectInfo.getProjectId();
