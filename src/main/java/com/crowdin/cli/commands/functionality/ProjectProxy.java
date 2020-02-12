@@ -118,9 +118,12 @@ public class ProjectProxy {
         if (this.supportedLanguages == null) {
             this.downloadSupportedLanguages();
         }
-        return supportedLanguages.stream()
+        List<Language> projectLanguages = supportedLanguages.stream()
             .filter(language -> project.getTargetLanguageIds().contains(language.getId()))
             .collect(Collectors.toList());
+
+        this.getPseudoLanguage().ifPresent(projectLanguages::add);
+        return projectLanguages;
     }
 
     public Optional<Language> getPseudoLanguage() {
