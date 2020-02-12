@@ -22,13 +22,6 @@ public class LanguagesClient extends Client {
         super(settings);
     }
 
-    public List<Language> getProjectLanguages(Project project) {
-        Set<String> targetLanguageIds = new HashSet<>(project.getTargetLanguageIds());
-        return getAllSupportedLanguages().stream()
-                .filter(language -> targetLanguageIds.contains(language.getId()))
-                .collect(Collectors.toList());
-    }
-
     public List<Language> getAllSupportedLanguages() {
         CrowdinRequestBuilder<Page<Language>> getLanguages = new LanguagesApi(settings).getLanguages(null);
         return PaginationUtil.unpaged(getLanguages, 500);

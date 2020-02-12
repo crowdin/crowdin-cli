@@ -1,9 +1,10 @@
 package com.crowdin.cli.commands;
 
-import com.crowdin.cli.client.*;
-import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.StorageClient;
+import com.crowdin.cli.client.TranslationsClient;
 import com.crowdin.cli.client.request.TranslationPayloadWrapper;
 import com.crowdin.cli.commands.functionality.DryrunTranslations;
+import com.crowdin.cli.commands.functionality.ProjectProxy;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -13,6 +14,7 @@ import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.common.Settings;
+import com.crowdin.common.models.Branch;
 import com.crowdin.common.models.Directory;
 import com.crowdin.common.models.FileEntity;
 import com.crowdin.common.models.Language;
@@ -26,10 +28,10 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
@@ -70,9 +72,22 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         PropertiesBean pb = this.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
-        ProjectWrapper projectInfo = getProjectInfo(pb.getProjectId(), settings);
+        ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
+        try {
+            ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
+            project.downloadProject()
+                .downloadSupportedLanguages()
+                .downloadDirectories()
+                .downloadFiles()
+                .downloadBranches();
+            ConsoleSpinner.stop(OK);
+        } catch (Exception e) {
+            ConsoleSpinner.stop(ERROR);
+            throw new RuntimeException("Exception while gathering project info", e);
+        }
+
         PlaceholderUtil placeholderUtil =
-            new PlaceholderUtil(projectInfo.getSupportedLanguages(), projectInfo.getProjectLanguages(), pb.getBasePath());
+            new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
         if (dryrun) {
             (new DryrunTranslations(pb, placeholderUtil, true)).run(treeView);
@@ -80,26 +95,18 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         }
 
         StorageClient storageClient = new StorageClient(settings);
-        BranchClient branchClient = new BranchClient(settings);
         TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
 
-        Map<String, Long> filePathsToFileId;
-        try {
-            Map<Long, String> branchNames = branchClient.getBranchesMapIdName(pb.getProjectId());
-            Map<Long, Directory> directories = projectInfo
-                    .getDirectories()
-                    .stream()
-                    .collect(Collectors.toMap(Directory::getId, Function.identity()));
-            filePathsToFileId = buildFilePaths(buildDirectoryPaths(directories, branchNames), projectInfo.getFiles());
-        } catch (ResponseException e) {
-            throw new RuntimeException("Couldn't get list of directories", e);
-        }
+        Map<String, Long> filePathsToFileId =
+            buildFilePaths(
+                buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()),
+                project.getFiles());
 
         List<Language> languages = (languageId != null)
-            ? projectInfo.getProjectLanguageByCrowdinCode(languageId)
-            .map(Collections::singletonList)
-            .orElseThrow(() -> new RuntimeException("Couldn't find language by language id: " + languageId))
-            : projectInfo.getProjectLanguages();
+            ? project.getLanguageById(languageId)
+                .map(Collections::singletonList)
+                .orElseThrow(() -> new RuntimeException("Couldn't find language by language id: " + languageId))
+            : project.getProjectLanguages();
 
         for (FileBean file : pb.getFiles()) {
             List<File> fileSourcesWithoutIgnores =
@@ -195,14 +202,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         }
     }
 
-    private ProjectWrapper getProjectInfo(String projectId, Settings settings) {
-        ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
-        ProjectWrapper projectInfo = new ProjectClient(settings).getProjectInfo(projectId, false);
-        ConsoleSpinner.stop(OK);
-        return projectInfo;
-    }
-
-    private Map<Long, String> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, String> branchNames) {
+    private Map<Long, String> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, Branch> branchNames) {
         Map<Long, String> directoryPaths = new HashMap<>();
         for (Long id : directories.keySet()) {
             Directory dir = directories.get(id);
@@ -212,12 +212,12 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                 sb.insert(0, dir.getName() + Utils.PATH_SEPARATOR);
             }
             if (dir.getBranchId() != null) {
-                sb.insert(0, branchNames.get(dir.getBranchId()) + Utils.PATH_SEPARATOR);
+                sb.insert(0, branchNames.get(dir.getBranchId()).getName() + Utils.PATH_SEPARATOR);
             }
             directoryPaths.put(id, sb.toString());
         }
         for (Long id : branchNames.keySet()) {
-            directoryPaths.put(id, branchNames.get(id) + Utils.PATH_SEPARATOR);
+            directoryPaths.put(id, branchNames.get(id).getName() + Utils.PATH_SEPARATOR);
         }
         return directoryPaths;
     }

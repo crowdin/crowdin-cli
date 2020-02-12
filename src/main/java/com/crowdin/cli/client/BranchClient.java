@@ -43,7 +43,7 @@ public class BranchClient extends Client {
         }
     }
 
-    private List<Branch> getAllSupportedBranches(String projectId) {
+    public List<Branch> getAllSupportedBranches(String projectId) {
         CrowdinRequestBuilder<Page<Branch>> branches = new BranchesApi(settings).getBranches(projectId, null);
         return PaginationUtil.unpaged(branches);
     }

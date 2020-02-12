@@ -1,10 +1,8 @@
 package com.crowdin.cli.commands;
 
-import com.crowdin.cli.client.BranchClient;
-import com.crowdin.cli.client.ProjectClient;
-import com.crowdin.cli.client.ProjectWrapper;
 import com.crowdin.cli.client.TranslationsClient;
 import com.crowdin.cli.commands.functionality.DryrunTranslations;
+import com.crowdin.cli.commands.functionality.ProjectProxy;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -12,7 +10,6 @@ import com.crowdin.cli.utils.CommandUtils;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.cli.utils.console.ConsoleUtils;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.cli.utils.file.FileUtil;
 import com.crowdin.common.Settings;
@@ -36,6 +33,7 @@ import java.util.stream.Collectors;
 import java.util.zip.ZipException;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.*;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
@@ -66,7 +64,16 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         PropertiesBean pb = this.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
-        ProjectWrapper project = getProjectInfo(pb.getProjectId(), settings);
+        ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
+        try {
+            ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
+            project.downloadProject()
+                .downloadSupportedLanguages();
+            ConsoleSpinner.stop(OK);
+        } catch (Exception e) {
+            ConsoleSpinner.stop(ERROR);
+            throw new RuntimeException("Exception while gathering project info", e);
+        }
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
         if (dryrun) {
@@ -88,7 +95,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
     private void download(
         PropertiesBean pb,
-        ProjectWrapper projectWrapper,
+        ProjectProxy project,
         String languageCode,
         PlaceholderUtil placeholderUtil,
         Settings settings,
@@ -96,14 +103,14 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
     ) {
         CommandUtils commandUtils = new CommandUtils();
 
-        Language languageEntity = projectWrapper.getProjectLanguages()
+        Language languageEntity = project.getProjectLanguages()
             .stream()
             .filter(language -> language.getId().equals(languageCode))
             .findAny()
             .orElseThrow(() -> new RuntimeException("language '" + languageCode + "' does not exist in the project"));
 
         Optional<Branch> branchOrNull = Optional.ofNullable(this.branch)
-            .flatMap(branchName -> new BranchClient(settings).getProjectBranchByName(pb.getProjectId(), branchName));
+            .flatMap(project::getBranchByName);
 
         TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
 
@@ -158,13 +165,13 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             for (String downloadedFile : getListOfFileFromArchive(downloadedZipArchive)) {
                 downloadedFilesProc.add(downloadedFile.replaceAll("[\\\\/]+", "/"));
             }
-            Map<String, String> mapping = projectWrapper.getProjectLanguageByCrowdinCode(languageCode)
+            Map<String, String> mapping = project.getLanguageById(languageCode)
                 .map(lang -> commandUtils.doLanguagesMapping(lang, pb.getFiles(), pb.getBasePath(), placeholderUtil))
                 .orElse(Collections.emptyMap());
             List<String> files = pb.getFiles()
                 .stream()
                 .flatMap(file ->
-                    commandUtils.getTranslations(file, projectWrapper.getProjectLanguages(), projectWrapper.getSupportedLanguages(), pb, placeholderUtil).stream())
+                    commandUtils.getTranslations(file, project.getProjectLanguages(), project.getSupportedLanguages(), pb, placeholderUtil).stream())
                 .distinct()
                 .map(translation -> translation.replaceAll("[\\\\/]+", "/"))
                 .collect(Collectors.toList());
@@ -186,13 +193,6 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         } catch (Exception e) {
             System.out.println(RESOURCE_BUNDLE.getString("error_extracting_files"));
         }
-    }
-
-    private ProjectWrapper getProjectInfo(String projectId, Settings settings) {
-        ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
-        ProjectWrapper projectInfo = new ProjectClient(settings).getProjectInfo(projectId, false);
-        ConsoleSpinner.stop(OK);
-        return projectInfo;
     }
 
     private List<String> getListOfFileFromArchive(File downloadedZipArchive) {

@@ -7,6 +7,7 @@ import com.crowdin.cli.client.request.SpreadsheetFileImportOptionsWrapper;
 import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
 import com.crowdin.cli.client.request.XmlFileImportOptionsWrapper;
 import com.crowdin.cli.commands.functionality.DryrunSources;
+import com.crowdin.cli.commands.functionality.ProjectProxy;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.*;
@@ -58,9 +59,21 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
         PropertiesBean pb = this.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
-        ProjectWrapper projectInfo = getProjectInfo(pb.getProjectId(), settings);
+        ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
+        try {
+            ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
+            project.downloadProject()
+                .downloadSupportedLanguages()
+                .downloadDirectories()
+                .downloadFiles()
+                .downloadBranches();
+            ConsoleSpinner.stop(OK);
+        } catch (Exception e) {
+            ConsoleSpinner.stop(ERROR);
+            throw new RuntimeException("Exception while gathering project info", e);
+        }
         PlaceholderUtil placeholderUtil =
-                new PlaceholderUtil(projectInfo.getSupportedLanguages(), projectInfo.getProjectLanguages(), pb.getBasePath());
+                new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
         if (dryrun) {
             (new DryrunSources(pb, placeholderUtil)).run(treeView);
@@ -98,14 +111,9 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                 throw new RuntimeException("The 'dest' parameter only works for single files, and if you use it, the configuration file should also include the 'preserve_hierarchy' parameter with true value.");
             }
 
-            try {
-                Map<Long, String> branchNames = branchClient.getBranchesMapIdName(pb.getProjectId());
-                Map<Long, Directory> directories = directoriesClient.getProjectDirectoriesMapPathId();
-                Map<String, Long> mapDirectoryPathId = buildDirectoryPaths(directories, branchNames);
-                commandUtils.addDirectoryIdMap(mapDirectoryPathId, branchNames);
-            } catch (ResponseException e) {
-                throw new RuntimeException("Couldn't get list of directories", e);
-            }
+            commandUtils.addDirectoryIdMap(
+                buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()),
+                project.getMapBranches());
 
             List<Runnable> tasks = sources.stream()
                     .map(File::new)
@@ -171,7 +179,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                         Response response = null;
                         try {
                             if (autoUpdate) {
-                                response = projectInfo.getFiles()
+                                response = project.getFiles()
                                         .stream()
                                         .filter(fileEntity -> Objects.equals(fileEntity.getName(), filePayload.getName()))
                                         .filter(fileEntity -> Objects.equals(fileEntity.getDirectoryId(), filePayload.getDirectoryId()))
@@ -179,7 +187,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                                         .findFirst()
                                         .map(fileEntity -> {
                                             String fileId = fileEntity.getId().toString();
-                                            String projectId = projectInfo.getProjectId();
+                                            String projectId = pb.getProjectId();
 
                                             UpdateFilePayload updateFilePayload = new UpdateFilePayloadWrapper(
                                                     filePayload.getStorageId(),
@@ -209,13 +217,6 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                     .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks);
         }
-    }
-
-    private ProjectWrapper getProjectInfo(String projectId, Settings settings) {
-        ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
-        ProjectWrapper projectInfo = new ProjectClient(settings).getProjectInfo(projectId, false);
-        ConsoleSpinner.stop(OK);
-        return projectInfo;
     }
 
     private Optional<String> getUpdateOption(String fileUpdateOption) {
@@ -250,7 +251,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
         }
     }
 
-    private Map<String, Long> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, String> branchNames) {
+    private Map<String, Long> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, Branch> branchNames) {
         Map<String, Long> directoryPaths = new HashMap<>();
         for (Long id : directories.keySet()) {
             Directory dir = directories.get(id);
@@ -260,7 +261,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                 sb.insert(0, dir.getName() + Utils.PATH_SEPARATOR);
             }
             if (dir.getBranchId() != null) {
-                sb.insert(0, branchNames.get(dir.getBranchId()) + Utils.PATH_SEPARATOR);
+                sb.insert(0, branchNames.get(dir.getBranchId()).getName() + Utils.PATH_SEPARATOR);
             }
             directoryPaths.put(sb.toString(), id);
         }
