@@ -1,6 +1,5 @@
 package com.crowdin.cli.client;
 
-import com.crowdin.cli.utils.EntityUtils;
 import com.crowdin.common.models.*;
 
 import java.util.List;
@@ -32,11 +31,15 @@ public class ProjectWrapper {
     }
 
     public Optional<Language> getProjectLanguageByCrowdinCode(String crowdinCode) {
-        Optional<Language> supportedLangByCode = EntityUtils.find(supportedLanguages, byCrowdinCode(crowdinCode));
+        Optional<Language> supportedLangByCode = projectLanguages.stream()
+                .filter(byCrowdinCode(crowdinCode))
+                .findFirst();
 
         if (!supportedLangByCode.isPresent()) return Optional.empty();
 
-        return EntityUtils.find(projectLanguages, byCrowdinCode(crowdinCode));
+        return projectLanguages.stream()
+                .filter(byCrowdinCode(crowdinCode))
+                .findFirst();
     }
 
     public static Predicate<Language> byCrowdinCode(String crowdinCode) {

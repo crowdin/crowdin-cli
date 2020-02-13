@@ -415,8 +415,9 @@ public class CommandUtils extends BaseCli {
         for (Language projectLanguage : projectLanguages) {
             String langName = projectLanguage.getName();
 
-            Language language = EntityUtils
-                .find(supportedLanguages, l -> l.getName().equalsIgnoreCase(langName))
+            Language language = supportedLanguages.stream()
+                .filter(lang -> lang.getName().equalsIgnoreCase(langName))
+                .findFirst()
                 .orElseThrow(() -> new RuntimeException("Language doesn't exist in supported languages"));
 
 
