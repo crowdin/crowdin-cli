@@ -54,8 +54,8 @@ public class GenerateSubcommand extends Command {
             }
             this.write(destinationPath, fileLines);
             System.out.printf("Your configuration skeleton has been successfully generated. " +
-                    "Specify the paths to your sources and translations in the files section. " +
-                    "For more details see %s%n", (this.isEnterprise ? ENTERPRISE_LINK : LINK));
+                    "%nSpecify the paths to your sources and translations in the files section. " +
+                    "%nFor more details see %s%n", (this.isEnterprise ? ENTERPRISE_LINK : LINK));
 
         } catch (Exception e) {
             throw new RuntimeException("Error while creating config file", e);
@@ -73,7 +73,7 @@ public class GenerateSubcommand extends Command {
     private void updateWithUserInputs(List<String> fileLines) {
         Map<String, String> values = new HashMap<>();
 
-        values.put(BASE_PATH, askParamWithDefault(BASE_PATH, BASE_PATH_DEFAULT));
+        values.put(BASE_PATH, askWithDefault("Your project directory", BASE_PATH_DEFAULT));
         this.isEnterprise = StringUtils.startsWithAny(ask("For Crowdin Enterprise: (N/y) "), "y", "Y", "+");
         if (this.isEnterprise) {
             String organizationName = ask("Your organization name: ");
@@ -107,13 +107,13 @@ public class GenerateSubcommand extends Command {
         }
     }
 
-    private String askParamWithDefault(String key, String def) {
-        String input = ask(StringUtils.capitalize(key.replaceAll("_", " ")) + ": (" + def + ") ");
-        return StringUtils.isNotEmpty(input) ? input : def;
-    }
-
     private String askParam(String key) {
         return ask(StringUtils.capitalize(key.replaceAll("_", " ")) + ": ");
+    }
+
+    private String askWithDefault(String question, String def) {
+        String input = ask(question + ": (" + def + ") ");
+        return StringUtils.isNotEmpty(input) ? input : def;
     }
 
     private String ask(String question) {
