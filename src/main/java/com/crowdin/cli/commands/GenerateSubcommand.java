@@ -34,6 +34,10 @@ public class GenerateSubcommand extends Command {
     public static final String BASE_ENTERPRISE_URL_DEFAULT = "https://%s.crowdin.com";
 
     private Scanner scanner = new Scanner(System.in);
+    private boolean isEnterprise;
+
+    public static final String LINK = "https://support.crowdin.com/configuration-file-v3/";
+    public static final String ENTERPRISE_LINK = "https://support.crowdin.com/enterprise/configuration-file/";
 
     @Override
     public void run() {
@@ -49,6 +53,9 @@ public class GenerateSubcommand extends Command {
                 this.updateWithUserInputs(fileLines);
             }
             this.write(destinationPath, fileLines);
+            System.out.printf("Your configuration skeleton has been successfully generated. " +
+                    "Specify the paths to your sources and translations in the files section. " +
+                    "For more details see %s%n", (this.isEnterprise ? ENTERPRISE_LINK : LINK));
 
         } catch (Exception e) {
             throw new RuntimeException("Error while creating config file", e);
@@ -67,11 +74,18 @@ public class GenerateSubcommand extends Command {
         Map<String, String> values = new HashMap<>();
 
         values.put(BASE_PATH, askParamWithDefault(BASE_PATH, BASE_PATH_DEFAULT));
-        values.put(BASE_URL,
-            askParamWithDefault(BASE_URL,
-                StringUtils.startsWithAny(ask("Is it enterprise: (N/y) "), "y", "Y", "+")
-                    ? String.format(BASE_ENTERPRISE_URL_DEFAULT, ask("Enter your organization: "))
-                    : BASE_URL_DEFAULT));
+        this.isEnterprise = StringUtils.startsWithAny(ask("For Crowdin Enterprise: (N/y) "), "y", "Y", "+");
+        if (this.isEnterprise) {
+            String organizationName = ask("Your organization name: ");
+            if (StringUtils.isNotEmpty(organizationName)) {
+                values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, organizationName));
+            } else {
+                this.isEnterprise = false;
+                values.put(BASE_URL, BASE_URL_DEFAULT);
+            }
+        } else {
+            values.put(BASE_URL, BASE_URL_DEFAULT);
+        }
         values.put(PROJECT_ID, askParam(PROJECT_ID));
         values.put(API_TOKEN, askParam(API_TOKEN));
 
