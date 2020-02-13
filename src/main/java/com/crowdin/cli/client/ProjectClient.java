@@ -17,10 +17,10 @@ public class ProjectClient extends Client {
         try {
             return (new ProjectsApi(settings)).getProject(projectId).getResponseEntity().getEntity();
         } catch (Exception e) {
-            if (e.getMessage().equalsIgnoreCase("Organization Not Found")) {
-                throw new OrganizationNotFoundResponseException(e.getMessage());
-            } else if (e.getMessage().contains("Not Found")) {
-                throw new ProjectNotFoundResponseException(e.getMessage());
+            if (e.getMessage().contains("Organization Not Found")) {
+                throw new OrganizationNotFoundResponseException();
+            } else if (e.getMessage().contains("Project Not Found")) {
+                throw new ProjectNotFoundResponseException();
             } else {
                 throw new ResponseException(e.getMessage());
             }

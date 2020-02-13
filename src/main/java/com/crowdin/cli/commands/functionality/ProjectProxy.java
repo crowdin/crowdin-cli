@@ -40,7 +40,7 @@ public class ProjectProxy {
         } catch (ProjectNotFoundResponseException e) {
             throw new RuntimeException("Project with id: " + projectId + " does not exist");
         } catch (ResponseException e){
-            throw new RuntimeException("Unhandled exception while getting project information", e);
+            throw new RuntimeException("Unhandled Exception: " + e.getMessage());
         }
         return this;
     }
