@@ -6,6 +6,7 @@ import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -14,10 +15,12 @@ public class DryrunTranslations extends Dryrun {
 
     private PropertiesBean pb;
     private PlaceholderUtil placeholderUtil;
+    private boolean filesMustExist;
 
-    public DryrunTranslations(PropertiesBean pb, PlaceholderUtil placeholderUtil) {
+    public DryrunTranslations(PropertiesBean pb, PlaceholderUtil placeholderUtil, boolean filesMustExist) {
         this.pb = pb;
         this.placeholderUtil = placeholderUtil;
+        this.filesMustExist = filesMustExist;
     }
 
     @Override
@@ -40,6 +43,7 @@ public class DryrunTranslations extends Dryrun {
                 )
             )
             .distinct()
+            .filter(file -> (!filesMustExist) || new File(pb.getBasePath() + StringUtils.removeStart(file, Utils.PATH_SEPARATOR)).exists())
             .map(source -> StringUtils.removeStart(source, pb.getBasePath()))
             .collect(Collectors.toList());
     }
