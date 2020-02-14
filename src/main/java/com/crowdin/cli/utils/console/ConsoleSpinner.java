@@ -10,6 +10,10 @@ public class ConsoleSpinner {
         worker.start();
     }
 
+    public static void update(String contextMessage) {
+        worker.setMessage(contextMessage);
+    }
+
 
     public static void stop(ExecutionStatus status) {
         if (worker == null) {
