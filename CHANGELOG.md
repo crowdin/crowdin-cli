@@ -1,5 +1,11 @@
 **Unreleased**
 
+**Version 3.1.1**
++ Added: add progress to show while building translations
++ Added: add `--dryrun` option to translations upload
++ Updated: improve `init` command
++ Fixed: fix branches - Now files can be in branches root
+
 **Version 3.1.0**
 + Added: use picocli library for commands
 + Added: help messages color highlight
