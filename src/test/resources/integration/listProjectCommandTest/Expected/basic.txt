@@ -1,0 +1,2 @@
+[OK] Fetching project info
+umbrella_app.xliff

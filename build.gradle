@@ -46,6 +46,9 @@ dependencies {
 
     compile files('libs/crowdin-1.0.jar')
     testCompile('org.junit.jupiter:junit-jupiter:5.5.2')
+
+    testImplementation("org.mock-server:mockserver-netty:4.0.0")
+    testImplementation("org.mock-server:mockserver-client-java:4.0.0")
 }
 
 task buildCrowdinCliJar(type: Jar) {
