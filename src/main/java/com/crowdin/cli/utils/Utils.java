@@ -1,7 +1,5 @@
 package com.crowdin.cli.utils;
 
-import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.console.ConsoleUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
@@ -35,6 +33,8 @@ public class Utils {
     public static final String PATH_SEPARATOR_REGEX = "\\".equals(PATH_SEPARATOR) ? "\\\\" : PATH_SEPARATOR;
 
     private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
+
+    private static String userAgentString;
 
     public static String getAppName() {
         Properties properties = new Properties();
@@ -102,6 +102,29 @@ public class Utils {
 
     public static Boolean isWindows() {
         return SystemUtils.IS_OS_WINDOWS;
+    }
+
+    public static String buildUserAgent() {
+        if (Utils.userAgentString != null) {
+            return Utils.userAgentString;
+        }
+        Properties prop = new Properties();
+        try {
+            InputStream in = Utils.class.getResourceAsStream(PROPERTIES_FILE);
+            prop.load(in);
+            in.close();
+        } catch (Exception e) {
+            System.out.println(RESOURCE_BUNDLE.getString("error_get_user_agent"));
+        }
+
+        Utils.userAgentString = String.format("%s/%s java/%s/%s %s/%s",
+            prop.getProperty("application.name"),
+            prop.getProperty("application.version"),
+            System.getProperty("java.vendor"),
+            System.getProperty("java.version"),
+            System.getProperty("os.name"),
+            System.getProperty("os.version"));
+        return Utils.userAgentString;
     }
 
     public static String getUserAgent() {

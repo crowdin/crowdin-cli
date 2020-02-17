@@ -15,7 +15,7 @@ public class ProjectClient extends Client {
 
     public ProjectSettings getProject(String projectId) throws ResponseException {
         try {
-            return (new ProjectsApi(settings)).getProject(projectId).getResponseEntity().getEntity();
+            return execute((new ProjectsApi(settings)).getProject(projectId));
         } catch (Exception e) {
             if (e.getMessage().contains("Organization Not Found")) {
                 throw new OrganizationNotFoundResponseException();

@@ -1,6 +1,9 @@
 package com.crowdin.cli.commands.parts;
 
-import com.crowdin.cli.client.*;
+import com.crowdin.cli.client.BranchClient;
+import com.crowdin.cli.client.DirectoriesClient;
+import com.crowdin.cli.client.FileClient;
+import com.crowdin.cli.client.StorageClient;
 import com.crowdin.cli.client.exceptions.ResponseException;
 import com.crowdin.cli.client.request.PropertyFileExportOptionsWrapper;
 import com.crowdin.cli.client.request.SpreadsheetFileImportOptionsWrapper;
@@ -18,11 +21,9 @@ import com.crowdin.common.models.Branch;
 import com.crowdin.common.models.Directory;
 import com.crowdin.common.models.FileEntity;
 import com.crowdin.common.request.*;
-import com.crowdin.util.ResponseUtil;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
-import javax.ws.rs.core.Response;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -176,7 +177,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                         } else branchId.ifPresent(filePayload::setBranchId);
 
 
-                        Response response = null;
+                        FileEntity response = null;
                         try {
                             if (autoUpdate) {
                                 response = project.getFiles()
@@ -208,10 +209,6 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                             String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
                             System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + fileName + "'"));
                             System.out.println(e.getMessage());
-                        }
-                        if (this.isVerbose && response != null) {
-                            System.out.println(response.getHeaders());
-                            System.out.println(ResponseUtil.getResponceBody(response));
                         }
                     })
                     .collect(Collectors.toList());
