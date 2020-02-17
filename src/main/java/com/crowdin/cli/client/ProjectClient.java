@@ -19,7 +19,7 @@ public class ProjectClient extends Client {
         } catch (Exception e) {
             if (e.getMessage().contains("Organization Not Found")) {
                 throw new OrganizationNotFoundResponseException();
-            } else if (e.getMessage().contains("Project Not Found")) {
+            } else if (e.getMessage().contains("Not Found")) {
                 throw new ProjectNotFoundResponseException();
             } else {
                 throw new ResponseException(e.getMessage());
