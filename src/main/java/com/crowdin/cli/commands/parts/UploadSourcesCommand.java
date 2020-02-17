@@ -61,6 +61,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
         ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
+        Optional<Long> branchId;
         try {
             ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
             project.downloadProject()
@@ -68,6 +69,12 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                 .downloadDirectories()
                 .downloadFiles()
                 .downloadBranches();
+            if (branch != null) {
+                branchId = Optional.of(project.getOrCreateBranch(branch));
+                System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_branch") + " '" + branch + "' "));
+            } else {
+                branchId = Optional.empty();
+            }
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
@@ -84,11 +91,6 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
         FileClient fileClient = new FileClient(settings);
         StorageClient storageClient = new StorageClient(settings);
         DirectoriesClient directoriesClient = new DirectoriesClient(settings, pb.getProjectId());
-        BranchClient branchClient = new BranchClient(settings);
-
-        Optional<Long> branchId = Optional
-                .ofNullable(StringUtils.isNotEmpty(branch) ? branch : null)
-                .map(br -> getOrCreateBranchId(br, branchClient, pb.getProjectId()));
 
         for (FileBean file : pb.getFiles()) {
             if (StringUtils.isAnyEmpty(file.getSource(), file.getTranslation())) {
@@ -227,24 +229,6 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                 return Optional.of(UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS);
             default:
                 return Optional.empty();
-        }
-    }
-
-    private Long getOrCreateBranchId(String branch, BranchClient branchClient, String projectId) {
-        if (StringUtils.isEmpty(branch)) {
-            throw new RuntimeException("branch is empty");
-        }
-        try {
-            Optional<Branch> branchOpt = branchClient.getProjectBranchByName(projectId, branch);
-            if (branchOpt.isPresent()) {
-                return branchOpt.get().getId();
-            } else {
-                Long newBranchId = branchClient.createBranch(projectId, new BranchPayload(branch)).getId();
-                System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_branch") + " '" + branch + "' "));
-                return newBranchId;
-            }
-        } catch (ResponseException e) {
-            throw new RuntimeException("Exception while working with branches", e);
         }
     }
 
