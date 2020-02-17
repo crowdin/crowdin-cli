@@ -69,12 +69,6 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                 .downloadDirectories()
                 .downloadFiles()
                 .downloadBranches();
-            if (branch != null) {
-                branchId = Optional.of(project.getOrCreateBranch(branch));
-                System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_branch") + " '" + branch + "' "));
-            } else {
-                branchId = Optional.empty();
-            }
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
@@ -86,6 +80,13 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
         if (dryrun) {
             (new DryrunSources(pb, placeholderUtil)).run(treeView);
             return;
+        }
+
+        if (branch != null) {
+            branchId = Optional.of(project.getOrCreateBranch(branch));
+            System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_branch") + " '" + branch + "' "));
+        } else {
+            branchId = Optional.empty();
         }
 
         FileClient fileClient = new FileClient(settings);
