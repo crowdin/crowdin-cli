@@ -175,8 +175,8 @@ public class CliProperties {
     }
 
     private static void setDefaultValues(PropertiesBean pb) {
-        if (pb == null || pb.getFiles() == null) {
-            throw new NullPointerException("null args in CliProperties.setDefaultValues");
+        if (pb == null) {
+            return;
         }
         pb.setPreserveHierarchy(pb.getPreserveHierarchy() != null ? pb.getPreserveHierarchy() : Boolean.FALSE);
         pb.setBasePath(pb.getBasePath() != null ? pb.getBasePath() : "");
@@ -187,16 +187,23 @@ public class CliProperties {
             pb.setBaseUrl(Utils.getBaseUrl());
         }
 
+        if (pb.getFiles() == null) {
+            return;
+        }
         for (FileBean file : pb.getFiles()) {
             //Source
-            file.setSource(file.getSource().replaceAll( "[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
-            //Translation
-             file.setTranslation(file.getTranslation().replaceAll( "[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
-            if (!file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
-                file.setTranslation(Utils.PATH_SEPARATOR + file.getTranslation());
+            if (file.getSource() != null) {
+                file.setSource(file.getSource().replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
             }
-            if (!containsLangPlaceholders(file.getTranslation()) && file.getScheme() != null) {
-                file.setTranslation(StringUtils.removeStart(file.getTranslation(), Utils.PATH_SEPARATOR));
+            //Translation
+            if (file.getTranslation() != null) {
+                file.setTranslation(file.getTranslation().replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
+                if (!file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
+                    file.setTranslation(Utils.PATH_SEPARATOR + file.getTranslation());
+                }
+                if (!containsLangPlaceholders(file.getTranslation()) && file.getScheme() != null) {
+                    file.setTranslation(StringUtils.removeStart(file.getTranslation(), Utils.PATH_SEPARATOR));
+                }
             }
 
 
@@ -235,9 +242,9 @@ public class CliProperties {
             //Content segmentation
             file.setContentSegmentation(file.getContentSegmentation() != null ? file.getContentSegmentation() : Boolean.TRUE);
             //escape quotes
-            if (file.getEscapeQuotes() != null && (file.getEscapeQuotes() < 0 || file.getEscapeQuotes() > 3)) {
-                file.setEscapeQuotes(3);
+            if (file.getEscapeQuotes() != null) {
             } else {
+                file.setEscapeQuotes(3);
             }
             //Language mapping
             if (file.getLanguagesMapping() == null || file.getLanguagesMapping().isEmpty()) {
@@ -298,16 +305,24 @@ public class CliProperties {
                 }
                 if (StringUtils.isEmpty(fileBean.getTranslation())) {
                     errors.add(RESOURCE_BUNDLE.getString("error_empty_translation_section"));
-                } else if (fileBean.getTranslation().contains("**") && fileBean.getSource() != null && !fileBean.getSource().contains("**")) {
-                    errors.add("error: Translation pattern " + fileBean.getTranslation() + " is not valid. The mask `**` can't be used.\n" +
-                            "When using `**` in 'translation' pattern it will always contain sub-path from 'source' for certain file.");
+                } else {
+                    if (fileBean.getTranslation().contains("**") && fileBean.getSource() != null && !fileBean.getSource().contains("**")) {
+                        errors.add("error: Translation pattern " + fileBean.getTranslation() + " is not valid. The mask `**` can't be used.\n" +
+                                "When using `**` in 'translation' pattern it will always contain sub-path from 'source' for certain file.");
+                    }
+                    if (!containsLangPlaceholders(fileBean.getTranslation()) && fileBean.getScheme() == null) {
+                        errors.add("`Translation` section doesn't contain language variables");
+                    }
                 }
-                if (!containsLangPlaceholders(fileBean.getTranslation()) && fileBean.getScheme() == null) {
-                    errors.add("`Translation` section doesn't contain language variables");
-                }
+
                 String updateOption = fileBean.getUpdateOption();
                 if (updateOption != null && !(updateOption.equals("update_as_unapproved") || updateOption.equals("update_without_changes"))) {
                     errors.add("Parameter 'update_option' in configuration file has unacceptable value");
+                }
+                Integer escQuotes = fileBean.getEscapeQuotes();
+                if (escQuotes != null && (escQuotes < 0 || escQuotes > 3)) {
+                    errors.add("Acceptable values for 'escape_quotes are: 0, 1, 2, 3. Default is 3. " +
+                            "https://support.crowdin.com/configuration-file/#escape-quotes-options-for-properties-file-format");
                 }
             }
         }
