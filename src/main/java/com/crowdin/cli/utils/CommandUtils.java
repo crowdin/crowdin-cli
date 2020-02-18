@@ -9,6 +9,7 @@ import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.helper.FileHelper;
 import com.crowdin.cli.utils.console.ExecutionStatus;
+import com.crowdin.common.models.Branch;
 import com.crowdin.common.models.Directory;
 import com.crowdin.common.models.Language;
 import com.crowdin.common.request.DirectoryPayload;
@@ -110,10 +111,10 @@ public class CommandUtils extends BaseCli {
 
 
     private Map<String, Long> directoryIdMap = new ConcurrentHashMap<>();
-    private Map<Long, String> branchNameMap = new ConcurrentHashMap<>();
+    private Map<Long, Branch> branchNameMap = new ConcurrentHashMap<>();
     private final Map<String, Lock> pathLocks = new ConcurrentHashMap<>();
 
-    public void addDirectoryIdMap(Map<String, Long> directoryIdMap, Map<Long, String> branchNameMap) {
+    public void addDirectoryIdMap(Map<String, Long> directoryIdMap, Map<Long, Branch> branchNameMap) {
         this.directoryIdMap.putAll(directoryIdMap);
         this.branchNameMap.putAll(branchNameMap);
     }
@@ -126,7 +127,7 @@ public class CommandUtils extends BaseCli {
 
         Long directoryId = null;
         StringBuilder parentPath = new StringBuilder();
-        String branchPath = (branchId.map(branch -> branchNameMap.get(branch) + Utils.PATH_SEPARATOR).orElse(""));
+        String branchPath = (branchId.map(branch -> branchNameMap.get(branch).getName() + Utils.PATH_SEPARATOR).orElse(""));
         for (String node : nodes) {
             if (StringUtils.isEmpty(node) || node.equals(nodes[nodes.length - 1])) {
                 continue;

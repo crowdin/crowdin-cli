@@ -12,11 +12,6 @@ public class StorageClient extends Client {
     }
 
     public Long uploadStorage(File file, String fileName) {
-        StorageApi storageApi = new StorageApi(settings);
-        return storageApi
-            .uploadFile(file, fileName)
-            .getResponseEntity()
-            .getEntity()
-            .getId();
+        return execute((new StorageApi(settings)).uploadFile(file, fileName)).getId();
     }
 }

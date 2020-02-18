@@ -2,18 +2,12 @@ package com.crowdin.cli.client;
 
 import com.crowdin.client.api.TranslationsApi;
 import com.crowdin.common.Settings;
-import com.crowdin.common.models.Branch;
 import com.crowdin.common.models.FileRaw;
 import com.crowdin.common.models.Translation;
 import com.crowdin.common.request.BuildTranslationPayload;
 import com.crowdin.common.request.TranslationPayload;
-import com.crowdin.common.response.SimpleResponse;
-import com.crowdin.util.ResponseUtil;
-import com.fasterxml.jackson.core.type.TypeReference;
 
-import javax.ws.rs.core.Response;
 import java.util.Collections;
-import java.util.List;
 import java.util.Optional;
 
 public class TranslationsClient extends Client {
@@ -33,25 +27,22 @@ public class TranslationsClient extends Client {
         branchId.ifPresent(buildTranslation::setBranchId);
         buildTranslation.setTargetLanguageIds(Collections.singletonList(targetLanguageId));
 
-        Response response = api.buildTranslation(this.projectId, buildTranslation).execute();
-        return ResponseUtil.getResponceBody(response, new TypeReference<SimpleResponse<Translation>>() {}).getEntity();
+        return execute(api.buildTranslation(this.projectId, buildTranslation));
     }
 
     public Translation checkBuildingStatus(String buildId) {
-        return api
-            .getTranslationInfo(this.projectId.toString(), buildId).getResponseEntity().getEntity();
+        return execute(api.getTranslationInfo(this.projectId.toString(), buildId));
     }
 
     public void uploadTranslations(
         String languageId,
         TranslationPayload translationPayload
     ) {
-        Response response = api.uploadTranslation(projectId, languageId, translationPayload).execute();
+        execute(api.uploadTranslation(projectId, languageId, translationPayload));
     }
 
     public FileRaw getFileRaw(String buildId) {
-        Response response = api.getTranslationRaw(this.projectId, buildId).execute();
-        return ResponseUtil.getResponceBody(response, new TypeReference<SimpleResponse<FileRaw>>() {}).getEntity();
+        return execute(api.getTranslationRaw(this.projectId, buildId));
     }
 
 
