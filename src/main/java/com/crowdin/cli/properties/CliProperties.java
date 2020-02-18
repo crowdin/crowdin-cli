@@ -322,7 +322,7 @@ public class CliProperties {
                 Integer escQuotes = fileBean.getEscapeQuotes();
                 if (escQuotes != null && (escQuotes < 0 || escQuotes > 3)) {
                     errors.add("Acceptable values for 'escape_quotes are: 0, 1, 2, 3. Default is 3. " +
-                            "https://support.crowdin.com/configuration-file/#escape-quotes-options-for-properties-file-format");
+                            "https://support.crowdin.com/configuration-file-v3/#escape-quotes-options-for-properties-file-format");
                 }
             }
         }
