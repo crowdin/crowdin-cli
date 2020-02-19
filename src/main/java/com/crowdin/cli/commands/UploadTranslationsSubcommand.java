@@ -35,34 +35,29 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
-    name ="translations",
-    customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) upload|@|@|fg(yellow) push|@) @|fg(yellow) translations|@ [CONFIG OPTIONS] [OPTIONS]",
-    description = "Upload existing translations to a Crowdin project"
+    name ="translations"
 )
 public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"--no-auto-approve-imported"}, negatable = true,
-        description = "Approve added translations automatically")
+    @CommandLine.Option(names = {"--no-auto-approve-imported"}, negatable = true)
     protected boolean autoApproveImported = false;
 
-    @CommandLine.Option(names = {"--no-import-duplicates"}, negatable = true,
-        description = "Add translations even if the same translations already exist in your Crowdin project")
+    @CommandLine.Option(names = {"--no-import-duplicates"}, negatable = true)
     protected boolean importDuplicates = false;
 
-    @CommandLine.Option(names = {"--no-import-eq-suggestions"}, negatable = true,
-            description = "Add translations even if they’re the same as the source strings in your Crowdin project")
+    @CommandLine.Option(names = {"--no-import-eq-suggestions"}, negatable = true)
     protected boolean importEqSuggestions = false;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Specify branch name. Default: none")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", description = "Use this option to download translations for a single specified language. Default: all")
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...")
     protected String languageId;
 
-    @CommandLine.Option(names = {"--dryrun"}, description = "Run command without API connection")
+    @CommandLine.Option(names = {"--dryrun"})
     protected boolean dryrun;
 
-    @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")
+    @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
     @Override

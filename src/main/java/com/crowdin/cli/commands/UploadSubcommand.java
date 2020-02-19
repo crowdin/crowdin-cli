@@ -6,8 +6,6 @@ import picocli.CommandLine;
 @CommandLine.Command(
     name = "upload",
     aliases = "push",
-    customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) upload|@|@|fg(yellow) push|@) [SUBCOMMAND] [CONFIG OPTIONS] [OPTIONS]",
-    description = "Upload source files to a Crowdin project",
     subcommands = {
         UploadTranslationsSubcommand.class,
         UploadSourcesSubcommand.class

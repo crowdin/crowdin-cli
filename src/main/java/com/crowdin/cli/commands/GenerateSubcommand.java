@@ -18,12 +18,10 @@ import static com.crowdin.cli.properties.CliProperties.*;
 
 @CommandLine.Command(
     name = "generate",
-    aliases = "init",
-    customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) generate|@|@|fg(yellow) init|@) [CONFIG OPTIONS] [OPTIONS]",
-    description = "Generate Crowdin CLI configuration skeleton")
+    aliases = "init")
 public class GenerateSubcommand extends Command {
 
-    @CommandLine.Option(names = {"-d", "--destination"}, description = "Place where the configuration skeleton should be saved. Default: crowdin.yml", paramLabel = "...", defaultValue = "crowdin.yml")
+    @CommandLine.Option(names = {"-d", "--destination"}, paramLabel = "...", defaultValue = "crowdin.yml")
     private Path destinationPath;
 
     @CommandLine.Option(names = "--skip-generate-description", hidden = true)

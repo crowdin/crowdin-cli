@@ -38,24 +38,22 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
     name = "download",
-    aliases = "pull",
-    customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) download|@|@|fg(yellow) pull|@) [CONFIG OPTIONS] [OPTIONS]",
-    description = "Download latest translations from Crowdin to the specified place")
+    aliases = "pull")
 public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"--dryrun"}, description = "Run command without API connection")
+    @CommandLine.Option(names = {"--dryrun"})
     protected boolean dryrun;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Specify branch name. Default: none")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
 
-    @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")
+    @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
-    @CommandLine.Option(names = {"--ignore--match"}, description = "Ignore warning message about a configuration change")
+    @CommandLine.Option(names = {"--ignore-match"})
     protected boolean ignoreMatch;
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", description = "Use this option to download translations for a single specified language. Default: all")
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...")
     protected String languageId;
 
     @Override

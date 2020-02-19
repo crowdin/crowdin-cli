@@ -4,9 +4,7 @@ import com.crowdin.cli.commands.parts.UploadSourcesCommand;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name ="sources",
-    description = "Uploads source files to a Crowdin project",
-    customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) upload|@|@|fg(yellow) push|@) @|fg(yellow) sources|@ [CONFIG OPTIONS] [OPTIONS]"
+    name ="sources"
 )
 public class UploadSourcesSubcommand extends UploadSourcesCommand {
 }

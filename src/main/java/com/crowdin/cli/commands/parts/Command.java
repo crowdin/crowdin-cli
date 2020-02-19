@@ -7,27 +7,23 @@ import picocli.CommandLine;
 import java.util.ResourceBundle;
 
 @CommandLine.Command(
-        name = "crowdin",
+        name = "command",
         versionProvider = Command.VersionProvider.class,
-        synopsisHeading = "%n@|underline SYNOPSIS|@:%n",
-        descriptionHeading = "%n@|underline DESCRIPTION|@:%n",
-        parameterListHeading = "%n@|underline PARAMETERS|@:%n",
-        optionListHeading = "%n@|underline OPTIONS|@:%n",
-        commandListHeading = "%n@|underline COMMANDS|@:%n",
-        usageHelpAutoWidth = true
+        usageHelpAutoWidth = true,
+        resourceBundle = "messages.messages"
 )
 public abstract class Command implements Runnable {
 
-    @CommandLine.Option(names = {"-V", "--version"}, versionHelp = true, description = "Print version information and exit")
+    @CommandLine.Option(names = {"-V", "--version"}, versionHelp = true)
     boolean versionInfoRequested;
 
-    @CommandLine.Option(names = {"-h", "--help"}, usageHelp = true, description = "Show this help message and exit")
+    @CommandLine.Option(names = {"-h", "--help"}, usageHelp = true)
     boolean usageHelpRequested;
 
-    @CommandLine.Option(names = {"--no-progress"}, description = "Disable progress on executing command")
+    @CommandLine.Option(names = {"--no-progress"})
     protected boolean noProgress;
 
-    @CommandLine.Option(names = {"-v", "--verbose"}, description = "Provide more information on the command processing")
+    @CommandLine.Option(names = {"-v", "--verbose"})
     protected boolean isVerbose;
 
     @CommandLine.Option(names = {"--debug"}, hidden = true)

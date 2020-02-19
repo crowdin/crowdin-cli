@@ -14,12 +14,10 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
-    name = "translations",
-    customSynopsis = "@|fg(yellow) crowdin list translations|@ [CONFIG OPTIONS] [OPTIONS]",
-    description = "List information about the translation files that match the wild-card pattern contained in the current project")
+    name = "translations")
 public class ListTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")
+    @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
     @Override
