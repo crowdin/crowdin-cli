@@ -167,19 +167,7 @@ public class ProjectProxy {
             .findFirst();
     }
 
-    public Long getOrCreateBranch(String branchName) {
-        BranchClient branchClient = new BranchClient(this.settings);
-        try {
-            Optional<Branch> branchOpt = getBranchByName(branchName);
-            if (branchOpt.isPresent()) {
-                return branchOpt.get().getId();
-            } else {
-                Branch newBranch = branchClient.createBranch(projectId, new BranchPayload(branchName));
-                this.branches.add(newBranch);
-                return newBranch.getId();
-            }
-        } catch (ResponseException e) {
-            throw new RuntimeException("Exception while working with branches", e);
-        }
+    public void addBranchToList(Branch branch) {
+        this.branches.add(branch);
     }
 }

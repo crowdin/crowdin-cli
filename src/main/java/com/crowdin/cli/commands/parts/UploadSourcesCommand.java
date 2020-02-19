@@ -82,16 +82,28 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
             return;
         }
 
-        if (branch != null) {
-            branchId = Optional.of(project.getOrCreateBranch(branch));
-            System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_branch") + " '" + branch + "' "));
-        } else {
-            branchId = Optional.empty();
-        }
-
         FileClient fileClient = new FileClient(settings);
         StorageClient storageClient = new StorageClient(settings);
         DirectoriesClient directoriesClient = new DirectoriesClient(settings, pb.getProjectId());
+        BranchClient branchClient = new BranchClient(settings);
+
+        if (branch != null) {
+            Optional<Branch> branchOpt = project.getBranchByName(branch);
+            if (branchOpt.isPresent()) {
+                branchId = branchOpt.map(Branch::getId);
+            } else {
+                try {
+                    Branch newBranch = branchClient.createBranch(pb.getProjectId(), new BranchPayload(branch));
+                    project.addBranchToList(newBranch);
+                    branchId = Optional.of(newBranch.getId());
+                    System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_branch") + " '" + branch + "' "));
+                } catch (ResponseException e) {
+                    throw new RuntimeException("Exception while creating branch '" + branch + "'", e);
+                }
+            }
+        } else {
+            branchId = Optional.empty();
+        }
 
         for (FileBean file : pb.getFiles()) {
             if (StringUtils.isAnyEmpty(file.getSource(), file.getTranslation())) {
@@ -179,7 +191,6 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                             filePayload.setDirectoryId(directoryId);
                         } else branchId.ifPresent(filePayload::setBranchId);
 
-
                         FileEntity response = null;
                         try {
                             if (autoUpdate) {
@@ -187,7 +198,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                                         .stream()
                                         .filter(fileEntity -> Objects.equals(fileEntity.getName(), filePayload.getName()))
                                         .filter(fileEntity -> Objects.equals(fileEntity.getDirectoryId(), filePayload.getDirectoryId()))
-                                        .filter(fileEntity -> Objects.equals(fileEntity.getBranchId(), filePayload.getBranchId()))
+                                        .filter(fileEntity -> Objects.equals(fileEntity.getBranchId(), branchId.orElse(null)))
                                         .findFirst()
                                         .map(fileEntity -> {
                                             String fileId = fileEntity.getId().toString();
