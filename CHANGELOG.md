@@ -1,5 +1,16 @@
 **Unreleased**
 
+**Version 3.1.2**
+
++ Added: add message about wrong organization
++ Added: add User-Agent header
++ Updated: `escape_quotes` validation
++ Updated: make `--source` and `--translation` optional for params
++ Updated: params now can overwrite config
++ Updated: refactor gathering information about project and add message about wrong organization
++ Fixed: fix reuploading to branches
++ Fixed: fixes to config checking
+
 **Version 3.1.1**
 + Added: add progress to show while building translations
 + Added: add `--dryrun` option to translations upload
