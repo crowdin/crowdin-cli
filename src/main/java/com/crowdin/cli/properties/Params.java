@@ -16,10 +16,10 @@ public class Params {
     @CommandLine.Option(names = {"--base-path"}, paramLabel = "...", description = "Path to your project directory on a local machine")
     private String basePathParam;
 
-    @CommandLine.Option(names = {"-s", "--source"}, paramLabel = "...", required = true, description = "Path to the source files")
+    @CommandLine.Option(names = {"-s", "--source"}, paramLabel = "...", description = "Path to the source files")
     private String sourceParam;
 
-    @CommandLine.Option(names = {"-t", "--translation"}, paramLabel = "...", required = true, description = "Path to the translation files")
+    @CommandLine.Option(names = {"-t", "--translation"}, paramLabel = "...", description = "Path to the translation files")
     private String translationParam;
 
     public String getIdParam() {

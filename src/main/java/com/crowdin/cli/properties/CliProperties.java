@@ -162,16 +162,30 @@ public class CliProperties {
         }
     }
 
-    public static PropertiesBean buildFromParams(Params params) {
-        return new PropertiesBean(
-            params.getIdParam(),
-            params.getTokenParam(),
-            params.getBasePathParam(),
-            params.getBaseUrlParam(),
-            new FileBean(
-                params.getSourceParam(),
-                params.getTranslationParam())
-        );
+    public static void populateWithParams(PropertiesBean pb, Params params) {
+        if (params.getIdParam() != null) {
+            pb.setProjectId(params.getIdParam());
+        }
+        if (params.getTokenParam() != null) {
+            pb.setApiToken(params.getTokenParam());
+        }
+        if (params.getBasePathParam() != null) {
+            pb.setBasePath(params.getBasePathParam());
+        }
+        if (params.getBaseUrlParam() != null) {
+            pb.setBaseUrl(params.getBaseUrlParam());
+        }
+        if (params.getSourceParam() != null && params.getTranslationParam() != null) {
+            FileBean fb = new FileBean();
+            if (params.getSourceParam() != null) {
+                fb.setSource(params.getSourceParam());
+            }
+            if (params.getTranslationParam() != null) {
+                fb.setTranslation(params.getTranslationParam());
+            }
+            pb.getFiles().clear();
+            pb.setFiles(fb);
+        }
     }
 
     private static void setDefaultValues(PropertiesBean pb) {
