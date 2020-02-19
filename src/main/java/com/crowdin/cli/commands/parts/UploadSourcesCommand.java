@@ -191,12 +191,6 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                             filePayload.setDirectoryId(directoryId);
                         } else branchId.ifPresent(filePayload::setBranchId);
 
-//                        System.out.println();
-//                        System.out.println("FILE: " + filePayload.getName() + " - " + filePayload.getDirectoryId() + " - " + filePayload.getBranchId());
-//                        System.out.println();
-//                        project.getFiles().forEach(fe -> System.out.println(fe.getName() + " - " + fe.getDirectoryId() + " - " + fe.getBranchId()));
-
-
                         FileEntity response = null;
                         try {
                             if (autoUpdate) {
