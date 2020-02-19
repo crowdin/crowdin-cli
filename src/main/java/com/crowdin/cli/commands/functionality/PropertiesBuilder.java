@@ -6,6 +6,7 @@ import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.file.FileReader;
 
 import java.io.File;
+import java.nio.file.Files;
 
 public class PropertiesBuilder {
 
@@ -20,9 +21,12 @@ public class PropertiesBuilder {
     }
 
     public PropertiesBean build() {
-        PropertiesBean pb = (params != null && params.getSourceParam() != null && params.getTranslationParam() != null)
-                ? CliProperties.buildFromParams(params)
-                : CliProperties.buildFromMap(new FileReader().readCliConfig(configFile));
+        PropertiesBean pb = (!(Files.notExists(configFile.toPath()) && params != null))
+            ? CliProperties.buildFromMap(new FileReader().readCliConfig(configFile))
+            : new PropertiesBean();
+        if (params != null) {
+            CliProperties.populateWithParams(pb, params);
+        }
         if (identityFile != null) {
             CliProperties.populateWithCredentials(pb, new FileReader().readCliConfig(configFile));
         }
