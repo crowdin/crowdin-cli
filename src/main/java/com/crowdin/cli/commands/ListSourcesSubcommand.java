@@ -37,7 +37,7 @@ public class ListSourcesSubcommand extends PropertiesBuilderCommandPart {
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException("Exception while gathering project info", e);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 

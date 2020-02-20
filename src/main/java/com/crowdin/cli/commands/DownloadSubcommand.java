@@ -112,18 +112,18 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
         TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
 
-        System.out.println(String.format(RESOURCE_BUNDLE.getString("messages.build_archive"), languageCode));
+        System.out.println(String.format(RESOURCE_BUNDLE.getString("message.build_archive"), languageCode));
         Translation translationBuild = null;
         try {
             ConsoleSpinner.start(BUILDING_TRANSLATION.getString(), this.noProgress);
             translationBuild = translationsClient.startBuildingTranslation(branchOrNull.map(Branch::getId), languageEntity.getId());
             while (!translationBuild.getStatus().equalsIgnoreCase("finished")) {
-                ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("messages.building_translation"), Math.toIntExact(translationBuild.getProgress())));
+                ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), Math.toIntExact(translationBuild.getProgress())));
                 Thread.sleep(100);
                 translationBuild = translationsClient.checkBuildingStatus(translationBuild.getId().toString());
             }
 
-            ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("messages.building_translation"), 100));
+            ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ExecutionStatus.ERROR);
@@ -214,7 +214,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         try {
             zFile = new ZipFile(downloadedZipArchive.getAbsolutePath());
         } catch (net.lingala.zip4j.exception.ZipException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("messages.archive_not_exist"), downloadedZipArchive.getAbsolutePath()));
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.archive_not_exist"), downloadedZipArchive.getAbsolutePath()));
         }
         File tmpDir = new File(baseTempDir);
         if (!tmpDir.exists()) {
@@ -227,7 +227,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         try {
             zFile.extractAll(tmpDir.getAbsolutePath());
         } catch (net.lingala.zip4j.exception.ZipException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("messages.extract_archive"), downloadedZipArchive.getAbsolutePath()));
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.extract_archive"), downloadedZipArchive.getAbsolutePath()));
         }
         List<String> ommitedFiles = new ArrayList<>();
         List<String> extractingFiles = new ArrayList<>();
@@ -267,13 +267,13 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         }
         Collections.sort(sortedExtractingFiles);
         for (String sortedExtractingFile : sortedExtractingFiles) {
-            System.out.println(String.format(RESOURCE_BUNDLE.getString("messages.extracting_file"), sortedExtractingFile));
+            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.extracting_file"), sortedExtractingFile));
         }
         if (ommitedFiles.size() > 0 && !ignore_match) {
             Collections.sort(ommitedFiles);
-            System.out.println(RESOURCE_BUNDLE.getString("messages.downloaded_file_omitted"));
+            System.out.println(RESOURCE_BUNDLE.getString("message.downloaded_file_omitted"));
             for (String ommitedFile : ommitedFiles) {
-                System.out.println(String.format(RESOURCE_BUNDLE.getString("messages.item_list"), ommitedFile));
+                System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), ommitedFile));
             }
         }
     }

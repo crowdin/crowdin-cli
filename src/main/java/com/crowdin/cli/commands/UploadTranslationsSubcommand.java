@@ -78,7 +78,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException("Exception while gathering project info", e);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
 
         PlaceholderUtil placeholderUtil =
@@ -100,29 +100,29 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         List<Language> languages = (languageId != null)
             ? project.getLanguageById(languageId)
                 .map(Collections::singletonList)
-                .orElseThrow(() -> new RuntimeException("Couldn't find language by language id: " + languageId))
+                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)))
             : project.getProjectLanguages();
 
         for (FileBean file : pb.getFiles()) {
             List<File> fileSourcesWithoutIgnores =
-                    commandUtils.getFileSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil);
+                    CommandUtils.getFileSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil);
 
             String commonPath =
                 (pb.getPreserveHierarchy())
                     ? ""
-                    : commandUtils.getCommonPath(
+                    : CommandUtils.getCommonPath(
                         fileSourcesWithoutIgnores.stream().map(File::getAbsolutePath).collect(Collectors.toList()),
                         pb.getBasePath());
 
             boolean isDest = StringUtils.isNotEmpty(file.getDest());
 
             if (fileSourcesWithoutIgnores.isEmpty()) {
-                throw new RuntimeException("No sources found");
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
             }
             if (isDest && commandUtils.isSourceContainsPattern(file.getSource())) {
-                throw new RuntimeException("Config contains 'dest' and have pattern in source. There can be only one file with 'dest'.");
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
             } else if (isDest && !pb.getPreserveHierarchy()) {
-                throw new RuntimeException("The 'dest' parameter only works for single files, and if you use it, the configuration file should also include the 'preserve_hierarchy' parameter with true value.");
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
             }
 
             Map<File, Pair<Language, TranslationPayload>> preparedRequests = new HashMap<>();
@@ -134,10 +134,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
                 Long fileId = filePathsToFileId.get(filePath);
                 if (fileId == null) {
-                    System.out.println(
-                        "Source '" + filePath + "' from file '"
-                        + StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath())
-                        + "' does not exist in the project");
+                    System.out.println(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), filePath, StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath())));
                     continue;
                 }
 
@@ -157,7 +154,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                     }
                     File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
                     if (!transFile.exists()) {
-                        System.out.println("Translation file '" + Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath()) + "' does not exist");
+                        System.out.println(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath())));
                         continue;
                     }
                     TranslationPayload translationPayload = new TranslationPayloadWrapper(
@@ -179,18 +176,15 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                         Long storageId = storageClient.uploadStorage(translationFile, translationFile.getName());
                         payload.setStorageId(storageId);
                     } catch (Exception e) {
-                        throw new RuntimeException("Exception while uploading translation file to storage", e);
+                        throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation_to_storage"), e);
                     }
                     try {
                         translationsClient.uploadTranslations(lang.getId(), payload);
                     } catch (Exception e) {
-                        throw new RuntimeException("Exception while uploading translation file", e);
+                        throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
                     }
                     System.out.println(
-                        OK.withIcon(
-                            "translation file '"
-                            + Utils.replaceBasePath(translationFile.getAbsolutePath(), pb.getBasePath())
-                            + "' is uploaded"));
+                        OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.translation_uploaded"), Utils.replaceBasePath(translationFile.getAbsolutePath(), pb.getBasePath()))));
                 })
                 .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks);

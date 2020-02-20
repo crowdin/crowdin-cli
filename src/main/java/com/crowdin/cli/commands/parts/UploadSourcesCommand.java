@@ -216,10 +216,10 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                                 response = fileClient.uploadFile(pb.getProjectId(), filePayload);
                             }
                             String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
-                            System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("messages.uploading_file"), fileName)));
+                            System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
                         } catch (Exception e) {
                             String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
-                            System.out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("messages.uploading_file"), fileName)));
+                            System.out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
                             System.out.println(e.getMessage());
                         }
                     })

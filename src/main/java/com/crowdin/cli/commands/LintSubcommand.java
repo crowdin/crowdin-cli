@@ -10,6 +10,6 @@ public class LintSubcommand extends PropertiesBuilderCommandPart {
     @Override
     public void run() {
         this.buildPropertiesBean();
-        System.out.println(RESOURCE_BUNDLE.getString("configuration_ok"));
+        System.out.println(RESOURCE_BUNDLE.getString("message.configuration_ok"));
     }
 }

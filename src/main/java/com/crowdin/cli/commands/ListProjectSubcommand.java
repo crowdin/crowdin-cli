@@ -39,13 +39,13 @@ public class ListProjectSubcommand extends PropertiesBuilderCommandPart {
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException("Exception while gathering project info", e);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
 
         Long branchId = (StringUtils.isNotEmpty(this.branch))
             ? project.getBranchByName(this.branch)
                 .map(Branch::getId)
-                .orElseThrow(() -> new RuntimeException("Couldn't find branchId by that name"))
+                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
             : null;
 
         (new DryrunProjectFiles(project.getFiles(), project.getMapDirectories(), project.getMapBranches(), branchId)).run(treeView);
