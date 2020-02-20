@@ -94,7 +94,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                     Branch newBranch = branchClient.createBranch(pb.getProjectId(), new BranchPayload(branch));
                     project.addBranchToList(newBranch);
                     branchId = Optional.of(newBranch.getId());
-                    System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_branch") + " '" + branch + "' "));
+                    System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branch)));
                 } catch (ResponseException e) {
                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.create_branch"), branch), e);
                 }

@@ -34,13 +34,13 @@ public class FileReader {
         try {
             inputStream = new FileInputStream(fileCfg);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_empty"));
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
         }
         Map<String, Object> result = null;
         try {
             result = (Map<String, Object>) yaml.load(inputStream);
         } catch (Exception e) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error_reading_configuration_file"), e);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.reading_configuration_file"), e);
         }
         return result;
     }

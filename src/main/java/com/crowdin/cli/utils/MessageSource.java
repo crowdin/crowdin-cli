@@ -9,17 +9,12 @@ public class MessageSource {
 
     public enum Messages {
 
-        CONFIGURATION_FILE_IS_INVALID("configuration_file_is_invalid"),
-        ERROR_PROJECT_NOT_FOUND("error_project_not_found"),
         ERROR_DURING_FILE_WRITE("file_write_error"),
-        MISSING_PROPERTY_BEAN("missing_property_bean"),
 
 
-        FETCHING_PROJECT_INFO("fetching_project_info"),
-        BUILDING_TRANSLATION("building_translation"),
-        DOWNLOADING_TRANSLATION("downloading_translation"),
-
-        GENERATE_HELP_MESSAGE("command_generate_help_message");
+        FETCHING_PROJECT_INFO("message.spinner.fetching_project_info"),
+        BUILDING_TRANSLATION("message.spinner.building_translation"),
+        DOWNLOADING_TRANSLATION("message.spinner.downloading_translation");
 
 
         Messages(String messageKey) {
