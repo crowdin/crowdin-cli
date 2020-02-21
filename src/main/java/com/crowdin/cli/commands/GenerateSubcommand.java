@@ -54,11 +54,11 @@ public class GenerateSubcommand extends Command {
             }
             this.write(destinationPath, fileLines);
             System.out.printf("Your configuration skeleton has been successfully generated. " +
-                    "%nSpecify the paths to your sources and translations in the files section. " +
+                    "%nSpecify paths to your source files and translations in the files section. " +
                     "%nFor more details see %s%n", (this.isEnterprise ? ENTERPRISE_LINK : LINK));
 
         } catch (Exception e) {
-            throw new RuntimeException("Error while creating config file", e);
+            throw new RuntimeException("Error while creating a configuration file", e);
         }
     }
 
@@ -66,7 +66,7 @@ public class GenerateSubcommand extends Command {
         try {
             Files.write(destinationPath, fileLines);
         } catch (IOException e) {
-            throw new RuntimeException("Couldn't write to file '" + destinationPath.toAbsolutePath() + "'", e);
+            throw new RuntimeException("Could not write to file '" + destinationPath.toAbsolutePath() + "'", e);
         }
     }
 
@@ -74,7 +74,7 @@ public class GenerateSubcommand extends Command {
         Map<String, String> values = new HashMap<>();
 
         values.put(BASE_PATH, askWithDefault("Your project directory", BASE_PATH_DEFAULT));
-        this.isEnterprise = StringUtils.startsWithAny(ask("For Crowdin Enterprise: (N/y) "), "y", "Y", "+");
+        this.isEnterprise = StringUtils.startsWithAny(ask("For Crowdin Enterprise: (N/Y) "), "y", "Y", "+");
         if (this.isEnterprise) {
             String organizationName = ask("Your organization name: ");
             if (StringUtils.isNotEmpty(organizationName)) {
@@ -103,7 +103,7 @@ public class GenerateSubcommand extends Command {
         try {
             return IOUtils.readLines(this.getClass().getResourceAsStream(fileName), "UTF-8");
         } catch (IOException e) {
-            throw new RuntimeException("Couldn't read from resource file", e);
+            throw new RuntimeException("Could not read the resource file", e);
         }
     }
 
