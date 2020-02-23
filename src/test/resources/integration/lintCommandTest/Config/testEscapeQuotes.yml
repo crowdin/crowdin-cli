@@ -1,0 +1,19 @@
+"project_id" : "1"
+"api_token" : "a"
+"base_path" : ""
+"base_url": ""
+
+"preserve_hierarchy": true
+
+files: [
+    {
+        "source" : "/*.xml",
+        "translation" : "/%two_letters_code%/%original_file_name%",
+        "escape_quotes": 1
+    },
+    {
+        "source": "/*.xliff",
+        "translation": "/%two_letters_code%/%original_file_name%",
+        "escape_quotes": 5
+    }
+]

@@ -33,8 +33,8 @@ public class ListProjectCommandTest extends BaseIntegrationTest  {
         this.expectOutput("basic.txt");
 
         this.mockServerRequests(new RequestMockBuilder(
-            (new RequestMock()).get().withPath("/projects/1/branches"),
-            (new ResponseMock()).withData("[]").pageable()
+                (new RequestMock()).get().withPath("/projects/1"),
+                (new ResponseMock()).withBody(this.getJson("projectInfo.json"))
         ));
 
         this.mockServerRequests(new RequestMockBuilder(
@@ -45,6 +45,11 @@ public class ListProjectCommandTest extends BaseIntegrationTest  {
         this.mockServerRequests(new RequestMockBuilder(
             (new RequestMock()).get().withPath("/projects/1/files"),
             (new ResponseMock()).withData(this.getJson("basicFilesList.json")).pageable()
+        ));
+
+        this.mockServerRequests(new RequestMockBuilder(
+            (new RequestMock()).get().withPath("/projects/1/branches"),
+            (new ResponseMock()).withData("[]").pageable()
         ));
 
         this.executeCliCommand("list project");
@@ -56,8 +61,8 @@ public class ListProjectCommandTest extends BaseIntegrationTest  {
         this.expectOutput("basic.txt");
 
         this.mockServerRequests(new RequestMockBuilder(
-            (new RequestMock()).get().withPath("/projects/1/branches"),
-            (new ResponseMock()).withData("[]").pageable()
+            (new RequestMock()).get().withPath("/projects/1"),
+            (new ResponseMock()).withBody(this.getJson("projectInfo.json"))
         ));
 
         this.mockServerRequests(new RequestMockBuilder(
@@ -70,6 +75,39 @@ public class ListProjectCommandTest extends BaseIntegrationTest  {
             (new ResponseMock()).withData(this.getJson("basicFilesList.json")).pageable()
         ));
 
+        this.mockServerRequests(new RequestMockBuilder(
+            (new RequestMock()).get().withPath("/projects/1/branches"),
+            (new ResponseMock()).withData("[]").pageable()
+        ));
+
         this.executeCliCommand("list project");
+    }
+
+    @Test
+    public void testBranchesAndDirectories() {
+        this.withConfigOptions((new ConfigOptions()).basePath(".").baseUrl(MOCK_BASE_URL).projectId(1));
+        this.expectOutput("testBranchesAndDirectories.txt");
+
+        this.mockServerRequests(new RequestMockBuilder(
+            (new RequestMock()).get().withPath("/projects/1"),
+            (new ResponseMock()).withBody(this.getJson("projectInfo.json"))
+        ));
+
+        this.mockServerRequests(new RequestMockBuilder(
+            (new RequestMock()).get().withPath("/projects/1/directories"),
+            (new ResponseMock()).withData(this.getJson("directoriesList.json")).pageable()
+        ));
+
+        this.mockServerRequests(new RequestMockBuilder(
+            (new RequestMock()).get().withPath("/projects/1/files"),
+            (new ResponseMock()).withData(this.getJson("branchesDirectoriesFilesList.json")).pageable()
+        ));
+
+        this.mockServerRequests(new RequestMockBuilder(
+            (new RequestMock()).get().withPath("/projects/1/branches"),
+            (new ResponseMock()).withData(this.getJson("branchesList.json")).pageable()
+        ));
+
+        this.executeCliCommand("list project -b master");
     }
 }

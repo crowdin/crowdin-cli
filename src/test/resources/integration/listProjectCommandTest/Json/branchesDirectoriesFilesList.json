@@ -1,0 +1,19 @@
+[{
+  "data": {
+    "id": 1,
+    "projectId": 1,
+    "branchId": 1,
+    "directoryId": 1,
+    "name": "umbrella_app.xliff",
+    "title": "source_app_info",
+    "type": "xliff",
+    "revisionId": 1,
+    "status": "active",
+    "priority": "normal",
+    "exportOptions": {
+    "exportPattern": "/localization/%locale%/%file_name%.%file_extension%"
+    },
+    "createdAt": "2019-09-19T15:10:43+00:00",
+    "updatedAt": "2019-09-19T15:10:46+00:00"
+  }
+}]

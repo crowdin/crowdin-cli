@@ -5,6 +5,7 @@ import com.crowdin.cli.utils.console.ConsoleUtils;
 import org.mockserver.client.server.MockServerClient;
 import org.mockserver.integration.ClientAndServer;
 import org.mockserver.model.HttpRequest;
+import org.opentest4j.AssertionFailedError;
 
 import java.io.*;
 import java.nio.file.Path;
@@ -23,6 +24,9 @@ abstract public class BaseIntegrationTest {
 
     protected static final String MOCK_BASE_URL = "http://" + MOCK_HOST + ":" + MOCK_PORT;
 
+    protected static ClientAndServer mockServer;
+    protected static MockServerClient mockServerClient;
+
     protected String testName;
 
     private String cliOutput = "";
@@ -38,8 +42,8 @@ abstract public class BaseIntegrationTest {
     private boolean isExpectingErrorOutput = false;
 
     private ConfigOptions configOptions;
-    protected static ClientAndServer mockServer;
-    protected static MockServerClient mockServerClient;
+
+    private List<String> mockedRequests = new ArrayList<>();
 
     public void executeCliCommand(String command) {
         try {
@@ -88,14 +92,6 @@ abstract public class BaseIntegrationTest {
         mockServer.stop();
     }
 
-    protected static void printAllRecordedRequests() {
-        HttpRequest[] recordedRequests = mockServerClient.retrieveRecordedRequests(request());
-
-        for (HttpRequest request: recordedRequests) {
-            System.out.println(request.toString());
-        }
-    }
-
     protected void initConfig(String configName) {
         this.configPath = this.getResourceFilePath(configName, "Config");
         this.isConfigPassed = true;
@@ -117,7 +113,9 @@ abstract public class BaseIntegrationTest {
     }
 
     protected void mockServerRequests(RequestMockBuilder builder) {
-        builder.makeSimpleExpectation(mockServerClient);
+        builder.makeSimpleExpectation(mockServer);
+
+        this.mockedRequests.add(builder.getRequest().getPath());
     }
 
     protected String getOutput() {
@@ -133,11 +131,42 @@ abstract public class BaseIntegrationTest {
     }
 
     private void postProcessCommandExecution() {
-        if (this.isExpectingOutput) {
-            assertEquals(this.expectedOutput, this.postProcessOutput(this.getOutput()));
-        } else if (this.isExpectingErrorOutput) {
-            assertEquals(this.expectedErrorOutput, this.postProcessOutput(this.getErrors()));
+        try {
+            if (this.isExpectingOutput) {
+                assertEquals(this.expectedOutput, this.postProcessOutput(this.getOutput()));
+            } else if (this.isExpectingErrorOutput) {
+                assertEquals(this.expectedErrorOutput, this.postProcessOutput(this.getErrors()));
+            }
+        } catch (AssertionFailedError e) {
+            if (mockServer != null) {
+                this.printAllRecordedRequests();
+                this.printAllMockedRequests();
+            }
+
+            throw e;
         }
+    }
+
+    private void printAllRecordedRequests() {
+        HttpRequest[] recordedRequests = mockServer.retrieveRecordedRequests(request());
+
+        System.err.println("[RECORDED REQUESTS][BEGIN]-----------------------");
+
+        for (HttpRequest request: recordedRequests) {
+            System.out.println(request.getPath());
+        }
+
+        System.err.println("[RECORDED REQUESTS][END]-------------------------");
+    }
+
+    private void printAllMockedRequests() {
+        System.err.println("[MOCKED REQUESTS][BEGIN]-------------------------");
+
+        for (String request: this.mockedRequests) {
+            System.out.println(request);
+        }
+
+        System.err.println("[MOCKED REQUESTS][END]---------------------------");
     }
 
     private String postProcessOutput(String output) {
@@ -145,10 +174,12 @@ abstract public class BaseIntegrationTest {
             return output;
         }
 
-        output = output.replace("\u2714 ", "[OK]");
-        output = output.replace("\u26D4 ", "[ERROR]");
-        output = output.replace("\u26A0 ", "[WARNING]");
-        output = output.replace("\u23ED ", "[SKIPPED]");
+        output = output
+            .replace("\u2714 ", "[OK]")
+            .replace("\u26D4 ", "[ERROR]")
+            .replace("\u26A0 ", "[WARNING]")
+            .replace("\u23ED ", "[SKIPPED]")
+            .replace("/", "\\");
 
         return output;
     }

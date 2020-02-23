@@ -1,0 +1,2 @@
+Configuration file is invalid. Check the following parameters in your configuration file:
+	- Acceptable values for 'escape_quotes are: 0, 1, 2, 3. Default is 3. https://support.crowdin.com/configuration-file-v3/#escape-quotes-options-for-properties-file-format

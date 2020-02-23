@@ -1,0 +1,2 @@
+[OK] Fetching project info
+master\main\umbrella_app.xliff

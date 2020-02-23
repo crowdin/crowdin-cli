@@ -26,6 +26,10 @@ public class RequestMockBuilder {
         this.response = response;
     }
 
+    public RequestMock getRequest() {
+        return request;
+    }
+
     public RequestMockBuilder count(Integer count) {
         this.requestsCount = count;
         return this;
@@ -42,7 +46,6 @@ public class RequestMockBuilder {
                     .withStatusCode(HttpStatusCode.OK_200.code())
                     .withHeaders(new Header("Content-Type", "application/json"))
                     .withBody(json(this.response.getBody()))
-                    .withDelay(DEFAULT_TIME_UNIT, DEFAULT_DELAY)
             );
     }
 }
