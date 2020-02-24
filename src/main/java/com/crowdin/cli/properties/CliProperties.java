@@ -74,7 +74,7 @@ public class CliProperties {
 
     private static final String TRANSLATION_REPLACE = "translation_replace";
 
-    public static PropertiesBean    processProperties(PropertiesBean pb, File configFile) {
+    public static PropertiesBean processProperties(PropertiesBean pb, File configFile) {
 
         pb.setBasePath(getBasePath(pb.getBasePath(), configFile, false));
         setDefaultValues(pb);
