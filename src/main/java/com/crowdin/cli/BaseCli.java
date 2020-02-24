@@ -35,8 +35,6 @@ public class BaseCli {
 
     protected static final String HEADER_USER_AGENT = HttpHeaders.USER_AGENT;
 
-    protected static final String HEADER_USER_AGENT_VALUE = Utils.getUserAgent();
-
     protected static final String COMMAND_BRANCH_LONG = "branch";
 
     protected static final String COMMAND_BRANCH_SHORT = "b";

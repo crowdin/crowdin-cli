@@ -15,15 +15,13 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
-    name = "project",
-    customSynopsis = "@|fg(yellow) crowdin list project|@ [CONFIG OPTIONS] [OPTIONS]",
-    description = "Show a list of source files in the current project")
+    name = "project")
 public class ListProjectSubcommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Specify branch name. Default: none")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
 
-    @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")
+    @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
     @Override
@@ -41,13 +39,13 @@ public class ListProjectSubcommand extends PropertiesBuilderCommandPart {
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException("Exception while gathering project info", e);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
 
         Long branchId = (StringUtils.isNotEmpty(this.branch))
             ? project.getBranchByName(this.branch)
                 .map(Branch::getId)
-                .orElseThrow(() -> new RuntimeException("Couldn't find branchId by that name"))
+                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
             : null;
 
         (new DryrunProjectFiles(project.getFiles(), project.getMapDirectories(), project.getMapBranches(), branchId)).run(treeView);

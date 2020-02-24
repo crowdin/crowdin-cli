@@ -34,18 +34,16 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"--dryrun"}, description = "Run command without API connection")
+    @CommandLine.Option(names = {"--dryrun"})
     protected boolean dryrun;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Specify branch name. Default: none")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
 
-    @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")
+    @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
-    @CommandLine.Option(names = {"--no-auto-update"}, negatable = true, description = "" +
-            "Choose whether or not to update the source files in your Crowdin project. " +
-            "Use this option if you want to upload new source files without updating the existing ones.")
+    @CommandLine.Option(names = {"--no-auto-update"}, negatable = true)
     protected boolean autoUpdate = true;
 
     protected static final String UPDATE_OPTION_KEEP_TRANSLATIONS_CONF = "update_as_unapproved";
@@ -72,7 +70,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException("Exception while gathering project info", e);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
         PlaceholderUtil placeholderUtil =
                 new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
@@ -96,9 +94,9 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                     Branch newBranch = branchClient.createBranch(pb.getProjectId(), new BranchPayload(branch));
                     project.addBranchToList(newBranch);
                     branchId = Optional.of(newBranch.getId());
-                    System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_branch") + " '" + branch + "' "));
+                    System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branch)));
                 } catch (ResponseException e) {
-                    throw new RuntimeException("Exception while creating branch '" + branch + "'", e);
+                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.create_branch"), branch), e);
                 }
             }
         } else {
@@ -107,24 +105,24 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
 
         for (FileBean file : pb.getFiles()) {
             if (StringUtils.isAnyEmpty(file.getSource(), file.getTranslation())) {
-                throw new RuntimeException("No sources and/or translations in config are included");
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources_or_translations"));
             }
-            List<String> sources = commandUtils.getSourcesWithoutIgnores(
+            List<String> sources = CommandUtils.getSourcesWithoutIgnores(
                     file,
                     pb.getBasePath(),
                     placeholderUtil);
             String commonPath =
-                    (pb.getPreserveHierarchy()) ? "" : commandUtils.getCommonPath(sources, pb.getBasePath());
+                    (pb.getPreserveHierarchy()) ? "" : CommandUtils.getCommonPath(sources, pb.getBasePath());
 
             boolean isDest = StringUtils.isNotEmpty(file.getDest());
 
             if (sources.isEmpty()) {
-                throw new RuntimeException("No sources found");
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
             }
             if (isDest && commandUtils.isSourceContainsPattern(file.getSource())) {
-                throw new RuntimeException("Config contains 'dest' and have pattern in source. There can be only one file with 'dest'.");
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
             } else if (isDest && !pb.getPreserveHierarchy()) {
-                throw new RuntimeException("The 'dest' parameter only works for single files, and if you use it, the configuration file should also include the 'preserve_hierarchy' parameter with true value.");
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
             }
 
             commandUtils.addDirectoryIdMap(
@@ -178,7 +176,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                         try {
                             storageId = storageClient.uploadStorage(sourceFile, fName);
                         } catch (Exception e) {
-                            throw new RuntimeException("Couldn't upload file '" + sourceFile.getAbsolutePath() + "' to storage");
+                            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                         }
 
                         FilePayload filePayload = new FilePayload();
@@ -218,10 +216,10 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                                 response = fileClient.uploadFile(pb.getProjectId(), filePayload);
                             }
                             String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
-                            System.out.println(OK.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + fileName + "'"));
+                            System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
                         } catch (Exception e) {
                             String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
-                            System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("uploading_file") + " '" + fileName + "'"));
+                            System.out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
                             System.out.println(e.getMessage());
                         }
                     })

@@ -20,8 +20,6 @@ public class Utils {
 
     private static final String PROPERTIES_FILE = "/crowdin.properties";
 
-    private static final String USER_AGENT = "application.user_agent";
-
     /**
      * Path separator for use when concatenating or using non-regex findLanguage/replace methods.
      */
@@ -36,16 +34,19 @@ public class Utils {
 
     private static String userAgentString;
 
-    public static String getAppName() {
+    private static Properties readProperties() {
         Properties properties = new Properties();
-        String applicationName = null;
-        try {
-            InputStream in = Utils.class.getResourceAsStream(PROPERTIES_FILE);
+        try (InputStream in = Utils.class.getResourceAsStream(PROPERTIES_FILE);){
             properties.load(in);
-            in.close();
         } catch (Exception e) {
-            System.out.println(RESOURCE_BUNDLE.getString("exception_app_name"));
+            System.out.println(String.format(RESOURCE_BUNDLE.getString("error.read_resource_file"), PROPERTIES_FILE));
         }
+        return properties;
+    }
+
+    public static String getAppName() {
+        Properties properties = readProperties();
+        String applicationName = null;
         if (properties != null && properties.get(APPLICATION_NAME) != null) {
             applicationName = properties.get(APPLICATION_NAME).toString();
         }
@@ -53,15 +54,8 @@ public class Utils {
     }
 
     public static String getAppVersion() {
-        Properties properties = new Properties();
+        Properties properties = readProperties();
         String applicationVersion = null;
-        try {
-            InputStream in = Utils.class.getResourceAsStream(PROPERTIES_FILE);
-            properties.load(in);
-            in.close();
-        } catch (Exception e) {
-            System.out.println(RESOURCE_BUNDLE.getString("exception_app_version"));
-        }
         if (properties.get(APPLICATION_VERSION) != null) {
             applicationVersion = properties.get(APPLICATION_VERSION).toString();
         }
@@ -69,15 +63,8 @@ public class Utils {
     }
 
     public static String getBaseUrl() {
-        Properties properties = new Properties();
+        Properties properties = readProperties();
         String applicationBaseUrl = null;
-        try {
-            InputStream in = Utils.class.getResourceAsStream(PROPERTIES_FILE);
-            properties.load(in);
-            in.close();
-        } catch (Exception e) {
-            System.out.println(RESOURCE_BUNDLE.getString("error_get_base_url"));
-        }
         if (properties.get(APPLICATION_BASE_URL) != null) {
             applicationBaseUrl = properties.get(APPLICATION_BASE_URL).toString();
         }
@@ -86,7 +73,7 @@ public class Utils {
 
     public static String replaceBasePath(String path, String basePath) {
         if (StringUtils.isEmpty(path)) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error_empty_path"));
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.empty_path"));
         }
         String result;
         if (StringUtils.isNotEmpty(basePath)) {
@@ -108,14 +95,7 @@ public class Utils {
         if (Utils.userAgentString != null) {
             return Utils.userAgentString;
         }
-        Properties prop = new Properties();
-        try {
-            InputStream in = Utils.class.getResourceAsStream(PROPERTIES_FILE);
-            prop.load(in);
-            in.close();
-        } catch (Exception e) {
-            System.out.println(RESOURCE_BUNDLE.getString("error_get_user_agent"));
-        }
+        Properties prop = readProperties();
 
         Utils.userAgentString = String.format("%s/%s java/%s/%s %s/%s",
             prop.getProperty("application.name"),
@@ -125,20 +105,6 @@ public class Utils {
             System.getProperty("os.name"),
             System.getProperty("os.version"));
         return Utils.userAgentString;
-    }
-
-    public static String getUserAgent() {
-        Properties prop = new Properties();
-        try {
-            InputStream in = Utils.class.getResourceAsStream(PROPERTIES_FILE);
-            prop.load(in);
-            in.close();
-        } catch (Exception e) {
-            System.out.println(RESOURCE_BUNDLE.getString("error_get_user_agent"));
-        }
-        return Optional.ofNullable(prop.get(USER_AGENT))
-                .map(Object::toString)
-                .orElse(null);
     }
 
     public static String commonPath(String[] paths){

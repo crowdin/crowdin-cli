@@ -35,34 +35,29 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
-    name ="translations",
-    customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) upload|@|@|fg(yellow) push|@) @|fg(yellow) translations|@ [CONFIG OPTIONS] [OPTIONS]",
-    description = "Upload existing translations to a Crowdin project"
+    name ="translations"
 )
 public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"--no-auto-approve-imported"}, negatable = true,
-        description = "Approve added translations automatically")
+    @CommandLine.Option(names = {"--no-auto-approve-imported"}, negatable = true)
     protected boolean autoApproveImported = false;
 
-    @CommandLine.Option(names = {"--no-import-duplicates"}, negatable = true,
-        description = "Add translations even if the same translations already exist in your Crowdin project")
+    @CommandLine.Option(names = {"--no-import-duplicates"}, negatable = true)
     protected boolean importDuplicates = false;
 
-    @CommandLine.Option(names = {"--no-import-eq-suggestions"}, negatable = true,
-            description = "Add translations even if they’re the same as the source strings in your Crowdin project")
+    @CommandLine.Option(names = {"--no-import-eq-suggestions"}, negatable = true)
     protected boolean importEqSuggestions = false;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Specify branch name. Default: none")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", description = "Use this option to download translations for a single specified language. Default: all")
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...")
     protected String languageId;
 
-    @CommandLine.Option(names = {"--dryrun"}, description = "Run command without API connection")
+    @CommandLine.Option(names = {"--dryrun"})
     protected boolean dryrun;
 
-    @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")
+    @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
     @Override
@@ -83,7 +78,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException("Exception while gathering project info", e);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
 
         PlaceholderUtil placeholderUtil =
@@ -105,29 +100,29 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         List<Language> languages = (languageId != null)
             ? project.getLanguageById(languageId)
                 .map(Collections::singletonList)
-                .orElseThrow(() -> new RuntimeException("Couldn't find language by language id: " + languageId))
+                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)))
             : project.getProjectLanguages();
 
         for (FileBean file : pb.getFiles()) {
             List<File> fileSourcesWithoutIgnores =
-                    commandUtils.getFileSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil);
+                    CommandUtils.getFileSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil);
 
             String commonPath =
                 (pb.getPreserveHierarchy())
                     ? ""
-                    : commandUtils.getCommonPath(
+                    : CommandUtils.getCommonPath(
                         fileSourcesWithoutIgnores.stream().map(File::getAbsolutePath).collect(Collectors.toList()),
                         pb.getBasePath());
 
             boolean isDest = StringUtils.isNotEmpty(file.getDest());
 
             if (fileSourcesWithoutIgnores.isEmpty()) {
-                throw new RuntimeException("No sources found");
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
             }
             if (isDest && commandUtils.isSourceContainsPattern(file.getSource())) {
-                throw new RuntimeException("Config contains 'dest' and have pattern in source. There can be only one file with 'dest'.");
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
             } else if (isDest && !pb.getPreserveHierarchy()) {
-                throw new RuntimeException("The 'dest' parameter only works for single files, and if you use it, the configuration file should also include the 'preserve_hierarchy' parameter with true value.");
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
             }
 
             Map<File, Pair<Language, TranslationPayload>> preparedRequests = new HashMap<>();
@@ -139,10 +134,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
                 Long fileId = filePathsToFileId.get(filePath);
                 if (fileId == null) {
-                    System.out.println(
-                        "Source '" + filePath + "' from file '"
-                        + StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath())
-                        + "' does not exist in the project");
+                    System.out.println(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), filePath, StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath())));
                     continue;
                 }
 
@@ -162,7 +154,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                     }
                     File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
                     if (!transFile.exists()) {
-                        System.out.println("Translation file '" + Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath()) + "' does not exist");
+                        System.out.println(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath())));
                         continue;
                     }
                     TranslationPayload translationPayload = new TranslationPayloadWrapper(
@@ -184,18 +176,15 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                         Long storageId = storageClient.uploadStorage(translationFile, translationFile.getName());
                         payload.setStorageId(storageId);
                     } catch (Exception e) {
-                        throw new RuntimeException("Exception while uploading translation file to storage", e);
+                        throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation_to_storage"), e);
                     }
                     try {
                         translationsClient.uploadTranslations(lang.getId(), payload);
                     } catch (Exception e) {
-                        throw new RuntimeException("Exception while uploading translation file", e);
+                        throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
                     }
                     System.out.println(
-                        OK.withIcon(
-                            "translation file '"
-                            + Utils.replaceBasePath(translationFile.getAbsolutePath(), pb.getBasePath())
-                            + "' is uploaded"));
+                        OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.translation_uploaded"), Utils.replaceBasePath(translationFile.getAbsolutePath(), pb.getBasePath()))));
                 })
                 .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks);

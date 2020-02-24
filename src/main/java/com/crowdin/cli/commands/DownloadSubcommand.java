@@ -38,24 +38,22 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
     name = "download",
-    aliases = "pull",
-    customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) download|@|@|fg(yellow) pull|@) [CONFIG OPTIONS] [OPTIONS]",
-    description = "Download latest translations from Crowdin to the specified place")
+    aliases = "pull")
 public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"--dryrun"}, description = "Run command without API connection")
+    @CommandLine.Option(names = {"--dryrun"})
     protected boolean dryrun;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Specify branch name. Default: none")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
 
-    @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")
+    @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
-    @CommandLine.Option(names = {"--ignore--match"}, description = "Ignore warning message about a configuration change")
+    @CommandLine.Option(names = {"--ignore-match"})
     protected boolean ignoreMatch;
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", description = "Use this option to download translations for a single specified language. Default: all")
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...")
     protected String languageId;
 
     @Override
@@ -72,7 +70,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException("Exception while gathering project info", e);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
@@ -107,29 +105,29 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             .stream()
             .filter(language -> language.getId().equals(languageCode))
             .findAny()
-            .orElseThrow(() -> new RuntimeException("language '" + languageCode + "' does not exist in the project"));
+            .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageCode)));
 
         Optional<Branch> branchOrNull = Optional.ofNullable(this.branch)
             .flatMap(project::getBranchByName);
 
         TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
 
-        System.out.println(RESOURCE_BUNDLE.getString("build_archive") + " for '" + languageCode + "'");
+        System.out.println(String.format(RESOURCE_BUNDLE.getString("message.build_archive"), languageCode));
         Translation translationBuild = null;
         try {
             ConsoleSpinner.start(BUILDING_TRANSLATION.getString(), this.noProgress);
             translationBuild = translationsClient.startBuildingTranslation(branchOrNull.map(Branch::getId), languageEntity.getId());
             while (!translationBuild.getStatus().equalsIgnoreCase("finished")) {
-                ConsoleSpinner.update("Building translation (" + translationBuild.getProgress().toString() + "%)");
+                ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), Math.toIntExact(translationBuild.getProgress())));
                 Thread.sleep(100);
                 translationBuild = translationsClient.checkBuildingStatus(translationBuild.getId().toString());
             }
 
-            ConsoleSpinner.update("Building translation (100%)");
+            ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ExecutionStatus.ERROR);
-            throw new RuntimeException("Error while building translation", e);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.building_translation"), e);
         }
 
         if (isVerbose) {
@@ -159,7 +157,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             throw new RuntimeException(ERROR_DURING_FILE_WRITE.getString(), e);
         } catch (Exception e) {
             ConsoleSpinner.stop(ExecutionStatus.ERROR);
-            throw new RuntimeException("Error while downloading file", e);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.downloading_file"), e);
         }
 
         try {
@@ -191,9 +189,9 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             FileUtils.deleteDirectory(new File(baseTempDir));
             downloadedZipArchive.delete();
         } catch (ZipException e) {
-            System.out.println(RESOURCE_BUNDLE.getString("error_open_zip"));
+            System.out.println(RESOURCE_BUNDLE.getString("error.open_zip"));
         } catch (Exception e) {
-            System.out.println(RESOURCE_BUNDLE.getString("error_extracting_files"));
+            System.out.println(RESOURCE_BUNDLE.getString("error.extracting_files"));
         }
     }
 
@@ -205,7 +203,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
                 .map(ze -> ("/" + ze.getName()).replaceAll("[\\\\/]+", "/"))
                 .collect(Collectors.toList());
         } catch (IOException e) {
-            throw new RuntimeException("Extracting archive '" + downloadedZipArchive + "' failed");
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.extracting_files"));
         }
     }
 
@@ -216,20 +214,20 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         try {
             zFile = new ZipFile(downloadedZipArchive.getAbsolutePath());
         } catch (net.lingala.zip4j.exception.ZipException e) {
-            throw new RuntimeException("An archive '" + downloadedZipArchive.getAbsolutePath() + "' does not exist");
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.archive_not_exist"), downloadedZipArchive.getAbsolutePath()));
         }
         File tmpDir = new File(baseTempDir);
         if (!tmpDir.exists()) {
             try {
                 Files.createDirectory(tmpDir.toPath());
             } catch (IOException ex) {
-                System.out.println(RESOURCE_BUNDLE.getString("error_extracting"));
+                System.out.println(RESOURCE_BUNDLE.getString("error.creatingDirectory"));
             }
         }
         try {
             zFile.extractAll(tmpDir.getAbsolutePath());
         } catch (net.lingala.zip4j.exception.ZipException e) {
-            throw new RuntimeException("Extracting an archive '" + downloadedZipArchive + "' failed");
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.extract_archive"), downloadedZipArchive.getAbsolutePath()));
         }
         List<String> ommitedFiles = new ArrayList<>();
         List<String> extractingFiles = new ArrayList<>();
@@ -269,13 +267,13 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         }
         Collections.sort(sortedExtractingFiles);
         for (String sortedExtractingFile : sortedExtractingFiles) {
-            System.out.println("Extracting: '" + sortedExtractingFile + "'");
+            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.extracting_file"), sortedExtractingFile));
         }
         if (ommitedFiles.size() > 0 && !ignore_match) {
             Collections.sort(ommitedFiles);
-            System.out.println(RESOURCE_BUNDLE.getString("downloaded_file_omitted"));
+            System.out.println(RESOURCE_BUNDLE.getString("message.downloaded_file_omitted"));
             for (String ommitedFile : ommitedFiles) {
-                System.out.println(" - '" + ommitedFile + "'");
+                System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), ommitedFile));
             }
         }
     }
@@ -313,7 +311,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
                     if (!oldFile.renameTo(newFile)) {
                         if (newFile.delete()) {
                             if (!oldFile.renameTo(newFile)) {
-                                System.out.println("Replacing file '" + newFile.getAbsolutePath() + "' failed. Try to run an application with Administrator permission.");
+                                System.out.println(String.format(RESOURCE_BUNDLE.getString("error.replacing_file"), newFile.getAbsolutePath()));
                             }
                         }
                     }

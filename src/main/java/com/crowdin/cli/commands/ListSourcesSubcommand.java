@@ -14,15 +14,13 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
-    name = "sources",
-    customSynopsis = "@|fg(yellow) crowdin list sources|@ [CONFIG OPTIONS] [OPTIONS]",
-    description = "List information about the source files that match the wild-card pattern contained in the current project")
+    name = "sources")
 public class ListSourcesSubcommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", description = "Specify branch name. Default: none")
+    @CommandLine.Option(names = {"-b", "--branch"})
     protected String branch;
 
-    @CommandLine.Option(names = {"--tree"}, description = "List contents of directories in a tree-like format")
+    @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
     @Override
@@ -39,7 +37,7 @@ public class ListSourcesSubcommand extends PropertiesBuilderCommandPart {
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException("Exception while gathering project info", e);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 

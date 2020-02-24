@@ -168,9 +168,9 @@ public class CommandUtils extends BaseCli {
             Directory directory = directoriesClient.createDirectory(directoryPayload);
             directoryId = directory.getId();
             directoryIdMap.put(path, directoryId);
-            System.out.println(ExecutionStatus.OK.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + StringUtils.removePattern(path.toString(), "[\\\\/]$") + "' "));
+            System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(path.toString(), "[\\\\/]$"))));
         } catch (ExistsResponseException e) {
-            System.out.println(ExecutionStatus.SKIPPED.withIcon(RESOURCE_BUNDLE.getString("creating_directory") + " '" + StringUtils.removePattern(path.toString(), "[\\\\/]$") + "'"));
+            System.out.println(ExecutionStatus.SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(path.toString(), "[\\\\/]$"))));
             if (directoryIdMap.containsKey(path)) {
                 return directoryIdMap.get(path);
             } else {

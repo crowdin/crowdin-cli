@@ -18,12 +18,10 @@ import static com.crowdin.cli.properties.CliProperties.*;
 
 @CommandLine.Command(
     name = "generate",
-    aliases = "init",
-    customSynopsis = "@|fg(yellow) crowdin |@(@|fg(yellow) generate|@|@|fg(yellow) init|@) [CONFIG OPTIONS] [OPTIONS]",
-    description = "Generate Crowdin CLI configuration skeleton")
+    aliases = "init")
 public class GenerateSubcommand extends Command {
 
-    @CommandLine.Option(names = {"-d", "--destination"}, description = "Place where the configuration skeleton should be saved. Default: crowdin.yml", paramLabel = "...", defaultValue = "crowdin.yml")
+    @CommandLine.Option(names = {"-d", "--destination"}, paramLabel = "...", defaultValue = "crowdin.yml")
     private Path destinationPath;
 
     @CommandLine.Option(names = "--skip-generate-description", hidden = true)
@@ -42,9 +40,9 @@ public class GenerateSubcommand extends Command {
     @Override
     public void run() {
         try {
-            System.out.println(RESOURCE_BUNDLE.getString("command_generate_description") + " '" + destinationPath.toAbsolutePath() + "'");
+            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.command_generate_description"), destinationPath.toAbsolutePath()));
             if (Files.exists(destinationPath)) {
-                System.out.println(ExecutionStatus.SKIPPED.getIcon() + "File '" + destinationPath.toAbsolutePath() + "' already exists.");
+                System.out.println(ExecutionStatus.SKIPPED.getIcon() + String.format(RESOURCE_BUNDLE.getString("message.already_exists"), destinationPath.toAbsolutePath()));
                 return;
             }
 
@@ -53,12 +51,10 @@ public class GenerateSubcommand extends Command {
                 this.updateWithUserInputs(fileLines);
             }
             this.write(destinationPath, fileLines);
-            System.out.printf("Your configuration skeleton has been successfully generated. " +
-                    "%nSpecify the paths to your sources and translations in the files section. " +
-                    "%nFor more details see %s%n", (this.isEnterprise ? ENTERPRISE_LINK : LINK));
+            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.generate_successful"), this.isEnterprise ? ENTERPRISE_LINK : LINK));
 
         } catch (Exception e) {
-            throw new RuntimeException("Error while creating config file", e);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.create_file"), e);
         }
     }
 
@@ -66,17 +62,17 @@ public class GenerateSubcommand extends Command {
         try {
             Files.write(destinationPath, fileLines);
         } catch (IOException e) {
-            throw new RuntimeException("Couldn't write to file '" + destinationPath.toAbsolutePath() + "'", e);
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.write_file"), destinationPath.toAbsolutePath()), e);
         }
     }
 
     private void updateWithUserInputs(List<String> fileLines) {
         Map<String, String> values = new HashMap<>();
 
-        values.put(BASE_PATH, askWithDefault("Your project directory", BASE_PATH_DEFAULT));
-        this.isEnterprise = StringUtils.startsWithAny(ask("For Crowdin Enterprise: (N/y) "), "y", "Y", "+");
+        values.put(BASE_PATH, askWithDefault(RESOURCE_BUNDLE.getString("message.ask_project_directory"), BASE_PATH_DEFAULT));
+        this.isEnterprise = StringUtils.startsWithAny(ask(RESOURCE_BUNDLE.getString("message.ask_is_enterprise") + ": (N/y) "), "y", "Y", "+");
         if (this.isEnterprise) {
-            String organizationName = ask("Your organization name: ");
+            String organizationName = ask(RESOURCE_BUNDLE.getString("message.ask_organization_name") +": ");
             if (StringUtils.isNotEmpty(organizationName)) {
                 values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, organizationName));
             } else {
@@ -103,7 +99,7 @@ public class GenerateSubcommand extends Command {
         try {
             return IOUtils.readLines(this.getClass().getResourceAsStream(fileName), "UTF-8");
         } catch (IOException e) {
-            throw new RuntimeException("Couldn't read from resource file", e);
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.read_resource_file"), fileName), e);
         }
     }
 

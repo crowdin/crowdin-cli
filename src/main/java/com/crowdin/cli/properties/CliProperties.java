@@ -11,6 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 
 public class CliProperties {
@@ -80,8 +81,10 @@ public class CliProperties {
 
         List<String> errors = checkProperties(pb);
         if (!errors.isEmpty()) {
-            String errorsInOne = String.join("\n\t- ", errors);
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("configuration_file_is_invalid")+"\n\t- " + errorsInOne);
+            String errorsInOne = errors.stream()
+                .map(error -> String.format(RESOURCE_BUNDLE.getString("message.item_list"), error))
+                .collect(Collectors.joining("\n"));
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_is_invalid")+"\n" + errorsInOne);
         }
 
         return pb;
@@ -92,7 +95,7 @@ public class CliProperties {
             throw new NullPointerException("CliProperties.loadProperties has null args");
         }
         if (properties.isEmpty()) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error_empty_properties_file"));
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.empty_properties_file"));
         }
         PropertiesBean pb = new PropertiesBean();
 
@@ -285,58 +288,56 @@ public class CliProperties {
     private static List<String> checkProperties(PropertiesBean pb) {
         List<String> errors = new ArrayList<>();
         if (pb == null) {
-            errors.add(RESOURCE_BUNDLE.getString("error_property_bean_null"));
+            errors.add(RESOURCE_BUNDLE.getString("error.config.property_bean_null"));
             return errors;
         }
         if (StringUtils.isEmpty(pb.getProjectId())) {
-            errors.add(RESOURCE_BUNDLE.getString("error_missed_project_id"));
+            errors.add(RESOURCE_BUNDLE.getString("error.config.missed_project_id"));
         }
         if (StringUtils.isEmpty(pb.getApiToken())) {
-            errors.add(RESOURCE_BUNDLE.getString("error_missed_api_token"));
+            errors.add(RESOURCE_BUNDLE.getString("error.config.missed_api_token"));
         }
         if (StringUtils.isEmpty(pb.getBaseUrl())) {
-            errors.add(RESOURCE_BUNDLE.getString("missed_base_url"));
+            errors.add(RESOURCE_BUNDLE.getString("error.config.missed_base_url"));
         } else if (!pb.getBaseUrl().matches("(https://(.+\\.)?|http://(.+\\.)?.+\\.dev\\.)crowdin\\.com/api/v2")) {
-            errors.add(RESOURCE_BUNDLE.getString("wrong_base_url"));
+            errors.add(RESOURCE_BUNDLE.getString("error.config.wrong_base_url"));
         }
 
         if (StringUtils.isNotEmpty(pb.getBasePath())) {
             if (!Paths.get(pb.getBasePath()).isAbsolute()) {
-                errors.add(RESOURCE_BUNDLE.getString("bad_base_path"));
+                errors.add(RESOURCE_BUNDLE.getString("error.config.bad_base_path"));
             } else if (!Files.isDirectory(Paths.get(pb.getBasePath()))) {
-                errors.add(RESOURCE_BUNDLE.getString("bad_base_path"));
+                errors.add(RESOURCE_BUNDLE.getString("error.config.bad_base_path"));
             }
         }
 
         if (pb.getFiles() == null) {
-            errors.add(RESOURCE_BUNDLE.getString("error_missed_section_files"));
+            errors.add(RESOURCE_BUNDLE.getString("error.config.missed_section_files"));
         } else if (pb.getFiles().isEmpty()) {
-            errors.add(RESOURCE_BUNDLE.getString("empty_section_file"));
+            errors.add(RESOURCE_BUNDLE.getString("error.config.empty_section_file"));
         } else {
             for (FileBean fileBean : pb.getFiles()) {
                 if (StringUtils.isEmpty(fileBean.getSource())) {
-                    errors.add(RESOURCE_BUNDLE.getString("error_empty_source_section"));
+                    errors.add(RESOURCE_BUNDLE.getString("error.config.empty_source_section"));
                 }
                 if (StringUtils.isEmpty(fileBean.getTranslation())) {
-                    errors.add(RESOURCE_BUNDLE.getString("error_empty_translation_section"));
+                    errors.add(RESOURCE_BUNDLE.getString("error.config.empty_translation_section"));
                 } else {
                     if (fileBean.getTranslation().contains("**") && fileBean.getSource() != null && !fileBean.getSource().contains("**")) {
-                        errors.add("error: Translation pattern " + fileBean.getTranslation() + " is not valid. The mask `**` can't be used.\n" +
-                                "When using `**` in 'translation' pattern it will always contain sub-path from 'source' for certain file.");
+                        errors.add(RESOURCE_BUNDLE.getString("error.config.double_asteriks"));
                     }
                     if (!containsLangPlaceholders(fileBean.getTranslation()) && fileBean.getScheme() == null) {
-                        errors.add("`Translation` section doesn't contain language variables");
+                        errors.add(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
                     }
                 }
 
                 String updateOption = fileBean.getUpdateOption();
                 if (updateOption != null && !(updateOption.equals("update_as_unapproved") || updateOption.equals("update_without_changes"))) {
-                    errors.add("Parameter 'update_option' in configuration file has unacceptable value");
+                    errors.add(RESOURCE_BUNDLE.getString("error.config.update_option"));
                 }
                 Integer escQuotes = fileBean.getEscapeQuotes();
                 if (escQuotes != null && (escQuotes < 0 || escQuotes > 3)) {
-                    errors.add("Acceptable values for 'escape_quotes are: 0, 1, 2, 3. Default is 3. " +
-                            "https://support.crowdin.com/configuration-file-v3/#escape-quotes-options-for-properties-file-format");
+                    errors.add(RESOURCE_BUNDLE.getString("error.config.escape_quotes"));
                 }
             }
         }
@@ -367,7 +368,7 @@ public class CliProperties {
                 try {
                     result = base.getCanonicalPath();
                 } catch (IOException e) {
-                    System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
+                    System.out.println(RESOURCE_BUNDLE.getString("error.config.bad_base_path"));
                     if (isDebug) {
                         e.printStackTrace();
                     }
@@ -376,7 +377,7 @@ public class CliProperties {
                 try {
                     result = new File(basePath).getCanonicalPath();
                 } catch (IOException e) {
-                    System.out.println(RESOURCE_BUNDLE.getString("bad_base_path"));
+                    System.out.println(RESOURCE_BUNDLE.getString("error.config.bad_base_path"));
                     if (isDebug) {
                         e.printStackTrace();
                     }
