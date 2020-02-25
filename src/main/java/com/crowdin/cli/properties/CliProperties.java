@@ -7,6 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
@@ -76,10 +77,8 @@ public class CliProperties {
 
     private static final String TRANSLATION_REPLACE = "translation_replace";
 
-    public static PropertiesBean processProperties(PropertiesBean pb, File configFile) {
-
-        pb.setBasePath(getBasePath(pb.getBasePath(), configFile, false));
-        setDefaultValues(pb);
+    public static PropertiesBean processProperties(PropertiesBean pb, String basePathIfEmpty) {
+        setDefaultValues(pb, basePathIfEmpty);
 
         List<String> errors = checkProperties(pb);
         if (!errors.isEmpty()) {
@@ -198,12 +197,25 @@ public class CliProperties {
         }
     }
 
-    private static void setDefaultValues(PropertiesBean pb) {
+    private static void setDefaultValues(PropertiesBean pb, String basePathIfEmpty) {
         if (pb == null) {
             return;
         }
         pb.setPreserveHierarchy(pb.getPreserveHierarchy() != null ? pb.getPreserveHierarchy() : Boolean.FALSE);
-        pb.setBasePath(pb.getBasePath() != null ? pb.getBasePath() : "");
+
+        if (pb.getBasePath() != null) {
+            Path path;
+            try {
+                path = Paths.get(pb.getBasePath()).toRealPath();
+            } catch (NoSuchFileException e) {
+                path = Paths.get(e.getMessage());
+            } catch (IOException e) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.while_checking_base_path"), e);
+            }
+            pb.setBasePath(path.toString());
+        } else {
+            pb.setBasePath(basePathIfEmpty);
+        }
 
         if (StringUtils.isNotEmpty(pb.getBaseUrl())) {
             pb.setBaseUrl(StringUtils.removePattern(pb.getBaseUrl(), "/(api(/|/v2/?)?)?$") + "/api/v2");
@@ -309,11 +321,13 @@ public class CliProperties {
         }
 
         if (StringUtils.isNotEmpty(pb.getBasePath())) {
-            if (!Paths.get(pb.getBasePath()).isAbsolute()) {
-                errors.add(RESOURCE_BUNDLE.getString("error.config.bad_base_path"));
+            if (!Files.exists(Paths.get(pb.getBasePath()))) {
+                errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.base_path_not_exist"), pb.getBasePath()));
             } else if (!Files.isDirectory(Paths.get(pb.getBasePath()))) {
-                errors.add(RESOURCE_BUNDLE.getString("error.config.bad_base_path"));
+                errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.base_path_is_not_dir"), pb.getBasePath()));
             }
+        } else {
+            errors.add(RESOURCE_BUNDLE.getString("error.config.base_path_empty"));
         }
 
         if (pb.getFiles() == null) {
@@ -363,40 +377,5 @@ public class CliProperties {
                 "%android_code%",
                 "%osx_code%",
                 "%osx_locale%");
-    }
-
-    private static String getBasePath(String basePath, File configurationFile, boolean isDebug) {
-        String result = "";
-        if (basePath != null && Paths.get(basePath) != null) {
-            if (Paths.get(basePath).isAbsolute()) {
-                result = basePath;
-            } else if (configurationFile != null && configurationFile.isFile()) {
-                basePath = ".".equals(basePath) ? "" : basePath;
-                Path parentPath = Paths.get(configurationFile.getAbsolutePath()).getParent();
-                File base = new File(parentPath.toFile(), basePath);
-                try {
-                    result = base.getCanonicalPath();
-                } catch (IOException e) {
-                    System.out.println(RESOURCE_BUNDLE.getString("error.config.bad_base_path"));
-                    if (isDebug) {
-                        e.printStackTrace();
-                    }
-                }
-            } else {
-                try {
-                    result = new File(basePath).getCanonicalPath();
-                } catch (IOException e) {
-                    System.out.println(RESOURCE_BUNDLE.getString("error.config.bad_base_path"));
-                    if (isDebug) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        } else if (configurationFile != null && configurationFile.isFile()) {
-            basePath = (basePath == null) ? "" : basePath;
-            result = Paths.get(configurationFile.getAbsolutePath()).getParent() + Utils.PATH_SEPARATOR + basePath;
-            result = result.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-        }
-        return result;
     }
 }
