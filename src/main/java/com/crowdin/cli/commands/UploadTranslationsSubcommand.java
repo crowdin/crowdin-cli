@@ -35,7 +35,8 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
-    name ="translations"
+    name ="translations",
+    sortOptions = false
 )
 public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
@@ -57,7 +58,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
     @CommandLine.Option(names = {"--dryrun"})
     protected boolean dryrun;
 
-    @CommandLine.Option(names = {"--tree"})
+    @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
     @Override

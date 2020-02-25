@@ -6,6 +6,7 @@ import picocli.CommandLine;
 @CommandLine.Command(
     name = "upload",
     aliases = "push",
+    sortOptions = false,
     subcommands = {
         UploadTranslationsSubcommand.class,
         UploadSourcesSubcommand.class
