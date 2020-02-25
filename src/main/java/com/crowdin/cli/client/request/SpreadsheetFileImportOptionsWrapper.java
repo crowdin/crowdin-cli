@@ -7,11 +7,9 @@ import java.util.Map;
 public class SpreadsheetFileImportOptionsWrapper extends SpreadsheetFileImportOptions {
 
     public SpreadsheetFileImportOptionsWrapper(
-        boolean importTranslations,
         boolean firstLineContainsHeader,
         Map<String, Integer> scheme
     ) {
-        setImportTranslations(importTranslations);
         setFirstLineContainsHeader(firstLineContainsHeader);
         setScheme(scheme);
     }
