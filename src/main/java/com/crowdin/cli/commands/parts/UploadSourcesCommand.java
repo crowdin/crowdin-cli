@@ -152,7 +152,6 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                                 getOr(file.getTranslateContent(), false),
                                 file.getTranslatableElements())
                                 : new SpreadsheetFileImportOptionsWrapper(
-                                true,
                                 getOr(file.getFirstLineContainsHeader(), false),
                                 getSchemeObject(file.getScheme()));
 
