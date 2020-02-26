@@ -276,13 +276,13 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         String baseTempDirPath
     ) {
         Pair<Map<File, File>, List<String>> result = sortFiles(downloadedFilesProc, filesWithMapping, basePath, baseTempDirPath);
-        result.getLeft().forEach((fromFile, toFile) -> { //files to extract
+        new TreeMap<>(result.getLeft()).forEach((fromFile, toFile) -> { //files to extract
             this.moveFile(fromFile, toFile);
             System.out.println(String.format(RESOURCE_BUNDLE.getString("message.extracted_file"), StringUtils.removeStart(toFile.getAbsolutePath(), basePath)));
         });
         if (!ignoreMatch && !result.getRight().isEmpty()) {
             Pair<Map<String, List<String>>, List<String>> omittedFiles = this.sortOmittedFiles(result.getRight(), allProjectTranslations);
-            Map<String, List<String>> allOmittedFiles = omittedFiles.getLeft();
+            Map<String, List<String>> allOmittedFiles = new TreeMap<>(omittedFiles.getLeft());
             List<String> allOmittedFilesNoSources = omittedFiles.getRight();
             if (!allOmittedFiles.isEmpty()) {
                 System.out.println(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted"));
