@@ -295,7 +295,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             }
             if (!allOmittedFilesNoSources.isEmpty()) {
                 System.out.println(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted_without_sources"));
-                allOmittedFilesNoSources.forEach(file -> System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_count"), file)));
+                allOmittedFilesNoSources.forEach(file -> System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), file)));
             }
         }
     }
@@ -341,9 +341,13 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
         for (Language language : languages) {
             for (FileBean file : files) {
-                String translationProject1 = placeholderUtil.replaceLanguageDependentPlaceholders(file.getTranslation(), language);
+                String translation = file.getTranslation();
+                if (!StringUtils.startsWith(translation, Utils.PATH_SEPARATOR)) {
+                    translation = Utils.PATH_SEPARATOR + translation;
+                }
+                String translationProject1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, language);
                 String translationFile1 = (file.getLanguagesMapping() != null)
-                    ? placeholderUtil.replaceLanguageDependentPlaceholders(file.getTranslation(), file.getLanguagesMapping(), language)
+                    ? placeholderUtil.replaceLanguageDependentPlaceholders(translation, file.getLanguagesMapping(), language)
                     : translationProject1;
 
                 for (String projectFile : CommandUtils.getSourcesWithoutIgnores(file, basePath, placeholderUtil)) {
