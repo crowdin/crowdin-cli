@@ -34,17 +34,18 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"--dryrun"})
-    protected boolean dryrun;
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
 
-    @CommandLine.Option(names = {"--tree"})
-    protected boolean treeView;
-
     @CommandLine.Option(names = {"--no-auto-update"}, negatable = true)
     protected boolean autoUpdate = true;
+
+    @CommandLine.Option(names = {"--dryrun"})
+    protected boolean dryrun;
+
+    @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
+    protected boolean treeView;
 
     protected static final String UPDATE_OPTION_KEEP_TRANSLATIONS_CONF = "update_as_unapproved";
     protected static final String UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS_CONF = "update_without_changes";

@@ -38,23 +38,24 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
     name = "download",
+    sortOptions = false,
     aliases = "pull")
 public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"--dryrun"})
-    protected boolean dryrun;
-
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
-
-    @CommandLine.Option(names = {"--tree"})
-    protected boolean treeView;
 
     @CommandLine.Option(names = {"--ignore-match"})
     protected boolean ignoreMatch;
 
     @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...")
     protected String languageId;
+
+    @CommandLine.Option(names = {"--dryrun"})
+    protected boolean dryrun;
+
+    @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
+    protected boolean treeView;
 
     @Override
     public void run() {
