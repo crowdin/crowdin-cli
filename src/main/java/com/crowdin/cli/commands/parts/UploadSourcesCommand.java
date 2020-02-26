@@ -5,7 +5,6 @@ import com.crowdin.cli.client.DirectoriesClient;
 import com.crowdin.cli.client.FileClient;
 import com.crowdin.cli.client.StorageClient;
 import com.crowdin.cli.client.exceptions.ResponseException;
-import com.crowdin.cli.client.request.PropertyFileExportOptionsWrapper;
 import com.crowdin.cli.client.request.SpreadsheetFileImportOptionsWrapper;
 import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
 import com.crowdin.cli.client.request.XmlFileImportOptionsWrapper;
@@ -165,11 +164,15 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                                     pb.getBasePath()
                             );
                             exportPattern = StringUtils.replacePattern(exportPattern, "[\\\\/]+", "/");
-                            if (file.getEscapeQuotes() == null) {
-                                exportOptions = new PropertyFileExportOptionsWrapper(exportPattern);
-                            } else {
-                                exportOptions = new PropertyFileExportOptionsWrapper(file.getEscapeQuotes(), exportPattern);
+                            PropertyFileExportOptions pfExportOptions = new PropertyFileExportOptions();
+                            pfExportOptions.setExportPattern(exportPattern);
+                            if (file.getEscapeQuotes() != null) {
+                                pfExportOptions.setEscapeQuotes(file.getEscapeQuotes());
                             }
+                            if (file.getEscapeSpecialCharacters() != null) {
+                                pfExportOptions.setEscapeSpecialCharacters(file.getEscapeSpecialCharacters());
+                            }
+                            exportOptions = pfExportOptions;
                         }
 
                         Long storageId;
