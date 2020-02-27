@@ -1,5 +1,13 @@
 **Unreleased**
 
+**Version 3.1.3**
+
++ Added: Bash/Zsh commands completion
++ Updated: set threads count to 4
++ Updated: improve files list output for `download` command
++ Updated: move descriptions and messages to resource bundle
++ Updated: help screens improvement
+
 **Version 3.1.2**
 
 + Added: add message about wrong organization
