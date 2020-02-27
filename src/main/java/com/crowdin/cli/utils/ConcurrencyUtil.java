@@ -7,7 +7,7 @@ import java.util.stream.Collectors;
 
 public class ConcurrencyUtil {
 
-    private static final int CROWDIN_API_MAX_CONCURRENT_REQUESTS = 8;
+    private static final int CROWDIN_API_MAX_CONCURRENT_REQUESTS = 4;
 
     private ConcurrencyUtil() {
         throw new UnsupportedOperationException();
