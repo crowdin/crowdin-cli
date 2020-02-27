@@ -4,12 +4,10 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
-import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.ResourceBundle;
 
 
@@ -77,6 +75,15 @@ public class Utils {
         } catch (Exception e) {
             return Optional.empty();
         }
+    }
+
+    public static Optional<String> getNewVersionMassage() {
+        return getAppNewLatestVersion()
+            .map(newVersion -> String.format(MessageSource.RESOURCE_BUNDLE.getString("message.new_version_text"), Utils.getAppVersion(), newVersion))
+            .map(newVersionText ->
+                  "┌──" + StringUtils.repeat("─", newVersionText.length()) + "──┐\n"
+                + "│  " + newVersionText                                       + "  │\n"
+                + "└──" + StringUtils.repeat("─", newVersionText.length()) + "──┘");
     }
 
     public static String buildUserAgent() {

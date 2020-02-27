@@ -19,8 +19,7 @@ public class Cli {
             HelpCommand.setOptions(System.out, colorScheme);
             int exitCode = commandLine.execute(args);
 
-            Utils.getAppNewLatestVersion()
-                    .ifPresent(newVersion -> System.out.println(String.format(MessageSource.RESOURCE_BUNDLE.getString("message.new_version_available"), Utils.getAppVersion(), newVersion)));
+            Utils.getNewVersionMassage().ifPresent(System.out::println);
         } catch (Exception e) {
             System.out.println("There is exception:");
             e.printStackTrace();
