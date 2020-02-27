@@ -10,18 +10,16 @@ import com.crowdin.cli.utils.CommandUtils;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.cli.utils.file.FileUtil;
 import com.crowdin.common.Settings;
-import com.crowdin.common.models.Branch;
-import com.crowdin.common.models.FileRaw;
-import com.crowdin.common.models.Language;
-import com.crowdin.common.models.Translation;
+import com.crowdin.common.models.*;
+import com.crowdin.common.request.BuildTranslationPayload;
 import com.crowdin.util.CrowdinHttpClient;
-import com.crowdin.util.ObjectMapperUtil;
 import net.lingala.zip4j.core.ZipFile;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 import picocli.CommandLine;
 
 import java.io.File;
@@ -30,7 +28,6 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.zip.ZipException;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.*;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
@@ -43,7 +40,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
-    protected String branch;
+    protected String branchName;
 
     @CommandLine.Option(names = {"--ignore-match"})
     protected boolean ignoreMatch;
@@ -67,6 +64,9 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         try {
             ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
             project.downloadProject()
+                .downloadFiles()
+                .downloadDirectories()
+                .downloadBranches()
                 .downloadSupportedLanguages();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
@@ -80,44 +80,70 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             return;
         }
 
-        if (languageId != null) {
-            this.download(pb, project, languageId, placeholderUtil, settings, ignoreMatch);
-        } else {
-            List<Language> projectLanguages = project.getProjectLanguages();
-            for (Language projectLanguage : projectLanguages) {
-                if (projectLanguage != null && projectLanguage.getId() != null) {
-                    this.download(pb, project, projectLanguage.getId(), placeholderUtil, settings, ignoreMatch);
-                }
-            }
-        }
-    }
-
-    private void download(
-        PropertiesBean pb,
-        ProjectProxy project,
-        String languageCode,
-        PlaceholderUtil placeholderUtil,
-        Settings settings,
-        boolean ignoreMatch
-    ) {
-        CommandUtils commandUtils = new CommandUtils();
-
-        Language languageEntity = project.getProjectLanguages()
-            .stream()
-            .filter(language -> language.getId().equals(languageCode))
-            .findAny()
-            .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageCode)));
-
-        Optional<Branch> branchOrNull = Optional.ofNullable(this.branch)
-            .flatMap(project::getBranchByName);
+        Optional<Language> language = Optional.ofNullable(languageId)
+            .map(lang -> project.getLanguageById(lang)
+                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))));
+        Optional<Branch> branch = Optional.ofNullable(this.branchName)
+            .map(br -> project.getBranchByName(br)
+                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))));
 
         TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
 
-        System.out.println(String.format(RESOURCE_BUNDLE.getString("message.build_archive"), languageCode));
-        Translation translationBuild = null;
+        BuildTranslationPayload buildTranslationPayload = new BuildTranslationPayload();
+        language
+            .map(Language::getId)
+            .map(Collections::singletonList)
+            .ifPresent(buildTranslationPayload::setTargetLanguageIds);
+        branch
+            .map(Branch::getId)
+            .ifPresent(buildTranslationPayload::setBranchId);
+
+        System.out.println((languageId != null)
+                ? String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId)
+                : RESOURCE_BUNDLE.getString("message.build_archive"));
+        Translation translationBuild = buildTranslation(translationsClient, buildTranslationPayload);
+
+        String currentTimeMillis = Long.toString(System.currentTimeMillis());
+        String baseTempDir =
+                StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + currentTimeMillis + Utils.PATH_SEPARATOR;
+        String downloadedZipArchivePath =
+                StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + "translations" + currentTimeMillis + ".zip";
+        File downloadedZipArchive = new File(downloadedZipArchivePath);
+
+        this.downloadTranslations(translationsClient, translationBuild.getId().toString(), downloadedZipArchivePath);
+
+        List<String> downloadedFilesProc = this.getListOfFileFromArchive(downloadedZipArchive);
+
+        List<Language> forLanguages = language
+            .map(Collections::singletonList)
+            .orElse(project.getProjectLanguages());
+        Map<String, String> filesWithMapping = this.doTranslationMapping(forLanguages, pb.getFiles(), pb.getBasePath(), placeholderUtil);
+
+        List<String> sources = pb.getFiles()
+            .stream()
+            .flatMap(file -> CommandUtils.getSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil).stream())
+            .collect(Collectors.toList());
+        Map<String, List<String>> allProjectTranslations =
+            this.buildAllProjectTranslations(project.getFiles(), project.getMapDirectories(), project.getMapBranches(), branch.map(Branch::getId), placeholderUtil, pb.getBasePath());
+        String commonPath = (pb.getPreserveHierarchy()) ? "" : CommandUtils.getCommonPath(sources, pb.getBasePath());
+
+        this.extractFiles(baseTempDir, downloadedZipArchive);
+        this.unpackFiles(downloadedFilesProc, filesWithMapping, allProjectTranslations, pb.getBasePath(), baseTempDir);
+
+        try {
+            FileUtils.deleteDirectory(new File(baseTempDir));
+            Files.delete(downloadedZipArchive.toPath());
+        } catch (IOException e) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.clearing_temp"), e);
+        }
+    }
+
+    private Translation buildTranslation(TranslationsClient translationsClient, BuildTranslationPayload buildTranslationPayload) {
+        Translation translationBuild;
         try {
             ConsoleSpinner.start(BUILDING_TRANSLATION.getString(), this.noProgress);
-            translationBuild = translationsClient.startBuildingTranslation(branchOrNull.map(Branch::getId), languageEntity.getId());
+            translationBuild = translationsClient.startBuildingTranslation(buildTranslationPayload);
+
             while (!translationBuild.getStatus().equalsIgnoreCase("finished")) {
                 ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), Math.toIntExact(translationBuild.getProgress())));
                 Thread.sleep(100);
@@ -127,73 +153,10 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
-            ConsoleSpinner.stop(ExecutionStatus.ERROR);
+            ConsoleSpinner.stop(ERROR);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.building_translation"), e);
         }
-
-        if (isVerbose) {
-            System.out.println(ObjectMapperUtil.getEntityAsString(translationBuild));
-        }
-
-        String baseTempDir =
-            StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + System.currentTimeMillis();
-
-        String downloadedZipArchivePath =
-            StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + languageCode + ".zip";
-
-        File downloadedZipArchive = new File(downloadedZipArchivePath);
-
-        try {
-            ConsoleSpinner.start(DOWNLOADING_TRANSLATION.getString(), this.noProgress);
-            FileRaw fileRaw = translationsClient.getFileRaw(translationBuild.getId().toString());
-            InputStream download = CrowdinHttpClient.download(fileRaw.getUrl());
-
-            FileUtil.writeToFile(download, downloadedZipArchivePath);
-            ConsoleSpinner.stop(OK);
-            if (isVerbose) {
-                System.out.println(ObjectMapperUtil.getEntityAsString(fileRaw));
-            }
-        } catch (IOException e) {
-            ConsoleSpinner.stop(ExecutionStatus.ERROR);
-            throw new RuntimeException(ERROR_DURING_FILE_WRITE.getString(), e);
-        } catch (Exception e) {
-            ConsoleSpinner.stop(ExecutionStatus.ERROR);
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.downloading_file"), e);
-        }
-
-        try {
-            List<String> downloadedFilesProc = new ArrayList<>();
-            for (String downloadedFile : getListOfFileFromArchive(downloadedZipArchive)) {
-                downloadedFilesProc.add(downloadedFile.replaceAll("[\\\\/]+", "/"));
-            }
-            Map<String, String> mapping = project.getLanguageById(languageCode)
-                .map(lang -> commandUtils.doLanguagesMapping(lang, pb.getFiles(), pb.getBasePath(), placeholderUtil))
-                .orElse(Collections.emptyMap());
-            List<String> files = pb.getFiles()
-                .stream()
-                .flatMap(file ->
-                    commandUtils.getTranslations(file, project.getProjectLanguages(), project.getSupportedLanguages(), pb, placeholderUtil).stream())
-                .distinct()
-                .map(translation -> translation.replaceAll("[\\\\/]+", "/"))
-                .collect(Collectors.toList());
-            List<String> sources = pb.getFiles()
-                .stream()
-                .flatMap(file -> CommandUtils.getSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil).stream())
-                .collect(Collectors.toList());
-
-            String commonPath = CommandUtils.getCommonPath(sources, pb.getBasePath()).replaceAll("[\\\\/]+", "/");
-
-            Collections.sort(downloadedFilesProc);
-
-            extractFiles(downloadedFilesProc, files, baseTempDir, ignoreMatch, downloadedZipArchive, mapping, this.branch, pb, commonPath);
-            renameMappingFiles(mapping, baseTempDir, pb, commonPath);
-            FileUtils.deleteDirectory(new File(baseTempDir));
-            downloadedZipArchive.delete();
-        } catch (ZipException e) {
-            System.out.println(RESOURCE_BUNDLE.getString("error.open_zip"));
-        } catch (Exception e) {
-            System.out.println(RESOURCE_BUNDLE.getString("error.extracting_files"));
-        }
+        return translationBuild;
     }
 
     private List<String> getListOfFileFromArchive(File downloadedZipArchive) {
@@ -201,16 +164,14 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             return zipFile
                 .stream()
                 .filter(ze -> !ze.isDirectory())
-                .map(ze -> ("/" + ze.getName()).replaceAll("[\\\\/]+", "/"))
+                .map(ze -> (Utils.PATH_SEPARATOR + ze.getName()).replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX))
                 .collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.extracting_files"));
         }
     }
 
-    private void extractFiles(List<String> downloadedFiles, List<String> files, String baseTempDir, boolean ignore_match,
-                             File downloadedZipArchive, Map<String, String> mapping, String branch,
-                             PropertiesBean propertiesBean, String commonPath) {
+    private void extractFiles(String baseTempDir, File downloadedZipArchive) {
         ZipFile zFile;
         try {
             zFile = new ZipFile(downloadedZipArchive.getAbsolutePath());
@@ -230,94 +191,198 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         } catch (net.lingala.zip4j.exception.ZipException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.extract_archive"), downloadedZipArchive.getAbsolutePath()));
         }
-        List<String> ommitedFiles = new ArrayList<>();
-        List<String> extractingFiles = new ArrayList<>();
-        for (String downloadedFile : downloadedFiles) {
-            if (!files.contains(downloadedFile) && !files.contains(downloadedFile.replaceFirst("/", ""))) {
-                if (branch != null && !branch.isEmpty()) {
-                    ommitedFiles.add(downloadedFile.replaceFirst("/" + branch + "/", ""));
-                } else {
-                    ommitedFiles.add(downloadedFile);
-                }
-            } else {
-                if (StringUtils.isNotEmpty(branch)) {
-                    extractingFiles.add(downloadedFile.replaceAll("^/?" + branch + "/?", ""));
-                } else {
-                    extractingFiles.add(downloadedFile);
+    }
+
+    private Map<String, List<String>> buildAllProjectTranslations(
+        List<FileEntity> projectFiles,
+        Map<Long, Directory> projectDirectories,
+        Map<Long, Branch> projectBranches,
+        Optional<Long> branchId,
+        PlaceholderUtil placeholderUtil,
+        String basePath
+    ) {
+        Map<String, List<String>> allProjectTranslations = new HashMap<>();
+        for (FileEntity fe : projectFiles) {
+            if (branchId.isPresent() && !branchId.get().equals(fe.getBranchId())) {
+                continue;
+            }
+
+            String path = (branchId.isPresent())
+                ? this.buildFilePath(fe, projectDirectories)
+                : this.buildFilePath(fe, projectDirectories, projectBranches);
+            List<String> translations = (fe.getExportOptions() == null)
+                ? Collections.singletonList((Utils.PATH_SEPARATOR + fe.getName()).replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX))
+                : placeholderUtil.format(
+                Collections.singletonList(
+                    new File(basePath + path)),
+                fe.getExportOptions().getExportPattern().replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX),
+                false);
+            if (!branchId.isPresent() && fe.getBranchId() != null) {
+                translations = translations.stream()
+                    .map(translation -> Utils.PATH_SEPARATOR + projectBranches.get(fe.getBranchId()).getName() + translation)
+                    .collect(Collectors.toList());
+            }
+            allProjectTranslations.put(path, translations);
+        }
+        return allProjectTranslations;
+    }
+
+    private Pair<Map<File, File>, List<String>> sortFiles(
+        List<String> downloadedFiles,
+        Map<String, String> filesWithMapping,
+        String basePath,
+        String baseTempDir
+    ) {
+        Map<File, File> fileMapping = downloadedFiles
+            .stream()
+            .filter(filesWithMapping::containsKey)
+            .collect(Collectors.toMap(
+                downloadedFile -> new File(baseTempDir + downloadedFile),
+                downloadedFile -> new File(basePath + filesWithMapping.get(downloadedFile))));
+        List<String> omittedFiles = downloadedFiles
+            .stream()
+            .filter(downloadedFile -> !filesWithMapping.containsKey(downloadedFile))
+            .collect(Collectors.toList());
+        return new ImmutablePair<>(fileMapping, omittedFiles);
+    }
+
+    private Pair<Map<String, List<String>>, List<String>> sortOmittedFiles(
+            List<String> omittedFiles,
+            Map<String, List<String>> allProjectTranslations
+    ) {
+        Map<String, List<String>> allOmittedFiles = new HashMap<>();
+        List<String> allOmittedFilesNoSources = new ArrayList<>();
+        for (String omittedFile : omittedFiles) {
+            boolean isFound = false;
+            for (String projectFile : allProjectTranslations.keySet()) {
+                if (allProjectTranslations.get(projectFile).contains(omittedFile)) {
+                    isFound = true;
+                    allOmittedFiles.putIfAbsent(projectFile, new ArrayList<>());
+                    allOmittedFiles.get(projectFile).add(StringUtils.removeStart(omittedFile, Utils.PATH_SEPARATOR));
                 }
             }
+            if (!isFound) {
+                allOmittedFilesNoSources.add(StringUtils.removeStart(omittedFile, Utils.PATH_SEPARATOR));
+            }
         }
-        List<String> sortedExtractingFiles = new ArrayList<>();
-        for (Map.Entry<String, String> extractingMappingFile : mapping.entrySet()) {
-            String k = extractingMappingFile.getKey();
-            k = k.replaceAll("[\\\\/]+", "/");
-            if (!propertiesBean.getPreserveHierarchy()) {
-                if (k.startsWith(commonPath)) {
-                    for (FileBean file : propertiesBean.getFiles()) {
-                        String ep = file.getTranslation();
-                        if (ep != null && !ep.startsWith(commonPath) && !(new CommandUtils()).isSourceContainsPattern(ep) && !extractingMappingFile.getValue().startsWith(commonPath)) {
-                            k = k.replaceFirst(commonPath, "");
-                        }
+        return new ImmutablePair<>(allOmittedFiles, allOmittedFilesNoSources);
+    }
+
+    private void unpackFiles(
+        List<String> downloadedFilesProc,
+        Map<String, String> filesWithMapping,
+        Map<String, List<String>> allProjectTranslations,
+        String basePath,
+        String baseTempDirPath
+    ) {
+        Pair<Map<File, File>, List<String>> result = sortFiles(downloadedFilesProc, filesWithMapping, basePath, baseTempDirPath);
+        new TreeMap<>(result.getLeft()).forEach((fromFile, toFile) -> { //files to extract
+            this.moveFile(fromFile, toFile);
+            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.extracted_file"), StringUtils.removeStart(toFile.getAbsolutePath(), basePath)));
+        });
+        if (!ignoreMatch && !result.getRight().isEmpty()) {
+            Pair<Map<String, List<String>>, List<String>> omittedFiles = this.sortOmittedFiles(result.getRight(), allProjectTranslations);
+            Map<String, List<String>> allOmittedFiles = new TreeMap<>(omittedFiles.getLeft());
+            List<String> allOmittedFilesNoSources = omittedFiles.getRight();
+            if (!allOmittedFiles.isEmpty()) {
+                System.out.println(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted"));
+                allOmittedFiles.forEach((file, translations) -> {
+                    System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_count"), file, translations.size()));
+                    if (isVerbose) {
+                        translations.forEach(trans -> System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), trans)));
                     }
-                }
+                });
             }
-            k = StringUtils.removeStart(k, "/");
-            if (extractingFiles.contains(k) || extractingFiles.contains("/" + k)) {
-                sortedExtractingFiles.add(extractingMappingFile.getValue().replaceAll("[\\\\/]+", "/"));
-            }
-        }
-        Collections.sort(sortedExtractingFiles);
-        for (String sortedExtractingFile : sortedExtractingFiles) {
-            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.extracting_file"), sortedExtractingFile));
-        }
-        if (ommitedFiles.size() > 0 && !ignore_match) {
-            Collections.sort(ommitedFiles);
-            System.out.println(RESOURCE_BUNDLE.getString("message.downloaded_file_omitted"));
-            for (String ommitedFile : ommitedFiles) {
-                System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), ommitedFile));
+            if (!allOmittedFilesNoSources.isEmpty()) {
+                System.out.println(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted_without_sources"));
+                allOmittedFilesNoSources.forEach(file -> System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), file)));
             }
         }
     }
 
-    private void renameMappingFiles(Map<String, String> mapping, String baseTempDir, PropertiesBean propertiesBean, String commonPath) {
-        for (Map.Entry<String, String> entry : mapping.entrySet()) {
-            String preservedKey = entry.getKey();
-            if (!propertiesBean.getPreserveHierarchy()) {
-                commonPath = commonPath.replaceAll("[\\\\/]+", "/");
-                preservedKey = preservedKey.replaceAll("/+", "/");
-                if (preservedKey.startsWith(commonPath)) {
-                    for (FileBean file : propertiesBean.getFiles()) {
-                        String ep = file.getTranslation();
-                        if (ep != null && !ep.startsWith(commonPath) && !(new CommandUtils()).isSourceContainsPattern(ep) && !entry.getValue().startsWith(commonPath)) {
-                            preservedKey = preservedKey.replaceFirst(commonPath, "");
-                        }
-                    }
+    private void moveFile(File fromFile, File toFile) {
+        toFile.getParentFile().mkdirs();
+        if (!fromFile.renameTo(toFile)) {
+            if (toFile.delete()) {
+                if (!fromFile.renameTo(toFile)) {
+                    System.out.println(String.format(RESOURCE_BUNDLE.getString("error.replacing_file"), toFile.getAbsolutePath()));
                 }
             }
-            String key = StringUtils.removeEnd(baseTempDir, Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + preservedKey;
-            String value =
-                StringUtils.removeEnd(propertiesBean.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + entry.getValue();
-            if (Utils.isWindows()) {
-                key = key.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX);
-                key = key.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-                value = value.replaceAll("/+", Utils.PATH_SEPARATOR_REGEX);
-                value = value.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+        }
+    }
+
+    private String buildFilePath(FileEntity fe, Map<Long, Directory> directories) {
+        StringBuilder sb = new StringBuilder(fe.getName());
+        if (fe.getDirectoryId() != null) {
+            Directory dir = directories.get(fe.getDirectoryId());
+            while (dir != null) {
+                sb.insert(0, dir.getName() + Utils.PATH_SEPARATOR);
+                dir = directories.get(dir.getDirectoryId());
             }
-            if (!key.equals(value)) {
-                File oldFile = new File(key);
-                File newFile = new File(value);
-                if (oldFile.isFile()) {
-                    //noinspection ResultOfMethodCallIgnored
-                    newFile.getParentFile().mkdirs();
-                    if (!oldFile.renameTo(newFile)) {
-                        if (newFile.delete()) {
-                            if (!oldFile.renameTo(newFile)) {
-                                System.out.println(String.format(RESOURCE_BUNDLE.getString("error.replacing_file"), newFile.getAbsolutePath()));
-                            }
-                        }
-                    }
+        }
+        return sb.toString();
+    }
+
+    private String buildFilePath(FileEntity fe, Map<Long, Directory> directories, Map<Long, Branch> branchNames) {
+        return
+            ((fe.getBranchId() != null)
+                ? branchNames.get(fe.getBranchId()).getName() + Utils.PATH_SEPARATOR
+                : "")
+            + this.buildFilePath(fe, directories);
+    }
+
+    private Map<String, String> doTranslationMapping(
+        List<Language> languages,
+        List<FileBean> files,
+        String basePath,
+        PlaceholderUtil placeholderUtil
+    ) {
+        Map<String, String> mapping = new HashMap<>();
+
+        for (Language language : languages) {
+            for (FileBean file : files) {
+                String translation = file.getTranslation();
+                if (!StringUtils.startsWith(translation, Utils.PATH_SEPARATOR)) {
+                    translation = Utils.PATH_SEPARATOR + translation;
+                }
+                String translationProject1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, language);
+                String translationFile1 = (file.getLanguagesMapping() != null)
+                    ? placeholderUtil.replaceLanguageDependentPlaceholders(translation, file.getLanguagesMapping(), language)
+                    : translationProject1;
+
+                for (String projectFile : CommandUtils.getSourcesWithoutIgnores(file, basePath, placeholderUtil)) {
+                    String translationProject2 =
+                            placeholderUtil.replaceFileDependentPlaceholders(translationProject1, new File(projectFile));
+                    String translationFile2 = placeholderUtil.replaceFileDependentPlaceholders(translationFile1, new File(projectFile));
+                    translationFile2 =
+                        (file.getTranslationReplace() != null ? file.getTranslationReplace() : Collections.<String, String>emptyMap())
+                            .keySet()
+                            .stream()
+                            .reduce(translationFile2, (trans, key) -> StringUtils.replace(
+                                trans,
+                                key.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX),
+                                file.getTranslationReplace().get(key)));
+                    mapping.put(translationProject2, translationFile2);
                 }
             }
+        }
+        return mapping;
+    }
+
+    private void downloadTranslations(TranslationsClient translationsClient, String buildId, String archivePath) {
+        try {
+            ConsoleSpinner.start(DOWNLOADING_TRANSLATION.getString(), this.noProgress);
+            FileRaw fileRaw = translationsClient.getFileRaw(buildId);
+            InputStream download = CrowdinHttpClient.download(fileRaw.getUrl());
+
+            FileUtil.writeToFile(download, archivePath);
+            ConsoleSpinner.stop(OK);
+        } catch (IOException e) {
+            ConsoleSpinner.stop(ERROR);
+            throw new RuntimeException(ERROR_DURING_FILE_WRITE.getString(), e);
+        } catch (Exception e) {
+            ConsoleSpinner.stop(ERROR);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.downloading_file"), e);
         }
     }
 }

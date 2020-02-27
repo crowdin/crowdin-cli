@@ -21,13 +21,8 @@ public class TranslationsClient extends Client {
         api = new TranslationsApi(this.settings);
     }
 
-    public Translation startBuildingTranslation(Optional<Long> branchId, String targetLanguageId) {
-
-        BuildTranslationPayload buildTranslation = new BuildTranslationPayload();
-        branchId.ifPresent(buildTranslation::setBranchId);
-        buildTranslation.setTargetLanguageIds(Collections.singletonList(targetLanguageId));
-
-        return execute(api.buildTranslation(this.projectId, buildTranslation));
+    public Translation startBuildingTranslation(BuildTranslationPayload buildTranslationPayload) {
+        return execute(api.buildTranslation(this.projectId, buildTranslationPayload));
     }
 
     public Translation checkBuildingStatus(String buildId) {
