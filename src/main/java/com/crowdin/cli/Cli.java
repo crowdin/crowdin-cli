@@ -10,9 +10,6 @@ public class Cli {
 
     public static void main(String[] args) {
         try {
-            Utils.getAppNewLatestVersion()
-                .ifPresent(newVersion -> System.out.println(String.format(MessageSource.RESOURCE_BUNDLE.getString("message.new_version_available"), newVersion)));
-
             CommandLine.Help.ColorScheme colorScheme = buildColorScheme();
             CommandLine.IExecutionExceptionHandler executionExceptionHandler = buildExecutionExceptionHandler();
             CommandLine commandLine = new CommandLine(new RootCommand())
@@ -21,6 +18,9 @@ public class Cli {
 
             HelpCommand.setOptions(System.out, colorScheme);
             int exitCode = commandLine.execute(args);
+
+            Utils.getAppNewLatestVersion()
+                    .ifPresent(newVersion -> System.out.println(String.format(MessageSource.RESOURCE_BUNDLE.getString("message.new_version_available"), Utils.getAppVersion(), newVersion)));
         } catch (Exception e) {
             System.out.println("There is exception:");
             e.printStackTrace();
