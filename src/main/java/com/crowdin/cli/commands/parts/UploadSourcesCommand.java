@@ -4,6 +4,7 @@ import com.crowdin.cli.client.BranchClient;
 import com.crowdin.cli.client.DirectoriesClient;
 import com.crowdin.cli.client.FileClient;
 import com.crowdin.cli.client.StorageClient;
+import com.crowdin.cli.client.exceptions.StorageNotFoundResponseException;
 import com.crowdin.cli.client.exceptions.ResponseException;
 import com.crowdin.cli.client.request.PropertyFileExportOptionsWrapper;
 import com.crowdin.cli.client.request.SpreadsheetFileImportOptionsWrapper;
@@ -191,29 +192,31 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
 
                         FileEntity response = null;
                         try {
-                            if (autoUpdate) {
-                                response = project.getFiles()
-                                        .stream()
-                                        .filter(fileEntity -> Objects.equals(fileEntity.getName(), filePayload.getName()))
-                                        .filter(fileEntity -> Objects.equals(fileEntity.getDirectoryId(), filePayload.getDirectoryId()))
-                                        .filter(fileEntity -> Objects.equals(fileEntity.getBranchId(), branchId.orElse(null)))
-                                        .findFirst()
-                                        .map(fileEntity -> {
-                                            String fileId = fileEntity.getId().toString();
-                                            String projectId = pb.getProjectId();
+                            Optional<FileEntity> fileEntity;
+                            if (autoUpdate
+                                && (fileEntity = project.getFileEntity(filePayload.getName(), filePayload.getDirectoryId(), branchId.orElse(null)))
+                                    .isPresent()) {
 
-                                            UpdateFilePayload updateFilePayload = new UpdateFilePayloadWrapper(
-                                                    filePayload.getStorageId(),
-                                                    filePayload.getExportOptions(),
-                                                    filePayload.getImportOptions()
-                                            );
-                                            getUpdateOption(file.getUpdateOption())
-                                                    .ifPresent(updateFilePayload::setUpdateOption);
 
-                                            return fileClient.updateFile(projectId, fileId, updateFilePayload);
-                                        }).orElseGet(() -> fileClient.uploadFile(pb.getProjectId(), filePayload));
+                                UpdateFilePayload updateFilePayload = new UpdateFilePayloadWrapper(
+                                    filePayload.getStorageId(),
+                                    filePayload.getExportOptions(),
+                                    filePayload.getImportOptions());
+                                getUpdateOption(file.getUpdateOption()).ifPresent(updateFilePayload::setUpdateOption);
+
+                                try {
+                                    fileClient.updateFile(pb.getProjectId(), fileEntity.map(fe -> fe.getId().toString()).get(), updateFilePayload);
+                                } catch (StorageNotFoundResponseException e) {
+                                    Thread.sleep(100);
+                                    fileClient.updateFile(pb.getProjectId(), fileEntity.map(fe -> fe.getId().toString()).get(), updateFilePayload);
+                                }
                             } else {
-                                response = fileClient.uploadFile(pb.getProjectId(), filePayload);
+                                try {
+                                    fileClient.uploadFile(pb.getProjectId(), filePayload);
+                                } catch (StorageNotFoundResponseException e) {
+                                    Thread.sleep(100);
+                                    fileClient.uploadFile(pb.getProjectId(), filePayload);
+                                }
                             }
                             String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
                             System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
