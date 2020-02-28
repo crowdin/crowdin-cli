@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -69,15 +70,7 @@ public class FileHelper {
 
         List<File> resultList = new ArrayList<>();
 
-        String pattern = source;
-        if (basePath != null) {
-            if (!basePath.trim().endsWith(Utils.PATH_SEPARATOR) && !source.trim().startsWith(Utils.PATH_SEPARATOR)) {
-                pattern = basePath + Utils.PATH_SEPARATOR + source;
-            } else {
-                pattern = basePath.trim() + source.trim();
-                pattern = pattern.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-            }
-        }
+        String pattern = Paths.get(basePath).resolve(source).toString();
         pattern = pattern.replaceAll("\\\\+", "\\\\");
         pattern = pattern.replaceAll("/+", "/");
         String[] nodes = pattern.split(Utils.PATH_SEPARATOR_REGEX);
