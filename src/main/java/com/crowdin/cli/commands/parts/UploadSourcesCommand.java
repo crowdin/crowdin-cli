@@ -204,19 +204,9 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                                     filePayload.getImportOptions());
                                 getUpdateOption(file.getUpdateOption()).ifPresent(updateFilePayload::setUpdateOption);
 
-                                try {
-                                    fileClient.updateFile(pb.getProjectId(), fileEntity.map(fe -> fe.getId().toString()).get(), updateFilePayload);
-                                } catch (StorageNotFoundResponseException e) {
-                                    Thread.sleep(100);
-                                    fileClient.updateFile(pb.getProjectId(), fileEntity.map(fe -> fe.getId().toString()).get(), updateFilePayload);
-                                }
+                                fileClient.updateFile(pb.getProjectId(), fileEntity.map(fe -> fe.getId().toString()).get(), updateFilePayload);
                             } else {
-                                try {
-                                    fileClient.uploadFile(pb.getProjectId(), filePayload);
-                                } catch (StorageNotFoundResponseException e) {
-                                    Thread.sleep(100);
-                                    fileClient.uploadFile(pb.getProjectId(), filePayload);
-                                }
+                                fileClient.uploadFile(pb.getProjectId(), filePayload);
                             }
                             String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
                             System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
