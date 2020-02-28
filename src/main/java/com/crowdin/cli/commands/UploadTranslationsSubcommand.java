@@ -2,6 +2,7 @@ package com.crowdin.cli.commands;
 
 import com.crowdin.cli.client.StorageClient;
 import com.crowdin.cli.client.TranslationsClient;
+import com.crowdin.cli.client.exceptions.StorageNotFoundResponseException;
 import com.crowdin.cli.client.request.TranslationPayloadWrapper;
 import com.crowdin.cli.commands.functionality.DryrunTranslations;
 import com.crowdin.cli.commands.functionality.ProjectProxy;
@@ -180,7 +181,12 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation_to_storage"), e);
                     }
                     try {
-                        translationsClient.uploadTranslations(lang.getId(), payload);
+                        try {
+                            translationsClient.uploadTranslations(lang.getId(), payload);
+                        } catch (StorageNotFoundResponseException e) {
+                            Thread.sleep(100);
+                            translationsClient.uploadTranslations(lang.getId(), payload);
+                        }
                     } catch (Exception e) {
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
                     }
