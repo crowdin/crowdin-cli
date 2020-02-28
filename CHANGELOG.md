@@ -1,5 +1,12 @@
 **Unreleased**
 
+**Version 3.1.4**
++ Added: `escape_special_characters` option support for .properties file
++ Added: notification about new version
++ Updated: set default value for `escape_quotes` to 3
++ Updated: set default values for the configuration file to a list of `crowdin.yml` and `crowdin.yaml`
++ Updated: better error messages for base path
+
 **Version 3.1.3**
 
 + Added: Bash/Zsh commands completion
