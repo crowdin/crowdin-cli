@@ -30,7 +30,7 @@ public class PropertiesBuilder {
         if (params != null) {
             CliProperties.populateWithParams(pb, params);
         }
-        String basePathIfEmpty = (Files.exists(configFile.toPath()))
+        String basePathIfEmpty = (Files.exists(configFile.toPath()) && !(params != null && params.getBasePathParam() != null))
             ? new File(configFile.getAbsolutePath()).getParent()
             : System.getProperty("user.dir");
         return CliProperties.processProperties(pb, basePathIfEmpty);
