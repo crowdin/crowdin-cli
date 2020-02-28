@@ -32,7 +32,7 @@ public class PropertiesBuilder {
         }
         String basePathIfEmpty = (Files.exists(configFile.toPath()) && !(params != null && params.getBasePathParam() != null))
             ? new File(configFile.getAbsolutePath()).getParent()
-            : System.getProperty("user.dir");
+            : "";
         return CliProperties.processProperties(pb, basePathIfEmpty);
     }
 }
