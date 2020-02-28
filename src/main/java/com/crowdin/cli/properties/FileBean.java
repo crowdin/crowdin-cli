@@ -33,7 +33,9 @@ public class FileBean {
 
     private Boolean contentSegmentation;
 
-    private Integer escapeQuotes = null;
+    private Integer escapeQuotes;
+
+    private Integer escapeSpecialCharacters;
 
     private Map<String, String> translationReplace;
 
@@ -164,6 +166,14 @@ public class FileBean {
 
     public void setEscapeQuotes(Integer escapeQuotes) {
         this.escapeQuotes = escapeQuotes;
+    }
+
+    public Integer getEscapeSpecialCharacters() {
+        return escapeSpecialCharacters;
+    }
+
+    public void setEscapeSpecialCharacters(Integer escapeSpecialCharacters) {
+        this.escapeSpecialCharacters = escapeSpecialCharacters;
     }
 
     public Map<String, String> getTranslationReplace() {

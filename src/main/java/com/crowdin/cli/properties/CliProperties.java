@@ -68,6 +68,8 @@ public class CliProperties {
 
     private static final String ESCAPE_QUOTES = "escape_quotes";
 
+    private static final String ESCAPE_SPECIAL_CHARACTERS = "escape_special_characters";
+
     private static final String MULTILINGUAL_SPREADSHEET = "multilingual_spreadsheet";
 
     private static final String SCHEME = "scheme";
@@ -121,6 +123,7 @@ public class CliProperties {
         getProperty(        fileBean::setLanguagesMapping,          fbProperties, LANGUAGES_MAPPING);
         getProperty(        fileBean::setTranslationReplace,        fbProperties, TRANSLATION_REPLACE);
         getProperty(        fileBean::setEscapeQuotes,              fbProperties, ESCAPE_QUOTES);
+        getProperty(        fileBean::setEscapeSpecialCharacters,   fbProperties, ESCAPE_SPECIAL_CHARACTERS);
         getBooleanProperty( fileBean::setFirstLineContainsHeader,   fbProperties, FIRST_LINE_CONTAINS_HEADER);
         getBooleanProperty( fileBean::setTranslateAttributes,       fbProperties, TRANSLATE_ATTRIBUTES);
         getBooleanProperty( fileBean::setTranslateContent,          fbProperties, TRANSLATE_CONTENT);
@@ -159,9 +162,13 @@ public class CliProperties {
     }
 
     private static <T> void getProperty(Consumer<T> setter, Map<String, Object> properties, String key) {
-        T param = (T) properties.getOrDefault(key, null);
-        if (param != null) {
-            setter.accept(param);
+        try {
+            T param = (T) properties.getOrDefault(key, null);
+            if (param != null) {
+                setter.accept(param);
+            }
+        } catch (ClassCastException e) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param"), key), e);
         }
     }
 
@@ -260,8 +267,6 @@ public class CliProperties {
             file.setContentSegmentation(file.getContentSegmentation() != null ? file.getContentSegmentation() : Boolean.TRUE);
             //escape quotes
             if (file.getEscapeQuotes() != null) {
-            } else {
-                file.setEscapeQuotes(3);
             }
             //Language mapping
             if (file.getLanguagesMapping() == null || file.getLanguagesMapping().isEmpty()) {
@@ -338,6 +343,10 @@ public class CliProperties {
                 Integer escQuotes = fileBean.getEscapeQuotes();
                 if (escQuotes != null && (escQuotes < 0 || escQuotes > 3)) {
                     errors.add(RESOURCE_BUNDLE.getString("error.config.escape_quotes"));
+                }
+                Integer escSpecialCharacters = fileBean.getEscapeSpecialCharacters();
+                if (escSpecialCharacters != null && (escSpecialCharacters < 0 || escSpecialCharacters > 1)) {
+                    errors.add(RESOURCE_BUNDLE.getString("error.config.escape_special_characters"));
                 }
             }
         }
