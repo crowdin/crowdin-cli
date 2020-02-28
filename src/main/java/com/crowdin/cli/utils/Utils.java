@@ -1,12 +1,13 @@
 package com.crowdin.cli.utils;
 
+import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
-import java.io.InputStream;
+import java.net.URL;
 import java.nio.file.FileSystems;
+import java.util.List;
 import java.util.Optional;
-import java.util.Properties;
 import java.util.ResourceBundle;
 
 
@@ -31,44 +32,18 @@ public class Utils {
     public static final String PATH_SEPARATOR_REGEX = "\\".equals(PATH_SEPARATOR) ? "\\\\" : PATH_SEPARATOR;
 
     private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
-
-    private static String userAgentString;
-
-    private static Properties readProperties() {
-        Properties properties = new Properties();
-        try (InputStream in = Utils.class.getResourceAsStream(PROPERTIES_FILE);){
-            properties.load(in);
-        } catch (Exception e) {
-            System.out.println(String.format(RESOURCE_BUNDLE.getString("error.read_resource_file"), PROPERTIES_FILE));
-        }
-        return properties;
-    }
+    private static final ResourceBundle CROWDIN_PROPERTIES = ResourceBundle.getBundle("crowdin");
 
     public static String getAppName() {
-        Properties properties = readProperties();
-        String applicationName = null;
-        if (properties != null && properties.get(APPLICATION_NAME) != null) {
-            applicationName = properties.get(APPLICATION_NAME).toString();
-        }
-        return applicationName;
+        return CROWDIN_PROPERTIES.getString(APPLICATION_NAME);
     }
 
     public static String getAppVersion() {
-        Properties properties = readProperties();
-        String applicationVersion = null;
-        if (properties.get(APPLICATION_VERSION) != null) {
-            applicationVersion = properties.get(APPLICATION_VERSION).toString();
-        }
-        return applicationVersion;
+        return CROWDIN_PROPERTIES.getString(APPLICATION_VERSION);
     }
 
     public static String getBaseUrl() {
-        Properties properties = readProperties();
-        String applicationBaseUrl = null;
-        if (properties.get(APPLICATION_BASE_URL) != null) {
-            applicationBaseUrl = properties.get(APPLICATION_BASE_URL).toString();
-        }
-        return applicationBaseUrl;
+        return CROWDIN_PROPERTIES.getString(APPLICATION_BASE_URL);
     }
 
     public static String replaceBasePath(String path, String basePath) {
@@ -91,20 +66,36 @@ public class Utils {
         return SystemUtils.IS_OS_WINDOWS;
     }
 
-    public static String buildUserAgent() {
-        if (Utils.userAgentString != null) {
-            return Utils.userAgentString;
+    public static Optional<String> getAppNewLatestVersion() {
+        try {
+            List<String> versionFile = IOUtils.readLines(new URL(CROWDIN_PROPERTIES.getString("application.version_file_url")).openStream(), "UTF-8");
+            return (versionFile.size() > 0 && !getAppVersion().equals(versionFile.get(0)))
+                ? Optional.of(versionFile.get(0))
+                : Optional.empty();
+        } catch (Exception e) {
+            return Optional.empty();
         }
-        Properties prop = readProperties();
+    }
 
-        Utils.userAgentString = String.format("%s/%s java/%s/%s %s/%s",
-            prop.getProperty("application.name"),
-            prop.getProperty("application.version"),
+    public static Optional<String> getNewVersionMassage() {
+        String message2 = RESOURCE_BUNDLE.getString("message.new_version_text.2");
+        return getAppNewLatestVersion()
+            .map(newVersion -> String.format(MessageSource.RESOURCE_BUNDLE.getString("message.new_version_text"), Utils.getAppVersion(), newVersion))
+            .map(newVersionText ->
+                  "┌──" + StringUtils.repeat("─", newVersionText.length()) + "──┐\n"
+                + "│  " + newVersionText                                       + "  │\n"
+                + "│  " + StringUtils.center(message2, newVersionText.length())+ "  │\n"
+                + "└──" + StringUtils.repeat("─", newVersionText.length()) + "──┘");
+    }
+
+    public static String buildUserAgent() {
+        return String.format("%s/%s java/%s/%s %s/%s",
+            getAppName(),
+            getAppVersion(),
             System.getProperty("java.vendor"),
             System.getProperty("java.version"),
             System.getProperty("os.name"),
             System.getProperty("os.version"));
-        return Utils.userAgentString;
     }
 
     public static String commonPath(String[] paths){
@@ -153,12 +144,5 @@ public class Utils {
             }
         }
         return commonPath;
-    }
-
-    public static String getEnvironmentVariable(String name) {
-        if (name == null || name.isEmpty()) {
-            return null;
-        }
-        return System.getenv(name);
     }
 }
