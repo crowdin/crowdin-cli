@@ -10,6 +10,7 @@ import com.crowdin.common.request.BranchPayload;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -87,6 +88,17 @@ public class ProjectProxy {
             this.downloadFiles();
         }
         return files;
+    }
+
+    public Optional<FileEntity> getFileEntity(String name, Long directoryId, Long branchId) {
+        if (files == null) {
+            this.downloadFiles();
+        }
+        return files.stream()
+            .filter(fileEntity -> Objects.equals(fileEntity.getName(), name))
+            .filter(fileEntity -> Objects.equals(fileEntity.getDirectoryId(), directoryId))
+            .filter(fileEntity -> Objects.equals(fileEntity.getBranchId(), branchId))
+            .findFirst();
     }
 
     public List<Directory> getDirectories() {

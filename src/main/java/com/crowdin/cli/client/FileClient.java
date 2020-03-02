@@ -20,10 +20,14 @@ public class FileClient extends Client {
     }
 
     public FileEntity updateFile(String projectId, String fileId, UpdateFilePayload updateFilePayload) {
-        return execute((new FilesApi(settings)).updateFile(projectId, fileId, updateFilePayload));
+        return executeWithRetryIfErrorContains(
+                new FilesApi(settings).updateFile(projectId, fileId, updateFilePayload),
+                "File from storage with id #" + updateFilePayload.getStorageId() + " was not found");
     }
 
     public FileEntity uploadFile(String projectId, FilePayload filePayload) {
-        return execute((new FilesApi(settings)).createFile(projectId, filePayload));
+        return executeWithRetryIfErrorContains(
+            new FilesApi(settings).createFile(projectId, filePayload),
+            "File from storage with id #" + filePayload.getStorageId() + " was not found");
     }
 }

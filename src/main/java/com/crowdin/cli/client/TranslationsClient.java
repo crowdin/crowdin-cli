@@ -1,14 +1,12 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.cli.client.exceptions.ResponseException;
 import com.crowdin.client.api.TranslationsApi;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.FileRaw;
 import com.crowdin.common.models.Translation;
 import com.crowdin.common.request.BuildTranslationPayload;
 import com.crowdin.common.request.TranslationPayload;
-
-import java.util.Collections;
-import java.util.Optional;
 
 public class TranslationsClient extends Client {
 
@@ -29,11 +27,10 @@ public class TranslationsClient extends Client {
         return execute(api.getTranslationInfo(this.projectId.toString(), buildId));
     }
 
-    public void uploadTranslations(
-        String languageId,
-        TranslationPayload translationPayload
-    ) {
-        execute(api.uploadTranslation(projectId, languageId, translationPayload));
+    public void uploadTranslations(String languageId, TranslationPayload translationPayload) throws ResponseException {
+        executeWithRetryIfErrorContains(
+            api.uploadTranslation(projectId, languageId, translationPayload),
+            "File from storage with id #" + translationPayload.getStorageId() + " was not found");
     }
 
     public FileRaw getFileRaw(String buildId) {
