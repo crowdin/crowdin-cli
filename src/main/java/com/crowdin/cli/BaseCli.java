@@ -11,6 +11,8 @@ import java.util.ResourceBundle;
  */
 public class BaseCli {
 
+    public static final String[] defaultConfigs = {"crowdin.yml", "crowdin.yaml"};
+
     protected static final String FILE_NAME_IDENTITY_CROWDIN_YAML = ".crowdin.yaml";
 
     protected static final String FILE_NAME_IDENTITY_CROWDIN_YML = ".crowdin.yml";
