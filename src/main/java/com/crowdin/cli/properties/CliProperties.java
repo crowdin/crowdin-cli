@@ -206,7 +206,7 @@ public class CliProperties {
         if (pb.getBasePath() != null) {
             Path path;
             try {
-                path = Paths.get(basePathIfEmpty).resolve(pb.getBasePath()).toRealPath();
+                path = Paths.get(basePathIfEmpty).resolve(pb.getBasePath().replaceFirst("^~", System.getProperty("user.home"))).toRealPath();
             } catch (NoSuchFileException e) {
                 path = Paths.get(e.getMessage());
             } catch (IOException e) {
