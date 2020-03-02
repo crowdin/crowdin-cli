@@ -19,6 +19,6 @@ public abstract class PropertiesBuilderCommandPart extends Command {
     private File configFile;
 
     protected PropertiesBean buildPropertiesBean() {
-        return (new PropertiesBuilder(configFile, identityFile, params)).build();
+        return (new PropertiesBuilder(new File(configFile.getAbsolutePath()), identityFile, params)).build();
     }
 }

@@ -24,12 +24,15 @@ public class PropertiesBuilder {
         PropertiesBean pb = (!(Files.notExists(configFile.toPath()) && params != null))
             ? CliProperties.buildFromMap(new FileReader().readCliConfig(configFile))
             : new PropertiesBean();
-        if (params != null) {
-            CliProperties.populateWithParams(pb, params);
-        }
         if (identityFile != null) {
             CliProperties.populateWithCredentials(pb, new FileReader().readCliConfig(configFile));
         }
-        return CliProperties.processProperties(pb, configFile);
+        if (params != null) {
+            CliProperties.populateWithParams(pb, params);
+        }
+        String basePathIfEmpty = (Files.exists(configFile.toPath()) && !(params != null && params.getBasePathParam() != null))
+            ? new File(configFile.getAbsolutePath()).getParent()
+            : "";
+        return CliProperties.processProperties(pb, basePathIfEmpty);
     }
 }
