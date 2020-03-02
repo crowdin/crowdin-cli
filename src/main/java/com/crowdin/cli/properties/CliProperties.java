@@ -278,7 +278,8 @@ public class CliProperties {
             //Content segmentation
             file.setContentSegmentation(file.getContentSegmentation() != null ? file.getContentSegmentation() : Boolean.TRUE);
             //escape quotes
-            if (file.getEscapeQuotes() != null) {
+            if (file.getEscapeQuotes() == null) {
+                file.setEscapeQuotes(3);
             }
             //Language mapping
             if (file.getLanguagesMapping() == null || file.getLanguagesMapping().isEmpty()) {
