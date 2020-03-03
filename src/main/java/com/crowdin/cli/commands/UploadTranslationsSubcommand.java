@@ -103,6 +103,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                 .map(Collections::singletonList)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)))
             : project.getProjectLanguages();
+        project.getPseudoLanguage().ifPresent(languages::remove);
 
         for (FileBean file : pb.getFiles()) {
             List<File> fileSourcesWithoutIgnores =
