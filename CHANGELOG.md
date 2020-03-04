@@ -1,5 +1,9 @@
 **Unreleased**
 
+**Version 3.1.5**
++ Updated: do not upload in context language with 'upload translations'
++ Updated: allow base path to be relative to home directory
+
 **Version 3.1.4**
 + Added: `escape_special_characters` option support for .properties file
 + Added: notification about new version
@@ -8,7 +12,6 @@
 + Updated: better error messages for base path
 
 **Version 3.1.3**
-
 + Added: Bash/Zsh commands completion
 + Updated: set threads count to 4
 + Updated: improve files list output for `download` command
@@ -16,7 +19,6 @@
 + Updated: help screens improvement
 
 **Version 3.1.2**
-
 + Added: add message about wrong organization
 + Added: add User-Agent header
 + Updated: `escape_quotes` validation
