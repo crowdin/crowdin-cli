@@ -136,7 +136,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
                 Long fileId = filePathsToFileId.get(filePath);
                 if (fileId == null) {
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), filePath, StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath())));
+                    System.out.println(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath()), filePath));
                     continue;
                 }
 

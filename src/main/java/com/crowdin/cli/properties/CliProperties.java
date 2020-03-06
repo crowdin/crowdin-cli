@@ -344,7 +344,7 @@ public class CliProperties {
                     errors.add(RESOURCE_BUNDLE.getString("error.config.empty_translation_section"));
                 } else {
                     if (fileBean.getTranslation().contains("**") && fileBean.getSource() != null && !fileBean.getSource().contains("**")) {
-                        errors.add(RESOURCE_BUNDLE.getString("error.config.double_asteriks"));
+                        errors.add(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
                     }
                     if (!containsLangPlaceholders(fileBean.getTranslation()) && fileBean.getScheme() == null) {
                         errors.add(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
