@@ -9,6 +9,7 @@ import java.io.File;
 import java.io.FileFilter;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -120,7 +121,12 @@ public class FileHelper {
 
         List<FileMatcher> matchers = new ArrayList<>(ignores.size());
         for (String pattern : ignores) {
-            matchers.add(new FileMatcher(pattern, basePath));
+            if (Files.isDirectory(Paths.get(basePath + pattern))) {
+                matchers.add(new FileMatcher(pattern + Utils.PATH_SEPARATOR + "*", basePath));
+                matchers.add(new FileMatcher(pattern + Utils.PATH_SEPARATOR + "**" + Utils.PATH_SEPARATOR + "*", basePath));
+            } else {
+                matchers.add(new FileMatcher(pattern, basePath));
+            }
         }
 
         List<File> results = new ArrayList<>(sources.size());
