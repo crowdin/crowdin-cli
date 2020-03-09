@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.1.6] - 2020-03-09
++ Updated: texts update after review
+
 ## [3.1.5] - 2020-03-04
 + Updated: do not upload in-context language with 'upload translations'
 + Updated: allow base path to be relative to home directory
