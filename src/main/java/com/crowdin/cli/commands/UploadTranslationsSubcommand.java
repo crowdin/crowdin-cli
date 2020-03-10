@@ -40,14 +40,14 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 )
 public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
-    @CommandLine.Option(names = {"--no-auto-approve-imported"}, negatable = true)
-    protected boolean autoApproveImported = false;
+    @CommandLine.Option(names = {"--auto-approve-imported"}, negatable = true)
+    protected boolean autoApproveImported;
 
-    @CommandLine.Option(names = {"--no-import-duplicates"}, negatable = true)
-    protected boolean importDuplicates = false;
+    @CommandLine.Option(names = {"--import-duplicates"}, negatable = true)
+    protected boolean importDuplicates;
 
-    @CommandLine.Option(names = {"--no-import-eq-suggestions"}, negatable = true)
-    protected boolean importEqSuggestions = false;
+    @CommandLine.Option(names = {"--import-eq-suggestions"}, negatable = true)
+    protected boolean importEqSuggestions;
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
