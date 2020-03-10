@@ -103,33 +103,34 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
             branchId = Optional.empty();
         }
 
-        for (FileBean file : pb.getFiles()) {
-            if (StringUtils.isAnyEmpty(file.getSource(), file.getTranslation())) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources_or_translations"));
-            }
-            List<String> sources = CommandUtils.getSourcesWithoutIgnores(
+        List<Runnable> fileTasks = pb.getFiles().stream()
+            .map(file -> (Runnable) () -> {
+                if (StringUtils.isAnyEmpty(file.getSource(), file.getTranslation())) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources_or_translations"));
+                }
+                List<String> sources = CommandUtils.getSourcesWithoutIgnores(
                     file,
                     pb.getBasePath(),
                     placeholderUtil);
-            String commonPath =
+                String commonPath =
                     (pb.getPreserveHierarchy()) ? "" : CommandUtils.getCommonPath(sources, pb.getBasePath());
 
-            boolean isDest = StringUtils.isNotEmpty(file.getDest());
+                boolean isDest = StringUtils.isNotEmpty(file.getDest());
 
-            if (sources.isEmpty()) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
-            }
-            if (isDest && commandUtils.isSourceContainsPattern(file.getSource())) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
-            } else if (isDest && !pb.getPreserveHierarchy()) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
-            }
+                if (sources.isEmpty()) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
+                }
+                if (isDest && commandUtils.isSourceContainsPattern(file.getSource())) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
+                } else if (isDest && !pb.getPreserveHierarchy()) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
+                }
 
-            commandUtils.addDirectoryIdMap(
-                buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()),
-                project.getMapBranches());
+                commandUtils.addDirectoryIdMap(
+                    buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()),
+                    project.getMapBranches());
 
-            List<Runnable> tasks = sources.stream()
+                List<Runnable> tasks = sources.stream()
                     .map(File::new)
                     .filter(File::isFile)
                     .map(sourceFile -> (Runnable) () -> {
@@ -146,22 +147,22 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                         String fName = ((isDest) ? new File(file.getDest()) : sourceFile).getName();
 
                         ImportOptions importOptions = (sourceFile.getName().endsWith(".xml"))
-                                ? new XmlFileImportOptionsWrapper(
+                            ? new XmlFileImportOptionsWrapper(
                                 getOr(file.getContentSegmentation(), false),
                                 getOr(file.getTranslateAttributes(), false),
                                 getOr(file.getTranslateContent(), false),
                                 file.getTranslatableElements())
-                                : new SpreadsheetFileImportOptionsWrapper(
+                            : new SpreadsheetFileImportOptionsWrapper(
                                 getOr(file.getFirstLineContainsHeader(), false),
                                 getSchemeObject(file.getScheme()));
 
                         ExportOptions exportOptions = null;
                         if (StringUtils.isNoneEmpty(sourceFile.getAbsolutePath(), file.getTranslation())) {
                             String exportPattern = commandUtils.replaceDoubleAsteriskInTranslation(
-                                    file.getTranslation(),
-                                    sourceFile.getAbsolutePath(),
-                                    file.getSource(),
-                                    pb.getBasePath()
+                                file.getTranslation(),
+                                sourceFile.getAbsolutePath(),
+                                file.getSource(),
+                                pb.getBasePath()
                             );
                             exportPattern = StringUtils.replacePattern(exportPattern, "[\\\\/]+", "/");
                             PropertyFileExportOptions pfExportOptions = new PropertyFileExportOptions();
@@ -219,8 +220,10 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                         }
                     })
                     .collect(Collectors.toList());
-            ConcurrencyUtil.executeAndWait(tasks);
-        }
+                ConcurrencyUtil.executeAndWait(tasks);
+            })
+            .collect(Collectors.toList());
+        ConcurrencyUtil.executeAndWaitSingleThread(fileTasks);
     }
 
     private Optional<String> getUpdateOption(String fileUpdateOption) {
