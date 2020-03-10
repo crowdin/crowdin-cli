@@ -1,7 +1,5 @@
 package com.crowdin.cli.properties.helper;
 
-import com.crowdin.cli.properties.FileBean;
-import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
 
@@ -9,11 +7,11 @@ import java.io.File;
 import java.io.FileFilter;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
-import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 public class FileHelper {
@@ -70,33 +68,23 @@ public class FileHelper {
 
         List<File> resultList = new ArrayList<>();
 
-        String pattern = source;
-        if (basePath != null) {
-            if (!basePath.trim().endsWith(Utils.PATH_SEPARATOR) && !source.trim().startsWith(Utils.PATH_SEPARATOR)) {
-                pattern = basePath + Utils.PATH_SEPARATOR + source;
-            } else {
-                pattern = basePath.trim() + source.trim();
-                pattern = pattern.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-            }
-        }
-        pattern = pattern.replaceAll("\\\\+", "\\\\");
-        pattern = pattern.replaceAll("/+", "/");
+        String pattern = basePath + Utils.PATH_SEPARATOR + source;
+        pattern = pattern.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
+
         String[] nodes = pattern.split(Utils.PATH_SEPARATOR_REGEX);
         StringBuilder resultPath = new StringBuilder();
         for (String node : nodes) {
             if (!node.isEmpty()) {
-                if (resultList == null) {
-                    break;
-                }
                 if (!DOUBLED_ASTERISK.equals(node)) {
                     node = translateToRegex(node);
                 }
                 if (DOUBLED_ASTERISK.equals(node)) {
                     resultList = findFiles(DOUBLED_ASTERISK, resultList, node, resultPath);
-                } else if (node.contains(ASTERISK) || node.contains(QUESTION_MARK) || (node.contains(SET_OPEN_BRECKET) && node.contains(SET_CLOSE_BRECKET))) {
-                    resultList = findFiles(REGEX, resultList, node, resultPath);
                 } else {
                     resultList = findFiles(REGEX, resultList, node, resultPath);
+                }
+                if (resultList.isEmpty()) {
+                    break;
                 }
             }
         }
@@ -121,7 +109,7 @@ public class FileHelper {
 
         List<FileMatcher> matchers = new ArrayList<>(ignores.size());
         for (String pattern : ignores) {
-            if (Files.isDirectory(Paths.get(basePath + pattern))) {
+            if (new File(basePath + pattern).isDirectory()) {
                 matchers.add(new FileMatcher(pattern + Utils.PATH_SEPARATOR + "*", basePath));
                 matchers.add(new FileMatcher(pattern + Utils.PATH_SEPARATOR + "**" + Utils.PATH_SEPARATOR + "*", basePath));
             } else {
@@ -129,52 +117,32 @@ public class FileHelper {
             }
         }
 
-        List<File> results = new ArrayList<>(sources.size());
-        for (File source : sources) {
-            boolean noneMatch = true;
-            for (FileMatcher matcher : matchers) {
-                if (matcher.matches(source)) {
-                    noneMatch = false;
-                    break;
-                }
-            }
-            if (noneMatch) {
-                results.add(source);
-            }
-        }
-        return results;
+        return sources
+            .stream()
+            .filter(source -> matchers.stream().noneMatch(m -> m.matches(source)))
+            .collect(Collectors.toList());
     }
 
     private String translateToRegex(String node) {
-        if (node != null) {
-            if (node.contains(DOT)) {
-                if (node.contains(ESCAPE_DOT)) {
-                    node = node.replace(ESCAPE_DOT, ESCAPE_DOT_PLACEHOLDER);
-                }
-                node = node.replace(DOT, ESCAPE_DOT);
-                node = node.replace(ESCAPE_DOT_PLACEHOLDER, ESCAPE_DOT);
-            }
-            if (node.contains(QUESTION_MARK)) {
-                if (node.contains(ESCAPE_QUESTION)) {
-                    node = node.replace(ESCAPE_QUESTION, ESCAPE_QUESTION_PLACEHOLDER);
-                }
-                node = node.replace(QUESTION_MARK, DOT);
-                node = node.replace(ESCAPE_QUESTION_PLACEHOLDER, ESCAPE_QUESTION);
-            }
-            if (node.contains(ASTERISK)) {
-                if (node.contains(ESCAPE_ASTERISK)) {
-                    node = node.replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER);
-                }
-                node = node.replace(ASTERISK, DOT_PLUS);
-                node = node.replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK);
-            }
-            if (node.contains(ROUND_BRACKET_OPEN)) {
-                node = node.replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN);
-            }
-            if (node.contains(ROUND_BRACKET_CLOSE)) {
-                node = node.replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE);
-            }
+        if (node == null) {
+            throw new NullPointerException("Null arg in FileHelper.translateToRegex");
         }
+        node = node
+            .replace(ESCAPE_DOT, ESCAPE_DOT_PLACEHOLDER)
+            .replace(DOT, ESCAPE_DOT)
+            .replace(ESCAPE_DOT_PLACEHOLDER, ESCAPE_DOT);
+        node = node
+            .replace(ESCAPE_QUESTION, ESCAPE_QUESTION_PLACEHOLDER)
+            .replace(QUESTION_MARK, DOT)
+            .replace(ESCAPE_QUESTION_PLACEHOLDER, ESCAPE_QUESTION);
+        node = node
+            .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
+            .replace(ASTERISK, DOT_PLUS)
+            .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK);
+        node = node
+            .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN);
+        node = node
+            .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE);
         return node;
     }
 
