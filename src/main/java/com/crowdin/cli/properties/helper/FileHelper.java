@@ -119,7 +119,7 @@ public class FileHelper {
 
         return sources
             .stream()
-            .filter(source -> matchers.stream().anyMatch(m -> m.matches(source)))
+            .filter(source -> matchers.stream().noneMatch(m -> m.matches(source)))
             .collect(Collectors.toList());
     }
 
