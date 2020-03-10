@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.1.7] - 2020-03-11
++ Updated: Ignore directories using double-asterisk pattern
++ Updated: Update for --no-auto-update option of 'upload sources'
++ Fixed: CLI hanging trying to process non-existing directory
++ Fixed: Fix options for translations upload
++ Fixed: Fix for nonexistent path and little FileHelper refactoring
++ Fixed: `--identity` parameter processing
++ Fixed: Unexpected NPE while trying to download project
+
 ## [3.1.6] - 2020-03-09
 + Updated: texts update after review
 
