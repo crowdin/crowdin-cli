@@ -28,8 +28,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
 public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
 
@@ -195,12 +194,11 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
 
                         FileEntity response = null;
                         try {
-                            Optional<FileEntity> fileEntity;
-                            if (autoUpdate
-                                && (fileEntity = project.getFileEntity(filePayload.getName(), filePayload.getDirectoryId(), branchId.orElse(null)))
-                                    .isPresent()) {
-
-
+                            String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
+                            Optional<FileEntity> fileEntity =
+                                project.getFileEntity(filePayload.getName(), filePayload.getDirectoryId(), branchId.orElse(null));
+                            boolean fileExists = fileEntity.isPresent();
+                            if (fileExists && autoUpdate) {
                                 UpdateFilePayload updateFilePayload = new UpdateFilePayloadWrapper(
                                     filePayload.getStorageId(),
                                     filePayload.getExportOptions(),
@@ -208,11 +206,13 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                                 getUpdateOption(file.getUpdateOption()).ifPresent(updateFilePayload::setUpdateOption);
 
                                 fileClient.updateFile(pb.getProjectId(), fileEntity.map(fe -> fe.getId().toString()).get(), updateFilePayload);
+                                System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
+                            } else if (fileExists && !autoUpdate) {
+                                System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
                             } else {
                                 fileClient.uploadFile(pb.getProjectId(), filePayload);
+                                System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
                             }
-                            String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
-                            System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
                         } catch (Exception e) {
                             String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
                             System.out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
