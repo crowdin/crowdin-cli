@@ -210,7 +210,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             String path = (branchId.isPresent())
                 ? this.buildFilePath(fe, projectDirectories)
                 : this.buildFilePath(fe, projectDirectories, projectBranches);
-            List<String> translations = (fe.getExportOptions() == null)
+            List<String> translations = (fe.getExportOptions() == null || fe.getExportOptions().getExportPattern() == null)
                 ? Collections.singletonList((Utils.PATH_SEPARATOR + fe.getName()).replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX))
                 : placeholderUtil.format(
                 Collections.singletonList(
