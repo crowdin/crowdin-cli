@@ -25,7 +25,7 @@ public class PropertiesBuilder {
             ? CliProperties.buildFromMap(new FileReader().readCliConfig(configFile))
             : new PropertiesBean();
         if (identityFile != null) {
-            CliProperties.populateWithCredentials(pb, new FileReader().readCliConfig(configFile));
+            CliProperties.populateWithCredentials(pb, new FileReader().readCliConfig(identityFile));
         }
         if (params != null) {
             CliProperties.populateWithParams(pb, params);
