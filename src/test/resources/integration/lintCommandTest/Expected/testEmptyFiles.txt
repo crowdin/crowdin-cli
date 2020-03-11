@@ -1,2 +1,2 @@
 Configuration file is invalid. Check the following parameters in your configuration file:
-	- Section 'files' in configuration file is empty
+	- Section 'files' in the configuration file couldn't be empty. Specify source and translation paths

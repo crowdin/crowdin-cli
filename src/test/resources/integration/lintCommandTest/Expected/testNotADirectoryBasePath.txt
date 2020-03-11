@@ -1,2 +1,2 @@
 Configuration file is invalid. Check the following parameters in your configuration file:
-	- base path is wrong
+	- Base path \home\file.txt\ was not found. Check your 'base_path' for potential typos and\or capitalization mismatches

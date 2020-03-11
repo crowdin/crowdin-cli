@@ -1,2 +1,0 @@
-Configuration file is invalid. Check the following parameters in your configuration file:
-	- base path is wrong

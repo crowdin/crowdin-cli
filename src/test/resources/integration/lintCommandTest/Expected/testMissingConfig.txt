@@ -1,1 +1,1 @@
-Configuration file doesn't exist
+Configuration file doesn't exist. Run the 'crowdin init' to generate configuration skeleton

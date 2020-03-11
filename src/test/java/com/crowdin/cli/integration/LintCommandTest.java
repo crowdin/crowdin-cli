@@ -81,14 +81,6 @@ public class LintCommandTest extends BaseIntegrationTest {
     }
 
     @Test
-    public void testNotAbsoluteBasePath() {
-        this.initConfig("testNotAbsoluteBasePath.yml");
-        this.expectErrorOutput("testNotAbsoluteBasePath.txt");
-
-        this.executeCliCommand("lint");
-    }
-
-    @Test
     public void testNotADirectoryBasePath() {
         this.initConfig("testNotADirectoryBasePath.yml");
         this.expectErrorOutput("testNotADirectoryBasePath.txt");
