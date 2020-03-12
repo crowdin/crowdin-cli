@@ -351,9 +351,11 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
                     : translationProject1;
 
                 for (String projectFile : CommandUtils.getSourcesWithoutIgnores(file, basePath, placeholderUtil)) {
-                    String translationProject2 =
-                            placeholderUtil.replaceFileDependentPlaceholders(translationProject1, new File(projectFile));
-                    String translationFile2 = placeholderUtil.replaceFileDependentPlaceholders(translationFile1, new File(projectFile));
+                    String translationProject2 = CommandUtils.replaceDoubleAsteriskInTranslation(translationProject1, projectFile, file.getSource(), basePath);
+                    String translationFile2 = CommandUtils.replaceDoubleAsteriskInTranslation(translationFile1, projectFile, file.getSource(), basePath);
+                    translationProject2 =
+                            placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(projectFile));
+                    translationFile2 = placeholderUtil.replaceFileDependentPlaceholders(translationFile2, new File(projectFile));
                     translationFile2 =
                         (file.getTranslationReplace() != null ? file.getTranslationReplace() : Collections.<String, String>emptyMap())
                             .keySet()
