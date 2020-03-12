@@ -82,7 +82,8 @@ public class Utils {
         return getAppNewLatestVersion()
             .map(newVersion -> String.format(MessageSource.RESOURCE_BUNDLE.getString("message.new_version_text"), Utils.getAppVersion(), newVersion))
             .map(newVersionText ->
-                  "┌──" + StringUtils.repeat("─", newVersionText.length()) + "──┐\n"
+                  "\n"
+                + "┌──" + StringUtils.repeat("─", newVersionText.length()) + "──┐\n"
                 + "│  " + newVersionText                                       + "  │\n"
                 + "│  " + StringUtils.center(message2, newVersionText.length())+ "  │\n"
                 + "└──" + StringUtils.repeat("─", newVersionText.length()) + "──┘");
