@@ -164,7 +164,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             return zipFile
                 .stream()
                 .filter(ze -> !ze.isDirectory())
-                .map(ze -> (Utils.PATH_SEPARATOR + ze.getName()).replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX))
+                .map(ze -> ze.getName().replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX))
                 .collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.extracting_files"));
