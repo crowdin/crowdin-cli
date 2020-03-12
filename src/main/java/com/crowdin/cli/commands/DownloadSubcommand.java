@@ -30,8 +30,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.*;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
 @CommandLine.Command(
     name = "download",
@@ -99,8 +98,8 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             .ifPresent(buildTranslationPayload::setBranchId);
 
         System.out.println((languageId != null)
-                ? String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId)
-                : RESOURCE_BUNDLE.getString("message.build_archive"));
+                ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId))
+                : OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive")));
         Translation translationBuild = buildTranslation(translationsClient, buildTranslationPayload);
 
         String currentTimeMillis = Long.toString(System.currentTimeMillis());

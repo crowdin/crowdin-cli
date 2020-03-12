@@ -31,8 +31,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
 @CommandLine.Command(
     name ="translations",
@@ -156,7 +155,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                     }
                     File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
                     if (!transFile.exists()) {
-                        System.out.println(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath())));
+                        System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath()))));
                         continue;
                     }
                     TranslationPayload translationPayload = new TranslationPayloadWrapper(
