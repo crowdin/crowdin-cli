@@ -20,6 +20,8 @@ public class Cli {
             int exitCode = commandLine.execute(args);
 
             Utils.getNewVersionMassage().ifPresent(System.out::println);
+
+            System.exit(exitCode);
         } catch (Exception e) {
             System.out.println("There is exception:");
             e.printStackTrace();
