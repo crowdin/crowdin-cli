@@ -74,6 +74,8 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         }
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
+        Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
+
         if (dryrun) {
             (new DryrunTranslations(pb, placeholderUtil, false)).run(treeView);
             return;
@@ -116,15 +118,24 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         List<Language> forLanguages = language
             .map(Collections::singletonList)
             .orElse(project.getProjectLanguages());
-        Map<String, String> filesWithMapping = this.doTranslationMapping(forLanguages, pb.getFiles(), pb.getBasePath(), placeholderUtil);
 
-        List<String> sources = pb.getFiles()
-            .stream()
-            .flatMap(file -> CommandUtils.getSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil).stream())
-            .collect(Collectors.toList());
+        Map<String, String> filesWithMapping = pb.getFiles().stream()
+            .map(file -> {
+                List<String> sources = CommandUtils.getSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil);
+                Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
+                Map<String, Map<String, String>> projLanguageMapping = new HashMap<>();
+                if (projectLanguageMapping.isPresent()) {
+                    populateLanguageMapping(languageMapping, projectLanguageMapping.get());
+                    populateLanguageMapping(projLanguageMapping, projectLanguageMapping.get());
+                }
+                Map<String, String> translationReplace = file.getTranslationReplace() != null ? file.getTranslationReplace() : new HashMap<>();
+                return this.doTranslationMapping(forLanguages, file.getTranslation(), projLanguageMapping, languageMapping, translationReplace, sources, file.getSource(), pb.getBasePath(), placeholderUtil);
+            })
+            .flatMap(map -> map.entrySet().stream())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
         Map<String, List<String>> allProjectTranslations =
             this.buildAllProjectTranslations(project.getFiles(), project.getMapDirectories(), project.getMapBranches(), branch.map(Branch::getId), placeholderUtil, pb.getBasePath());
-        String commonPath = (pb.getPreserveHierarchy()) ? "" : CommandUtils.getCommonPath(sources, pb.getBasePath());
 
         this.extractFiles(baseTempDir, downloadedZipArchive);
         this.unpackFiles(downloadedFilesProc, filesWithMapping, allProjectTranslations, pb.getBasePath(), baseTempDir);
@@ -332,39 +343,36 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
     private Map<String, String> doTranslationMapping(
         List<Language> languages,
-        List<FileBean> files,
+        String translation,
+        Map<String, Map<String, String>> projLanguageMapping,
+        Map<String, Map<String, String>> languageMapping,
+        Map<String, String> translationReplace,
+        List<String> sources,
+        String source,
         String basePath,
         PlaceholderUtil placeholderUtil
     ) {
         Map<String, String> mapping = new HashMap<>();
 
         for (Language language : languages) {
-            for (FileBean file : files) {
-                String translation = file.getTranslation();
-                if (!StringUtils.startsWith(translation, Utils.PATH_SEPARATOR)) {
-                    translation = Utils.PATH_SEPARATOR + translation;
-                }
-                String translationProject1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, language);
-                String translationFile1 = (file.getLanguagesMapping() != null)
-                    ? placeholderUtil.replaceLanguageDependentPlaceholders(translation, file.getLanguagesMapping(), language)
-                    : translationProject1;
 
-                for (String projectFile : CommandUtils.getSourcesWithoutIgnores(file, basePath, placeholderUtil)) {
-                    String translationProject2 = CommandUtils.replaceDoubleAsteriskInTranslation(translationProject1, projectFile, file.getSource(), basePath);
-                    String translationFile2 = CommandUtils.replaceDoubleAsteriskInTranslation(translationFile1, projectFile, file.getSource(), basePath);
-                    translationProject2 =
-                            placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(projectFile));
-                    translationFile2 = placeholderUtil.replaceFileDependentPlaceholders(translationFile2, new File(projectFile));
-                    translationFile2 =
-                        (file.getTranslationReplace() != null ? file.getTranslationReplace() : Collections.<String, String>emptyMap())
-                            .keySet()
-                            .stream()
-                            .reduce(translationFile2, (trans, key) -> StringUtils.replace(
-                                trans,
-                                key.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX),
-                                file.getTranslationReplace().get(key)));
-                    mapping.put(translationProject2, translationFile2);
-                }
+            if (!StringUtils.startsWith(translation, Utils.PATH_SEPARATOR)) {
+                translation = Utils.PATH_SEPARATOR + translation;
+            }
+            String translationProject1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, projLanguageMapping, language);
+            String translationFile1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
+
+            for (String projectFile : sources) {
+                String translationProject2 = CommandUtils.replaceDoubleAsteriskInTranslation(translationProject1, projectFile, source, basePath);
+                String translationFile2 = CommandUtils.replaceDoubleAsteriskInTranslation(translationFile1, projectFile, source, basePath);
+
+                translationProject2 = placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(projectFile));
+                translationFile2 = placeholderUtil.replaceFileDependentPlaceholders(translationFile2, new File(projectFile));
+                translationFile2 = translationReplace.keySet().stream()
+                    .reduce(translationFile2, (trans, key) -> StringUtils.replace(
+                        trans,
+                        key.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX), translationReplace.get(key)));
+                mapping.put(translationProject2, translationFile2);
             }
         }
         return mapping;
@@ -384,6 +392,15 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.downloading_file"), e);
+        }
+    }
+
+    private void populateLanguageMapping (Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from) {
+        for (String langCode : from.keySet()) {
+            for (String forPlaceholder : from.get(langCode).keySet()) {
+                toPopulate.putIfAbsent(forPlaceholder, new HashMap<>());
+                toPopulate.get(forPlaceholder).putIfAbsent(langCode, from.get(langCode).get(forPlaceholder));
+            }
         }
     }
 }

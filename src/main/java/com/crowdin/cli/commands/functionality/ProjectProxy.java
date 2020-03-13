@@ -8,10 +8,7 @@ import com.crowdin.common.Settings;
 import com.crowdin.common.models.*;
 import com.crowdin.common.request.BranchPayload;
 
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -81,6 +78,23 @@ public class ProjectProxy {
         }
         this.branches = new BranchClient(this.settings).getAllSupportedBranches(this.projectId);
         return this;
+    }
+
+    public Optional<Map<String, Map<String, String>>> getLanguageMapping() {
+        if (this.project == null) {
+            this.downloadProject();
+        }
+        Object languageMappingObject = this.project.getLanguageMapping();
+        if (languageMappingObject != null && Map.class.isAssignableFrom(languageMappingObject.getClass())) {
+            try {
+                Map<String, Map<String, String>> languageMapping = (Map<String, Map<String, String>>) languageMappingObject;
+                return Optional.of(languageMapping);
+            } catch (ClassCastException e) {
+                return Optional.empty();
+            }
+        } else {
+            return Optional.empty();
+        }
     }
 
     public List<FileEntity> getFiles() {
