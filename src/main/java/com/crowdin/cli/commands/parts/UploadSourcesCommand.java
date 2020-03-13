@@ -20,6 +20,7 @@ import com.crowdin.common.models.Branch;
 import com.crowdin.common.models.Directory;
 import com.crowdin.common.models.FileEntity;
 import com.crowdin.common.request.*;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
@@ -171,6 +172,8 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                             }
                             if (file.getEscapeSpecialCharacters() != null) {
                                 pfExportOptions.setEscapeSpecialCharacters(file.getEscapeSpecialCharacters());
+                            } else if (FilenameUtils.isExtension(sourceFile.getName(), "properties")) {
+                                pfExportOptions.setEscapeSpecialCharacters(1);
                             }
                             exportOptions = pfExportOptions;
                         }
