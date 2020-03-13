@@ -163,7 +163,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             return zipFile
                 .stream()
                 .filter(ze -> !ze.isDirectory())
-                .map(ze -> (Utils.PATH_SEPARATOR + ze.getName()).replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX))
+                .map(ze -> ze.getName().replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX))
                 .collect(Collectors.toList());
         } catch (IOException e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.extracting_files"));
@@ -350,9 +350,11 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
                     : translationProject1;
 
                 for (String projectFile : CommandUtils.getSourcesWithoutIgnores(file, basePath, placeholderUtil)) {
-                    String translationProject2 =
-                            placeholderUtil.replaceFileDependentPlaceholders(translationProject1, new File(projectFile));
-                    String translationFile2 = placeholderUtil.replaceFileDependentPlaceholders(translationFile1, new File(projectFile));
+                    String translationProject2 = CommandUtils.replaceDoubleAsteriskInTranslation(translationProject1, projectFile, file.getSource(), basePath);
+                    String translationFile2 = CommandUtils.replaceDoubleAsteriskInTranslation(translationFile1, projectFile, file.getSource(), basePath);
+                    translationProject2 =
+                            placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(projectFile));
+                    translationFile2 = placeholderUtil.replaceFileDependentPlaceholders(translationFile2, new File(projectFile));
                     translationFile2 =
                         (file.getTranslationReplace() != null ? file.getTranslationReplace() : Collections.<String, String>emptyMap())
                             .keySet()

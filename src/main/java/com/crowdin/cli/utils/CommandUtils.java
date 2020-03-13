@@ -39,7 +39,7 @@ public class CommandUtils extends BaseCli {
                 || (source.contains("\\") && !Utils.isWindows());
     }
 
-    public String replaceDoubleAsteriskInTranslation(String translations, String sources, String source, String basePath) {
+    public static String replaceDoubleAsteriskInTranslation(String translations, String sources, String source, String basePath) {
         if (StringUtils.isAnyEmpty(translations, sources)) {
             throw new RuntimeException("No sources and/or translations");
         }

@@ -29,7 +29,10 @@ public class DryrunTranslations extends Dryrun {
             .stream()
             .flatMap(file -> CommandUtils.getFileSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil)
                 .stream()
-                .map(source -> placeholderUtil.replaceFileDependentPlaceholders(file.getTranslation(), source))
+                .map(source -> {
+                    String translation = CommandUtils.replaceDoubleAsteriskInTranslation(file.getTranslation(), source.getAbsolutePath(), file.getSource(), pb.getBasePath());
+                    return placeholderUtil.replaceFileDependentPlaceholders(translation, source);
+                })
                 .flatMap(translation -> ((file.getLanguagesMapping() != null)
                     ? placeholderUtil.replaceLanguageDependentPlaceholders(translation, file.getLanguagesMapping())
                     : placeholderUtil.replaceLanguageDependentPlaceholders(translation)).stream())
