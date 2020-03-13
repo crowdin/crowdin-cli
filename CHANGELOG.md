@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.1.8] - 2020-03-16
++ Added: Newline for new version message
++ Added: Emojis to some messages
++ Updated: Set `escapeSpecialCharacters` by default to '1' for '*.properties' files
++ Updated: API - fix for 5xx responses
++ Updated: Set defaults for identity file
++ Fixed: Double asterisks with a slash at the start
++ Fixed: Return correct exit code
+
 ## [3.1.7] - 2020-03-11
 + Updated: Ignore directories using double-asterisk pattern
 + Updated: Update for --no-auto-update option of 'upload sources'
