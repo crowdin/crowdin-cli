@@ -13,5 +13,10 @@ public class BaseCli {
 
     public static final String[] defaultConfigs = {"crowdin.yml", "crowdin.yaml"};
 
+    public static final String[] defaultIdentityFiles = {
+        System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yml",
+        System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yaml"
+    };
+
     protected static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
 }

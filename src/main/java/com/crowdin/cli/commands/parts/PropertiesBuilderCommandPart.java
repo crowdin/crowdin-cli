@@ -12,6 +12,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 
 import static com.crowdin.cli.BaseCli.defaultConfigs;
+import static com.crowdin.cli.BaseCli.defaultIdentityFiles;
 
 public abstract class PropertiesBuilderCommandPart extends Command {
 
@@ -28,7 +29,9 @@ public abstract class PropertiesBuilderCommandPart extends Command {
         if (configFile == null) {
             configFile = getDefaultConfig();
         }
-
+        if (identityFile == null) {
+            identityFile = getDefaultIdentityFile();
+        }
         return (new PropertiesBuilder(new File(configFile.getAbsolutePath()), identityFile, params)).build();
     }
 
@@ -42,5 +45,17 @@ public abstract class PropertiesBuilderCommandPart extends Command {
             .findFirst()
             .map(Path::toFile)
             .orElse(new File(defaultConfigs[0]));
+    }
+
+    private File getDefaultIdentityFile() {
+        if (defaultIdentityFiles == null || defaultIdentityFiles.length == 0) {
+            throw new RuntimeException("Array of default values for config file is empty");
+        }
+        return Arrays.stream(defaultIdentityFiles)
+            .map(Paths::get)
+            .filter(Files::exists)
+            .findFirst()
+            .map(Path::toFile)
+            .orElse(null);
     }
 }
