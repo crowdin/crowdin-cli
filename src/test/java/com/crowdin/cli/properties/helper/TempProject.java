@@ -6,6 +6,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Arrays;
 
 public class TempProject {
 
@@ -39,8 +40,21 @@ public class TempProject {
         }
     }
 
+    public File addFile(String path, String text) {
+        try {
+            Path file = dir.resolve(path);
+            Files.createDirectories(file.getParent());
+            Files.createFile(file);
+            Files.write(file, Arrays.asList(text.split("\\n")));
+            return file.toFile();
+        } catch (IOException e) {
+            throw new RuntimeException("couldn't add file to folder", e);
+        }
+    }
+
     public void delete() {
         try {
+
             FileUtils.deleteDirectory(dir.toFile());
         } catch (IOException e) {
             throw new RuntimeException("Couldn't delete directory after tests", e);

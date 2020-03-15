@@ -8,7 +8,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.nio.file.Files;
-import java.nio.file.Paths;
 
 public class PropertiesBuilder {
 
@@ -17,6 +16,9 @@ public class PropertiesBuilder {
     private Params params;
 
     public PropertiesBuilder(File configFile, File identityFile, Params params) {
+        if (configFile == null) {
+            throw new NullPointerException("null arg in PropertiesBuilder.constructor");
+        }
         this.configFile = configFile;
         this.identityFile = identityFile;
         this.params = params;
