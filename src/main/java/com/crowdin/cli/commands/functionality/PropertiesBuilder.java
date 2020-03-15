@@ -4,9 +4,11 @@ import com.crowdin.cli.properties.CliProperties;
 import com.crowdin.cli.properties.Params;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.file.FileReader;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 
 public class PropertiesBuilder {
 
@@ -28,11 +30,14 @@ public class PropertiesBuilder {
             CliProperties.populateWithCredentials(pb, new FileReader().readCliConfig(identityFile));
         }
         if (params != null) {
+            if (new File(params.getSourceParam()).isAbsolute()) {
+                pb.setPreserveHierarchy(false);
+                pb.setBasePath(configFile.toPath().getRoot().toString());
+                params.setSourceParam(StringUtils.removePattern(params.getSourceParam(), "^([a-zA-Z]:)?[\\\\/]+"));
+            }
             CliProperties.populateWithParams(pb, params);
         }
-        String basePathIfEmpty = (Files.exists(configFile.toPath()) && !(params != null && params.getBasePathParam() != null))
-            ? new File(configFile.getAbsolutePath()).getParent()
-            : "";
+        String basePathIfEmpty = new File(configFile.getAbsolutePath()).getParent();
         return CliProperties.processProperties(pb, basePathIfEmpty);
     }
 }
