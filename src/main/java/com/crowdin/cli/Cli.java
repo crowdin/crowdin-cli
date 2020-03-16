@@ -2,7 +2,6 @@ package com.crowdin.cli;
 
 import com.crowdin.cli.commands.RootCommand;
 import com.crowdin.cli.commands.parts.HelpCommand;
-import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
 import picocli.CommandLine;
 
@@ -10,6 +9,7 @@ public class Cli {
 
     public static void main(String[] args) {
         try {
+            setSystemProperties();
             CommandLine.Help.ColorScheme colorScheme = buildColorScheme();
             CommandLine.IExecutionExceptionHandler executionExceptionHandler = buildExecutionExceptionHandler();
             CommandLine commandLine = new CommandLine(new RootCommand())
@@ -25,6 +25,21 @@ public class Cli {
         } catch (Exception e) {
             System.out.println("There is exception:");
             e.printStackTrace();
+        }
+    }
+
+    private static void setSystemProperties() {
+        if (System.getenv("HTTP_PROXY_HOST") != null) {
+            System.setProperty("http.proxyHost", System.getenv("HTTP_PROXY_HOST"));
+        }
+        if (System.getenv("HTTP_PROXY_PORT") != null) {
+            System.setProperty("http.proxyPort", System.getenv("HTTP_PROXY_PORT"));
+        }
+        if (System.getenv("HTTPS_PROXY_HOST") != null) {
+            System.setProperty("https.proxyHost", System.getenv("HTTPS_PROXY_HOST"));
+        }
+        if (System.getenv("HTTPS_PROXY_PORT") != null) {
+            System.setProperty("https.proxyPort", System.getenv("HTTPS_PROXY_PORT"));
         }
     }
 
