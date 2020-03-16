@@ -74,12 +74,12 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         }
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
-        Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
-
         if (dryrun) {
             (new DryrunTranslations(pb, placeholderUtil, false)).run(treeView);
             return;
         }
+
+        Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
 
         Optional<Language> language = Optional.ofNullable(languageId)
             .map(lang -> project.getLanguageById(lang)

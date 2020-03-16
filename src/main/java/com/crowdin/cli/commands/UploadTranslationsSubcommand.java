@@ -24,10 +24,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import picocli.CommandLine;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
@@ -89,6 +86,8 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
             return;
         }
 
+        Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
+
         StorageClient storageClient = new StorageClient(settings);
         TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
 
@@ -143,9 +142,12 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                 String translation = CommandUtils.replaceDoubleAsteriskInTranslation(file.getTranslation(), source.getAbsolutePath(), file.getSource(), pb.getBasePath());
                 translation = placeholderUtil.replaceFileDependentPlaceholders(translation, source);
                 for (Language language : languages) {
-                    String transFileName = (file.getLanguagesMapping() != null)
-                        ? placeholderUtil.replaceLanguageDependentPlaceholders(translation, file.getLanguagesMapping(), language)
-                        : placeholderUtil.replaceLanguageDependentPlaceholders(translation, language);
+                    Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
+                    if (projectLanguageMapping.isPresent()) {
+                        populateLanguageMapping(languageMapping, projectLanguageMapping.get());
+                    }
+
+                    String transFileName = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
                     if (file.getTranslationReplace() != null) {
                         for (String key : file.getTranslationReplace().keySet()) {
                             transFileName = StringUtils.replace(
@@ -220,5 +222,14 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
             filePathsToId.put(((parentId != null) ? directoryPaths.get(parentId) : "") + fileEntity.getName(), fileEntity.getId());
         }
         return filePathsToId;
+    }
+
+    private void populateLanguageMapping (Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from) {
+        for (String langCode : from.keySet()) {
+            for (String forPlaceholder : from.get(langCode).keySet()) {
+                toPopulate.putIfAbsent(forPlaceholder, new HashMap<>());
+                toPopulate.get(forPlaceholder).putIfAbsent(langCode, from.get(langCode).get(forPlaceholder));
+            }
+        }
     }
 }
