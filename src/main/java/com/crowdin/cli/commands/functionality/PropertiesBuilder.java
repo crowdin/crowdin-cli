@@ -32,7 +32,7 @@ public class PropertiesBuilder {
             CliProperties.populateWithCredentials(pb, new FileReader().readCliConfig(identityFile));
         }
         if (params != null) {
-            if (new File(params.getSourceParam()).isAbsolute()) {
+            if (params.getSourceParam() != null && new File(params.getSourceParam()).isAbsolute()) {
                 pb.setPreserveHierarchy(false);
                 pb.setBasePath(configFile.toPath().getRoot().toString());
                 params.setSourceParam(StringUtils.removePattern(params.getSourceParam(), "^([a-zA-Z]:)?[\\\\/]+"));
