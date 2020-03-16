@@ -54,7 +54,7 @@ public class PropertiesBuilderTest {
         Params okParams = new Params() {{
             setIdParam("666");
             setTokenParam("123abc456");
-            setSourceParam("C:/hello/world");
+            setSourceParam("/hello/world");
             setTranslationParam("/hello/%two_letters_code%/%file_name%.%file_extension%");
         }};
 
@@ -77,7 +77,7 @@ public class PropertiesBuilderTest {
         Params okParams = new Params() {{
             setIdParam("666");
             setTokenParam("123abc456");
-            setSourceParam("C:/hello/world");
+            setSourceParam("/hello/world");
             setTranslationParam("/hello/%two_letters_code%/%file_name%.%file_extension%");
         }};
 
