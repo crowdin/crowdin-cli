@@ -212,7 +212,7 @@ public class CliProperties {
             } catch (IOException e) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.while_checking_base_path"), e);
             }
-            pb.setBasePath(path.toString() + Utils.PATH_SEPARATOR);
+            pb.setBasePath(StringUtils.removeEnd(path.toString(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR);
         } else {
             pb.setBasePath(basePathIfEmpty + Utils.PATH_SEPARATOR);
         }
