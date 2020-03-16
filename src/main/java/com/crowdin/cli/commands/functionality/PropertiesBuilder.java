@@ -8,17 +8,20 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class PropertiesBuilder {
 
+    private Path userDir;
     private File configFile;
     private File identityFile;
     private Params params;
 
-    public PropertiesBuilder(File configFile, File identityFile, Params params) {
+    public PropertiesBuilder(Path userDir, File configFile, File identityFile, Params params) {
         if (configFile == null) {
             throw new NullPointerException("null arg in PropertiesBuilder.constructor");
         }
+        this.userDir = userDir;
         this.configFile = configFile;
         this.identityFile = identityFile;
         this.params = params;
@@ -39,7 +42,7 @@ public class PropertiesBuilder {
             }
             CliProperties.populateWithParams(pb, params);
         }
-        String basePathIfEmpty = new File(configFile.getAbsolutePath()).getParent();
+        String basePathIfEmpty = userDir.toString();
         return CliProperties.processProperties(pb, basePathIfEmpty);
     }
 }

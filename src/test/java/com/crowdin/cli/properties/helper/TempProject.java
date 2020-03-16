@@ -52,6 +52,14 @@ public class TempProject {
         }
     }
 
+    public Path addDirectory(String path) {
+        try {
+            return Files.createDirectory(dir.resolve(path));
+        } catch (IOException e) {
+            throw new RuntimeException("Couldn't create a directory", e);
+        }
+    }
+
     public void delete() {
         try {
 

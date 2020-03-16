@@ -32,7 +32,8 @@ public abstract class PropertiesBuilderCommandPart extends Command {
         if (identityFile == null) {
             identityFile = getDefaultIdentityFile();
         }
-        return (new PropertiesBuilder(new File(configFile.getAbsolutePath()), identityFile, params)).build();
+        Path userDir = Paths.get(System.getProperty("user.dir"));
+        return (new PropertiesBuilder(userDir, new File(configFile.getAbsolutePath()), identityFile, params)).build();
     }
 
     private File getDefaultConfig() {
