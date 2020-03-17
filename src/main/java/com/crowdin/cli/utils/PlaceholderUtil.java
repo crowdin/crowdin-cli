@@ -117,7 +117,7 @@ public class PlaceholderUtil {
                 placeholder,
                 langMapping.containsKey(placeholder.replaceAll("%", ""))
                     ? langMapping.get(placeholder.replaceAll("%", "")).getOrDefault(langCode, defaultMapping)
-                    : langCode);
+                    : defaultMapping);
     }
 
     public String replaceFileDependentPlaceholders(String toFormat, File file) {
