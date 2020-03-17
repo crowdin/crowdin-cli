@@ -126,7 +126,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
             }
 
-            Map<File, Pair<Language, TranslationPayload>> preparedRequests = new HashMap<>();
+            Map<File, Pair<List<Language>, TranslationPayload>> preparedRequests = new HashMap<>();
             String branchPath = (StringUtils.isNotEmpty(this.branch) ? branch + Utils.PATH_SEPARATOR : "");
             for (File source : fileSourcesWithoutIgnores) {
                 String filePath = branchPath + (isDest
@@ -139,32 +139,43 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                     continue;
                 }
 
+
+                TranslationPayload translationPayload = new TranslationPayloadWrapper(
+                    fileId,
+                    this.importDuplicates,
+                    this.importEqSuggestions,
+                    this.autoApproveImported);
+
 //                build filePath to each source and project language
                 String translation = CommandUtils.replaceDoubleAsteriskInTranslation(file.getTranslation(), source.getAbsolutePath(), file.getSource(), pb.getBasePath());
                 translation = placeholderUtil.replaceFileDependentPlaceholders(translation, source);
-                for (Language language : languages) {
-                    String transFileName = (file.getLanguagesMapping() != null)
-                        ? placeholderUtil.replaceLanguageDependentPlaceholders(translation, file.getLanguagesMapping(), language)
-                        : placeholderUtil.replaceLanguageDependentPlaceholders(translation, language);
-                    if (file.getTranslationReplace() != null) {
-                        for (String key : file.getTranslationReplace().keySet()) {
-                            transFileName = StringUtils.replace(
-                                transFileName,
-                                key.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX),
-                                file.getTranslationReplace().get(key));
-                        }
-                    }
-                    File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
+                if (file.getScheme() != null) {
+                    File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
                     if (!transFile.exists()) {
                         System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath()))));
                         continue;
                     }
-                    TranslationPayload translationPayload = new TranslationPayloadWrapper(
-                        fileId,
-                        this.importDuplicates,
-                        this.importEqSuggestions,
-                        this.autoApproveImported);
-                    preparedRequests.put(transFile, Pair.of(language, translationPayload));
+                    preparedRequests.put(transFile, Pair.of(languages, translationPayload));
+                } else {
+                    for (Language language : languages) {
+                        String transFileName = (file.getLanguagesMapping() != null)
+                                ? placeholderUtil.replaceLanguageDependentPlaceholders(translation, file.getLanguagesMapping(), language)
+                                : placeholderUtil.replaceLanguageDependentPlaceholders(translation, language);
+                        if (file.getTranslationReplace() != null) {
+                            for (String key : file.getTranslationReplace().keySet()) {
+                                transFileName = StringUtils.replace(
+                                        transFileName,
+                                        key.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX),
+                                        file.getTranslationReplace().get(key));
+                            }
+                        }
+                        File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
+                        if (!transFile.exists()) {
+                            System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath()))));
+                            continue;
+                        }
+                        preparedRequests.put(transFile, Pair.of(Collections.singletonList(language), translationPayload));
+                    }
                 }
             }
 
@@ -172,7 +183,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                 .stream()
                 .map(entry -> (Runnable) () -> {
                     File translationFile = entry.getKey();
-                    Language lang = entry.getValue().getLeft();
+                    List<Language> langs = entry.getValue().getLeft();
                     TranslationPayload payload = entry.getValue().getRight();
                     try {
                         Long storageId = storageClient.uploadStorage(translationFile, translationFile.getName());
@@ -181,7 +192,10 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation_to_storage"), e);
                     }
                     try {
-                        translationsClient.uploadTranslations(lang.getId(), payload);
+                        for (Language lang : langs) {
+                            System.out.println(lang.getName());
+                            translationsClient.uploadTranslations(lang.getId(), payload);
+                        }
                     } catch (Exception e) {
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
                     }
