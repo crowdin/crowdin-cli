@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands;
 
+import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.StorageClient;
 import com.crowdin.cli.client.TranslationsClient;
 import com.crowdin.cli.client.request.TranslationPayloadWrapper;
@@ -144,7 +145,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                 for (Language language : languages) {
                     Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
                     if (projectLanguageMapping.isPresent()) {
-                        populateLanguageMapping(languageMapping, projectLanguageMapping.get());
+                        populateLanguageMapping(languageMapping, projectLanguageMapping.get(), BaseCli.placeholderMappingForServer);
                     }
 
                     String transFileName = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
@@ -224,11 +225,12 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         return filePathsToId;
     }
 
-    private void populateLanguageMapping (Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from) {
+    private void populateLanguageMapping (Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from, Map<String, String> placeholderMapping) {
         for (String langCode : from.keySet()) {
-            for (String forPlaceholder : from.get(langCode).keySet()) {
-                toPopulate.putIfAbsent(forPlaceholder, new HashMap<>());
-                toPopulate.get(forPlaceholder).putIfAbsent(langCode, from.get(langCode).get(forPlaceholder));
+            for (String fromPlaceholder : from.get(langCode).keySet()) {
+                String toPlaceholder = placeholderMapping.getOrDefault(fromPlaceholder, fromPlaceholder);
+                toPopulate.putIfAbsent(toPlaceholder, new HashMap<>());
+                toPopulate.get(toPlaceholder).putIfAbsent(langCode, from.get(langCode).get(fromPlaceholder));
             }
         }
     }

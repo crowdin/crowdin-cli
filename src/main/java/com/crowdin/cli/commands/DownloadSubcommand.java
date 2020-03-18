@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands;
 
+import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.TranslationsClient;
 import com.crowdin.cli.commands.functionality.DryrunTranslations;
 import com.crowdin.cli.commands.functionality.ProjectProxy;
@@ -125,8 +126,8 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
                 Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
                 Map<String, Map<String, String>> projLanguageMapping = new HashMap<>();
                 if (projectLanguageMapping.isPresent()) {
-                    populateLanguageMapping(languageMapping, projectLanguageMapping.get());
-                    populateLanguageMapping(projLanguageMapping, projectLanguageMapping.get());
+                    populateLanguageMapping(languageMapping, projectLanguageMapping.get(), BaseCli.placeholderMappingForServer);
+                    populateLanguageMapping(projLanguageMapping, projectLanguageMapping.get(), BaseCli.placeholderMappingForServer);
                 }
                 Map<String, String> translationReplace = file.getTranslationReplace() != null ? file.getTranslationReplace() : new HashMap<>();
                 return this.doTranslationMapping(forLanguages, file.getTranslation(), projLanguageMapping, languageMapping, translationReplace, sources, file.getSource(), pb.getBasePath(), placeholderUtil);
@@ -395,11 +396,12 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         }
     }
 
-    private void populateLanguageMapping (Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from) {
+    private void populateLanguageMapping (Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from, Map<String, String> placeholderMapping) {
         for (String langCode : from.keySet()) {
-            for (String forPlaceholder : from.get(langCode).keySet()) {
-                toPopulate.putIfAbsent(forPlaceholder, new HashMap<>());
-                toPopulate.get(forPlaceholder).putIfAbsent(langCode, from.get(langCode).get(forPlaceholder));
+            for (String fromPlaceholder : from.get(langCode).keySet()) {
+                String toPlaceholder = placeholderMapping.getOrDefault(fromPlaceholder, fromPlaceholder);
+                toPopulate.putIfAbsent(toPlaceholder, new HashMap<>());
+                toPopulate.get(toPlaceholder).putIfAbsent(langCode, from.get(langCode).get(fromPlaceholder));
             }
         }
     }
