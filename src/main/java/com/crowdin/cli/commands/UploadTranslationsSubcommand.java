@@ -193,7 +193,6 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                     }
                     try {
                         for (Language lang : langs) {
-                            System.out.println(lang.getName());
                             translationsClient.uploadTranslations(lang.getId(), payload);
                         }
                     } catch (Exception e) {
