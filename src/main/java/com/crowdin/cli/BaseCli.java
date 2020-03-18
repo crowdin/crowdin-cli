@@ -3,7 +3,8 @@ package com.crowdin.cli;
 import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
 
-import javax.ws.rs.core.HttpHeaders;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -17,6 +18,10 @@ public class BaseCli {
         System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yml",
         System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yaml"
     };
+
+    public static final Map<String, String> placeholderMappingForServer = new HashMap<String, String>() {{
+       put("name", "language");
+    }};
 
     protected static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
 }

@@ -9,6 +9,9 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.common.Settings;
 import picocli.CommandLine;
 
+import java.util.Map;
+import java.util.Optional;
+
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
@@ -38,6 +41,6 @@ public class ListTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
-        (new DryrunTranslations(pb, placeholderUtil, false)).run(treeView);
+        (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, false)).run(treeView);
     }
 }
