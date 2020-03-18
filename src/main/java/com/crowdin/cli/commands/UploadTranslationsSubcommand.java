@@ -82,12 +82,13 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         PlaceholderUtil placeholderUtil =
             new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
+        Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
+
         if (dryrun) {
-            (new DryrunTranslations(pb, placeholderUtil, true)).run(treeView);
+            (new DryrunTranslations(pb, projectLanguageMapping, placeholderUtil, true)).run(treeView);
             return;
         }
 
-        Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
 
         StorageClient storageClient = new StorageClient(settings);
         TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());

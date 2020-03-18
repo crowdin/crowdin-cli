@@ -76,7 +76,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
         if (dryrun) {
-            (new DryrunTranslations(pb, placeholderUtil, false)).run(treeView);
+            (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, false)).run(treeView);
             return;
         }
 
