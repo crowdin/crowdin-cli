@@ -6,6 +6,7 @@ import com.crowdin.cli.client.TranslationsClient;
 import com.crowdin.cli.client.request.TranslationPayloadWrapper;
 import com.crowdin.cli.commands.functionality.DryrunTranslations;
 import com.crowdin.cli.commands.functionality.ProjectProxy;
+import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -106,8 +107,9 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         project.getPseudoLanguage().ifPresent(languages::remove);
 
         for (FileBean file : pb.getFiles()) {
-            List<File> fileSourcesWithoutIgnores =
-                    CommandUtils.getFileSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil);
+            List<File> fileSourcesWithoutIgnores = SourcesUtils
+                .getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
+                .collect(Collectors.toList());
 
             String commonPath =
                 (pb.getPreserveHierarchy())

@@ -114,6 +114,9 @@ public class FileHelper {
                 matchers.add(new FileMatcher(pattern + Utils.PATH_SEPARATOR + "**" + Utils.PATH_SEPARATOR + "*", basePath));
             } else {
                 matchers.add(new FileMatcher(pattern, basePath));
+                if (pattern.contains("**")) {
+                    matchers.add(new FileMatcher(pattern.replace(Utils.PATH_SEPARATOR, ""), basePath));
+                }
             }
         }
 

@@ -4,8 +4,8 @@ import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.TranslationsClient;
 import com.crowdin.cli.commands.functionality.DryrunTranslations;
 import com.crowdin.cli.commands.functionality.ProjectProxy;
+import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
-import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.CommandUtils;
 import com.crowdin.cli.utils.PlaceholderUtil;
@@ -31,7 +31,8 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.*;
-import static com.crowdin.cli.utils.console.ExecutionStatus.*;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
     name = "download",
@@ -122,7 +123,9 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
         Map<String, String> filesWithMapping = pb.getFiles().stream()
             .map(file -> {
-                List<String> sources = CommandUtils.getSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil);
+                List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
+                    .map(File::getAbsolutePath)
+                    .collect(Collectors.toList());
                 Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
                 Map<String, Map<String, String>> projLanguageMapping = new HashMap<>();
                 if (projectLanguageMapping.isPresent()) {

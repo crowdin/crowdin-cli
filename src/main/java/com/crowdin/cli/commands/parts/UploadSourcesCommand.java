@@ -4,15 +4,20 @@ import com.crowdin.cli.client.BranchClient;
 import com.crowdin.cli.client.DirectoriesClient;
 import com.crowdin.cli.client.FileClient;
 import com.crowdin.cli.client.StorageClient;
+import com.crowdin.cli.client.exceptions.ExistsResponseException;
 import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.exceptions.WaitResponseException;
 import com.crowdin.cli.client.request.SpreadsheetFileImportOptionsWrapper;
 import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
 import com.crowdin.cli.client.request.XmlFileImportOptionsWrapper;
 import com.crowdin.cli.commands.functionality.DryrunSources;
 import com.crowdin.cli.commands.functionality.ProjectProxy;
-import com.crowdin.cli.properties.FileBean;
+import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.*;
+import com.crowdin.cli.utils.CommandUtils;
+import com.crowdin.cli.utils.ConcurrencyUtil;
+import com.crowdin.cli.utils.PlaceholderUtil;
+import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.common.Settings;
@@ -25,7 +30,13 @@ import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
 import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
@@ -108,10 +119,9 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                 if (StringUtils.isAnyEmpty(file.getSource(), file.getTranslation())) {
                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources_or_translations"));
                 }
-                List<String> sources = CommandUtils.getSourcesWithoutIgnores(
-                    file,
-                    pb.getBasePath(),
-                    placeholderUtil);
+                List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
+                    .map(File::getAbsolutePath)
+                    .collect(Collectors.toList());
                 String commonPath =
                     (pb.getPreserveHierarchy()) ? "" : CommandUtils.getCommonPath(sources, pb.getBasePath());
 
@@ -126,9 +136,8 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
                 }
 
-                commandUtils.addDirectoryIdMap(
-                    buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()),
-                    project.getMapBranches());
+                Map<String, Long> directoryPaths = buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches());
+                Map<Long, Branch> mapBranches = project.getMapBranches();
 
                 List<Runnable> tasks = sources.stream()
                     .map(File::new)
@@ -143,7 +152,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                             filePath = StringUtils.removeStart(filePath, Utils.PATH_SEPARATOR);
                             filePath = StringUtils.removeStart(filePath, commonPath);
                         }
-                        Long directoryId = commandUtils.createPath(filePath, branchId, directoriesClient);
+                        Long directoryId = createPath(directoryPaths, mapBranches, filePath, branchId, directoriesClient);
                         String fName = ((isDest) ? new File(file.getDest()) : sourceFile).getName();
 
                         ImportOptions importOptions = (sourceFile.getName().endsWith(".xml"))
@@ -275,5 +284,78 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
             scheme.put(schemePart[i], i);
         }
         return scheme;
+    }
+
+    /**
+     * return deepest directory id
+     */
+    public Long createPath(Map<String, Long> directoryIdMap, Map<Long, Branch> branchNameMap, String filePath, Optional<Long> branchId, DirectoriesClient directoriesClient) {
+        String[] nodes = filePath.split(Utils.PATH_SEPARATOR_REGEX);
+
+        Long directoryId = null;
+        StringBuilder parentPath = new StringBuilder();
+        String branchPath = (branchId.map(branch -> branchNameMap.get(branch).getName() + Utils.PATH_SEPARATOR).orElse(""));
+        for (String node : nodes) {
+            if (StringUtils.isEmpty(node) || node.equals(nodes[nodes.length - 1])) {
+                continue;
+            }
+            parentPath.append(node).append(Utils.PATH_SEPARATOR);
+            String parentPathString = branchPath + parentPath.toString();
+            if (directoryIdMap.containsKey(parentPathString)) {
+                directoryId = directoryIdMap.get(parentPathString);
+            } else {
+                DirectoryPayload directoryPayload = new DirectoryPayload();
+                directoryPayload.setName(node);
+
+                if (directoryId == null) {
+                    branchId.ifPresent(directoryPayload::setBranchId);
+                } else {
+                    directoryPayload.setDirectoryId(directoryId);
+                }
+                directoryId = createDirectory(directoryIdMap, directoriesClient, directoryPayload, parentPathString);
+            }
+        }
+        return directoryId;
+    }
+
+    private final Map<String, Lock> pathLocks = new ConcurrentHashMap<>();
+
+    private Long createDirectory(Map<String, Long> directoryIdMap, DirectoriesClient directoriesClient, DirectoryPayload directoryPayload, String path) {
+        Lock lock;
+        synchronized (pathLocks) {
+            if (!pathLocks.containsKey(path)) {
+                pathLocks.put(path, new ReentrantLock());
+            }
+            lock = pathLocks.get(path);
+        }
+        Long directoryId;
+        try {
+            lock.lock();
+            if (directoryIdMap.containsKey(path)) {
+                return directoryIdMap.get(path);
+            }
+            Directory directory = directoriesClient.createDirectory(directoryPayload);
+            directoryId = directory.getId();
+            directoryIdMap.put(path, directoryId);
+            System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(path.toString(), "[\\\\/]$"))));
+        } catch (ExistsResponseException e) {
+            System.out.println(ExecutionStatus.SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(path.toString(), "[\\\\/]$"))));
+            if (directoryIdMap.containsKey(path)) {
+                return directoryIdMap.get(path);
+            } else {
+                throw new RuntimeException("Couldn't create directory '" + path + "' because it's already here");
+            }
+        } catch (WaitResponseException e) {
+            try {
+                Thread.sleep(500);
+            } catch (InterruptedException ignored) {
+            }
+            return createDirectory(directoryIdMap, directoriesClient, directoryPayload, path);
+        } catch (ResponseException e) {
+            throw new RuntimeException("Unhandled exception", e);
+        } finally {
+            lock.unlock();
+        }
+        return directoryId;
     }
 }

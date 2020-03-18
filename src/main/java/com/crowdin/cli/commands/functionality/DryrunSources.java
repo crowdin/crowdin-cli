@@ -5,6 +5,7 @@ import com.crowdin.cli.utils.CommandUtils;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -23,7 +24,8 @@ public class DryrunSources extends Dryrun {
         List<String> files = pb
             .getFiles()
             .stream()
-            .flatMap(file -> CommandUtils.getSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil).stream())
+            .flatMap(file -> SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
+                .map(File::getAbsolutePath))
             .map(source -> StringUtils.removeStart(source, pb.getBasePath()))
             .collect(Collectors.toList());
 
