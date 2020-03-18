@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.1.9] - 2020-03-19
++ Added: Support language mapping from server
++ Added: Set proxy properties from system environment
++ Updated: Return to old 'language_mapping' with crowdin codes
++ Fixed: Fix config options and write tests for PropertiesBeanBuilder
++ Fixed: Fix 'upload translations' for multilingual files
+
 ## [3.1.8] - 2020-03-16
 + Added: Newline for new version message
 + Added: Emojis to some messages
