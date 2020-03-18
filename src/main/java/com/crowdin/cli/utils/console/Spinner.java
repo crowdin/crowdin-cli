@@ -1,5 +1,7 @@
 package com.crowdin.cli.utils.console;
 
+import com.crowdin.cli.utils.Utils;
+
 import java.util.concurrent.locks.ReentrantLock;
 
 class Spinner extends Thread {
@@ -70,7 +72,7 @@ class Spinner extends Thread {
     }
 
     private String[] getFrames() {
-        return ConsoleUtils.isWindows() ? windowsFrames : unixFrames;
+        return Utils.isWindows() ? windowsFrames : unixFrames;
     }
 
     private void clearFrame(String frame) {

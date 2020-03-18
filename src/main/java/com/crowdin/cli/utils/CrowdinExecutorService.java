@@ -12,6 +12,7 @@ public class CrowdinExecutorService extends ThreadPoolExecutor {
         return new CrowdinExecutorService(nThreads, nThreads, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<Runnable>());
     }
 
+    @Override
     protected void afterExecute(Runnable r, Throwable t) {
         super.afterExecute(r, t);
         if (t == null && r instanceof Future<?>) {

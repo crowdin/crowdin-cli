@@ -19,8 +19,6 @@ public class Utils {
 
     private static final String APPLICATION_VERSION = "application.version";
 
-    private static final String PROPERTIES_FILE = "/crowdin.properties";
-
     /**
      * Path separator for use when concatenating or using non-regex findLanguage/replace methods.
      */
@@ -97,53 +95,5 @@ public class Utils {
             System.getProperty("java.version"),
             System.getProperty("os.name"),
             System.getProperty("os.version"));
-    }
-
-    public static String commonPath(String[] paths){
-        String commonPath = "";
-        if (paths == null) {
-            return commonPath;
-        }
-        if (Utils.isWindows()) {
-            String[] winPath = new String[paths.length];
-            for (int i=0; i<paths.length; i++) {
-                if (paths[i].contains("/")) {
-                    winPath[i] = paths[i].replaceAll("/+", PATH_SEPARATOR_REGEX);
-                } else {
-                    winPath[i] = paths[i];
-                }
-            }
-            paths = winPath;
-        }
-        if (paths.length == 1) {
-            if (paths[0].lastIndexOf(PATH_SEPARATOR) > 0) {
-                commonPath = paths[0].substring(0, paths[0].lastIndexOf(PATH_SEPARATOR));
-            }
-            if (Utils.isWindows() && paths[0].lastIndexOf("\\") > 0) {
-                commonPath = paths[0].substring(0, paths[0].lastIndexOf("\\"));
-            }
-        } else if (paths.length > 1) {
-            String[][] folders = new String[paths.length][];
-            for(int i = 0; i < paths.length; i++){
-                folders[i] = paths[i].split(PATH_SEPARATOR_REGEX);
-            }
-            for(int j = 0; j < folders[0].length; j++){
-                String thisFolder = folders[0][j];
-                boolean allMatched = true;
-                for(int i = 1; i < folders.length && allMatched; i++){
-                    if(folders[i].length < j){
-                        allMatched = false;
-                        break;
-                    }
-                    allMatched &= folders[i][j].equals(thisFolder);
-                }
-                if(allMatched){
-                    commonPath += thisFolder + PATH_SEPARATOR;
-                } else{
-                    break;
-                }
-            }
-        }
-        return commonPath;
     }
 }
