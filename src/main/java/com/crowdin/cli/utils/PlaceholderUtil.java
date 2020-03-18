@@ -102,22 +102,22 @@ public class PlaceholderUtil {
         if (toFormat == null || lang == null || languageMapping == null) {
             throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");
         }
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LANGUAGE, lang.getName(), languageMapping);
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LOCALE, lang.getLocale(), languageMapping);
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LOCALE_WITH_UNDERSCORE, lang.getLocale().replace("-", "_"), languageMapping);
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_TWO_LETTERS_CODE, lang.getTwoLettersCode(), languageMapping);
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_THREE_LETTERS_CODE, lang.getThreeLettersCode(), languageMapping);
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_ANDROID_CODE, lang.getAndroidCode(), languageMapping);
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_OSX_LOCALE, lang.getOsxLocale(), languageMapping);
-        return replaceWithMapping(toFormat, PLACEHOLDER_OSX_CODE, lang.getOsxCode(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LANGUAGE, lang.getId(), lang.getName(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LOCALE, lang.getId(), lang.getLocale(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LOCALE_WITH_UNDERSCORE, lang.getId(), lang.getLocale().replace("-", "_"), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_TWO_LETTERS_CODE, lang.getId(), lang.getTwoLettersCode(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_THREE_LETTERS_CODE, lang.getId(), lang.getThreeLettersCode(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_ANDROID_CODE, lang.getId(), lang.getAndroidCode(), languageMapping);
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_OSX_LOCALE, lang.getId(), lang.getOsxLocale(), languageMapping);
+        return replaceWithMapping(toFormat, PLACEHOLDER_OSX_CODE, lang.getId(), lang.getOsxCode(), languageMapping);
     }
 
-    private String replaceWithMapping(String toFormat, String placeholder, String code, Map<String, Map<String, String>> langMapping) {
+    private String replaceWithMapping(String toFormat, String placeholder, String langCode, String defaultMapping, Map<String, Map<String, String>> langMapping) {
         return toFormat.replace(
                 placeholder,
                 langMapping.containsKey(placeholder.replaceAll("%", ""))
-                    ? langMapping.get(placeholder.replaceAll("%", "")).getOrDefault(code, code)
-                    : code);
+                    ? langMapping.get(placeholder.replaceAll("%", "")).getOrDefault(langCode, defaultMapping)
+                    : defaultMapping);
     }
 
     public String replaceFileDependentPlaceholders(String toFormat, File file) {

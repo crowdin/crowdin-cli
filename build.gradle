@@ -7,7 +7,7 @@ plugins {
 }
 
 group 'com.crowdin'
-version '3.1.7'
+version '3.1.8'
 
 sourceCompatibility = 1.8
 
@@ -46,6 +46,7 @@ dependencies {
 
     compile files('libs/crowdin-1.0.jar')
     testCompile('org.junit.jupiter:junit-jupiter:5.5.2')
+    testCompile('org.hamcrest:hamcrest:2.2')
 }
 
 task buildCrowdinCliJar(type: Jar) {
