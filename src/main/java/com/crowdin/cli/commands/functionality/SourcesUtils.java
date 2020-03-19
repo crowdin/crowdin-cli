@@ -2,6 +2,7 @@ package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.properties.helper.FileHelper;
 import com.crowdin.cli.utils.PlaceholderUtil;
+import com.crowdin.cli.utils.Utils;
 
 import java.io.File;
 import java.util.List;
@@ -19,5 +20,16 @@ public class SourcesUtils {
         return fileHelper.filterOutIgnoredFiles(sources, formattedIgnores)
             .stream()
             .filter(File::isFile);
+    }
+
+    public static boolean containsPattern(String sourcePattern) {
+        if (sourcePattern == null) {
+            return false;
+        }
+        return sourcePattern.contains("**")
+            || sourcePattern.contains("*")
+            || sourcePattern.contains("?")
+            || (sourcePattern.contains("[") && sourcePattern.contains("]"))
+            || (sourcePattern.contains("\\") && !Utils.isWindows());
     }
 }

@@ -13,6 +13,7 @@ import com.crowdin.cli.client.request.XmlFileImportOptionsWrapper;
 import com.crowdin.cli.commands.functionality.DryrunSources;
 import com.crowdin.cli.commands.functionality.ProjectProxy;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
+import com.crowdin.cli.commands.functionality.TranslationsUtils;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.CommandUtils;
 import com.crowdin.cli.utils.ConcurrencyUtil;
@@ -64,8 +65,6 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
 
     @Override
     public void run() {
-        CommandUtils commandUtils = new CommandUtils();
-
         PropertiesBean pb = this.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
@@ -130,7 +129,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                 if (sources.isEmpty()) {
                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
                 }
-                if (isDest && commandUtils.isSourceContainsPattern(file.getSource())) {
+                if (isDest && SourcesUtils.containsPattern(file.getSource())) {
                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
                 } else if (isDest && !pb.getPreserveHierarchy()) {
                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
@@ -167,11 +166,11 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
 
                         ExportOptions exportOptions = null;
                         if (StringUtils.isNoneEmpty(sourceFile.getAbsolutePath(), file.getTranslation())) {
-                            String exportPattern = commandUtils.replaceDoubleAsteriskInTranslation(
-                                file.getTranslation(),
-                                sourceFile.getAbsolutePath(),
+                            String fileSource = Utils.replaceBasePath(sourceFile.getAbsolutePath(), pb.getBasePath());
+                            String exportPattern = TranslationsUtils.replaceDoubleAsterisk(
                                 file.getSource(),
-                                pb.getBasePath()
+                                file.getTranslation(),
+                                fileSource
                             );
                             exportPattern = StringUtils.replacePattern(exportPattern, "[\\\\/]+", "/");
                             PropertyFileExportOptions pfExportOptions = new PropertyFileExportOptions();

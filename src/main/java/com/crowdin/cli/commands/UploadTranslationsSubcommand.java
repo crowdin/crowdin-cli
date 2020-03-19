@@ -1,12 +1,9 @@
 package com.crowdin.cli.commands;
 
-import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.StorageClient;
 import com.crowdin.cli.client.TranslationsClient;
 import com.crowdin.cli.client.request.TranslationPayloadWrapper;
-import com.crowdin.cli.commands.functionality.DryrunTranslations;
-import com.crowdin.cli.commands.functionality.ProjectProxy;
-import com.crowdin.cli.commands.functionality.SourcesUtils;
+import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -16,9 +13,6 @@ import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.common.Settings;
-import com.crowdin.common.models.Branch;
-import com.crowdin.common.models.Directory;
-import com.crowdin.common.models.FileEntity;
 import com.crowdin.common.models.Language;
 import com.crowdin.common.request.TranslationPayload;
 import org.apache.commons.lang3.StringUtils;
@@ -95,8 +89,8 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
 
         Map<String, Long> filePathsToFileId =
-            buildFilePaths(
-                buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()),
+            ProjectFilesUtils.buildFilePaths(
+                ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()),
                 project.getFiles());
 
         List<Language> languages = (languageId != null)
@@ -123,7 +117,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
             if (fileSourcesWithoutIgnores.isEmpty()) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
             }
-            if (isDest && commandUtils.isSourceContainsPattern(file.getSource())) {
+            if (isDest && SourcesUtils.containsPattern(file.getSource())) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
             } else if (isDest && !pb.getPreserveHierarchy()) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
@@ -143,7 +137,8 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                 }
 
 //                build filePath to each source and project language
-                String translation = CommandUtils.replaceDoubleAsteriskInTranslation(file.getTranslation(), source.getAbsolutePath(), file.getSource(), pb.getBasePath());
+                String fileSource = Utils.replaceBasePath(source.getAbsolutePath(), pb.getBasePath());
+                String translation = TranslationsUtils.replaceDoubleAsterisk(file.getSource(), file.getTranslation(), fileSource);
                 translation = placeholderUtil.replaceFileDependentPlaceholders(translation, source);
                 if (file.getScheme() != null) {
                     File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
@@ -161,7 +156,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                     for (Language language : languages) {
                         Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
                         if (projectLanguageMapping.isPresent()) {
-                            populateLanguageMapping(languageMapping, projectLanguageMapping.get(), BaseCli.placeholderMappingForServer);
+                            TranslationsUtils.populateLanguageMapping(languageMapping, projectLanguageMapping.get());
                         }
 
                         String transFileName = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
@@ -212,45 +207,6 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                 })
                 .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks);
-        }
-    }
-
-    private Map<Long, String> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, Branch> branchNames) {
-        Map<Long, String> directoryPaths = new HashMap<>();
-        for (Long id : directories.keySet()) {
-            Directory dir = directories.get(id);
-            StringBuilder sb = new StringBuilder(dir.getName()).append(Utils.PATH_SEPARATOR);
-            while (dir.getDirectoryId() != null) {
-                dir = directories.get(dir.getDirectoryId());
-                sb.insert(0, dir.getName() + Utils.PATH_SEPARATOR);
-            }
-            if (dir.getBranchId() != null) {
-                sb.insert(0, branchNames.get(dir.getBranchId()).getName() + Utils.PATH_SEPARATOR);
-            }
-            directoryPaths.put(id, sb.toString());
-        }
-        for (Long id : branchNames.keySet()) {
-            directoryPaths.put(id, branchNames.get(id).getName() + Utils.PATH_SEPARATOR);
-        }
-        return directoryPaths;
-    }
-
-    private Map<String, Long> buildFilePaths(Map<Long, String> directoryPaths, List<FileEntity> files) {
-        Map<String, Long> filePathsToId = new HashMap<>();
-        for (FileEntity fileEntity : files) {
-            Long parentId = (fileEntity.getDirectoryId() != null) ? fileEntity.getDirectoryId() : fileEntity.getBranchId();
-            filePathsToId.put(((parentId != null) ? directoryPaths.get(parentId) : "") + fileEntity.getName(), fileEntity.getId());
-        }
-        return filePathsToId;
-    }
-
-    private void populateLanguageMapping (Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from, Map<String, String> placeholderMapping) {
-        for (String langCode : from.keySet()) {
-            for (String fromPlaceholder : from.get(langCode).keySet()) {
-                String toPlaceholder = placeholderMapping.getOrDefault(fromPlaceholder, fromPlaceholder);
-                toPopulate.putIfAbsent(toPlaceholder, new HashMap<>());
-                toPopulate.get(toPlaceholder).putIfAbsent(langCode, from.get(langCode).get(fromPlaceholder));
-            }
         }
     }
 }

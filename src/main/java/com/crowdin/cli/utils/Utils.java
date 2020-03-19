@@ -96,4 +96,8 @@ public class Utils {
             System.getProperty("os.name"),
             System.getProperty("os.version"));
     }
+
+    public static String normalizePath(String path) {
+        return path.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR);
+    }
 }
