@@ -13,6 +13,7 @@ import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.common.Settings;
+import com.crowdin.common.models.FileEntity;
 import com.crowdin.common.models.Language;
 import com.crowdin.common.request.TranslationPayload;
 import org.apache.commons.lang3.StringUtils;
@@ -55,8 +56,6 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
     @Override
     public void run() {
-        CommandUtils commandUtils = new CommandUtils();
-
         PropertiesBean pb = this.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
@@ -88,10 +87,8 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         StorageClient storageClient = new StorageClient(settings);
         TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
 
-        Map<String, Long> filePathsToFileId =
-            ProjectFilesUtils.buildFilePaths(
-                ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()),
-                project.getFiles());
+        Map<String, FileEntity> filePathsToFileId =
+            ProjectFilesUtils.buildFilePaths(project.getMapDirectories(), project.getMapBranches(), project.getFiles());
 
         List<Language> languages = (languageId != null)
             ? project.getLanguageById(languageId)
@@ -130,7 +127,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                     ? file.getDest()
                     : StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath() + commonPath));
 
-                Long fileId = filePathsToFileId.get(filePath);
+                Long fileId = filePathsToFileId.get(filePath).getId();
                 if (fileId == null) {
                     System.out.println(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath()), filePath));
                     continue;

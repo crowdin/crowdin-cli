@@ -10,15 +10,9 @@ import com.crowdin.cli.client.exceptions.WaitResponseException;
 import com.crowdin.cli.client.request.SpreadsheetFileImportOptionsWrapper;
 import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
 import com.crowdin.cli.client.request.XmlFileImportOptionsWrapper;
-import com.crowdin.cli.commands.functionality.DryrunSources;
-import com.crowdin.cli.commands.functionality.ProjectProxy;
-import com.crowdin.cli.commands.functionality.SourcesUtils;
-import com.crowdin.cli.commands.functionality.TranslationsUtils;
+import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.CommandUtils;
-import com.crowdin.cli.utils.ConcurrencyUtil;
-import com.crowdin.cli.utils.PlaceholderUtil;
-import com.crowdin.cli.utils.Utils;
+import com.crowdin.cli.utils.*;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.common.Settings;
@@ -58,18 +52,13 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
-    protected static final String UPDATE_OPTION_KEEP_TRANSLATIONS_CONF = "update_as_unapproved";
-    protected static final String UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS_CONF = "update_without_changes";
-    protected static final String UPDATE_OPTION_KEEP_TRANSLATIONS = "keep_translations";
-    protected static final String UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS = "keep_translations_and_approvals";
-
     @Override
     public void run() {
         PropertiesBean pb = this.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
         ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
-        Optional<Long> branchId;
+        Optional<Branch> branchId;
         try {
             ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
             project.downloadProject()
@@ -98,12 +87,12 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
         if (branch != null) {
             Optional<Branch> branchOpt = project.getBranchByName(branch);
             if (branchOpt.isPresent()) {
-                branchId = branchOpt.map(Branch::getId);
+                branchId = branchOpt;
             } else {
                 try {
                     Branch newBranch = branchClient.createBranch(pb.getProjectId(), new BranchPayload(branch));
                     project.addBranchToList(newBranch);
-                    branchId = Optional.of(newBranch.getId());
+                    branchId = Optional.of(newBranch);
                     System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branch)));
                 } catch (ResponseException e) {
                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.create_branch"), branch), e);
@@ -135,7 +124,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
                 }
 
-                Map<String, Long> directoryPaths = buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches());
+                Map<String, Long> directoryPaths = StreamUtils.reverseMap(ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()));
                 Map<Long, Branch> mapBranches = project.getMapBranches();
 
                 List<Runnable> tasks = sources.stream()
@@ -162,7 +151,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                                 file.getTranslatableElements())
                             : new SpreadsheetFileImportOptionsWrapper(
                                 getOr(file.getFirstLineContainsHeader(), false),
-                                getSchemeObject(file.getScheme()));
+                                PropertiesBeanUtils.getSchemeObject(file.getScheme()));
 
                         ExportOptions exportOptions = null;
                         if (StringUtils.isNoneEmpty(sourceFile.getAbsolutePath(), file.getTranslation())) {
@@ -201,20 +190,20 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                         filePayload.setStorageId(storageId);
                         if (directoryId != null) {
                             filePayload.setDirectoryId(directoryId);
-                        } else branchId.ifPresent(filePayload::setBranchId);
+                        } else branchId.map(Branch::getId).ifPresent(filePayload::setBranchId);
 
                         FileEntity response = null;
                         try {
                             String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
                             Optional<FileEntity> fileEntity =
-                                project.getFileEntity(filePayload.getName(), filePayload.getDirectoryId(), branchId.orElse(null));
+                                project.getFileEntity(filePayload.getName(), filePayload.getDirectoryId(), branchId.map(Branch::getId).orElse(null));
                             boolean fileExists = fileEntity.isPresent();
                             if (fileExists && autoUpdate) {
                                 UpdateFilePayload updateFilePayload = new UpdateFilePayloadWrapper(
                                     filePayload.getStorageId(),
                                     filePayload.getExportOptions(),
                                     filePayload.getImportOptions());
-                                getUpdateOption(file.getUpdateOption()).ifPresent(updateFilePayload::setUpdateOption);
+                                PropertiesBeanUtils.getUpdateOption(file.getUpdateOption()).ifPresent(updateFilePayload::setUpdateOption);
 
                                 fileClient.updateFile(pb.getProjectId(), fileEntity.map(fe -> fe.getId().toString()).get(), updateFilePayload);
                                 System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
@@ -237,63 +226,19 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
         ConcurrencyUtil.executeAndWaitSingleThread(fileTasks);
     }
 
-    private Optional<String> getUpdateOption(String fileUpdateOption) {
-        if (fileUpdateOption == null) {
-            return Optional.empty();
-        }
-        switch(fileUpdateOption) {
-            case UPDATE_OPTION_KEEP_TRANSLATIONS_CONF:
-                return Optional.of(UPDATE_OPTION_KEEP_TRANSLATIONS);
-            case UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS_CONF:
-                return Optional.of(UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS);
-            default:
-                return Optional.empty();
-        }
-    }
-
-    private Map<String, Long> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, Branch> branchNames) {
-        Map<String, Long> directoryPaths = new HashMap<>();
-        for (Long id : directories.keySet()) {
-            Directory dir = directories.get(id);
-            StringBuilder sb = new StringBuilder(dir.getName()).append(Utils.PATH_SEPARATOR);
-            while (dir.getDirectoryId() != null) {
-                dir = directories.get(dir.getDirectoryId());
-                sb.insert(0, dir.getName() + Utils.PATH_SEPARATOR);
-            }
-            if (dir.getBranchId() != null) {
-                sb.insert(0, branchNames.get(dir.getBranchId()).getName() + Utils.PATH_SEPARATOR);
-            }
-            directoryPaths.put(sb.toString(), id);
-        }
-        return directoryPaths;
-    }
-
     private <T> T getOr(T get, T or) {
         return (get != null) ? get : or;
-    }
-
-    private Map<String, Integer> getSchemeObject(String fileScheme) {
-        if (StringUtils.isEmpty(fileScheme)) {
-            return null;
-        }
-
-        String[] schemePart = fileScheme.split(",");
-        Map<String, Integer> scheme = new HashMap<>();
-        for (int i = 0; i < schemePart.length; i++) {
-            scheme.put(schemePart[i], i);
-        }
-        return scheme;
     }
 
     /**
      * return deepest directory id
      */
-    public Long createPath(Map<String, Long> directoryIdMap, Map<Long, Branch> branchNameMap, String filePath, Optional<Long> branchId, DirectoriesClient directoriesClient) {
+    private Long createPath(Map<String, Long> directoryIdMap, Map<Long, Branch> branchNameMap, String filePath, Optional<Branch> branchId, DirectoriesClient directoriesClient) {
         String[] nodes = filePath.split(Utils.PATH_SEPARATOR_REGEX);
 
         Long directoryId = null;
         StringBuilder parentPath = new StringBuilder();
-        String branchPath = (branchId.map(branch -> branchNameMap.get(branch).getName() + Utils.PATH_SEPARATOR).orElse(""));
+        String branchPath = (branchId.map(branch -> branch.getName() + Utils.PATH_SEPARATOR).orElse(""));
         for (String node : nodes) {
             if (StringUtils.isEmpty(node) || node.equals(nodes[nodes.length - 1])) {
                 continue;
@@ -307,7 +252,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                 directoryPayload.setName(node);
 
                 if (directoryId == null) {
-                    branchId.ifPresent(directoryPayload::setBranchId);
+                    branchId.map(Branch::getId).ifPresent(directoryPayload::setBranchId);
                 } else {
                     directoryPayload.setDirectoryId(directoryId);
                 }

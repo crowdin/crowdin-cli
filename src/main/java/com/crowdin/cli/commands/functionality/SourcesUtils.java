@@ -11,7 +11,7 @@ import java.util.stream.Stream;
 public class SourcesUtils {
 
     public static Stream<File> getFiles(String basePath, String sourcePattern, List<String> ignorePattern, PlaceholderUtil placeholderUtil) {
-        if (basePath == null || sourcePattern == null || ignorePattern == null || placeholderUtil == null) {
+        if (basePath == null || sourcePattern == null || placeholderUtil == null) {
             throw new NullPointerException("null args in SourceUtils.getFiles");
         }
         FileHelper fileHelper = new FileHelper(basePath);

@@ -12,9 +12,10 @@ import java.util.stream.Collectors;
 
 public class ProjectFilesUtils {
 
-    public static Map<String, Long> buildFilePaths(Map<Long, String> directoryPaths, List<FileEntity> files) {
-        Map<String, Long> filePathsToId = new HashMap<>();
-        files.forEach(fe -> filePathsToId.put(getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName(), fe.getId()));
+    public static Map<String, FileEntity> buildFilePaths(Map<Long, Directory> directories, Map<Long, Branch> branchNames, List<FileEntity> files) {
+        Map<Long, String> directoryPaths = buildDirectoryPaths(directories, branchNames);
+        Map<String, FileEntity> filePathsToId = new HashMap<>();
+        files.forEach(fe -> filePathsToId.put(getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName(), fe));
         return filePathsToId;
     }
 
@@ -63,7 +64,7 @@ public class ProjectFilesUtils {
                 false);
             if (!branchId.isPresent() && fe.getBranchId() != null) {
                 translations = translations.stream()
-                    .map(translation -> Utils.PATH_SEPARATOR + projectBranches.get(fe.getBranchId()).getName() + translation)
+                    .map(translation -> projectBranches.get(fe.getBranchId()).getName() + Utils.PATH_SEPARATOR + translation)
                     .collect(Collectors.toList());
             }
             allProjectTranslations.put(path, translations);
