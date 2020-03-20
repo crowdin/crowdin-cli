@@ -19,30 +19,23 @@ public class ProjectFilesUtils {
         return filePathsToId;
     }
 
-    public static Map<Long, String> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, Branch> branchNames) {
+    public static Map<Long, String> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, Branch> branches) {
         Map<Long, String> directoryPaths = new HashMap<>();
-        for (Long id : directories.keySet()) {
-            Directory dir = directories.get(id);
-            StringBuilder sb = new StringBuilder(dir.getName()).append(Utils.PATH_SEPARATOR);
-            while (dir.getDirectoryId() != null) {
-                dir = directories.get(dir.getDirectoryId());
-                sb.insert(0, dir.getName() + Utils.PATH_SEPARATOR);
-            }
-            if (dir.getBranchId() != null) {
-                sb.insert(0, branchNames.get(dir.getBranchId()).getName() + Utils.PATH_SEPARATOR);
-            }
-            directoryPaths.put(id, sb.toString());
-        }
-        for (Long id : branchNames.keySet()) {
-            directoryPaths.put(id, branchNames.get(id).getName() + Utils.PATH_SEPARATOR);
-        }
+        directories.forEach((k, dir) ->
+            directoryPaths.put(k, buildBranchPath(dir.getBranchId(), branches) + buildDirectoryPath(dir.getId(), directories)));
+        branches.keySet().forEach(brId -> directoryPaths.put(brId, buildBranchPath(brId, branches)));
+        return directoryPaths;
+    }
+
+    public static Map<Long, String> buildDirectoryPaths(Map<Long, Directory> directories) {
+        Map<Long, String> directoryPaths = new HashMap<>();
+        directories.forEach((k, dir) -> directoryPaths.put(k, buildDirectoryPath(dir.getId(), directories)));
         return directoryPaths;
     }
 
     public static Map<String, List<String>> buildAllProjectTranslations(
             List<FileEntity> projectFiles,
-            Map<Long, Directory> projectDirectories,
-            Map<Long, Branch> projectBranches,
+            Map<Long, String> directoryPaths,
             Optional<Long> branchId,
             PlaceholderUtil placeholderUtil,
             String basePath
@@ -53,9 +46,7 @@ public class ProjectFilesUtils {
                 continue;
             }
 
-            String path = (branchId.isPresent())
-                ? buildFilePath(fe, projectDirectories)
-                : buildFilePath(fe, projectDirectories, projectBranches);
+            String path = getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName();
             List<String> translations = (fe.getExportOptions() == null || fe.getExportOptions().getExportPattern() == null)
                 ? Collections.singletonList((Utils.PATH_SEPARATOR + fe.getName()).replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX))
                 : placeholderUtil.format(
@@ -64,7 +55,7 @@ public class ProjectFilesUtils {
                 false);
             if (!branchId.isPresent() && fe.getBranchId() != null) {
                 translations = translations.stream()
-                    .map(translation -> projectBranches.get(fe.getBranchId()).getName() + Utils.PATH_SEPARATOR + translation)
+                    .map(translation -> directoryPaths.get(fe.getBranchId()) + translation)
                     .collect(Collectors.toList());
             }
             allProjectTranslations.put(path, translations);
@@ -72,22 +63,20 @@ public class ProjectFilesUtils {
         return allProjectTranslations;
     }
 
-    private static String buildFilePath(FileEntity fe, Map<Long, Directory> directories, Map<Long, Branch> branchNames) {
-        return
-            ((fe.getBranchId() != null) ? branchNames.get(fe.getBranchId()).getName() + Utils.PATH_SEPARATOR : "")
-            + buildFilePath(fe, directories);
-    }
-
-    private static String buildFilePath(FileEntity fe, Map<Long, Directory> directories) {
-        StringBuilder sb = new StringBuilder(fe.getName());
-        if (fe.getDirectoryId() != null) {
-            Directory dir = directories.get(fe.getDirectoryId());
+    private static String buildDirectoryPath(Long directoryId, Map<Long, Directory> directories) {
+        StringBuilder sb = new StringBuilder();
+        if (directoryId != null) {
+            Directory dir = directories.get(directoryId);
             while (dir != null) {
                 sb.insert(0, dir.getName() + Utils.PATH_SEPARATOR);
                 dir = directories.get(dir.getDirectoryId());
             }
         }
         return sb.toString();
+    }
+
+    private static String buildBranchPath(Long branchId, Map<Long, Branch> branchNames) {
+        return ((branchId != null) ? branchNames.get(branchId).getName() + Utils.PATH_SEPARATOR : "");
     }
 
     private static Optional<Long> getParentId(FileEntity fe) {
