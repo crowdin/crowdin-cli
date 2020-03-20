@@ -140,13 +140,6 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                     continue;
                 }
 
-
-                TranslationPayload translationPayload = new TranslationPayloadWrapper(
-                    fileId,
-                    this.importDuplicates,
-                    this.importEqSuggestions,
-                    this.autoApproveImported);
-
 //                build filePath to each source and project language
                 String translation = CommandUtils.replaceDoubleAsteriskInTranslation(file.getTranslation(), source.getAbsolutePath(), file.getSource(), pb.getBasePath());
                 translation = placeholderUtil.replaceFileDependentPlaceholders(translation, source);
@@ -156,6 +149,11 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                         System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath()))));
                         continue;
                     }
+                    TranslationPayload translationPayload = new TranslationPayloadWrapper(
+                        fileId,
+                        this.importDuplicates,
+                        this.importEqSuggestions,
+                        this.autoApproveImported);
                     preparedRequests.put(transFile, Pair.of(languages, translationPayload));
                 } else {
                     for (Language language : languages) {
@@ -178,6 +176,11 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                             System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath()))));
                             continue;
                         }
+                        TranslationPayload translationPayload = new TranslationPayloadWrapper(
+                            fileId,
+                            this.importDuplicates,
+                            this.importEqSuggestions,
+                            this.autoApproveImported);
                         preparedRequests.put(transFile, Pair.of(Collections.singletonList(language), translationPayload));
                     }
                 }
