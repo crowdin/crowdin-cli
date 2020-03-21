@@ -23,6 +23,7 @@ import picocli.CommandLine;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.*;
@@ -98,20 +99,19 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         project.getPseudoLanguage().ifPresent(languages::remove);
 
         for (FileBean file : pb.getFiles()) {
-            List<File> fileSourcesWithoutIgnores = SourcesUtils
-                .getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
-                .collect(Collectors.toList());
+            Stream<File> fileSourcesWithoutIgnores = SourcesUtils
+                .getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil);
 
             String commonPath =
                 (pb.getPreserveHierarchy())
                     ? ""
                     : CommandUtils.getCommonPath(
-                        fileSourcesWithoutIgnores.stream().map(File::getAbsolutePath).collect(Collectors.toList()),
+                        fileSourcesWithoutIgnores.map(File::getAbsolutePath).collect(Collectors.toList()),
                         pb.getBasePath());
 
             boolean isDest = StringUtils.isNotEmpty(file.getDest());
 
-            if (fileSourcesWithoutIgnores.isEmpty()) {
+            if (fileSourcesWithoutIgnores.count() == 0) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
             }
             if (isDest && SourcesUtils.containsPattern(file.getSource())) {
@@ -122,7 +122,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
 
             Map<File, Pair<List<Language>, TranslationPayload>> preparedRequests = new HashMap<>();
             String branchPath = (StringUtils.isNotEmpty(this.branch) ? branch + Utils.PATH_SEPARATOR : "");
-            for (File source : fileSourcesWithoutIgnores) {
+            fileSourcesWithoutIgnores.forEach(source -> {
                 String filePath = branchPath + (isDest
                     ? file.getDest()
                     : StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath() + commonPath));
@@ -130,7 +130,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                 Long fileId = filePathsToFileId.get(filePath).getId();
                 if (fileId == null) {
                     System.out.println(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath()), filePath));
-                    continue;
+                    return;
                 }
 
 //                build filePath to each source and project language
@@ -141,7 +141,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                     File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
                     if (!transFile.exists()) {
                         System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath()))));
-                        continue;
+                        return;
                     }
                     TranslationPayload translationPayload = new TranslationPayloadWrapper(
                         fileId,
@@ -178,7 +178,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                         preparedRequests.put(transFile, Pair.of(Collections.singletonList(language), translationPayload));
                     }
                 }
-            }
+            });
 
             List<Runnable> tasks = preparedRequests.entrySet()
                 .stream()

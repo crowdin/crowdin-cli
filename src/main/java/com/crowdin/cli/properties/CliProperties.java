@@ -267,6 +267,7 @@ public class CliProperties {
             }
             //Translate attributes
             if (file.getTranslateAttributes() == null) {
+                file.setTranslateAttributes(Boolean.FALSE);
             } else {
             }
             //Translate content
@@ -290,6 +291,7 @@ public class CliProperties {
             }
             //first line contain header
             if (file.getFirstLineContainsHeader() == null) {
+                file.setFirstLineContainsHeader(Boolean.FALSE);
             } else {
             }
             //scheme

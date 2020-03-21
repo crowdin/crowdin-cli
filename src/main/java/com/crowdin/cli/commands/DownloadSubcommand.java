@@ -64,10 +64,10 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         try {
             ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
             project.downloadProject()
-                .downloadFiles()
+                .downloadSupportedLanguages()
                 .downloadDirectories()
-                .downloadBranches()
-                .downloadSupportedLanguages();
+                .downloadFiles()
+                .downloadBranches();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
@@ -140,8 +140,10 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         Map<Long, String> directoryPaths = (branch.isPresent())
                 ? ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories())
                 : ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches());
+        Map<String, Map<String, String>> langMapping = new HashMap<>();
+        TranslationsUtils.populateLanguageMapping(langMapping, projectLanguageMapping.orElse(new HashMap<>()));
         Map<String, List<String>> allProjectTranslations = ProjectFilesUtils
-            .buildAllProjectTranslations(project.getFiles(), directoryPaths, branch.map(Branch::getId), placeholderUtil, pb.getBasePath());
+            .buildAllProjectTranslations(project.getFiles(), directoryPaths, branch.map(Branch::getId), placeholderUtil, langMapping, pb.getBasePath());
 
         this.extractFiles(baseTempDir, downloadedZipArchive);
         this.unpackFiles(downloadedFilesProc, filesWithMapping, allProjectTranslations, pb.getBasePath(), baseTempDir);

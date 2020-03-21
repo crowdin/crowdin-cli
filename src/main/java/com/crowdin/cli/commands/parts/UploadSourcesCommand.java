@@ -58,7 +58,6 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
         ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
-        Optional<Branch> branchId;
         try {
             ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
             project.downloadProject()
@@ -82,25 +81,10 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
         FileClient fileClient = new FileClient(settings);
         StorageClient storageClient = new StorageClient(settings);
         DirectoriesClient directoriesClient = new DirectoriesClient(settings, pb.getProjectId());
-        BranchClient branchClient = new BranchClient(settings);
+        BranchClient branchClient = new BranchClient(settings, pb.getProjectId());
 
-        if (branch != null) {
-            Optional<Branch> branchOpt = project.getBranchByName(branch);
-            if (branchOpt.isPresent()) {
-                branchId = branchOpt;
-            } else {
-                try {
-                    Branch newBranch = branchClient.createBranch(pb.getProjectId(), new BranchPayload(branch));
-                    project.addBranchToList(newBranch);
-                    branchId = Optional.of(newBranch);
-                    System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branch)));
-                } catch (ResponseException e) {
-                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.create_branch"), branch), e);
-                }
-            }
-        } else {
-            branchId = Optional.empty();
-        }
+        Optional<Branch> branchId =
+            Optional.ofNullable(branch).map(brName -> ProjectUtils.getOrCreateBranch(branchClient, project, brName));
 
         List<Runnable> fileTasks = pb.getFiles().stream()
             .map(file -> (Runnable) () -> {
@@ -140,17 +124,17 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                             filePath = StringUtils.removeStart(filePath, Utils.PATH_SEPARATOR);
                             filePath = StringUtils.removeStart(filePath, commonPath);
                         }
-                        Long directoryId = createPath(directoryPaths, mapBranches, filePath, branchId, directoriesClient);
+                        Long directoryId = ProjectUtils.createPath(directoryPaths, mapBranches, filePath, branchId, directoriesClient);
                         String fName = ((isDest) ? new File(file.getDest()) : sourceFile).getName();
 
                         ImportOptions importOptions = (sourceFile.getName().endsWith(".xml"))
                             ? new XmlFileImportOptionsWrapper(
-                                getOr(file.getContentSegmentation(), false),
-                                getOr(file.getTranslateAttributes(), false),
-                                getOr(file.getTranslateContent(), false),
+                                file.getContentSegmentation(),
+                                file.getTranslateAttributes(),
+                                file.getTranslateContent(),
                                 file.getTranslatableElements())
                             : new SpreadsheetFileImportOptionsWrapper(
-                                getOr(file.getFirstLineContainsHeader(), false),
+                                file.getFirstLineContainsHeader(),
                                 PropertiesBeanUtils.getSchemeObject(file.getScheme()));
 
                         ExportOptions exportOptions = null;
@@ -226,80 +210,4 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
         ConcurrencyUtil.executeAndWaitSingleThread(fileTasks);
     }
 
-    private <T> T getOr(T get, T or) {
-        return (get != null) ? get : or;
-    }
-
-    /**
-     * return deepest directory id
-     */
-    private Long createPath(Map<String, Long> directoryIdMap, Map<Long, Branch> branchNameMap, String filePath, Optional<Branch> branchId, DirectoriesClient directoriesClient) {
-        String[] nodes = filePath.split(Utils.PATH_SEPARATOR_REGEX);
-
-        Long directoryId = null;
-        StringBuilder parentPath = new StringBuilder();
-        String branchPath = (branchId.map(branch -> branch.getName() + Utils.PATH_SEPARATOR).orElse(""));
-        for (String node : nodes) {
-            if (StringUtils.isEmpty(node) || node.equals(nodes[nodes.length - 1])) {
-                continue;
-            }
-            parentPath.append(node).append(Utils.PATH_SEPARATOR);
-            String parentPathString = branchPath + parentPath.toString();
-            if (directoryIdMap.containsKey(parentPathString)) {
-                directoryId = directoryIdMap.get(parentPathString);
-            } else {
-                DirectoryPayload directoryPayload = new DirectoryPayload();
-                directoryPayload.setName(node);
-
-                if (directoryId == null) {
-                    branchId.map(Branch::getId).ifPresent(directoryPayload::setBranchId);
-                } else {
-                    directoryPayload.setDirectoryId(directoryId);
-                }
-                directoryId = createDirectory(directoryIdMap, directoriesClient, directoryPayload, parentPathString);
-            }
-        }
-        return directoryId;
-    }
-
-    private final Map<String, Lock> pathLocks = new ConcurrentHashMap<>();
-
-    private Long createDirectory(Map<String, Long> directoryIdMap, DirectoriesClient directoriesClient, DirectoryPayload directoryPayload, String path) {
-        Lock lock;
-        synchronized (pathLocks) {
-            if (!pathLocks.containsKey(path)) {
-                pathLocks.put(path, new ReentrantLock());
-            }
-            lock = pathLocks.get(path);
-        }
-        Long directoryId;
-        try {
-            lock.lock();
-            if (directoryIdMap.containsKey(path)) {
-                return directoryIdMap.get(path);
-            }
-            Directory directory = directoriesClient.createDirectory(directoryPayload);
-            directoryId = directory.getId();
-            directoryIdMap.put(path, directoryId);
-            System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(path.toString(), "[\\\\/]$"))));
-        } catch (ExistsResponseException e) {
-            System.out.println(ExecutionStatus.SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(path.toString(), "[\\\\/]$"))));
-            if (directoryIdMap.containsKey(path)) {
-                return directoryIdMap.get(path);
-            } else {
-                throw new RuntimeException("Couldn't create directory '" + path + "' because it's already here");
-            }
-        } catch (WaitResponseException e) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException ignored) {
-            }
-            return createDirectory(directoryIdMap, directoriesClient, directoryPayload, path);
-        } catch (ResponseException e) {
-            throw new RuntimeException("Unhandled exception", e);
-        } finally {
-            lock.unlock();
-        }
-        return directoryId;
-    }
 }

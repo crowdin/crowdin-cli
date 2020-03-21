@@ -76,7 +76,7 @@ public class ProjectProxy {
         if (this.branches != null) {
             return this;
         }
-        this.branches = new BranchClient(this.settings).getAllSupportedBranches(this.projectId);
+        this.branches = new BranchClient(this.settings, projectId).getAllSupportedBranches();
         return this;
     }
 

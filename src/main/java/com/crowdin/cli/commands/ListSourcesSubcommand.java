@@ -28,7 +28,6 @@ public class ListSourcesSubcommand extends PropertiesBuilderCommandPart {
         PropertiesBean pb = this.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
-
         ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
         try {
             ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);

@@ -11,20 +11,14 @@ import java.util.Optional;
 
 public class BranchClient extends Client {
 
-    private static final String CACHE_NAME = "branch";
+    private String projectId;
 
-    public BranchClient(Settings settings) {
+    public BranchClient(Settings settings, String projectId) {
         super(settings);
+        this.projectId = projectId;
     }
 
-    public Optional<Branch> getProjectBranchByName(String projectId, String name) {
-        return getAllSupportedBranches(projectId)
-            .stream()
-            .filter(br -> br.getName().equals(name))
-            .findFirst();
-    }
-
-    public Branch createBranch(String projectId, BranchPayload branchPayload) throws ResponseException {
+    public Branch createBranch(BranchPayload branchPayload) throws ResponseException {
         try {
             return execute(new BranchesApi(settings).createBranch(projectId, branchPayload));
         } catch (Exception e) {
@@ -32,7 +26,7 @@ public class BranchClient extends Client {
         }
     }
 
-    public List<Branch> getAllSupportedBranches(String projectId) {
+    public List<Branch> getAllSupportedBranches() {
         return executePage(new BranchesApi(settings).getBranches(projectId, null));
     }
 }
