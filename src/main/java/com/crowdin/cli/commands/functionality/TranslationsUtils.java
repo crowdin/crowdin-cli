@@ -54,7 +54,7 @@ public class TranslationsUtils {
         return translationPattern;
     }
 
-    public static void populateLanguageMapping(Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from) {
+    public static void populateLanguageMappingFromServer(Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from) {
         for (String langCode : from.keySet()) {
             for (String fromPlaceholder : from.get(langCode).keySet()) {
                 String toPlaceholder = BaseCli.PLACEHOLDER_MAPPING_FOR_SERVER.getOrDefault(fromPlaceholder, fromPlaceholder);

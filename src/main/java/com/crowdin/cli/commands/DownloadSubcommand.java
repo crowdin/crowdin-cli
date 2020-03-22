@@ -128,8 +128,8 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
                 Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
                 Map<String, Map<String, String>> projLanguageMapping = new HashMap<>();
                 if (projectLanguageMapping.isPresent()) {
-                    TranslationsUtils.populateLanguageMapping(languageMapping, projectLanguageMapping.get());
-                    TranslationsUtils.populateLanguageMapping(projLanguageMapping, projectLanguageMapping.get());
+                    TranslationsUtils.populateLanguageMappingFromServer(languageMapping, projectLanguageMapping.get());
+                    TranslationsUtils.populateLanguageMappingFromServer(projLanguageMapping, projectLanguageMapping.get());
                 }
                 Map<String, String> translationReplace = file.getTranslationReplace() != null ? file.getTranslationReplace() : new HashMap<>();
                 return this.doTranslationMapping(forLanguages, file.getTranslation(), projLanguageMapping, languageMapping, translationReplace, sources, file.getSource(), pb.getBasePath(), placeholderUtil);
@@ -141,7 +141,7 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
                 ? ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories())
                 : ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches());
         Map<String, Map<String, String>> langMapping = new HashMap<>();
-        TranslationsUtils.populateLanguageMapping(langMapping, projectLanguageMapping.orElse(new HashMap<>()));
+        TranslationsUtils.populateLanguageMappingFromServer(langMapping, projectLanguageMapping.orElse(new HashMap<>()));
         Map<String, List<String>> allProjectTranslations = ProjectFilesUtils
             .buildAllProjectTranslations(project.getFiles(), directoryPaths, branch.map(Branch::getId), placeholderUtil, langMapping, pb.getBasePath());
 

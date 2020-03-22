@@ -45,16 +45,15 @@ public class ProjectUtils {
      * return deepest directory id
      */
     public static Long createPath(
+            DirectoriesClient directoriesClient,
             Map<String, Long> directoryIdMap,
-            Map<Long, Branch> branchNameMap,
             String filePath,
-            Optional<Branch> branchId,
-            DirectoriesClient directoriesClient
+            Optional<Branch> branchId
     ) {
         String[] nodes = filePath.split(Utils.PATH_SEPARATOR_REGEX);
 
         Long directoryId = null;
-        String branchPath = (branchId.map(branch -> ProjectFilesUtils.buildBranchPath(branch.getId(), branchNameMap)).orElse(""));
+        String branchPath = (branchId.map(branch -> branch.getName() + Utils.PATH_SEPARATOR).orElse(""));
         StringBuilder parentPath = new StringBuilder(branchPath);
         for (String node : nodes) {
             if (StringUtils.isEmpty(node) || node.equals(nodes[nodes.length - 1])) {

@@ -4,9 +4,6 @@ import com.crowdin.cli.client.BranchClient;
 import com.crowdin.cli.client.DirectoriesClient;
 import com.crowdin.cli.client.FileClient;
 import com.crowdin.cli.client.StorageClient;
-import com.crowdin.cli.client.exceptions.ExistsResponseException;
-import com.crowdin.cli.client.exceptions.ResponseException;
-import com.crowdin.cli.client.exceptions.WaitResponseException;
 import com.crowdin.cli.client.request.SpreadsheetFileImportOptionsWrapper;
 import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
 import com.crowdin.cli.client.request.XmlFileImportOptionsWrapper;
@@ -14,10 +11,8 @@ import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.*;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.Branch;
-import com.crowdin.common.models.Directory;
 import com.crowdin.common.models.FileEntity;
 import com.crowdin.common.request.*;
 import org.apache.commons.io.FilenameUtils;
@@ -25,13 +20,9 @@ import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
 import java.io.File;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
@@ -124,7 +115,7 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
                             filePath = StringUtils.removeStart(filePath, Utils.PATH_SEPARATOR);
                             filePath = StringUtils.removeStart(filePath, commonPath);
                         }
-                        Long directoryId = ProjectUtils.createPath(directoryPaths, mapBranches, filePath, branchId, directoriesClient);
+                        Long directoryId = ProjectUtils.createPath(directoriesClient, directoryPaths, filePath, branchId);
                         String fName = ((isDest) ? new File(file.getDest()) : sourceFile).getName();
 
                         ImportOptions importOptions = (sourceFile.getName().endsWith(".xml"))

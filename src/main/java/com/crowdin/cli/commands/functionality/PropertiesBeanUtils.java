@@ -15,7 +15,7 @@ public class PropertiesBeanUtils {
 
     public static Map<String, Integer> getSchemeObject(String fileScheme) {
         if (StringUtils.isEmpty(fileScheme)) {
-            return null;
+            return new HashMap<>();
         }
 
         String[] schemePart = fileScheme.split(",");

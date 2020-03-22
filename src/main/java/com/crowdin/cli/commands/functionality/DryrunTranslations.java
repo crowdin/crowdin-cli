@@ -36,7 +36,7 @@ public class DryrunTranslations extends Dryrun {
                 .flatMap(translation -> {
                     Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
                     if (projectLanguageMapping.isPresent()) {
-                        TranslationsUtils.populateLanguageMapping(languageMapping, projectLanguageMapping.get());
+                        TranslationsUtils.populateLanguageMappingFromServer(languageMapping, projectLanguageMapping.get());
                     }
                     return placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping).stream();
                 })

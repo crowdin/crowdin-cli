@@ -153,7 +153,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                     for (Language language : languages) {
                         Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
                         if (projectLanguageMapping.isPresent()) {
-                            TranslationsUtils.populateLanguageMapping(languageMapping, projectLanguageMapping.get());
+                            TranslationsUtils.populateLanguageMappingFromServer(languageMapping, projectLanguageMapping.get());
                         }
 
                         String transFileName = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);

@@ -79,4 +79,23 @@ public class SourcesUtilsTest {
             arguments("**/*", Collections.singletonList("f*"), 2)
         );
     }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testContainsParameter(String sourcePattern, boolean expected) {
+        boolean result = SourcesUtils.containsPattern(sourcePattern);
+        assertEquals(expected, result, "Wrong result with source pattern: " + sourcePattern);
+    }
+
+    private static Stream<Arguments> testContainsParameter() {
+        return Stream.of(
+            arguments(null, false),
+            arguments("*", true),
+            arguments(Utils.normalizePath("f1/**/file.txt"), true),
+            arguments(Utils.normalizePath("folder/?.txt"), true),
+            arguments(Utils.normalizePath("folder/[a-z]/file.txt"), true),
+            arguments(Utils.normalizePath("folder/file.txt"), false),
+            arguments("", false)
+        );
+    }
 }
