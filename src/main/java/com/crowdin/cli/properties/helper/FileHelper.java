@@ -67,7 +67,7 @@ public class FileHelper {
 
         List<File> resultList = new ArrayList<>();
 
-        String[] nodes = source.split(Utils.PATH_SEPARATOR_REGEX);
+        String[] nodes = Utils.normalizePath(source).split(Utils.PATH_SEPARATOR_REGEX);
         resultList.add(new File(basePath));
         for (String node : nodes) {
             if (node.isEmpty()) {
@@ -151,12 +151,7 @@ public class FileHelper {
                 continue;
             }
             if (DOUBLED_ASTERISK.equals(node)) {
-                for (File f : getlistDirectory(file)) {
-                    File tmpFile = new File(f.getAbsolutePath());
-                    if (Files.isDirectory(tmpFile.toPath(), LinkOption.NOFOLLOW_LINKS)) {
-                        result.add(tmpFile);
-                    }
-                }
+                result.addAll(getlistDirectory(file));
             } else {
                 FileFilter fileFilter = new RegexFileFilter(node);
                 File[] files = file.listFiles(fileFilter);

@@ -2,6 +2,7 @@ package com.crowdin.cli.commands;
 
 import com.crowdin.cli.client.TranslationsClient;
 import com.crowdin.cli.commands.functionality.*;
+import com.crowdin.cli.commands.parts.Command;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
@@ -37,7 +38,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
     name = "download",
     sortOptions = false,
     aliases = "pull")
-public class DownloadSubcommand extends PropertiesBuilderCommandPart {
+public class DownloadSubcommand extends Command {
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branchName;
@@ -54,10 +55,13 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
+    @CommandLine.Mixin
+    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
+
     @Override
     public void run() {
 
-        PropertiesBean pb = this.buildPropertiesBean();
+        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
         ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);

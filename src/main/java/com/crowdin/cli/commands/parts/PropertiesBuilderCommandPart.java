@@ -14,7 +14,7 @@ import java.util.Arrays;
 import static com.crowdin.cli.BaseCli.DEFAULT_CONFIGS;
 import static com.crowdin.cli.BaseCli.DEFAULT_IDENTITY_FILES;
 
-public abstract class PropertiesBuilderCommandPart extends Command {
+public class PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"--identity"}, paramLabel = "...")
     private File identityFile;
@@ -25,7 +25,7 @@ public abstract class PropertiesBuilderCommandPart extends Command {
     @CommandLine.Option(names = {"-c", "--config"}, paramLabel = "...")
     private File configFile;
 
-    protected PropertiesBean buildPropertiesBean() {
+    public PropertiesBean buildPropertiesBean() {
         if (configFile == null) {
             configFile = getDefaultConfig();
         }

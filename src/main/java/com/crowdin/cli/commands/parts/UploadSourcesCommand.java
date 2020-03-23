@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
-public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
+public class UploadSourcesCommand extends Command {
 
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
@@ -43,9 +43,12 @@ public class UploadSourcesCommand extends PropertiesBuilderCommandPart {
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
+    @CommandLine.Mixin
+    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
+
     @Override
     public void run() {
-        PropertiesBean pb = this.buildPropertiesBean();
+        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
         ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);

@@ -67,6 +67,8 @@ public class FileHelperTest {
         FileHelper fileHelper = new FileHelper(project.getBasePath());
         assertThrows(NullPointerException.class, () -> fileHelper.getFiles(null), "FileHelper should throw NPE in getFiles");
         assertThrows(NullPointerException.class, () -> fileHelper.filterOutIgnoredFiles(null, null), "FileHelper should throw NPE in filterOutIgnoredFiles");
+        assertThrows(NullPointerException.class, () -> fileHelper.filterOutIgnoredFiles(new ArrayList<>(), null), "FileHelper should throw NPE in filterOutIgnoredFiles");
+        assertThrows(NullPointerException.class, () -> fileHelper.filterOutIgnoredFiles(null, new ArrayList<>()), "FileHelper should throw NPE in filterOutIgnoredFiles");
     }
 
     @Test
@@ -103,7 +105,8 @@ public class FileHelperTest {
             arguments(allFiles, Utils.normalizePath("*.*"), Arrays.asList(a, ax)),
             arguments(allFiles, Utils.normalizePath("?.*"), Arrays.asList(a, ax)),
             arguments(allFiles, Utils.normalizePath("*"), Arrays.asList(a, ax, f1, f2)),
-            arguments(allFiles, Utils.normalizePath("f3/**/*"), Collections.EMPTY_LIST)
+            arguments(allFiles, Utils.normalizePath("f3/**/*"), Collections.EMPTY_LIST),
+            arguments(allFiles, Utils.normalizePath("/f1/**"), Arrays.asList(f1, f11))
         );
     }
 
