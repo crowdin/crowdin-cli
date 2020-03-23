@@ -24,6 +24,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.*;
@@ -85,27 +86,20 @@ public class UploadSourcesCommand extends Command {
                 if (StringUtils.isAnyEmpty(file.getSource(), file.getTranslation())) {
                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources_or_translations"));
                 }
-                List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
-                    .map(File::getAbsolutePath)
-                    .collect(Collectors.toList());
+                Stream<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
+                    .map(File::getAbsolutePath);
                 String commonPath =
-                    (pb.getPreserveHierarchy()) ? "" : CommandUtils.getCommonPath(sources, pb.getBasePath());
+                    (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
 
                 boolean isDest = StringUtils.isNotEmpty(file.getDest());
 
-                if (sources.isEmpty()) {
+                if (sources.count() == 0) {
                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
-                }
-                if (isDest && SourcesUtils.containsPattern(file.getSource())) {
-                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
-                } else if (isDest && !pb.getPreserveHierarchy()) {
-                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
                 }
 
                 Map<String, Long> directoryPaths = StreamUtils.reverseMap(ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()));
-                Map<Long, Branch> mapBranches = project.getMapBranches();
 
-                List<Runnable> tasks = sources.stream()
+                List<Runnable> tasks = sources
                     .map(File::new)
                     .filter(File::isFile)
                     .map(sourceFile -> (Runnable) () -> {
@@ -132,12 +126,11 @@ public class UploadSourcesCommand extends Command {
                                 PropertiesBeanUtils.getSchemeObject(file.getScheme()));
 
                         ExportOptions exportOptions = null;
-                        if (StringUtils.isNoneEmpty(sourceFile.getAbsolutePath(), file.getTranslation())) {
-                            String fileSource = Utils.replaceBasePath(sourceFile.getAbsolutePath(), pb.getBasePath());
+                        if (StringUtils.isNoneEmpty(file.getTranslation())) {
                             String exportPattern = TranslationsUtils.replaceDoubleAsterisk(
                                 file.getSource(),
                                 file.getTranslation(),
-                                fileSource
+                                sourceFile.getAbsolutePath()
                             );
                             exportPattern = StringUtils.replacePattern(exportPattern, "[\\\\/]+", "/");
                             PropertyFileExportOptions pfExportOptions = new PropertyFileExportOptions();
@@ -147,7 +140,7 @@ public class UploadSourcesCommand extends Command {
                             }
                             if (file.getEscapeSpecialCharacters() != null) {
                                 pfExportOptions.setEscapeSpecialCharacters(file.getEscapeSpecialCharacters());
-                            } else if (FilenameUtils.isExtension(sourceFile.getName(), "properties")) {
+                            } else if (SourcesUtils.isFileProperties(sourceFile)) {
                                 pfExportOptions.setEscapeSpecialCharacters(1);
                             }
                             exportOptions = pfExportOptions;

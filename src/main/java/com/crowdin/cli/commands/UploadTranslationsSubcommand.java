@@ -8,7 +8,6 @@ import com.crowdin.cli.commands.parts.Command;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.CommandUtils;
 import com.crowdin.cli.utils.ConcurrencyUtil;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
@@ -106,28 +105,18 @@ public class UploadTranslationsSubcommand extends Command {
             Stream<File> fileSourcesWithoutIgnores = SourcesUtils
                 .getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil);
 
-            String commonPath =
-                (pb.getPreserveHierarchy())
-                    ? ""
-                    : CommandUtils.getCommonPath(
-                        fileSourcesWithoutIgnores.map(File::getAbsolutePath).collect(Collectors.toList()),
-                        pb.getBasePath());
-
-            boolean isDest = StringUtils.isNotEmpty(file.getDest());
+            String commonPath = (pb.getPreserveHierarchy())
+                ? ""
+                : SourcesUtils.getCommonPath(fileSourcesWithoutIgnores.map(File::getAbsolutePath), pb.getBasePath());
 
             if (fileSourcesWithoutIgnores.count() == 0) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
-            }
-            if (isDest && SourcesUtils.containsPattern(file.getSource())) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
-            } else if (isDest && !pb.getPreserveHierarchy()) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
             }
 
             Map<File, Pair<List<Language>, TranslationPayload>> preparedRequests = new HashMap<>();
             String branchPath = (StringUtils.isNotEmpty(this.branch) ? branch + Utils.PATH_SEPARATOR : "");
             fileSourcesWithoutIgnores.forEach(source -> {
-                String filePath = branchPath + (isDest
+                String filePath = branchPath + (StringUtils.isNotEmpty(file.getDest())
                     ? file.getDest()
                     : StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath() + commonPath));
 

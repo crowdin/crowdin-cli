@@ -3,6 +3,8 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.cli.properties.helper.FileHelper;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.List;
@@ -31,5 +33,16 @@ public class SourcesUtils {
             || sourcePattern.contains("?")
             || (sourcePattern.contains("[") && sourcePattern.contains("]"))
             || (sourcePattern.contains("\\") && !Utils.isWindows());
+    }
+
+    public static String getCommonPath(Stream<String> sources, String basePath) {
+        String commonPrefix = StringUtils.getCommonPrefix(sources.toArray(String[]::new));
+        String result = commonPrefix.substring(0, commonPrefix.lastIndexOf(Utils.PATH_SEPARATOR)+1);
+        result = StringUtils.removeStart(result, basePath);
+        return result;
+    }
+
+    public static boolean isFileProperties(File source) {
+        return FilenameUtils.isExtension(source.getName(), "properties");
     }
 }

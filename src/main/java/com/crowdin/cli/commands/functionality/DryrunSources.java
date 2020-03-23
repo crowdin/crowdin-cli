@@ -1,13 +1,13 @@
 package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.CommandUtils;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DryrunSources extends Dryrun {
 
@@ -21,18 +21,13 @@ public class DryrunSources extends Dryrun {
 
     @Override
     protected List<String> getFiles() {
-        List<String> files = pb
-            .getFiles()
-            .stream()
+        Stream<String> files = pb.getFiles().stream()
             .flatMap(file -> SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
-                .map(File::getAbsolutePath))
-            .map(source -> StringUtils.removeStart(source, pb.getBasePath()))
-            .collect(Collectors.toList());
+                .map(File::getAbsolutePath));
 
-        String commonPath =
-            (pb.getPreserveHierarchy()) ? "" : CommandUtils.getCommonPath(files);
+        String commonPath = (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(files, pb.getBasePath());
 
-        return files.stream()
+        return files
             .map(source -> StringUtils.removeStart(source, commonPath))
             .collect(Collectors.toList());
     }
