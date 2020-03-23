@@ -9,7 +9,6 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -61,31 +60,26 @@ public class FileHelper {
         this.basePath = basePath;
     }
 
-    public List<File> getFileSource(String source) {
+    public List<File> getFiles(String source) {
         if (source == null) {
-            return Collections.emptyList();
+            throw new NullPointerException("NPE in FileHelper.getFiles");
         }
 
         List<File> resultList = new ArrayList<>();
 
-        String pattern = basePath + Utils.PATH_SEPARATOR + source;
-        pattern = pattern.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
-
-        String[] nodes = pattern.split(Utils.PATH_SEPARATOR_REGEX);
-        StringBuilder resultPath = new StringBuilder();
+        String[] nodes = source.split(Utils.PATH_SEPARATOR_REGEX);
+        resultList.add(new File(basePath));
         for (String node : nodes) {
-            if (!node.isEmpty()) {
-                if (!DOUBLED_ASTERISK.equals(node)) {
-                    node = translateToRegex(node);
-                }
-                if (DOUBLED_ASTERISK.equals(node)) {
-                    resultList = findFiles(DOUBLED_ASTERISK, resultList, node, resultPath);
-                } else {
-                    resultList = findFiles(REGEX, resultList, node, resultPath);
-                }
-                if (resultList.isEmpty()) {
-                    break;
-                }
+            if (node.isEmpty()) {
+                continue;
+            }
+            if (DOUBLED_ASTERISK.equals(node)) {
+                resultList = findFiles(resultList, node);
+            } else {
+                resultList = findFiles(resultList, translateToRegex(node));
+            }
+            if (resultList.isEmpty()) {
+                break;
             }
         }
         return resultList;
@@ -99,12 +93,8 @@ public class FileHelper {
      * @return the list of source files withoug the ignores.
      */
     public List<File> filterOutIgnoredFiles(List<File> sources, List<String> ignores) {
-        if (sources == null) {
-            return sources;
-        }
-
-        if (ignores == null || ignores.isEmpty()) {
-            return sources;
+        if (sources == null || ignores == null) {
+            throw new NullPointerException("NPE in FileHelper.filterOutIgnoredFiles");
         }
 
         List<FileMatcher> matchers = new ArrayList<>(ignores.size());
@@ -127,9 +117,6 @@ public class FileHelper {
     }
 
     private String translateToRegex(String node) {
-        if (node == null) {
-            throw new NullPointerException("Null arg in FileHelper.translateToRegex");
-        }
         node = node
             .replace(ESCAPE_DOT, ESCAPE_DOT_PLACEHOLDER)
             .replace(DOT, ESCAPE_DOT)
@@ -153,103 +140,40 @@ public class FileHelper {
      * Finds files at the path specified by the current contents of {@code resultPath}, putting files matching
      * the next level of the pattern into {@code resultList} for the next iteration.
      *
-     * @param patternName either {@link #DOUBLED_ASTERISK} or {@link #REGEX}.
-     * @param resultList  the list of results.  <strong>Mutated as a side-effect!</strong>
+     * @param paths  the list of results.  <strong>Mutated as a side-effect!</strong>
      * @param node        the current element of the pattern being matched.
-     * @param resultPath  the current path being matched.  <strong>Mutated as a side-effect!</strong>
      * @return the new list of results.
      */
-    private List<File> findFiles(String patternName, List<File> resultList, String node, StringBuilder resultPath) {
-        if (!resultList.isEmpty()) {
-            List<File> tmpResultList = new ArrayList<>(resultList);
-            resultList.clear();
-            for (File file : tmpResultList) {
-                StringBuilder absolutePath = new StringBuilder(file.getAbsolutePath());
-                absolutePath.append(Utils.PATH_SEPARATOR);
-                if (null != patternName) {
-                    if (DOUBLED_ASTERISK.equals(patternName)) {
-                        List<File> files = getlistDirectory(absolutePath.toString());
-                        if (!files.isEmpty()) {
-                            for (File f : files) {
-                                File tmpFile = new File(f.getAbsolutePath());
-                                if (Files.isDirectory(tmpFile.toPath(), LinkOption.NOFOLLOW_LINKS)) {
-                                    resultList.add(tmpFile);
-                                }
-                            }
-                        }
-                    } else if (REGEX.equals(patternName)) {
-                        File dir = new File(absolutePath.toString());
-                        FileFilter fileFilter;
-                        fileFilter = new RegexFileFilter(node);
-                        File[] files = dir.listFiles(fileFilter);
-                        if (files != null && files.length > 0) {
-                            resultList.addAll(Arrays.asList(files));
-                        }
-                    } else {
-                        absolutePath.append(node);
-                        File tmpFile = new File(absolutePath.toString());
-                        if (tmpFile.exists()) {
-                            resultList.add(tmpFile);
-                        }
+    private List<File> findFiles(List<File> paths, String node) {
+        List<File> result = new ArrayList<>();
+        for (File file : paths) {
+            if (!file.exists()) {
+                continue;
+            }
+            if (DOUBLED_ASTERISK.equals(node)) {
+                for (File f : getlistDirectory(file)) {
+                    File tmpFile = new File(f.getAbsolutePath());
+                    if (Files.isDirectory(tmpFile.toPath(), LinkOption.NOFOLLOW_LINKS)) {
+                        result.add(tmpFile);
                     }
                 }
-            }
-        } else {
-            if (node != null && node.endsWith(":")) {
-                resultPath.append(node).append(Utils.PATH_SEPARATOR);
             } else {
-                resultPath.append(Utils.PATH_SEPARATOR);
-            }
-            if (null != patternName) {
-                if (DOUBLED_ASTERISK.equals(patternName)) {
-                    List<File> files = getlistDirectory(resultPath.toString());
-                    if (!files.isEmpty()) {
-                        resultList.clear();
-                        for (File f : files) {
-                            //TODO: Seems questionable - f.getName() is just the last name, but the method above
-                            //      listed the directory recursively, so it may not be directly inside resultPath.
-                            //      I couldn't get this code to actually be executed, so it's hard to know.
-                            File tmpFile = new File(resultPath.toString(), f.getName());
-                            if (Files.isDirectory(tmpFile.toPath(), LinkOption.NOFOLLOW_LINKS)) {
-                                resultList.add(tmpFile);
-                            }
-                        }
-                    }
-                } else if (REGEX.equals(patternName)) {
-                    File dir = new File(resultPath.toString());
-                    FileFilter fileFilter;
-                    fileFilter = new RegexFileFilter(node);
-                    File[] files;
-                    if (node != null && node.endsWith(":")) {
-                        resultList.clear();
-                        resultList.add(dir);
-                        return resultList;
-                    } else {
-                        files = dir.listFiles(fileFilter);
-                    }
-                    if (files != null) {
-                        resultList.clear();
-                        resultList.addAll(Arrays.asList(files));
-                    }
-                } else {
-                    resultPath.append(node);
-                }
-            } else {
-                resultPath.append(node);
+                FileFilter fileFilter = new RegexFileFilter(node);
+                File[] files = file.listFiles(fileFilter);
+                result.addAll(Arrays.asList(files));
             }
         }
-        return resultList;
+        return result;
     }
 
-    private List<File> getlistDirectory(String pathname) {
-        File directory = new File(pathname);
+    private List<File> getlistDirectory(File directory) {
         List<File> resultList = new ArrayList<>();
         resultList.add(directory);
         File[] fList = directory.listFiles();
         if (fList != null) {
             for (File file : fList) {
                 if (Files.isDirectory(file.toPath(), LinkOption.NOFOLLOW_LINKS)) {
-                    resultList.addAll(getlistDirectory(file.getAbsolutePath()));
+                    resultList.addAll(getlistDirectory(file));
                 }
             }
         }

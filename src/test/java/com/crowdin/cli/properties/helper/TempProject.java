@@ -1,5 +1,6 @@
 package com.crowdin.cli.properties.helper;
 
+import com.crowdin.cli.utils.Utils;
 import org.apache.commons.io.FileUtils;
 
 import java.io.File;
@@ -26,7 +27,7 @@ public class TempProject {
     }
 
     public String getBasePath() {
-        return dir.toString();
+        return dir.toString() + Utils.PATH_SEPARATOR;
     }
 
     public File addFile(String path) {

@@ -76,6 +76,7 @@ public class SourcesUtilsTest {
             arguments("**/*", Collections.singletonList("**" + Utils.PATH_SEPARATOR + "*.xml"), 2),
             arguments("**/*", Collections.singletonList("folder" + Utils.PATH_SEPARATOR + "*"), 2),
             arguments("**/*", Collections.singletonList("folder" + Utils.PATH_SEPARATOR + "*.xml"), 3),
+            arguments("**/*", Collections.singletonList("folder" + Utils.PATH_SEPARATOR), 2),
             arguments("**/*", Collections.singletonList("f*"), 2)
         );
     }
