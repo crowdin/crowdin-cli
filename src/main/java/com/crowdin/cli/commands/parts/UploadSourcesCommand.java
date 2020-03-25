@@ -93,10 +93,6 @@ public class UploadSourcesCommand extends Command {
 
                 boolean isDest = StringUtils.isNotEmpty(file.getDest());
 
-                if (sources.count() == 0) {
-                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
-                }
-
                 Map<String, Long> directoryPaths = StreamUtils.reverseMap(ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()));
 
                 List<Runnable> tasks = sources
@@ -191,6 +187,11 @@ public class UploadSourcesCommand extends Command {
                         }
                     })
                     .collect(Collectors.toList());
+
+                if (tasks.isEmpty()) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
+                }
+
                 ConcurrencyUtil.executeAndWait(tasks);
             })
             .collect(Collectors.toList());

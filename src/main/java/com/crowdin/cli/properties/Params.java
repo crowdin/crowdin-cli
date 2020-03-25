@@ -7,7 +7,7 @@ public class Params {
     @CommandLine.Option(names = {"-i", "--project-id"}, paramLabel = "...", descriptionKey = "params.project-id")
     private String idParam;
 
-    @CommandLine.Option(names = {"-pat", "--token"}, paramLabel = "...", descriptionKey = "params.token")
+    @CommandLine.Option(names = {"-T", "--token"}, paramLabel = "...", descriptionKey = "params.token")
     private String tokenParam;
 
     @CommandLine.Option(names = {"--base-url"}, paramLabel = "...", descriptionKey = "params.base-url")
