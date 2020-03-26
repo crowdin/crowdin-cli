@@ -35,8 +35,8 @@ public class SourcesUtils {
             || (sourcePattern.contains("\\") && !Utils.isWindows());
     }
 
-    public static String getCommonPath(Stream<String> sources, String basePath) {
-        String commonPrefix = StringUtils.getCommonPrefix(sources.toArray(String[]::new));
+    public static String getCommonPath(List<String> sources, String basePath) {
+        String commonPrefix = StringUtils.getCommonPrefix(sources.toArray(new String[0]));
         String result = commonPrefix.substring(0, commonPrefix.lastIndexOf(Utils.PATH_SEPARATOR)+1);
         result = StringUtils.removeStart(result, basePath);
         return result;

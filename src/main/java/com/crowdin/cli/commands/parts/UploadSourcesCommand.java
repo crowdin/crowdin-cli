@@ -9,13 +9,15 @@ import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
 import com.crowdin.cli.client.request.XmlFileImportOptionsWrapper;
 import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.*;
+import com.crowdin.cli.utils.ConcurrencyUtil;
+import com.crowdin.cli.utils.PlaceholderUtil;
+import com.crowdin.cli.utils.StreamUtils;
+import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.Branch;
 import com.crowdin.common.models.FileEntity;
 import com.crowdin.common.request.*;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
@@ -24,7 +26,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.*;
@@ -86,8 +87,9 @@ public class UploadSourcesCommand extends Command {
                 if (StringUtils.isAnyEmpty(file.getSource(), file.getTranslation())) {
                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources_or_translations"));
                 }
-                Stream<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
-                    .map(File::getAbsolutePath);
+                List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
+                    .map(File::getAbsolutePath)
+                    .collect(Collectors.toList());
                 String commonPath =
                     (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
 
@@ -95,7 +97,7 @@ public class UploadSourcesCommand extends Command {
 
                 Map<String, Long> directoryPaths = StreamUtils.reverseMap(ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()));
 
-                List<Runnable> tasks = sources
+                List<Runnable> tasks = sources.stream()
                     .map(File::new)
                     .filter(File::isFile)
                     .map(sourceFile -> (Runnable) () -> {

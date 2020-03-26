@@ -23,7 +23,6 @@ import picocli.CommandLine;
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.*;
@@ -102,14 +101,16 @@ public class UploadTranslationsSubcommand extends Command {
         project.getPseudoLanguage().ifPresent(languages::remove);
 
         for (FileBean file : pb.getFiles()) {
-            Stream<File> fileSourcesWithoutIgnores = SourcesUtils
-                .getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil);
+            List<String> fileSourcesWithoutIgnores = SourcesUtils
+                .getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
+                .map(File::getAbsolutePath)
+                .collect(Collectors.toList());
 
             String commonPath = (pb.getPreserveHierarchy())
                 ? ""
-                : SourcesUtils.getCommonPath(fileSourcesWithoutIgnores.map(File::getAbsolutePath), pb.getBasePath());
+                : SourcesUtils.getCommonPath(fileSourcesWithoutIgnores, pb.getBasePath());
 
-            if (fileSourcesWithoutIgnores.count() == 0) {
+            if (fileSourcesWithoutIgnores.isEmpty()) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
             }
 
@@ -118,18 +119,18 @@ public class UploadTranslationsSubcommand extends Command {
             fileSourcesWithoutIgnores.forEach(source -> {
                 String filePath = branchPath + (StringUtils.isNotEmpty(file.getDest())
                     ? file.getDest()
-                    : StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath() + commonPath));
+                    : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
 
                 Long fileId = filePathsToFileId.get(filePath).getId();
                 if (fileId == null) {
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath()), filePath));
+                    System.out.println(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), StringUtils.removeStart(source, pb.getBasePath()), filePath));
                     return;
                 }
 
 //                build filePath to each source and project language
-                String fileSource = Utils.replaceBasePath(source.getAbsolutePath(), pb.getBasePath());
+                String fileSource = Utils.replaceBasePath(source, pb.getBasePath());
                 String translation = TranslationsUtils.replaceDoubleAsterisk(file.getSource(), file.getTranslation(), fileSource);
-                translation = placeholderUtil.replaceFileDependentPlaceholders(translation, source);
+                translation = placeholderUtil.replaceFileDependentPlaceholders(translation, new File(source));
                 if (file.getScheme() != null) {
                     File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
                     if (!transFile.exists()) {

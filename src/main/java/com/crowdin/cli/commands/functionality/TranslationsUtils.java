@@ -4,7 +4,6 @@ import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,7 +23,6 @@ public class TranslationsUtils {
         }
         sourcePattern = StringUtils.removeStart(sourcePattern, Utils.PATH_SEPARATOR);
         String[] sourceNodes = sourcePattern.split("\\*\\*");
-        Arrays.asList(sourceNodes).forEach(System.out::println);
         for (int i = 0; i < sourceNodes.length; i++) {
             if (sourceFile.contains(sourceNodes[i])) {
                 sourceFile = sourceFile.replaceFirst(sourceNodes[i], "");
