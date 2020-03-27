@@ -1,5 +1,6 @@
 package com.crowdin.cli.properties;
 
+import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
@@ -267,6 +268,7 @@ public class CliProperties {
             }
             //Translate attributes
             if (file.getTranslateAttributes() == null) {
+                file.setTranslateAttributes(Boolean.FALSE);
             } else {
             }
             //Translate content
@@ -290,6 +292,7 @@ public class CliProperties {
             }
             //first line contain header
             if (file.getFirstLineContainsHeader() == null) {
+                file.setFirstLineContainsHeader(Boolean.FALSE);
             } else {
             }
             //scheme
@@ -362,6 +365,12 @@ public class CliProperties {
                 Integer escSpecialCharacters = fileBean.getEscapeSpecialCharacters();
                 if (escSpecialCharacters != null && (escSpecialCharacters < 0 || escSpecialCharacters > 1)) {
                     errors.add(RESOURCE_BUNDLE.getString("error.config.escape_special_characters"));
+                }
+
+                if (StringUtils.isNotEmpty(fileBean.getDest()) && SourcesUtils.containsPattern(fileBean.getSource())) {
+                    errors.add(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
+                } else if (StringUtils.isNotEmpty(fileBean.getDest()) && !pb.getPreserveHierarchy()) {
+                    errors.add(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
                 }
             }
         }

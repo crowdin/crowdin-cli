@@ -46,7 +46,7 @@ public class PropertiesBuilderTest {
         PropertiesBuilder pBuilder = new PropertiesBuilder(Paths.get(tempProject.getBasePath()), configFile, null, null);
         PropertiesBean builtPb = pBuilder.build();
 
-        assertThat("PropertiesBeans are identical", builtPb, is(minimalBuiltConfigFile));
+        assertThat("PropertiesBeans are not identical", builtPb, is(minimalBuiltConfigFile));
     }
 
     @Test
@@ -108,6 +108,6 @@ public class PropertiesBuilderTest {
         PropertiesBean pb = pBuilder.build();
 
 
-        assertEquals(pb.getBasePath(), tempProject.getBasePath() + Utils.PATH_SEPARATOR + "folder2" + Utils.PATH_SEPARATOR);
+        assertEquals(pb.getBasePath(), tempProject.getBasePath() + "folder2" + Utils.PATH_SEPARATOR);
     }
 }

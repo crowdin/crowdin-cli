@@ -11,10 +11,10 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import static com.crowdin.cli.BaseCli.defaultConfigs;
-import static com.crowdin.cli.BaseCli.defaultIdentityFiles;
+import static com.crowdin.cli.BaseCli.DEFAULT_CONFIGS;
+import static com.crowdin.cli.BaseCli.DEFAULT_IDENTITY_FILES;
 
-public abstract class PropertiesBuilderCommandPart extends Command {
+public class PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"--identity"}, paramLabel = "...")
     private File identityFile;
@@ -25,7 +25,7 @@ public abstract class PropertiesBuilderCommandPart extends Command {
     @CommandLine.Option(names = {"-c", "--config"}, paramLabel = "...")
     private File configFile;
 
-    protected PropertiesBean buildPropertiesBean() {
+    public PropertiesBean buildPropertiesBean() {
         if (configFile == null) {
             configFile = getDefaultConfig();
         }
@@ -37,22 +37,22 @@ public abstract class PropertiesBuilderCommandPart extends Command {
     }
 
     private File getDefaultConfig() {
-        if (defaultConfigs == null || defaultConfigs.length == 0) {
+        if (DEFAULT_CONFIGS == null || DEFAULT_CONFIGS.length == 0) {
             throw new RuntimeException("Array of default values for config file is empty");
         }
-        return Arrays.stream(defaultConfigs)
+        return Arrays.stream(DEFAULT_CONFIGS)
             .map(Paths::get)
             .filter(Files::exists)
             .findFirst()
             .map(Path::toFile)
-            .orElse(new File(defaultConfigs[0]));
+            .orElse(new File(DEFAULT_CONFIGS[0]));
     }
 
     private File getDefaultIdentityFile() {
-        if (defaultIdentityFiles == null || defaultIdentityFiles.length == 0) {
+        if (DEFAULT_IDENTITY_FILES == null || DEFAULT_IDENTITY_FILES.length == 0) {
             throw new RuntimeException("Array of default values for config file is empty");
         }
-        return Arrays.stream(defaultIdentityFiles)
+        return Arrays.stream(DEFAULT_IDENTITY_FILES)
             .map(Paths::get)
             .filter(Files::exists)
             .findFirst()

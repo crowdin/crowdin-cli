@@ -1,5 +1,7 @@
 package com.crowdin.cli.utils.console;
 
+import com.crowdin.cli.utils.Utils;
+
 public enum ExecutionStatus {
 
     OK("[OK] ", "\u2714  "),
@@ -17,7 +19,7 @@ public enum ExecutionStatus {
     }
 
     public String getIcon() {
-        return ConsoleUtils.isWindows() ? windowsIcon : unixIcon;
+        return Utils.isWindows() ? windowsIcon : unixIcon;
     }
 
     public String withIcon(String message) {

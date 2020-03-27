@@ -34,6 +34,8 @@ public class PropertiesBeanBuilder {
         fb.setTranslation(Utils.PATH_SEPARATOR + "hell-%locale%");
         fb.setContentSegmentation(true);
         fb.setTranslateContent(true);
+        fb.setTranslateAttributes(false);
+        fb.setFirstLineContainsHeader(false);
         fb.setEscapeQuotes(3);
         pb.setFiles(fb);
         return this;

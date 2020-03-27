@@ -1,8 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
-import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.CommandUtils;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
@@ -29,16 +27,16 @@ public class DryrunTranslations extends Dryrun {
     protected List<String> getFiles() {
         return pb.getFiles()
             .stream()
-            .flatMap(file -> CommandUtils.getFileSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil)
-                .stream()
+            .flatMap(file -> SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
                 .map(source -> {
-                    String translation = CommandUtils.replaceDoubleAsteriskInTranslation(file.getTranslation(), source.getAbsolutePath(), file.getSource(), pb.getBasePath());
+                    String fileSource = Utils.replaceBasePath(source.getAbsolutePath(), pb.getBasePath());
+                    String translation = TranslationsUtils.replaceDoubleAsterisk(file.getSource(), file.getTranslation(), fileSource);
                     return placeholderUtil.replaceFileDependentPlaceholders(translation, source);
                 })
                 .flatMap(translation -> {
                     Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
                     if (projectLanguageMapping.isPresent()) {
-                        populateLanguageMapping(languageMapping, projectLanguageMapping.get(), BaseCli.placeholderMappingForServer);
+                        TranslationsUtils.populateLanguageMappingFromServer(languageMapping, projectLanguageMapping.get());
                     }
                     return placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping).stream();
                 })
@@ -55,15 +53,5 @@ public class DryrunTranslations extends Dryrun {
             .filter(file -> (!filesMustExist) || new File(pb.getBasePath() + StringUtils.removeStart(file, Utils.PATH_SEPARATOR)).exists())
             .map(source -> StringUtils.removeStart(source, pb.getBasePath()))
             .collect(Collectors.toList());
-    }
-
-    private void populateLanguageMapping (Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from, Map<String, String> placeholderMapping) {
-        for (String langCode : from.keySet()) {
-            for (String fromPlaceholder : from.get(langCode).keySet()) {
-                String toPlaceholder = placeholderMapping.getOrDefault(fromPlaceholder, fromPlaceholder);
-                toPopulate.putIfAbsent(toPlaceholder, new HashMap<>());
-                toPopulate.get(toPlaceholder).putIfAbsent(langCode, from.get(langCode).get(fromPlaceholder));
-            }
-        }
     }
 }

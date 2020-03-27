@@ -1,22 +1,18 @@
 package com.crowdin.cli.commands;
 
-import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.StorageClient;
 import com.crowdin.cli.client.TranslationsClient;
 import com.crowdin.cli.client.request.TranslationPayloadWrapper;
-import com.crowdin.cli.commands.functionality.DryrunTranslations;
-import com.crowdin.cli.commands.functionality.ProjectProxy;
+import com.crowdin.cli.commands.functionality.*;
+import com.crowdin.cli.commands.parts.Command;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.CommandUtils;
 import com.crowdin.cli.utils.ConcurrencyUtil;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.common.Settings;
-import com.crowdin.common.models.Branch;
-import com.crowdin.common.models.Directory;
 import com.crowdin.common.models.FileEntity;
 import com.crowdin.common.models.Language;
 import com.crowdin.common.request.TranslationPayload;
@@ -35,7 +31,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.*;
     name ="translations",
     sortOptions = false
 )
-public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
+public class UploadTranslationsSubcommand extends Command {
 
     @CommandLine.Option(names = {"--auto-approve-imported"}, negatable = true)
     protected boolean autoApproveImported;
@@ -58,11 +54,12 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
+    @CommandLine.Mixin
+    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
+
     @Override
     public void run() {
-        CommandUtils commandUtils = new CommandUtils();
-
-        PropertiesBean pb = this.buildPropertiesBean();
+        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
         ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
@@ -93,10 +90,8 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         StorageClient storageClient = new StorageClient(settings);
         TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
 
-        Map<String, Long> filePathsToFileId =
-            buildFilePaths(
-                buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()),
-                project.getFiles());
+        Map<String, FileEntity> filePathsToFileId =
+            ProjectFilesUtils.buildFilePaths(project.getMapDirectories(), project.getMapBranches(), project.getFiles());
 
         List<Language> languages = (languageId != null)
             ? project.getLanguageById(languageId)
@@ -106,48 +101,41 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
         project.getPseudoLanguage().ifPresent(languages::remove);
 
         for (FileBean file : pb.getFiles()) {
-            List<File> fileSourcesWithoutIgnores =
-                    CommandUtils.getFileSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil);
+            List<String> fileSourcesWithoutIgnores = SourcesUtils
+                .getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
+                .map(File::getAbsolutePath)
+                .collect(Collectors.toList());
 
-            String commonPath =
-                (pb.getPreserveHierarchy())
-                    ? ""
-                    : CommandUtils.getCommonPath(
-                        fileSourcesWithoutIgnores.stream().map(File::getAbsolutePath).collect(Collectors.toList()),
-                        pb.getBasePath());
-
-            boolean isDest = StringUtils.isNotEmpty(file.getDest());
+            String commonPath = (pb.getPreserveHierarchy())
+                ? ""
+                : SourcesUtils.getCommonPath(fileSourcesWithoutIgnores, pb.getBasePath());
 
             if (fileSourcesWithoutIgnores.isEmpty()) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
             }
-            if (isDest && commandUtils.isSourceContainsPattern(file.getSource())) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
-            } else if (isDest && !pb.getPreserveHierarchy()) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
-            }
 
             Map<File, Pair<List<Language>, TranslationPayload>> preparedRequests = new HashMap<>();
             String branchPath = (StringUtils.isNotEmpty(this.branch) ? branch + Utils.PATH_SEPARATOR : "");
-            for (File source : fileSourcesWithoutIgnores) {
-                String filePath = branchPath + (isDest
+            fileSourcesWithoutIgnores.forEach(source -> {
+                String filePath = branchPath + (StringUtils.isNotEmpty(file.getDest())
                     ? file.getDest()
-                    : StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath() + commonPath));
+                    : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
 
-                Long fileId = filePathsToFileId.get(filePath);
-                if (fileId == null) {
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath()), filePath));
-                    continue;
+                if (!filePathsToFileId.containsKey(filePath)) {
+                    System.out.println(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), StringUtils.removeStart(source, pb.getBasePath()), filePath));
+                    return;
                 }
+                Long fileId = filePathsToFileId.get(filePath).getId();
 
 //                build filePath to each source and project language
-                String translation = CommandUtils.replaceDoubleAsteriskInTranslation(file.getTranslation(), source.getAbsolutePath(), file.getSource(), pb.getBasePath());
-                translation = placeholderUtil.replaceFileDependentPlaceholders(translation, source);
+                String fileSource = Utils.replaceBasePath(source, pb.getBasePath());
+                String translation = TranslationsUtils.replaceDoubleAsterisk(file.getSource(), file.getTranslation(), fileSource);
+                translation = placeholderUtil.replaceFileDependentPlaceholders(translation, new File(source));
                 if (file.getScheme() != null) {
                     File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
                     if (!transFile.exists()) {
                         System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath()))));
-                        continue;
+                        return;
                     }
                     TranslationPayload translationPayload = new TranslationPayloadWrapper(
                         fileId,
@@ -159,7 +147,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                     for (Language language : languages) {
                         Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
                         if (projectLanguageMapping.isPresent()) {
-                            populateLanguageMapping(languageMapping, projectLanguageMapping.get(), BaseCli.placeholderMappingForServer);
+                            TranslationsUtils.populateLanguageMappingFromServer(languageMapping, projectLanguageMapping.get());
                         }
 
                         String transFileName = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
@@ -184,7 +172,7 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                         preparedRequests.put(transFile, Pair.of(Collections.singletonList(language), translationPayload));
                     }
                 }
-            }
+            });
 
             List<Runnable> tasks = preparedRequests.entrySet()
                 .stream()
@@ -210,45 +198,6 @@ public class UploadTranslationsSubcommand extends PropertiesBuilderCommandPart {
                 })
                 .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks);
-        }
-    }
-
-    private Map<Long, String> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, Branch> branchNames) {
-        Map<Long, String> directoryPaths = new HashMap<>();
-        for (Long id : directories.keySet()) {
-            Directory dir = directories.get(id);
-            StringBuilder sb = new StringBuilder(dir.getName()).append(Utils.PATH_SEPARATOR);
-            while (dir.getDirectoryId() != null) {
-                dir = directories.get(dir.getDirectoryId());
-                sb.insert(0, dir.getName() + Utils.PATH_SEPARATOR);
-            }
-            if (dir.getBranchId() != null) {
-                sb.insert(0, branchNames.get(dir.getBranchId()).getName() + Utils.PATH_SEPARATOR);
-            }
-            directoryPaths.put(id, sb.toString());
-        }
-        for (Long id : branchNames.keySet()) {
-            directoryPaths.put(id, branchNames.get(id).getName() + Utils.PATH_SEPARATOR);
-        }
-        return directoryPaths;
-    }
-
-    private Map<String, Long> buildFilePaths(Map<Long, String> directoryPaths, List<FileEntity> files) {
-        Map<String, Long> filePathsToId = new HashMap<>();
-        for (FileEntity fileEntity : files) {
-            Long parentId = (fileEntity.getDirectoryId() != null) ? fileEntity.getDirectoryId() : fileEntity.getBranchId();
-            filePathsToId.put(((parentId != null) ? directoryPaths.get(parentId) : "") + fileEntity.getName(), fileEntity.getId());
-        }
-        return filePathsToId;
-    }
-
-    private void populateLanguageMapping (Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from, Map<String, String> placeholderMapping) {
-        for (String langCode : from.keySet()) {
-            for (String fromPlaceholder : from.get(langCode).keySet()) {
-                String toPlaceholder = placeholderMapping.getOrDefault(fromPlaceholder, fromPlaceholder);
-                toPopulate.putIfAbsent(toPlaceholder, new HashMap<>());
-                toPopulate.get(toPlaceholder).putIfAbsent(langCode, from.get(langCode).get(fromPlaceholder));
-            }
         }
     }
 }

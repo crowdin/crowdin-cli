@@ -2,6 +2,7 @@ package com.crowdin.cli.commands;
 
 import com.crowdin.cli.commands.functionality.DryrunTranslations;
 import com.crowdin.cli.commands.functionality.ProjectProxy;
+import com.crowdin.cli.commands.parts.Command;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
@@ -18,14 +19,17 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
     name = "translations")
-public class ListTranslationsSubcommand extends PropertiesBuilderCommandPart {
+public class ListTranslationsSubcommand extends Command {
 
     @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
+    @CommandLine.Mixin
+    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
+
     @Override
     public void run() {
-        PropertiesBean pb = this.buildPropertiesBean();
+        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
         ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);

@@ -12,8 +12,6 @@ public class FileReader {
 
     private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
 
-    private static final String DEFAULT_CONFIG_FILE_NAME = "crowdin.yml";
-
     private static final String YAML_EXTENSION = ".yaml";
 
     private static final String YML_EXTENSION = ".yml";

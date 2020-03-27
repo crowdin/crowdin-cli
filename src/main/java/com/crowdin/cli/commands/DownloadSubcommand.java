@@ -1,19 +1,19 @@
 package com.crowdin.cli.commands;
 
-import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.TranslationsClient;
-import com.crowdin.cli.commands.functionality.DryrunTranslations;
-import com.crowdin.cli.commands.functionality.ProjectProxy;
+import com.crowdin.cli.commands.functionality.*;
+import com.crowdin.cli.commands.parts.Command;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
-import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.CommandUtils;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.file.FileUtil;
 import com.crowdin.common.Settings;
-import com.crowdin.common.models.*;
+import com.crowdin.common.models.Branch;
+import com.crowdin.common.models.FileRaw;
+import com.crowdin.common.models.Language;
+import com.crowdin.common.models.Translation;
 import com.crowdin.common.request.BuildTranslationPayload;
 import com.crowdin.util.CrowdinHttpClient;
 import net.lingala.zip4j.core.ZipFile;
@@ -31,13 +31,14 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.*;
-import static com.crowdin.cli.utils.console.ExecutionStatus.*;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
     name = "download",
     sortOptions = false,
     aliases = "pull")
-public class DownloadSubcommand extends PropertiesBuilderCommandPart {
+public class DownloadSubcommand extends Command {
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branchName;
@@ -54,20 +55,23 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
+    @CommandLine.Mixin
+    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
+
     @Override
     public void run() {
 
-        PropertiesBean pb = this.buildPropertiesBean();
+        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
         ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
         try {
             ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
             project.downloadProject()
-                .downloadFiles()
+                .downloadSupportedLanguages()
                 .downloadDirectories()
-                .downloadBranches()
-                .downloadSupportedLanguages();
+                .downloadFiles()
+                .downloadBranches();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
@@ -122,12 +126,14 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
 
         Map<String, String> filesWithMapping = pb.getFiles().stream()
             .map(file -> {
-                List<String> sources = CommandUtils.getSourcesWithoutIgnores(file, pb.getBasePath(), placeholderUtil);
+                List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
+                    .map(File::getAbsolutePath)
+                    .collect(Collectors.toList());
                 Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
                 Map<String, Map<String, String>> projLanguageMapping = new HashMap<>();
                 if (projectLanguageMapping.isPresent()) {
-                    populateLanguageMapping(languageMapping, projectLanguageMapping.get(), BaseCli.placeholderMappingForServer);
-                    populateLanguageMapping(projLanguageMapping, projectLanguageMapping.get(), BaseCli.placeholderMappingForServer);
+                    TranslationsUtils.populateLanguageMappingFromServer(languageMapping, projectLanguageMapping.get());
+                    TranslationsUtils.populateLanguageMappingFromServer(projLanguageMapping, projectLanguageMapping.get());
                 }
                 Map<String, String> translationReplace = file.getTranslationReplace() != null ? file.getTranslationReplace() : new HashMap<>();
                 return this.doTranslationMapping(forLanguages, file.getTranslation(), projLanguageMapping, languageMapping, translationReplace, sources, file.getSource(), pb.getBasePath(), placeholderUtil);
@@ -135,8 +141,13 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             .flatMap(map -> map.entrySet().stream())
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
-        Map<String, List<String>> allProjectTranslations =
-            this.buildAllProjectTranslations(project.getFiles(), project.getMapDirectories(), project.getMapBranches(), branch.map(Branch::getId), placeholderUtil, pb.getBasePath());
+        Map<Long, String> directoryPaths = (branch.isPresent())
+                ? ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories())
+                : ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches());
+        Map<String, Map<String, String>> langMapping = new HashMap<>();
+        TranslationsUtils.populateLanguageMappingFromServer(langMapping, projectLanguageMapping.orElse(new HashMap<>()));
+        Map<String, List<String>> allProjectTranslations = ProjectFilesUtils
+            .buildAllProjectTranslations(project.getFiles(), directoryPaths, branch.map(Branch::getId), placeholderUtil, langMapping, pb.getBasePath());
 
         this.extractFiles(baseTempDir, downloadedZipArchive);
         this.unpackFiles(downloadedFilesProc, filesWithMapping, allProjectTranslations, pb.getBasePath(), baseTempDir);
@@ -202,40 +213,6 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         } catch (net.lingala.zip4j.exception.ZipException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.extract_archive"), downloadedZipArchive.getAbsolutePath()));
         }
-    }
-
-    private Map<String, List<String>> buildAllProjectTranslations(
-        List<FileEntity> projectFiles,
-        Map<Long, Directory> projectDirectories,
-        Map<Long, Branch> projectBranches,
-        Optional<Long> branchId,
-        PlaceholderUtil placeholderUtil,
-        String basePath
-    ) {
-        Map<String, List<String>> allProjectTranslations = new HashMap<>();
-        for (FileEntity fe : projectFiles) {
-            if (branchId.isPresent() && !branchId.get().equals(fe.getBranchId())) {
-                continue;
-            }
-
-            String path = (branchId.isPresent())
-                ? this.buildFilePath(fe, projectDirectories)
-                : this.buildFilePath(fe, projectDirectories, projectBranches);
-            List<String> translations = (fe.getExportOptions() == null || fe.getExportOptions().getExportPattern() == null)
-                ? Collections.singletonList((Utils.PATH_SEPARATOR + fe.getName()).replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX))
-                : placeholderUtil.format(
-                Collections.singletonList(
-                    new File(basePath + path)),
-                fe.getExportOptions().getExportPattern().replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX),
-                false);
-            if (!branchId.isPresent() && fe.getBranchId() != null) {
-                translations = translations.stream()
-                    .map(translation -> Utils.PATH_SEPARATOR + projectBranches.get(fe.getBranchId()).getName() + translation)
-                    .collect(Collectors.toList());
-            }
-            allProjectTranslations.put(path, translations);
-        }
-        return allProjectTranslations;
     }
 
     private Pair<Map<File, File>, List<String>> sortFiles(
@@ -322,26 +299,6 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         }
     }
 
-    private String buildFilePath(FileEntity fe, Map<Long, Directory> directories) {
-        StringBuilder sb = new StringBuilder(fe.getName());
-        if (fe.getDirectoryId() != null) {
-            Directory dir = directories.get(fe.getDirectoryId());
-            while (dir != null) {
-                sb.insert(0, dir.getName() + Utils.PATH_SEPARATOR);
-                dir = directories.get(dir.getDirectoryId());
-            }
-        }
-        return sb.toString();
-    }
-
-    private String buildFilePath(FileEntity fe, Map<Long, Directory> directories, Map<Long, Branch> branchNames) {
-        return
-            ((fe.getBranchId() != null)
-                ? branchNames.get(fe.getBranchId()).getName() + Utils.PATH_SEPARATOR
-                : "")
-            + this.buildFilePath(fe, directories);
-    }
-
     private Map<String, String> doTranslationMapping(
         List<Language> languages,
         String translation,
@@ -364,8 +321,9 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
             String translationFile1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
 
             for (String projectFile : sources) {
-                String translationProject2 = CommandUtils.replaceDoubleAsteriskInTranslation(translationProject1, projectFile, source, basePath);
-                String translationFile2 = CommandUtils.replaceDoubleAsteriskInTranslation(translationFile1, projectFile, source, basePath);
+                String file = Utils.replaceBasePath(projectFile, basePath);
+                String translationProject2 = TranslationsUtils.replaceDoubleAsterisk(source, translationProject1, file);
+                String translationFile2 = TranslationsUtils.replaceDoubleAsterisk(source, translationFile1, file);
 
                 translationProject2 = placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(projectFile));
                 translationFile2 = placeholderUtil.replaceFileDependentPlaceholders(translationFile2, new File(projectFile));
@@ -393,16 +351,6 @@ public class DownloadSubcommand extends PropertiesBuilderCommandPart {
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.downloading_file"), e);
-        }
-    }
-
-    private void populateLanguageMapping (Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from, Map<String, String> placeholderMapping) {
-        for (String langCode : from.keySet()) {
-            for (String fromPlaceholder : from.get(langCode).keySet()) {
-                String toPlaceholder = placeholderMapping.getOrDefault(fromPlaceholder, fromPlaceholder);
-                toPopulate.putIfAbsent(toPlaceholder, new HashMap<>());
-                toPopulate.get(toPlaceholder).putIfAbsent(langCode, from.get(langCode).get(fromPlaceholder));
-            }
         }
     }
 }
