@@ -82,6 +82,8 @@ public class UploadSourcesCommand extends Command {
         Optional<Branch> branchId =
             Optional.ofNullable(branch).map(brName -> ProjectUtils.getOrCreateBranch(branchClient, project, brName));
 
+        Map<String, Long> directoryPaths = StreamUtils.reverseMap(ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()));
+
         List<Runnable> fileTasks = pb.getFiles().stream()
             .map(file -> (Runnable) () -> {
                 if (StringUtils.isAnyEmpty(file.getSource(), file.getTranslation())) {
@@ -94,8 +96,6 @@ public class UploadSourcesCommand extends Command {
                     (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
 
                 boolean isDest = StringUtils.isNotEmpty(file.getDest());
-
-                Map<String, Long> directoryPaths = StreamUtils.reverseMap(ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()));
 
                 List<Runnable> tasks = sources.stream()
                     .map(File::new)
@@ -128,7 +128,7 @@ public class UploadSourcesCommand extends Command {
                             String exportPattern = TranslationsUtils.replaceDoubleAsterisk(
                                 file.getSource(),
                                 file.getTranslation(),
-                                sourceFile.getAbsolutePath()
+                                Utils.replaceBasePath(sourceFile.getAbsolutePath(), pb.getBasePath())
                             );
                             exportPattern = StringUtils.replacePattern(exportPattern, "[\\\\/]+", "/");
                             PropertyFileExportOptions pfExportOptions = new PropertyFileExportOptions();

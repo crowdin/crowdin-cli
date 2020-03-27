@@ -121,11 +121,11 @@ public class UploadTranslationsSubcommand extends Command {
                     ? file.getDest()
                     : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
 
-                Long fileId = filePathsToFileId.get(filePath).getId();
-                if (fileId == null) {
+                if (!filePathsToFileId.containsKey(filePath)) {
                     System.out.println(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), StringUtils.removeStart(source, pb.getBasePath()), filePath));
                     return;
                 }
+                Long fileId = filePathsToFileId.get(filePath).getId();
 
 //                build filePath to each source and project language
                 String fileSource = Utils.replaceBasePath(source, pb.getBasePath());
