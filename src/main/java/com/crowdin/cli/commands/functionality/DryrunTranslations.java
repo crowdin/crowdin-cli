@@ -3,11 +3,13 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.common.models.Language;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class DryrunTranslations extends Dryrun {
 
@@ -15,12 +17,14 @@ public class DryrunTranslations extends Dryrun {
     private PlaceholderUtil placeholderUtil;
     private boolean filesMustExist;
     private Optional<Map<String, Map<String, String>>> projectLanguageMapping;
+    private Optional<Language> language;
 
-    public DryrunTranslations(PropertiesBean pb, Optional<Map<String, Map<String, String>>> projectLanguageMapping, PlaceholderUtil placeholderUtil, boolean filesMustExist) {
+    public DryrunTranslations(PropertiesBean pb, Optional<Map<String, Map<String, String>>> projectLanguageMapping, PlaceholderUtil placeholderUtil, Optional<Language> language, boolean filesMustExist) {
         this.pb = pb;
         this.placeholderUtil = placeholderUtil;
         this.filesMustExist = filesMustExist;
         this.projectLanguageMapping = projectLanguageMapping;
+        this.language = language;
     }
 
     @Override
@@ -38,7 +42,9 @@ public class DryrunTranslations extends Dryrun {
                     if (projectLanguageMapping.isPresent()) {
                         TranslationsUtils.populateLanguageMappingFromServer(languageMapping, projectLanguageMapping.get());
                     }
-                    return placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping).stream();
+                    return language
+                        .map(l -> Stream.of(placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, l)))
+                        .orElseGet(() -> placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping).stream());
                 })
                 .map(translation -> (file.getTranslationReplace() != null ? file.getTranslationReplace() : Collections.<String, String>emptyMap())
                     .keySet()

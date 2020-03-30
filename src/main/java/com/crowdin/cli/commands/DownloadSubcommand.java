@@ -78,19 +78,19 @@ public class DownloadSubcommand extends Command {
         }
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
+        Optional<Language> language = Optional.ofNullable(languageId)
+            .map(lang -> project.getLanguageById(lang)
+            .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))));
+        Optional<Branch> branch = Optional.ofNullable(this.branchName)
+            .map(br -> project.getBranchByName(br)
+            .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))));
+
         if (dryrun) {
-            (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, false)).run(treeView);
+            (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, language, false)).run(treeView);
             return;
         }
 
         Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
-
-        Optional<Language> language = Optional.ofNullable(languageId)
-            .map(lang -> project.getLanguageById(lang)
-                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))));
-        Optional<Branch> branch = Optional.ofNullable(this.branchName)
-            .map(br -> project.getBranchByName(br)
-                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))));
 
         TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
 

@@ -82,7 +82,7 @@ public class UploadTranslationsSubcommand extends Command {
         Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
 
         if (dryrun) {
-            (new DryrunTranslations(pb, projectLanguageMapping, placeholderUtil, true)).run(treeView);
+            (new DryrunTranslations(pb, projectLanguageMapping, placeholderUtil, Optional.empty(), true)).run(treeView);
             return;
         }
 
