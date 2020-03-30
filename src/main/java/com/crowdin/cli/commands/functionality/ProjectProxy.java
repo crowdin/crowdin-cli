@@ -4,13 +4,18 @@ import com.crowdin.cli.client.*;
 import com.crowdin.cli.client.exceptions.OrganizationNotFoundResponseException;
 import com.crowdin.cli.client.exceptions.ProjectNotFoundResponseException;
 import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.exceptions.UnauthorizedResponseException;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.*;
-import com.crowdin.common.request.BranchPayload;
 
-import java.util.*;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import static com.crowdin.cli.utils.MessageSource.RESOURCE_BUNDLE;
 
 public class ProjectProxy {
 
@@ -35,9 +40,11 @@ public class ProjectProxy {
         try {
             this.project = (new ProjectClient(this.settings)).getProject(this.projectId);
         } catch (OrganizationNotFoundResponseException e) {
-            throw new RuntimeException("Organization not found");
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.response.organization_not_found"));
         } catch (ProjectNotFoundResponseException e) {
-            throw new RuntimeException("Project with id: " + projectId + " does not exist");
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.response.project_not_found"), projectId));
+        } catch (UnauthorizedResponseException e) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.response.unauthorized"));
         } catch (ResponseException e){
             throw new RuntimeException("Unhandled Exception: " + e.getMessage());
         }

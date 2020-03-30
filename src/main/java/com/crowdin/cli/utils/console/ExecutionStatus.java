@@ -5,8 +5,8 @@ import com.crowdin.cli.utils.Utils;
 public enum ExecutionStatus {
 
     OK("[OK] ", "\u2714  "),
-    ERROR("[ERROR] ", "\u26D4  "),
-    WARNING("[WARNING] ", "\u26A0  "),
+    ERROR("[ERROR] ", "\u274C  "),
+    WARNING("[WARNING] ", "⚠️  "),
     SKIPPED("[SKIPPED] ", "\u23ED  "),
     EMPTY("", "");
 

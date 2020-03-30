@@ -7,6 +7,8 @@ import java.io.*;
 import java.util.Map;
 import java.util.ResourceBundle;
 
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
+
 
 public class FileReader {
 
@@ -21,7 +23,7 @@ public class FileReader {
             throw new NullPointerException("FileReader.readCliConfig has null args");
         }
         if (!(fileCfg.getName().endsWith(YAML_EXTENSION) || fileCfg.getName().endsWith(YML_EXTENSION))) {
-            System.out.println("WARN: file with name '" + fileCfg.getAbsolutePath() + "' has different type from YAML");
+            System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.warning.not_yml"), fileCfg.getAbsolutePath())));
         }
 
         Yaml yaml = new Yaml();

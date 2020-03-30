@@ -1,11 +1,11 @@
 package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.utils.tree.DrawTree;
-import org.apache.commons.lang3.StringUtils;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static com.crowdin.cli.utils.MessageSource.RESOURCE_BUNDLE;
 
 public abstract class Dryrun {
 
@@ -20,7 +20,7 @@ public abstract class Dryrun {
         if (treeView) {
             (new DrawTree()).draw(files, 0);
         } else {
-            files.forEach(System.out::println);
+            files.forEach(file -> System.out.println(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), file)));
         }
     }
 }
