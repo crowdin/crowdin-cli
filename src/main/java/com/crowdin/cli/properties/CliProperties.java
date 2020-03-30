@@ -432,6 +432,6 @@ public class CliProperties {
     }
 
     private static boolean checkForDoubleAsterisks(String source, String translation) {
-        return StringUtils.contains(translation, "**") && !StringUtils.contains(source, "**");
+        return !(StringUtils.contains(translation, "**") && !StringUtils.contains(source, "**"));
     }
 }
