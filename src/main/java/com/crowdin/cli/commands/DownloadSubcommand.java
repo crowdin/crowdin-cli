@@ -325,10 +325,7 @@ public class DownloadSubcommand extends Command {
 
                 translationProject2 = placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(projectFile));
                 translationFile2 = placeholderUtil.replaceFileDependentPlaceholders(translationFile2, new File(projectFile));
-                translationFile2 = translationReplace.keySet().stream()
-                    .reduce(translationFile2, (trans, key) -> StringUtils.replace(
-                        trans,
-                        key.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX), translationReplace.get(key)));
+                translationFile2 = PropertiesBeanUtils.useTranslationReplace(translationFile2, translationReplace);
                 mapping.put(translationProject2, translationFile2);
             }
         }

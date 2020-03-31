@@ -47,14 +47,7 @@ public class DryrunTranslations extends Dryrun {
                         .map(l -> Stream.of(placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, l)))
                         .orElseGet(() -> placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping).stream());
                 })
-                .map(translation -> (file.getTranslationReplace() != null ? file.getTranslationReplace() : Collections.<String, String>emptyMap())
-                    .keySet()
-                    .stream()
-                    .reduce(translation, (trans, k) -> StringUtils.replace(
-                        trans,
-                        k.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX),
-                        file.getTranslationReplace().get(k)))
-                )
+                .map(translation -> PropertiesBeanUtils.useTranslationReplace(translation, file.getTranslationReplace()))
             )
             .distinct()
             .filter(file -> (!filesMustExist) || new File(pb.getBasePath() + StringUtils.removeStart(file, Utils.PATH_SEPARATOR)).exists())
