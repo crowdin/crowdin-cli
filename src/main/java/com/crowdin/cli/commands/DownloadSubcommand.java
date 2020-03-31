@@ -59,8 +59,6 @@ public class DownloadSubcommand extends Command {
 
     @Override
     public void run() {
-        if (true) throw new RuntimeException();
-
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
