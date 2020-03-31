@@ -59,6 +59,7 @@ public class DownloadSubcommand extends Command {
 
     @Override
     public void run() {
+        if (true) throw new RuntimeException();
 
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
@@ -265,7 +266,7 @@ public class DownloadSubcommand extends Command {
         Pair<Map<File, File>, List<String>> result = sortFiles(downloadedFilesProc, filesWithMapping, basePath, baseTempDirPath);
         new TreeMap<>(result.getLeft()).forEach((fromFile, toFile) -> { //files to extract
             this.moveFile(fromFile, toFile);
-            System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.extracted_file"), StringUtils.removeStart(toFile.getAbsolutePath(), basePath))));
+            System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.extracted_file"), StringUtils.removeStart(toFile.getAbsolutePath(), basePath))));
         });
         if (!ignoreMatch && !result.getRight().isEmpty()) {
             Pair<Map<String, List<String>>, List<String>> omittedFiles = this.sortOmittedFiles(result.getRight(), allProjectTranslations);
