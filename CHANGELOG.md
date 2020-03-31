@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.1.10] - 2020-04-01
++ Added: Emoji for warnings/errors
++ Added: Handle 'Unauthorized' response
++ Added: Specific language support for `--dryrun`
++ Updated: Huge code refactoring and optimization
++ Updated: Change `--dryrun` output
++ Updated: Check branch existence before `--dryrun`
++ Fixed: Correct message about missing identity file
++ Fixed: Correct error messages about params
+
 ## [3.1.9] - 2020-03-19
 + Added: Support language mapping from server
 + Added: Set proxy properties from system environment
