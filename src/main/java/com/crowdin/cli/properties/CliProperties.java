@@ -224,6 +224,11 @@ public class CliProperties {
             if (!checkForDoubleAsterisks(params.getSourceParam(), params.getTranslationParam())) {
                 errors.add(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
             }
+            if (!containsLangPlaceholders(params.getTranslationParam())) {
+                errors.add(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
+            }
+        } else if (params.getSourceParam() != null ^ params.getTranslationParam() != null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.config.params_xor_source_translation"));
         }
         return errors;
     }
