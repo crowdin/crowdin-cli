@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public abstract class Dryrun {
 
@@ -20,7 +21,7 @@ public abstract class Dryrun {
         if (treeView) {
             (new DrawTree()).draw(files, 0);
         } else {
-            files.forEach(file -> System.out.println(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), file)));
+            files.forEach(file -> System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), file))));
         }
     }
 }
