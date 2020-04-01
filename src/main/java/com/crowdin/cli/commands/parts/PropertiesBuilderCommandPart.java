@@ -35,7 +35,7 @@ public class PropertiesBuilderCommandPart {
         if (identityFile == null) {
             identityFile = getDefaultIdentityFile();
         } else if (!identityFile.exists()) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.identity_file_not_exist"));
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.identity_file_not_exist"), identityFile.getAbsolutePath()));
         }
         Path userDir = Paths.get(System.getProperty("user.dir"));
         return (new PropertiesBuilder(userDir, new File(configFile.getAbsolutePath()), identityFile, params)).build();
