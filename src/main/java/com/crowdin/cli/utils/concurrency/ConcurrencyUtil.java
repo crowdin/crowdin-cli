@@ -1,9 +1,8 @@
-package com.crowdin.cli.utils;
+package com.crowdin.cli.utils.concurrency;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 public class ConcurrencyUtil {
 

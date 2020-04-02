@@ -10,7 +10,6 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.common.Settings;
 import picocli.CommandLine;
 
-import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
@@ -34,7 +33,7 @@ public class ListSourcesSubcommand extends Command {
 
         ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
         try {
-            ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
+            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
             project.downloadProject()
                 .downloadSupportedLanguages();
             ConsoleSpinner.stop(OK);

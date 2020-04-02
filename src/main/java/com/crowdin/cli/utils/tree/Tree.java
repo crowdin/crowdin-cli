@@ -8,7 +8,7 @@ import java.util.Set;
 
 
 public class Tree<T> implements Visitable<T> {
-    private final Set<Tree> children = new LinkedHashSet<>();
+    private final Set<Tree<T>> children = new LinkedHashSet<>();
     private final T data;
 
     Tree(T data) {
@@ -17,25 +17,23 @@ public class Tree<T> implements Visitable<T> {
 
     @Override
     public void accept(Visitor<T> visitor) {
+        System.out.println(data);
         visitor.visitData(this, data);
 
-        for (Tree child : children) {
+        for (Tree<T> child : children) {
             Visitor<T> childVisitor = visitor.visitTree(child);
             child.accept(childVisitor);
         }
     }
 
-    Tree child(T data) {
-        for (Tree child : children) {
+    Tree<T> child(T data) {
+        for (Tree<T> child : children) {
             if (child.data.equals(data)) {
                 return child;
             }
         }
 
-        return child(new Tree(data));
-    }
-
-    Tree child(Tree<T> child) {
+        Tree<T> child = new Tree(data);
         children.add(child);
         return child;
     }

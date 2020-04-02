@@ -1,5 +1,6 @@
 package com.crowdin.cli.utils;
 
+import com.crowdin.cli.BaseCli;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
@@ -29,7 +30,6 @@ public class Utils {
      */
     public static final String PATH_SEPARATOR_REGEX = "\\".equals(PATH_SEPARATOR) ? "\\\\" : PATH_SEPARATOR;
 
-    private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
     private static final ResourceBundle CROWDIN_PROPERTIES = ResourceBundle.getBundle("crowdin");
 
     public static String getAppName() {
@@ -42,22 +42,6 @@ public class Utils {
 
     public static String getBaseUrl() {
         return CROWDIN_PROPERTIES.getString(APPLICATION_BASE_URL);
-    }
-
-    public static String replaceBasePath(String path, String basePath) {
-        if (StringUtils.isEmpty(path)) {
-            return "";
-        }
-        String result;
-        if (StringUtils.isNotEmpty(basePath)) {
-            path = path.replaceAll(PATH_SEPARATOR_REGEX + "+", PATH_SEPARATOR_REGEX);
-            result = path.replace(basePath, PATH_SEPARATOR);
-        } else {
-            String[] nodes = path.split(PATH_SEPARATOR_REGEX);
-            result = nodes[nodes.length-1];
-        }
-        result = result.replaceAll(PATH_SEPARATOR_REGEX + "+", PATH_SEPARATOR_REGEX);
-        return result;
     }
 
     public static Boolean isWindows() {
@@ -76,9 +60,9 @@ public class Utils {
     }
 
     public static Optional<String> getNewVersionMassage() {
-        String message2 = RESOURCE_BUNDLE.getString("message.new_version_text.2");
+        String message2 = BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text.2");
         return getAppNewLatestVersion()
-            .map(newVersion -> String.format(MessageSource.RESOURCE_BUNDLE.getString("message.new_version_text"), Utils.getAppVersion(), newVersion))
+            .map(newVersion -> String.format(BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text"), Utils.getAppVersion(), newVersion))
             .map(newVersionText ->
                   "\n"
                 + "┌──" + StringUtils.repeat("─", newVersionText.length()) + "──┐\n"

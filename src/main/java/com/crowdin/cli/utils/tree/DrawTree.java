@@ -7,7 +7,7 @@ import java.util.List;
 
 public class DrawTree {
 
-    public void draw(List<String> l, int ident) {
+    public static void draw(List<String> l) {
 
         Tree<String> top = new Tree<>(".");
         Tree<String> current = top;
@@ -19,6 +19,6 @@ public class DrawTree {
             }
             current = root;
         }
-        top.accept(new PrintIndentedVisitor(ident));
+        top.accept(new PrintIndentedVisitor(0));
     }
 }

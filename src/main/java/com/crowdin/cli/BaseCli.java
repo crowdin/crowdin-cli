@@ -1,6 +1,5 @@
 package com.crowdin.cli;
 
-import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
 
 import java.util.HashMap;
@@ -23,5 +22,5 @@ public class BaseCli {
        put("name", "language");
     }};
 
-    protected static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
+    public static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages/messages");
 }

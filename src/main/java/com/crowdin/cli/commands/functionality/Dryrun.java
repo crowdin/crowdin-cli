@@ -5,8 +5,9 @@ import com.crowdin.cli.utils.tree.DrawTree;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static com.crowdin.cli.utils.MessageSource.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+
 
 public abstract class Dryrun {
 
@@ -29,7 +30,7 @@ public abstract class Dryrun {
             .sorted()
             .collect(Collectors.toList());
         if (treeView) {
-            (new DrawTree()).draw(files, 0);
+            DrawTree.draw(files);
         } else {
             files.forEach(file -> System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString(message_key), file))));
         }

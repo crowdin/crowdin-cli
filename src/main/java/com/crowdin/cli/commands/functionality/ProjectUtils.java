@@ -1,11 +1,11 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.BranchClient;
 import com.crowdin.cli.client.DirectoriesClient;
 import com.crowdin.cli.client.exceptions.ExistsResponseException;
 import com.crowdin.cli.client.exceptions.ResponseException;
 import com.crowdin.cli.client.exceptions.WaitResponseException;
-import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.common.models.Branch;
@@ -23,7 +23,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class ProjectUtils {
 
-    private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
+    private static final ResourceBundle RESOURCE_BUNDLE = BaseCli.RESOURCE_BUNDLE;
 
     public static Branch getOrCreateBranch(BranchClient branchClient, ProjectProxy project, String branchName) {
         Optional<Branch> branchOpt = project.getBranchByName(branchName);

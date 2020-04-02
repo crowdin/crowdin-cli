@@ -15,7 +15,7 @@ import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-import static com.crowdin.cli.utils.MessageSource.RESOURCE_BUNDLE;
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 public class ProjectProxy {
 

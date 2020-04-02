@@ -34,7 +34,7 @@ public class DryrunTranslations extends Dryrun {
             .stream()
             .flatMap(file -> SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
                 .map(source -> {
-                    String fileSource = Utils.replaceBasePath(source.getAbsolutePath(), pb.getBasePath());
+                    String fileSource = StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath());
                     String translation = TranslationsUtils.replaceDoubleAsterisk(file.getSource(), file.getTranslation(), fileSource);
                     return placeholderUtil.replaceFileDependentPlaceholders(translation, source);
                 })

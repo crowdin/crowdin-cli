@@ -11,6 +11,9 @@ public class ConsoleSpinner {
     }
 
     public static void update(String contextMessage) {
+        if (worker == null) {
+            return;
+        }
         worker.setMessage(contextMessage);
     }
 
