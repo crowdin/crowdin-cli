@@ -425,7 +425,7 @@ public class CliProperties {
     }
 
     private static boolean checkBaseUrl(String baseUrl) {
-        return baseUrl == null || baseUrl.matches("(https://(.+\\.)?|http://(.+\\.)?.+\\.dev\\.)crowdin\\.com/api/v2");
+        return baseUrl == null || baseUrl.matches("(https://(.+\\.)?|http://(.+\\.)?.+\\.dev\\.)crowdin\\.com(/api/v2)?");
     }
 
     private static boolean checkBasePathExists(String basePath) {
