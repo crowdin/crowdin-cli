@@ -20,6 +20,7 @@ public class DryrunTranslations extends Dryrun {
     private Optional<Language> language;
 
     public DryrunTranslations(PropertiesBean pb, Optional<Map<String, Map<String, String>>> projectLanguageMapping, PlaceholderUtil placeholderUtil, Optional<Language> language, boolean filesMustExist) {
+        super("message.translation_file");
         this.pb = pb;
         this.placeholderUtil = placeholderUtil;
         this.filesMustExist = filesMustExist;
