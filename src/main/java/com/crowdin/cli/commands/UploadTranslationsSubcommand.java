@@ -82,7 +82,7 @@ public class UploadTranslationsSubcommand extends Command {
         Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
 
         if (dryrun) {
-            (new DryrunTranslations(pb, projectLanguageMapping, placeholderUtil, true)).run(treeView);
+            (new DryrunTranslations(pb, projectLanguageMapping, placeholderUtil, Optional.empty(), true)).run(treeView);
             return;
         }
 
@@ -122,7 +122,7 @@ public class UploadTranslationsSubcommand extends Command {
                     : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
 
                 if (!filePathsToFileId.containsKey(filePath)) {
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), StringUtils.removeStart(source, pb.getBasePath()), filePath));
+                    System.out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), StringUtils.removeStart(source, pb.getBasePath()), filePath)));
                     return;
                 }
                 Long fileId = filePathsToFileId.get(filePath).getId();

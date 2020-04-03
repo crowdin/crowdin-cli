@@ -31,8 +31,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.MessageSource.Messages.*;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
 @CommandLine.Command(
     name = "download",
@@ -60,7 +59,6 @@ public class DownloadSubcommand extends Command {
 
     @Override
     public void run() {
-
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
@@ -79,19 +77,19 @@ public class DownloadSubcommand extends Command {
         }
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
+        Optional<Language> language = Optional.ofNullable(languageId)
+            .map(lang -> project.getLanguageById(lang)
+            .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))));
+        Optional<Branch> branch = Optional.ofNullable(this.branchName)
+            .map(br -> project.getBranchByName(br)
+            .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))));
+
         if (dryrun) {
-            (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, false)).run(treeView);
+            (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, language, false)).run(treeView);
             return;
         }
 
         Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
-
-        Optional<Language> language = Optional.ofNullable(languageId)
-            .map(lang -> project.getLanguageById(lang)
-                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))));
-        Optional<Branch> branch = Optional.ofNullable(this.branchName)
-            .map(br -> project.getBranchByName(br)
-                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))));
 
         TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
 
@@ -266,7 +264,7 @@ public class DownloadSubcommand extends Command {
         Pair<Map<File, File>, List<String>> result = sortFiles(downloadedFilesProc, filesWithMapping, basePath, baseTempDirPath);
         new TreeMap<>(result.getLeft()).forEach((fromFile, toFile) -> { //files to extract
             this.moveFile(fromFile, toFile);
-            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.extracted_file"), StringUtils.removeStart(toFile.getAbsolutePath(), basePath)));
+            System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.extracted_file"), StringUtils.removeStart(toFile.getAbsolutePath(), basePath))));
         });
         if (!ignoreMatch && !result.getRight().isEmpty()) {
             Pair<Map<String, List<String>>, List<String>> omittedFiles = this.sortOmittedFiles(result.getRight(), allProjectTranslations);

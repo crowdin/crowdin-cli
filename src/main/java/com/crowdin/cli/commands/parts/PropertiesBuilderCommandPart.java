@@ -13,6 +13,7 @@ import java.util.Arrays;
 
 import static com.crowdin.cli.BaseCli.DEFAULT_CONFIGS;
 import static com.crowdin.cli.BaseCli.DEFAULT_IDENTITY_FILES;
+import static com.crowdin.cli.commands.parts.Command.RESOURCE_BUNDLE;
 
 public class PropertiesBuilderCommandPart {
 
@@ -28,9 +29,13 @@ public class PropertiesBuilderCommandPart {
     public PropertiesBean buildPropertiesBean() {
         if (configFile == null) {
             configFile = getDefaultConfig();
+        } else if (!configFile.exists()) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
         }
         if (identityFile == null) {
             identityFile = getDefaultIdentityFile();
+        } else if (!identityFile.exists()) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.identity_file_not_exist"), identityFile.getAbsolutePath()));
         }
         Path userDir = Paths.get(System.getProperty("user.dir"));
         return (new PropertiesBuilder(userDir, new File(configFile.getAbsolutePath()), identityFile, params)).build();

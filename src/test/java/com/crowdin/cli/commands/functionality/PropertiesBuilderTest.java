@@ -99,7 +99,7 @@ public class PropertiesBuilderTest {
         configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
 
         Params okParams = new Params() {{
-            setBasePathParam("folder2/");
+            setBasePathParam(tempProject.getBasePath() + "folder2/");
         }};
         tempProject.addDirectory("folder2/");
 

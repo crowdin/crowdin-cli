@@ -45,6 +45,6 @@ public class ListTranslationsSubcommand extends Command {
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
 
-        (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, false)).run(treeView);
+        (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, Optional.empty(), false)).run(treeView);
     }
 }

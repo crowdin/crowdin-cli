@@ -8,6 +8,8 @@ import picocli.CommandLine;
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+
 public class Cli {
 
     public static void main(String[] args) {
@@ -72,10 +74,10 @@ public class Cli {
             if (pr.originalArgs().contains("--debug")) {
                 ex.printStackTrace();
             } else {
-                cmd.getErr().println(ex.getMessage());
+                cmd.getErr().println(ERROR.withIcon(ex.getMessage()));
                 Throwable cause = ex;
                 while ((cause = cause.getCause()) != null) {
-                    cmd.getErr().println(cause.getMessage());
+                    cmd.getErr().println(ERROR.withIcon(cause.getMessage()));
                 }
             }
             return cmd.getExitCodeExceptionMapper() != null

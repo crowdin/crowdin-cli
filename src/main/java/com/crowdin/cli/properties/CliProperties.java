@@ -173,6 +173,13 @@ public class CliProperties {
     }
 
     public static void populateWithParams(PropertiesBean pb, Params params) {
+        List<String> errors = checkParams(params);
+        if (!errors.isEmpty()) {
+            String errorsInOne = errors.stream()
+                .map(error -> String.format(RESOURCE_BUNDLE.getString("message.item_list"), error))
+                .collect(Collectors.joining("\n"));
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.params_are_invalid")+"\n" + errorsInOne);
+        }
         if (params.getIdParam() != null) {
             pb.setProjectId(params.getIdParam());
         }
@@ -196,6 +203,34 @@ public class CliProperties {
             pb.getFiles().clear();
             pb.setFiles(fb);
         }
+    }
+
+    private static List<String> checkParams(Params params) {
+        List<String> errors = new ArrayList<>();
+        if (params == null) {
+            return errors;
+        }
+        if (params.getBaseUrlParam() != null && !checkBaseUrl(params.getBaseUrlParam())) {
+            errors.add(RESOURCE_BUNDLE.getString("error.config.wrong_base_url"));
+        }
+        if (params.getBasePathParam() != null) {
+            if (!checkBasePathExists(params.getBasePathParam())) {
+                errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.base_path_not_exist"), params.getBasePathParam()));
+            } else if (!checkBasePathIsDir(params.getBasePathParam())) {
+                errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.base_path_is_not_dir"), params.getBasePathParam()));
+            }
+        }
+        if (params.getSourceParam() != null && params.getTranslationParam() != null) {
+            if (!checkForDoubleAsterisks(params.getSourceParam(), params.getTranslationParam())) {
+                errors.add(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
+            }
+            if (!containsLangPlaceholders(params.getTranslationParam())) {
+                errors.add(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
+            }
+        } else if (params.getSourceParam() != null ^ params.getTranslationParam() != null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.config.params_xor_source_translation"));
+        }
+        return errors;
     }
 
     private static void setDefaultValues(PropertiesBean pb, String basePathIfEmpty) {
@@ -320,14 +355,14 @@ public class CliProperties {
         }
         if (StringUtils.isEmpty(pb.getBaseUrl())) {
             errors.add(RESOURCE_BUNDLE.getString("error.config.missed_base_url"));
-        } else if (!pb.getBaseUrl().matches("(https://(.+\\.)?|http://(.+\\.)?.+\\.dev\\.)crowdin\\.com/api/v2")) {
+        } else if (!checkBaseUrl(pb.getBaseUrl())) {
             errors.add(RESOURCE_BUNDLE.getString("error.config.wrong_base_url"));
         }
 
         if (StringUtils.isNotEmpty(pb.getBasePath())) {
-            if (!Files.exists(Paths.get(pb.getBasePath()))) {
+            if (!checkBasePathExists(pb.getBasePath())) {
                 errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.base_path_not_exist"), pb.getBasePath()));
-            } else if (!Files.isDirectory(Paths.get(pb.getBasePath()))) {
+            } else if (!checkBasePathIsDir(pb.getBasePath())) {
                 errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.base_path_is_not_dir"), pb.getBasePath()));
             }
         } else {
@@ -346,7 +381,7 @@ public class CliProperties {
                 if (StringUtils.isEmpty(fileBean.getTranslation())) {
                     errors.add(RESOURCE_BUNDLE.getString("error.config.empty_translation_section"));
                 } else {
-                    if (fileBean.getTranslation().contains("**") && fileBean.getSource() != null && !fileBean.getSource().contains("**")) {
+                    if (!checkForDoubleAsterisks(fileBean.getSource(), fileBean.getTranslation())) {
                         errors.add(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
                     }
                     if (!containsLangPlaceholders(fileBean.getTranslation()) && fileBean.getScheme() == null) {
@@ -387,5 +422,21 @@ public class CliProperties {
                 "%android_code%",
                 "%osx_code%",
                 "%osx_locale%");
+    }
+
+    private static boolean checkBaseUrl(String baseUrl) {
+        return baseUrl == null || baseUrl.matches("(https://(.+\\.)?|http://(.+\\.)?.+\\.dev\\.)crowdin\\.com(/api/v2)?");
+    }
+
+    private static boolean checkBasePathExists(String basePath) {
+        return Files.exists(Paths.get(basePath));
+    }
+
+    private static boolean checkBasePathIsDir(String basePath) {
+        return Files.isDirectory(Paths.get(basePath));
+    }
+
+    private static boolean checkForDoubleAsterisks(String source, String translation) {
+        return !(StringUtils.contains(translation, "**") && !StringUtils.contains(source, "**"));
     }
 }
