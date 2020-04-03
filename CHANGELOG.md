@@ -1,7 +1,7 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [3.1.10] - 2020-04-01
+## [3.1.10] - 2020-04-03
 + Added: Emoji for warnings/errors
 + Added: Handle 'Unauthorized' response
 + Added: Specific language support for `--dryrun`
