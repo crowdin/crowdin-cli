@@ -17,7 +17,6 @@ public class Tree<T> implements Visitable<T> {
 
     @Override
     public void accept(Visitor<T> visitor) {
-        System.out.println(data);
         visitor.visitData(this, data);
 
         for (Tree<T> child : children) {

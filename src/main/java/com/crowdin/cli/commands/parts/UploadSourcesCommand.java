@@ -1,6 +1,5 @@
 package com.crowdin.cli.commands.parts;
 
-import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.BranchClient;
 import com.crowdin.cli.client.DirectoriesClient;
 import com.crowdin.cli.client.FileClient;
@@ -10,9 +9,9 @@ import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
 import com.crowdin.cli.client.request.XmlFileImportOptionsWrapper;
 import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.Branch;
@@ -110,6 +109,7 @@ public class UploadSourcesCommand extends Command {
                             filePath = StringUtils.removeStart(filePath, Utils.PATH_SEPARATOR);
                             filePath = StringUtils.removeStart(filePath, commonPath);
                         }
+                        String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
                         Long directoryId = ProjectUtils.createPath(directoriesClient, directoryPaths, filePath, branchId);
                         String fName = ((isDest) ? new File(file.getDest()) : sourceFile).getName();
 
@@ -163,7 +163,6 @@ public class UploadSourcesCommand extends Command {
 
                         FileEntity response = null;
                         try {
-                            String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
                             Optional<FileEntity> fileEntity =
                                 project.getFileEntity(filePayload.getName(), filePayload.getDirectoryId(), branchId.map(Branch::getId).orElse(null));
                             boolean fileExists = fileEntity.isPresent();
@@ -183,7 +182,6 @@ public class UploadSourcesCommand extends Command {
                                 System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
                             }
                         } catch (Exception e) {
-                            String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
                             System.out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
                             System.out.println(e.getMessage());
                         }
