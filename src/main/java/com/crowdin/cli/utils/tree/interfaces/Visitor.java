@@ -3,10 +3,10 @@ package com.crowdin.cli.utils.tree.interfaces;
 import com.crowdin.cli.utils.tree.Tree;
 
 
-public interface Visitor<T> {
+public interface Visitor<T, E> {
 
-    Visitor<T> visitTree(Tree<T> tree);
+    Visitor<T, E> visitTree(Tree<T> tree, boolean last);
 
-    void visitData(Tree<T> parent, T data);
+    E visitData(Tree<T> parent, T data);
 
 }

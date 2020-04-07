@@ -19,6 +19,7 @@ class Spinner extends Thread {
         this();
         this.message = message;
         this.noProgress = noProgress;
+        isSpin = true;
     }
 
     public void setMessage(String message) {
@@ -49,7 +50,6 @@ class Spinner extends Thread {
             return;
         }
 
-        isSpin = true;
         lock.lock();
 
         String[] frames = getFrames();

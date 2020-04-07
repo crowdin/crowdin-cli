@@ -30,7 +30,7 @@ public abstract class Dryrun {
             .sorted()
             .collect(Collectors.toList());
         if (treeView) {
-            DrawTree.draw(files);
+            DrawTree.draw(files).forEach(System.out::println);
         } else {
             files.forEach(file -> System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString(message_key), file))));
         }
