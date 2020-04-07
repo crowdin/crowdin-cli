@@ -13,4 +13,8 @@ import picocli.CommandLine;
         GenerateSubcommand.class
     })
 public class RootCommand extends HelpCommand {
+    @Override
+    protected CommandLine getCommand(CommandLine rootCommand) {
+        return rootCommand;
+    }
 }
