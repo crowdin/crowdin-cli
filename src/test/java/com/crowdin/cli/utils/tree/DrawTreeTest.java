@@ -37,14 +37,14 @@ public class DrawTreeTest {
         return Stream.of(
                 arguments(new ArrayList<String>() {{
                 }}, new ArrayList<String>() {{
-                    add("╰─ .");
+                    add(LAST_ELEM + ".");
                 }}),
                 arguments(new ArrayList<String>() {{
                     add("folder/file.po");
                 }}, new ArrayList<String>() {{
                     add(LAST_ELEM + ".");
                     add(LAST_DIR + LAST_ELEM + "folder");
-                    add("      " + LAST_ELEM + "file.po");
+                    add(LAST_DIR + LAST_DIR + LAST_ELEM + "file.po");
                 }}),
                 arguments(new ArrayList<String>() {{
                     add("folder/file.po");
@@ -62,12 +62,12 @@ public class DrawTreeTest {
                     add("dir/android.xml");
                 }}, new ArrayList<String>() {{
                     add(LAST_ELEM + ".");
-                    add(LAST_DIR + ELEM + "folder");
-                    add(LAST_DIR + DIR + ELEM + "file.po");
-                    add(LAST_DIR + DIR + LAST_ELEM + "next");
-                    add(LAST_DIR + DIR + LAST_DIR + LAST_ELEM + "meme.png");
-                    add(LAST_DIR + LAST_ELEM + "dir");
-                    add(LAST_DIR + LAST_DIR + LAST_ELEM + "android.xml");
+                    add(LAST_DIR + ELEM +       "folder");
+                    add(LAST_DIR + DIR +        ELEM +      "file.po");
+                    add(LAST_DIR + DIR +        LAST_ELEM + "next");
+                    add(LAST_DIR + DIR +        LAST_DIR +  LAST_ELEM + "meme.png");
+                    add(LAST_DIR + LAST_ELEM +  "dir");
+                    add(LAST_DIR + LAST_DIR +   LAST_ELEM + "android.xml");
                 }})
         );
     }
