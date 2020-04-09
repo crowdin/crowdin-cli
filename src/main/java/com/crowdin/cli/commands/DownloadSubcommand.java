@@ -332,7 +332,7 @@ public class DownloadSubcommand extends Command {
 
     private void downloadTranslations(TranslationsClient translationsClient, String buildId, String archivePath) {
         try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.building_translation"), this.noProgress);
+            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.downloading_translation"), this.noProgress);
             FileRaw fileRaw = translationsClient.getFileRaw(buildId);
             InputStream download = CrowdinHttpClient.download(fileRaw.getUrl());
 
