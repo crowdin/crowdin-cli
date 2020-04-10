@@ -34,7 +34,6 @@ public class Cli {
     }
 
     private static void setSystemProperties() {
-        System.setProperty("file.encoding", "UTF-8");
         if (System.getenv("HTTP_PROXY_HOST") != null) {
             System.setProperty("http.proxyHost", System.getenv("HTTP_PROXY_HOST"));
             System.setProperty("https.proxyHost", System.getenv("HTTP_PROXY_HOST"));

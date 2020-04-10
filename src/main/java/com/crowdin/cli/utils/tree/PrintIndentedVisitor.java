@@ -1,15 +1,24 @@
 package com.crowdin.cli.utils.tree;
 
 import com.crowdin.cli.BaseCli;
+import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.tree.interfaces.Visitor;
 
 
 public class PrintIndentedVisitor implements Visitor<String, String> {
 
-    private static final String ELEM = BaseCli.RESOURCE_BUNDLE.getString("message.tree.elem");
-    private static final String LAST_ELEM = BaseCli.RESOURCE_BUNDLE.getString("message.tree.last_elem");
-    private static final String DIR = BaseCli.RESOURCE_BUNDLE.getString("message.tree.dir");
-    private static final String LAST_DIR = BaseCli.RESOURCE_BUNDLE.getString("message.tree.last_dir");
+    private static final String ELEM = Utils.isWindows()
+        ? BaseCli.RESOURCE_BUNDLE.getString("message.tree.win.elem")
+        : BaseCli.RESOURCE_BUNDLE.getString("message.tree.elem");
+    private static final String LAST_ELEM = Utils.isWindows()
+        ? BaseCli.RESOURCE_BUNDLE.getString("message.tree.win.last_elem")
+        : BaseCli.RESOURCE_BUNDLE.getString("message.tree.last_elem");
+    private static final String DIR = Utils.isWindows()
+        ? BaseCli.RESOURCE_BUNDLE.getString("message.tree.win.dir")
+        : BaseCli.RESOURCE_BUNDLE.getString("message.tree.dir");
+    private static final String LAST_DIR = Utils.isWindows()
+        ? BaseCli.RESOURCE_BUNDLE.getString("message.tree.win.last_dir")
+        : BaseCli.RESOURCE_BUNDLE.getString("message.tree.last_dir");
 
     private final String indent;
     private final boolean last;
