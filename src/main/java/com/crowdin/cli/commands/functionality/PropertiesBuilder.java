@@ -3,7 +3,7 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.cli.properties.CliProperties;
 import com.crowdin.cli.properties.Params;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.file.FileReader;
+import com.crowdin.cli.utils.file.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
@@ -29,10 +29,10 @@ public class PropertiesBuilder {
 
     public PropertiesBean build() {
         PropertiesBean pb = (!(Files.notExists(configFile.toPath()) && params != null))
-            ? CliProperties.buildFromMap(new FileReader().readCliConfig(configFile))
+            ? CliProperties.buildFromMap(FileUtils.readYamlFile(configFile))
             : new PropertiesBean();
         if (identityFile != null) {
-            CliProperties.populateWithCredentials(pb, new FileReader().readCliConfig(identityFile));
+            CliProperties.populateWithCredentials(pb, FileUtils.readYamlFile(identityFile));
         }
         if (params != null) {
             if (params.getSourceParam() != null && new File(params.getSourceParam()).isAbsolute()) {

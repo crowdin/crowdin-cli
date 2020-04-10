@@ -1,11 +1,10 @@
 package com.crowdin.cli.properties;
 
+import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
-import com.crowdin.cli.utils.MessageSource;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -18,7 +17,7 @@ import java.util.stream.Collectors;
 
 public class CliProperties {
 
-    private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
+    private static final ResourceBundle RESOURCE_BUNDLE = BaseCli.RESOURCE_BUNDLE;
 
     public static final String PROJECT_ID = "project_id";
 

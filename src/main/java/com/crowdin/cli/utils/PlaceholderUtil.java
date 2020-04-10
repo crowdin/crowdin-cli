@@ -61,21 +61,6 @@ public class PlaceholderUtil {
         return result;
     }
 
-    public String format(File source, String toFormat, Language language) {
-        if (source == null || toFormat == null || language == null) {
-            throw new RuntimeException("null arg in PlaceholderUtil.format()");
-        }
-        String afterLanguageReplaced = this.replaceLanguageDependentPlaceholders(toFormat, language);
-        return this.replaceFileDependentPlaceholders(afterLanguageReplaced, source);
-    }
-
-    public List<String> replaceLanguageDependentPlaceholders(String toFormat) {
-        return projectLangs
-            .stream()
-            .map(lang -> replaceLanguageDependentPlaceholders(toFormat, lang))
-            .collect(Collectors.toList());
-    }
-
     public String replaceLanguageDependentPlaceholders(String toFormat, Language lang) {
         if (toFormat == null || lang == null) {
             throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");

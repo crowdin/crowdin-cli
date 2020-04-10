@@ -7,7 +7,10 @@ import java.util.List;
 
 public class DrawTree {
 
-    public void draw(List<String> l, int ident) {
+    public static List<String> draw(List<String> l) {
+        if (l == null) {
+            throw new NullPointerException("NPE in DrawTree.draw");
+        }
 
         Tree<String> top = new Tree<>(".");
         Tree<String> current = top;
@@ -19,6 +22,7 @@ public class DrawTree {
             }
             current = root;
         }
-        top.accept(new PrintIndentedVisitor(ident));
+        return top.accept(new PrintIndentedVisitor());
     }
+
 }

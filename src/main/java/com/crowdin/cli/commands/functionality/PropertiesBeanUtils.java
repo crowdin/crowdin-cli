@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -38,5 +39,14 @@ public class PropertiesBeanUtils {
             default:
                 return Optional.empty();
         }
+    }
+
+    public static String useTranslationReplace(String translationPath, Map<String, String> translationReplace) {
+        if (translationReplace == null) {
+            return translationPath;
+        }
+        return translationReplace.keySet().stream()
+            .reduce(translationPath, (trans, k) ->
+                StringUtils.replace(trans, Utils.normalizePath(k), translationReplace.get(k)));
     }
 }

@@ -9,10 +9,9 @@ import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
 import com.crowdin.cli.client.request.XmlFileImportOptionsWrapper;
 import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.ConcurrencyUtil;
 import com.crowdin.cli.utils.PlaceholderUtil;
-import com.crowdin.cli.utils.StreamUtils;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.Branch;
@@ -27,7 +26,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
 public class UploadSourcesCommand extends Command {
@@ -55,7 +53,7 @@ public class UploadSourcesCommand extends Command {
 
         ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
         try {
-            ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
+            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
             project.downloadProject()
                 .downloadSupportedLanguages()
                 .downloadDirectories()
@@ -82,7 +80,8 @@ public class UploadSourcesCommand extends Command {
         Optional<Branch> branchId =
             Optional.ofNullable(branch).map(brName -> ProjectUtils.getOrCreateBranch(branchClient, project, brName));
 
-        Map<String, Long> directoryPaths = StreamUtils.reverseMap(ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches()));
+        Map<String, Long> directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches())
+            .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
 
         List<Runnable> fileTasks = pb.getFiles().stream()
             .map(file -> (Runnable) () -> {
@@ -106,10 +105,11 @@ public class UploadSourcesCommand extends Command {
                         if (isDest) {
                             filePath = file.getDest();
                         } else {
-                            filePath = Utils.replaceBasePath(sourceFile.getAbsolutePath(), pb.getBasePath());
+                            filePath = StringUtils.removeStart(sourceFile.getAbsolutePath(), pb.getBasePath());
                             filePath = StringUtils.removeStart(filePath, Utils.PATH_SEPARATOR);
                             filePath = StringUtils.removeStart(filePath, commonPath);
                         }
+                        String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
                         Long directoryId = ProjectUtils.createPath(directoriesClient, directoryPaths, filePath, branchId);
                         String fName = ((isDest) ? new File(file.getDest()) : sourceFile).getName();
 
@@ -128,7 +128,7 @@ public class UploadSourcesCommand extends Command {
                             String exportPattern = TranslationsUtils.replaceDoubleAsterisk(
                                 file.getSource(),
                                 file.getTranslation(),
-                                Utils.replaceBasePath(sourceFile.getAbsolutePath(), pb.getBasePath())
+                                    StringUtils.removeStart(sourceFile.getAbsolutePath(), pb.getBasePath())
                             );
                             exportPattern = StringUtils.replacePattern(exportPattern, "[\\\\/]+", "/");
                             PropertyFileExportOptions pfExportOptions = new PropertyFileExportOptions();
@@ -163,7 +163,6 @@ public class UploadSourcesCommand extends Command {
 
                         FileEntity response = null;
                         try {
-                            String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
                             Optional<FileEntity> fileEntity =
                                 project.getFileEntity(filePayload.getName(), filePayload.getDirectoryId(), branchId.map(Branch::getId).orElse(null));
                             boolean fileExists = fileEntity.isPresent();
@@ -183,7 +182,6 @@ public class UploadSourcesCommand extends Command {
                                 System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
                             }
                         } catch (Exception e) {
-                            String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
                             System.out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
                             System.out.println(e.getMessage());
                         }

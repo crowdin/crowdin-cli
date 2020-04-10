@@ -34,7 +34,7 @@ public class DryrunTranslations extends Dryrun {
             .stream()
             .flatMap(file -> SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
                 .map(source -> {
-                    String fileSource = Utils.replaceBasePath(source.getAbsolutePath(), pb.getBasePath());
+                    String fileSource = StringUtils.removeStart(source.getAbsolutePath(), pb.getBasePath());
                     String translation = TranslationsUtils.replaceDoubleAsterisk(file.getSource(), file.getTranslation(), fileSource);
                     return placeholderUtil.replaceFileDependentPlaceholders(translation, source);
                 })
@@ -47,14 +47,7 @@ public class DryrunTranslations extends Dryrun {
                         .map(l -> Stream.of(placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, l)))
                         .orElseGet(() -> placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping).stream());
                 })
-                .map(translation -> (file.getTranslationReplace() != null ? file.getTranslationReplace() : Collections.<String, String>emptyMap())
-                    .keySet()
-                    .stream()
-                    .reduce(translation, (trans, k) -> StringUtils.replace(
-                        trans,
-                        k.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX),
-                        file.getTranslationReplace().get(k)))
-                )
+                .map(translation -> PropertiesBeanUtils.useTranslationReplace(translation, file.getTranslationReplace()))
             )
             .distinct()
             .filter(file -> (!filesMustExist) || new File(pb.getBasePath() + StringUtils.removeStart(file, Utils.PATH_SEPARATOR)).exists())

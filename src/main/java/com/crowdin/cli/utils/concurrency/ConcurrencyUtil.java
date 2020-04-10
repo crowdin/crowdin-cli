@@ -1,9 +1,8 @@
-package com.crowdin.cli.utils;
+package com.crowdin.cli.utils.concurrency;
 
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.*;
-import java.util.stream.Collectors;
 
 public class ConcurrencyUtil {
 
@@ -19,15 +18,15 @@ public class ConcurrencyUtil {
      * @param tasks list of tasks to execute in parallel
      */
     public static void executeAndWait(List<Runnable> tasks) {
-        run(tasks, CROWDIN_API_MAX_CONCURRENT_REQUESTS);
+        run(tasks, CROWDIN_API_MAX_CONCURRENT_REQUESTS, tasks.size() * 2);
 
     }
 
     public static void executeAndWaitSingleThread(List<Runnable> tasks) {
-        run(tasks, 1);
+        run(tasks, 1, 100);
     }
 
-    private static void run(List<Runnable> tasks, int threadQnt) {
+    private static void run(List<Runnable> tasks, int threadQnt, int minutesWait) {
         if (Objects.isNull(tasks) || tasks.size() == 0) {
             return;
         }
@@ -35,7 +34,7 @@ public class ConcurrencyUtil {
         tasks.forEach(executor::submit);
         executor.shutdown();
         try {
-            if (!executor.awaitTermination(tasks.size() * 2, TimeUnit.MINUTES)) {
+            if (!executor.awaitTermination(minutesWait, TimeUnit.MINUTES)) {
                 executor.shutdownNow();
             }
         } catch (InterruptedException ex) {

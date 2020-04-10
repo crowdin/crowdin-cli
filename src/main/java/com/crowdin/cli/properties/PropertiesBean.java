@@ -12,6 +12,14 @@ public class PropertiesBean {
 
     private Boolean preserveHierarchy;
 
+    private String projectId;
+
+    private String apiToken;
+
+    private String basePath;
+
+    private String baseUrl;
+
     private final List<FileBean> files = new ArrayList<FileBean>();
 
     @Override
@@ -44,23 +52,7 @@ public class PropertiesBean {
         return Objects.hash(preserveHierarchy, files, projectId, apiToken, basePath, baseUrl);
     }
 
-    private String projectId;
-
-    private String apiToken;
-
-    private String basePath;
-
-    private String baseUrl;
-
     public PropertiesBean() {}
-
-    public PropertiesBean(String projectId, String apiToken, String basePath, String baseUrl, FileBean files) {
-        this.projectId = projectId;
-        this.apiToken = apiToken;
-        this.basePath = basePath;
-        this.baseUrl = baseUrl;
-        this.files.add(files);
-    }
 
     public List<FileBean> getFiles() {
         return files;
@@ -99,11 +91,7 @@ public class PropertiesBean {
     }
 
     public void setBasePath(String basePath) {
-        if (basePath != null && !basePath.isEmpty() && !basePath.endsWith(Utils.PATH_SEPARATOR) && !".".equals(basePath)) {
-            this.basePath = basePath + Utils.PATH_SEPARATOR;
-        } else {
-            this.basePath = basePath;
-        }
+        this.basePath = basePath;
     }
 
     public String getBaseUrl() {

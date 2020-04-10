@@ -7,7 +7,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.HashMap;
 import java.util.Map;
 
-import static com.crowdin.cli.utils.MessageSource.RESOURCE_BUNDLE;
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 public class TranslationsUtils {
 

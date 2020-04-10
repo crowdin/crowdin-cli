@@ -1,4 +1,4 @@
-package com.crowdin.cli.utils;
+package com.crowdin.cli.utils.concurrency;
 
 import java.util.concurrent.*;
 

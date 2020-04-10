@@ -21,7 +21,7 @@ public class Cli {
                 .setExecutionExceptionHandler(executionExceptionHandler)
                 .setColorScheme(colorScheme);
 
-            HelpCommand.setOptions(System.out, colorScheme);
+            HelpCommand.setOptions(commandLine, System.out, colorScheme);
             int exitCode = commandLine.execute(args);
 
             Utils.getNewVersionMassage().ifPresent(System.out::println);

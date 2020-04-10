@@ -8,7 +8,7 @@ import com.crowdin.cli.commands.parts.Command;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.ConcurrencyUtil;
+import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -24,7 +24,6 @@ import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.crowdin.cli.utils.MessageSource.Messages.FETCHING_PROJECT_INFO;
 import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
 @CommandLine.Command(
@@ -64,7 +63,7 @@ public class UploadTranslationsSubcommand extends Command {
 
         ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
         try {
-            ConsoleSpinner.start(FETCHING_PROJECT_INFO.getString(), this.noProgress);
+            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
             project.downloadProject()
                 .downloadSupportedLanguages()
                 .downloadDirectories()
@@ -128,13 +127,13 @@ public class UploadTranslationsSubcommand extends Command {
                 Long fileId = filePathsToFileId.get(filePath).getId();
 
 //                build filePath to each source and project language
-                String fileSource = Utils.replaceBasePath(source, pb.getBasePath());
+                String fileSource = StringUtils.removeStart(source, pb.getBasePath());
                 String translation = TranslationsUtils.replaceDoubleAsterisk(file.getSource(), file.getTranslation(), fileSource);
                 translation = placeholderUtil.replaceFileDependentPlaceholders(translation, new File(source));
                 if (file.getScheme() != null) {
                     File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
                     if (!transFile.exists()) {
-                        System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath()))));
+                        System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
                         return;
                     }
                     TranslationPayload translationPayload = new TranslationPayloadWrapper(
@@ -151,17 +150,10 @@ public class UploadTranslationsSubcommand extends Command {
                         }
 
                         String transFileName = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
-                        if (file.getTranslationReplace() != null) {
-                            for (String key : file.getTranslationReplace().keySet()) {
-                                transFileName = StringUtils.replace(
-                                        transFileName,
-                                        key.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX),
-                                        file.getTranslationReplace().get(key));
-                            }
-                        }
+                        transFileName = PropertiesBeanUtils.useTranslationReplace(transFileName, file.getTranslationReplace());
                         File transFile = new File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
                         if (!transFile.exists()) {
-                            System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), Utils.replaceBasePath(transFile.getAbsolutePath(), pb.getBasePath()))));
+                            System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
                             continue;
                         }
                         TranslationPayload translationPayload = new TranslationPayloadWrapper(
@@ -194,7 +186,7 @@ public class UploadTranslationsSubcommand extends Command {
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
                     }
                     System.out.println(
-                        OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.translation_uploaded"), Utils.replaceBasePath(translationFile.getAbsolutePath(), pb.getBasePath()))));
+                        OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.translation_uploaded"), StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()))));
                 })
                 .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks);

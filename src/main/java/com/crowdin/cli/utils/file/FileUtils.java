@@ -1,24 +1,26 @@
 package com.crowdin.cli.utils.file;
 
-import com.crowdin.cli.utils.MessageSource;
+import org.apache.commons.io.IOUtils;
 import org.yaml.snakeyaml.Yaml;
 
 import java.io.*;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.Scanner;
 
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-
-public class FileReader {
-
-    private static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
+public class FileUtils {
 
     private static final String YAML_EXTENSION = ".yaml";
-
     private static final String YML_EXTENSION = ".yml";
 
-    public Map<String, Object> readCliConfig(File fileCfg) {
+    public static Map<String, Object> readYamlFile(File fileCfg) {
         if (fileCfg == null) {
             throw new NullPointerException("FileReader.readCliConfig has null args");
         }
@@ -34,5 +36,16 @@ public class FileReader {
         } catch (Exception e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.reading_configuration_file"), e);
         }
+    }
+
+    public static void writeToFile(InputStream data, String filePath) throws IOException {
+        Path parentDirectory = Paths.get(filePath).getParent();
+        if (parentDirectory != null) {
+            Files.createDirectories(parentDirectory);
+        }
+        FileOutputStream fileOutputStream = new FileOutputStream(filePath);
+        IOUtils.copy(data, fileOutputStream);
+        fileOutputStream.flush();
+        fileOutputStream.close();
     }
 }

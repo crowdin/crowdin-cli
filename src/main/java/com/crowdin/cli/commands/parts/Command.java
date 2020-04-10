@@ -1,6 +1,6 @@
 package com.crowdin.cli.commands.parts;
 
-import com.crowdin.cli.utils.MessageSource;
+import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.utils.Utils;
 import picocli.CommandLine;
 
@@ -29,7 +29,7 @@ public abstract class Command implements Runnable {
     @CommandLine.Option(names = {"--debug"}, hidden = true)
     protected boolean debug;
 
-    protected static final ResourceBundle RESOURCE_BUNDLE = MessageSource.RESOURCE_BUNDLE;
+    protected static final ResourceBundle RESOURCE_BUNDLE = BaseCli.RESOURCE_BUNDLE;
 
     @Override
     public void run() {
