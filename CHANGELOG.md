@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.1.11] - 2020-04-10
++ Updated: Improve tree output
++ Updated: Refactoring and tests
++ Fixed: Fix uploading problem for a big amount of files
++ Fixed: Help message for 'list'
+
 ## [3.1.10] - 2020-04-03
 + Added: Emoji for warnings/errors
 + Added: Handle 'Unauthorized' response
