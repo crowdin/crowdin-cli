@@ -35,9 +35,9 @@ public class CliProperties {
 
     private static final String BASE_PATH_ENV = "base_path_env";
 
-    public static final String BASE_URL = "base_url";
+    public static final String ORGANIZATION = "organization";
 
-    private static final String BASE_URL_ENV = "base_url_env";
+    private static final String ORGANIZATION_ENV = "organization_env";
 
     private static final String PRESERVE_HIERARCHY = "preserve_hierarchy";
 
@@ -134,7 +134,7 @@ public class CliProperties {
     public static void populateWithCredentials(PropertiesBean pb, Map<String, Object> properties) {
         getCredentialProperty(pb::setApiToken,    properties,     API_TOKEN_ENV,  API_TOKEN);
         getCredentialProperty(pb::setBasePath,    properties,     BASE_PATH_ENV,  BASE_PATH);
-        getCredentialProperty(pb::setBaseUrl,     properties,     BASE_URL_ENV,   BASE_URL);
+        getCredentialProperty(pb::setOrganization, properties,    ORGANIZATION_ENV, ORGANIZATION);
         getCredentialProperty(pb::setProjectId,   properties,     PROJECT_ID_ENV,  PROJECT_ID);
     }
 
@@ -187,9 +187,6 @@ public class CliProperties {
         }
         if (params.getBasePathParam() != null) {
             pb.setBasePath(params.getBasePathParam());
-        }
-        if (params.getBaseUrlParam() != null) {
-            pb.setBaseUrl(params.getBaseUrlParam());
         }
         if (params.getSourceParam() != null && params.getTranslationParam() != null) {
             FileBean fb = new FileBean();
@@ -250,12 +247,6 @@ public class CliProperties {
             pb.setBasePath(StringUtils.removeEnd(path.toString(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR);
         } else {
             pb.setBasePath(basePathIfEmpty + Utils.PATH_SEPARATOR);
-        }
-
-        if (StringUtils.isNotEmpty(pb.getBaseUrl())) {
-            pb.setBaseUrl(StringUtils.removePattern(pb.getBaseUrl(), "/(api(/|/v2/?)?)?$") + "/api/v2");
-        } else {
-            pb.setBaseUrl(Utils.getBaseUrl());
         }
 
         if (pb.getFiles() == null) {
@@ -351,11 +342,6 @@ public class CliProperties {
         }
         if (StringUtils.isEmpty(pb.getApiToken())) {
             errors.add(RESOURCE_BUNDLE.getString("error.config.missed_api_token"));
-        }
-        if (StringUtils.isEmpty(pb.getBaseUrl())) {
-            errors.add(RESOURCE_BUNDLE.getString("error.config.missed_base_url"));
-        } else if (!checkBaseUrl(pb.getBaseUrl())) {
-            errors.add(RESOURCE_BUNDLE.getString("error.config.wrong_base_url"));
         }
 
         if (StringUtils.isNotEmpty(pb.getBasePath())) {

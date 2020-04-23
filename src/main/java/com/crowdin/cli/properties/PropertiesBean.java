@@ -27,7 +27,7 @@ public class PropertiesBean {
                 ", projectId='" + projectId + '\'' +
                 ", apiToken='" + apiToken + '\'' +
                 ", basePath='" + basePath + '\'' +
-                ", baseUrl='" + baseUrl + '\'' +
+                ", organization='" + organization + '\'' +
                 '}';
     }
 
@@ -41,12 +41,12 @@ public class PropertiesBean {
             Objects.equals(projectId, that.projectId) &&
             Objects.equals(apiToken, that.apiToken) &&
             Objects.equals(basePath, that.basePath) &&
-            Objects.equals(baseUrl, that.baseUrl);
+            Objects.equals(organization, that.organization);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(preserveHierarchy, files, projectId, apiToken, basePath, baseUrl);
+        return Objects.hash(preserveHierarchy, files, projectId, apiToken, basePath, organization);
     }
 
     public PropertiesBean() {}
@@ -89,14 +89,6 @@ public class PropertiesBean {
 
     public void setBasePath(String basePath) {
         this.basePath = basePath;
-    }
-
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
     }
 
     public String getOrganization() {
