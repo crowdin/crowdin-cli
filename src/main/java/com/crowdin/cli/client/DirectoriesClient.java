@@ -12,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 
-public class DirectoriesClient extends Client {
+public class DirectoriesClient extends ClientOld {
 
     private String projectId;
 

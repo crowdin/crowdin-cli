@@ -8,7 +8,7 @@ import com.crowdin.client.api.ProjectsApi;
 import com.crowdin.common.Settings;
 import com.crowdin.common.models.ProjectSettings;
 
-public class ProjectClient extends Client {
+public class ProjectClient extends ClientOld {
 
     public ProjectClient(Settings settings) {
         super(settings);

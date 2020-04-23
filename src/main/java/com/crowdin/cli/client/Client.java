@@ -1,46 +1,31 @@
 package com.crowdin.cli.client;
 
-import com.crowdin.cli.utils.Utils;
-import com.crowdin.client.CrowdinRequestBuilder;
-import com.crowdin.common.Settings;
-import com.crowdin.common.response.Page;
-import com.crowdin.common.response.SimpleResponse;
-import com.crowdin.util.PaginationUtil;
-import org.apache.commons.lang3.StringUtils;
+import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.client.sourcefiles.model.*;
+import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
+import com.crowdin.client.translations.model.ProjectBuild;
+import com.crowdin.client.translations.model.UploadTranslationsRequest;
 
-import java.util.List;
+import java.io.InputStream;
 
-class Client {
+public interface Client {
 
-    protected Settings settings;
-    private String userAgent = Utils.buildUserAgent();
-    private long millisToRetry = 100;
+    Project downloadFullProject();
+    Project downloadProjectWithLanguages();
 
-    Client(Settings settings) {
-        this.settings = settings;
-    }
+    Branch addBranch(AddBranchRequest request);
 
-    protected <T> T execute(CrowdinRequestBuilder<SimpleResponse<T>> requestBuilder) {
-        return requestBuilder.header("User-Agent", userAgent).getResponseEntity().getEntity();
-    }
+    Long uploadStorage(String fileName, InputStream content);
 
-    protected <T> List<T> executePage(CrowdinRequestBuilder<Page<T>> requestBuilder) {
-        return PaginationUtil.unpaged(requestBuilder.header("User-Agent", userAgent));
-    }
+    Directory addDirectory(AddDirectoryRequest request) throws ResponseException;
 
-    protected <T> T executeWithRetryIfErrorContains(CrowdinRequestBuilder<SimpleResponse<T>> requestBuilder, String errorMessageContains) {
-        try {
-            return execute(requestBuilder);
-        } catch (Exception e) {
-            if (StringUtils.contains(e.getMessage(), errorMessageContains)) {
-                try {
-                    Thread.sleep(millisToRetry);
-                } catch (InterruptedException ee) {
-                }
-                return execute(requestBuilder);
-            } else {
-                throw new RuntimeException(e.getMessage());
-            }
-        }
-    }
+    void updateSource(Long sourceId, UpdateFileRequest request);
+    void addSource(AddFileRequest request);
+
+    void uploadTranslations(String languageId, UploadTranslationsRequest request);
+
+    ProjectBuild startBuildingTranslation(BuildProjectTranslationRequest request);
+    ProjectBuild checkBuildingTranslation(Long buildId);
+    InputStream downloadBuild(Long buildId);
+
 }

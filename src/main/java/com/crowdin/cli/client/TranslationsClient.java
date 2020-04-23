@@ -8,7 +8,7 @@ import com.crowdin.common.models.Translation;
 import com.crowdin.common.request.BuildTranslationPayload;
 import com.crowdin.common.request.TranslationPayload;
 
-public class TranslationsClient extends Client {
+public class TranslationsClient extends ClientOld {
 
     private String projectId;
     TranslationsApi api;

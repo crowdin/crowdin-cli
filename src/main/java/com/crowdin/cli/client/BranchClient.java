@@ -7,9 +7,8 @@ import com.crowdin.common.models.Branch;
 import com.crowdin.common.request.BranchPayload;
 
 import java.util.List;
-import java.util.Optional;
 
-public class BranchClient extends Client {
+public class BranchClient extends ClientOld {
 
     private String projectId;
 

@@ -6,7 +6,7 @@ import com.crowdin.common.models.Language;
 
 import java.util.List;
 
-public class LanguagesClient extends Client {
+public class LanguagesClient extends ClientOld {
 
     public LanguagesClient(Settings settings) {
         super(settings);

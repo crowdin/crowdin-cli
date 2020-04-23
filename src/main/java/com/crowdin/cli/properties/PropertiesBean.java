@@ -1,8 +1,5 @@
 package com.crowdin.cli.properties;
 
-import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
-import com.crowdin.cli.utils.Utils;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -18,7 +15,7 @@ public class PropertiesBean {
 
     private String basePath;
 
-    private String baseUrl;
+    private String organization;
 
     private final List<FileBean> files = new ArrayList<FileBean>();
 
@@ -100,5 +97,13 @@ public class PropertiesBean {
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
+    }
+
+    public String getOrganization() {
+        return organization;
+    }
+
+    public void setOrganization(String organization) {
+        this.organization = organization;
     }
 }

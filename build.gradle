@@ -19,6 +19,7 @@ if (!hasProperty('mainClass')) {
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io'}
     maven {
         url "http://repo1.maven.org/maven2"
     }
@@ -43,6 +44,8 @@ dependencies {
     compile group: 'com.github.fge', name: 'json-patch', version: '1.9'
 
     compile 'info.picocli:picocli:4.1.4'
+
+    compile 'com.github.crowdin:crowdin-api-client-java:1.0.0'
 
     compile files('libs/crowdin-1.0.jar')
     testCompile('org.junit.jupiter:junit-jupiter:5.5.2')

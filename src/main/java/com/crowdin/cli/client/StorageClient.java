@@ -5,7 +5,7 @@ import com.crowdin.common.Settings;
 
 import java.io.File;
 
-public class StorageClient extends Client {
+public class StorageClient extends ClientOld {
 
     public StorageClient(Settings settings) {
         super(settings);

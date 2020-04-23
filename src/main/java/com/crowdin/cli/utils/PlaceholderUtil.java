@@ -1,6 +1,6 @@
 package com.crowdin.cli.utils;
 
-import com.crowdin.common.models.Language;
+import com.crowdin.client.languages.model.Language;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -29,7 +29,7 @@ public class PlaceholderUtil {
     private List<Language> projectLangs;
     private String basePath;
 
-    public PlaceholderUtil(List<Language> supportedLangs, List<Language> projectLangs, String basePath) {
+    public PlaceholderUtil(List<com.crowdin.client.languages.model.Language> supportedLangs, List<com.crowdin.client.languages.model.Language> projectLangs, String basePath) {
         if (supportedLangs == null || projectLangs == null || basePath == null) {
             throw new NullPointerException("in PlaceholderUtil.contructor");
         }

@@ -9,7 +9,7 @@ import com.crowdin.common.request.UpdateFilePayload;
 
 import java.util.List;
 
-public class FileClient extends Client {
+public class FileClient extends ClientOld {
 
     public FileClient(Settings settings) {
         super(settings);
