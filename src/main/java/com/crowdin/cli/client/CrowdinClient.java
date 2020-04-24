@@ -25,8 +25,13 @@ public class CrowdinClient implements Client {
     private com.crowdin.client.Client client;
     private long projectId;
 
-    public CrowdinClient(com.crowdin.client.Client client, long projectId) {
-        this.client = client;
+    public CrowdinClient(String apiToken, String organization, long projectId) {
+        Credentials credentials = new Credentials(apiToken, organization);
+        ClientConfig clientConfig = ClientConfig.builder()
+            .jsonTransformer(new JacksonJsonTransformer())
+            .userAgent(Utils.buildUserAgent())
+            .build();
+        this.client = new com.crowdin.client.Client(credentials, clientConfig);
         this.projectId = projectId;
     }
 

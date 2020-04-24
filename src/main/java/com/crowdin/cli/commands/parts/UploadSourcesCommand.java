@@ -1,26 +1,25 @@
 package com.crowdin.cli.commands.parts;
 
-import com.crowdin.cli.client.BranchClient;
-import com.crowdin.cli.client.DirectoriesClient;
-import com.crowdin.cli.client.FileClient;
-import com.crowdin.cli.client.StorageClient;
-import com.crowdin.cli.client.request.SpreadsheetFileImportOptionsWrapper;
-import com.crowdin.cli.client.request.UpdateFilePayloadWrapper;
-import com.crowdin.cli.client.request.XmlFileImportOptionsWrapper;
+import com.crowdin.cli.client.Client;
+import com.crowdin.cli.client.CrowdinClient;
+import com.crowdin.cli.client.Project;
 import com.crowdin.cli.commands.functionality.*;
+import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.common.Settings;
-import com.crowdin.common.models.Branch;
-import com.crowdin.common.models.FileEntity;
-import com.crowdin.common.request.*;
+import com.crowdin.cli.utils.console.ExecutionStatus;
+import com.crowdin.client.core.http.impl.json.JacksonJsonTransformer;
+import com.crowdin.client.core.model.ClientConfig;
+import com.crowdin.client.core.model.Credentials;
+import com.crowdin.client.sourcefiles.model.*;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
-import java.io.File;
+import java.io.FileInputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,153 +48,163 @@ public class UploadSourcesCommand extends Command {
     @Override
     public void run() {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
-        ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
+        Client client = new CrowdinClient(pb.getApiToken(), pb.getOrganization(), Long.parseLong(pb.getProjectId()));
+
+        Project project;
         try {
             ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
-            project.downloadProject()
-                .downloadSupportedLanguages()
-                .downloadDirectories()
-                .downloadFiles()
-                .downloadBranches();
+            project = client.downloadFullProject();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
-        PlaceholderUtil placeholderUtil =
-                new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
+
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
         if (dryrun) {
-            (new DryrunSources(pb, placeholderUtil)).run(treeView);
+            (new DryrunSources(pb, placeholderUtil)).run(this.treeView);
             return;
         }
 
-        FileClient fileClient = new FileClient(settings);
-        StorageClient storageClient = new StorageClient(settings);
-        DirectoriesClient directoriesClient = new DirectoriesClient(settings, pb.getProjectId());
-        BranchClient branchClient = new BranchClient(settings, pb.getProjectId());
+        Branch branchId = (branch != null) ? this.getOrCreateBranch(branch, client, project) : null;
 
-        Optional<Branch> branchId =
-            Optional.ofNullable(branch).map(brName -> ProjectUtils.getOrCreateBranch(branchClient, project, brName));
-
-        Map<String, Long> directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches())
+        Map<String, Long> directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
             .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+        Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
 
-        List<Runnable> fileTasks = pb.getFiles().stream()
+        List<Runnable> tasks = pb.getFiles().stream()
             .map(file -> (Runnable) () -> {
-                if (StringUtils.isAnyEmpty(file.getSource(), file.getTranslation())) {
-                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources_or_translations"));
-                }
                 List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
-                    .map(File::getAbsolutePath)
+                    .map(java.io.File::getAbsolutePath)
                     .collect(Collectors.toList());
                 String commonPath =
                     (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
+                List<Runnable> taskss = sources.stream()
+                    .map(source -> {
+                        final java.io.File sourceFile = new java.io.File(source);
+                        final String filePath = (file.getDest() != null)
+                            ? file.getDest()
+                            : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
 
-                boolean isDest = StringUtils.isNotEmpty(file.getDest());
+                        File projectFile = paths.get((branch != null ? branch + Utils.PATH_SEPARATOR : "") + filePath);
+                        if (autoUpdate && projectFile != null) {
+                            final UpdateFileRequest request = new UpdateFileRequest();
+                            request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
+                            request.setImportOptions(buildImportOptions(sourceFile, file));
+                            PropertiesBeanUtils.getUpdateOption(file.getUpdateOption()).ifPresent(request::setUpdateOption);
 
-                List<Runnable> tasks = sources.stream()
-                    .map(File::new)
-                    .filter(File::isFile)
-                    .map(sourceFile -> (Runnable) () -> {
-                        String filePath;
+                            final Long sourceId = projectFile.getId();
 
-                        if (isDest) {
-                            filePath = file.getDest();
+                            return (Runnable) () -> {
+                                try {
+                                    request.setStorageId(client.uploadStorage(sourceFile.getName(), new FileInputStream(sourceFile)));
+                                } catch (Exception e) {
+                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
+                                }
+
+                                try {
+                                    client.updateSource(sourceId, request);
+                                    System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath)));
+                                } catch (Exception e) {
+                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath), e);
+                                }
+                            };
+                        } else if (!autoUpdate && projectFile == null) {
+                            final AddFileRequest request = new AddFileRequest();
+                            request.setName(sourceFile.getName());
+                            request.setType(Type.from(file.getType()));
+
+                            return (Runnable) () -> {
+                                Long directoryId = null;
+                                try {
+                                    directoryId = ProjectUtils.createPath(client, directoryPaths, filePath, branchId);
+                                } catch (Exception e) {
+                                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.creating_directories"), e);
+                                }
+
+                                if (directoryId != null) {
+                                    request.setDirectoryId(directoryId);
+                                } else if (branchId != null) {
+                                    request.setBranchId(branchId.getId());
+                                }
+
+                                try {
+                                    request.setStorageId(client.uploadStorage(sourceFile.getName(), new FileInputStream(sourceFile)));
+                                } catch (Exception e) {
+                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
+                                }
+                                try {
+                                    client.addSource(request);
+                                    System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath)));
+                                } catch (Exception e) {
+                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath), e);
+                                }
+                            };
                         } else {
-                            filePath = StringUtils.removeStart(sourceFile.getAbsolutePath(), pb.getBasePath());
-                            filePath = StringUtils.removeStart(filePath, Utils.PATH_SEPARATOR);
-                            filePath = StringUtils.removeStart(filePath, commonPath);
-                        }
-                        String fileName = ((this.branch == null) ? "" : this.branch + Utils.PATH_SEPARATOR) + filePath;
-                        Long directoryId = ProjectUtils.createPath(directoriesClient, directoryPaths, filePath, branchId);
-                        String fName = ((isDest) ? new File(file.getDest()) : sourceFile).getName();
-
-                        ImportOptions importOptions = (sourceFile.getName().endsWith(".xml"))
-                            ? new XmlFileImportOptionsWrapper(
-                                file.getContentSegmentation(),
-                                file.getTranslateAttributes(),
-                                file.getTranslateContent(),
-                                file.getTranslatableElements())
-                            : new SpreadsheetFileImportOptionsWrapper(
-                                file.getFirstLineContainsHeader(),
-                                PropertiesBeanUtils.getSchemeObject(file.getScheme()));
-
-                        ExportOptions exportOptions = null;
-                        if (StringUtils.isNoneEmpty(file.getTranslation())) {
-                            String exportPattern = TranslationsUtils.replaceDoubleAsterisk(
-                                file.getSource(),
-                                file.getTranslation(),
-                                    StringUtils.removeStart(sourceFile.getAbsolutePath(), pb.getBasePath())
-                            );
-                            exportPattern = StringUtils.replacePattern(exportPattern, "[\\\\/]+", "/");
-                            PropertyFileExportOptions pfExportOptions = new PropertyFileExportOptions();
-                            pfExportOptions.setExportPattern(exportPattern);
-                            if (file.getEscapeQuotes() != null) {
-                                pfExportOptions.setEscapeQuotes(file.getEscapeQuotes());
-                            }
-                            if (file.getEscapeSpecialCharacters() != null) {
-                                pfExportOptions.setEscapeSpecialCharacters(file.getEscapeSpecialCharacters());
-                            } else if (SourcesUtils.isFileProperties(sourceFile)) {
-                                pfExportOptions.setEscapeSpecialCharacters(1);
-                            }
-                            exportOptions = pfExportOptions;
+                            return (Runnable) () -> System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath)));
                         }
 
-                        Long storageId;
-                        try {
-                            storageId = storageClient.uploadStorage(sourceFile, fName);
-                        } catch (Exception e) {
-                            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
-                        }
-
-                        FilePayload filePayload = new FilePayload();
-                        filePayload.setName(fName);
-                        filePayload.setType(file.getType());
-                        filePayload.setImportOptions(importOptions);
-                        filePayload.setExportOptions(exportOptions);
-                        filePayload.setStorageId(storageId);
-                        if (directoryId != null) {
-                            filePayload.setDirectoryId(directoryId);
-                        } else branchId.map(Branch::getId).ifPresent(filePayload::setBranchId);
-
-                        FileEntity response = null;
-                        try {
-                            Optional<FileEntity> fileEntity =
-                                project.getFileEntity(filePayload.getName(), filePayload.getDirectoryId(), branchId.map(Branch::getId).orElse(null));
-                            boolean fileExists = fileEntity.isPresent();
-                            if (fileExists && autoUpdate) {
-                                UpdateFilePayload updateFilePayload = new UpdateFilePayloadWrapper(
-                                    filePayload.getStorageId(),
-                                    filePayload.getExportOptions(),
-                                    filePayload.getImportOptions());
-                                PropertiesBeanUtils.getUpdateOption(file.getUpdateOption()).ifPresent(updateFilePayload::setUpdateOption);
-
-                                fileClient.updateFile(pb.getProjectId(), fileEntity.map(fe -> fe.getId().toString()).get(), updateFilePayload);
-                                System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
-                            } else if (fileExists && !autoUpdate) {
-                                System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
-                            } else {
-                                fileClient.uploadFile(pb.getProjectId(), filePayload);
-                                System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
-                            }
-                        } catch (Exception e) {
-                            System.out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileName)));
-                            System.out.println(e.getMessage());
-                        }
                     })
                     .collect(Collectors.toList());
-
-                if (tasks.isEmpty()) {
-                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
-                }
-
-                ConcurrencyUtil.executeAndWait(tasks);
+                ConcurrencyUtil.executeAndWait(taskss);
             })
             .collect(Collectors.toList());
-        ConcurrencyUtil.executeAndWaitSingleThread(fileTasks);
+        ConcurrencyUtil.executeAndWaitSingleThread(tasks);
     }
 
+    private ImportOptions buildImportOptions(java.io.File sourceFile, FileBean fileBean) {
+        if (FilenameUtils.isExtension(sourceFile.getName(), "CSV")) {
+            SpreadsheetFileImportOptions importOptions = new SpreadsheetFileImportOptions();
+            importOptions.setFirstLineContainsHeader(fileBean.getFirstLineContainsHeader());
+            importOptions.setScheme(PropertiesBeanUtils.getSchemeObject(fileBean.getScheme()));
+            return importOptions;
+        } else if (FilenameUtils.isExtension(sourceFile.getName(), "XML")) {
+            XmlFileImportOptions importOptions = new XmlFileImportOptions();
+            importOptions.setTranslateContent(fileBean.getTranslateContent());
+            importOptions.setTranslateAttributes(fileBean.getTranslateAttributes());
+            importOptions.setTranslatableElements(fileBean.getTranslatableElements());
+            return importOptions;
+        } else {
+            OtherFileImportOptions importOptions = new OtherFileImportOptions();
+            importOptions.setContentSegmentation(fileBean.getContentSegmentation());
+            return importOptions;
+        }
+    }
+
+    private ExportOptions buildExportOptions(java.io.File sourceFile, FileBean fileBean, String basePath) {
+        PropertyFileExportOptions exportOptions = new PropertyFileExportOptions();
+        String exportPattern = TranslationsUtils.replaceDoubleAsterisk(
+            fileBean.getSource(),
+            fileBean.getTranslation(),
+            StringUtils.removeStart(sourceFile.getAbsolutePath(), basePath)
+        );
+        exportPattern = StringUtils.replacePattern(exportPattern, "[\\\\/]+", "/");
+        exportOptions.setExportPattern(exportPattern);
+        exportOptions.setEscapeQuotes(fileBean.getEscapeQuotes());
+        if (fileBean.getEscapeSpecialCharacters() != null) {
+            exportOptions.setEscapeSpecialCharacters(fileBean.getEscapeSpecialCharacters());
+        } else if (SourcesUtils.isFileProperties(sourceFile)) {
+            exportOptions.setEscapeSpecialCharacters(1);
+        }
+        return exportOptions;
+    }
+
+    private Branch getOrCreateBranch(String branchName, Client client, Project project) {
+        if (StringUtils.isEmpty(branchName)) {
+            return null;
+        }
+        Optional<Branch> branchOpt = project.findBranch(branchName);
+        if (branchOpt.isPresent()) {
+            return branchOpt.get();
+        } else {
+            AddBranchRequest request = new AddBranchRequest();
+            request.setName(branch);
+            Branch newBranch = client.addBranch(request);
+            System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branchName)));
+            project.addBranchToList(newBranch);
+            return newBranch;
+        }
+    }
 }

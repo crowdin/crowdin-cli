@@ -1,6 +1,8 @@
 package com.crowdin.cli.commands;
 
-import com.crowdin.cli.client.TranslationsClient;
+import com.crowdin.cli.client.Client;
+import com.crowdin.cli.client.CrowdinClient;
+import com.crowdin.cli.client.Project;
 import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.commands.parts.Command;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
@@ -9,13 +11,10 @@ import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.file.FileUtils;
-import com.crowdin.common.Settings;
-import com.crowdin.common.models.Branch;
-import com.crowdin.common.models.FileRaw;
-import com.crowdin.common.models.Language;
-import com.crowdin.common.models.Translation;
-import com.crowdin.common.request.BuildTranslationPayload;
-import com.crowdin.util.CrowdinHttpClient;
+import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.sourcefiles.model.Branch;
+import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
+import com.crowdin.client.translations.model.ProjectBuild;
 import net.lingala.zip4j.core.ZipFile;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -29,7 +28,8 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
-import static com.crowdin.cli.utils.console.ExecutionStatus.*;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @CommandLine.Command(
     name = "download",
@@ -58,28 +58,25 @@ public class DownloadSubcommand extends Command {
     @Override
     public void run() {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
-        ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
+        Client client = new CrowdinClient(pb.getApiToken(), pb.getOrganization(), Long.parseLong(pb.getProjectId()));
+
+        Project project;
         try {
             ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
-            project.downloadProject()
-                .downloadSupportedLanguages()
-                .downloadDirectories()
-                .downloadFiles()
-                .downloadBranches();
+            project = client.downloadFullProject();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
         Optional<Language> language = Optional.ofNullable(languageId)
-            .map(lang -> project.getLanguageById(lang)
+            .map(lang -> project.findLanguage(lang)
             .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))));
         Optional<Branch> branch = Optional.ofNullable(this.branchName)
-            .map(br -> project.getBranchByName(br)
+            .map(br -> project.findBranch(br)
             .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))));
 
         if (dryrun) {
@@ -89,21 +86,19 @@ public class DownloadSubcommand extends Command {
 
         Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
 
-        TranslationsClient translationsClient = new TranslationsClient(settings, pb.getProjectId());
-
-        BuildTranslationPayload buildTranslationPayload = new BuildTranslationPayload();
+        BuildProjectTranslationRequest buildRequest = new BuildProjectTranslationRequest();
         language
             .map(Language::getId)
             .map(Collections::singletonList)
-            .ifPresent(buildTranslationPayload::setTargetLanguageIds);
+            .ifPresent(buildRequest::setTargetLanguageIds);
         branch
             .map(Branch::getId)
-            .ifPresent(buildTranslationPayload::setBranchId);
+            .ifPresent(buildRequest::setBranchId);
 
         System.out.println((languageId != null)
                 ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId))
                 : OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive")));
-        Translation translationBuild = buildTranslation(translationsClient, buildTranslationPayload);
+        ProjectBuild projectBuild = buildTranslation(client, buildRequest);
 
         String currentTimeMillis = Long.toString(System.currentTimeMillis());
         String baseTempDir =
@@ -112,13 +107,13 @@ public class DownloadSubcommand extends Command {
                 StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + "translations" + currentTimeMillis + ".zip";
         File downloadedZipArchive = new File(downloadedZipArchivePath);
 
-        this.downloadTranslations(translationsClient, translationBuild.getId().toString(), downloadedZipArchivePath);
+        this.downloadTranslations(client, projectBuild.getId(), downloadedZipArchivePath);
 
         List<String> downloadedFilesProc = this.getListOfFileFromArchive(downloadedZipArchive);
 
         List<Language> forLanguages = language
             .map(Collections::singletonList)
-            .orElse(project.getProjectLanguages());
+            .orElse(project.getProjectLanguages(true));
 
         Map<String, String> filesWithMapping = pb.getFiles().stream()
             .map(file -> {
@@ -138,8 +133,8 @@ public class DownloadSubcommand extends Command {
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         Map<Long, String> directoryPaths = (branch.isPresent())
-                ? ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories())
-                : ProjectFilesUtils.buildDirectoryPaths(project.getMapDirectories(), project.getMapBranches());
+            ? ProjectFilesUtils.buildDirectoryPaths(project.getDirectories())
+            : ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches());
         Map<String, Map<String, String>> langMapping = new HashMap<>();
         TranslationsUtils.populateLanguageMappingFromServer(langMapping, projectLanguageMapping.orElse(new HashMap<>()));
         Map<String, List<String>> allProjectTranslations = ProjectFilesUtils
@@ -156,16 +151,16 @@ public class DownloadSubcommand extends Command {
         }
     }
 
-    private Translation buildTranslation(TranslationsClient translationsClient, BuildTranslationPayload buildTranslationPayload) {
-        Translation translationBuild;
+    private ProjectBuild buildTranslation(Client client, BuildProjectTranslationRequest request) {
+        ProjectBuild build;
         try {
             ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.building_translation"), this.noProgress);
-            translationBuild = translationsClient.startBuildingTranslation(buildTranslationPayload);
+            build = client.startBuildingTranslation(request);
 
-            while (!translationBuild.getStatus().equalsIgnoreCase("finished")) {
-                ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), Math.toIntExact(translationBuild.getProgress())));
+            while (!build.getStatus().equalsIgnoreCase("finished")) {
+                ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), Math.toIntExact(build.getProgress())));
                 Thread.sleep(100);
-                translationBuild = translationsClient.checkBuildingStatus(translationBuild.getId().toString());
+                build = client.checkBuildingTranslation(build.getId());
             }
 
             ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
@@ -174,7 +169,7 @@ public class DownloadSubcommand extends Command {
             ConsoleSpinner.stop(ERROR);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.building_translation"), e);
         }
-        return translationBuild;
+        return build;
     }
 
     private List<String> getListOfFileFromArchive(File downloadedZipArchive) {
@@ -313,8 +308,8 @@ public class DownloadSubcommand extends Command {
             if (!StringUtils.startsWith(translation, Utils.PATH_SEPARATOR)) {
                 translation = Utils.PATH_SEPARATOR + translation;
             }
-            String translationProject1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, projLanguageMapping, language);
-            String translationFile1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
+            String translationProject1 = null; //todo placeholderUtil.replaceLanguageDependentPlaceholders(translation, projLanguageMapping, language);
+            String translationFile1 = null; //todo placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
 
             for (String projectFile : sources) {
                 String file = StringUtils.removeStart(projectFile, basePath);
@@ -330,11 +325,10 @@ public class DownloadSubcommand extends Command {
         return mapping;
     }
 
-    private void downloadTranslations(TranslationsClient translationsClient, String buildId, String archivePath) {
+    private void downloadTranslations(Client client, Long buildId, String archivePath) {
         try {
             ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.downloading_translation"), this.noProgress);
-            FileRaw fileRaw = translationsClient.getFileRaw(buildId);
-            InputStream download = CrowdinHttpClient.download(fileRaw.getUrl());
+            InputStream download = client.downloadBuild(buildId);
 
             FileUtils.writeToFile(download, archivePath);
             ConsoleSpinner.stop(OK);
