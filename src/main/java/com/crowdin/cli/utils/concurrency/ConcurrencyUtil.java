@@ -6,7 +6,7 @@ import java.util.concurrent.*;
 
 public class ConcurrencyUtil {
 
-    private static final int CROWDIN_API_MAX_CONCURRENT_REQUESTS = 4;
+    private static final int CROWDIN_API_MAX_CONCURRENT_REQUESTS = 1;
 
     private ConcurrencyUtil() {
         throw new UnsupportedOperationException();

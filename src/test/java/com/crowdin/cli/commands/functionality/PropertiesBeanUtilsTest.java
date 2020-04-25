@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.client.sourcefiles.model.UpdateOption;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -55,15 +56,15 @@ public class PropertiesBeanUtilsTest {
 
     @ParameterizedTest
     @MethodSource
-    public void testGetUpdateOption(String updateOption, Optional<String> expected) {
-        Optional<String> result = PropertiesBeanUtils.getUpdateOption(updateOption);
+    public void testGetUpdateOption(String updateOption, Optional<UpdateOption> expected) {
+        Optional<UpdateOption> result = PropertiesBeanUtils.getUpdateOption(updateOption);
         assertEquals(expected, result, "Wrong result with source pattern: " + updateOption);
     }
 
     private static Stream<Arguments> testGetUpdateOption() {
         return Stream.of(
-            arguments("update_as_unapproved", Optional.of("keep_translations")),
-            arguments("update_without_changes", Optional.of("keep_translations_and_approvals")),
+            arguments("update_as_unapproved", Optional.of(UpdateOption.KEEP_TRANSLATIONS)),
+            arguments("update_without_changes", Optional.of(UpdateOption.KEEP_TRANSLATIONS_AND_APPROVALS)),
             arguments("", Optional.empty()),
             arguments("nonsense", Optional.empty())
         );

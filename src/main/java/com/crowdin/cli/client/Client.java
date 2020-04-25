@@ -10,8 +10,8 @@ import java.io.InputStream;
 
 public interface Client {
 
-    Project downloadFullProject();
-    Project downloadProjectWithLanguages();
+    Project downloadFullProject() throws ResponseException;
+    Project downloadProjectWithLanguages() throws ResponseException;
 
     Branch addBranch(AddBranchRequest request);
 

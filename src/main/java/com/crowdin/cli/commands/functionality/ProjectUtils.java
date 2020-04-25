@@ -1,7 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.BaseCli;
-import com.crowdin.cli.client.BranchClient;
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.exceptions.ExistsResponseException;
 import com.crowdin.cli.client.exceptions.ResponseException;
@@ -10,12 +9,9 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
 import com.crowdin.client.sourcefiles.model.Directory;
-import com.crowdin.common.models.Branch;
-import com.crowdin.common.request.BranchPayload;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.Map;
-import java.util.Optional;
 import java.util.ResourceBundle;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
@@ -24,22 +20,6 @@ import java.util.concurrent.locks.ReentrantLock;
 public class ProjectUtils {
 
     private static final ResourceBundle RESOURCE_BUNDLE = BaseCli.RESOURCE_BUNDLE;
-
-    public static Branch getOrCreateBranch(BranchClient branchClient, ProjectProxy project, String branchName) {
-        Optional<Branch> branchOpt = project.getBranchByName(branchName);
-        if (branchOpt.isPresent()) {
-            return branchOpt.get();
-        } else {
-            try {
-                Branch newBranch = branchClient.createBranch(new BranchPayload(branchName));
-                project.addBranchToList(newBranch);
-                System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branchName)));
-                return newBranch;
-            } catch (ResponseException e) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.create_branch"), branchName), e);
-            }
-        }
-    }
 
     /**
      * return deepest directory id

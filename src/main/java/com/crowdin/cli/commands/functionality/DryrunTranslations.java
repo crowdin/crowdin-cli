@@ -6,7 +6,6 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.languages.model.Language;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -53,7 +52,7 @@ public class DryrunTranslations extends Dryrun {
                 .map(translation -> PropertiesBeanUtils.useTranslationReplace(translation, file.getTranslationReplace()))
             )
             .distinct()
-            .filter(file -> (!filesMustExist) || new File(pb.getBasePath() + StringUtils.removeStart(file, Utils.PATH_SEPARATOR)).exists())
+            .filter(file -> (!filesMustExist) || new java.io.File(pb.getBasePath() + StringUtils.removeStart(file, Utils.PATH_SEPARATOR)).exists())
             .map(source -> StringUtils.removeStart(source, pb.getBasePath()))
             .collect(Collectors.toList());
     }

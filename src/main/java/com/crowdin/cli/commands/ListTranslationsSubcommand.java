@@ -1,13 +1,14 @@
 package com.crowdin.cli.commands;
 
+import com.crowdin.cli.client.Client;
+import com.crowdin.cli.client.CrowdinClient;
+import com.crowdin.cli.client.Project;
 import com.crowdin.cli.commands.functionality.DryrunTranslations;
-import com.crowdin.cli.commands.functionality.ProjectProxy;
 import com.crowdin.cli.commands.parts.Command;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.common.Settings;
 import picocli.CommandLine;
 
 import java.util.Optional;
@@ -28,20 +29,19 @@ public class ListTranslationsSubcommand extends Command {
     @Override
     public void run() {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
+        Client client = new CrowdinClient(pb.getApiToken(), pb.getOrganization(), Long.parseLong(pb.getProjectId()));
 
-        ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
+        Project project;
         try {
             ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
-            project.downloadProject()
-                .downloadSupportedLanguages();
+            project = client.downloadProjectWithLanguages();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
 
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(), pb.getBasePath());
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
         (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, Optional.empty(), false)).run(treeView);
     }

@@ -1,22 +1,20 @@
 package com.crowdin.cli.commands;
 
-import com.crowdin.cli.client.*;
-import com.crowdin.cli.client.request.TranslationPayloadWrapper;
+import com.crowdin.cli.client.Client;
+import com.crowdin.cli.client.CrowdinClient;
+import com.crowdin.cli.client.Project;
 import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.commands.parts.Command;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
-import com.crowdin.common.Settings;
-import com.crowdin.common.models.FileEntity;
-import com.crowdin.common.request.TranslationPayload;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 import picocli.CommandLine;

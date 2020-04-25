@@ -45,9 +45,8 @@ dependencies {
 
     compile 'info.picocli:picocli:4.1.4'
 
-    compile 'com.github.crowdin:crowdin-api-client-java:1.0.0'
+    compile 'com.github.crowdin:crowdin-api-client-java:1.1.1'
 
-    compile files('libs/crowdin-1.0.jar')
     testCompile('org.junit.jupiter:junit-jupiter:5.5.2')
     testCompile('org.hamcrest:hamcrest:2.2')
     testCompile group: 'org.mockito', name: 'mockito-core', version: '2.1.0'

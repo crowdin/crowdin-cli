@@ -1,6 +1,6 @@
 package com.crowdin.cli.utils;
 
-import com.crowdin.common.models.Language;
+import com.crowdin.client.languages.model.Language;
 
 import java.util.ArrayList;
 import java.util.Arrays;

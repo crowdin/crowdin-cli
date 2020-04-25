@@ -1,6 +1,6 @@
 package com.crowdin.cli.utils;
 
-import com.crowdin.common.models.Language;
+import com.crowdin.client.languages.model.Language;
 
 public enum LanguageBuilder {
     UKR("Ukrainian", "ua", "ua", "ukr", "uk-UA", "uk_", "uk", "uk"),

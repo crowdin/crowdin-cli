@@ -1,13 +1,14 @@
 package com.crowdin.cli.commands;
 
+import com.crowdin.cli.client.Client;
+import com.crowdin.cli.client.CrowdinClient;
+import com.crowdin.cli.client.Project;
 import com.crowdin.cli.commands.functionality.DryrunProjectFiles;
-import com.crowdin.cli.commands.functionality.ProjectProxy;
 import com.crowdin.cli.commands.parts.Command;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.common.Settings;
-import com.crowdin.common.models.Branch;
+import com.crowdin.client.sourcefiles.model.Branch;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
@@ -30,15 +31,13 @@ public class ListProjectSubcommand extends Command {
     @Override
     public void run() {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Settings settings = Settings.withBaseUrl(pb.getApiToken(), pb.getBaseUrl());
 
-        ProjectProxy project = new ProjectProxy(pb.getProjectId(), settings);
+        Client client = new CrowdinClient(pb.getApiToken(), pb.getOrganization(), Long.parseLong(pb.getProjectId()));
+
+        Project project;
         try {
             ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
-            project.downloadProject()
-                .downloadDirectories()
-                .downloadFiles()
-                .downloadBranches();
+            project = client.downloadFullProject();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
@@ -46,11 +45,11 @@ public class ListProjectSubcommand extends Command {
         }
 
         Long branchId = (StringUtils.isNotEmpty(this.branch))
-            ? project.getBranchByName(this.branch)
+            ? project.findBranch(this.branch)
                 .map(Branch::getId)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
             : null;
 
-        (new DryrunProjectFiles(project.getFiles(), project.getMapDirectories(), project.getMapBranches(), branchId)).run(treeView);
+        (new DryrunProjectFiles(project.getFiles(), project.getDirectories(), project.getBranches(), branchId)).run(treeView);
     }
 }
