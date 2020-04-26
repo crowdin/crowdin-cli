@@ -33,14 +33,16 @@ public class UploadTranslationsAction implements Action {
     private boolean importDuplicates;
     private boolean importEqSuggestions;
     private boolean autoApproveImported;
+    private boolean debug;
 
-    public UploadTranslationsAction(boolean noProgress, String languageId, String branchName, boolean importDuplicates, boolean importEqSuggestions, boolean autoApproveImported) {
+    public UploadTranslationsAction(boolean noProgress, String languageId, String branchName, boolean importDuplicates, boolean importEqSuggestions, boolean autoApproveImported, boolean debug) {
         this.noProgress = noProgress;
         this.languageId = languageId;
         this.branchName = branchName;
         this.importDuplicates = importDuplicates;
         this.importEqSuggestions = importEqSuggestions;
         this.autoApproveImported = autoApproveImported;
+        this.debug = debug;
     }
 
     @Override
@@ -157,7 +159,7 @@ public class UploadTranslationsAction implements Action {
                             OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.translation_uploaded"), StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()))));
                 })
                 .collect(Collectors.toList());
-            ConcurrencyUtil.executeAndWait(tasks);
+            ConcurrencyUtil.executeAndWait(tasks, debug);
         }
     }
 }

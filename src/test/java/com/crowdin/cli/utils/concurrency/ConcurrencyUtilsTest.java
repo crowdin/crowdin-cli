@@ -18,7 +18,7 @@ public class ConcurrencyUtilsTest {
         List<Runnable> tasks = Stream.iterate(1, n -> n+1).limit(10000)
             .map(x -> (Runnable) counter::incrementAndGet)
             .collect(Collectors.toList());
-        ConcurrencyUtil.executeAndWaitSingleThread(tasks);
+        ConcurrencyUtil.executeAndWaitSingleThread(tasks, false);
         assertEquals(10000, counter.get());
     }
 
@@ -28,7 +28,7 @@ public class ConcurrencyUtilsTest {
         List<Runnable> tasks = Stream.iterate(1, n -> n+1).limit(10000)
             .map(x -> (Runnable) counter::incrementAndGet)
             .collect(Collectors.toList());
-        ConcurrencyUtil.executeAndWait(tasks);
+        ConcurrencyUtil.executeAndWait(tasks, false);
         assertEquals(10000, counter.get());
     }
 }
