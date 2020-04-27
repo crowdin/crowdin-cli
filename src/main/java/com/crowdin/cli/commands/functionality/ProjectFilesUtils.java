@@ -2,13 +2,12 @@ package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
-import com.crowdin.client.sourcefiles.model.Branch;
-import com.crowdin.client.sourcefiles.model.Directory;
-import com.crowdin.client.sourcefiles.model.File;
+import com.crowdin.client.sourcefiles.model.*;
 
-import java.util.*;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 public class ProjectFilesUtils {
 
@@ -79,7 +78,12 @@ public class ProjectFilesUtils {
     }
 
     public static boolean isMultilingualFile(File fe) {
-//        todo what to do with exportOptions. Maybe I need to check it in runtime
-        return fe.getExportOptions() == null;// || fe.getExportOptions().getExportPattern() == null;
+        if (fe.getExportOptions() instanceof PropertyFileExportOptions) {
+            return ((PropertyFileExportOptions) fe.getExportOptions()).getExportPattern() == null;
+        } else if (fe.getExportOptions() instanceof GeneralFileExportOptions) {
+            return ((GeneralFileExportOptions) fe.getExportOptions()).getExportPattern() == null;
+        } else {
+            return fe.getExportOptions() == null;
+        }
     }
 }

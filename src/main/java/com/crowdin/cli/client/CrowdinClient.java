@@ -21,7 +21,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.*;
+import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
@@ -62,10 +62,6 @@ public class CrowdinClient implements Client {
         project.setBranches(branches);
         project.setSupportedLanguages(supportedLanguages);
         project.setProjectLanguages(projectLanguages);
-//        todo do i need to add pseudoLanguage here?
-//        Optional<Language> pseudoLanguage = (this.projectInfo.isInContext())
-//            ? this.findLanguage(projectInfo.getInContextPseudoLanguageId())
-//            : Optional.empty();
         return project;
     }
 

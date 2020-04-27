@@ -308,8 +308,8 @@ public class DownloadSubcommand extends Command {
             if (!StringUtils.startsWith(translation, Utils.PATH_SEPARATOR)) {
                 translation = Utils.PATH_SEPARATOR + translation;
             }
-            String translationProject1 = null; //todo placeholderUtil.replaceLanguageDependentPlaceholders(translation, projLanguageMapping, language);
-            String translationFile1 = null; //todo placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
+            String translationProject1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, projLanguageMapping, language);
+            String translationFile1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
 
             for (String projectFile : sources) {
                 String file = StringUtils.removeStart(projectFile, basePath);
