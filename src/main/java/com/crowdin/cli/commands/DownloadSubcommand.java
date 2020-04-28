@@ -59,7 +59,7 @@ public class DownloadSubcommand extends Command {
     public void run() {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
 
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getOrganization(), Long.parseLong(pb.getProjectId()));
+        Client client = new CrowdinClient(pb.getApiToken(), PropertiesBeanUtils.getOrganization(pb.getBaseUrl()), Long.parseLong(pb.getProjectId()));
 
         Project project;
         try {

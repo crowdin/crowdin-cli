@@ -74,10 +74,13 @@ public class GenerateSubcommand extends Command {
         if (this.isEnterprise) {
             String organizationName = ask(RESOURCE_BUNDLE.getString("message.ask_organization_name") +": ");
             if (StringUtils.isNotEmpty(organizationName)) {
-                values.put(ORGANIZATION, organizationName);
+                values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, organizationName));
             } else {
                 this.isEnterprise = false;
+                values.put(BASE_URL, BASE_URL_DEFAULT);
             }
+        } else {
+            values.put(BASE_URL, BASE_URL_DEFAULT);
         }
         values.put(PROJECT_ID, askParam(PROJECT_ID));
         values.put(API_TOKEN, askParam(API_TOKEN));

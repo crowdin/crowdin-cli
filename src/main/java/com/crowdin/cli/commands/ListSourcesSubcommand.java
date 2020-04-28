@@ -4,6 +4,7 @@ import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinClient;
 import com.crowdin.cli.client.Project;
 import com.crowdin.cli.commands.functionality.DryrunSources;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.parts.Command;
 import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -31,7 +32,7 @@ public class ListSourcesSubcommand extends Command {
     public void run() {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
 
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getOrganization(), Long.parseLong(pb.getProjectId()));
+        Client client = new CrowdinClient(pb.getApiToken(), PropertiesBeanUtils.getOrganization(pb.getBaseUrl()), Long.parseLong(pb.getProjectId()));
 
         Project project;
         try {

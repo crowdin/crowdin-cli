@@ -11,9 +11,6 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
-import com.crowdin.client.core.http.impl.json.JacksonJsonTransformer;
-import com.crowdin.client.core.model.ClientConfig;
-import com.crowdin.client.core.model.Credentials;
 import com.crowdin.client.sourcefiles.model.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -49,7 +46,7 @@ public class UploadSourcesCommand extends Command {
     public void run() {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
 
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getOrganization(), Long.parseLong(pb.getProjectId()));
+        Client client = new CrowdinClient(pb.getApiToken(), PropertiesBeanUtils.getOrganization(pb.getBaseUrl()), Long.parseLong(pb.getProjectId()));
 
         Project project;
         try {
@@ -111,10 +108,12 @@ public class UploadSourcesCommand extends Command {
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath), e);
                                 }
                             };
-                        } else if (!autoUpdate && projectFile == null) {
+                        } else if (projectFile == null) {
                             final AddFileRequest request = new AddFileRequest();
                             request.setName(sourceFile.getName());
-                            request.setType(Type.from(file.getType()));
+                            if (file.getType() != null) {
+                                request.setType(Type.from(file.getType()));
+                            }
 
                             return (Runnable) () -> {
                                 Long directoryId = null;

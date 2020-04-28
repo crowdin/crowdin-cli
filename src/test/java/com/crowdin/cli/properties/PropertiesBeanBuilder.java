@@ -7,7 +7,6 @@ public class PropertiesBeanBuilder {
     public static final String TEST_PROJECT_ID = "666";
     public static final String TEST_API_TOKEN = "123abc456";
     public static final String TEST_BASE_URL = "https://crowdin.com/api/v2";
-    public static final String TEST_ORGANIZATION = "Danya&Co";
 
 
     private PropertiesBean pb = new PropertiesBean();
@@ -16,7 +15,7 @@ public class PropertiesBeanBuilder {
         pb.setProjectId(TEST_PROJECT_ID);
         pb.setApiToken(TEST_API_TOKEN);
         pb.setBasePath(".");
-        pb.setOrganization(TEST_ORGANIZATION);
+        pb.setBaseUrl(TEST_BASE_URL);
         FileBean fb = new FileBean();
         fb.setSource("*");
         fb.setTranslation(Utils.PATH_SEPARATOR + "hell-%locale%");
@@ -28,7 +27,7 @@ public class PropertiesBeanBuilder {
         pb.setProjectId(TEST_PROJECT_ID);
         pb.setApiToken(TEST_API_TOKEN);
         pb.setBasePath(".");
-        pb.setOrganization(TEST_ORGANIZATION);
+        pb.setBaseUrl(TEST_BASE_URL);
         pb.setPreserveHierarchy(false);
         FileBean fb = new FileBean();
         fb.setSource("*");
@@ -62,8 +61,8 @@ public class PropertiesBeanBuilder {
         if (pb.getBasePath() != null) {
             sb.append("\"base_path\": \"").append(pb.getBasePath().replaceAll("\\\\", "\\\\\\\\")).append("\"\n");
         }
-        if (pb.getOrganization() != null) {
-            sb.append("\"organization\": \"").append(pb.getOrganization()).append("\"\n");
+        if (pb.getBaseUrl() != null) {
+            sb.append("\"base_url\": \"").append(pb.getBaseUrl()).append("\"\n");
         }
         if (pb.getPreserveHierarchy() != null) {
             sb.append("\"preserve_hierarchy\": \"").append(pb.getPreserveHierarchy()).append("\"\n");

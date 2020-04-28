@@ -50,4 +50,11 @@ public class PropertiesBeanUtils {
             .reduce(translationPath, (trans, k) ->
                 StringUtils.replace(trans, Utils.normalizePath(k), translationReplace.get(k)));
     }
+
+    public static String getOrganization(String baseUrl) {
+        String organization = baseUrl
+            .replaceAll("^https?://", "")
+            .replaceAll("\\.?(api.)?crowdin.com/api/v2$", "");
+        return (StringUtils.isEmpty(organization)) ? null : organization;
+    }
 }

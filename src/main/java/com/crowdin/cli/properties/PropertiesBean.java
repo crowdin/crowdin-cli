@@ -15,7 +15,7 @@ public class PropertiesBean {
 
     private String basePath;
 
-    private String organization;
+    private String baseUrl;
 
     private final List<FileBean> files = new ArrayList<FileBean>();
 
@@ -27,7 +27,7 @@ public class PropertiesBean {
                 ", projectId='" + projectId + '\'' +
                 ", apiToken='" + apiToken + '\'' +
                 ", basePath='" + basePath + '\'' +
-                ", organization='" + organization + '\'' +
+                ", baseUrl='" + baseUrl + '\'' +
                 '}';
     }
 
@@ -41,12 +41,12 @@ public class PropertiesBean {
             Objects.equals(projectId, that.projectId) &&
             Objects.equals(apiToken, that.apiToken) &&
             Objects.equals(basePath, that.basePath) &&
-            Objects.equals(organization, that.organization);
+            Objects.equals(baseUrl, that.baseUrl);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(preserveHierarchy, files, projectId, apiToken, basePath, organization);
+        return Objects.hash(preserveHierarchy, files, projectId, apiToken, basePath, baseUrl);
     }
 
     public PropertiesBean() {}
@@ -91,11 +91,11 @@ public class PropertiesBean {
         this.basePath = basePath;
     }
 
-    public String getOrganization() {
-        return organization;
+    public String getBaseUrl() {
+        return baseUrl;
     }
 
-    public void setOrganization(String organization) {
-        this.organization = organization;
+    public void setBaseUrl(String baseUrl) {
+        this.baseUrl = baseUrl;
     }
 }
