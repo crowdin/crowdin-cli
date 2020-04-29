@@ -8,6 +8,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class ProjectFilesUtils {
 
@@ -46,13 +48,13 @@ public class ProjectFilesUtils {
                 continue;
             }
             String path = getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName();
-//            Stream<String> translations = isMultilingualFile(fe)
-//                ? Stream.of(Utils.normalizePath(fe.getName()))
-//                : placeholderUtil.replaceLanguageDependentPlaceholders(Utils.normalizePath(fe.getExportOptions().getExportPattern()), languageMapping)
-//                    .stream()
-//                    .map(tr -> placeholderUtil.replaceFileDependentPlaceholders(tr, new java.io.File(basePath + path)))
-//                    .map(translation -> ((fe.getBranchId() != null) ? directoryPaths.getOrDefault(fe.getBranchId(), "") : "") + translation);
-//            allProjectTranslations.put(path, translations.collect(Collectors.toList()));
+            Stream<String> translations = isMultilingualFile(fe)
+                ? Stream.of(Utils.normalizePath(fe.getName()))
+                : placeholderUtil.replaceLanguageDependentPlaceholders(Utils.normalizePath(getExportPattern(fe.getExportOptions())), languageMapping)
+                    .stream()
+                    .map(tr -> placeholderUtil.replaceFileDependentPlaceholders(tr, new java.io.File(basePath + path)))
+                    .map(translation -> ((fe.getBranchId() != null) ? directoryPaths.getOrDefault(fe.getBranchId(), "") : "") + translation);
+            allProjectTranslations.put(path, translations.collect(Collectors.toList()));
         }
         return allProjectTranslations;
     }
@@ -78,12 +80,16 @@ public class ProjectFilesUtils {
     }
 
     public static boolean isMultilingualFile(File fe) {
-        if (fe.getExportOptions() instanceof PropertyFileExportOptions) {
-            return ((PropertyFileExportOptions) fe.getExportOptions()).getExportPattern() == null;
-        } else if (fe.getExportOptions() instanceof GeneralFileExportOptions) {
-            return ((GeneralFileExportOptions) fe.getExportOptions()).getExportPattern() == null;
+        return getExportPattern(fe.getExportOptions()) == null;
+    }
+
+    public static String getExportPattern(ExportOptions exportOptions) {
+        if (exportOptions instanceof PropertyFileExportOptions) {
+            return ((PropertyFileExportOptions) exportOptions).getExportPattern();
+        } else if (exportOptions instanceof GeneralFileExportOptions) {
+            return ((GeneralFileExportOptions) exportOptions).getExportPattern();
         } else {
-            return fe.getExportOptions() == null;
+            return null;
         }
     }
 }

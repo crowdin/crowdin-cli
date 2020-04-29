@@ -11,7 +11,6 @@ import java.util.Optional;
 
 public interface Project {
 
-//    Optional<Language> getPseudoLanguage();
     Map<Long, Branch> getBranches();
     void addBranchToList(Branch branch);
     Map<Long, Directory> getDirectories();

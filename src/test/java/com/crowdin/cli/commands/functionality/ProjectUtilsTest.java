@@ -24,58 +24,6 @@ public class ProjectUtilsTest {
 
     private static final Long PROJECT_ID = 42L;
 
-//    @Test
-//    public void testGetOrCreateBranch_branchExists() {
-//        BranchClient branchClient = mock(BranchClient.class);
-//        ProjectProxy projectProxy = mock(ProjectProxy.class);
-//        Branch expected = BranchBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers("branch42", 101L).build();
-//        when(projectProxy.getBranchByName(expected.getName())).thenReturn(Optional.of(expected));
-//
-//        Branch result = ProjectUtils.getOrCreateBranch(branchClient, projectProxy, expected.getName());
-//
-//        assertEquals(expected.getId(), result.getId(), "Identifiers are not equal");
-//        assertEquals(expected.getName(), result.getName(), "Names are not equal");
-//        assertEquals(expected.getProjectId(), result.getProjectId(), "Project ids are not equal");
-//        verifyZeroInteractions(branchClient);
-//    }
-//
-//    @Test
-//    public void testGetOrCreateBranch_branchNotExists() throws ResponseException {
-//        BranchClient branchClient = mock(BranchClient.class);
-//        ProjectProxy projectProxy = mock(ProjectProxy.class);
-//        Branch expected = BranchBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers("branch42", 101L).build();
-//        when(projectProxy.getBranchByName(expected.getName())).thenReturn(Optional.empty());
-//        when(branchClient.createBranch(argThat(new BranchPayloadMatcher(new BranchPayload(expected.getName()))))).thenReturn(expected);
-//
-//        Branch result = ProjectUtils.getOrCreateBranch(branchClient, projectProxy, expected.getName());
-//
-//        assertNotNull(result);
-//        assertEquals(expected.getId(), result.getId(), "Identifiers are not equal");
-//        assertEquals(expected.getName(), result.getName(), "Names are not equal");
-//        assertEquals(expected.getProjectId(), result.getProjectId(), "Project ids are not equal");
-//        verify(projectProxy).getBranchByName(expected.getName());
-//        verify(projectProxy).addBranchToList(any());
-//        verifyNoMoreInteractions(projectProxy);
-//        verify(branchClient).createBranch(argThat(new BranchPayloadMatcher(new BranchPayload(expected.getName()))));
-//        verifyNoMoreInteractions(branchClient);
-//    }
-//
-//    @Test
-//    public void testGetOrCreateBranch_branchNotExists_ResponseException() throws ResponseException {
-//        BranchClient branchClient = mock(BranchClient.class);
-//        ProjectProxy projectProxy = mock(ProjectProxy.class);
-//        String branchName = "branch1";
-//        when(projectProxy.getBranchByName(branchName)).thenReturn(Optional.empty());
-//        when(branchClient.createBranch(any())).thenThrow(new ResponseException("Error while creating branch"));
-//
-//        assertThrows(RuntimeException.class, () -> ProjectUtils.getOrCreateBranch(branchClient, projectProxy, "branch1"));
-//
-//        verify(projectProxy).getBranchByName(branchName);
-//        verifyNoMoreInteractions(projectProxy);
-//        verify(branchClient).createBranch(any());
-//        verifyNoMoreInteractions(branchClient);
-//    }
-
     @Test
     public void testCreatePath_PathExists() {
         Client client = mock(Client.class);
