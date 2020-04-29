@@ -1,7 +1,6 @@
-package com.crowdin.cli.commands.parts;
+package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
 import com.crowdin.cli.client.Project;
 import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.properties.FileBean;
@@ -14,7 +13,6 @@ import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.client.sourcefiles.model.*;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import picocli.CommandLine;
 
 import java.io.FileInputStream;
 import java.util.List;
@@ -22,32 +20,23 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
-public class UploadSourcesCommand extends Command {
+public class UploadSourcesAction implements Action {
 
+    private String branchName;
+    private boolean noProgress;
+    private boolean autoUpdate;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
-    protected String branch;
-
-    @CommandLine.Option(names = {"--no-auto-update"}, negatable = true)
-    protected boolean autoUpdate = true;
-
-    @CommandLine.Option(names = {"--dryrun"})
-    protected boolean dryrun;
-
-    @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
-    protected boolean treeView;
-
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
+    public UploadSourcesAction(String branchName, boolean noProgress, boolean autoUpdate) {
+        this.branchName = branchName;
+        this.noProgress = noProgress;
+        this.autoUpdate = autoUpdate;
+    }
 
     @Override
-    public void run() {
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-
-        Client client = new CrowdinClient(pb.getApiToken(), PropertiesBeanUtils.getOrganization(pb.getBaseUrl()), Long.parseLong(pb.getProjectId()));
-
+    public void act(PropertiesBean pb, Client client) {
         Project project;
         try {
             ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
@@ -60,15 +49,10 @@ public class UploadSourcesCommand extends Command {
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
-        if (dryrun) {
-            (new DryrunSources(pb, placeholderUtil)).run(this.treeView);
-            return;
-        }
-
-        Branch branchId = (branch != null) ? this.getOrCreateBranch(branch, client, project) : null;
+        Branch branchId = (branchName != null) ? this.getOrCreateBranch(branchName, client, project) : null;
 
         Map<String, Long> directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
-            .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+                .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
         Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
 
         List<Runnable> tasks = pb.getFiles().stream()
@@ -82,10 +66,10 @@ public class UploadSourcesCommand extends Command {
                     .map(source -> {
                         final java.io.File sourceFile = new java.io.File(source);
                         final String filePath = (file.getDest() != null)
-                            ? file.getDest()
-                            : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
+                                ? file.getDest()
+                                : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
 
-                        File projectFile = paths.get((branch != null ? branch + Utils.PATH_SEPARATOR : "") + filePath);
+                        File projectFile = paths.get((branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + filePath);
                         if (autoUpdate && projectFile != null) {
                             final UpdateFileRequest request = new UpdateFileRequest();
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
@@ -199,7 +183,7 @@ public class UploadSourcesCommand extends Command {
             return branchOpt.get();
         } else {
             AddBranchRequest request = new AddBranchRequest();
-            request.setName(branch);
+            request.setName(branchName);
             Branch newBranch = client.addBranch(request);
             System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branchName)));
             project.addBranchToList(newBranch);

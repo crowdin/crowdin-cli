@@ -1,11 +1,11 @@
-package com.crowdin.cli.commands;
+package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
 import com.crowdin.cli.client.Project;
-import com.crowdin.cli.commands.functionality.*;
-import com.crowdin.cli.commands.parts.Command;
-import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
+import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.functionality.SourcesUtils;
+import com.crowdin.cli.commands.functionality.TranslationsUtils;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
@@ -17,50 +17,34 @@ import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
-import picocli.CommandLine;
 
 import java.io.FileInputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
-@CommandLine.Command(
-    name ="translations",
-    sortOptions = false
-)
-public class UploadTranslationsSubcommand extends Command {
+public class UploadTranslationsAction implements Action {
 
-    @CommandLine.Option(names = {"--auto-approve-imported"}, negatable = true)
-    protected boolean autoApproveImported;
+    private boolean noProgress;
+    private String languageId;
+    private String branchName;
+    private boolean importDuplicates;
+    private boolean importEqSuggestions;
+    private boolean autoApproveImported;
 
-    @CommandLine.Option(names = {"--import-duplicates"}, negatable = true)
-    protected boolean importDuplicates;
-
-    @CommandLine.Option(names = {"--import-eq-suggestions"}, negatable = true)
-    protected boolean importEqSuggestions;
-
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
-    protected String branch;
-
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...")
-    protected String languageId;
-
-    @CommandLine.Option(names = {"--dryrun"})
-    protected boolean dryrun;
-
-    @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
-    protected boolean treeView;
-
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
+    public UploadTranslationsAction(boolean noProgress, String languageId, String branchName, boolean importDuplicates, boolean importEqSuggestions, boolean autoApproveImported) {
+        this.noProgress = noProgress;
+        this.languageId = languageId;
+        this.branchName = branchName;
+        this.importDuplicates = importDuplicates;
+        this.importEqSuggestions = importEqSuggestions;
+        this.autoApproveImported = autoApproveImported;
+    }
 
     @Override
-    public void run() {
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-
-        Client client = new CrowdinClient(pb.getApiToken(), PropertiesBeanUtils.getOrganization(pb.getBaseUrl()), Long.parseLong(pb.getProjectId()));
-
+    public void act(PropertiesBean pb, Client client) {
         Project project;
         try {
             ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
@@ -74,11 +58,6 @@ public class UploadTranslationsSubcommand extends Command {
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
         Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
-
-        if (dryrun) {
-            (new DryrunTranslations(pb, projectLanguageMapping, placeholderUtil, Optional.empty(), true)).run(treeView);
-            return;
-        }
 
         Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
 
@@ -103,7 +82,7 @@ public class UploadTranslationsSubcommand extends Command {
             }
 
             Map<java.io.File, Pair<List<Language>, UploadTranslationsRequest>> preparedRequests = new HashMap<>();
-            String branchPath = (StringUtils.isNotEmpty(this.branch) ? branch + Utils.PATH_SEPARATOR : "");
+            String branchPath = (StringUtils.isNotEmpty(this.branchName) ? branchName + Utils.PATH_SEPARATOR : "");
             fileSourcesWithoutIgnores.forEach(source -> {
                 String filePath = branchPath + (StringUtils.isNotEmpty(file.getDest())
                     ? file.getDest()
@@ -175,7 +154,7 @@ public class UploadTranslationsSubcommand extends Command {
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
                     }
                     System.out.println(
-                        OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.translation_uploaded"), StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()))));
+                            OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.translation_uploaded"), StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()))));
                 })
                 .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks);

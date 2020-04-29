@@ -1,10 +1,8 @@
-package com.crowdin.cli.commands;
+package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.commands.parts.Command;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
-import picocli.CommandLine;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,18 +12,10 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.properties.CliProperties.*;
 
-@CommandLine.Command(
-    name = "generate",
-    aliases = "init")
-public class GenerateSubcommand extends Command {
-
-    @CommandLine.Option(names = {"-d", "--destination"}, paramLabel = "...", defaultValue = "crowdin.yml")
-    private Path destinationPath;
-
-    @CommandLine.Option(names = "--skip-generate-description", hidden = true)
-    private boolean skipGenerateDescription;
+public class GenerateAction {
 
     public static final String BASE_PATH_DEFAULT = ".";
     public static final String BASE_URL_DEFAULT = "https://api.crowdin.com";
@@ -37,8 +27,15 @@ public class GenerateSubcommand extends Command {
     public static final String LINK = "https://support.crowdin.com/configuration-file-v3/";
     public static final String ENTERPRISE_LINK = "https://support.crowdin.com/enterprise/configuration-file/";
 
-    @Override
-    public void run() {
+    private Path destinationPath;
+    private boolean skipGenerateDescription;
+
+    public GenerateAction(Path destinationPath, boolean skipGenerateDescription) {
+        this.destinationPath = destinationPath;
+        this.skipGenerateDescription = skipGenerateDescription;
+    }
+
+    public void act() {
         try {
             System.out.println(String.format(RESOURCE_BUNDLE.getString("message.command_generate_description"), destinationPath.toAbsolutePath()));
             if (Files.exists(destinationPath)) {

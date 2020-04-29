@@ -1,4 +1,4 @@
-package com.crowdin.cli.commands.parts;
+package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.utils.Utils;

@@ -1,6 +1,5 @@
-package com.crowdin.cli.commands;
+package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.commands.parts.HelpCommand;
 import picocli.CommandLine;
 
 @CommandLine.Command(

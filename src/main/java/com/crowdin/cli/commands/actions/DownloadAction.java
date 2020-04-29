@@ -1,11 +1,11 @@
-package com.crowdin.cli.commands;
+package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
 import com.crowdin.cli.client.Project;
-import com.crowdin.cli.commands.functionality.*;
-import com.crowdin.cli.commands.parts.Command;
-import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
+import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.functionality.SourcesUtils;
+import com.crowdin.cli.commands.functionality.TranslationsUtils;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
@@ -19,7 +19,6 @@ import net.lingala.zip4j.core.ZipFile;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
-import picocli.CommandLine;
 
 import java.io.File;
 import java.io.IOException;
@@ -28,39 +27,28 @@ import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-@CommandLine.Command(
-    name = "download",
-    sortOptions = false,
-    aliases = "pull")
-public class DownloadSubcommand extends Command {
+public class DownloadAction implements Action {
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
-    protected String branchName;
+    private boolean noProgress;
+    private String languageId;
+    private String branchName;
+    private boolean ignoreMatch;
+    private boolean isVerbose;
 
-    @CommandLine.Option(names = {"--ignore-match"})
-    protected boolean ignoreMatch;
-
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...")
-    protected String languageId;
-
-    @CommandLine.Option(names = {"--dryrun"})
-    protected boolean dryrun;
-
-    @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
-    protected boolean treeView;
-
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
+    public DownloadAction(boolean noProgress, String languageId, String branchName, boolean ignoreMatch, boolean isVerbose) {
+        this.noProgress = noProgress;
+        this.languageId = languageId;
+        this.branchName = branchName;
+        this.ignoreMatch = ignoreMatch;
+        this.isVerbose = isVerbose;
+    }
 
     @Override
-    public void run() {
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-
-        Client client = new CrowdinClient(pb.getApiToken(), PropertiesBeanUtils.getOrganization(pb.getBaseUrl()), Long.parseLong(pb.getProjectId()));
-
+    public void act(PropertiesBean pb, Client client) {
         Project project;
         try {
             ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
@@ -74,15 +62,10 @@ public class DownloadSubcommand extends Command {
 
         Optional<Language> language = Optional.ofNullable(languageId)
             .map(lang -> project.findLanguage(lang)
-            .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))));
+                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))));
         Optional<Branch> branch = Optional.ofNullable(this.branchName)
             .map(br -> project.findBranch(br)
-            .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))));
-
-        if (dryrun) {
-            (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, language, false)).run(treeView);
-            return;
-        }
+                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))));
 
         Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
 
@@ -96,8 +79,8 @@ public class DownloadSubcommand extends Command {
             .ifPresent(buildRequest::setBranchId);
 
         System.out.println((languageId != null)
-                ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId))
-                : OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive")));
+            ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId))
+            : OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive")));
         ProjectBuild projectBuild = buildTranslation(client, buildRequest);
 
         String currentTimeMillis = Long.toString(System.currentTimeMillis());
@@ -118,8 +101,8 @@ public class DownloadSubcommand extends Command {
         Map<String, String> filesWithMapping = pb.getFiles().stream()
             .map(file -> {
                 List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
-                    .map(File::getAbsolutePath)
-                    .collect(Collectors.toList());
+                        .map(File::getAbsolutePath)
+                        .collect(Collectors.toList());
                 Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
                 Map<String, Map<String, String>> projLanguageMapping = new HashMap<>();
                 if (projectLanguageMapping.isPresent()) {
@@ -138,7 +121,7 @@ public class DownloadSubcommand extends Command {
         Map<String, Map<String, String>> langMapping = new HashMap<>();
         TranslationsUtils.populateLanguageMappingFromServer(langMapping, projectLanguageMapping.orElse(new HashMap<>()));
         Map<String, List<String>> allProjectTranslations = ProjectFilesUtils
-            .buildAllProjectTranslations(project.getFiles(), directoryPaths, branch.map(Branch::getId), placeholderUtil, langMapping, pb.getBasePath());
+                .buildAllProjectTranslations(project.getFiles(), directoryPaths, branch.map(Branch::getId), placeholderUtil, langMapping, pb.getBasePath());
 
         this.extractFiles(baseTempDir, downloadedZipArchive);
         this.unpackFiles(downloadedFilesProc, filesWithMapping, allProjectTranslations, pb.getBasePath(), baseTempDir);
@@ -226,8 +209,8 @@ public class DownloadSubcommand extends Command {
     }
 
     private Pair<Map<String, List<String>>, List<String>> sortOmittedFiles(
-            List<String> omittedFiles,
-            Map<String, List<String>> allProjectTranslations
+        List<String> omittedFiles,
+        Map<String, List<String>> allProjectTranslations
     ) {
         Map<String, List<String>> allOmittedFiles = new HashMap<>();
         List<String> allOmittedFilesNoSources = new ArrayList<>();

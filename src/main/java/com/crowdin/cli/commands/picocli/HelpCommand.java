@@ -1,6 +1,5 @@
-package com.crowdin.cli.commands.parts;
+package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.commands.RootCommand;
 import picocli.CommandLine;
 
 import java.io.PrintStream;

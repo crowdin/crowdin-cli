@@ -1,4 +1,4 @@
-package com.crowdin.cli.commands.parts;
+package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.commands.functionality.PropertiesBuilder;
 import com.crowdin.cli.properties.Params;
@@ -11,9 +11,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import static com.crowdin.cli.BaseCli.DEFAULT_CONFIGS;
-import static com.crowdin.cli.BaseCli.DEFAULT_IDENTITY_FILES;
-import static com.crowdin.cli.commands.parts.Command.RESOURCE_BUNDLE;
+import static com.crowdin.cli.BaseCli.*;
 
 public class PropertiesBuilderCommandPart {
 
