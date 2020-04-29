@@ -66,8 +66,9 @@ public class UploadSourcesAction implements Action {
                     .map(source -> {
                         final java.io.File sourceFile = new java.io.File(source);
                         final String filePath = (file.getDest() != null)
-                                ? file.getDest()
-                                : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
+                            ? file.getDest()
+                            : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
+                        final String fileName = filePath.substring(filePath.lastIndexOf(Utils.PATH_SEPARATOR)+1);
 
                         File projectFile = paths.get((branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + filePath);
                         if (autoUpdate && projectFile != null) {
@@ -80,7 +81,7 @@ public class UploadSourcesAction implements Action {
 
                             return (Runnable) () -> {
                                 try {
-                                    request.setStorageId(client.uploadStorage(sourceFile.getName(), new FileInputStream(sourceFile)));
+                                    request.setStorageId(client.uploadStorage(fileName, new FileInputStream(sourceFile)));
                                 } catch (Exception e) {
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }
@@ -94,7 +95,9 @@ public class UploadSourcesAction implements Action {
                             };
                         } else if (projectFile == null) {
                             final AddFileRequest request = new AddFileRequest();
-                            request.setName(sourceFile.getName());
+                            request.setName(fileName);
+                            request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
+                            request.setImportOptions(buildImportOptions(sourceFile, file));
                             if (file.getType() != null) {
                                 request.setType(Type.from(file.getType()));
                             }
@@ -114,16 +117,16 @@ public class UploadSourcesAction implements Action {
                                 }
 
                                 try {
-                                    request.setStorageId(client.uploadStorage(sourceFile.getName(), new FileInputStream(sourceFile)));
+                                    request.setStorageId(client.uploadStorage(fileName, new FileInputStream(sourceFile)));
                                 } catch (Exception e) {
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }
                                 try {
                                     client.addSource(request);
-                                    System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath)));
                                 } catch (Exception e) {
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath), e);
                                 }
+                                System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath)));
                             };
                         } else {
                             return (Runnable) () -> System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath)));

@@ -11,27 +11,27 @@ public class PropertiesBeanBuilder {
 
     private PropertiesBean pb = new PropertiesBean();
 
-    public PropertiesBeanBuilder minimalPropertiesBean() {
+    public PropertiesBeanBuilder minimalPropertiesBean(String source, String translation) {
         pb.setProjectId(TEST_PROJECT_ID);
         pb.setApiToken(TEST_API_TOKEN);
         pb.setBasePath(".");
         pb.setBaseUrl(TEST_BASE_URL);
         FileBean fb = new FileBean();
-        fb.setSource("*");
-        fb.setTranslation(Utils.PATH_SEPARATOR + "hell-%locale%");
+        fb.setSource(source);
+        fb.setTranslation(translation);
         pb.setFiles(fb);
         return this;
     }
 
-    public PropertiesBeanBuilder minimalBuiltPropertiesBean() {
+    public PropertiesBeanBuilder minimalBuiltPropertiesBean(String source, String translation) {
         pb.setProjectId(TEST_PROJECT_ID);
         pb.setApiToken(TEST_API_TOKEN);
         pb.setBasePath(".");
         pb.setBaseUrl(TEST_BASE_URL);
         pb.setPreserveHierarchy(false);
         FileBean fb = new FileBean();
-        fb.setSource("*");
-        fb.setTranslation(Utils.PATH_SEPARATOR + "hell-%locale%");
+        fb.setSource(source);
+        fb.setTranslation(translation);
         fb.setContentSegmentation(true);
         fb.setTranslateContent(true);
         fb.setTranslateAttributes(false);
