@@ -249,7 +249,7 @@ public class CliProperties {
             }
             pb.setBasePath(StringUtils.removeEnd(path.toString(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR);
         } else {
-            pb.setBasePath(basePathIfEmpty + Utils.PATH_SEPARATOR);
+            pb.setBasePath(StringUtils.removeEnd(basePathIfEmpty, Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR);
         }
 
         if (StringUtils.isNotEmpty(pb.getBaseUrl())) {

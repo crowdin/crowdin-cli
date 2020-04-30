@@ -40,7 +40,7 @@ public class ListProjectActionTest {
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null).build());
 
-        Action action = new ListProjectAction(false, null, false);
+        Action action = new ListProjectAction(false, null, true);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
