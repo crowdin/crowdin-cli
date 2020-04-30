@@ -1,6 +1,6 @@
 package com.crowdin.cli.properties;
 
-import com.crowdin.cli.utils.Utils;
+import java.util.List;
 
 public class PropertiesBeanBuilder {
 
@@ -24,6 +24,10 @@ public class PropertiesBeanBuilder {
     }
 
     public PropertiesBeanBuilder minimalBuiltPropertiesBean(String source, String translation) {
+        return minimalBuiltPropertiesBean(source, translation, null);
+    }
+
+    public PropertiesBeanBuilder minimalBuiltPropertiesBean(String source, String translation, List<String> ignore) {
         pb.setProjectId(TEST_PROJECT_ID);
         pb.setApiToken(TEST_API_TOKEN);
         pb.setBasePath(".");
@@ -32,6 +36,7 @@ public class PropertiesBeanBuilder {
         FileBean fb = new FileBean();
         fb.setSource(source);
         fb.setTranslation(translation);
+        fb.setIgnore(ignore);
         fb.setContentSegmentation(true);
         fb.setTranslateContent(true);
         fb.setTranslateAttributes(false);
