@@ -30,6 +30,8 @@ public class ListTranslationsActionTest {
 
     @Test
     public void testForServerInteraction() throws ResponseException {
+        project.addFile("first.po");
+        project.addFile("second.po");
         PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());

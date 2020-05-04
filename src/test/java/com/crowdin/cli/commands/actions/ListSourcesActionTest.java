@@ -30,7 +30,7 @@ public class ListSourcesActionTest {
 
     @Test
     public void testForServerInteraction() throws ResponseException {
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -43,5 +43,21 @@ public class ListSourcesActionTest {
 
         verify(client).downloadProjectWithLanguages();
         verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testForPreserveHierarchy() throws ResponseException {
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+                .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+                .setBasePath(project.getBasePath());
+        PropertiesBean pb = pbBuilder.build();
+        Client client = mock(Client.class);
+        when(client.downloadProjectWithLanguages())
+                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+
+        Action action = new ListSourcesAction(false, false);
+        action.act(pb, client);
+        pb.setPreserveHierarchy(true);
+        action.act(pb, client);
     }
 }

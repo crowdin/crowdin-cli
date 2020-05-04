@@ -2,19 +2,16 @@ package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.exceptions.WaitResponseException;
 import com.crowdin.cli.client.models.BranchBuilder;
 import com.crowdin.cli.client.models.DirectoryBuilder;
 import com.crowdin.cli.utils.Utils;
-import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
-import org.apache.commons.lang3.StringUtils;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentMatcher;
 
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -46,21 +43,25 @@ public class ProjectUtilsTest {
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>();
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
         Branch branch = null;
-        AddDirectoryRequest request1 = new AddDirectoryRequest();
-        request1.setName("folder");
-        AddDirectoryRequest request2 = new AddDirectoryRequest();
-        request2.setName("folder2");
-        request2.setDirectoryId(101L);
-        when(client.addDirectory(argThat(new DirectoryPayloadMatcher(request1))))
-            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID).setIdentifiers("folder", 101L, null, null).build());
-        when(client.addDirectory(argThat(new DirectoryPayloadMatcher(request2))))
-            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID).setIdentifiers("folder2", 102L, 101L, null).build());
+        AddDirectoryRequest request1 = new AddDirectoryRequest() {{
+            setName("folder");
+        }};
+        AddDirectoryRequest request2 = new AddDirectoryRequest() {{
+            setName("folder2");
+            setDirectoryId(101L);
+        }};
+        when(client.addDirectory(eq(request1)))
+            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+                .setIdentifiers("folder", 101L, null, null).build());
+        when(client.addDirectory(eq(request2)))
+            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+                .setIdentifiers("folder2", 102L, 101L, null).build());
 
         long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch);
 
         assertEquals(102L, resultDirectoryId, "Directory id is not correct");
-        verify(client).addDirectory(argThat(new DirectoryPayloadMatcher(request1)));
-        verify(client).addDirectory(argThat(new DirectoryPayloadMatcher(request2)));
+        verify(client).addDirectory(eq(request1));
+        verify(client).addDirectory(eq(request2));
         verifyNoMoreInteractions(client);
     }
 
@@ -72,16 +73,18 @@ public class ProjectUtilsTest {
         }};
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
         Branch branch = null;
-        AddDirectoryRequest request = new AddDirectoryRequest();
-        request.setName("folder2");
-        request.setDirectoryId(101L);
-        when(client.addDirectory(argThat(new DirectoryPayloadMatcher(request))))
-                .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID).setIdentifiers("folder2", 102L, 101L, null).build());
+        AddDirectoryRequest request = new AddDirectoryRequest() {{
+            setName("folder2");
+            setDirectoryId(101L);
+        }};
+        when(client.addDirectory(eq(request)))
+            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+                .setIdentifiers("folder2", 102L, 101L, null).build());
 
         long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch);
 
         assertEquals(102L, resultDirectoryId, "Directory id is not correct");
-        verify(client).addDirectory(argThat(new DirectoryPayloadMatcher(request)));
+        verify(client).addDirectory(eq(request));
         verifyNoMoreInteractions(client);
     }
 
@@ -107,22 +110,25 @@ public class ProjectUtilsTest {
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>();
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
         Branch branch = BranchBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers("branch", 301L).build();
-        AddDirectoryRequest request1 = new AddDirectoryRequest();
-        request1.setName("folder");
-        request1.setBranchId(branch.getId());
-        AddDirectoryRequest request2 = new AddDirectoryRequest();
-        request2.setName("folder2");
-        request2.setDirectoryId(101L);
-        when(client.addDirectory(argThat(new DirectoryPayloadMatcher(request1))))
-                .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID).setIdentifiers("folder", 101L, null, branch.getId()).build());
-        when(client.addDirectory(argThat(new DirectoryPayloadMatcher(request2))))
-                .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID).setIdentifiers("folder2", 102L, 101L, branch.getId()).build());
+        AddDirectoryRequest request1 = new AddDirectoryRequest() {{
+            setName("folder");
+            setBranchId(branch.getId());
+        }};
+        AddDirectoryRequest request2 = new AddDirectoryRequest() {{
+            setName("folder2");
+            setDirectoryId(101L);}};
+        when(client.addDirectory(eq(request1)))
+            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+                .setIdentifiers("folder", 101L, null, branch.getId()).build());
+        when(client.addDirectory(eq(request2)))
+            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+                .setIdentifiers("folder2", 102L, 101L, branch.getId()).build());
 
         long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch);
 
         assertEquals(102L, resultDirectoryId, "Directory id is not correct");
-        verify(client).addDirectory(argThat(new DirectoryPayloadMatcher(request1)));
-        verify(client).addDirectory(argThat(new DirectoryPayloadMatcher(request2)));
+        verify(client).addDirectory(eq(request1));
+        verify(client).addDirectory(eq(request2));
         verifyNoMoreInteractions(client);
     }
 
@@ -134,16 +140,17 @@ public class ProjectUtilsTest {
         }};
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
         Branch branch = BranchBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers("branch", 301L).build();
-        AddDirectoryRequest request = new AddDirectoryRequest();
-        request.setName("folder2");
-        request.setDirectoryId(101L);
-        when(client.addDirectory(argThat(new DirectoryPayloadMatcher(request))))
-                .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID).setIdentifiers("folder2", 102L, 101L, branch.getId()).build());
+        AddDirectoryRequest request = new AddDirectoryRequest() {{
+            setName("folder2");
+            setDirectoryId(101L);}};
+        when(client.addDirectory(eq(request)))
+            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+                .setIdentifiers("folder2", 102L, 101L, branch.getId()).build());
 
         long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch);
 
         assertEquals(102L, resultDirectoryId, "Directory id is not correct");
-        verify(client).addDirectory(argThat(new DirectoryPayloadMatcher(request)));
+        verify(client).addDirectory(eq(request));
         verifyNoMoreInteractions(client);
     }
 
@@ -161,43 +168,24 @@ public class ProjectUtilsTest {
         verifyNoMoreInteractions(client);
     }
 
-    class BranchPayloadMatcher implements ArgumentMatcher<AddBranchRequest> {
+    @Test
+    public void testCreatePathForWaitResponseException() throws ResponseException {
+        Client client = mock(Client.class);
+        Map<String, Long> directoriesIdMap = new HashMap<String, Long>();
+        String filePath = Utils.normalizePath("folder/file.txt");
+        Branch branch = null;
+        AddDirectoryRequest request1 = new AddDirectoryRequest() {{
+            setName("folder");
+        }};
+        when(client.addDirectory(eq(request1)))
+            .thenThrow(new WaitResponseException())
+            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+                .setIdentifiers("folder", 101L, null, null).build());
 
-        private AddBranchRequest left;
+        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch);
 
-        public BranchPayloadMatcher(AddBranchRequest left) {
-            this.left = left;
-        }
-
-        @Override
-        public boolean matches(AddBranchRequest right) {
-            if (left == right) {
-                return true;
-            } else if (left == null || right == null) {
-                return false;
-            }
-            return StringUtils.equals(left.getName(), right.getName());
-        }
-    }
-
-    class DirectoryPayloadMatcher implements ArgumentMatcher<AddDirectoryRequest> {
-
-        private AddDirectoryRequest left;
-
-        public DirectoryPayloadMatcher(AddDirectoryRequest left) {
-            this.left = left;
-        }
-
-        @Override
-        public boolean matches(AddDirectoryRequest right) {
-            if (left == right) {
-                return true;
-            } else if (left == null || right == null) {
-                return false;
-            }
-            return StringUtils.equals(left.getName(), right.getName())
-                && Objects.equals(left.getDirectoryId(), right.getDirectoryId())
-                && Objects.equals(left.getBranchId(), right.getBranchId());
-        }
+        assertEquals(101L, resultDirectoryId, "Directory id is not correct");
+        verify(client, times(2)).addDirectory(eq(request1));
+        verifyNoMoreInteractions(client);
     }
 }
