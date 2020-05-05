@@ -88,7 +88,6 @@ public class CrowdinClient implements Client {
                 .getProject(this.projectId)
                 .getData());
         } catch (Exception e) {
-            System.out.println("e = " + e.getMessage());
             if (e.getMessage().contains("Organization Not Found")) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.response.organization_not_found"));
             } else if (e.getMessage().contains("Not Found")) {
