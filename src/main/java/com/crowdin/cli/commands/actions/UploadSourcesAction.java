@@ -141,12 +141,12 @@ public class UploadSourcesAction implements Action {
     }
 
     private ImportOptions buildImportOptions(java.io.File sourceFile, FileBean fileBean) {
-        if (FilenameUtils.isExtension(sourceFile.getName(), "CSV")) {
+        if (FilenameUtils.isExtension(sourceFile.getName(), "csv")) {
             SpreadsheetFileImportOptions importOptions = new SpreadsheetFileImportOptions();
             importOptions.setFirstLineContainsHeader(fileBean.getFirstLineContainsHeader());
             importOptions.setScheme(PropertiesBeanUtils.getSchemeObject(fileBean.getScheme()));
             return importOptions;
-        } else if (FilenameUtils.isExtension(sourceFile.getName(), "XML")) {
+        } else if (FilenameUtils.isExtension(sourceFile.getName(), "xml")) {
             XmlFileImportOptions importOptions = new XmlFileImportOptions();
             importOptions.setTranslateContent(fileBean.getTranslateContent());
             importOptions.setTranslateAttributes(fileBean.getTranslateAttributes());
