@@ -60,6 +60,9 @@ public class UploadSourcesAction implements Action {
                 List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
                     .map(java.io.File::getAbsolutePath)
                     .collect(Collectors.toList());
+                if (sources.isEmpty()) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
+                }
                 String commonPath =
                     (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
                 List<Runnable> taskss = sources.stream()
