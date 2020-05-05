@@ -25,6 +25,8 @@ import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Collectors;
 
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+
 public class CrowdinClient implements Client {
 
     private final com.crowdin.client.Client client;
@@ -86,14 +88,15 @@ public class CrowdinClient implements Client {
                 .getProject(this.projectId)
                 .getData());
         } catch (Exception e) {
+            System.out.println("e = " + e.getMessage());
             if (e.getMessage().contains("Organization Not Found")) {
-                throw new OrganizationNotFoundResponseException();
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.response.organization_not_found"));
             } else if (e.getMessage().contains("Not Found")) {
-                throw new ProjectNotFoundResponseException();
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.response.project_not_found"), projectId));
             } else if (e.getMessage().contains("Unauthorized")) {
-                throw new UnauthorizedResponseException();
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.response.unauthorized"));
             } else {
-                throw new ResponseException(e.getMessage());
+                throw new RuntimeException("Unhandled Exception: " + e.getMessage());
             }
         }
     }
