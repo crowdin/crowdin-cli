@@ -24,7 +24,7 @@ public class ListProjectSubcommand extends Command {
     @Override
     public void run() {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), PropertiesBeanUtils.getOrganization(pb.getBaseUrl()), Long.parseLong(pb.getProjectId()));
+        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
         Action action = new ListProjectAction(noProgress, branch, treeView);
         action.act(pb, client);

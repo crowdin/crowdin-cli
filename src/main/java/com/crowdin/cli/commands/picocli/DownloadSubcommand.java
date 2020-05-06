@@ -36,7 +36,7 @@ public class DownloadSubcommand extends Command {
     @Override
     public void run() {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), PropertiesBeanUtils.getOrganization(pb.getBaseUrl()), Long.parseLong(pb.getProjectId()));
+        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
         Action action = (dryrun)
             ? new ListTranslationsAction(noProgress, treeView)

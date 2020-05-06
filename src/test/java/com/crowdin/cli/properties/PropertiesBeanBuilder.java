@@ -8,7 +8,7 @@ public class PropertiesBeanBuilder {
 
     public static final String TEST_PROJECT_ID = "666";
     public static final String TEST_API_TOKEN = "123abc456";
-    public static final String TEST_BASE_URL = "https://crowdin.com/api/v2";
+    public static final String TEST_BASE_URL = "https://crowdin.com";
 
     public static final String STANDARD_SOURCE = "*";
     public static final String STANDARD_TRANSLATIONS = Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%";

@@ -21,7 +21,7 @@ public class ListTranslationsSubcommand extends Command {
     @Override
     public void run() {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), PropertiesBeanUtils.getOrganization(pb.getBaseUrl()), Long.parseLong(pb.getProjectId()));
+        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
         Action action = new ListTranslationsAction(noProgress, treeView);
         action.act(pb, client);

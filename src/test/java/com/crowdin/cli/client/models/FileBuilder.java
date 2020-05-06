@@ -2,7 +2,6 @@ package com.crowdin.cli.client.models;
 
 import com.crowdin.client.core.model.Priority;
 import com.crowdin.client.sourcefiles.model.File;
-import com.crowdin.client.sourcefiles.model.Type;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -38,7 +37,7 @@ public class FileBuilder {
 
     public FileBuilder setIdentifiers(String name, String type, Long id, Long directoryId, Long branchId) {
         file.setName(name);
-        file.setType(Type.from(type));
+        file.setType(type);
         file.setId(id);
         file.setDirectoryId(directoryId);
         file.setBranchId(branchId);

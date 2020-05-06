@@ -54,7 +54,11 @@ public class PropertiesBeanUtils {
     public static String getOrganization(String baseUrl) {
         String organization = baseUrl
             .replaceAll("^https?://", "")
-            .replaceAll("\\.?(api.)?crowdin.com/api/v2$", "");
+            .replaceAll("\\.?(dev\\.|api\\.)?crowdin.com(/api/v2)?$", "");
         return (StringUtils.isEmpty(organization)) ? null : organization;
+    }
+
+    public static boolean isUrlForTesting(String baseUrl) {
+        return baseUrl.matches("^http://(.+\\.)?.+\\.dev\\.crowdin\\.com(/api/v2)?$");
     }
 }

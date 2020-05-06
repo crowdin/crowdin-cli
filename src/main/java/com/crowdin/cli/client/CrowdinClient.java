@@ -1,6 +1,7 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.cli.client.exceptions.*;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.core.http.exceptions.HttpBadRequestException;
 import com.crowdin.client.core.http.exceptions.HttpException;
@@ -33,8 +34,12 @@ public class CrowdinClient implements Client {
     private final long projectId;
     private final static long millisToRetry = 100;
 
-    public CrowdinClient(String apiToken, String organization, long projectId) {
-        Credentials credentials = new Credentials(apiToken, organization);
+    public CrowdinClient(String apiToken, String baseUrl, long projectId) {
+        String organization = PropertiesBeanUtils.getOrganization(baseUrl);
+        boolean isTesting = PropertiesBeanUtils.isUrlForTesting(baseUrl);
+        Credentials credentials = (isTesting)
+            ? new Credentials(apiToken, organization, baseUrl)
+            : new Credentials(apiToken, organization);
         ClientConfig clientConfig = ClientConfig.builder()
             .jsonTransformer(new JacksonJsonTransformer())
             .userAgent(Utils.buildUserAgent())

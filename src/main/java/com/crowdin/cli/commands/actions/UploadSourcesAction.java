@@ -102,7 +102,7 @@ public class UploadSourcesAction implements Action {
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
                             request.setImportOptions(buildImportOptions(sourceFile, file));
                             if (file.getType() != null) {
-                                request.setType(Type.from(file.getType()));
+                                request.setType(file.getType());
                             }
 
                             return (Runnable) () -> {
