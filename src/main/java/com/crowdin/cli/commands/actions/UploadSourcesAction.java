@@ -69,11 +69,12 @@ public class UploadSourcesAction implements Action {
                     .map(source -> {
                         final java.io.File sourceFile = new java.io.File(source);
                         final String filePath = (file.getDest() != null)
-                            ? file.getDest()
-                            : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
-                        final String fileName = filePath.substring(filePath.lastIndexOf(Utils.PATH_SEPARATOR)+1);
+                                ? file.getDest()
+                                : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
+                        final String fileFullPath = (branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + filePath;
+                        final String fileName = fileFullPath.substring(fileFullPath.lastIndexOf(Utils.PATH_SEPARATOR)+1);
 
-                        File projectFile = paths.get((branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + filePath);
+                        File projectFile = paths.get((branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + fileFullPath);
                         if (autoUpdate && projectFile != null) {
                             final UpdateFileRequest request = new UpdateFileRequest();
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
@@ -91,9 +92,9 @@ public class UploadSourcesAction implements Action {
 
                                 try {
                                     client.updateSource(sourceId, request);
-                                    System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath)));
+                                    System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
                                 } catch (Exception e) {
-                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath), e);
+                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath), e);
                                 }
                             };
                         } else if (projectFile == null) {
@@ -127,12 +128,12 @@ public class UploadSourcesAction implements Action {
                                 try {
                                     client.addSource(request);
                                 } catch (Exception e) {
-                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath), e);
+                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath), e);
                                 }
-                                System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath)));
+                                System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
                             };
                         } else {
-                            return (Runnable) () -> System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath)));
+                            return (Runnable) () -> System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
                         }
 
                     })
