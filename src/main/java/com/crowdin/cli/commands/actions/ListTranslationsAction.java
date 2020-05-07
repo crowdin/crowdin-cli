@@ -35,7 +35,7 @@ public class ListTranslationsAction implements Action {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
 
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
 
         (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, Optional.empty(), false)).run(treeView);
     }
