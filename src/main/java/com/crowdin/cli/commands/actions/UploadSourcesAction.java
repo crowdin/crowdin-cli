@@ -69,12 +69,12 @@ public class UploadSourcesAction implements Action {
                     .map(source -> {
                         final java.io.File sourceFile = new java.io.File(source);
                         final String filePath = (file.getDest() != null)
-                                ? file.getDest()
+                                ? StringUtils.removePattern(file.getDest(), "^[\\\\/]")
                                 : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
                         final String fileFullPath = (branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + filePath;
                         final String fileName = fileFullPath.substring(fileFullPath.lastIndexOf(Utils.PATH_SEPARATOR)+1);
 
-                        File projectFile = paths.get((branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + fileFullPath);
+                        File projectFile = paths.get(fileFullPath);
                         if (autoUpdate && projectFile != null) {
                             final UpdateFileRequest request = new UpdateFileRequest();
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
