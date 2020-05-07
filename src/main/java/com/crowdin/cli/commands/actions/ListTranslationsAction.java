@@ -17,10 +17,12 @@ public class ListTranslationsAction implements Action {
 
     private boolean noProgress;
     private boolean treeView;
+    private boolean isLocal;
 
-    public ListTranslationsAction(boolean noProgress, boolean treeView) {
+    public ListTranslationsAction(boolean noProgress, boolean treeView, boolean isLocal) {
         this.noProgress = noProgress;
         this.treeView = treeView;
+        this.isLocal = isLocal;
     }
 
     @Override
@@ -35,7 +37,7 @@ public class ListTranslationsAction implements Action {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
 
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(!isLocal), pb.getBasePath());
 
         (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, Optional.empty(), false)).run(treeView);
     }

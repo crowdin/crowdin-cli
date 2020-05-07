@@ -154,6 +154,7 @@ public class UploadSourcesAction implements Action {
             XmlFileImportOptions importOptions = new XmlFileImportOptions();
             importOptions.setTranslateContent(fileBean.getTranslateContent());
             importOptions.setTranslateAttributes(fileBean.getTranslateAttributes());
+            importOptions.setContentSegmentation(fileBean.getContentSegmentation());
             importOptions.setTranslatableElements(fileBean.getTranslatableElements());
             return importOptions;
         } else {

@@ -23,7 +23,7 @@ public class ListTranslationsSubcommand extends Command {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
-        Action action = new ListTranslationsAction(noProgress, treeView);
+        Action action = new ListTranslationsAction(noProgress, treeView, false);
         action.act(pb, client);
     }
 }

@@ -45,7 +45,7 @@ public class UploadTranslationsSubcommand extends Command {
         Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
         Action action = (dryrun)
-            ? new ListTranslationsAction(noProgress, treeView)
+            ? new ListTranslationsAction(noProgress, treeView, true)
             : new UploadTranslationsAction(noProgress, languageId, branch, importDuplicates, importEqSuggestions, autoApproveImported);
         action.act(pb, client);
     }

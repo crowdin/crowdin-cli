@@ -39,7 +39,7 @@ public class DownloadSubcommand extends Command {
         Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
         Action action = (dryrun)
-            ? new ListTranslationsAction(noProgress, treeView)
+            ? new ListTranslationsAction(noProgress, treeView, false)
             : new DownloadAction(noProgress, languageId, branchName, ignoreMatch, isVerbose);
         action.act(pb, client);
     }
