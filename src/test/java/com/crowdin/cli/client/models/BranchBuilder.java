@@ -1,6 +1,11 @@
 package com.crowdin.cli.client.models;
 
-import com.crowdin.common.models.Branch;
+
+import com.crowdin.client.core.model.Priority;
+import com.crowdin.client.sourcefiles.model.Branch;
+
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
 
 public class BranchBuilder {
 
@@ -8,9 +13,15 @@ public class BranchBuilder {
 
     public static BranchBuilder standard() {
         Branch branch = new Branch();
-        branch.setPriority("normal");
-        branch.setCreatedAt("2020-03-20T15:44:03+00:00");
-        branch.setUpdatedAt("2020-03-20T15:44:03+00:00");
+        branch.setPriority(Priority.NORMAL);
+        SimpleDateFormat dateFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssXXX");
+        try {
+            branch.setCreatedAt(dateFormat.parse("2020-03-20T15:44:03+00:00"));
+            branch.setUpdatedAt(dateFormat.parse("2020-03-20T15:44:03+00:00"));
+        } catch (ParseException e) {
+            e.printStackTrace();
+            throw new RuntimeException(e);
+        }
         return new BranchBuilder(branch);
     }
 
@@ -18,7 +29,7 @@ public class BranchBuilder {
         this.branch = branch;
     }
 
-    public BranchBuilder setProjectId(int projectId) {
+    public BranchBuilder setProjectId(Long projectId) {
         branch.setProjectId(projectId);
         return this;
     }

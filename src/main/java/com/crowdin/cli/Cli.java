@@ -1,7 +1,7 @@
 package com.crowdin.cli;
 
-import com.crowdin.cli.commands.RootCommand;
-import com.crowdin.cli.commands.parts.HelpCommand;
+import com.crowdin.cli.commands.picocli.RootCommand;
+import com.crowdin.cli.commands.picocli.HelpCommand;
 import com.crowdin.cli.utils.Utils;
 import picocli.CommandLine;
 

@@ -1,5 +1,8 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.utils.Utils;
+import com.crowdin.client.sourcefiles.model.UpdateOption;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -9,11 +12,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class PropertiesBeanUtilsTest {
 
+    @Test
+    public void testConstructor() {
+        assertDoesNotThrow(PropertiesBeanUtils::new);
+    }
     @ParameterizedTest
     @MethodSource
     public void testGetSchemeObject(String updateOption, Map<String, Integer> expected) {
@@ -55,17 +62,43 @@ public class PropertiesBeanUtilsTest {
 
     @ParameterizedTest
     @MethodSource
-    public void testGetUpdateOption(String updateOption, Optional<String> expected) {
-        Optional<String> result = PropertiesBeanUtils.getUpdateOption(updateOption);
+    public void testGetUpdateOption(String updateOption, Optional<UpdateOption> expected) {
+        Optional<UpdateOption> result = PropertiesBeanUtils.getUpdateOption(updateOption);
         assertEquals(expected, result, "Wrong result with source pattern: " + updateOption);
     }
 
     private static Stream<Arguments> testGetUpdateOption() {
         return Stream.of(
-            arguments("update_as_unapproved", Optional.of("keep_translations")),
-            arguments("update_without_changes", Optional.of("keep_translations_and_approvals")),
+            arguments("update_as_unapproved", Optional.of(UpdateOption.KEEP_TRANSLATIONS)),
+            arguments("update_without_changes", Optional.of(UpdateOption.KEEP_TRANSLATIONS_AND_APPROVALS)),
             arguments("", Optional.empty()),
             arguments("nonsense", Optional.empty())
         );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testUseTranslationReplace(String translationPath, Map<String, String> translationReplace, String expected) {
+        String result = PropertiesBeanUtils.useTranslationReplace(translationPath, translationReplace);
+        assertEquals(expected, result);
+    }
+
+    private static Stream<Arguments> testUseTranslationReplace() {
+        return Stream.of(
+            arguments(Utils.normalizePath("path/to/file.po"),
+                new HashMap<String, String>() {{
+                    put("path/to/", "here/");
+                }},
+                Utils.normalizePath("here/file.po")),
+            arguments(Utils.normalizePath("path/to/file.po"),
+                null,
+                Utils.normalizePath("path/to/file.po"))
+        );
+    }
+
+    @Test
+    public void testGetOrganization() {
+        assertEquals("Daanya", PropertiesBeanUtils.getOrganization("https://Daanya.crowdin.com/api/v2"));
+        assertNull(PropertiesBeanUtils.getOrganization("https://crowdin.com/api/v2"));
     }
 }

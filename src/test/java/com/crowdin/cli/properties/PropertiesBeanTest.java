@@ -8,8 +8,8 @@ public class PropertiesBeanTest {
 
     @Test
     public void dumbTests() {
-        PropertiesBean pb1 = new PropertiesBeanBuilder().build();
-        PropertiesBean pb2 = new PropertiesBeanBuilder().build();
+        PropertiesBean pb1 = PropertiesBeanBuilder.minimalBuiltPropertiesBean().build();
+        PropertiesBean pb2 = PropertiesBeanBuilder.minimalBuiltPropertiesBean().build();
         assertEquals(pb1.toString(), pb2.toString());
         assertEquals(pb2.hashCode(), pb2.hashCode());
     }

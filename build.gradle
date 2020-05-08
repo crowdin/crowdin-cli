@@ -19,6 +19,7 @@ if (!hasProperty('mainClass')) {
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io'}
     maven {
         url "http://repo1.maven.org/maven2"
     }
@@ -44,7 +45,8 @@ dependencies {
 
     compile 'info.picocli:picocli:4.1.4'
 
-    compile files('libs/crowdin-1.0.jar')
+    compile 'com.github.crowdin:crowdin-api-client-java:1.1.5'
+
     testCompile('org.junit.jupiter:junit-jupiter:5.5.2')
     testCompile('org.hamcrest:hamcrest:2.2')
     testCompile group: 'org.mockito', name: 'mockito-core', version: '2.1.0'

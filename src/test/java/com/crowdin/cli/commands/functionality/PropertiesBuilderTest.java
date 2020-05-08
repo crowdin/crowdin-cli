@@ -39,8 +39,8 @@ public class PropertiesBuilderTest {
     @Test
     public void testOk_MinimalConfigFile() {
         File configFile = new File("crowdin.yml");
-        String minimalConfigFileText = new PropertiesBeanBuilder().minimalPropertiesBean().setBasePath(tempProject.getBasePath()).buildToString();
-        PropertiesBean minimalBuiltConfigFile = new PropertiesBeanBuilder().minimalBuiltPropertiesBean().setBasePath(tempProject.getBasePath()).build();
+        String minimalConfigFileText = new PropertiesBeanBuilder().minimalPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%").setBasePath(tempProject.getBasePath()).buildToString();
+        PropertiesBean minimalBuiltConfigFile = new PropertiesBeanBuilder().minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%").setBasePath(tempProject.getBasePath()).build();
         configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
 
         PropertiesBuilder pBuilder = new PropertiesBuilder(Paths.get(tempProject.getBasePath()), configFile, null, null);
@@ -70,8 +70,8 @@ public class PropertiesBuilderTest {
     @Test
     public void testOk_Params_WithConfigFile() {
         File configFile = new File("crowdin.yml");
-        String minimalConfigFileText = new PropertiesBeanBuilder().minimalPropertiesBean().setBasePath(tempProject.getBasePath()).buildToString();
-        PropertiesBean minimalBuiltConfigFile = new PropertiesBeanBuilder().minimalBuiltPropertiesBean().setBasePath(tempProject.getBasePath()).build();
+        String minimalConfigFileText = new PropertiesBeanBuilder().minimalPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%").setBasePath(tempProject.getBasePath()).buildToString();
+        PropertiesBean minimalBuiltConfigFile = new PropertiesBeanBuilder().minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "CR-%locale%").setBasePath(tempProject.getBasePath()).build();
         configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
 
         Params okParams = new Params() {{
@@ -92,10 +92,9 @@ public class PropertiesBuilderTest {
 
     @Test
     public void testOkBasePath_Params_WithConfigFile() {
-        System.out.println(tempProject.getBasePath());
         File configFile = new File("folder/crowdin.yml");
-        String minimalConfigFileText = new PropertiesBeanBuilder().minimalPropertiesBean().setBasePath(tempProject.getBasePath()).buildToString();
-        PropertiesBean minimalBuiltConfigFile = new PropertiesBeanBuilder().minimalBuiltPropertiesBean().setBasePath(tempProject.getBasePath()).build();
+        String minimalConfigFileText = new PropertiesBeanBuilder().minimalPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%").setBasePath(tempProject.getBasePath()).buildToString();
+        PropertiesBean minimalBuiltConfigFile = new PropertiesBeanBuilder().minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "CR-%locale%").setBasePath(tempProject.getBasePath()).build();
         configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
 
         Params okParams = new Params() {{
@@ -109,5 +108,22 @@ public class PropertiesBuilderTest {
 
 
         assertEquals(pb.getBasePath(), tempProject.getBasePath() + "folder2" + Utils.PATH_SEPARATOR);
+    }
+
+    @Test
+    public void testOk_MinimalConfigFile_withIdentityFile() {
+        File configFile = new File("crowdin.yml");
+        String identityFileData = "\"api_token_env\": \"API_TOKEN\"\n\"base_path\": \".\"\n\"base_url\": \"https://crowdin.com\"\n\"project_id\": 42";
+        File identityFile = tempProject.addFile("identity.yaml", identityFileData);
+        String minimalConfigFileText = PropertiesBeanBuilder.minimalPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%").setBasePath(tempProject.getBasePath()).buildToString();
+        PropertiesBean minimalBuiltConfigFile = PropertiesBeanBuilder.minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%").setBasePath(tempProject.getBasePath()).build();
+        configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
+
+        PropertiesBuilder pBuilder = new PropertiesBuilder(Paths.get(tempProject.getBasePath()), configFile, identityFile, null);
+        PropertiesBean builtPb = pBuilder.build();
+
+        minimalBuiltConfigFile.setProjectId("42");
+
+        assertThat("PropertiesBeans are not identical", builtPb, is(minimalBuiltConfigFile));
     }
 }

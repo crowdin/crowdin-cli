@@ -2,20 +2,20 @@ package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
-import com.crowdin.common.models.Branch;
-import com.crowdin.common.models.Directory;
-import com.crowdin.common.models.FileEntity;
+import com.crowdin.client.sourcefiles.model.*;
 
-import java.io.File;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ProjectFilesUtils {
 
-    public static Map<String, FileEntity> buildFilePaths(Map<Long, Directory> directories, Map<Long, Branch> branchNames, List<FileEntity> files) {
+    public static Map<String, File> buildFilePaths(Map<Long, Directory> directories, Map<Long, Branch> branchNames, List<File> files) {
         Map<Long, String> directoryPaths = buildDirectoryPaths(directories, branchNames);
-        Map<String, FileEntity> filePathsToId = new HashMap<>();
+        Map<String, File> filePathsToId = new HashMap<>();
         files.forEach(fe -> filePathsToId.put(getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName(), fe));
         return filePathsToId;
     }
@@ -35,7 +35,7 @@ public class ProjectFilesUtils {
     }
 
     public static Map<String, List<String>> buildAllProjectTranslations(
-            List<FileEntity> projectFiles,
+            List<File> projectFiles,
             Map<Long, String> directoryPaths,
             Optional<Long> branchId,
             PlaceholderUtil placeholderUtil,
@@ -43,16 +43,16 @@ public class ProjectFilesUtils {
             String basePath
     ) {
         Map<String, List<String>> allProjectTranslations = new HashMap<>();
-        for (FileEntity fe : projectFiles) {
+        for (File fe : projectFiles) {
             if (branchId.isPresent() && !branchId.get().equals(fe.getBranchId())) {
                 continue;
             }
             String path = getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName();
             Stream<String> translations = isMultilingualFile(fe)
                 ? Stream.of(Utils.normalizePath(fe.getName()))
-                : placeholderUtil.replaceLanguageDependentPlaceholders(Utils.normalizePath(fe.getExportOptions().getExportPattern()), languageMapping)
+                : placeholderUtil.replaceLanguageDependentPlaceholders(Utils.normalizePath(getExportPattern(fe.getExportOptions())), languageMapping)
                     .stream()
-                    .map(tr -> placeholderUtil.replaceFileDependentPlaceholders(tr, new File(basePath + path)))
+                    .map(tr -> placeholderUtil.replaceFileDependentPlaceholders(tr, new java.io.File(basePath + path)))
                     .map(translation -> ((fe.getBranchId() != null) ? directoryPaths.getOrDefault(fe.getBranchId(), "") : "") + translation);
             allProjectTranslations.put(path, translations.collect(Collectors.toList()));
         }
@@ -75,11 +75,21 @@ public class ProjectFilesUtils {
         return ((branchId != null) ? branchNames.get(branchId).getName() + Utils.PATH_SEPARATOR : "");
     }
 
-    private static Optional<Long> getParentId(FileEntity fe) {
+    private static Optional<Long> getParentId(File fe) {
         return (fe.getDirectoryId() != null) ? Optional.of(fe.getDirectoryId()) : Optional.ofNullable(fe.getBranchId());
     }
 
-    public static boolean isMultilingualFile(FileEntity fe) {
-        return fe.getExportOptions() == null || fe.getExportOptions().getExportPattern() == null;
+    public static boolean isMultilingualFile(File fe) {
+        return getExportPattern(fe.getExportOptions()) == null;
+    }
+
+    public static String getExportPattern(ExportOptions exportOptions) {
+        if (exportOptions instanceof PropertyFileExportOptions) {
+            return ((PropertyFileExportOptions) exportOptions).getExportPattern();
+        } else if (exportOptions instanceof GeneralFileExportOptions) {
+            return ((GeneralFileExportOptions) exportOptions).getExportPattern();
+        } else {
+            return null;
+        }
     }
 }

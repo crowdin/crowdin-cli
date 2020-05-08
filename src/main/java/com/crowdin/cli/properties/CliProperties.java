@@ -249,11 +249,11 @@ public class CliProperties {
             }
             pb.setBasePath(StringUtils.removeEnd(path.toString(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR);
         } else {
-            pb.setBasePath(basePathIfEmpty + Utils.PATH_SEPARATOR);
+            pb.setBasePath(StringUtils.removeEnd(basePathIfEmpty, Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR);
         }
 
         if (StringUtils.isNotEmpty(pb.getBaseUrl())) {
-            pb.setBaseUrl(StringUtils.removePattern(pb.getBaseUrl(), "/(api(/|/v2/?)?)?$") + "/api/v2");
+            pb.setBaseUrl(StringUtils.removePattern(pb.getBaseUrl(), "/(api(/|/v2/?)?)?$"));
         } else {
             pb.setBaseUrl(Utils.getBaseUrl());
         }
@@ -424,7 +424,7 @@ public class CliProperties {
     }
 
     private static boolean checkBaseUrl(String baseUrl) {
-        return baseUrl == null || baseUrl.matches("(https://(.+\\.)?|http://(.+\\.)?.+\\.dev\\.)crowdin\\.com(/api/v2)?");
+        return baseUrl == null || baseUrl.matches("^(https://(.+\\.)?|http://(.+\\.)?.+\\.dev\\.)crowdin\\.com(/api/v2)?$");
     }
 
     private static boolean checkBasePathExists(String basePath) {

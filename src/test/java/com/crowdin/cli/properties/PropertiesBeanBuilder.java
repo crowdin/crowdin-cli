@@ -2,43 +2,66 @@ package com.crowdin.cli.properties;
 
 import com.crowdin.cli.utils.Utils;
 
+import java.util.List;
+
 public class PropertiesBeanBuilder {
 
     public static final String TEST_PROJECT_ID = "666";
     public static final String TEST_API_TOKEN = "123abc456";
-    public static final String TEST_BASE_URL = "https://crowdin.com/api/v2";
+    public static final String TEST_BASE_URL = "https://crowdin.com";
+
+    public static final String STANDARD_SOURCE = "*";
+    public static final String STANDARD_TRANSLATIONS = Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%";
 
 
-    private PropertiesBean pb = new PropertiesBean();
+    private PropertiesBean pb;
 
     public PropertiesBeanBuilder minimalPropertiesBean() {
-        pb.setProjectId(TEST_PROJECT_ID);
-        pb.setApiToken(TEST_API_TOKEN);
-        pb.setBasePath(".");
-        pb.setBaseUrl(TEST_BASE_URL);
-        FileBean fb = new FileBean();
-        fb.setSource("*");
-        fb.setTranslation(Utils.PATH_SEPARATOR + "hell-%locale%");
-        pb.setFiles(fb);
-        return this;
+        return minimalPropertiesBean(STANDARD_SOURCE, STANDARD_TRANSLATIONS);
     }
 
-    public PropertiesBeanBuilder minimalBuiltPropertiesBean() {
-        pb.setProjectId(TEST_PROJECT_ID);
-        pb.setApiToken(TEST_API_TOKEN);
-        pb.setBasePath(".");
-        pb.setBaseUrl(TEST_BASE_URL);
-        pb.setPreserveHierarchy(false);
+    public static PropertiesBeanBuilder minimalPropertiesBean(String source, String translation) {
+        PropertiesBeanBuilder pbBuilder = minimalPropertiesBeanWithoutFileBean();
         FileBean fb = new FileBean();
-        fb.setSource("*");
-        fb.setTranslation(Utils.PATH_SEPARATOR + "hell-%locale%");
+        fb.setSource(source);
+        fb.setTranslation(translation);
+        pbBuilder.pb.setFiles(fb);
+        return pbBuilder;
+    }
+
+    public static PropertiesBeanBuilder minimalBuiltPropertiesBean() {
+        return minimalBuiltPropertiesBean(STANDARD_SOURCE, STANDARD_TRANSLATIONS, null);
+    }
+
+    public static PropertiesBeanBuilder minimalBuiltPropertiesBean(String source, String translation) {
+        return minimalBuiltPropertiesBean(source, translation, null);
+    }
+
+    public static PropertiesBeanBuilder minimalBuiltPropertiesBean(String source, String translation, List<String> ignore) {
+        PropertiesBeanBuilder pbBuilder = minimalPropertiesBeanWithoutFileBean();
+        FileBean fb = new FileBean();
+        fb.setSource(source);
+        fb.setTranslation(translation);
+        fb.setIgnore(ignore);
         fb.setContentSegmentation(true);
         fb.setTranslateContent(true);
         fb.setTranslateAttributes(false);
         fb.setFirstLineContainsHeader(false);
         fb.setEscapeQuotes(3);
-        pb.setFiles(fb);
-        return this;
+        pbBuilder.pb.setFiles(fb);
+        return pbBuilder;
+    }
+
+    public static PropertiesBeanBuilder minimalPropertiesBeanWithoutFileBean() {
+        PropertiesBean pb = new PropertiesBean();
+        pb.setProjectId(TEST_PROJECT_ID);
+        pb.setApiToken(TEST_API_TOKEN);
+        pb.setBasePath(".");
+        pb.setBaseUrl(TEST_BASE_URL);
+        pb.setPreserveHierarchy(false);
+        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder();
+        pbBuilder.pb = pb;
+        return pbBuilder;
     }
 
     public PropertiesBeanBuilder setBasePath(String basePath) {

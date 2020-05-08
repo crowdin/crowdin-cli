@@ -1,6 +1,7 @@
 package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.utils.Utils;
+import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -10,6 +11,7 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class TranslationsUtilsTest {
@@ -52,7 +54,12 @@ public class TranslationsUtilsTest {
                 Utils.normalizePath("/en/**/*.po"),
                 Utils.normalizePath("/%two_letters_code%/**/%original_file_name%"),
                 Utils.normalizePath("en/here/file.po"),
-                Utils.normalizePath("/%two_letters_code%/here/%original_file_name%"))
+                Utils.normalizePath("/%two_letters_code%/here/%original_file_name%")),
+            arguments(
+                Utils.normalizePath("/*/**/*.po"),
+                Utils.normalizePath("/%two_letters_code%/**/%original_file_name%"),
+                Utils.normalizePath("hmm/here/file.po"),
+                Utils.normalizePath("/%two_letters_code%/hmm/here/%original_file_name%"))
         );
     }
 
@@ -142,5 +149,16 @@ public class TranslationsUtilsTest {
                     }}
                 )
         );
+    }
+
+    @Test
+    public void testForExceptions() {
+        assertThrows(RuntimeException.class,
+            () -> TranslationsUtils.replaceDoubleAsterisk("*", null, null));
+        assertThrows(RuntimeException.class,
+            () -> TranslationsUtils.replaceDoubleAsterisk(
+                "*",
+                "**" + Utils.PATH_SEPARATOR + "%locale%",
+                "first.po"));
     }
 }

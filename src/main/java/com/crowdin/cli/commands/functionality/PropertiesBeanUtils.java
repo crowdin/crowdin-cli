@@ -1,6 +1,7 @@
 package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.client.sourcefiles.model.UpdateOption;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -27,15 +28,15 @@ public class PropertiesBeanUtils {
         return scheme;
     }
 
-    public static Optional<String> getUpdateOption(String fileUpdateOption) {
+    public static Optional<UpdateOption> getUpdateOption(String fileUpdateOption) {
         if (fileUpdateOption == null) {
             return Optional.empty();
         }
         switch(fileUpdateOption) {
             case UPDATE_OPTION_KEEP_TRANSLATIONS_CONF:
-                return Optional.of(UPDATE_OPTION_KEEP_TRANSLATIONS);
+                return Optional.of(UpdateOption.KEEP_TRANSLATIONS);
             case UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS_CONF:
-                return Optional.of(UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS);
+                return Optional.of(UpdateOption.KEEP_TRANSLATIONS_AND_APPROVALS);
             default:
                 return Optional.empty();
         }
@@ -48,5 +49,18 @@ public class PropertiesBeanUtils {
         return translationReplace.keySet().stream()
             .reduce(translationPath, (trans, k) ->
                 StringUtils.replace(trans, Utils.normalizePath(k), translationReplace.get(k)));
+    }
+
+    public static String getOrganization(String baseUrl) {
+        String organization = baseUrl
+            .replaceAll("^https?://", "")
+            .replaceAll("\\.?(dev\\.|api\\.)?crowdin.com(/api/v2)?$", "");
+        return (StringUtils.isEmpty(organization)) ? null : organization;
+    }
+
+    public static boolean isUrlForTesting(String baseUrl) {
+        return baseUrl.matches("^http://.+\\.dev\\.crowdin\\.com(/api/v2)?$")
+            || baseUrl.matches("^https://.+\\.test\\.crowdin\\.com(/api/v2)?$")
+            || baseUrl.matches("^https://.+\\.e-test\\.crowdin\\.com(/api/v2)?$");
     }
 }

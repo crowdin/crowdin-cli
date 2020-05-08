@@ -1,8 +1,5 @@
 package com.crowdin.cli.properties;
 
-import com.crowdin.cli.commands.parts.PropertiesBuilderCommandPart;
-import com.crowdin.cli.utils.Utils;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
