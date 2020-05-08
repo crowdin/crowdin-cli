@@ -2,20 +2,15 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.Project;
-import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
-import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
-import com.crowdin.cli.commands.functionality.SourcesUtils;
-import com.crowdin.cli.commands.functionality.TranslationsUtils;
+import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.cli.utils.file.FileUtils;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
-import net.lingala.zip4j.core.ZipFile;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
@@ -23,7 +18,6 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -33,13 +27,15 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class DownloadAction implements Action {
 
+    private FilesInterface files;
     private boolean noProgress;
     private String languageId;
     private String branchName;
     private boolean ignoreMatch;
     private boolean isVerbose;
 
-    public DownloadAction(boolean noProgress, String languageId, String branchName, boolean ignoreMatch, boolean isVerbose) {
+    public DownloadAction(FilesInterface files, boolean noProgress, String languageId, String branchName, boolean ignoreMatch, boolean isVerbose) {
+        this.files = files;
         this.noProgress = noProgress;
         this.languageId = languageId;
         this.branchName = branchName;
@@ -84,15 +80,18 @@ public class DownloadAction implements Action {
         ProjectBuild projectBuild = buildTranslation(client, buildRequest);
 
         String currentTimeMillis = Long.toString(System.currentTimeMillis());
-        String baseTempDir =
-                StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + currentTimeMillis + Utils.PATH_SEPARATOR;
+        File baseTempDir =
+                new File(StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + currentTimeMillis + Utils.PATH_SEPARATOR);
         String downloadedZipArchivePath =
                 StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + "translations" + currentTimeMillis + ".zip";
         File downloadedZipArchive = new File(downloadedZipArchivePath);
 
         this.downloadTranslations(client, projectBuild.getId(), downloadedZipArchivePath);
 
-        List<String> downloadedFilesProc = this.getListOfFileFromArchive(downloadedZipArchive);
+        List<String> downloadedFilesProc = files.extractZipArchive(downloadedZipArchive, baseTempDir)
+            .stream()
+            .map(f -> StringUtils.removeStart(f.getAbsolutePath(), baseTempDir.getAbsolutePath() + Utils.PATH_SEPARATOR))
+            .collect(Collectors.toList());
 
         List<Language> forLanguages = language
             .map(Collections::singletonList)
@@ -123,12 +122,11 @@ public class DownloadAction implements Action {
         Map<String, List<String>> allProjectTranslations = ProjectFilesUtils
                 .buildAllProjectTranslations(project.getFiles(), directoryPaths, branch.map(Branch::getId), placeholderUtil, langMapping, pb.getBasePath());
 
-        this.extractFiles(baseTempDir, downloadedZipArchive);
-        this.unpackFiles(downloadedFilesProc, filesWithMapping, allProjectTranslations, pb.getBasePath(), baseTempDir);
+        this.unpackFiles(downloadedFilesProc, filesWithMapping, allProjectTranslations, pb.getBasePath(), baseTempDir.getAbsolutePath() + Utils.PATH_SEPARATOR);
 
         try {
-            org.apache.commons.io.FileUtils.deleteDirectory(new File(baseTempDir));
-            Files.delete(downloadedZipArchive.toPath());
+            files.deleteDirectory(baseTempDir);
+            files.deleteFile(downloadedZipArchive);
         } catch (IOException e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.clearing_temp"), e);
         }
@@ -153,40 +151,6 @@ public class DownloadAction implements Action {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.building_translation"), e);
         }
         return build;
-    }
-
-    private List<String> getListOfFileFromArchive(File downloadedZipArchive) {
-        try (java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(downloadedZipArchive.getAbsolutePath())) {
-            return zipFile
-                .stream()
-                .filter(ze -> !ze.isDirectory())
-                .map(ze -> ze.getName().replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX))
-                .collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.extracting_files"));
-        }
-    }
-
-    private void extractFiles(String baseTempDir, File downloadedZipArchive) {
-        ZipFile zFile;
-        try {
-            zFile = new ZipFile(downloadedZipArchive.getAbsolutePath());
-        } catch (net.lingala.zip4j.exception.ZipException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.archive_not_exist"), downloadedZipArchive.getAbsolutePath()));
-        }
-        File tmpDir = new File(baseTempDir);
-        if (!tmpDir.exists()) {
-            try {
-                Files.createDirectory(tmpDir.toPath());
-            } catch (IOException ex) {
-                System.out.println(RESOURCE_BUNDLE.getString("error.creatingDirectory"));
-            }
-        }
-        try {
-            zFile.extractAll(tmpDir.getAbsolutePath());
-        } catch (net.lingala.zip4j.exception.ZipException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.extract_archive"), downloadedZipArchive.getAbsolutePath()));
-        }
     }
 
     private Pair<Map<File, File>, List<String>> sortFiles(
@@ -239,7 +203,7 @@ public class DownloadAction implements Action {
     ) {
         Pair<Map<File, File>, List<String>> result = sortFiles(downloadedFilesProc, filesWithMapping, basePath, baseTempDirPath);
         new TreeMap<>(result.getLeft()).forEach((fromFile, toFile) -> { //files to extract
-            this.moveFile(fromFile, toFile);
+            files.copyFile(fromFile, toFile);
             System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.extracted_file"), StringUtils.removeStart(toFile.getAbsolutePath(), basePath))));
         });
         if (!ignoreMatch && !result.getRight().isEmpty()) {
@@ -258,17 +222,6 @@ public class DownloadAction implements Action {
             if (!allOmittedFilesNoSources.isEmpty()) {
                 System.out.println(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted_without_sources"));
                 allOmittedFilesNoSources.forEach(file -> System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), file)));
-            }
-        }
-    }
-
-    private void moveFile(File fromFile, File toFile) {
-        toFile.getParentFile().mkdirs();
-        if (!fromFile.renameTo(toFile)) {
-            if (toFile.delete()) {
-                if (!fromFile.renameTo(toFile)) {
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("error.replacing_file"), toFile.getAbsolutePath()));
-                }
             }
         }
     }
@@ -311,9 +264,9 @@ public class DownloadAction implements Action {
     private void downloadTranslations(Client client, Long buildId, String archivePath) {
         try {
             ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.downloading_translation"), this.noProgress);
-            InputStream download = client.downloadBuild(buildId);
+            InputStream data = client.downloadBuild(buildId);
 
-            FileUtils.writeToFile(download, archivePath);
+            files.writeToFile(archivePath, data);
             ConsoleSpinner.stop(OK);
         } catch (IOException e) {
             ConsoleSpinner.stop(ERROR);

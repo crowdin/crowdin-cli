@@ -9,6 +9,7 @@ import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.sourcefiles.model.File;
+import com.crowdin.client.sourcefiles.model.GeneralFileExportOptions;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -20,6 +21,7 @@ import java.util.stream.Collectors;
 
 public class ProjectBuilder {
 
+    private ProjectSettings projectSettings;
     private CrowdinProject project;
 
     private List<Directory> directories = new ArrayList<>();
@@ -44,6 +46,7 @@ public class ProjectBuilder {
         project.setSupportedLanguages(supportedLanguages);
         project.setProjectLanguages(projectLanguages);
         projectBuilder.project = project;
+        projectBuilder.projectSettings = projectSettings;
         return projectBuilder;
     }
 
@@ -70,6 +73,28 @@ public class ProjectBuilder {
         File file = FileBuilder.standard().setProjectId(project.getProjectId())
             .setIdentifiers(name, type, id, directoryId, branchId).build();
         files.add(file);
+        return this;
+    }
+
+    public ProjectBuilder addFile(String name, String type, Long id, Long directoryId, Long branchId, String exportPattern) {
+        File file = FileBuilder.standard().setProjectId(project.getProjectId())
+                .setIdentifiers(name, type, id, directoryId, branchId).build();
+        file.setExportOptions(new GeneralFileExportOptions() {{
+            setExportPattern(exportPattern);
+        }});
+        files.add(file);
+        return this;
+    }
+
+    public ProjectBuilder addLanguageMapping(String langLocale, String placeholder, String value) {
+        Map<String, Map<String, String>> languageMapping = (Map<String, Map<String, String>>) projectSettings.getLanguageMapping();
+        if (languageMapping == null) {
+            languageMapping = new HashMap<>();
+        }
+        languageMapping.putIfAbsent(langLocale, new HashMap<>());
+        languageMapping.get(langLocale).put(placeholder, value);
+
+        projectSettings.setLanguageMapping(languageMapping);
         return this;
     }
 
