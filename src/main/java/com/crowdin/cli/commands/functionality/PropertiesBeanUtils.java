@@ -59,6 +59,8 @@ public class PropertiesBeanUtils {
     }
 
     public static boolean isUrlForTesting(String baseUrl) {
-        return baseUrl.matches("^https://(.+\\.)?(api\\.)?crowdin\\.com(/api/v2)?$");
+        return baseUrl.matches("^http://.+\\.dev\\.crowdin\\.com(/api/v2)?$")
+            || baseUrl.matches("^https://.+\\.test\\.crowdin\\.com(/api/v2)?$")
+            || baseUrl.matches("^https://.+\\.e-test\\.crowdin\\.com(/api/v2)?$");
     }
 }
