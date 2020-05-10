@@ -31,9 +31,9 @@ public class PlaceholderUtilTest {
             "/proj/path/"
         );
 
-        List<String> result = placeholderUtil.format(Arrays.asList(sources), toFormat, true);
+        Set<String> result = placeholderUtil.format(Arrays.asList(sources), toFormat, true);
 
-        assertEquals(Arrays.asList(expected), result);
+        assertEquals(new HashSet<>(Arrays.asList(expected)), result);
     }
 
     static Stream<Arguments> testMainFunctionality() {
@@ -95,8 +95,8 @@ public class PlaceholderUtilTest {
                 new String[] {
                     "resources/ua_messages.xml",
                     "resources/ru_messages.xml",
-                    "resources/ukr_messages.xml",
-                    "resources/rus_messages.xml"
+                    "resources/rus_messages.xml",
+                    "resources/ukr_messages.xml"
                 }
             )
         );
@@ -108,7 +108,7 @@ public class PlaceholderUtilTest {
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(new ArrayList<>(), new ArrayList<>(), "/here/it/goes/");
 
         assertEquals(new ArrayList<String>(), placeholderUtil.format(null, new ArrayList<>(), false));
-        assertEquals(new ArrayList<String>(), placeholderUtil.format(null, "", false));
+        assertEquals(new HashSet<>(), placeholderUtil.format(null, "", false));
 
         assertThrows(NullPointerException.class, () -> placeholderUtil.replaceLanguageDependentPlaceholders(null, new Language()));
         assertThrows(NullPointerException.class, () -> placeholderUtil.replaceLanguageDependentPlaceholders(null, null, null));

@@ -5,9 +5,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class PlaceholderUtil {
@@ -49,15 +47,15 @@ public class PlaceholderUtil {
         return res;
     }
 
-    public List<String> format(List<File> sources, String toFormat, boolean onProjectLangs) {
+    public Set<String> format(List<File> sources, String toFormat, boolean onProjectLangs) {
         if (sources == null || toFormat == null)
-            return new ArrayList<>();
+            return new HashSet<>();
         List<Language> languages = (onProjectLangs ? projectLangs : supportedLangs);
-        List<String> result = languages.stream()
+        Set<String> result = languages.stream()
                 .map(lang -> this.replaceLanguageDependentPlaceholders(toFormat, lang))
                 .flatMap(changedToFormat -> sources.stream()
                         .map(source -> this.replaceFileDependentPlaceholders(changedToFormat, source)))
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
         return result;
     }
 
