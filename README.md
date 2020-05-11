@@ -1,6 +1,6 @@
 [<p align="center"><img src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" data-canonical-src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" width="200" height="200" align="center"/></p>](https://crowdin.com)
 
-# Crowdin CLI (v3)
+# Crowdin CLI
 
 Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project. Using CLI, you can:
 
@@ -16,29 +16,13 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 [![Build Status](https://dev.azure.com/crowdin/crowdin-cli-3/_apis/build/status/crowdin-cli-3?branchName=cli3&cacheSeconds=1000)](https://dev.azure.com/crowdin/crowdin-cli-3/_build/latest?definitionId=10&branchName=cli3)
 ![Azure DevOps tests (branch)](https://img.shields.io/azure-devops/tests/crowdin/crowdin-cli-3/10/cli3?cacheSeconds=2000)
 [![codecov](https://codecov.io/gh/crowdin/crowdin-cli-2/branch/cli3/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli-2)
+[![GitHub contributors](https://img.shields.io/github/contributors/crowdin/crowdin-cli-2?cacheSeconds=1000)](https://github.com/crowdin/crowdin-cli-2/graphs/contributors)
 ![GitHub](https://img.shields.io/github/license/crowdin/crowdin-cli-2?cacheSeconds=50000)
-
-
-## What's New
-
-- Multithreading for source and translation files upload
-- Interactive generation of a configuration file
-- Added `init` alias to `generate` command
-- UX improvements: beautiful process indicators, loading states, emojis
-- Improved help screen for commands
-- Based on new RESTful Crowdin API v2
-- Bug fixes and other minor improvements
-
 
 ## Table of Contents
 
+* [Whats new](#whats-new)
 * [Installation](#installation)
-  * [Verifying Your Java Version](#verifying-your-java-version)
-  * [Windows](#windows)
-  * [Debian](#debian)
-  * [RMP](#rpm)
-  * [Standalone Version](#standalone-version)
-  * [Building a crowdin-cli.jar](#building-a-crowdin-clijar)
 * [Running the App](#running-the-app)
 * [Configuration](#configuration)
 * [Usage](#usage)
@@ -46,88 +30,107 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
   * [Uploading Resources](#uploading-resources)
 * [Downloading Translations](#downloading-translations)
 * [Versions Management](#versions-management)
-* [Configuring Crowdin YAML](#configuring-crowdin-yaml)
-* [Writing A Simple Configuration File](#writing-a-simple-configuration-file)
-* [API Credentials from Environment Variables](#api-credentials-from-environment-variables)
-* [Split Project Configuration and User Credentials](#split-project-configuration-and-user-credentials)
-* [General Configuration](#general-configuration)
-* [Placeholders](#placeholders)
-* [Usage of Wildcards](#usage-of-wildcards)
-* [Language Mapping](#language-mapping)
-* [Ignoring Files and Directories](#ignoring-files-and-directories)
-* [Multicolumn CSV](#multicolumn-csv)
-* [Saving Directory Structure on Server](#saving-directory-structure-on-server)
-* [Uploading Files to Specified Path with Specified Type](#uploading-files-to-specified-path-with-specified-type)
-* [Changed Strings Update](#changed-strings-update)
-* [Translations Upload](#translations-upload)
-* [Additional Options for XML Files](#additional-options-for-xml-files)
-* [Escape Quotes Options for .properties File Format](#escape-quotes-options-for-properties-file-format)
-* [Example Configurations](#example-configurations)
-  * [Uploading CSV files via API](#uploading-csv-files-via-api)
-  * [GetText Project](#gettext-project)
-  * [Android Project](#android-project)
-* [Change log](#change-log)
 * [Seeking Assistance](#seeking-assistance)
-* [Contribution](#contribution)
+* [Contributing](#contributing)
 * [Authors](#authors)
 * [License](#license)
+
+## What's New
+
+CLI 3:
+- Available for Crowdin Enterprise
+- Multithreading for source and translation files upload
+- UX improvements: beautiful process indicators, loading states, emojis
+- Translations download progress
+- Interactive generation of a configuration file
+- Bash/Zsh commands completion
+- Improved help screen for commands
+- Improved configuration file validation
+- HTTP Proxy support including authorization
+- Support Language Mapping configured on Crowdin
+- More export options for `download` command
+- `content_segmentation` option support for xml, html, md, fm_md, fm_html, flsnp, docx, idml, dita
+- `escape_special_characters` option support for properties file
+- `--dryrun` option for translations upload
+- `ignore` pattern improvements
+- Memory and CPU optimization
+- Based on new RESTful Crowdin API v2
+- Added notification about new version
+- Added `init` alias to `generate` command
+- Bug fixes and other improvements
+- Complete list of changes: [CHANGELOG.md](https://github.com/crowdin/crowdin-cli-2/blob/cli3/CHANGELOG.md)
+
+**Note**: for CLI v2 see the [master branch](https://github.com/crowdin/crowdin-cli-2/tree/master) or [releases page](https://github.com/crowdin/crowdin-cli-2/releases).
 
 ---
 
 ## Installation
 
-### Verifying Your Java Version
+### Requirements
 
 Check if you have Java 8 or newer installed. Type `java -version` command in the terminal (Command Prompt on Windows) to check Java version.
-For example, java version "1.8.0_212" means that you have Java 8 Update 212 installed.
 
-If you don't have Java installed, download it from <a href="https://www.java.com/" target="_blank">Oracle's website</a>.
+For example, *java version "1.8.0_212"* means that you have Java 8 Update 212 installed.
 
-
-### Windows
+<details>
+<summary><b>Windows</b></summary>
 
 Download and run [installer for Windows](https://downloads.crowdin.com/cli/v3/crowdin.exe).
 
-### Debian
+</details>
+
+<details>
+<summary><b>Debian</b></summary>
 
 We sign all our packages with the Crowdin Signing Key.
 
 Download and install the public signing key:
 
-`wget -qO - https://artifacts.crowdin.com/repo/GPG-KEY-crowdin | sudo apt-key add -`
-
-Create a file called *crowdin.list* in the */etc/apt/sources.list.d* directory containing:
-
-*/etc/apt/sources.list.d/crowdin.list*:
+```console
+wget -qO - https://artifacts.crowdin.com/repo/GPG-KEY-crowdin | sudo apt-key add -
 ```
-deb https://artifacts.crowdin.com/repo/deb/ /
+
+Using the following command, create the *crowdin.list* file in the */etc/apt/sources.list.d* directory:
+
+```console
+echo "deb https://artifacts.crowdin.com/repo/deb/ /" > /etc/apt/sources.list.d/crowdin.list
 ```
 
 And your repository is ready for use. You can install the Crowdin CLI Debian package with:
 
-`sudo apt-get update && sudo apt-get install crowdin3`
+```console
+sudo apt-get update && sudo apt-get install crowdin3
+```
 
 To install the Crowdin CLI manually:
 
-`wget https://artifacts.crowdin.com/repo/deb/crowdin3.deb -O crowdin.deb`
+```console
+wget https://artifacts.crowdin.com/repo/deb/crowdin3.deb -O crowdin.deb
+```
 
-`sudo dpkg -i crowdin.deb`
+```console
+sudo dpkg -i crowdin.deb
+```
 
+</details>
 
-### RPM
+<details>
+<summary><b>RPM</b></summary>
 
 We sign all our packages with the Crowdin Signing Key.
 
 Download and install the public signing key:
 
-`rpm --import https://artifacts.crowdin.com/repo/GPG-KEY-crowdin`
+```console
+rpm --import https://artifacts.crowdin.com/repo/GPG-KEY-crowdin
+```
 
 Installing from the RPM repository
 
 Create a file called *crowdin.repo* in the */etc/yum.repos.d* directory containing:
 
 */etc/yum.repos.d/crowdin.repo*:
-```
+```ini
 [crowdin]
 name=Crowdin repository
 baseurl=https://artifacts.crowdin.com/repo/rpm
@@ -138,17 +141,28 @@ enabled=1
 
 And your repository is ready for use. You can now install Crowdin CLI with one of the following commands:
 
-`sudo yum install crowdin3`
+```console
+sudo yum install crowdin3
+```
 
-`sudo dnf install crowdin3`
+```console
+sudo dnf install crowdin3
+```
 
 To install the Crowdin CLI manually:
 
-`wget https://artifacts.crowdin.com/repo/rpm/crowdin3.rpm -O crowdin.rpm`
+```console
+wget https://artifacts.crowdin.com/repo/rpm/crowdin3.rpm -O crowdin.rpm
+```
 
-`sudo rpm -U crowdin3.rpm`
+```console
+sudo rpm -U crowdin3.rpm
+```
 
-### Standalone Version
+</details>
+
+<details>
+<summary><b>Standalone Version</b></summary>
 
 Crowdin CLI can be installed as a stand-alone Java application.
 
@@ -166,55 +180,56 @@ Crowdin CLI can be installed as a stand-alone Java application.
 - Extract it's content to the place where you want Crowdin CLI to be stored
 - Open *Command Prompt* as an Administrator
   - Click *Start*
-  - In the *Start Search box*, type `cmd`, and then press CTRL+SHIFT+ENTER
+  - In the *Start Search box*, type `cmd`, and then press `CTRL`+`SHIFT`+`ENTER`
   - If the *User Account Control* dialog box appears, confirm that the action it displays is what you want, and then click *Continue*
 - Run `setup-crowdin.bat` script in order to add crowdin command to the *Command Prompt*
 - Restart your *Command Prompt*
 
-
-### Building a crowdin-cli.jar
-You need to use Gradle for the project build.<br/>
-First of all, refresh all dependencies.<br/>
-Run the following command:
-```
-gradle buildCrowdinCliJar
-```
+</details>
 
 ## Running the App
 
 Use the following method to run the app:
-```
-$ crowdin
+
+```console
+crowdin
 ```
 
 Alternative method:
-```
-$ java -jar crowdin-cli.jar
+
+```console
+java -jar crowdin-cli.jar
 ```
 
-![](https://support.crowdin.com/assets/docs/cli.png)
+[<p align="center"><img src="https://github.com/crowdin/crowdin-cli-2/blob/docs/cli.png" data-canonical-src="https://github.com/crowdin/crowdin-cli-2/blob/docs/cli.png" width="700" height="auto" align="center"/></p>](https://crowdin.com)
 
 ## Configuration
 
-To use Crowdin CLI you need to have a configuration file. We recommend to name it _crowdin.yaml_. You can create it by running the command:
+Crowdin CLI uses a YAML configuration file that contains a description of the resources to manage: files to be uploaded into Crowdin and the locations of the corresponding translations.
 
-```
-$ crowdin init
+To use Crowdin CLI, you should first generate your configuration file and then run the tool. By default, Crowdin CLI looks for a configuration file named *crowdin.yaml* or *crowdin.yml* (so you don’t have to specify the file name unless it’s different from crowdin.yaml).
+
+To create the configuration file run the following command:
+
+```console
+crowdin init
 ```
 
 When calling Crowdin CLI in terminal make sure you are in your project root directory. Otherwise, you need to specify a configuration file path using  `--config` option:
-```
-$ crowdin upload sources --config /path/to/your/config/file
+
+```console
+crowdin upload sources --config /path/to/your/config/file
 ```
 
-Run `crowdin help` to get more details on other commands.
+Run `crowdin -h` to get more details on other commands.
 
 Sample configuration file:
-```
+
+```yaml
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
-"base_path": "/your-base-path"
-"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
+"base_path": "."
+"base_url": "https://api.crowdin.com" # https://{organization-name}.crowdin.com
 
 "preserve_hierarchy": true
 
@@ -235,72 +250,92 @@ Once the configuration file is created, you can use Crowdin CLI to manage your l
 ### General Commands
 
 To display help information:
-```
-$ crowdin help
+
+```console
+crowdin -h
 ```
 
 To generate skeleton configuration file:
-```
-$ crowdin init
+
+```console
+crowdin init
 ```
 
 To check configuration file for general mistakes:
-```
-$ crowdin lint
+
+```console
+crowdin lint
 ```
 
 To display a list of files uploaded to Crowdin:
-```
-$ crowdin list project
+
+```console
+crowdin list project
 ```
 
 ### Uploading Resources
 
 To upload source files to Crowdin:
-```
-$ crowdin upload sources
+
+```console
+crowdin upload sources
 ```
 
-To upload single file without configuration:
+To upload single file without a configuration:
+
+```console
+crowdin upload sources \
+    -s path/to/your/file \
+    -t file/export/pattern \
+    -T personal-access-token \
+    -i project-id \
+    --base-url https://api.crowdin.com
 ```
-$ crowdin upload sources -s path/to/your/file -t file/export/pattern -pat personal-token -i project-id --base-url https://your-organization.crowdin.com
-```
+
 Use <a href="https://support.crowdin.com/configuration-file-v3/#placeholders" target="_blank">placeholders</a> to put appropriate variables.
 
 To display a list of files that will be uploaded to Crowdin:
-```
-$ crowdin upload sources --dryrun
+
+```console
+crowdin upload sources --dryrun
 ```
 
 To upload existing translations to Crowdin (translations will be synchronized):
+
+```console
+crowdin upload translations
 ```
-$ crowdin upload translations
-```
+
 To show detailed information about the `upload` command:
-```
-$ crowdin upload --help
+
+```console
+crowdin upload --help
 ```
 
 ## Downloading Translations
 
-To download latest translations from Crowdin:
-```
-$ crowdin download
+To download the latest translations from Crowdin:
+
+```console
+crowdin download
 ```
 
-To download latest translations for the specific language (<a href="https://support.crowdin.com/api/language-codes/" target="_blank">language codes</a>):
-```
-$ crowdin download -l {language_code}
+To download the latest translations for the specific language (<a href="https://support.crowdin.com/api/language-codes/" target="_blank">language codes</a>):
+
+```console
+crowdin download -l {language_code}
 ```
 
-To display a list of latest translations from Crowdin:
-```
-$ crowdin download --dryrun
+To display a list of the latest translations from Crowdin:
+
+```console
+crowdin download --dryrun
 ```
 
 To show detailed information about the `download` command:
-```
-$ crowdin download --help
+
+```console
+crowdin download --help
 ```
 
 ## Versions Management
@@ -308,659 +343,41 @@ $ crowdin download --help
 There is no need to run specific command to create version branches if you sue synchronization tool. The version branch is created automatically during the files upload.
 
 To upload source files to the specified version branch:
-```
-$ crowdin upload sources -b {branch_name}
+
+```console
+crowdin upload sources -b {branch_name}
 ```
 
 To upload translations to the specified version branch:
-```
-$ crowdin upload translations -b {branch_name}
+
+```console
+crowdin upload translations -b {branch_name}
 ```
 
 To download translations from the specified version branch:
+
+```console
+crowdin download -b {branch_name}
 ```
-$ crowdin download -b {branch_name}
-```
-
-## Configuring Crowdin YAML
-
-Crowdin CLI uses YAML configuration file, which contains a description of all resources to manage. Config file consists of sections that contain the actual information about each file set that shall be uploaded to Crowdin and locations where the translations are stored. To use Crowdin CLI, you should first write your YAML config and then run the tool.
-By default, Crowdin CLI looks for config file named _crowdin.yaml_. So you don’t have to specify the config name unless it is different from _crowdin.yaml_.
-You can create it by running the command:
-
-```
-$ crowdin init
-```
-
-The goal of this article is to help you obtain, set up, and execute Crowdin CLI correctly for your project. Once you set up Crowdin CLI properly, you do not need to revisit this page, unless you’re starting another project.
-
-## Configuration File Structure
-
-Valid Crowdin CLI config file has the following structure:
-
-*   your Crowdin project credentials, project preferences and access information (they are at the head of YAML file)
-*   one exact element in files array that describes set of files you will manage
-*   fields _Source_ and _Translation_ from files array that define filters for source files and contains instruction where to store translated files. It shall also specify where to look for translations when you want to upload them for the first time
-
-## Writing A Simple Configuration File
-
-```
-"project_id": "12"
-"api_token": "54e01--your-personal-token--2724a"
-"base_path": "/your-base-path"
-"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
-
-"files": [
-  {
-    "source" : "/resources/en/*.json",                                    #source files filter
-    "translation" : "/resources/%two_letters_code%/%original_file_name%"  #where translations are stored
-  }
-]
-```
-
-**Note:** On Windows you should use Windows-style directory separator and according to YAML syntax it should be doubled:
-
-```
-{
-"source" : "\\resources\\en\\*.json",
-"translation" : "\\resources\\%two_letters_code%\\%original_file_name%"
-}
-```
-
-To run the above configuration file and upload source files to Crowdin use the following call:
-```
-$ crowdin upload sources
-```
-Get translations from Crowdin:
-```
-$ crowdin download
-```
-
-## API Credentials from Environment Variables
-
-You could load the API Credentials from environment variable. For example:
-
-```
-"project_id_env": CROWDIN_PROJECT_ID
-"api_token_env": CROWDIN_PERSONAL_TOKEN
-"base_path_env": CROWDIN_BASE_PATH
-"base_url_env": CROWDIN_BASE_URL
-```
-
-If mixed, `api_token` and `project_id` have priority:
-
-```
-"project_id_env": CROWDIN_PROJECT_ID                                          # Low priority
-"api_token_env": CROWDIN_PERSONAL_TOKEN                                       # Low priority
-"base_path_env": CROWDIN_BASE_PATH                                            # Low priority
-"base_url_env": CROWDIN_BASE_PATH                                             # Low priority
-"project_id": "12"                                                            # High priority
-"api_token": "your-personal-token"                                            # High priority
-"base_path": "/your-base-path"                                                # High priority
-"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com   # High priority
-```
-
-## Split Project Configuration and User Credentials
-
-_crowdin.yaml_ file contains project-specific configuration and user credentials (api_token, project_id, base_path, base_url). And you cannot commit this config file in the code repository, as the Personal access token would leak to other users. Crowdin CLI supports 2 types of configuration file:
-+ project-specific, residing in the project directory (required)
-+ user-specific, most probably residing in _$HOME/.crowdin.yaml_ (optional)
-
-**NOTE**: User credentials in user-specific configuration file have higher priority than project-specific.
-
-If you need to run command with user-specific credentials (e.g. `upload sources`) run the following command:
-```
-$ crowdin upload sources --identity 'path-to-user-credentials-file'
-```
-
-But if user-specific credentials file residing in _$HOME/.crowdin.yaml_ you can simply run:
-```
-$ crowdin upload sources
-```
-
-## General Configuration
-
-Sample configuration provided above has source and translation attributes containing standard wildcards (also known as globbing patterns) to make it easier to work with multiple files.
-
-Here are patterns you can use:
-
-__\*__ (asterisk) – represents any character in file or directory name.
-For example, if you specify "*.json" it will include all files like "messages.json", "about_us.json" and anything that ends with ".json".
-
-__**__ (doubled asterisk) – matches any string recursively (including sub-directories). You can use _\*\*_ in both source and translation patterns.
-When using _\*\*_ in the translation pattern, it will always contain sub-path from source to a certain file.
-For example, you can use source: '/en/\*\*/*.po' to upload all *.po files to Crowdin recursively.
-The translation pattern will be: '/%two_letters_code%/\*\*/%original_file_name%'.
-
-**?** (question mark) – matches any single character.
-
-**[set]** – matches any single character in a set. Behaves exactly like character sets in Regexp, including set negation ([^a-z]).
-
-**\\** (backslash) – escapes next metacharacter.
-
-## Placeholders
-
-Crowdin CLI allows to use the following placeholders to put appropriate variables into the resulting file name:
-
-<table class="table table-bordered">
-  <thead>
-    <tr>
-      <th>Name</th>
-      <th>Description</th>
-    </tr>
-  </thead>
-  <tbody>
-    <tr>
-      <td>%language%</td>
-      <td>Language name (i.e. Ukrainian)</td>
-    </tr>
-    <tr>
-      <td>%two_letters_code%</td>
-      <td>Language code ISO 639-1 (i.e. uk)</td>
-    </tr>
-    <tr>
-      <td>%three_letters_code%</td>
-      <td>Language code ISO 639-2/T (i.e. ukr)</td>
-    </tr>
-    <tr>
-      <td>%locale%</td>
-      <td>Locale (like uk-UA)</td>
-    </tr>
-    <tr>
-      <td>%locale_with_underscore%</td>
-      <td>Locale (i.e. uk_UA)</td>
-    </tr>
-    <tr>
-      <td>%original_file_name%</td>
-      <td>Original file name</td>
-    </tr>
-    <tr>
-      <td>%android_code%</td>
-      <td>Android Locale identifier used to name "values-" directories</td>
-    </tr>
-    <tr>
-      <td>%osx_code%</td>
-      <td>OS X Locale identifier used to name ".lproj" directories</td>
-    </tr>
-    <tr>
-      <td>%original_path%</td>
-      <td>Take parent folders names in Crowdin project to build file path in resulted bundle</td>
-    </tr>
-    <tr>
-      <td>%file_extension%</td>
-      <td>Original file extension</td>
-    </tr>
-    <tr>
-      <td>%file_name%</td>
-      <td>File name without extension</td>
-    </tr>
-  </tbody>
-</table>
-
-
-You can also define files path in the resulting archive by putting a slash (/) at the beginning of the pattern.
-
-For example, your `translation` option can look like: "/locale/%two_letters_code%/LC_MESSAGES/%original_file_name%".
-
-## Usage of Wildcards
-
-Structure of files and directories on the local machine:
-```
-    - base_path
-          |
-          |-- folder
-          |     |
-          |     |-- 1.xml
-          |     |-- 1.txt
-          |     |-- 123.txt
-          |     |-- 123_test.txt
-          |     |-- a.txt
-          |     |-- a1.txt
-          |     |-- crowdin?test.txt
-          |     |-- crowdin_test.txt
-          |
-          |-- 1.xml
-          |-- 1.txt
-          |-- 123.txt
-          |-- 123_test.txt
-          |-- a.txt
-          |-- a1.txt
-          |-- crowdin?test.txt
-          |-- crowdin_test.txt
-```
-
-Example 1. Usage of wildcards in source path:
-
-```
-#........your project configuration........
-"files" : [
-  {
-    "source" : "/**/?[0-9].txt", #upload a1.txt, folder/a1.txt
-    "translation" : "/**/%two_letters_code%_%original_file_name%"
-  },
-  {
-    "source" : "/**/*\?*.txt",  #upload crowdin?test.txt, folder/crowdin?test.txt
-    "translation" : "/**/%two_letters_code%_%original_file_name%"
-  },
-  {
-    "source" : "/**/[^0-2].txt",  #upload 3.txt, folder/3.txt, a.txt, folder/a.txt (ignore 1.txt, folder/1.txt)
-    "translation" : "/**/%two_letters_code%_%original_file_name%"
-  }
-]
-```
-
-Example 2. Usage of wildcards for ignoring files:
-
-```
-#........your project configuration........
-
-"files": [
-  {
-    "source" : "/**/*.*", #upload all files that  the base_path contains
-    "translation" : "/**/%two_letters_code%_%original_file_name%",
-    "ignore" : [
-      "/**/?.txt",                      #ignore 1.txt, a.txt, folder/1.txt, folder/a.txt
-      "/**/[0-9].txt",                  #ignore 1.txt, folder/1.txt
-      "/**/*\\?*.txt",                   #ignore crowdin?test.txt, folder/crowdin?test.txt
-      "/**/[0-9][0-9][0-9].txt",        #ignore 123.txt , folder/123.txt
-      "/**/[0-9]*_*.txt"                #ignore 123_test.txt, folder/123_test.txt
-    ]
-  }
-]
-```
-
-## Language Mapping
-
-Software projects often have custom names for locale directories. Crowdin CLI allows you to map your languages to be recognized by Crowdin.
-
-For example, if your locale directories are named 'en', 'uk', 'fr', 'de' all of them can be represented by the %two_letters_code% placeholder.
-But if you have one directory named 'zh_CH' and you want to work with it using Crowdin CLI without changes you can add a `languages_mapping` section to your file set. Sample configuration:
-
-```
-#........your project configuration........
-
-"files" : [
-  {
-    "source" : "/locale/en/**/*.po",
-    "translation" : "/locale/%two_letters_code%/**/%original_file_name%",
-    "languages_mapping" : {
-      "two_letters_code" : {
-        "ru" : "ros",
-        "uk" : "ukr"
-      }
-    }
-  }
-]
-```
-
-Mapping format is: **"crowdin_language_code" : "code_you_use"**.
-Check the <a href="https://support.crowdin.com/api/language-codes/" target="_blank">full list of Crowdin language codes</a> that can be used for mapping.
-
-You can also override language codes for other placeholders (e.g. %android_code%, %locale%).
-
-### Ignoring Files and Directories
-
-If you have files and directories you don't need to translate in Crowdin you can add local per-file rules to project config file:
-
-```
-"files": [
-  {
-    "source" : "/**/*.properties",
-    "translation" : "/**/%file_name%_%two_letters_code%.%file_extension%",
-    "ignore" : [
-      "/test/file.properties",
-      "/example.properties"
-    ]
-  },
-  {
-    "source" : "/locale/en/**/*.po",
-    "translation" : "/locale/%two_letters_code%/**/%original_file_name%",
-    "ignore" : [
-      "/locale/en/templates",
-      "/locale/en/workflow"
-    ]
-  }
-]
-```
-
-## Multicolumn CSV
-
-If CSV file contains translations for all target languages, you can use `multilingual_spreadsheet` option:
-
-```
-"files": [
-  {
-    "multilingual_spreadsheet": true
-  }  
-]
-```
-
-CSV file example:
-
-```
-identifier,source_phrase,context,Ukrainian,Russian,French
-ident1,Source 1,Context 1,,,
-ident2,Source 2,Context 2,,,
-ident3,Source 3,Context 3,,,
-```
-
-Configuration file example:
-
-```
-"files" : [
-  {
-    "source" : "multicolumn.csv",
-    "translation" : "multicolumn.csv",
-    "first_line_contains_header" : true,
-    "scheme" : "identifier,source_phrase,context,uk,ru,fr",
-    "multilingual_spreadsheet" : true
-  }
-]
-```
-
-## Saving Directory Structure on Server
-
-```
-"preserve_hierarchy": true
-```
-
-Example of file configuration using `preserve_hierarchy` option:
-
-```
-"project_id": "12"
-"api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
-"base_path": "/path/to/your/project"
-"preserve_hierarchy": true
-
-"files" : [
-  {
-    "source" : "/locale/en/**/*.po",
-    "translation" : "/locale/%two_letters_code%/**/%original_file_name%"
-  }
-]
-```
-
-By default, directories that do not contain any files for translation will not be created in Crowdin. For example:
-```
-    - locale
-        |
-        |-- en
-            |
-            |-- foo.po
-            |-- bar.po
-```
-
-By default, project files will be represented in Crowdin as following:
-```
-    - foo.po
-    - bar.po
-```
-Using option `preserve_hierarchy`, file structure in Crowdin is the following:
-```
-    - en
-      |
-      |-- foo.po
-      |-- bar.po
-```
-
-## Uploading Files to Specified Path with Specified Type
-
-This feature adds support for 2 optional parameters in the YAML file section: `dest` and `type`.
-This is useful typically for some projects, where the uploaded name must be different, so Crowdin can detect the type correctly.
-The `dest` parameter allows you to specify a file name in Crowdin.
-
-*Note!* The `dest` parameter only works for single files
-
-Example of configuration file with both parameters:
-
-```
-"project_id": "12"
-"api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
-"base_path": "/home/office/source-code"
-
-"files" : [
-  {
-    "source" : "/conf/messages",
-    "dest" : "/messages.properties",
-    "translation" : "/conf/messages.%two_letters_code%",
-    "type" : "properties"
-  },
-  {
-  "source" : "/app/strings.xml",
-  "dest" : "/strings.xml",
-  "translation" : "/res/values-%android_code%/%original_file_name%"
-  }
-]
-```
-
-## Changed Strings Update
-
-The parameter `update_option` is optional. If it is not set, translations for changed strings will be lost. Useful for typo fixes and minor changes in source strings.
-
-Depending on the value, `update_option` is used to preserve translations and preserve/remove validations of changed strings during file updates.
-
-The values are:
-*   **update_as_unapproved** – preserve translations of changed strings and remove validations of those translations if they exist
-*   **update_without_changes** – preserve translations and validations of changed strings
-
-Example of configuration file with update_option parameter:
-
-```
-"project_id": "12"
-"api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
-"base_path": "/home/office/source-code"
-
-"files" : [
-  {
-    "source" : "/*.csv",
-    "translation" : "/%three_letters_code%/%file_name%.csv",
-    "first_line_contains_header" : true,
-    "scheme" : "identifier,source_phrase,translation,context",
-    "update_option" : "update_as_unapproved"
-  },
-  {
-    "source": "/**/*.xlsx",
-    "translation" : "/%three_letters_code%/folder/%file_name%.xlsx",
-    "update_option" : "update_without_changes"
-  }
-]
-```
-
-## Translations Upload
-
-The command **upload translations** adds existing translations to Crowdin.
-
-The values are:
-
-*   **-l, --language=language_code** – defines the language translations that should be uploaded to Crowdin. By default, translations are uploaded to all project's target languages. <a href="https://support.crowdin.com/api/language-codes/" target="_blank" >Crowdin Language Codes</a>
-*   **--[no-]import-duplicates** – defines whether to add translation if there is the same translation already existing in Crowdin project
-*   **--[no-]import-eq-suggestions** – defines whether to add translation if it is the same as the source string in Crowdin project
-*   **--[no-]auto-approve-imported** – defines whether to automatically approve uploaded translations
-
-Note: If no options specified, uploaded translations will be imported even if they are duplicated or if they are the same as the source strings. Such translations will not be approved.
-
-### Additional Options for XML Files
-
-<table class="additional-parameters-table table table-bordered">
-  <tbody>
-    <tr>
-      <td><span style="white-space: nowrap;">translate_content</span><br><span class="parameter-type" style="color: #999">optional</span></td>
-      <td>bool</td>
-      <td>Defines whether to translate texts placed inside the tags. Acceptable values are: 0 or 1. Default is 1.</td>
-    </tr>
-    <tr>
-      <td><span style="white-space: nowrap;">translate_attributes</span><br><span class="parameter-type" style="color: #999">optional</span></td>
-      <td>bool</td>
-      <td>Defines whether to translate tags attributes. Acceptable values are: 0 or 1. Default is 1.</td>
-    </tr>
-    <tr>
-      <td><span style="white-space: nowrap;">content_segmentation</span><br><span class="parameter-type" style="color: #999">optional</span></td>
-      <td>bool</td>
-      <td>Defines whether to split long texts into smaller text segments. Acceptable values are: 0 or 1. Default is 1.
-        <br>
-        <strong>Note:</strong> If this option is enabled the possibility to upload existing translations for XML files will be disabled.
-      </td>
-    </tr>
-    <tr>
-      <td><span style="white-space: nowrap;">translatable_elements</span><br><span class="parameter-type" style="color: #999">optional</span></td>
-      <td>array</td>
-      <td>This is an array of strings, where each item is XPaths to DOM element that should be imported. <br>
-        Sample path:  /path/to/node or /path/to/attribute[@attr]
-        <br><b>Note:</b> If defined, the parameters <code>translate_content</code> and <code>translate_attributes</code> will be not taken into account while importing.</td>
-    </tr>
-  </tbody>
-</table>
-
-Example of configuration file with additional parameters:
-
-```
-"project_id": "12"
-"api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
-"base_path": "/home/office/source-code"
-
-"files" : [
-  {
-    "source" : "/app/sample1.xml",
-    "translation" : "/app/%locale%/%original_file_name%",
-    "translate_attributes" : 1,
-    "translate_content" : 0
-  },
-  {
-    "source" : "/app/sample2.xml",
-    "translation" : "/app/%locale%/%original_file_name%",
-    "translatable_elements" : [
-      "/content/text",             # translatable texts are stored in "text" nodes of parent node "content"
-      "/content/text[@value]"      # translatable texts are stored in "value" attribute of "text" nodes
-    ]
-  }
-]
-```
-
-## Escape Quotes Options for .properties File Format
-
-Defines whether a single quote should be escaped by another single quote or backslash in exported translations.
-You can add `escape_quote` per-file option.
-Acceptable values are: 0, 1, 2, 3. Default is 3.
-
-The values are:
-
-*   **0** – do not escape single quote
-*   **1** – escape single quote by another single quote
-*   **2** – escape single quote by backslash
-*   **3** – escape single quote by another single quote only in strings containing variables ( {0} )
-
-Example of configuration file:
-
-```
-"project_id": "12"
-"api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
-"base_path": "/home/office/source-code"
-
-"files" : [
-  {
-    "source" : "/en/strings.properties",
-    "translation" : "/%two_letters_code%/%original_file_name%",
-    "escape_quotes" : 1
-  }
-]
-```
-
-## Example Configurations
-
-### Uploading CSV files via API
-
-```
-"project_id": "12"
-"api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
-"base_path": "/home/office/source-code"
-
-"files" : [
-  {
-    "source" : "/*.csv",
-    "translation" : "/%two_letters_code%/%original_file_name%",
-    # Defines whether first line should be imported or it contains columns headers
-    "first_line_contains_header" : true,
-    # Used only when uploading CSV file to define data columns mapping.
-    "scheme" : "identifier,source_phrase,translation,context,max_length"
-  }
-]
-```
-
-### GetText Project
-
-```
-"project_id": "12"
-"api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
-"base_path": "/home/office/source-code"
-
-"files" : [
-  {
-    "source" : "/locale/en/**/*.po",
-    "translation" : "/locale/%two_letters_code%/LC_MESSAGES/%original_file_name%",
-    "languages_mapping" : {
-      "two_letters_code" : {
-        "zh-CN" : "zh_CH",
-        "fr-QC": "fr"
-      }
-    }
-  }
-]
-```
-
-### Android Project
-
-```
-"project_id": "12"
-"api_token": "54e01--your-personal-token--2724a"
-"base_url": "https://crowdin.com" # https://{organization-name}.crowdin.com
-"base_path": "/home/office/sandroid-app"
-
-"files" : [
-  {
-    "source" : "/res/values/*.xml",
-    "translation" : "/res/values-%android_code%/%original_file_name%",
-    "languages_mapping" : {
-      "android_code" : {
-        "de" : "de",
-        "ru" : "ru"
-      }
-    }
-  }
-]
-```
-## Change log
-
-For latest changes check [CHANGELOG.md](CHANGELOG.md) file.
 
 ## Seeking Assistance
-If you find any problems or would like to suggest a feature, please feel free to file an issue on Github at [Issues Page](https://github.com/crowdin/crowdin-cli-2/issues) and use **CLI3** label.
+
+If you find any problems or would like to suggest a feature, please read the [How can I contribute](/CONTRIBUTING.md#how-can-i-contribute) section in our contributing guidelines.
 
 Need help working with Crowdin CLI or have any questions? [Contact](https://crowdin.com/contacts) Customer Success Service.
 
-## Contribution
-We are happy to accept contributions to the Crowdin CLI. To contribute please do the following:
-1. Fork the repository on GitHub.
-2. Decide which code you want to submit. Commit your changes and push to the new branch.
-3. Ensure that your code adheres to standard conventions, as used in the rest of the project.
-4. Ensure that there are Unit tests for your code.
-5. Submit a pull request with your patch on Github.
+## Contributing
+
+If you want to contribute please read the [Contributing](/CONTRIBUTING.md) guidelines.
 
 ## Authors
 
 * Ihor Popyk (ihor.popyk@crowdin.com)
 * Yaroslav Medentsii (medentsiy.y@gmail.com)
+* Daniil Barabash (dbarabash42@gmail.com)
 
 ## License
 <pre>
-Copyright © 2020 Crowdin
-
 The Crowdin CLI is licensed under the MIT License. 
 See the LICENSE.md file distributed with this work for additional 
 information regarding copyright ownership.
