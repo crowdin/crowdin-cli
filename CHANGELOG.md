@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.1.12] - 
+- Added: 'content_segmentation' option
+- Added: Error emoji for exceptions in threads
+- Updated: Use new Java API Client
+- Updated: Separate logic and picocli ui
+- Updated: A lot of refactoring and Unit tests
+- Updated: Update picocli version
+- Updated: Improve '--debug' (now it works for threads)
+- Fixed: Fix for windows
+- Fixed: Performance bug: remove ignore duplicates
+
 ## [3.1.11] - 2020-04-10
 + Updated: Improve tree output
 + Updated: Refactoring and tests
