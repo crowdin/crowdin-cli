@@ -28,11 +28,13 @@ public class UploadSourcesAction implements Action {
     private String branchName;
     private boolean noProgress;
     private boolean autoUpdate;
+    private boolean debug;
 
-    public UploadSourcesAction(String branchName, boolean noProgress, boolean autoUpdate) {
+    public UploadSourcesAction(String branchName, boolean noProgress, boolean autoUpdate, boolean debug) {
         this.branchName = branchName;
         this.noProgress = noProgress;
         this.autoUpdate = autoUpdate;
+        this.debug = debug;
     }
 
     @Override
@@ -138,10 +140,10 @@ public class UploadSourcesAction implements Action {
 
                     })
                     .collect(Collectors.toList());
-                ConcurrencyUtil.executeAndWait(taskss);
+                ConcurrencyUtil.executeAndWait(taskss, debug);
             })
             .collect(Collectors.toList());
-        ConcurrencyUtil.executeAndWaitSingleThread(tasks);
+        ConcurrencyUtil.executeAndWaitSingleThread(tasks, debug);
     }
 
     private ImportOptions buildImportOptions(java.io.File sourceFile, FileBean fileBean) {

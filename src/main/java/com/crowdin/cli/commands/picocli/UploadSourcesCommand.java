@@ -33,7 +33,7 @@ public class UploadSourcesCommand extends Command {
 
         Action action = (dryrun)
             ? new ListSourcesAction(this.noProgress, this.treeView)
-            : new UploadSourcesAction(this.branch, this.noProgress, this.autoUpdate);
+            : new UploadSourcesAction(this.branch, this.noProgress, this.autoUpdate, debug);
         action.act(pb, client);
     }
 }

@@ -17,20 +17,20 @@ public class ConcurrencyUtil {
      *
      * @param tasks list of tasks to execute in parallel
      */
-    public static void executeAndWait(List<Runnable> tasks) {
-        run(tasks, CROWDIN_API_MAX_CONCURRENT_REQUESTS, tasks.size() * 2);
+    public static void executeAndWait(List<Runnable> tasks, boolean debug) {
+        run(tasks, CROWDIN_API_MAX_CONCURRENT_REQUESTS, tasks.size() * 2, debug);
 
     }
 
-    public static void executeAndWaitSingleThread(List<Runnable> tasks) {
-        run(tasks, 1, 100);
+    public static void executeAndWaitSingleThread(List<Runnable> tasks, boolean debug) {
+        run(tasks, 1, 100, debug);
     }
 
-    private static void run(List<Runnable> tasks, int threadQnt, int minutesWait) {
+    private static void run(List<Runnable> tasks, int threadQnt, int minutesWait, boolean debug) {
         if (Objects.isNull(tasks) || tasks.size() == 0) {
             return;
         }
-        ExecutorService executor = CrowdinExecutorService.newFixedThreadPool(threadQnt);
+        ExecutorService executor = CrowdinExecutorService.newFixedThreadPool(threadQnt, debug);
         tasks.forEach(executor::submit);
         executor.shutdown();
         try {

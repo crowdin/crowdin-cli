@@ -25,10 +25,10 @@ public class TranslationsUtils {
         String[] sourceNodes = sourcePattern.split("\\*\\*");
         for (int i = 0; i < sourceNodes.length; i++) {
             if (sourceFile.contains(sourceNodes[i])) {
-                sourceFile = sourceFile.replaceFirst(sourceNodes[i], "");
+                sourceFile = sourceFile.replaceFirst(Utils.regexPath(sourceNodes[i]), "");
             } else if (sourceNodes.length - 1 == i) {
                 if (sourceNodes[i].contains(Utils.PATH_SEPARATOR)) {
-                    String[] sourceNodesTmp = sourceNodes[i].split(Utils.PATH_SEPARATOR);
+                    String[] sourceNodesTmp = sourceNodes[i].split(Utils.PATH_SEPARATOR_REGEX);
                     for (String sourceNode : sourceNodesTmp) {
                         String s = Utils.PATH_SEPARATOR + sourceNode + Utils.PATH_SEPARATOR;
                         s = s.replaceAll(Utils.PATH_SEPARATOR + "+", Utils.PATH_SEPARATOR);

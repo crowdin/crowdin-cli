@@ -46,7 +46,7 @@ public class UploadTranslationsSubcommand extends Command {
 
         Action action = (dryrun)
             ? new ListTranslationsAction(noProgress, treeView, true)
-            : new UploadTranslationsAction(noProgress, languageId, branch, importDuplicates, importEqSuggestions, autoApproveImported);
+            : new UploadTranslationsAction(noProgress, languageId, branch, importDuplicates, importEqSuggestions, autoApproveImported, debug);
         action.act(pb, client);
     }
 }

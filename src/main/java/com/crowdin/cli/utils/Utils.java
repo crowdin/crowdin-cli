@@ -84,4 +84,8 @@ public class Utils {
     public static String normalizePath(String path) {
         return path.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
     }
+
+    public static String regexPath(String path) {
+        return path.replaceAll("\\\\", "\\\\\\\\");
+    }
 }
