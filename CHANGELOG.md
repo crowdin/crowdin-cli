@@ -2,16 +2,13 @@
 All notable changes to this project will be documented in this file.
 
 ## [3.1.12] - 2020-05-12
-- Added: 'content_segmentation' option
-- Added: '--skip-untranslated-strings' option for 'download' command
-- Added: '--skip-untranslated-files' option for 'download' command
-- Added: '--export-only-approved' option for 'download' command
+- Added: `content_segmentation` option
 - Added: Error emoji for exceptions in threads
 - Updated: Use new Java API Client
 - Updated: Separate logic and picocli ui
 - Updated: A lot of refactoring and Unit tests
 - Updated: Update picocli version
-- Updated: Improve '--debug' (now it works for threads)
+- Updated: Improve `--debug` (now it works for threads)
 - Fixed: Fix for windows
 - Fixed: Performance bug: remove ignore duplicates
 
