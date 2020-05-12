@@ -13,11 +13,11 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 
 ## Status
 
-[![Build Status](https://dev.azure.com/crowdin/crowdin-cli-3/_apis/build/status/crowdin-cli-3?branchName=cli3&cacheSeconds=1000)](https://dev.azure.com/crowdin/crowdin-cli-3/_build/latest?definitionId=10&branchName=cli3)
-![Azure DevOps tests (branch)](https://img.shields.io/azure-devops/tests/crowdin/crowdin-cli-3/10/cli3?cacheSeconds=2000)
-[![codecov](https://codecov.io/gh/crowdin/crowdin-cli-2/branch/cli3/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli-2)
-[![GitHub contributors](https://img.shields.io/github/contributors/crowdin/crowdin-cli-2?cacheSeconds=1000)](https://github.com/crowdin/crowdin-cli-2/graphs/contributors)
-![GitHub](https://img.shields.io/github/license/crowdin/crowdin-cli-2?cacheSeconds=50000)
+[![Build Status](https://dev.azure.com/crowdin/crowdin-cli-3/_apis/build/status/crowdin-cli-3?branchName=cli3&cacheSeconds=1000)](https://dev.azure.com/crowdin/crowdin-cli-3/_build/latest?definitionId=22&branchName=cli3)
+![Azure DevOps tests (branch)](https://img.shields.io/azure-devops/tests/crowdin/crowdin-cli-3/22/cli3?cacheSeconds=2000)
+[![codecov](https://codecov.io/gh/crowdin/crowdin-cli/branch/cli3/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli)
+[![GitHub contributors](https://img.shields.io/github/contributors/crowdin/crowdin-cli?cacheSeconds=1000)](https://github.com/crowdin/crowdin-cli/graphs/contributors)
+![GitHub](https://img.shields.io/github/license/crowdin/crowdin-cli?cacheSeconds=50000)
 
 ## Table of Contents
 
@@ -58,9 +58,9 @@ CLI 3:
 - Added notification about new version
 - Added `init` alias to `generate` command
 - Bug fixes and other improvements
-- Complete list of changes: [CHANGELOG.md](https://github.com/crowdin/crowdin-cli-2/blob/cli3/CHANGELOG.md)
+- Complete list of changes: [CHANGELOG.md](https://github.com/crowdin/crowdin-cli/blob/cli3/CHANGELOG.md)
 
-**Note**: for CLI v2 see the [master branch](https://github.com/crowdin/crowdin-cli-2/tree/master) or [releases page](https://github.com/crowdin/crowdin-cli-2/releases).
+**Note**: for CLI v2 see the [master branch](https://github.com/crowdin/crowdin-cli/tree/master) or [releases page](https://github.com/crowdin/crowdin-cli/releases).
 
 ---
 
@@ -201,7 +201,7 @@ Alternative method:
 java -jar crowdin-cli.jar
 ```
 
-[<p align="center"><img src="https://github.com/crowdin/crowdin-cli-2/blob/docs/cli.png" data-canonical-src="https://github.com/crowdin/crowdin-cli-2/blob/docs/cli.png" width="700" height="auto" align="center"/></p>](https://crowdin.com)
+[<p align="center"><img src="https://github.com/crowdin/crowdin-cli/blob/docs/cli.png" data-canonical-src="https://github.com/crowdin/crowdin-cli/blob/docs/cli.png" width="700" height="auto" align="center"/></p>](https://crowdin.com)
 
 ## Configuration
 
