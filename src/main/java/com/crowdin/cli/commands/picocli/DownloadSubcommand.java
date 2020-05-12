@@ -31,6 +31,16 @@ public class DownloadSubcommand extends Command {
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
+    @CommandLine.Option(names = {"--skip-untranslated-strings"}, descriptionKey = "crowdin.download.skipUntranslatedStrings")
+    protected Boolean skipTranslatedOnly;
+
+    @CommandLine.Option(names = {"--skip-untranslated-files"}, descriptionKey = "crowdin.download.skipUntranslatedFiles")
+    protected Boolean skipUntranslatedFiles;
+
+    @CommandLine.Option(names = {"--export-only-approved"}, descriptionKey = "crowdin.download.exportOnlyApproved")
+    protected Boolean exportApprovedOnly;
+
+
     @CommandLine.Mixin
     private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
 
@@ -43,7 +53,7 @@ public class DownloadSubcommand extends Command {
 
         Action action = (dryrun)
             ? new ListTranslationsAction(noProgress, treeView, false)
-            : new DownloadAction(files, noProgress, languageId, branchName, ignoreMatch, isVerbose);
+            : new DownloadAction(files, noProgress, languageId, branchName, ignoreMatch, isVerbose, skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly);
         action.act(pb, client);
     }
 }

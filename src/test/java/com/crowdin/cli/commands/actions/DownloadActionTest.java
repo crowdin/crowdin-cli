@@ -9,7 +9,7 @@ import com.crowdin.cli.properties.PropertiesBeanBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
-import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
+import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
 import com.crowdin.client.translations.model.ProjectBuild;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
@@ -60,7 +60,7 @@ public class DownloadActionTest {
         Client client = mock(Client.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
-        BuildProjectTranslationRequest buildProjectTranslationRequest = new BuildProjectTranslationRequest();
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
         InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
@@ -79,7 +79,7 @@ public class DownloadActionTest {
                 return new ArrayList<>();
             }));
 
-        Action action = new DownloadAction(files, false, null, null, false, false);
+        Action action = new DownloadAction(files, false, null, null, false, false, null, null, null);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
@@ -107,7 +107,7 @@ public class DownloadActionTest {
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
-        BuildProjectTranslationRequest buildProjectTranslationRequest = new BuildProjectTranslationRequest();
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
         InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
@@ -128,7 +128,7 @@ public class DownloadActionTest {
                 }};
             }));
 
-        Action action = new DownloadAction(files, false, null, null, false, false);
+        Action action = new DownloadAction(files, false, null, null, false, false, null, null, null);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
@@ -162,7 +162,7 @@ public class DownloadActionTest {
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
-        BuildProjectTranslationRequest buildProjectTranslationRequest = new BuildProjectTranslationRequest();
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
         InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
@@ -187,7 +187,7 @@ public class DownloadActionTest {
                 }};
             }));
 
-        Action action = new DownloadAction(files, false, null, null, false, false);
+        Action action = new DownloadAction(files, false, null, null, false, false, null, null, null);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
@@ -224,7 +224,7 @@ public class DownloadActionTest {
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%")
                 .addFile("second.po", "gettext", 102L, null, null, "/%original_file_name%-CR-%locale%")
                 .build());
-        BuildProjectTranslationRequest buildProjectTranslationRequest = new BuildProjectTranslationRequest();
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
         InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
@@ -247,7 +247,7 @@ public class DownloadActionTest {
                 }};
             }));
 
-        Action action = new DownloadAction(files, false, null, null, false, false);
+        Action action = new DownloadAction(files, false, null, null, false, false, null, null, null);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
@@ -283,7 +283,7 @@ public class DownloadActionTest {
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%")
                 .addFile("second.po", "gettext", 102L, null, null, "/%original_file_name%-CR-%locale%")
                 .build());
-        BuildProjectTranslationRequest buildProjectTranslationRequest = new BuildProjectTranslationRequest();
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
         InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
@@ -307,7 +307,7 @@ public class DownloadActionTest {
                 }};
             }));
 
-        Action action = new DownloadAction(files, false, null, null, false, true);
+        Action action = new DownloadAction(files, false, null, null, false, true, null, null, null);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
@@ -344,7 +344,7 @@ public class DownloadActionTest {
                 .addFile("second.po", "gettext", 102L, null, null, "/%original_file_name%-CR-%locale%")
                 .addLanguageMapping("ua", "locale", "UA")
                 .build());
-        BuildProjectTranslationRequest buildProjectTranslationRequest = new BuildProjectTranslationRequest();
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
         InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
@@ -368,7 +368,7 @@ public class DownloadActionTest {
                     }};
                 }));
 
-        Action action = new DownloadAction(files, false, null, null, false, true);
+        Action action = new DownloadAction(files, false, null, null, false, true, null, null, null);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
@@ -402,7 +402,7 @@ public class DownloadActionTest {
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
-        BuildProjectTranslationRequest buildProjectTranslationRequest = new BuildProjectTranslationRequest();
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
         InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
@@ -412,7 +412,7 @@ public class DownloadActionTest {
 
         FilesInterface files = mock(FilesInterface.class);
 
-        Action action = new DownloadAction(files, false, null, null, false, false);
+        Action action = new DownloadAction(files, false, null, null, false, false, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(pb, client));
 
         verify(client).downloadFullProject();
@@ -437,7 +437,7 @@ public class DownloadActionTest {
 
         FilesInterface files = mock(FilesInterface.class);
 
-        Action action = new DownloadAction(files, false, null, null, false, false);
+        Action action = new DownloadAction(files, false, null, null, false, false, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(pb, client));
 
         verify(client).downloadFullProject();
@@ -459,7 +459,7 @@ public class DownloadActionTest {
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
-        BuildProjectTranslationRequest buildProjectTranslationRequest = new BuildProjectTranslationRequest();
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
         InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
@@ -482,7 +482,7 @@ public class DownloadActionTest {
         doThrow(IOException.class)
             .when(files).deleteFile(any());
 
-        Action action = new DownloadAction(files, false, null, null, false, false);
+        Action action = new DownloadAction(files, false, null, null, false, false, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(pb, client));
 
         verify(client).downloadFullProject();
@@ -516,7 +516,7 @@ public class DownloadActionTest {
         when(client.downloadFullProject())
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                         .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
-        BuildProjectTranslationRequest buildProjectTranslationRequest = new BuildProjectTranslationRequest();
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
         InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
@@ -526,7 +526,7 @@ public class DownloadActionTest {
 
         FilesInterface files = mock(FilesInterface.class);
 
-        Action action = new DownloadAction(files, false, null, null, false, false);
+        Action action = new DownloadAction(files, false, null, null, false, false, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(pb, client));
 
         verify(client).downloadFullProject();
@@ -550,7 +550,7 @@ public class DownloadActionTest {
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
-        BuildProjectTranslationRequest buildProjectTranslationRequest = new BuildProjectTranslationRequest();
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
         InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
@@ -563,7 +563,7 @@ public class DownloadActionTest {
             .when(files)
                 .writeToFile(any(), any());
 
-        Action action = new DownloadAction(files, false, null, null, false, false);
+        Action action = new DownloadAction(files, false, null, null, false, false, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(pb, client));
 
         verify(client).downloadFullProject();
