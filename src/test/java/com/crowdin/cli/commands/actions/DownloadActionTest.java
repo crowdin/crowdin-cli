@@ -150,6 +150,64 @@ public class DownloadActionTest {
     }
 
     @Test
+    public void testProjectOneFittingFile_WithExportApprovedOnly_WithSkipUntranslatedFiles() throws ResponseException, IOException {
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+                .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+                .setBasePath(project.getBasePath());
+        PropertiesBean pb = pbBuilder.build();
+
+        project.addFile("first.po");
+
+        Client client = mock(Client.class);
+        when(client.downloadFullProject())
+                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                        .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm() {{
+            setExportApprovedOnly(true);
+            setSkipUntranslatedFiles(true);
+        }};
+        long buildId = 42L;
+        InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
+        when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
+                .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
+        when(client.downloadBuild(eq(buildId)))
+                .thenReturn(zipArchiveData);
+
+        FilesInterface files = mock(FilesInterface.class);
+        AtomicReference<File> zipArchive = new AtomicReference<>();
+        AtomicReference<File> tempDir = new AtomicReference<>();
+        when(files.extractZipArchive(any(), any()))
+                .thenAnswer((invocation -> {
+                    zipArchive.set(invocation.getArgument(0));
+                    tempDir.set(invocation.getArgument(1));
+                    return new ArrayList<File>() {{
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
+                    }};
+                }));
+
+        Action action = new DownloadAction(files, false, null, null, false, false, null, true, true);
+        action.act(pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
+        verify(client).downloadBuild(eq(buildId));
+        verifyNoMoreInteractions(client);
+
+        verify(files).writeToFile(any(), eq(zipArchiveData));
+        verify(files).extractZipArchive(any(), any());
+        verify(files).copyFile(
+                new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"),
+                new File(pb.getBasePath() + "first.po-CR-ru-RU"));
+        verify(files).copyFile(
+                new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"),
+                new File(pb.getBasePath() + "first.po-CR-uk-UA"));
+        verify(files).deleteFile(eq(zipArchive.get()));
+        verify(files).deleteDirectory(tempDir.get());
+        verifyNoMoreInteractions(files);
+    }
+
+    @Test
     public void testProjectOneFittingFile_LongBuild() throws ResponseException, IOException {
         PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
@@ -573,5 +631,23 @@ public class DownloadActionTest {
 
         verify(files).writeToFile(any(), eq(zipArchiveData));
         verifyNoMoreInteractions(files);
+    }
+
+    @Test
+    public void testSkipUnTranslatedFilesSources_fail() throws ResponseException, IOException {
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesBean pb = pbBuilder.build();
+
+        Client client = mock(Client.class);
+
+        FilesInterface files = mock(FilesInterface.class);
+
+        Action action = new DownloadAction(files, false, null, null, false, false, true, true, null);
+        assertThrows(RuntimeException.class, () -> action.act(pb, client));
+
+        verifyZeroInteractions(client);
+        verifyZeroInteractions(files);
     }
 }
