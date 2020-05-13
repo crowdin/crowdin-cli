@@ -21,7 +21,7 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 
 ## Table of Contents
 
-* [Whats new](#whats-new)
+* [What's new](#whats-new)
 * [Installation](#installation)
 * [Running the App](#running-the-app)
 * [Configuration](#configuration)
