@@ -51,20 +51,24 @@ public class PropertiesBeanUtils {
                 StringUtils.replace(trans, Utils.normalizePath(k), translationReplace.get(k)));
     }
 
-    public static String getOrganizationForTestUrls(String baseUrl) {
-        String organization = baseUrl
-            .replaceAll("^https?://", "")
-            .replaceAll("\\.?crowdin.com(/api/v2)?$", "")
-            .replaceAll("\\.?[^.]+\\.dev$", "")
-            .replaceAll(".+\\.test$", "")
-            .replaceAll("\\.e-test$", "");
-        return (StringUtils.isEmpty(organization)) ? null : organization;
-    }
+//    public static String getOrganizationForTestUrls(String baseUrl) {
+//        String organization = baseUrl
+//            .replaceAll("^https?://", "")
+//            .replaceAll("\\.?crowdin.com(/api/v2)?$", "")
+//            .replaceAll("\\.?[^.]+\\.dev$", "")
+//            .replaceAll(".+\\.test$", "")
+//            .replaceAll("\\.e-test$", "");
+//        return (StringUtils.isEmpty(organization)) ? null : organization;
+//    }
 
     public static String getOrganization(String baseUrl) {
         String organization = baseUrl
             .replaceAll("^https?://", "")
-            .replaceAll("\\.?(api\\.)?crowdin.com(/api/v2)?$", "");
+            .replaceAll("\\.?crowdin.com(/api/v2)?$", "")
+            .replaceAll("\\.?api", "")
+            .replaceAll("\\.?[^.]+\\.dev$", "")
+            .replaceAll(".+\\.test$", "")
+            .replaceAll("\\.e-test$", "");
         return (StringUtils.isEmpty(organization)) ? null : organization;
     }
 

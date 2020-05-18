@@ -96,16 +96,26 @@ public class PropertiesBeanUtilsTest {
         );
     }
 
-    @Test
-    public void testGetOrganization() {
-        assertEquals("Daanya", PropertiesBeanUtils.getOrganization("https://Daanya.crowdin.com/api/v2"));
-        assertNull(PropertiesBeanUtils.getOrganization("https://crowdin.com/api/v2"));
+    @ParameterizedTest
+    @MethodSource
+    public void testGetOrganization(String baseUrl, String expected) {
+        String organization = PropertiesBeanUtils.getOrganization(baseUrl);
+        assertEquals(expected, organization);
+    }
+
+    private static Stream<Arguments> testGetOrganization() {
+        return Stream.of(
+            arguments("https://Daanya.crowdin.com", "Daanya"),
+            arguments("https://Daanya.api.crowdin.com", "Daanya"),
+            arguments("https://crowdin.com", null),
+            arguments("https://api.crowdin.com", null)
+        );
     }
 
     @ParameterizedTest
     @MethodSource
     public void testGetOrganizationForTestUrls(String baseUrl, String expected) {
-        String organization = PropertiesBeanUtils.getOrganizationForTestUrls(baseUrl);
+        String organization = PropertiesBeanUtils.getOrganization(baseUrl);
         assertEquals(expected, organization);
     }
 

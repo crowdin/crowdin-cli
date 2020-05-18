@@ -36,9 +36,7 @@ public class CrowdinClient implements Client {
 
     public CrowdinClient(String apiToken, String baseUrl, long projectId) {
         boolean isTesting = PropertiesBeanUtils.isUrlForTesting(baseUrl);
-        String organization = isTesting
-            ? PropertiesBeanUtils.getOrganizationForTestUrls(baseUrl)
-            : PropertiesBeanUtils.getOrganization(baseUrl);
+        String organization = PropertiesBeanUtils.getOrganization(baseUrl);
         Credentials credentials = (isTesting)
             ? new Credentials(apiToken, organization, baseUrl)
             : new Credentials(apiToken, organization);
