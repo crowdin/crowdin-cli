@@ -22,8 +22,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
 public class DownloadAction implements Action {
 
@@ -220,7 +219,7 @@ public class DownloadAction implements Action {
                 });
             }
             if (!allOmittedFilesNoSources.isEmpty()) {
-                System.out.println(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted_without_sources"));
+                System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted_without_sources")));
                 allOmittedFilesNoSources.forEach(file -> System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), file)));
             }
         }
