@@ -101,4 +101,20 @@ public class PropertiesBeanUtilsTest {
         assertEquals("Daanya", PropertiesBeanUtils.getOrganization("https://Daanya.crowdin.com/api/v2"));
         assertNull(PropertiesBeanUtils.getOrganization("https://crowdin.com/api/v2"));
     }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testGetOrganizationForTestUrls(String baseUrl, String expected) {
+        String organization = PropertiesBeanUtils.getOrganizationForTestUrls(baseUrl);
+        assertEquals(expected, organization);
+    }
+
+    private static Stream<Arguments> testGetOrganizationForTestUrls() {
+        return Stream.of(
+            arguments("http://vasyl.dev.crowdin.com", null),
+            arguments("http://myorg.vasyl.dev.crowdin.com", "myorg"),
+            arguments("https://98011165-2619304c.test.crowdin.com", null),
+            arguments("https://myorg.e-test.crowdin.com", "myorg")
+        );
+    }
 }

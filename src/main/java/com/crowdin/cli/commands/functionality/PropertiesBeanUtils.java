@@ -51,10 +51,20 @@ public class PropertiesBeanUtils {
                 StringUtils.replace(trans, Utils.normalizePath(k), translationReplace.get(k)));
     }
 
+    public static String getOrganizationForTestUrls(String baseUrl) {
+        String organization = baseUrl
+            .replaceAll("^https?://", "")
+            .replaceAll("\\.?crowdin.com(/api/v2)?$", "")
+            .replaceAll("\\.?[^.]+\\.dev$", "")
+            .replaceAll(".+\\.test$", "")
+            .replaceAll("\\.e-test$", "");
+        return (StringUtils.isEmpty(organization)) ? null : organization;
+    }
+
     public static String getOrganization(String baseUrl) {
         String organization = baseUrl
             .replaceAll("^https?://", "")
-            .replaceAll("\\.?(dev\\.|api\\.)?crowdin.com(/api/v2)?$", "");
+            .replaceAll("\\.?(api\\.)?crowdin.com(/api/v2)?$", "");
         return (StringUtils.isEmpty(organization)) ? null : organization;
     }
 
