@@ -23,8 +23,8 @@ if [[ "$_java" ]]; then
 
         copySuccessed=$?
 
-        printf "\nalias crowdin='java -jar /usr/local/bin/crowdin-cli.jar'" >> ~/.bashrc
-        printf "\nalias crowdin='java -jar /usr/local/bin/crowdin-cli.jar'" >> ~/.bash_profile
+        printf "\nalias crowdin='java -jar /usr/local/bin/crowdin-cli.jar'\n" >> ~/.bashrc
+        printf "\nalias crowdin='java -jar /usr/local/bin/crowdin-cli.jar'\n" >> ~/.bash_profile
 
         [ -d "/etc/bash_completion.d" ] && sudo cp crowdin_completion /etc/bash_completion.d/crowdin_completion
         [ -d "/usr/local/etc/bash_completion.d" ] && sudo cp crowdin_completion /usr/local/etc/bash_completion.d/crowdin_completion
