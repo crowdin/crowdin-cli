@@ -10,6 +10,7 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
+import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
 import com.crowdin.client.translations.model.ProjectBuild;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -32,18 +33,36 @@ public class DownloadAction implements Action {
     private String branchName;
     private boolean ignoreMatch;
     private boolean isVerbose;
+    private Boolean skipTranslatedOnly;
+    private Boolean skipUntranslatedFiles;
+    private Boolean exportApprovedOnly;
 
-    public DownloadAction(FilesInterface files, boolean noProgress, String languageId, String branchName, boolean ignoreMatch, boolean isVerbose) {
+    public DownloadAction(FilesInterface files, boolean noProgress, String languageId, String branchName, boolean ignoreMatch, boolean isVerbose, Boolean skipTranslatedOnly, Boolean skipUntranslatedFiles, Boolean exportApprovedOnly) {
         this.files = files;
         this.noProgress = noProgress;
         this.languageId = languageId;
         this.branchName = branchName;
         this.ignoreMatch = ignoreMatch;
         this.isVerbose = isVerbose;
+        this.skipTranslatedOnly = skipTranslatedOnly;
+        this.skipUntranslatedFiles = skipUntranslatedFiles;
+        this.exportApprovedOnly = exportApprovedOnly;
     }
 
     @Override
     public void act(PropertiesBean pb, Client client) {
+        if (skipTranslatedOnly != null || skipUntranslatedFiles != null || exportApprovedOnly != null) {
+            if (skipTranslatedOnly != null && skipUntranslatedFiles != null && skipTranslatedOnly && skipUntranslatedFiles) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
+            }
+            if (PropertiesBeanUtils.getOrganization(pb.getBaseUrl()) != null) {
+                String options =
+                    ((skipTranslatedOnly != null) ? " --skip-untranslated-strings" : "") +
+                    ((skipUntranslatedFiles != null) ? " --skip-untranslated-files" : "") +
+                    ((exportApprovedOnly != null) ? " --export-only-approved" : "");
+                System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.warning.enterprise_ignores_options"), options)));
+            }
+        }
         Project project;
         try {
             ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
@@ -64,7 +83,10 @@ public class DownloadAction implements Action {
 
         Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
 
-        BuildProjectTranslationRequest buildRequest = new BuildProjectTranslationRequest();
+        CrowdinTranslationCreateProjectBuildForm buildRequest = new CrowdinTranslationCreateProjectBuildForm();
+        buildRequest.setExportTranslatedOnly(this.skipTranslatedOnly);
+        buildRequest.setSkipUntranslatedFiles(this.skipUntranslatedFiles);
+        buildRequest.setExportApprovedOnly(this.exportApprovedOnly);
         language
             .map(Language::getId)
             .map(Collections::singletonList)
