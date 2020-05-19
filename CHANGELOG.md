@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.1.13] - 2020-05-19
+- Added: `--skip-untranslated-strings` option for `download` command
+- Added: `--skip-untranslated-files` option for `download` command
+- Added: `--export-only-approved` option for `download` command
+- Fixed: Output fixes
+
 ## [3.1.12] - 2020-05-12
 - Added: `content_segmentation` option
 - Added: Error emoji for exceptions in threads
