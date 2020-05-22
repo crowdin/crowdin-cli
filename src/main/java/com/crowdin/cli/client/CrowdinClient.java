@@ -22,8 +22,10 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -51,12 +53,12 @@ public class CrowdinClient implements Client {
     @Override
     public CrowdinProject downloadFullProject() throws ResponseException {
         com.crowdin.client.projectsgroups.model.Project projectInfo = downloadProjectInfo();
-        List<File> files = unwrap(executeRequest(() -> this.client.getSourceFilesApi()
-            .listFiles(this.projectId, null, null, null, 499, 0)));
-        List<Directory> directories = unwrap(executeRequest(() -> this.client.getSourceFilesApi()
-            .listDirectories(this.projectId, null, null, null, 499, 0)));
-        List<Branch> branches = unwrap(executeRequest(() -> this.client.getSourceFilesApi()
-            .listBranches(this.projectId, null, 499, 0)));
+        List<File> files = executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
+            .listFiles(this.projectId, null, null, null, limit, offset))));
+        List<Directory> directories = executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
+            .listDirectories(this.projectId, null, null, null, limit, offset))));
+        List<Branch> branches = executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
+            .listBranches(this.projectId, null, limit, offset))));
         List<Language> supportedLanguages = unwrap(executeRequest(() -> this.client.getLanguagesApi()
             .listSupportedLanguages(499, 0)));
         List<Language> projectLanguages = supportedLanguages.stream()
@@ -206,6 +208,24 @@ public class CrowdinClient implements Client {
         } catch (IOException e) {
             throw new RuntimeException("Unexpected exception: malformed download url: " + url, e);
         }
+    }
+
+    /**
+     *
+     * @param request represents function with two args (limit, offset)
+     * @param <T> represents model
+     * @return list of models accumulated from request function
+     */
+    private static <T> List<T> executeRequestFullList(BiFunction<Integer, Integer, List<T>> request) {
+        List<T> directories = new ArrayList<>();
+        long counter;
+        int limit = 500;
+        do {
+            List<T> dirs = executeRequest(() -> request.apply(limit, directories.size()));
+            directories.addAll(dirs);
+            counter = dirs.size();
+        } while (counter == limit);
+        return directories;
     }
 
     private static <T> T executeRequestWithRetryIfErrorContains(Callable<T> request, String errorMessageContains) {
