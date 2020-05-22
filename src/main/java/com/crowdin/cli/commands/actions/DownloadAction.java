@@ -51,18 +51,8 @@ public class DownloadAction implements Action {
 
     @Override
     public void act(PropertiesBean pb, Client client) {
-        if (skipTranslatedOnly != null || skipUntranslatedFiles != null || exportApprovedOnly != null) {
-            if (skipTranslatedOnly != null && skipUntranslatedFiles != null && skipTranslatedOnly && skipUntranslatedFiles) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
-            }
-            if (PropertiesBeanUtils.getOrganization(pb.getBaseUrl()) != null) {
-                String options =
-                    ((skipTranslatedOnly != null) ? " --skip-untranslated-strings" : "") +
-                    ((skipUntranslatedFiles != null) ? " --skip-untranslated-files" : "") +
-                    ((exportApprovedOnly != null) ? " --export-only-approved" : "");
-                System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.warning.enterprise_ignores_options"), options)));
-            }
-        }
+        this.checkOptions(PropertiesBeanUtils.isOrganization(pb.getBaseUrl()));
+
         Project project;
         try {
             ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
@@ -150,6 +140,16 @@ public class DownloadAction implements Action {
             files.deleteFile(downloadedZipArchive);
         } catch (IOException e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.clearing_temp"), e);
+        }
+    }
+
+    private void checkOptions(boolean isOrganization) {
+        if (skipTranslatedOnly != null && skipUntranslatedFiles != null && skipTranslatedOnly && skipUntranslatedFiles) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
+        }
+        if (isOrganization && exportApprovedOnly != null) {
+            System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.warning.enterprise_ignores_option"), "--export-only-approved")));
+            exportApprovedOnly = null;
         }
     }
 
