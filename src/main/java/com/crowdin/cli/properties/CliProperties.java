@@ -348,6 +348,8 @@ public class CliProperties {
         }
         if (StringUtils.isEmpty(pb.getProjectId())) {
             errors.add(RESOURCE_BUNDLE.getString("error.config.missed_project_id"));
+        } else if (!StringUtils.isNumeric(pb.getProjectId())) {
+            errors.add(RESOURCE_BUNDLE.getString("error.config.project_id_is_not_number"));
         }
         if (StringUtils.isEmpty(pb.getApiToken())) {
             errors.add(RESOURCE_BUNDLE.getString("error.config.missed_api_token"));
