@@ -64,7 +64,7 @@ public class UploadTranslationsAction implements Action {
         Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
 
         List<Language> languages = (languageId != null)
-            ? project.findLanguage(languageId)
+            ? project.findLanguage(languageId, true)
                 .map(Collections::singletonList)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)))
             : project.getProjectLanguages(false);

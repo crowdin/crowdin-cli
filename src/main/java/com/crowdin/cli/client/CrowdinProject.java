@@ -59,13 +59,13 @@ public class CrowdinProject implements Project {
 
     private Optional<Language> getPseudoLanguage() {
         return (pseudoLanguageId != null)
-            ? this.findLanguage(pseudoLanguageId)
+            ? this.findLanguage(pseudoLanguageId, false)
             : Optional.empty();
     }
 
     @Override
-    public Optional<Language> findLanguage(String id) {
-        return this.supportedLanguages.stream()
+    public Optional<Language> findLanguage(String id, boolean inProjectLanguages) {
+        return ((inProjectLanguages) ? this.projectLanguages : this.supportedLanguages).stream()
             .filter(lang -> lang.getId().equals(id))
             .findFirst();
     }

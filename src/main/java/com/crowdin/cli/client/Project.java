@@ -16,7 +16,7 @@ public interface Project {
     Map<Long, Directory> getDirectories();
     List<File> getFiles();
 
-    Optional<Language> findLanguage(String id);
+    Optional<Language> findLanguage(String id, boolean inProjectLanguages);
     Optional<Branch> findBranch(String branchName);
     Optional<File> findFile(String name, Long directoryId, Long branchId);
 

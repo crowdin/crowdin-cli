@@ -17,6 +17,7 @@ import com.crowdin.client.storage.model.Storage;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
+import com.crowdin.client.translationstatus.model.LanguageProgress;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
@@ -99,6 +100,11 @@ public class CrowdinClient implements Client {
             project.setLanguageMapping(projectSettings.getLanguageMapping());
         }
         return project;
+    }
+
+    public List<LanguageProgress> getProjectProgress(String langaugeId) {
+        return unwrap(this.client.getTranslationStatusApi()
+                .getProjectProgress(this.projectId, 500, 0, langaugeId));
     }
 
     private com.crowdin.client.projectsgroups.model.Project downloadProjectInfo() throws ResponseException {

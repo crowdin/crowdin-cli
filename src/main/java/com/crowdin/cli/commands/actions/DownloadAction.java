@@ -65,7 +65,7 @@ public class DownloadAction implements Action {
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
         Optional<Language> language = Optional.ofNullable(languageId)
-            .map(lang -> project.findLanguage(lang)
+            .map(lang -> project.findLanguage(lang, true)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))));
         Optional<Branch> branch = Optional.ofNullable(this.branchName)
             .map(br -> project.findBranch(br)
