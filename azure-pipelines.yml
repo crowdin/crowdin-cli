@@ -4,6 +4,10 @@
 # https://docs.microsoft.com/azure/devops/pipelines/languages/java
 
 trigger:
+  branches:
+    include:
+      - refs/heads/*
+      - refs/tags/*
   paths:
     exclude:
       - README.md
