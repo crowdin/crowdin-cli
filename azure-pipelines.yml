@@ -22,10 +22,22 @@ steps:
       jdkArchitectureOption: 'x64'
       publishJUnitResults: true
       testResultsFiles: '**/TEST-*.xml'
-      tasks: 'build'
+      tasks: 'build buildCrowdinCliJar'
   - script: |
       ./gradlew build jacocoTestReport
     displayName: 'Generating code coverage report'
   - bash: |
       bash <(curl -s https://codecov.io/bash) -t $(CODECOV_TOKEN)
     displayName: 'Upload coverage to codecov.io'
+  - task: CopyFiles@2
+    displayName: 'Copy build to Artifact staging directory'
+    inputs:
+      sourceFolder: '$(Build.SourcesDirectory)'
+      contents: '$(Build.SourcesDirectory)/build/libs/crowdin-cli-*.jar'
+      targetFolder: '$(Build.ArtifactStagingDirectory)'
+      flattenFolders: true
+  - task: PublishBuildArtifacts@1
+    displayName: 'Publish build artifacts'
+    inputs:
+      pathToPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: build
