@@ -12,9 +12,9 @@ fi
 if [[ "$_java" ]]; then
     echo "Checking JAVA version..."
 
-    version=$("$_java" -version 2>&1 | awk -F '"' '/version/ {print $2}')
+    version=$("$_java" -version 2>&1 | head -1 | cut -d'"' -f2 | sed '/^1\./s///' | cut -d'.' -f1)
 
-    if [[ "$version" > "1.8" ]]; then
+    if  (( $version > 7 )); then
         echo Your Java version is "$version" - OK
 
         echo "Installing Crowdin CLI..."
