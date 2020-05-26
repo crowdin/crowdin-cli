@@ -18,9 +18,6 @@ public class UploadTranslationsSubcommand extends Command {
     @CommandLine.Option(names = {"--auto-approve-imported"}, negatable = true)
     protected boolean autoApproveImported;
 
-    @CommandLine.Option(names = {"--import-duplicates"}, negatable = true)
-    protected boolean importDuplicates;
-
     @CommandLine.Option(names = {"--import-eq-suggestions"}, negatable = true)
     protected boolean importEqSuggestions;
 
@@ -46,7 +43,7 @@ public class UploadTranslationsSubcommand extends Command {
 
         Action action = (dryrun)
             ? new ListTranslationsAction(noProgress, treeView, true)
-            : new UploadTranslationsAction(noProgress, languageId, branch, importDuplicates, importEqSuggestions, autoApproveImported, debug);
+            : new UploadTranslationsAction(noProgress, languageId, branch, importEqSuggestions, autoApproveImported, debug);
         action.act(pb, client);
     }
 }
