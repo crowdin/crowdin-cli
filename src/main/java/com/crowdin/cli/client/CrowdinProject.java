@@ -21,6 +21,8 @@ public class CrowdinProject implements Project {
     private Map<String, Map<String, String>> languageMapping;
     private String pseudoLanguageId;
 
+    private boolean isManagerAccess;
+
     public long getProjectId() {
         return projectId;
     }
@@ -55,6 +57,10 @@ public class CrowdinProject implements Project {
 
     public void setPseudoLanguageId(String pseudoLanguageId) {
         this.pseudoLanguageId = pseudoLanguageId;
+    }
+
+    public void setManagerAccess(boolean isManagerAccess) {
+        this.isManagerAccess = isManagerAccess;
     }
 
     private Optional<Language> getPseudoLanguage() {
@@ -130,5 +136,10 @@ public class CrowdinProject implements Project {
     @Override
     public Optional<Map<String, Map<String, String>>> getLanguageMapping() {
         return Optional.ofNullable(this.languageMapping);
+    }
+
+    @Override
+    public boolean isManagerAccess() {
+        return isManagerAccess;
     }
 }

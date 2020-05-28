@@ -62,6 +62,12 @@ public class DownloadAction implements Action {
             ConsoleSpinner.stop(ERROR);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
+
+        if (!project.isManagerAccess()) {
+            System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
+            return;
+        }
+
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
         Optional<Language> language = Optional.ofNullable(languageId)

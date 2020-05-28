@@ -10,8 +10,7 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import java.util.Optional;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
 public class ListTranslationsAction implements Action {
 
@@ -35,6 +34,11 @@ public class ListTranslationsAction implements Action {
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
+        }
+
+        if (!project.isManagerAccess()) {
+            System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
+            return;
         }
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(!isLocal), pb.getBasePath());

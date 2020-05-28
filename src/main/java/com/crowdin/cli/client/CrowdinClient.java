@@ -93,11 +93,14 @@ public class CrowdinClient implements Client {
         project.setSupportedLanguages(supportedLanguages);
         project.setProjectLanguages(projectLanguages);
         if (projectInfo instanceof ProjectSettings) {
+            project.setManagerAccess(true);
             ProjectSettings projectSettings = (ProjectSettings) projectInfo;
             if (projectSettings.isInContext()) {
                 project.setPseudoLanguageId(projectSettings.getInContextPseudoLanguageId());
             }
             project.setLanguageMapping(projectSettings.getLanguageMapping());
+        } else {
+            project.setManagerAccess(false);
         }
         return project;
     }

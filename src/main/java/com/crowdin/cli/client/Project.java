@@ -24,4 +24,6 @@ public interface Project {
     List<Language> getProjectLanguages(boolean withPseudoLang);
 
     Optional<Map<String, Map<String, String>>> getLanguageMapping();
+
+    boolean isManagerAccess();
 }
