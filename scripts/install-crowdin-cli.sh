@@ -23,19 +23,15 @@ if [[ "$_java" ]]; then
 
         copySuccessed=$?
 
-        printf "\nalias crowdin='java -jar /usr/local/bin/crowdin-cli.jar'\n" >> ~/.bashrc
-        printf "\nalias crowdin='java -jar /usr/local/bin/crowdin-cli.jar'\n" >> ~/.bash_profile
-
         [ -d "/etc/bash_completion.d" ] && sudo cp crowdin_completion /etc/bash_completion.d/crowdin_completion
         [ -d "/usr/local/etc/bash_completion.d" ] && sudo cp crowdin_completion /usr/local/etc/bash_completion.d/crowdin_completion
 
-        if [ -f ~/.bashrc ]; then
-            . ~/.bashrc
-        fi
+        sudo sh -c "cat > /usr/local/bin/crowdin << EOF
+#!/bin/sh
+exec /usr/bin/java -jar '/usr/local/bin/crowdin-cli.jar' \"\\\$@\"
+EOF"
+        sudo chmod +x /usr/local/bin/crowdin
 
-        if [ -f ~/.bash_profile ]; then
-            . ~/.bash_profile
-        fi
     else
         echo Your Java version is "$version" - needs to be updated. You can download it from https://www.java.com/
     fi
