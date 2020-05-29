@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -147,8 +148,8 @@ public class UploadTranslationsAction implements Action {
                     java.io.File translationFile = entry.getKey();
                     List<Language> langs = entry.getValue().getLeft();
                     UploadTranslationsRequest request = entry.getValue().getRight();
-                    try {
-                        Long storageId = client.uploadStorage(translationFile.getName(), new FileInputStream(translationFile));
+                    try (InputStream fileStream = new FileInputStream(translationFile)) {
+                        Long storageId = client.uploadStorage(translationFile.getName(), fileStream);
                         request.setStorageId(storageId);
                     } catch (Exception e) {
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation_to_storage"), e);

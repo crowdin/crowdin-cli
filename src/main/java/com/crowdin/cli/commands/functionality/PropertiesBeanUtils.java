@@ -48,7 +48,7 @@ public class PropertiesBeanUtils {
         }
         return translationReplace.keySet().stream()
             .reduce(translationPath, (trans, k) ->
-                StringUtils.replace(trans, Utils.normalizePath(k), translationReplace.get(k)));
+                StringUtils.replace(trans, Utils.normalizePath(k), Utils.normalizePath(translationReplace.get(k))));
     }
 
     public static boolean isOrganization(String baseUrl) {

@@ -44,6 +44,7 @@ public class ProjectBuilder {
         project.setBranches(branches);
         project.setSupportedLanguages(supportedLanguages);
         project.setProjectLanguages(projectLanguages);
+        project.setManagerAccess(true);
         projectBuilder.project = project;
         projectBuilder.projectSettings = projectSettings;
         return projectBuilder;

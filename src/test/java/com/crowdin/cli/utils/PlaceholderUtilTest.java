@@ -42,22 +42,22 @@ public class PlaceholderUtilTest {
                 new Language[] {LanguageBuilder.UKR.build(), LanguageBuilder.RUS.build()},
                 new Language[] {LanguageBuilder.UKR.build(), LanguageBuilder.RUS.build()},
                 new File[] {new File("resources/messages.xml")},
-                "resources/%two_letters_code%_%original_file_name%",
-                new String[] {"resources/ua_messages.xml", "resources/ru_messages.xml"}
+                Utils.normalizePath("resources/%two_letters_code%_%original_file_name%"),
+                new String[] {Utils.normalizePath("resources/ua_messages.xml"), Utils.normalizePath("resources/ru_messages.xml")}
             ),
             arguments( // Must be only de_messages
                 new Language[] {LanguageBuilder.DEU.build(), LanguageBuilder.ENG.build()},
                 new Language[] {LanguageBuilder.DEU.build()},
                 new File[] {new File("resources/messages.xml")},
-                "resources/%two_letters_code%_%original_file_name%",
-                new String[] {"resources/de_messages.xml"}
+                Utils.normalizePath("resources/%two_letters_code%_%original_file_name%"),
+                new String[] {Utils.normalizePath("resources/de_messages.xml")}
             ),
             arguments( // How to treat double asterisks
                 new Language[] {LanguageBuilder.ENG.build()},
                 new Language[] {LanguageBuilder.ENG.build()},
                 new File[] {new File("resources/messages.xml")},
-                "/**/%two_letters_code%_%original_file_name%",
-                new String[] {"resources/en_messages.xml"}
+                Utils.normalizePath("/**/%two_letters_code%_%original_file_name%"),
+                new String[] {Utils.normalizePath("resources/en_messages.xml")}
             )
         );
     }
@@ -79,7 +79,7 @@ public class PlaceholderUtilTest {
 
         List<String> result = placeholderUtil.format(Arrays.asList(sources), Arrays.asList(toFormat), true);
 
-        assertEquals(Arrays.asList(expected), result);
+        assertEquals(new HashSet<>(Arrays.asList(expected)), new HashSet<>(result));
     }
 
     static Stream<Arguments> testMainFunctionalityWithLists() {
@@ -89,14 +89,14 @@ public class PlaceholderUtilTest {
                 new Language[] {LanguageBuilder.UKR.build(), LanguageBuilder.RUS.build()},
                 new File[] {new File("resources/messages.xml")},
                 new String[] {
-                    "/**/%two_letters_code%_%original_file_name%",
-                    "/**/%three_letters_code%_%original_file_name%"
+                    Utils.normalizePath("/**/%two_letters_code%_%original_file_name%"),
+                    Utils.normalizePath("/**/%three_letters_code%_%original_file_name%")
                 },
                 new String[] {
-                    "resources/ua_messages.xml",
-                    "resources/ru_messages.xml",
-                    "resources/rus_messages.xml",
-                    "resources/ukr_messages.xml"
+                    Utils.normalizePath("resources/ua_messages.xml"),
+                    Utils.normalizePath("resources/ru_messages.xml"),
+                    Utils.normalizePath("resources/rus_messages.xml"),
+                    Utils.normalizePath("resources/ukr_messages.xml")
                 }
             )
         );

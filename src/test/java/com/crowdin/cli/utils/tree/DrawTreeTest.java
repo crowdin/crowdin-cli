@@ -1,6 +1,7 @@
 package com.crowdin.cli.utils.tree;
 
 import com.crowdin.cli.BaseCli;
+import com.crowdin.cli.utils.Utils;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -16,10 +17,18 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class DrawTreeTest {
 
-    private static final String ELEM = BaseCli.RESOURCE_BUNDLE.getString("message.tree.elem");
-    private static final String LAST_ELEM = BaseCli.RESOURCE_BUNDLE.getString("message.tree.last_elem");
-    private static final String DIR = BaseCli.RESOURCE_BUNDLE.getString("message.tree.dir");
-    private static final String LAST_DIR = BaseCli.RESOURCE_BUNDLE.getString("message.tree.last_dir");
+    private static final String ELEM = (Utils.isWindows())
+        ? BaseCli.RESOURCE_BUNDLE.getString("message.tree.win.elem")
+        : BaseCli.RESOURCE_BUNDLE.getString("message.tree.elem");
+    private static final String LAST_ELEM = (Utils.isWindows())
+        ? BaseCli.RESOURCE_BUNDLE.getString("message.tree.win.last_elem")
+        : BaseCli.RESOURCE_BUNDLE.getString("message.tree.last_elem");
+    private static final String DIR = (Utils.isWindows())
+        ? BaseCli.RESOURCE_BUNDLE.getString("message.tree.win.dir")
+        : BaseCli.RESOURCE_BUNDLE.getString("message.tree.dir");
+    private static final String LAST_DIR = (Utils.isWindows())
+        ? BaseCli.RESOURCE_BUNDLE.getString("message.tree.win.last_dir")
+        : BaseCli.RESOURCE_BUNDLE.getString("message.tree.last_dir");
 
     @Test
     public void testDraw_Errors() {
@@ -40,15 +49,15 @@ public class DrawTreeTest {
                     add(LAST_ELEM + ".");
                 }}),
                 arguments(new ArrayList<String>() {{
-                    add("folder/file.po");
+                    add(Utils.normalizePath("folder/file.po"));
                 }}, new ArrayList<String>() {{
                     add(LAST_ELEM + ".");
                     add(LAST_DIR + LAST_ELEM + "folder");
                     add(LAST_DIR + LAST_DIR + LAST_ELEM + "file.po");
                 }}),
                 arguments(new ArrayList<String>() {{
-                    add("folder/file.po");
-                    add("folder/next/meme.png");
+                    add(Utils.normalizePath("folder/file.po"));
+                    add(Utils.normalizePath("folder/next/meme.png"));
                 }}, new ArrayList<String>() {{
                     add(LAST_ELEM + ".");
                     add(LAST_DIR + LAST_ELEM + "folder");
@@ -57,9 +66,9 @@ public class DrawTreeTest {
                     add(LAST_DIR + LAST_DIR + LAST_DIR + LAST_ELEM + "meme.png");
                 }}),
                 arguments(new ArrayList<String>() {{
-                    add("folder/file.po");
-                    add("folder/next/meme.png");
-                    add("dir/android.xml");
+                    add(Utils.normalizePath("folder/file.po"));
+                    add(Utils.normalizePath("folder/next/meme.png"));
+                    add(Utils.normalizePath("dir/android.xml"));
                 }}, new ArrayList<String>() {{
                     add(LAST_ELEM + ".");
                     add(LAST_DIR + ELEM +       "folder");
