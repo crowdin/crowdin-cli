@@ -24,7 +24,7 @@ public class StatusTranslationSubcommand extends Command {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
-        Action action = new StatusAction(languageId, isVerbose, true, false);
+        Action action = new StatusAction(noProgress, languageId, isVerbose, true, false);
         action.act(pb, client);
     }
 }

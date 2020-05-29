@@ -15,12 +15,14 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class StatusAction implements Action {
 
+    private boolean noProgress;
     private String languageId;
     private boolean isVerbose;
     private boolean showTranslated;
     private boolean showApproved;
 
-    public StatusAction(String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved) {
+    public StatusAction(boolean noProgress, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved) {
+        this.noProgress = noProgress;
         this.languageId = languageId;
         this.isVerbose = isVerbose;
         this.showTranslated = showTranslated;
@@ -31,7 +33,7 @@ public class StatusAction implements Action {
     public void act(PropertiesBean pb, Client client) {
         Project project;
         try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), false);
+            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
             project = client.downloadProjectWithLanguages();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {

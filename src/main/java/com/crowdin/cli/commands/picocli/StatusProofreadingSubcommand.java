@@ -24,7 +24,7 @@ public class StatusProofreadingSubcommand extends Command {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
-        Action action = new StatusAction(languageId, isVerbose, false, true);
+        Action action = new StatusAction(noProgress, languageId, isVerbose, false, true);
         action.act(pb, client);
     }
 }
