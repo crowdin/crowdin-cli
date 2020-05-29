@@ -43,9 +43,9 @@ dependencies {
     compile group: 'net.ricecode', name: 'string-similarity', version: '1.0.0'
     compile group: 'com.github.fge', name: 'json-patch', version: '1.9'
 
-    compile 'info.picocli:picocli:4.2.0'
+    compile 'info.picocli:picocli:4.3.2'
 
-    compile 'com.github.crowdin:crowdin-api-client-java:1.1.7'
+    compile 'com.github.crowdin:crowdin-api-client-java:1.1.8'
 
     testCompile('org.junit.jupiter:junit-jupiter:5.5.2')
     testCompile('org.hamcrest:hamcrest:2.2')

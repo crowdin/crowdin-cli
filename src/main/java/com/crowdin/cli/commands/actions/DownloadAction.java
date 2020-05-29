@@ -51,18 +51,8 @@ public class DownloadAction implements Action {
 
     @Override
     public void act(PropertiesBean pb, Client client) {
-        if (skipTranslatedOnly != null || skipUntranslatedFiles != null || exportApprovedOnly != null) {
-            if (skipTranslatedOnly != null && skipUntranslatedFiles != null && skipTranslatedOnly && skipUntranslatedFiles) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
-            }
-            if (PropertiesBeanUtils.getOrganization(pb.getBaseUrl()) != null) {
-                String options =
-                    ((skipTranslatedOnly != null) ? " --skip-untranslated-strings" : "") +
-                    ((skipUntranslatedFiles != null) ? " --skip-untranslated-files" : "") +
-                    ((exportApprovedOnly != null) ? " --export-only-approved" : "");
-                System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.warning.enterprise_ignores_options"), options)));
-            }
-        }
+        this.checkOptions(PropertiesBeanUtils.isOrganization(pb.getBaseUrl()));
+
         Project project;
         try {
             ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
@@ -72,10 +62,16 @@ public class DownloadAction implements Action {
             ConsoleSpinner.stop(ERROR);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
+
+        if (!project.isManagerAccess()) {
+            System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
+            return;
+        }
+
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
         Optional<Language> language = Optional.ofNullable(languageId)
-            .map(lang -> project.findLanguage(lang)
+            .map(lang -> project.findLanguage(lang, true)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))));
         Optional<Branch> branch = Optional.ofNullable(this.branchName)
             .map(br -> project.findBranch(br)
@@ -150,6 +146,16 @@ public class DownloadAction implements Action {
             files.deleteFile(downloadedZipArchive);
         } catch (IOException e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.clearing_temp"), e);
+        }
+    }
+
+    private void checkOptions(boolean isOrganization) {
+        if (skipTranslatedOnly != null && skipUntranslatedFiles != null && skipTranslatedOnly && skipUntranslatedFiles) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
+        }
+        if (isOrganization && exportApprovedOnly != null) {
+            System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.warning.enterprise_ignores_option"), "--export-only-approved")));
+            exportApprovedOnly = null;
         }
     }
 

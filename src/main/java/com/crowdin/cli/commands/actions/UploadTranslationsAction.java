@@ -19,6 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -55,6 +56,11 @@ public class UploadTranslationsAction implements Action {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
 
+        if (!project.isManagerAccess()) {
+            System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
+            return;
+        }
+
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
         Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
@@ -62,7 +68,7 @@ public class UploadTranslationsAction implements Action {
         Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
 
         List<Language> languages = (languageId != null)
-            ? project.findLanguage(languageId)
+            ? project.findLanguage(languageId, true)
                 .map(Collections::singletonList)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)))
             : project.getProjectLanguages(false);
@@ -138,8 +144,8 @@ public class UploadTranslationsAction implements Action {
                     java.io.File translationFile = entry.getKey();
                     List<Language> langs = entry.getValue().getLeft();
                     UploadTranslationsRequest request = entry.getValue().getRight();
-                    try {
-                        Long storageId = client.uploadStorage(translationFile.getName(), new FileInputStream(translationFile));
+                    try (InputStream fileStream = new FileInputStream(translationFile)) {
+                        Long storageId = client.uploadStorage(translationFile.getName(), fileStream);
                         request.setStorageId(storageId);
                     } catch (Exception e) {
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation_to_storage"), e);

@@ -54,7 +54,7 @@ public class PropertiesBuilderTest {
         Params okParams = new Params() {{
             setIdParam("666");
             setTokenParam("123abc456");
-            setSourceParam("/hello/world");
+            setSourceParam(Utils.regexPath(Utils.normalizePath("/hello/world")));
             setTranslationParam("/hello/%two_letters_code%/%file_name%.%file_extension%");
         }};
 
@@ -62,7 +62,6 @@ public class PropertiesBuilderTest {
         PropertiesBean pb = pBuilder.build();
 
         assertEquals(pb.getPreserveHierarchy(), false);
-        assertThat(pb.getBasePath(), matchesPattern("([a-zA-Z]:\\\\\\\\|/)"));
         assertEquals(pb.getFiles().size(), 1);
         assertEquals(pb.getFiles().get(0).getSource(), "hello" + Utils.PATH_SEPARATOR + "world");
     }
@@ -77,7 +76,7 @@ public class PropertiesBuilderTest {
         Params okParams = new Params() {{
             setIdParam("666");
             setTokenParam("123abc456");
-            setSourceParam("/hello/world");
+            setSourceParam(Utils.regexPath(Utils.normalizePath("/hello/world")));
             setTranslationParam("/hello/%two_letters_code%/%file_name%.%file_extension%");
         }};
 
@@ -85,7 +84,6 @@ public class PropertiesBuilderTest {
         PropertiesBean pb = pBuilder.build();
 
         assertEquals(pb.getPreserveHierarchy(), false);
-        assertThat(pb.getBasePath(), matchesPattern("([a-zA-Z]:\\\\\\\\|/)"));
         assertEquals(pb.getFiles().size(), 1);
         assertEquals(pb.getFiles().get(0).getSource(), "hello" + Utils.PATH_SEPARATOR + "world");
     }

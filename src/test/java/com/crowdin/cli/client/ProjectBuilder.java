@@ -41,10 +41,10 @@ public class ProjectBuilder {
             .collect(Collectors.toList());
 
         CrowdinProject project = new CrowdinProject();
-        project.setProjectInfo(projectSettings);
         project.setBranches(branches);
         project.setSupportedLanguages(supportedLanguages);
         project.setProjectLanguages(projectLanguages);
+        project.setManagerAccess(true);
         projectBuilder.project = project;
         projectBuilder.projectSettings = projectSettings;
         return projectBuilder;
@@ -101,6 +101,7 @@ public class ProjectBuilder {
     public Project build() {
         project.setDirectories(directories);
         project.setFiles(files);
+        project.setLanguageMapping(projectSettings.getLanguageMapping());
         return project;
     }
 

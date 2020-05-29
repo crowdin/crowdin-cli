@@ -32,7 +32,7 @@ public class ListSourcesAction implements Action {
             ConsoleSpinner.stop(ERROR);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
 
         (new DryrunSources(pb, placeholderUtil)).run(treeView);
     }

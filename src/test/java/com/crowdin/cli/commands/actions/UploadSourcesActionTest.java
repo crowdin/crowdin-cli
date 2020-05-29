@@ -59,7 +59,7 @@ public class UploadSourcesActionTest {
             }});
             setExportOptions(new PropertyFileExportOptions() {{
                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation());
+                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
             }});
         }};
         verify(client).addSource(eq(addFileRequest));
@@ -108,7 +108,7 @@ public class UploadSourcesActionTest {
             }});
             setExportOptions(new PropertyFileExportOptions() {{
                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation());
+                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
             }});
         }};
         verify(client).addSource(eq(addFileRequest1));
@@ -121,7 +121,7 @@ public class UploadSourcesActionTest {
             }});
             setExportOptions(new PropertyFileExportOptions() {{
                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation());
+                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
             }});
         }};
         verify(client).addSource(eq(addFileRequest2));
@@ -133,7 +133,7 @@ public class UploadSourcesActionTest {
             }});
             setExportOptions(new PropertyFileExportOptions() {{
                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation());
+                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
             }});
         }};
         verify(client).addSource(eq(addFileRequest3));
@@ -175,7 +175,7 @@ public class UploadSourcesActionTest {
             }});
             setExportOptions(new PropertyFileExportOptions() {{
                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation());
+                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
             }});
         }};
         verify(client).addSource(eq(addFileRequest));
@@ -210,7 +210,7 @@ public class UploadSourcesActionTest {
             }});
             setExportOptions(new PropertyFileExportOptions() {{
                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation());
+                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
             }});
         }};
         verify(client).addSource(eq(addFileRequest));
@@ -244,7 +244,7 @@ public class UploadSourcesActionTest {
             }});
             setExportOptions(new PropertyFileExportOptions() {{
                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation());
+                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
             }});
         }};
         verify(client).addSource(eq(addFileRequest));
@@ -280,7 +280,7 @@ public class UploadSourcesActionTest {
             }});
             setExportOptions(new PropertyFileExportOptions() {{
                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation());
+                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
             }});
         }};
         verify(client).addSource(eq(addFileRequest));
@@ -315,7 +315,7 @@ public class UploadSourcesActionTest {
             }});
             setExportOptions(new PropertyFileExportOptions() {{
                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation());
+                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
             }});
         }};
         verify(client).addSource(eq(addFileRequest));
@@ -352,7 +352,7 @@ public class UploadSourcesActionTest {
             }});
             setExportOptions(new PropertyFileExportOptions() {{
                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation());
+                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
             }});
         }};
         verify(client).updateSource(eq(101L), eq(updateFileRequest));
@@ -365,7 +365,7 @@ public class UploadSourcesActionTest {
             }});
             setExportOptions(new PropertyFileExportOptions() {{
                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation());
+                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
             }});
         }};
         verify(client).addSource(eq(addFileRequest));
@@ -408,7 +408,7 @@ public class UploadSourcesActionTest {
             }});
             setExportOptions(new PropertyFileExportOptions() {{
                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation());
+                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
             }});
         }};
         verify(client).addSource(eq(addFileRequest));

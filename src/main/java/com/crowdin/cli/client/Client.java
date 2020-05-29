@@ -5,8 +5,10 @@ import com.crowdin.client.sourcefiles.model.*;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
+import com.crowdin.client.translationstatus.model.LanguageProgress;
 
 import java.io.InputStream;
+import java.util.List;
 
 public interface Client {
 
@@ -27,5 +29,7 @@ public interface Client {
     ProjectBuild startBuildingTranslation(BuildProjectTranslationRequest request);
     ProjectBuild checkBuildingTranslation(Long buildId);
     InputStream downloadBuild(Long buildId);
+
+    List<LanguageProgress> getProjectProgress(String languageId);
 
 }

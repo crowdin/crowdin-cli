@@ -17,13 +17,16 @@ import com.crowdin.client.storage.model.Storage;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
+import com.crowdin.client.translationstatus.model.LanguageProgress;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
+import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -50,46 +53,69 @@ public class CrowdinClient implements Client {
 
     @Override
     public CrowdinProject downloadFullProject() throws ResponseException {
-        ProjectSettings projectSettings = downloadProjectSettings();
-        List<File> files = unwrap(executeRequest(() -> this.client.getSourceFilesApi()
-            .listFiles(this.projectId, null, null, null, 499, 0)));
-        List<Directory> directories = unwrap(executeRequest(() -> this.client.getSourceFilesApi()
-            .listDirectories(this.projectId, null, null, null, 499, 0)));
-        List<Branch> branches = unwrap(executeRequest(() -> this.client.getSourceFilesApi()
-            .listBranches(this.projectId, null, 499, 0)));
+        com.crowdin.client.projectsgroups.model.Project projectInfo = downloadProjectInfo();
+        List<File> files = executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
+            .listFiles(this.projectId, null, null, null, limit, offset))));
+        List<Directory> directories = executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
+            .listDirectories(this.projectId, null, null, null, limit, offset))));
+        List<Branch> branches = executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
+            .listBranches(this.projectId, null, limit, offset))));
         List<Language> supportedLanguages = unwrap(executeRequest(() -> this.client.getLanguagesApi()
             .listSupportedLanguages(499, 0)));
         List<Language> projectLanguages = supportedLanguages.stream()
-            .filter(language -> projectSettings.getTargetLanguageIds().contains(language.getId()))
+            .filter(language -> projectInfo.getTargetLanguageIds().contains(language.getId()))
             .collect(Collectors.toList());
         CrowdinProject project = new CrowdinProject();
-        project.setProjectInfo(projectSettings);
         project.setFiles(files);
         project.setDirectories(directories);
         project.setBranches(branches);
         project.setSupportedLanguages(supportedLanguages);
         project.setProjectLanguages(projectLanguages);
+        if (projectInfo instanceof ProjectSettings) {
+            project.setManagerAccess(true);
+            ProjectSettings projectSettings = (ProjectSettings) projectInfo;
+            if (projectSettings.isInContext()) {
+                project.setPseudoLanguageId(projectSettings.getInContextPseudoLanguageId());
+            }
+            project.setLanguageMapping(projectSettings.getLanguageMapping());
+        } else {
+            project.setManagerAccess(false);
+        }
         return project;
     }
 
     @Override
     public Project downloadProjectWithLanguages() throws ResponseException {
-        ProjectSettings projectSettings = downloadProjectSettings();
+        com.crowdin.client.projectsgroups.model.Project projectInfo = downloadProjectInfo();
         List<Language> supportedLanguages = unwrap(executeRequest(() -> this.client.getLanguagesApi()
             .listSupportedLanguages(499, 0)));
         List<Language> projectLanguages = supportedLanguages.stream()
-            .filter(language -> projectSettings.getTargetLanguageIds().contains(language.getId()))
+            .filter(language -> projectInfo.getTargetLanguageIds().contains(language.getId()))
             .collect(Collectors.toList());
         CrowdinProject project = new CrowdinProject();
-        project.setProjectInfo(projectSettings);
         project.setSupportedLanguages(supportedLanguages);
         project.setProjectLanguages(projectLanguages);
+        if (projectInfo instanceof ProjectSettings) {
+            project.setManagerAccess(true);
+            ProjectSettings projectSettings = (ProjectSettings) projectInfo;
+            if (projectSettings.isInContext()) {
+                project.setPseudoLanguageId(projectSettings.getInContextPseudoLanguageId());
+            }
+            project.setLanguageMapping(projectSettings.getLanguageMapping());
+        } else {
+            project.setManagerAccess(false);
+        }
         return project;
     }
 
-    private ProjectSettings downloadProjectSettings() throws ResponseException {
+    public List<LanguageProgress> getProjectProgress(String langaugeId) {
+        return unwrap(this.client.getTranslationStatusApi()
+                .getProjectProgress(this.projectId, 500, 0, langaugeId));
+    }
+
+    private com.crowdin.client.projectsgroups.model.Project downloadProjectInfo() throws ResponseException {
         try {
-            return executeRequest(() -> (ProjectSettings) this.client.getProjectsGroupsApi()
+            return executeRequest(() -> (com.crowdin.client.projectsgroups.model.Project) this.client.getProjectsGroupsApi()
                 .getProject(this.projectId)
                 .getData());
         } catch (Exception e) {
@@ -194,6 +220,24 @@ public class CrowdinClient implements Client {
         } catch (IOException e) {
             throw new RuntimeException("Unexpected exception: malformed download url: " + url, e);
         }
+    }
+
+    /**
+     *
+     * @param request represents function with two args (limit, offset)
+     * @param <T> represents model
+     * @return list of models accumulated from request function
+     */
+    private static <T> List<T> executeRequestFullList(BiFunction<Integer, Integer, List<T>> request) {
+        List<T> directories = new ArrayList<>();
+        long counter;
+        int limit = 500;
+        do {
+            List<T> dirs = executeRequest(() -> request.apply(limit, directories.size()));
+            directories.addAll(dirs);
+            counter = dirs.size();
+        } while (counter == limit);
+        return directories;
     }
 
     private static <T> T executeRequestWithRetryIfErrorContains(Callable<T> request, String errorMessageContains) {

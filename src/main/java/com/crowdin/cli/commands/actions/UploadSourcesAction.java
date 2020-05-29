@@ -15,6 +15,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.FileInputStream;
+import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -49,7 +50,7 @@ public class UploadSourcesAction implements Action {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
 
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
 
         Branch branchId = (branchName != null) ? this.getOrCreateBranch(branchName, client, project) : null;
 
@@ -86,8 +87,8 @@ public class UploadSourcesAction implements Action {
                             final Long sourceId = projectFile.getId();
 
                             return (Runnable) () -> {
-                                try {
-                                    request.setStorageId(client.uploadStorage(fileName, new FileInputStream(sourceFile)));
+                                try (InputStream fileStream = new FileInputStream(sourceFile)) {
+                                    request.setStorageId(client.uploadStorage(fileName, fileStream));
                                 } catch (Exception e) {
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }
@@ -122,8 +123,8 @@ public class UploadSourcesAction implements Action {
                                     request.setBranchId(branchId.getId());
                                 }
 
-                                try {
-                                    request.setStorageId(client.uploadStorage(fileName, new FileInputStream(sourceFile)));
+                                try (InputStream fileStream = new FileInputStream(sourceFile)) {
+                                    request.setStorageId(client.uploadStorage(fileName, fileStream));
                                 } catch (Exception e) {
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }

@@ -1,7 +1,6 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.client.languages.model.Language;
-import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.sourcefiles.model.File;
@@ -13,13 +12,16 @@ import java.util.stream.Collectors;
 public class CrowdinProject implements Project {
 
     private long projectId;
-    private ProjectSettings projectInfo;
     private List<File> files;
     private List<Directory> directories;
     private List<Branch> branches;
     private List<Language> supportedLanguages;
     private List<Language> projectLanguages;
-    private Map<String, Map<String, String>> langaugeMapping;
+
+    private Map<String, Map<String, String>> languageMapping;
+    private String pseudoLanguageId;
+
+    private boolean isManagerAccess;
 
     public long getProjectId() {
         return projectId;
@@ -27,14 +29,6 @@ public class CrowdinProject implements Project {
 
     public void setProjectId(long projectId) {
         this.projectId = projectId;
-    }
-
-    public ProjectSettings getProjectInfo() {
-        return projectInfo;
-    }
-
-    public void setProjectInfo(ProjectSettings projectInfo) {
-        this.projectInfo = projectInfo;
     }
 
     public void setFiles(List<File> files) {
@@ -57,19 +51,27 @@ public class CrowdinProject implements Project {
         this.projectLanguages = projectLanguages;
     }
 
-    public void setLangaugeMapping(Map<String, Map<String, String>> langaugeMapping) {
-        this.langaugeMapping = langaugeMapping;
+    public void setLanguageMapping(Map<String, Map<String, String>> languageMapping) {
+        this.languageMapping = languageMapping;
+    }
+
+    public void setPseudoLanguageId(String pseudoLanguageId) {
+        this.pseudoLanguageId = pseudoLanguageId;
+    }
+
+    public void setManagerAccess(boolean isManagerAccess) {
+        this.isManagerAccess = isManagerAccess;
     }
 
     private Optional<Language> getPseudoLanguage() {
-        return (this.projectInfo.isInContext())
-                ? this.findLanguage(projectInfo.getInContextPseudoLanguageId())
-                : Optional.empty();
+        return (pseudoLanguageId != null)
+            ? this.findLanguage(pseudoLanguageId, false)
+            : Optional.empty();
     }
 
     @Override
-    public Optional<Language> findLanguage(String id) {
-        return this.supportedLanguages.stream()
+    public Optional<Language> findLanguage(String id, boolean inProjectLanguages) {
+        return ((inProjectLanguages) ? this.projectLanguages : this.supportedLanguages).stream()
             .filter(lang -> lang.getId().equals(id))
             .findFirst();
     }
@@ -133,16 +135,11 @@ public class CrowdinProject implements Project {
 
     @Override
     public Optional<Map<String, Map<String, String>>> getLanguageMapping() {
-        Object languageMappingObject = this.projectInfo.getLanguageMapping();
-        if (languageMappingObject != null && Map.class.isAssignableFrom(languageMappingObject.getClass())) {
-            try {
-                Map<String, Map<String, String>> languageMapping = (Map<String, Map<String, String>>) languageMappingObject;
-                return Optional.of(languageMapping);
-            } catch (ClassCastException e) {
-                return Optional.empty();
-            }
-        } else {
-            return Optional.empty();
-        }
+        return Optional.ofNullable(this.languageMapping);
+    }
+
+    @Override
+    public boolean isManagerAccess() {
+        return isManagerAccess;
     }
 }
