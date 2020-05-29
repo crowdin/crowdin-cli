@@ -48,7 +48,7 @@ public class UploadTranslationsActionTest {
         when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
             .thenReturn(1L);
 
-        Action action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        Action action = new UploadTranslationsAction(false, null, null, false, false, false);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
@@ -56,7 +56,6 @@ public class UploadTranslationsActionTest {
         UploadTranslationsRequest uploadTranslationRequest = new UploadTranslationsRequest() {{
             setStorageId(1L);
             setFileId(301L);
-            setImportDuplicates(false);
             setImportEqSuggestions(false);
             setAutoApproveImported(false);
         }};
@@ -82,7 +81,7 @@ public class UploadTranslationsActionTest {
         when(client.uploadStorage(eq("first.po-CR-ru-RU"), any()))
             .thenReturn(2L);
 
-        Action action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        Action action = new UploadTranslationsAction(false, null, null, false, false, false);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
@@ -91,7 +90,6 @@ public class UploadTranslationsActionTest {
         UploadTranslationsRequest uploadTranslationRequest1 = new UploadTranslationsRequest() {{
             setStorageId(1L);
             setFileId(301L);
-            setImportDuplicates(false);
             setImportEqSuggestions(false);
             setAutoApproveImported(false);
         }};
@@ -99,7 +97,6 @@ public class UploadTranslationsActionTest {
         UploadTranslationsRequest uploadTranslationRequest2 = new UploadTranslationsRequest() {{
             setStorageId(2L);
             setFileId(301L);
-            setImportDuplicates(false);
             setImportEqSuggestions(false);
             setAutoApproveImported(false);
         }};
@@ -119,7 +116,7 @@ public class UploadTranslationsActionTest {
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
 
-        Action action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        Action action = new UploadTranslationsAction(false, null, null, false, false, false);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
@@ -142,7 +139,7 @@ public class UploadTranslationsActionTest {
         when(client.uploadStorage(eq("first.csv-CR"), any()))
             .thenReturn(1L);
 
-        Action action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        Action action = new UploadTranslationsAction(false, null, null, false, false, false);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
@@ -150,7 +147,6 @@ public class UploadTranslationsActionTest {
         UploadTranslationsRequest uploadTranslationRequest = new UploadTranslationsRequest() {{
             setStorageId(1L);
             setFileId(301L);
-            setImportDuplicates(false);
             setImportEqSuggestions(false);
             setAutoApproveImported(false);
         }};
