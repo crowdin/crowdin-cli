@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.1.14] - 2020-06-01
+- Added: `status` command
+- Added: Restrictions for 'upload translations' and 'download' commands
+- Updated: Remove option and parameter for request `--import-duplicates`
+- Updated: Installation scripts improvements
+- Updated: Use Picocli version 4.3.2
+- Updated: Better `project_id` validation
+- Updated: Change approving for some options
+- Fixed: Fix possible bug with a large project with many files/dirs
+- Fixed: `ClassCastException` error
+
 ## [3.1.13] - 2020-05-19
 - Added: `--skip-untranslated-strings` option for `download` command
 - Added: `--skip-untranslated-files` option for `download` command
