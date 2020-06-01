@@ -1,3 +1,5 @@
+if [[ $(id -u) -ne 0 ]] ; then echo "Please run as root" ; exit 1 ; fi
+
 echo "Checking JAVA installation..."
 copySuccessed=1
 
@@ -19,18 +21,18 @@ if [[ "$_java" ]]; then
 
         echo "Installing Crowdin CLI..."
 
-        sudo cp crowdin-cli.jar /usr/local/bin
+        cp crowdin-cli.jar /usr/local/bin
 
         copySuccessed=$?
 
-        [ -d "/etc/bash_completion.d" ] && sudo cp crowdin_completion /etc/bash_completion.d/crowdin_completion
-        [ -d "/usr/local/etc/bash_completion.d" ] && sudo cp crowdin_completion /usr/local/etc/bash_completion.d/crowdin_completion
+        [ -d "/etc/bash_completion.d" ] && cp crowdin_completion /etc/bash_completion.d/crowdin_completion
+        [ -d "/usr/local/etc/bash_completion.d" ] && cp crowdin_completion /usr/local/etc/bash_completion.d/crowdin_completion
 
-        sudo sh -c "cat > /usr/local/bin/crowdin << EOF
+        sh -c "cat > /usr/local/bin/crowdin << EOF
 #!/bin/sh
 exec /usr/bin/java -jar '/usr/local/bin/crowdin-cli.jar' \"\\\$@\"
 EOF"
-        sudo chmod +x /usr/local/bin/crowdin
+        chmod +x /usr/local/bin/crowdin
 
     else
         echo Your Java version is "$version" - needs to be updated. You can download it from https://www.java.com/
