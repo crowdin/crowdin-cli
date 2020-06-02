@@ -16,7 +16,7 @@ if [[ "$_java" ]]; then
 
     version=$("$_java" -version 2>&1 | head -1 | cut -d'"' -f2 | sed '/^1\./s///' | cut -d'.' -f1)
 
-    if  (( $version > 7 )); then
+    if [ $version -gt 7 ]; then
         echo Your Java version is "$version" - OK
 
         echo "Installing Crowdin CLI..."
