@@ -51,7 +51,8 @@ public class DownloadAction implements Action {
 
     @Override
     public void act(PropertiesBean pb, Client client) {
-        this.checkOptions(PropertiesBeanUtils.isOrganization(pb.getBaseUrl()));
+        boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
+        this.checkOptions(isOrganization);
 
         Project project;
         try {
@@ -80,9 +81,15 @@ public class DownloadAction implements Action {
         Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
 
         CrowdinTranslationCreateProjectBuildForm buildRequest = new CrowdinTranslationCreateProjectBuildForm();
-        buildRequest.setExportTranslatedOnly(this.skipTranslatedOnly);
+        buildRequest.setSkipUntranslatedStrings(this.skipTranslatedOnly);
         buildRequest.setSkipUntranslatedFiles(this.skipUntranslatedFiles);
-        buildRequest.setExportApprovedOnly(this.exportApprovedOnly);
+        if (isOrganization) {
+            if (this.exportApprovedOnly != null && this.exportApprovedOnly) {
+                buildRequest.setExportWithMinApprovalsCount(1);
+            }
+        } else {
+            buildRequest.setExportApprovedOnly(this.exportApprovedOnly);
+        }
         language
             .map(Language::getId)
             .map(Collections::singletonList)
