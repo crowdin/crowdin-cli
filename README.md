@@ -35,6 +35,10 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 * [Authors](#authors)
 * [License](#license)
 
+---
+
+[<p align="center"><img src="https://github.com/crowdin/crowdin-cli/blob/docs/cli.png" data-canonical-src="https://github.com/crowdin/crowdin-cli/blob/docs/cli.png" width="700" height="auto" align="center"/></p>](https://crowdin.com)
+
 ## What's New
 
 CLI v3 has a lot of updates and improvements:
@@ -70,8 +74,6 @@ CLI v3 has a lot of updates and improvements:
  </details>
 
 ---
-
-[<p align="center"><img src="https://github.com/crowdin/crowdin-cli/blob/docs/cli.png" data-canonical-src="https://github.com/crowdin/crowdin-cli/blob/docs/cli.png" width="700" height="auto" align="center"/></p>](https://crowdin.com)
 
 ## Installation
 
