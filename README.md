@@ -73,8 +73,6 @@ CLI v3 has a lot of updates and improvements:
  **Note**: for CLI v2 see the [branch](https://github.com/crowdin/crowdin-cli/tree/master).
  </details>
 
----
-
 ## Installation
 
 ### Requirements
