@@ -1,6 +1,6 @@
 [<p align="center"><img src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" data-canonical-src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" width="200" height="200" align="center"/></p>](https://crowdin.com)
 
-# Crowdin CLI
+# Crowdin CLI [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?url=https%3A%2F%2Fgithub.com%2Fcrowdin%2Fcrowdin-cli&text=Crowdin%20CLI%20is%20an%20open-source%20command-line%20tool%20that%20allows%20you%20to%20manage%20and%20synchronize%20your%20localization%20resources%20with%20your%20Crowdin%20project)
 
 Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project. Using CLI, you can:
 
