@@ -35,34 +35,43 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 * [Authors](#authors)
 * [License](#license)
 
+---
+
+[<p align="center"><img src="https://github.com/crowdin/crowdin-cli/blob/docs/cli.png" data-canonical-src="https://github.com/crowdin/crowdin-cli/blob/docs/cli.png" width="700" height="auto" align="center"/></p>](https://crowdin.com)
+
 ## What's New
 
-CLI 3:
+CLI v3 has a lot of updates and improvements:
+
 - Available for Crowdin Enterprise
 - Multithreading for source and translation files upload
-- UX improvements: beautiful process indicators, loading states, emojis
-- Translations download progress
+- UX improvements: process indicators, loading states, emojis
 - Interactive generation of a configuration file
-- Bash/Zsh commands completion
+- Bash/Zsh command completion
 - Improved help screen for commands
 - Improved configuration file validation
-- HTTP Proxy support including authorization
-- Support Language Mapping configured on Crowdin
+- More import options for `upload` command
 - More export options for `download` command
-- `content_segmentation` option support for xml, html, md, fm_md, fm_html, flsnp, docx, idml, dita
-- `escape_special_characters` option support for properties file
-- `--dryrun` option for translations upload
-- `ignore` pattern improvements
-- Memory and CPU optimization
-- Based on new RESTful Crowdin API v2
-- Added notification about new version
-- Added `init` alias to `generate` command
-- Bug fixes and other improvements
-- Complete list of changes: [CHANGELOG.md](https://github.com/crowdin/crowdin-cli/blob/cli3/CHANGELOG.md)
+- Based on the new RESTful Crowdin API v2
 
-**Note**: for CLI v2 see the [master branch](https://github.com/crowdin/crowdin-cli/tree/master) or [releases page](https://github.com/crowdin/crowdin-cli/releases).
+<details>
+<summary><b>More</b></summary>
 
----
+ - Memory and CPU optimization
+ - Translations download progress
+ - HTTP Proxy support including authorization
+ - Support Language Mapping configured on Crowdin
+ - `content_segmentation` option support for xml, html, md, fm_md, fm_html, flsnp, docx, idml, dita
+ - `escape_special_characters` option support for properties file
+ - `--dryrun` option for translations upload
+ - `ignore` pattern improvements
+ - Added notification about new version
+ - Added `init` alias to `generate` command
+ - Bug fixes and other improvements
+ - Complete list of changes: [CHANGELOG.md](https://github.com/crowdin/crowdin-cli/blob/cli3/CHANGELOG.md)
+
+ **Note**: for CLI v2 see the [branch](https://github.com/crowdin/crowdin-cli/tree/master).
+ </details>
 
 ## Installation
 
@@ -71,6 +80,20 @@ CLI 3:
 Check if you have Java 8 or newer installed. Type `java -version` command in the terminal (Command Prompt on Windows) to check Java version.
 
 For example, *java version "1.8.0_212"* means that you have Java 8 Update 212 installed.
+
+<details>
+<summary><b>Homebrew for macOS</b></summary>
+To install the Crowdin CLI with homebrew (the package manager for macOS):
+
+```console
+brew tap crowdin/crowdin
+```
+
+```console
+brew install crowdin@3
+```
+
+</details>
 
 <details>
 <summary><b>Windows</b></summary>
@@ -200,8 +223,6 @@ Alternative method:
 ```console
 java -jar crowdin-cli.jar
 ```
-
-[<p align="center"><img src="https://github.com/crowdin/crowdin-cli/blob/docs/cli.png" data-canonical-src="https://github.com/crowdin/crowdin-cli/blob/docs/cli.png" width="700" height="auto" align="center"/></p>](https://crowdin.com)
 
 ## Configuration
 
