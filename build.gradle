@@ -45,7 +45,7 @@ dependencies {
 
     compile 'info.picocli:picocli:4.3.2'
 
-    compile 'com.github.crowdin:crowdin-api-client-java:1.2.1'
+    compile 'com.github.crowdin:crowdin-api-client-java:1.2.2'
 
     testCompile('org.junit.jupiter:junit-jupiter:5.5.2')
     testCompile('org.hamcrest:hamcrest:2.2')
