@@ -160,10 +160,6 @@ public class DownloadAction implements Action {
         if (skipTranslatedOnly != null && skipUntranslatedFiles != null && skipTranslatedOnly && skipUntranslatedFiles) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
         }
-        if (isOrganization && exportApprovedOnly != null) {
-            System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.warning.enterprise_ignores_option"), "--export-only-approved")));
-            exportApprovedOnly = null;
-        }
     }
 
     private ProjectBuild buildTranslation(Client client, BuildProjectTranslationRequest request) {
