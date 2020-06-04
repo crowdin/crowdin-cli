@@ -1,6 +1,9 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.1.15] - 2020-06-04
+- Updated: Update params for building translations request
+
 ## [3.1.14] - 2020-06-01
 - Added: `status` command
 - Added: Restrictions for 'upload translations' and 'download' commands
