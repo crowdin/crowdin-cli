@@ -34,6 +34,18 @@ exec /usr/bin/java -jar '/usr/local/bin/crowdin-cli.jar' \"\\\$@\"
 EOF"
         chmod +x /usr/local/bin/crowdin
 
+        sh -c "cat > /usr/local/bin/crowdin_uninstall << 'EOF'
+#!/bin/sh
+if [[ \$(id -u) -ne 0 ]] ; then echo \"Please run as root\" ; exit 1 ; fi
+rm -f /etc/bash_completion.d/crowdin_completion
+rm -f /usr/local/etc/bash_completion.d/crowdin_completion
+rm -f /usr/local/bin/crowdin-cli.jar
+rm -f /usr/local/bin/crowdin
+rm -f /usr/local/bin/crowdin_uninstall
+echo \"crowdin-cli uninstalled!\"
+EOF"
+        chmod +x /usr/local/bin/crowdin_uninstall
+
     else
         echo Your Java version is "$version" - needs to be updated. You can download it from https://www.java.com/
     fi
