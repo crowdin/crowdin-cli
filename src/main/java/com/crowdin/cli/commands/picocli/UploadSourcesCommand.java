@@ -23,6 +23,9 @@ public class UploadSourcesCommand extends Command {
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
     @CommandLine.Mixin
     private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
 
@@ -32,8 +35,8 @@ public class UploadSourcesCommand extends Command {
         Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
         Action action = (dryrun)
-            ? new ListSourcesAction(this.noProgress, this.treeView)
-            : new UploadSourcesAction(this.branch, this.noProgress, this.autoUpdate, debug);
+            ? new ListSourcesAction(this.noProgress, this.treeView, plainView)
+            : new UploadSourcesAction(this.branch, this.noProgress, this.autoUpdate, debug, plainView);
         action.act(pb, client);
     }
 }

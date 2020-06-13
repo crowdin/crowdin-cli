@@ -17,18 +17,22 @@ public class ListProjectAction implements Action {
     private boolean noProgress;
     private String branchName;
     private boolean treeView;
+    private boolean plainView;
 
-    public ListProjectAction(boolean noProgress, String branchName, boolean treeView) {
-        this.noProgress = noProgress;
+    public ListProjectAction(boolean noProgress, String branchName, boolean treeView, boolean plainView) {
+        this.noProgress = noProgress || plainView;
         this.branchName = branchName;
         this.treeView = treeView;
+        this.plainView = plainView;
     }
 
     @Override
     public void act(PropertiesBean pb, Client client) {
         Project project;
         try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            if (!plainView) {
+                ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            }
             project = client.downloadFullProject();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
@@ -42,6 +46,6 @@ public class ListProjectAction implements Action {
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
             : null;
 
-        (new DryrunProjectFiles(project.getFiles(), project.getDirectories(), project.getBranches(), branchId)).run(treeView);
+        (new DryrunProjectFiles(project.getFiles(), project.getDirectories(), project.getBranches(), branchId)).run(treeView, plainView);
     }
 }

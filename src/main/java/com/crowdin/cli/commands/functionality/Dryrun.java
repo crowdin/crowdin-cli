@@ -24,6 +24,10 @@ public abstract class Dryrun {
     }
 
     public void run(boolean treeView) {
+        run(treeView, false);
+    }
+
+    public void run(boolean treeView, boolean plainView) {
         List<String> files = getFiles()
             .stream()
             .map(f -> f.replaceAll("^[/\\\\]+", ""))
@@ -32,7 +36,11 @@ public abstract class Dryrun {
         if (treeView) {
             DrawTree.draw(files).forEach(System.out::println);
         } else {
-            files.forEach(file -> System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString(message_key), file))));
+            if (!plainView) {
+                files.forEach(file -> System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString(message_key), file))));
+            } else {
+                files.forEach(file -> System.out.println(file));
+            }
         }
     }
 }

@@ -40,7 +40,7 @@ public class ListProjectActionTest {
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null).build());
 
-        Action action = new ListProjectAction(false, null, true);
+        Action action = new ListProjectAction(false, null, true, false);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
@@ -58,7 +58,7 @@ public class ListProjectActionTest {
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null).build());
 
-        Action action = new ListProjectAction(false, "nonexistentBranch", false);
+        Action action = new ListProjectAction(false, "nonexistentBranch", false, false);
         assertThrows(RuntimeException.class, () -> action.act(pb, client));
 
         verify(client).downloadFullProject();
@@ -77,7 +77,7 @@ public class ListProjectActionTest {
                 .addFile("first.po", "gettext", 101L, null, null)
                 .addBranches(1L, "existentBranch").build());
 
-        Action action = new ListProjectAction(false, "existentBranch", false);
+        Action action = new ListProjectAction(false, "existentBranch", false, false);
         action.act(pb, client);
 
         verify(client).downloadFullProject();

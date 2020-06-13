@@ -15,6 +15,9 @@ public class ListTranslationsSubcommand extends Command {
     @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
     @CommandLine.Mixin
     private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
 
@@ -23,7 +26,7 @@ public class ListTranslationsSubcommand extends Command {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
-        Action action = new ListTranslationsAction(noProgress, treeView, false);
+        Action action = new ListTranslationsAction(noProgress, treeView, false, plainView);
         action.act(pb, client);
     }
 }
