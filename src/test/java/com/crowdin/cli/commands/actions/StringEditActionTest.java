@@ -1,0 +1,85 @@
+package com.crowdin.cli.commands.actions;
+
+import com.crowdin.cli.client.Client;
+import com.crowdin.cli.client.ProjectBuilder;
+import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.commands.functionality.RequestBuilder;
+import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.PropertiesBeanBuilder;
+import com.crowdin.cli.utils.Utils;
+import com.crowdin.client.core.model.PatchOperation;
+import com.crowdin.client.core.model.PatchRequest;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.Mockito.*;
+
+public class StringEditActionTest {
+
+    @ParameterizedTest
+    @MethodSource
+    public void testStringList(Long id, String newText, String newContext, Integer newMaxLength, Boolean newIsHidden) throws ResponseException {
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(Utils.PATH_SEPARATOR);
+        PropertiesBean pb = pbBuilder.build();
+        Client client = mock(Client.class);
+        when(client.downloadFullProject())
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                .addFile("first.csv", "csv", 101L, null, null).build());
+
+        Action action = new StringEditAction(true, id, newText, newContext, newMaxLength, newIsHidden);
+        action.act(pb, client);
+
+        verify(client).downloadFullProject();
+        List<PatchRequest> patches = new ArrayList<PatchRequest>() {{
+            if (newText != null) {
+                add(RequestBuilder.patch(newText, PatchOperation.REPLACE, "/text"));
+            }
+            if (newContext != null) {
+                add(RequestBuilder.patch(newContext, PatchOperation.REPLACE, "/context"));
+            }
+            if (newMaxLength != null) {
+                add(RequestBuilder.patch(newMaxLength, PatchOperation.REPLACE, "/maxLength"));
+            }
+            if (newIsHidden != null) {
+                add(RequestBuilder.patch(newIsHidden, PatchOperation.REPLACE, "/isHidden"));
+            }
+        }};
+        verify(client).editSourceString(id, patches);
+        verifyNoMoreInteractions(client);
+    }
+
+    public static Stream<Arguments> testStringList() {
+        return Stream.of(
+            arguments(801L, "new Text", "new Context", null, null),
+            arguments(801L, null, null, 42, true)
+        );
+    }
+
+    @Test
+    public void testGetProjectThrows() throws ResponseException {
+
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(Utils.PATH_SEPARATOR);
+        PropertiesBean pb = pbBuilder.build();
+        Client client = mock(Client.class);
+        when(client.downloadFullProject())
+            .thenThrow(new RuntimeException("Whoops"));
+
+        Action action = new StringEditAction(true, null, null, null, null, null);
+        assertThrows(RuntimeException.class, () -> action.act(pb, client));
+
+        verify(client).downloadFullProject();
+        verifyNoMoreInteractions(client);
+    }
+}

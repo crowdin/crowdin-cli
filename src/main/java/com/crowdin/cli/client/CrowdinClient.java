@@ -6,13 +6,12 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.core.http.exceptions.HttpBadRequestException;
 import com.crowdin.client.core.http.exceptions.HttpException;
 import com.crowdin.client.core.http.impl.json.JacksonJsonTransformer;
-import com.crowdin.client.core.model.ClientConfig;
-import com.crowdin.client.core.model.Credentials;
-import com.crowdin.client.core.model.ResponseList;
-import com.crowdin.client.core.model.ResponseObject;
+import com.crowdin.client.core.model.*;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.sourcefiles.model.*;
+import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
+import com.crowdin.client.sourcestrings.model.SourceString;
 import com.crowdin.client.storage.model.Storage;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
@@ -31,11 +30,10 @@ import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
-public class CrowdinClient implements Client {
+public class CrowdinClient extends CrowdinClientCore implements Client {
 
     private final com.crowdin.client.Client client;
     private final long projectId;
-    private final static long millisToRetry = 100;
 
     public CrowdinClient(String apiToken, String baseUrl, long projectId) {
         boolean isTesting = PropertiesBeanUtils.isUrlForTesting(baseUrl);
@@ -131,14 +129,6 @@ public class CrowdinClient implements Client {
         }
     }
 
-    private static <T> List<T> unwrap(ResponseList<T> list) {
-        return list
-            .getData()
-            .stream()
-            .map(ResponseObject::getData)
-            .collect(Collectors.toList());
-    }
-
     @Override
     public Branch addBranch(AddBranchRequest request) {
         return executeRequest(() -> this.client.getSourceFilesApi()
@@ -222,55 +212,40 @@ public class CrowdinClient implements Client {
         }
     }
 
-    /**
-     *
-     * @param request represents function with two args (limit, offset)
-     * @param <T> represents model
-     * @return list of models accumulated from request function
-     */
-    private static <T> List<T> executeRequestFullList(BiFunction<Integer, Integer, List<T>> request) {
-        List<T> directories = new ArrayList<>();
-        long counter;
-        int limit = 500;
-        do {
-            List<T> dirs = executeRequest(() -> request.apply(limit, directories.size()));
-            directories.addAll(dirs);
-            counter = dirs.size();
-        } while (counter == limit);
-        return directories;
-    }
-
-    private static <T> T executeRequestWithRetryIfErrorContains(Callable<T> request, String errorMessageContains) {
+    @Override
+    public SourceString addSourceString(AddSourceStringRequest request) {
         try {
-            return executeRequest(request);
+            return executeRequest(() -> this.client.getSourceStringsApi()
+                .addSourceString(this.projectId, request)
+                .getData());
         } catch (Exception e) {
-            if (StringUtils.contains(e.getMessage(), errorMessageContains)) {
-                try {
-                    Thread.sleep(millisToRetry);
-                } catch (InterruptedException ee) {
-                }
-                return executeRequest(request);
+            if (exceptionMessageContainsAll(e, "identifier", "isEmpty")) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.identifier_option_required"), e);
             } else {
-                throw new RuntimeException(e.getMessage());
+                throw e;
             }
         }
     }
 
-    private static <T> T executeRequest(Callable<T> r){
-        try {
-            return r.call();
-        } catch (HttpBadRequestException e) {
-            String errorMessage = e.getErrors()
-                .stream()
-                .flatMap(holder -> holder.getError().getErrors()
-                    .stream()
-                    .map(error -> holder.getError().getKey() + ": " + error.getCode() + ": " + error.getMessage()))
-                .collect(Collectors.joining("\n"));
-            throw new RuntimeException(errorMessage);
-        } catch (HttpException e) {
-            throw new RuntimeException(e.getError().code + ": " + e.getError().message);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        }
+    @Override
+    public List<SourceString> listSourceString(Long fileId, String filter) {
+        return executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceStringsApi()
+            .listSourceStrings(this.projectId, fileId, filter, limit, offset))));
+    }
+
+    @Override
+    public void deleteSourceString(Long sourceId) {
+        executeRequest(() -> {
+            this.client.getSourceStringsApi()
+                .deleteSourceString(this.projectId, sourceId);
+            return true;
+        });
+    }
+
+    @Override
+    public SourceString editSourceString(Long sourceId, List<PatchRequest> requests) {
+        return executeRequest(() -> this.client.getSourceStringsApi()
+            .editSourceString(this.projectId, sourceId, requests)
+            .getData());
     }
 }
