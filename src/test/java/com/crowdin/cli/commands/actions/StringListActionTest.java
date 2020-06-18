@@ -41,7 +41,11 @@ public class StringListActionTest {
         action.act(pb, client);
 
         verify(client).downloadFullProject();
-        verify(client).listSourceString(101L, filter);
+        if (file != null) {
+            verify(client).listSourceString(101L, filter);
+        } else {
+            verify(client).listSourceString(null, filter);
+        }
         verifyNoMoreInteractions(client);
     }
 

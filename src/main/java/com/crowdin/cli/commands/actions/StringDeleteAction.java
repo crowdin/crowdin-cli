@@ -58,5 +58,9 @@ public class StringDeleteAction implements Action {
             System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_deleted"),
                 sourceString.getText(), sourceString.getId(), paths.get(sourceString.getFileId())));
         }
+
+        if (sourceStrings.isEmpty()) {
+            System.out.println(RESOURCE_BUNDLE.getString("message.source_string_not_found"));
+        }
     }
 }

@@ -9,6 +9,9 @@ import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcestrings.model.SourceString;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -50,12 +53,19 @@ public class StringListAction implements Action {
             .stream()
             .collect(Collectors.toMap((entry) -> entry.getValue().getId(), Map.Entry::getKey));
 
+        String encodedFilter;
+        try {
+            encodedFilter = (filter != null) ? URLEncoder.encode(filter, StandardCharsets.UTF_8.toString()) : null;
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
+        }
+
         List<SourceString> sourceStrings;
         if (StringUtils.isEmpty(file)) {
-            sourceStrings = client.listSourceString(null, filter);
+            sourceStrings = client.listSourceString(null, encodedFilter);
         } else {
             if (paths.containsKey(file)) {
-                sourceStrings = client.listSourceString(paths.get(file).getId(), filter);
+                sourceStrings = client.listSourceString(paths.get(file).getId(), encodedFilter);
             } else {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
             }
