@@ -22,16 +22,16 @@ public class StringAddSubcommand extends Command {
     @CommandLine.Parameters
     protected String text;
 
-    @CommandLine.Option(names = {"--identifier"})
+    @CommandLine.Option(names = {"--identifier"}, paramLabel = "...")
     protected String identifier;
 
-    @CommandLine.Option(names = {"--max-len"})
+    @CommandLine.Option(names = {"--max-length"}, paramLabel = "...")
     protected Integer maxLength;
 
-    @CommandLine.Option(names = {"--context"})
+    @CommandLine.Option(names = {"--context"}, paramLabel = "...")
     protected String context;
 
-    @CommandLine.Option(names = {"--file"})
+    @CommandLine.Option(names = {"--file"}, paramLabel = "...")
     protected String[] files;
 
     @CommandLine.Option(names = {"--hidden"})

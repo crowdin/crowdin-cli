@@ -12,8 +12,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
 public class StringDeleteAction implements Action {
 
@@ -55,12 +54,12 @@ public class StringDeleteAction implements Action {
 
         for (SourceString sourceString : sourceStrings) {
             client.deleteSourceString(sourceString.getId());
-            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_deleted"),
-                sourceString.getText(), sourceString.getId(), paths.get(sourceString.getFileId())));
+            System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_deleted"),
+                sourceString.getText(), sourceString.getId(), paths.get(sourceString.getFileId()))));
         }
 
         if (sourceStrings.isEmpty()) {
-            System.out.println(RESOURCE_BUNDLE.getString("message.source_string_not_found"));
+            System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("error.source_string_not_found")));
         }
     }
 }

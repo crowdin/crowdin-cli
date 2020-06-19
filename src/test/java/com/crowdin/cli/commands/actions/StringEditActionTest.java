@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.models.SourceStringBuilder;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.PropertiesBeanBuilder;
@@ -15,6 +16,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -26,7 +28,7 @@ public class StringEditActionTest {
 
     @ParameterizedTest
     @MethodSource
-    public void testStringList(Long id, String newText, String newContext, Integer newMaxLength, Boolean newIsHidden) throws ResponseException {
+    public void testStringList(Long id, String identifier, String newText, String newContext, Integer newMaxLength, Boolean newIsHidden) throws ResponseException {
         PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
@@ -35,8 +37,10 @@ public class StringEditActionTest {
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 101L, null, null).build());
+        when(client.listSourceString(null, null))
+            .thenReturn(Arrays.asList(SourceStringBuilder.standard().setProjectId(42L).setIdentifiers(801L, "old", "old", "old", null).build()));
 
-        Action action = new StringEditAction(true, id, newText, newContext, newMaxLength, newIsHidden);
+        Action action = new StringEditAction(true, id, identifier, newText, newContext, newMaxLength, newIsHidden);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
@@ -54,15 +58,38 @@ public class StringEditActionTest {
                 add(RequestBuilder.patch(newIsHidden, PatchOperation.REPLACE, "/isHidden"));
             }
         }};
-        verify(client).editSourceString(id, patches);
+        verify(client).listSourceString(null, null);
+        verify(client).editSourceString(801L, patches);
         verifyNoMoreInteractions(client);
     }
 
     public static Stream<Arguments> testStringList() {
         return Stream.of(
-            arguments(801L, "new Text", "new Context", null, null),
-            arguments(801L, null, null, 42, true)
+            arguments(801L, null, "new Text", "new Context", null, null),
+            arguments(null, "old", "new Text", "new Context", null, null),
+            arguments(801L, null, null, null, 42, true)
         );
+    }
+
+    @Test
+    public void testBothIdAndIdentifier_throws() throws ResponseException {
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(Utils.PATH_SEPARATOR);
+        PropertiesBean pb = pbBuilder.build();
+        Client client = mock(Client.class);
+        when(client.downloadFullProject())
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                .addFile("first.csv", "csv", 101L, null, null).build());
+        when(client.listSourceString(null, null))
+            .thenReturn(Arrays.asList(SourceStringBuilder.standard().setProjectId(42L).setIdentifiers(801L, "old", "old", "old", null).build()));
+
+        Action action = new StringEditAction(true, null, null, null, null, null, null);
+        assertThrows(RuntimeException.class, () -> action.act(pb, client));
+
+        verify(client).downloadFullProject();
+        verify(client).listSourceString(null, null);
+        verifyNoMoreInteractions(client);
     }
 
     @Test
@@ -76,7 +103,7 @@ public class StringEditActionTest {
         when(client.downloadFullProject())
             .thenThrow(new RuntimeException("Whoops"));
 
-        Action action = new StringEditAction(true, null, null, null, null, null);
+        Action action = new StringEditAction(true, null, null, null, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(pb, client));
 
         verify(client).downloadFullProject();

@@ -12,19 +12,22 @@ import picocli.CommandLine;
 )
 public class StringEditSubcommand extends Command {
 
-    @CommandLine.Option(names = {"--id"}, required = true)
+    @CommandLine.Option(names = {"--id"}, paramLabel = "...")
     protected Long id;
 
-    @CommandLine.Option(names = {"--new-text"})
+    @CommandLine.Option(names = {"--identifier"}, paramLabel = "...", hidden = true)
+    protected String identifier;
+
+    @CommandLine.Option(names = {"--text"}, paramLabel = "...")
     protected String newText;
 
-    @CommandLine.Option(names = {"--new-context"})
+    @CommandLine.Option(names = {"--context"}, paramLabel = "...")
     protected String newContext;
 
-    @CommandLine.Option(names = {"--new-max-len"})
+    @CommandLine.Option(names = {"--max-length"}, paramLabel = "...")
     protected Integer newMaxLength;
 
-    @CommandLine.Option(names = {"--new-hidden"})
+    @CommandLine.Option(names = {"--hidden"})
     protected Boolean newIsHidden;
 
 
@@ -38,13 +41,18 @@ public class StringEditSubcommand extends Command {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
-        Action action = new StringEditAction(noProgress, id, newText, newContext, newMaxLength, newIsHidden);
+        Action action = new StringEditAction(noProgress, id, identifier, newText, newContext, newMaxLength, newIsHidden);
         action.act(pb, client);
     }
 
     private void checkOptions() {
+        if (id == null && identifier == null) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.source_string_id_not_specified"));
+        } else if (id != null && identifier != null) {
+            throw new RuntimeException("You can't use both identifiers");
+        }
         if (newText == null && newContext == null && newMaxLength == null && newIsHidden == null) {
-            throw new RuntimeException("There's nothing to do");
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.source_string_no_edit"));
         }
     }
 

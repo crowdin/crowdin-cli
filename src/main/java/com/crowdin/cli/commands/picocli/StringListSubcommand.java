@@ -14,10 +14,10 @@ import picocli.CommandLine;
 )
 public class StringListSubcommand extends Command {
 
-    @CommandLine.Option(names = {"--file"})
+    @CommandLine.Option(names = {"--file"}, paramLabel = "...")
     protected String file;
 
-    @CommandLine.Option(names = {"--filter"})
+    @CommandLine.Option(names = {"--filter"}, paramLabel = "...")
     protected String filter;
 
     @CommandLine.Mixin

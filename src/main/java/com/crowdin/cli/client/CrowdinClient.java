@@ -220,7 +220,9 @@ public class CrowdinClient extends CrowdinClientCore implements Client {
                 .getData());
         } catch (Exception e) {
             if (exceptionMessageContainsAll(e, "identifier", "isEmpty")) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.identifier_option_required"), e);
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.identifier_option_required"));
+            } else if (exceptionMessageContainsAll(e, "fileId", "isEmpty")) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.file_option_required"));
             } else {
                 throw e;
             }

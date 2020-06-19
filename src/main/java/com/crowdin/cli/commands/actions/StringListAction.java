@@ -8,6 +8,7 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcestrings.model.SourceString;
 import org.apache.commons.lang3.StringUtils;
+import org.apache.http.client.utils.URLEncodedUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -19,8 +20,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
 public class StringListAction implements Action {
 
@@ -70,27 +70,22 @@ public class StringListAction implements Action {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
             }
         }
-        Map<Long, List<SourceString>> sourceStringsSortedByFileId = new HashMap<>();
-        for (SourceString sourceString : sourceStrings) {
-            sourceStringsSortedByFileId.putIfAbsent(sourceString.getFileId(), new ArrayList<>());
-            sourceStringsSortedByFileId.get(sourceString.getFileId()).add(sourceString);
+        if (sourceStrings.isEmpty()) {
+            System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.source_string_list_not_found")));
         }
-        for (Long fileId : sourceStringsSortedByFileId.keySet()) {
-            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_file"), reversePaths.get(fileId)));
-            for (SourceString sourceString : sourceStringsSortedByFileId.get(fileId)) {
-                System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), sourceString.getText()));
-                if (StringUtils.isNotEmpty(sourceString.getContext())) {
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_context"), StringUtils.trim(sourceString.getContext()).replaceAll("\n", "\n\t ")));
+        sourceStrings.forEach(ss -> {
+            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getText()));
+            if (isVerbose) {
+                if (ss.getContext() != null) {
+                    System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_context"), ss.getContext().trim().replaceAll("\n", "\n\t\t")));
                 }
-                System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_id"), sourceString.getId()));
-                if (sourceString.getMaxLength() > 0) {
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_max_length"), sourceString.getMaxLength()));
+                if (ss.getFileId() != null) {
+                    System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_file"), reversePaths.get(ss.getFileId())));
                 }
-                if (this.isVerbose) {
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_identifier"), sourceString.getIdentifier()));
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_type"), sourceString.getType()));
+                if (ss.getMaxLength() != null && ss.getMaxLength() != 0) {
+                    System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_max_length"), ss.getMaxLength()));
                 }
             }
-        }
+        });
     }
 }

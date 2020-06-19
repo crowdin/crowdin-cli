@@ -56,7 +56,8 @@ public class StringDeleteActionTest {
                 SourceStringBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers(801L, "first. text", "context", "first. identifier", null).build(),
                 SourceStringBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers(802L, "second. text", "context", "second. identifier", null).build(),
                 SourceStringBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers(803L, "third. text", "context", "third. identifier", null).build()
-            ), Arrays.asList(801L), Arrays.asList("second. text"), Arrays.asList("third. identifier"))
+            ), Arrays.asList(801L), Arrays.asList("second. text"), Arrays.asList("third. identifier")),
+            arguments(Arrays.asList(), Arrays.asList(801L), Arrays.asList("second. text"), Arrays.asList("third. identifier"))
         );
     }
 

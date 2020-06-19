@@ -7,6 +7,7 @@ import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.core.model.PatchOperation;
 import com.crowdin.client.core.model.PatchRequest;
+import com.crowdin.client.sourcestrings.model.SourceString;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -19,14 +20,16 @@ public class StringEditAction implements Action {
 
     private final boolean noProgress;
     private final Long id;
+    private final String identifier;
     private final String newText;
     private final String newContext;
     private final Integer newMaxLength;
     private final Boolean isHidden;
 
-    public StringEditAction(boolean noProgress, Long id, String newText, String newContext, Integer newMaxLength, Boolean isHidden) {
+    public StringEditAction(boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, Boolean isHidden) {
         this.noProgress = noProgress;
         this.id = id;
+        this.identifier = identifier;
         this.newText = newText;
         this.newContext = newContext;
         this.newMaxLength = newMaxLength;
@@ -43,6 +46,25 @@ public class StringEditAction implements Action {
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
+        }
+
+        List<SourceString> sourceStrings = client.listSourceString(null, null);
+
+        Long foundStringId;
+        if (id != null) {
+            foundStringId = sourceStrings.stream()
+                .filter(ss -> id.equals(ss.getId()))
+                .findAny()
+                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.source_string_not_found")))
+                .getId();
+        } else if (identifier != null) {
+            foundStringId = sourceStrings.stream()
+                .filter(ss -> identifier.equals(ss.getIdentifier()))
+                .findAny()
+                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.source_string_not_found")))
+                .getId();
+        } else {
+            throw new RuntimeException("Unexpected error: no 'id' or 'identifier' specified");
         }
 
         List<PatchRequest> requests = new ArrayList<>();
@@ -63,7 +85,7 @@ public class StringEditAction implements Action {
             requests.add(request);
         }
 
-        client.editSourceString(id, requests);
-        System.out.println(RESOURCE_BUNDLE.getString("message.source_string_updated"));
+        client.editSourceString(foundStringId, requests);
+        System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_updated"), foundStringId)));
     }
 }
