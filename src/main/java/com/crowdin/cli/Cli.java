@@ -68,8 +68,10 @@ public class Cli {
 
     private static CommandLine.Help.ColorScheme buildColorScheme() {
         return new CommandLine.Help.ColorScheme.Builder()
-                .commands(CommandLine.Help.Ansi.Style.fg_yellow)
-                .options(CommandLine.Help.Ansi.Style.fg_yellow)
+                .commands(CommandLine.Help.Ansi.Style.fg_green)
+                .options(CommandLine.Help.Ansi.Style.fg_green)
+                .parameters(CommandLine.Help.Ansi.Style.fg_green)
+                .errors(CommandLine.Help.Ansi.Style.fg_red)
                 .build();
     }
 
