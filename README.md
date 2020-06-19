@@ -263,7 +263,7 @@ Sample configuration file:
 ]
 ```
 
-For more information how to configure Crowdin CLI, check <a href="https://support.crowdin.com/configuration-file-v3/" target="_blank">Configuration File</a> article.
+For more information how to configure Crowdin CLI, check <a href="https://support.crowdin.com/configuration-file/" target="_blank">Configuration File</a> article.
 
 ## Usage
 
@@ -314,7 +314,7 @@ crowdin upload sources \
     --base-url https://api.crowdin.com
 ```
 
-Use <a href="https://support.crowdin.com/configuration-file-v3/#placeholders" target="_blank">placeholders</a> to put appropriate variables.
+Use <a href="https://support.crowdin.com/configuration-file/#placeholders" target="_blank">placeholders</a> to put appropriate variables.
 
 To display a list of files that will be uploaded to Crowdin:
 

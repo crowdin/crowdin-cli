@@ -241,7 +241,7 @@ public class DownloadAction implements Action {
             Map<String, List<String>> allOmittedFiles = new TreeMap<>(omittedFiles.getLeft());
             List<String> allOmittedFilesNoSources = omittedFiles.getRight();
             if (!allOmittedFiles.isEmpty()) {
-                System.out.println(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted"));
+                System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted")));
                 allOmittedFiles.forEach((file, translations) -> {
                     System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_count"), file, translations.size()));
                     if (isVerbose) {
