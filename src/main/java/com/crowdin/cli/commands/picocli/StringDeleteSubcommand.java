@@ -17,7 +17,7 @@ public class StringDeleteSubcommand extends Command {
     @CommandLine.Option(names = {"--id"}, paramLabel = "...")
     protected List<Long> ids;
 
-    @CommandLine.Option(names = {"--text"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--text"}, paramLabel = "...", hidden = true)
     protected List<String> texts;
 
     @CommandLine.Option(names = {"--identifier"}, paramLabel = "...", hidden = true)
