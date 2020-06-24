@@ -19,7 +19,7 @@ import java.util.stream.Collectors;
 )
 public class StringAddSubcommand extends Command {
 
-    @CommandLine.Parameters
+    @CommandLine.Parameters(descriptionKey = "crowdin.string.add.text")
     protected String text;
 
     @CommandLine.Option(names = {"--identifier"}, paramLabel = "...")
