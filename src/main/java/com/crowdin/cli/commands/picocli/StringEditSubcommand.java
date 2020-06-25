@@ -27,7 +27,7 @@ public class StringEditSubcommand extends Command {
     @CommandLine.Option(names = {"--max-length"}, paramLabel = "...")
     protected Integer newMaxLength;
 
-    @CommandLine.Option(names = {"--hidden"})
+    @CommandLine.Option(names = {"--hidden"}, negatable = true)
     protected Boolean newIsHidden;
 
 
