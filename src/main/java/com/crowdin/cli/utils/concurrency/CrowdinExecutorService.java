@@ -1,8 +1,9 @@
 package com.crowdin.cli.utils.concurrency;
 
-import java.util.concurrent.*;
+import com.crowdin.cli.utils.OutputUtil;
 
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+import java.io.PrintWriter;
+import java.util.concurrent.*;
 
 public class CrowdinExecutorService extends ThreadPoolExecutor {
 
@@ -35,15 +36,7 @@ public class CrowdinExecutorService extends ThreadPoolExecutor {
             }
         }
         if (t != null) {
-            if (debug) {
-                t.printStackTrace();
-            } else {
-                Throwable tempE = t;
-                System.out.println(ERROR.withIcon(t.getMessage()));
-                while ((tempE = tempE.getCause()) != null) {
-                    System.out.println(ERROR.withIcon(tempE.getMessage()));
-                }
-            }
+            OutputUtil.fancyErr(t, new PrintWriter(System.err), debug);
         }
     }
 }
