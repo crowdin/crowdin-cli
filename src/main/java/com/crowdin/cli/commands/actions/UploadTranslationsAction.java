@@ -84,7 +84,8 @@ public class UploadTranslationsAction implements Action {
                 : SourcesUtils.getCommonPath(fileSourcesWithoutIgnores, pb.getBasePath());
 
             if (fileSourcesWithoutIgnores.isEmpty()) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
+                System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("error.no_sources")));
+                continue;
             }
 
             Map<java.io.File, Pair<List<Language>, UploadTranslationsRequest>> preparedRequests = new HashMap<>();
