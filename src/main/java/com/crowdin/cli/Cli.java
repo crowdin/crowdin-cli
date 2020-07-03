@@ -7,6 +7,7 @@ import picocli.CommandLine;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
+import java.util.Arrays;
 
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 
@@ -24,7 +25,10 @@ public class Cli {
             HelpCommand.setOptions(commandLine, System.out, colorScheme);
             int exitCode = commandLine.execute(args);
 
-            Utils.getNewVersionMassage().ifPresent(System.out::println);
+            boolean plain = Arrays.stream(args).anyMatch("--plain"::equals);
+            if(!plain) {
+                Utils.getNewVersionMassage().ifPresent(System.out::println);
+            }
 
             System.exit(exitCode);
         } catch (Exception e) {

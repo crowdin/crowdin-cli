@@ -18,6 +18,9 @@ public class ListSourcesSubcommand extends Command {
     @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
     @CommandLine.Mixin
     private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
 
@@ -26,7 +29,7 @@ public class ListSourcesSubcommand extends Command {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
-        Action action = new ListSourcesAction(this.noProgress, this.treeView);
+        Action action = new ListSourcesAction(this.noProgress, this.treeView, this.plainView);
         action.act(pb, client);
     }
 }

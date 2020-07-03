@@ -17,18 +17,22 @@ public class ListTranslationsAction implements Action {
     private boolean noProgress;
     private boolean treeView;
     private boolean isLocal;
+    private boolean plainView;
 
-    public ListTranslationsAction(boolean noProgress, boolean treeView, boolean isLocal) {
+    public ListTranslationsAction(boolean noProgress, boolean treeView, boolean isLocal, boolean plainView) {
         this.noProgress = noProgress;
         this.treeView = treeView;
         this.isLocal = isLocal;
+        this.plainView = plainView;
     }
 
     @Override
     public void act(PropertiesBean pb, Client client) {
         Project project;
         try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            if (!plainView) {
+                ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            }
             project = client.downloadProjectWithLanguages();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
@@ -43,6 +47,6 @@ public class ListTranslationsAction implements Action {
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(!isLocal), pb.getBasePath());
 
-        (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, Optional.empty(), false)).run(treeView);
+        (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, Optional.empty(), false)).run(treeView, plainView);
     }
 }

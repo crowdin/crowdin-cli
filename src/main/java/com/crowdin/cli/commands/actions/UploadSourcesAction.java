@@ -30,19 +30,23 @@ public class UploadSourcesAction implements Action {
     private boolean noProgress;
     private boolean autoUpdate;
     private boolean debug;
+    private boolean plainView;
 
-    public UploadSourcesAction(String branchName, boolean noProgress, boolean autoUpdate, boolean debug) {
+    public UploadSourcesAction(String branchName, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView) {
         this.branchName = branchName;
-        this.noProgress = noProgress;
+        this.noProgress = noProgress || plainView;
         this.autoUpdate = autoUpdate;
         this.debug = debug;
+        this.plainView = plainView;
     }
 
     @Override
     public void act(PropertiesBean pb, Client client) {
         Project project;
         try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            if(!plainView) {
+                ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            }
             project = client.downloadFullProject();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
@@ -64,7 +68,11 @@ public class UploadSourcesAction implements Action {
                     .map(java.io.File::getAbsolutePath)
                     .collect(Collectors.toList());
                 if (sources.isEmpty()) {
-                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
+                    if (!plainView) {
+                        throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
+                    } else {
+                        return;
+                    }
                 }
                 String commonPath =
                     (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
@@ -95,7 +103,11 @@ public class UploadSourcesAction implements Action {
 
                                 try {
                                     client.updateSource(sourceId, request);
-                                    System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
+                                    if(!plainView) {
+                                        System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
+                                    } else {
+                                        System.out.println(fileFullPath);
+                                    }
                                 } catch (Exception e) {
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath), e);
                                 }
@@ -133,10 +145,18 @@ public class UploadSourcesAction implements Action {
                                 } catch (Exception e) {
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath), e);
                                 }
-                                System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
+                                if(!plainView) {
+                                    System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
+                                } else {
+                                    System.out.println(fileFullPath);
+                                }
                             };
                         } else {
-                            return (Runnable) () -> System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
+                            return (Runnable) () -> {
+                                if (!plainView) {
+                                    System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
+                                }
+                            };
                         }
 
                     })
@@ -196,7 +216,9 @@ public class UploadSourcesAction implements Action {
             AddBranchRequest request = new AddBranchRequest();
             request.setName(branchName);
             Branch newBranch = client.addBranch(request);
-            System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branchName)));
+            if (!plainView) {
+                System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branchName)));
+            }
             project.addBranchToList(newBranch);
             return newBranch;
         }

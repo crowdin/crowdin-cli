@@ -34,21 +34,25 @@ public class UploadTranslationsAction implements Action {
     private boolean importEqSuggestions;
     private boolean autoApproveImported;
     private boolean debug;
+    private boolean plainView;
 
-    public UploadTranslationsAction(boolean noProgress, String languageId, String branchName, boolean importEqSuggestions, boolean autoApproveImported, boolean debug) {
-        this.noProgress = noProgress;
+    public UploadTranslationsAction(boolean noProgress, String languageId, String branchName, boolean importEqSuggestions, boolean autoApproveImported, boolean debug, boolean plainView) {
+        this.noProgress = noProgress || plainView;
         this.languageId = languageId;
         this.branchName = branchName;
         this.importEqSuggestions = importEqSuggestions;
         this.autoApproveImported = autoApproveImported;
         this.debug = debug;
+        this.plainView = plainView;
     }
 
     @Override
     public void act(PropertiesBean pb, Client client) {
         Project project;
         try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            if (!plainView) {
+                ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            }
             project = client.downloadFullProject();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
@@ -84,7 +88,10 @@ public class UploadTranslationsAction implements Action {
                 : SourcesUtils.getCommonPath(fileSourcesWithoutIgnores, pb.getBasePath());
 
             if (fileSourcesWithoutIgnores.isEmpty()) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
+                if (!plainView) {
+                    System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("error.no_sources")));
+                }
+                continue;
             }
 
             Map<java.io.File, Pair<List<Language>, UploadTranslationsRequest>> preparedRequests = new HashMap<>();
@@ -95,7 +102,9 @@ public class UploadTranslationsAction implements Action {
                     : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
 
                 if (!paths.containsKey(filePath)) {
-                    System.out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), StringUtils.removeStart(source, pb.getBasePath()), filePath)));
+                    if (!plainView) {
+                        System.out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), StringUtils.removeStart(source, pb.getBasePath()), filePath)));
+                    }
                     return;
                 }
                 Long fileId = paths.get(filePath).getId();
@@ -107,7 +116,9 @@ public class UploadTranslationsAction implements Action {
                 if (file.getScheme() != null) {
                     java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
                     if (!transFile.exists()) {
-                        System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
+                        if (!plainView) {
+                            System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
+                        }
                         return;
                     }
                     UploadTranslationsRequest request = new UploadTranslationsRequest();
@@ -126,7 +137,9 @@ public class UploadTranslationsAction implements Action {
                         transFileName = PropertiesBeanUtils.useTranslationReplace(transFileName, file.getTranslationReplace());
                         java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
                         if (!transFile.exists()) {
-                            System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
+                            if (!plainView) {
+                                System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
+                            }
                             continue;
                         }
                         UploadTranslationsRequest request = new UploadTranslationsRequest();
@@ -157,8 +170,12 @@ public class UploadTranslationsAction implements Action {
                     } catch (Exception e) {
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
                     }
-                    System.out.println(
-                            OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.translation_uploaded"), StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()))));
+                    if (!plainView) {
+                        System.out.println(
+                                OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.translation_uploaded"), StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()))));
+                    } else {
+                        System.out.println(StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()));
+                    }
                 })
                 .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks, debug);

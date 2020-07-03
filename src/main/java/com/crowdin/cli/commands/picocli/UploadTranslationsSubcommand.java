@@ -33,6 +33,9 @@ public class UploadTranslationsSubcommand extends Command {
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
     @CommandLine.Mixin
     private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
 
@@ -42,8 +45,8 @@ public class UploadTranslationsSubcommand extends Command {
         Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
         Action action = (dryrun)
-            ? new ListTranslationsAction(noProgress, treeView, true)
-            : new UploadTranslationsAction(noProgress, languageId, branch, importEqSuggestions, autoApproveImported, debug);
+            ? new ListTranslationsAction(noProgress, treeView, true, plainView)
+            : new UploadTranslationsAction(noProgress, languageId, branch, importEqSuggestions, autoApproveImported, debug, plainView);
         action.act(pb, client);
     }
 }

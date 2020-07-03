@@ -15,17 +15,21 @@ public class ListSourcesAction implements Action {
 
     private boolean noProgress;
     private boolean treeView;
+    private boolean plainView;
 
-    public ListSourcesAction(boolean noProgress, boolean treeView) {
-        this.noProgress = noProgress;
+    public ListSourcesAction(boolean noProgress, boolean treeView, boolean plainView) {
+        this.noProgress = noProgress || plainView;
         this.treeView = treeView;
+        this.plainView = plainView;
     }
 
     @Override
     public void act(PropertiesBean pb, Client client) {
         Project project;
         try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            if (!plainView) {
+                ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            }
             project = client.downloadProjectWithLanguages();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
@@ -34,6 +38,6 @@ public class ListSourcesAction implements Action {
         }
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
 
-        (new DryrunSources(pb, placeholderUtil)).run(treeView);
+        (new DryrunSources(pb, placeholderUtil)).run(treeView, plainView);
     }
 }

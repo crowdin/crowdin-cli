@@ -36,10 +36,11 @@ public class DownloadAction implements Action {
     private Boolean skipTranslatedOnly;
     private Boolean skipUntranslatedFiles;
     private Boolean exportApprovedOnly;
+    private boolean plainView;
 
-    public DownloadAction(FilesInterface files, boolean noProgress, String languageId, String branchName, boolean ignoreMatch, boolean isVerbose, Boolean skipTranslatedOnly, Boolean skipUntranslatedFiles, Boolean exportApprovedOnly) {
+    public DownloadAction(FilesInterface files, boolean noProgress, String languageId, String branchName, boolean ignoreMatch, boolean isVerbose, Boolean skipTranslatedOnly, Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView) {
         this.files = files;
-        this.noProgress = noProgress;
+        this.noProgress = noProgress || plainView;
         this.languageId = languageId;
         this.branchName = branchName;
         this.ignoreMatch = ignoreMatch;
@@ -47,6 +48,7 @@ public class DownloadAction implements Action {
         this.skipTranslatedOnly = skipTranslatedOnly;
         this.skipUntranslatedFiles = skipUntranslatedFiles;
         this.exportApprovedOnly = exportApprovedOnly;
+        this.plainView = plainView;
     }
 
     @Override
@@ -56,7 +58,9 @@ public class DownloadAction implements Action {
 
         Project project;
         try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            if (!plainView) {
+                ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            }
             project = client.downloadFullProject();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
@@ -98,9 +102,11 @@ public class DownloadAction implements Action {
             .map(Branch::getId)
             .ifPresent(buildRequest::setBranchId);
 
-        System.out.println((languageId != null)
-            ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId))
-            : OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive")));
+        if (!plainView) {
+            System.out.println((languageId != null)
+                ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId))
+                : OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive")));
+        }
         ProjectBuild projectBuild = buildTranslation(client, buildRequest);
 
         String currentTimeMillis = Long.toString(System.currentTimeMillis());
@@ -165,7 +171,9 @@ public class DownloadAction implements Action {
     private ProjectBuild buildTranslation(Client client, BuildProjectTranslationRequest request) {
         ProjectBuild build;
         try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.building_translation"), this.noProgress);
+            if (!plainView) {
+                ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.building_translation"), this.noProgress);
+            }
             build = client.startBuildingTranslation(request);
 
             while (!build.getStatus().equalsIgnoreCase("finished")) {
@@ -234,13 +242,17 @@ public class DownloadAction implements Action {
         Pair<Map<File, File>, List<String>> result = sortFiles(downloadedFilesProc, filesWithMapping, basePath, baseTempDirPath);
         new TreeMap<>(result.getLeft()).forEach((fromFile, toFile) -> { //files to extract
             files.copyFile(fromFile, toFile);
-            System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.extracted_file"), StringUtils.removeStart(toFile.getAbsolutePath(), basePath))));
+            if (!plainView) {
+                System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.extracted_file"), StringUtils.removeStart(toFile.getAbsolutePath(), basePath))));
+            } else {
+                System.out.println(StringUtils.removeStart(toFile.getAbsolutePath(), basePath));
+            }
         });
         if (!ignoreMatch && !result.getRight().isEmpty()) {
             Pair<Map<String, List<String>>, List<String>> omittedFiles = this.sortOmittedFiles(result.getRight(), allProjectTranslations);
             Map<String, List<String>> allOmittedFiles = new TreeMap<>(omittedFiles.getLeft());
             List<String> allOmittedFilesNoSources = omittedFiles.getRight();
-            if (!allOmittedFiles.isEmpty()) {
+            if (!allOmittedFiles.isEmpty() && !plainView) {
                 System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted")));
                 allOmittedFiles.forEach((file, translations) -> {
                     System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_count"), file, translations.size()));
@@ -249,7 +261,7 @@ public class DownloadAction implements Action {
                     }
                 });
             }
-            if (!allOmittedFilesNoSources.isEmpty()) {
+            if (!allOmittedFilesNoSources.isEmpty() && !plainView) {
                 System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted_without_sources")));
                 allOmittedFilesNoSources.forEach(file -> System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), file)));
             }
@@ -293,7 +305,9 @@ public class DownloadAction implements Action {
 
     private void downloadTranslations(Client client, Long buildId, String archivePath) {
         try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.downloading_translation"), this.noProgress);
+            if (!plainView) {
+                ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.downloading_translation"), this.noProgress);
+            }
             InputStream data = client.downloadBuild(buildId);
 
             files.writeToFile(archivePath, data);

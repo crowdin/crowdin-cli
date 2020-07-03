@@ -40,6 +40,8 @@ public class DownloadSubcommand extends Command {
     @CommandLine.Option(names = {"--export-only-approved"}, descriptionKey = "crowdin.download.exportOnlyApproved")
     protected Boolean exportApprovedOnly;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
 
     @CommandLine.Mixin
     private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
@@ -52,8 +54,8 @@ public class DownloadSubcommand extends Command {
         FilesInterface files = new FSFiles();
 
         Action action = (dryrun)
-            ? new ListTranslationsAction(noProgress, treeView, false)
-            : new DownloadAction(files, noProgress, languageId, branchName, ignoreMatch, isVerbose, skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly);
+            ? new ListTranslationsAction(noProgress, treeView, false, plainView)
+            : new DownloadAction(files, noProgress, languageId, branchName, ignoreMatch, isVerbose, skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly, plainView);
         action.act(pb, client);
     }
 }
