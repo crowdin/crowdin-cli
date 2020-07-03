@@ -16,6 +16,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -62,6 +63,8 @@ public class UploadSourcesAction implements Action {
                 .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
         Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
 
+        List<String> uploadedSources = new ArrayList<>();
+
         List<Runnable> tasks = pb.getFiles().stream()
             .map(file -> (Runnable) () -> {
                 List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
@@ -84,6 +87,17 @@ public class UploadSourcesAction implements Action {
                                 : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
                         final String fileFullPath = (branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + filePath;
                         final String fileName = fileFullPath.substring(fileFullPath.lastIndexOf(Utils.PATH_SEPARATOR)+1);
+
+                        synchronized (uploadedSources) {
+                            if (uploadedSources.contains(fileFullPath)) {
+                                return (Runnable) () -> {
+                                    System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString(
+                                        "Skipping file '" + fileFullPath + "' because it is already uploading/uploaded!"),
+                                        fileFullPath)));
+                                };
+                            }
+                            uploadedSources.add(fileFullPath);
+                        }
 
                         File projectFile = paths.get(fileFullPath);
                         if (autoUpdate && projectFile != null) {
