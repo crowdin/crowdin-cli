@@ -142,6 +142,7 @@ public class DownloadAction implements Action {
                 return this.doTranslationMapping(forLanguages, file.getTranslation(), projLanguageMapping, languageMapping, translationReplace, sources, file.getSource(), pb.getBasePath(), placeholderUtil);
             })
             .flatMap(map -> map.entrySet().stream())
+            .distinct()
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
 
         Map<Long, String> directoryPaths = (branch.isPresent())
