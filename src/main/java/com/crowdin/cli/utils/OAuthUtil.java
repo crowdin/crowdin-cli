@@ -25,10 +25,11 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
 import static com.crowdin.cli.BaseCli.*;
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 public class OAuthUtil {
 
-    public static String getToken(String clientId, String clientSecret) {
+    public static String getToken(String clientId) {
         try {
             int port = 46221;
             String redirectUri = String.format("http://localhost:%d/callback", port);
@@ -36,26 +37,22 @@ public class OAuthUtil {
 
             SimpleHttpServer server = new SimpleHttpServer(ServerSocketFactory.standard(), port, true);
             server.addListener("/callback", (request, responseOut) -> {
-                HttpResponse.redirect("https://crowdin.com/").send(responseOut);
-                responseOut.close();
-                Result result;
 
-                if (request.getParams().containsKey("code")) {
-                    String code = request.getParams().get("code");
-                    JSONObject tokenResponse = requestAccessToken(clientId, clientSecret, redirectUri, code);
-                    if (tokenResponse.has("access_token") && tokenResponse.has("refresh_token") && tokenResponse.has("expires_in")) {
-                        result = new Result(
-                            tokenResponse.getString("access_token"),
-                            tokenResponse.getString("refresh_token"),
-                            tokenResponse.getInt("expires_in"));
-                    } else {
-                        result = new Result(new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.unexpected_response"), URL_OAUTH_TOKEN, tokenResponse)));
-                    }
+                String responseText = "Something went wrong.";
+                Result result;
+                if (request.getParams().containsKey("access_token") && request.getParams().containsKey("expires_in")) {
+                    String accessToken = request.getParams().get("access_token");
+                    int expiresIn = Integer.parseInt(request.getParams().get("expires_in"));
+                    result = new Result(accessToken, expiresIn);
+                    responseText = "You have successfully authenticated.";
                 } else if (request.getParams().containsKey("error")) {
                     result = new Result(new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.error_response"), URL_OAUTH_AUTH, request.getParams().get("error"))));
                 } else {
                     result = new Result(new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.unexpected_response"), URL_OAUTH_AUTH, request)));
                 }
+                HttpResponse
+                    .ok(String.format("<title>Crowdin CLI - Authentication</title><br/><br/><br/><div><h1 style='text-align: center;'>%s</h1><p style='text-align: center;'>You may now close this page.</p></div>", responseText))
+                    .send(responseOut);
                 queue.add(result);
 
             });
@@ -66,15 +63,19 @@ public class OAuthUtil {
             String builtUrl = String.format(URL_OAUTH_AUTH, clientId, redirectUri);
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                 Desktop.getDesktop().browse(new URI(builtUrl));
+            } else {
+                System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.warning.browser_not_found"), builtUrl)));
             }
 
             Result result = queue.take();
             server.close();
 
-            if (result.getException() != null) {
+            if (result.getToken() != null) {
+                return result.getToken();
+            } else if (result.getException() != null) {
                 throw result.getException();
             } else {
-                return result.getToken();
+                throw new RuntimeException("Unexpected error");
             }
         } catch (Exception e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.in_local_server"), e);
@@ -82,58 +83,18 @@ public class OAuthUtil {
     }
 
     @Data
-    public static class Result {
+    private static class Result {
         private String token;
-        private String refreshToken;
-        private int expiresInt;
+        private int expiresIn;
         private Exception exception;
 
-        public Result(String token, String refreshToken, int expiresInt) {
+        public Result(String token, int expiresIn) {
             this.token = token;
-            this.refreshToken = refreshToken;
-            this.expiresInt = expiresInt;
+            this.expiresIn = expiresIn;
         }
 
         public Result(Exception exception) {
             this.exception = exception;
-        }
-    }
-
-    private static JSONObject requestAccessToken(String clientId, String clientSecret, String redirectUri, String code) {
-        java.util.List<NameValuePair> body = new ArrayList<NameValuePair>() {{
-            add(new BasicNameValuePair("grant_type", "authorization_code"));
-            add(new BasicNameValuePair("client_id", clientId));
-            add(new BasicNameValuePair("client_secret", clientSecret));
-            add(new BasicNameValuePair("redirect_uri", redirectUri));
-            add(new BasicNameValuePair("code", code));
-        }};
-        return send(body);
-    }
-
-    private static JSONObject requestRefreshToken(String clientId, String clientSecret, String redirectUri, String refreshToken) {
-        java.util.List<NameValuePair> body = new ArrayList<NameValuePair>() {{
-            add(new BasicNameValuePair("grant_type", "refresh_token"));
-            add(new BasicNameValuePair("client_id", clientId));
-            add(new BasicNameValuePair("client_secret", clientSecret));
-            add(new BasicNameValuePair("redirect_uri", redirectUri));
-            add(new BasicNameValuePair("refresh_token", refreshToken));
-        }};
-        return send(body);
-    }
-
-    private static JSONObject send(List<? extends NameValuePair> body) {
-        HttpPost tokenRequest = new HttpPost(URL_OAUTH_TOKEN);
-        try {
-            tokenRequest.setEntity(new UrlEncodedFormEntity(body));
-        } catch (IOException e) {
-            throw new RuntimeException("Error while encoding", e);
-        }
-
-        try (CloseableHttpClient httpClient = HttpClients.createDefault();
-             CloseableHttpResponse response = httpClient.execute(tokenRequest)) {
-            return new JSONObject(EntityUtils.toString(response.getEntity()));
-        } catch (IOException e) {
-            throw new RuntimeException("Error while processing second request", e);
         }
     }
 

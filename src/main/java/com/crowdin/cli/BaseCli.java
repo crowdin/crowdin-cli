@@ -24,9 +24,7 @@ public class BaseCli {
 
     public static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages/messages");
 
-    public static final String URL_OAUTH_AUTH = "https://accounts.crowdin.com/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=code&scope=project";
-    public static final String URL_OAUTH_TOKEN = "https://accounts.crowdin.com/oauth/token";
-    
+    public static final String URL_OAUTH_AUTH = "https://accounts.crowdin.com/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=token&scope=project";
+
     public static final String OAUTH_CLIENT_ID = "wQEqvhU3vLOa2XicmUyT";
-    public static final String OAURH_CLIENT_SECRET = "2c488qiUkqtcsQDtRysPjoKXJxm2JF87dFNcljN9";
 }
