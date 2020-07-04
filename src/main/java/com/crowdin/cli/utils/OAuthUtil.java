@@ -38,20 +38,23 @@ public class OAuthUtil {
             SimpleHttpServer server = new SimpleHttpServer(ServerSocketFactory.standard(), port, true);
             server.addListener("/callback", (request, responseOut) -> {
 
-                String responseText = "Something went wrong.";
+                String responseText = RESOURCE_BUNDLE.getString("message.html_page.main_text_exception");
                 Result result;
                 if (request.getParams().containsKey("access_token") && request.getParams().containsKey("expires_in")) {
                     String accessToken = request.getParams().get("access_token");
                     int expiresIn = Integer.parseInt(request.getParams().get("expires_in"));
                     result = new Result(accessToken, expiresIn);
-                    responseText = "You have successfully authenticated.";
+                    responseText = RESOURCE_BUNDLE.getString("message.html_page.main_text_successful");
                 } else if (request.getParams().containsKey("error")) {
                     result = new Result(new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.error_response"), URL_OAUTH_AUTH, request.getParams().get("error"))));
                 } else {
                     result = new Result(new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.unexpected_response"), URL_OAUTH_AUTH, request)));
                 }
                 HttpResponse
-                    .ok(String.format("<title>Crowdin CLI - Authentication</title><br/><br/><br/><div><h1 style='text-align: center;'>%s</h1><p style='text-align: center;'>You may now close this page.</p></div>", responseText))
+                    .ok(String.format(RESOURCE_BUNDLE.getString("message.html_page.body"),
+                        RESOURCE_BUNDLE.getString("message.html_page.title"),
+                        responseText,
+                        RESOURCE_BUNDLE.getString("message.html_page.close_page_text")))
                     .send(responseOut);
                 queue.add(result);
 
