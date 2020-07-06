@@ -43,7 +43,7 @@ dependencies {
     compile group: 'net.ricecode', name: 'string-similarity', version: '1.0.0'
     compile group: 'com.github.fge', name: 'json-patch', version: '1.9'
 
-    compile 'info.picocli:picocli:4.3.2'
+    compile 'info.picocli:picocli:4.4.0'
 
     compile 'com.github.crowdin:crowdin-api-client-java:1.2.2'
 
