@@ -91,9 +91,9 @@ public class UploadSourcesAction implements Action {
                         synchronized (uploadedSources) {
                             if (uploadedSources.contains(fileFullPath)) {
                                 return (Runnable) () -> {
-                                    System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString(
-                                        "Skipping file '" + fileFullPath + "' because it is already uploading/uploaded!"),
-                                        fileFullPath)));
+                                    System.out.println(WARNING.withIcon(
+                                        String.format(RESOURCE_BUNDLE.getString("message.already_uploaded"),
+                                            fileFullPath)));
                                 };
                             }
                             uploadedSources.add(fileFullPath);
