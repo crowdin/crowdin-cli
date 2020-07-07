@@ -170,7 +170,7 @@ public class UploadTranslationsActionTest {
         when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
             .thenReturn(1L);
 
-        Action action = new UploadTranslationsAction(false, null, null, false, false, false);
+        Action action = new UploadTranslationsAction(false, null, null, false, false, false, false);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
