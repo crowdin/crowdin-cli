@@ -154,4 +154,34 @@ public class UploadTranslationsActionTest {
         verify(client).uploadTranslations(eq("ru"), eq(uploadTranslationRequest));
         verifyNoMoreInteractions(client);
     }
+
+    @Test
+    public void testUploadWithDest() throws ResponseException {
+        project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
+        project.addFile(Utils.normalizePath("first.po-CR-uk-UA"), "Hello, World!");
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%", Arrays.asList("*-CR-*"), "/second.po")
+            .setBasePath(project.getBasePath());
+        PropertiesBean pb = pbBuilder.build();
+        Client client = mock(Client.class);
+        when(client.downloadFullProject())
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                .addFile("second.po", "gettext", 301L, null, null).build());
+        when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
+            .thenReturn(1L);
+
+        Action action = new UploadTranslationsAction(false, null, null, false, false, false);
+        action.act(pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
+        UploadTranslationsRequest uploadTranslationRequest = new UploadTranslationsRequest() {{
+            setStorageId(1L);
+            setFileId(301L);
+            setImportEqSuggestions(false);
+            setAutoApproveImported(false);
+        }};
+        verify(client).uploadTranslations(eq("ua"), eq(uploadTranslationRequest));
+        verifyNoMoreInteractions(client);
+    }
 }

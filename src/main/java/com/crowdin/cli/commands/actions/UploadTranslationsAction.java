@@ -98,7 +98,7 @@ public class UploadTranslationsAction implements Action {
             String branchPath = (StringUtils.isNotEmpty(this.branchName) ? branchName + Utils.PATH_SEPARATOR : "");
             fileSourcesWithoutIgnores.forEach(source -> {
                 String filePath = branchPath + (StringUtils.isNotEmpty(file.getDest())
-                    ? file.getDest()
+                    ? StringUtils.removeStart(file.getDest(), Utils.PATH_SEPARATOR)
                     : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
 
                 if (!paths.containsKey(filePath)) {

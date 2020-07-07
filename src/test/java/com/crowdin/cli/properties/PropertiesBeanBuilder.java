@@ -12,6 +12,7 @@ public class PropertiesBeanBuilder {
 
     public static final String STANDARD_SOURCE = "*";
     public static final String STANDARD_TRANSLATIONS = Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%";
+    public static final String STANDARD_DEST = null;
 
 
     private PropertiesBean pb;
@@ -38,10 +39,15 @@ public class PropertiesBeanBuilder {
     }
 
     public static PropertiesBeanBuilder minimalBuiltPropertiesBean(String source, String translation, List<String> ignore) {
+        return minimalBuiltPropertiesBean(source, translation, ignore, STANDARD_DEST);
+    }
+
+    public static PropertiesBeanBuilder minimalBuiltPropertiesBean(String source, String translation, List<String> ignore, String dest) {
         PropertiesBeanBuilder pbBuilder = minimalPropertiesBeanWithoutFileBean();
         FileBean fb = new FileBean();
         fb.setSource(source);
         fb.setTranslation(translation);
+        fb.setDest(dest);
         fb.setIgnore(ignore);
         fb.setContentSegmentation(true);
         fb.setTranslateContent(true);
