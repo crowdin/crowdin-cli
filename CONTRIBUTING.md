@@ -8,6 +8,10 @@ This project and everyone participating in it are governed by the [Code of Condu
 
 ## How can I contribute?
 
+### Star this repo
+
+It's quick and goes a long way! :stars:
+
 ### Reporting Bugs
 
 This section guides you through submitting a bug report for Crowdin CLI. Following these guidelines helps maintainers, and the community understand your report :pencil:, reproduce the behavior :computer:, and find related reports :mag_right:.

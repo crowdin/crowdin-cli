@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.2.0] - 2020-07-08
+- Added: Strings management functionality
+- Added: Introduce a plain mode for usage in scripts
+- Added: Install script: install an uninstaller
+- Updated: Change help messages color scheme
+- Updated: Warning emoji to one message and remove the suffix 'v3' from the doc link
+- Fixed: Bug with intersecting sources
+- Fixed: Translations upload with `dest` parameter
+- Fixed: Fix bug with empty sources for `upload translations`
+
 ## [3.1.15] - 2020-06-04
 - Updated: Update params for building translations request
 

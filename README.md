@@ -29,8 +29,10 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 * [Usage](#usage)
   * [General Commands](#general-commands)
   * [Uploading Resources](#uploading-resources)
-* [Downloading Translations](#downloading-translations)
-* [Versions Management](#versions-management)
+  * [Downloading Translations](#downloading-translations)
+  * [Versions Management](#versions-management)
+  * [Source strings management](#source-strings-management)
+  * [Translation and proofreading progress](#translation-and-proofreading-progress)
 * [Seeking Assistance](#seeking-assistance)
 * [Contributing](#contributing)
 * [Authors](#authors)
@@ -229,7 +231,7 @@ java -jar crowdin-cli.jar
 
 Crowdin CLI uses a YAML configuration file that contains a description of the resources to manage: files to be uploaded into Crowdin and the locations of the corresponding translations.
 
-To use Crowdin CLI, you should first generate your configuration file and then run the tool. By default, Crowdin CLI looks for a configuration file named *crowdin.yaml* or *crowdin.yml* (so you don’t have to specify the file name unless it’s different from crowdin.yaml).
+To use Crowdin CLI, you should first generate your configuration file and then run the tool. By default, Crowdin CLI looks for a configuration file named *crowdin.yaml* or *crowdin.yml* (so you don’t have to specify the file name unless it’s different from *crowdin.yaml*).
 
 To create the configuration file run the following command:
 
@@ -242,8 +244,6 @@ When calling Crowdin CLI in terminal make sure you are in your project root dire
 ```console
 crowdin upload sources --config /path/to/your/config/file
 ```
-
-Run `crowdin -h` to get more details on other commands.
 
 Sample configuration file:
 
@@ -275,6 +275,10 @@ To display help information:
 
 ```console
 crowdin -h
+```
+
+```console
+crowdin <command> -h
 ```
 
 To generate skeleton configuration file:
@@ -381,6 +385,29 @@ To download translations from the specified version branch:
 ```console
 crowdin download -b {branch_name}
 ```
+
+## Source strings management
+
+There is a possibility to manage (add, edit, delete) source strings for the following file types: CSV, RESX, JSON, Android XML, MACOSX, STRINGS, PROPERTIES.
+
+|Command                   | Description                     |
+|--------------------------|---------------------------------|
+| `crowdin string list`    | Show a list of source strings in the current project. <br>You can use the `--verbose` option to see more information |
+| `crowdin string add`     | Create a new source string. <br>Use `-h` option to see all possible command options |
+| `crowdin string delete`  | Delete source string |
+| `crowdin string edit`    | Edit existing source string |
+
+## Translation and proofreading progress
+
+To show translation and proofreading progress for a project use the following commands:
+
+|Command                         | Description                     |
+|--------------------------------|---------------------------------|
+| `crowdin status`               | Show translation and proofreading progress for a project |
+| `crowdin status translation`   | Show only translation progress for a project |
+| `crowdin status proofreading`  | Show only proofreading progress for a project |
+
+Also, you can use the `--verbose` option to see more information.
 
 ## Seeking Assistance
 
