@@ -20,7 +20,7 @@ public class TempProject {
 
     public TempProject(String name) {
         try {
-            dir = Files.createTempDirectory(name);
+            dir = Files.createTempDirectory(name).toRealPath();
         } catch (IOException e) {
             throw new RuntimeException("Couldn't create temp folder", e);
         }

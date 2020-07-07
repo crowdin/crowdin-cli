@@ -1,7 +1,10 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.sourcefiles.model.*;
+import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
+import com.crowdin.client.sourcestrings.model.SourceString;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
@@ -32,4 +35,8 @@ public interface Client {
 
     List<LanguageProgress> getProjectProgress(String languageId);
 
+    SourceString addSourceString(AddSourceStringRequest request);
+    List<SourceString> listSourceString(Long fileId, String filter);
+    void deleteSourceString(Long id);
+    SourceString editSourceString(Long sourceId, List<PatchRequest> requests);
 }

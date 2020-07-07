@@ -10,7 +10,8 @@ import picocli.CommandLine;
         ListSubcommand.class,
         LintSubcommand.class,
         GenerateSubcommand.class,
-        StatusSubcommand.class
+        StatusSubcommand.class,
+        StringSubcommand.class
     })
 public class RootCommand extends HelpCommand {
     @Override
