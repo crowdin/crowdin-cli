@@ -31,7 +31,7 @@ public class ProjectUtilsTest {
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
         Branch branch = null;
 
-        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch);
+        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch, false);
 
         assertEquals(102L, resultDirectoryId, "Directory id is not correct");
         verifyZeroInteractions(client);
@@ -57,7 +57,7 @@ public class ProjectUtilsTest {
             .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
                 .setIdentifiers("folder2", 102L, 101L, null).build());
 
-        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch);
+        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch, false);
 
         assertEquals(102L, resultDirectoryId, "Directory id is not correct");
         verify(client).addDirectory(eq(request1));
@@ -81,7 +81,7 @@ public class ProjectUtilsTest {
             .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
                 .setIdentifiers("folder2", 102L, 101L, null).build());
 
-        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch);
+        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch, false);
 
         assertEquals(102L, resultDirectoryId, "Directory id is not correct");
         verify(client).addDirectory(eq(request));
@@ -98,7 +98,7 @@ public class ProjectUtilsTest {
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
         Branch branch = BranchBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers("branch", 301L).build();
 
-        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch);
+        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch, false);
 
         assertEquals(102L, resultDirectoryId, "Directory id is not correct");
         verifyZeroInteractions(client);
@@ -124,7 +124,7 @@ public class ProjectUtilsTest {
             .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
                 .setIdentifiers("folder2", 102L, 101L, branch.getId()).build());
 
-        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch);
+        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch, false);
 
         assertEquals(102L, resultDirectoryId, "Directory id is not correct");
         verify(client).addDirectory(eq(request1));
@@ -147,7 +147,7 @@ public class ProjectUtilsTest {
             .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
                 .setIdentifiers("folder2", 102L, 101L, branch.getId()).build());
 
-        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch);
+        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch, false);
 
         assertEquals(102L, resultDirectoryId, "Directory id is not correct");
         verify(client).addDirectory(eq(request));
@@ -162,7 +162,7 @@ public class ProjectUtilsTest {
         Branch branch = null;
         when(client.addDirectory(any())).thenThrow(new ResponseException("Error while creating directory"));
 
-        assertThrows(RuntimeException.class, () -> ProjectUtils.createPath(client, directoriesIdMap, filePath, branch));
+        assertThrows(RuntimeException.class, () -> ProjectUtils.createPath(client, directoriesIdMap, filePath, branch, false));
 
         verify(client).addDirectory(any());
         verifyNoMoreInteractions(client);
@@ -182,7 +182,7 @@ public class ProjectUtilsTest {
             .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
                 .setIdentifiers("folder", 101L, null, null).build());
 
-        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch);
+        long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch, false);
 
         assertEquals(101L, resultDirectoryId, "Directory id is not correct");
         verify(client, times(2)).addDirectory(eq(request1));

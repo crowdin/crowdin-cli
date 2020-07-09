@@ -90,11 +90,11 @@ public class UploadSourcesAction implements Action {
 
                         synchronized (uploadedSources) {
                             if (uploadedSources.contains(fileFullPath)) {
-                                return (Runnable) () -> {
-                                    System.out.println(WARNING.withIcon(
+                                return (plainView)
+                                    ? (Runnable) () -> { } // print nothing
+                                    : (Runnable) () -> System.out.println(WARNING.withIcon(
                                         String.format(RESOURCE_BUNDLE.getString("message.already_uploaded"),
                                             fileFullPath)));
-                                };
                             }
                             uploadedSources.add(fileFullPath);
                         }
@@ -138,7 +138,7 @@ public class UploadSourcesAction implements Action {
                             return (Runnable) () -> {
                                 Long directoryId = null;
                                 try {
-                                    directoryId = ProjectUtils.createPath(client, directoryPaths, filePath, branchId);
+                                    directoryId = ProjectUtils.createPath(client, directoryPaths, filePath, branchId, plainView);
                                 } catch (Exception e) {
                                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.creating_directories"), e);
                                 }

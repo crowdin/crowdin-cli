@@ -28,7 +28,8 @@ public class ProjectUtils {
             Client client,
             Map<String, Long> directoryIdMap,
             String filePath,
-            com.crowdin.client.sourcefiles.model.Branch branchId
+            com.crowdin.client.sourcefiles.model.Branch branchId,
+            boolean plainView
     ) {
         String[] nodes = filePath.split(Utils.PATH_SEPARATOR_REGEX);
 
@@ -50,7 +51,7 @@ public class ProjectUtils {
                 } else if (branchId != null) {
                     request.setBranchId(branchId.getId());
                 }
-                directoryId = createDirectory(directoryIdMap, client, request, parentPath.toString());
+                directoryId = createDirectory(directoryIdMap, client, request, parentPath.toString(), plainView);
             }
         }
         return directoryId;
@@ -58,7 +59,7 @@ public class ProjectUtils {
 
     private static final Map<String, Lock> pathLocks = new ConcurrentHashMap<>();
 
-    private static Long createDirectory(Map<String, Long> directoryIdMap, Client client, AddDirectoryRequest request, String key) {
+    private static Long createDirectory(Map<String, Long> directoryIdMap, Client client, AddDirectoryRequest request, String key, boolean plainView) {
         Lock lock;
         synchronized (pathLocks) {
             if (!pathLocks.containsKey(key)) {
@@ -75,9 +76,15 @@ public class ProjectUtils {
             Directory directory = client.addDirectory(request);
             directoryId = directory.getId();
             directoryIdMap.put(key, directoryId);
-            System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
+            if (!plainView) {
+                System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
+            } else {
+                System.out.println(key);
+            }
         } catch (ExistsResponseException e) {
-            System.out.println(ExecutionStatus.SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
+            if (!plainView) {
+                System.out.println(ExecutionStatus.SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
+            }
             if (directoryIdMap.containsKey(key)) {
                 return directoryIdMap.get(key);
             } else {
@@ -88,7 +95,7 @@ public class ProjectUtils {
                 Thread.sleep(500);
             } catch (InterruptedException ignored) {
             }
-            return createDirectory(directoryIdMap, client, request, key);
+            return createDirectory(directoryIdMap, client, request, key, plainView);
         } catch (ResponseException e) {
             throw new RuntimeException("Unhandled exception", e);
         } finally {

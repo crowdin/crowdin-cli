@@ -61,8 +61,12 @@ public class UploadTranslationsAction implements Action {
         }
 
         if (!project.isManagerAccess()) {
-            System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
-            return;
+            if (!plainView) {
+                System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
+                return;
+            } else {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+            }
         }
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
