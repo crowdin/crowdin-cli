@@ -366,7 +366,7 @@ crowdin download --help
 
 ## Versions Management
 
-There is no need to run specific command to create version branches if you sue synchronization tool. The version branch is created automatically during the files upload.
+There is no need to run specific command to create version branches if you use synchronization tool. The version branch is created automatically during the files upload.
 
 To upload source files to the specified version branch:
 
