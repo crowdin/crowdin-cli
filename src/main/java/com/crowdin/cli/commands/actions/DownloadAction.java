@@ -69,8 +69,12 @@ public class DownloadAction implements Action {
         }
 
         if (!project.isManagerAccess()) {
-            System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
-            return;
+            if (!plainView) {
+                System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
+                return;
+            } else {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+            }
         }
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
@@ -249,11 +253,11 @@ public class DownloadAction implements Action {
                 System.out.println(StringUtils.removeStart(toFile.getAbsolutePath(), basePath));
             }
         });
-        if (!ignoreMatch && !result.getRight().isEmpty()) {
+        if (!ignoreMatch && !plainView && !result.getRight().isEmpty()) {
             Pair<Map<String, List<String>>, List<String>> omittedFiles = this.sortOmittedFiles(result.getRight(), allProjectTranslations);
             Map<String, List<String>> allOmittedFiles = new TreeMap<>(omittedFiles.getLeft());
             List<String> allOmittedFilesNoSources = omittedFiles.getRight();
-            if (!allOmittedFiles.isEmpty() && !plainView) {
+            if (!allOmittedFiles.isEmpty()) {
                 System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted")));
                 allOmittedFiles.forEach((file, translations) -> {
                     System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_count"), file, translations.size()));
@@ -262,7 +266,7 @@ public class DownloadAction implements Action {
                     }
                 });
             }
-            if (!allOmittedFilesNoSources.isEmpty() && !plainView) {
+            if (!allOmittedFilesNoSources.isEmpty()) {
                 System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted_without_sources")));
                 allOmittedFilesNoSources.forEach(file -> System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), file)));
             }
