@@ -2,14 +2,13 @@ package com.crowdin.cli;
 
 import com.crowdin.cli.commands.picocli.RootCommand;
 import com.crowdin.cli.commands.picocli.HelpCommand;
+import com.crowdin.cli.utils.OutputUtil;
 import com.crowdin.cli.utils.Utils;
 import picocli.CommandLine;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
 import java.util.Arrays;
-
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 
 public class Cli {
 
@@ -77,15 +76,8 @@ public class Cli {
 
     private static CommandLine.IExecutionExceptionHandler buildExecutionExceptionHandler() {
         return (ex, cmd, pr) -> {
-            if (pr.originalArgs().contains("--debug")) {
-                ex.printStackTrace();
-            } else {
-                cmd.getErr().println(ERROR.withIcon(ex.getMessage()));
-                Throwable cause = ex;
-                while ((cause = cause.getCause()) != null) {
-                    cmd.getErr().println(ERROR.withIcon(cause.getMessage()));
-                }
-            }
+            boolean isDebug = pr.originalArgs().contains("--debug");
+            OutputUtil.fancyErr(ex, cmd.getErr(), isDebug);
             return cmd.getExitCodeExceptionMapper() != null
                     ? cmd.getExitCodeExceptionMapper().getExitCode(ex)
                     : cmd.getCommandSpec().exitCodeOnExecutionException();

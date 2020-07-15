@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.actions;
 
+import com.crowdin.cli.utils.OAuthUtil;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -12,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.BaseCli.*;
 import static com.crowdin.cli.properties.CliProperties.*;
 
 public class GenerateAction {
@@ -23,6 +24,7 @@ public class GenerateAction {
 
     private Scanner scanner = new Scanner(System.in);
     private boolean isEnterprise;
+    private boolean withBrowser;
 
     public static final String LINK = "https://support.crowdin.com/configuration-file-v3/";
     public static final String ENTERPRISE_LINK = "https://support.crowdin.com/enterprise/configuration-file/";
@@ -66,21 +68,33 @@ public class GenerateAction {
     private void updateWithUserInputs(List<String> fileLines) {
         Map<String, String> values = new HashMap<>();
 
-        values.put(BASE_PATH, askWithDefault(RESOURCE_BUNDLE.getString("message.ask_project_directory"), BASE_PATH_DEFAULT));
-        this.isEnterprise = StringUtils.startsWithAny(ask(RESOURCE_BUNDLE.getString("message.ask_is_enterprise") + ": (N/y) "), "y", "Y", "+");
-        if (this.isEnterprise) {
-            String organizationName = ask(RESOURCE_BUNDLE.getString("message.ask_organization_name") +": ");
+        withBrowser = !StringUtils.startsWithAny(ask(RESOURCE_BUNDLE.getString("message.ask_auth_via_browser") + ": (Y/n) "), "n", "N", "-");
+        if (withBrowser) {
+            String token = OAuthUtil.getToken(OAUTH_CLIENT_ID);
+            String organizationName = OAuthUtil.getDomainFromToken(token);
+            values.put(API_TOKEN, token);
             if (StringUtils.isNotEmpty(organizationName)) {
                 values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, organizationName));
             } else {
-                this.isEnterprise = false;
                 values.put(BASE_URL, BASE_URL_DEFAULT);
             }
         } else {
-            values.put(BASE_URL, BASE_URL_DEFAULT);
+            this.isEnterprise = StringUtils.startsWithAny(ask(RESOURCE_BUNDLE.getString("message.ask_is_enterprise") + ": (N/y) "), "y", "Y", "+");
+            if (this.isEnterprise) {
+                String organizationName = ask(RESOURCE_BUNDLE.getString("message.ask_organization_name") + ": ");
+                if (StringUtils.isNotEmpty(organizationName)) {
+                    values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, organizationName));
+                } else {
+                    this.isEnterprise = false;
+                    values.put(BASE_URL, BASE_URL_DEFAULT);
+                }
+            } else {
+                values.put(BASE_URL, BASE_URL_DEFAULT);
+            }
+            values.put(API_TOKEN, askParam(API_TOKEN));
         }
         values.put(PROJECT_ID, askParam(PROJECT_ID));
-        values.put(API_TOKEN, askParam(API_TOKEN));
+        values.put(BASE_PATH, askWithDefault(RESOURCE_BUNDLE.getString("message.ask_project_directory"), BASE_PATH_DEFAULT));
 
         for (String key : values.keySet()) {
             for (int i = 0; i < fileLines.size(); i++) {
