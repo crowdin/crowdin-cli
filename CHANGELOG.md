@@ -1,6 +1,10 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.2.1] - 2020-07-15
+- Added: Browser authorization for `init` command
+- Updated: Improve `--plain` mode for directories
+
 ## [3.2.0] - 2020-07-08
 - Added: Strings management functionality
 - Added: Introduce a plain mode for usage in scripts
