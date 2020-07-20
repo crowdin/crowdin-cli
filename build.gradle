@@ -1,3 +1,5 @@
+import com.github.spotbugs.snom.SpotBugsReport
+
 plugins {
     id 'java'
 }
@@ -5,6 +7,12 @@ plugins {
 plugins {
     id 'jacoco'
 }
+
+plugins {
+    id "com.github.spotbugs" version "4.4.4"
+}
+
+apply plugin: 'checkstyle'
 
 group 'com.crowdin'
 version '3.2.1'
@@ -43,6 +51,13 @@ dependencies {
     compile group: 'net.ricecode', name: 'string-similarity', version: '1.0.0'
     compile group: 'com.github.fge', name: 'json-patch', version: '1.9'
 
+    compile group: 'org.apache.httpcomponents', name: 'httpclient', version: '4.5.3'
+
+    compileOnly 'org.projectlombok:lombok:1.18.12'
+    annotationProcessor 'org.projectlombok:lombok:1.18.12'
+    testCompileOnly 'org.projectlombok:lombok:1.18.12'
+    testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
+
     compile 'info.picocli:picocli:4.4.0'
 
     compile 'com.github.crowdin:crowdin-api-client-java:1.2.3'
@@ -51,6 +66,7 @@ dependencies {
     testCompile('org.hamcrest:hamcrest:2.2')
     testCompile group: 'org.mockito', name: 'mockito-core', version: '2.1.0'
 
+    spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.10.1'
 }
 
 task buildCrowdinCliJar(type: Jar) {
@@ -82,3 +98,63 @@ jacocoTestReport {
 
     getExecutionData().setFrom("$buildDir/jacoco/test.exec")
 }
+
+//static analysis
+
+spotbugs {
+    ignoreFailures = false
+}
+spotbugsMain {
+    onlyIf {project.hasProperty('staticAnalysisMarker')}
+    reports(({
+        html {
+            enabled = true
+            destination = file("$buildDir/reports/staticAnalysis/spotbugs-main.html")
+            stylesheet = 'fancy-hist.xsl'
+        }
+    } as Closure<NamedDomainObjectContainer<? extends SpotBugsReport>>))
+}
+spotbugsTest {
+    onlyIf {project.hasProperty('staticAnalysisMarker')}
+    reports(({
+        html {
+            enabled = true
+            destination = file("$buildDir/reports/staticAnalysis/spotbugs-test.html")
+            stylesheet = 'fancy-hist.xsl'
+        }
+    } as Closure<NamedDomainObjectContainer<? extends SpotBugsReport>>))
+}
+
+checkstyle {
+    toolVersion '8.34'
+    configFile file("config/checkstyle/checkstyle.xml")
+}
+checkstyleMain {
+    onlyIf {project.hasProperty('staticAnalysisMarker')}
+    source ='src/main/java'
+    reports(({
+        html {
+            enabled = true
+            destination = file("$buildDir/reports/staticAnalysis/checkstyle-main.html")
+        }
+        xml.enabled false
+    }))
+}
+checkstyleTest {
+    onlyIf {project.hasProperty('staticAnalysisMarker')}
+    source ='src/test/java'
+    reports(({
+        html {
+            enabled = true
+            destination = file("$buildDir/reports/staticAnalysis/checkstyle-test.html")
+        }
+        xml.enabled false
+    }))
+}
+
+
+task staticAnalysis(type: GradleBuild) {
+    tasks = ['checkstyleMain', 'checkstyleTest', 'spotbugsMain', 'spotbugsTest']
+}
+
+
