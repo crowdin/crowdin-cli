@@ -27,6 +27,7 @@ steps:
       publishJUnitResults: true
       testResultsFiles: '**/TEST-*.xml'
       tasks: 'build buildCrowdinCliJar'
+      checkStyleRunAnalysis: true
   - script: |
       ./gradlew build jacocoTestReport
     displayName: 'Generating code coverage report'

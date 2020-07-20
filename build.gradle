@@ -1,9 +1,45 @@
+//import com.github.spotbugs.snom.SpotBugsReport
+
 plugins {
     id 'java'
 }
 
 plugins {
     id 'jacoco'
+}
+
+//plugins {
+//    id "com.github.spotbugs" version "4.4.4"
+//}
+//spotbugsMain {
+//    reports(({
+//        html {
+//            enabled = true
+//            destination = file("$buildDir/reports/spotbugs/main.html")
+//            stylesheet = 'fancy-hist.xsl'
+//        }
+//    } as Closure<NamedDomainObjectContainer<? extends SpotBugsReport>>))
+//}
+//spotbugsTest {
+//    reports(({
+//        html {
+//            enabled = true
+//            destination = file("$buildDir/reports/spotbugs/test.html")
+//            stylesheet = 'fancy-hist.xsl'
+//        }
+//    } as Closure<NamedDomainObjectContainer<? extends SpotBugsReport>>))
+//}
+
+apply plugin: 'checkstyle'
+checkstyle {
+    toolVersion '8.34'
+    configFile file("config/checkstyle/checkstyle.xml")
+}
+checkstyleMain {
+    source ='src/main/java'
+}
+checkstyleTest {
+    source ='src/test/java'
 }
 
 group 'com.crowdin'
@@ -51,6 +87,7 @@ dependencies {
     testCompile('org.hamcrest:hamcrest:2.2')
     testCompile group: 'org.mockito', name: 'mockito-core', version: '2.1.0'
 
+//    spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.10.1'
 }
 
 task buildCrowdinCliJar(type: Jar) {
