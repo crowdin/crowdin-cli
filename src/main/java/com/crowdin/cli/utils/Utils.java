@@ -59,16 +59,23 @@ public class Utils {
         }
     }
 
-    public static Optional<String> getNewVersionMassage() {
+    public static Optional<String> getNewVersionMessage() {
         String message2 = BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text.2");
+        String message3 = BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text.3");
+        String c1 = Utils.isWindows() ? "┌" : "\u256d";
+        String c2 = Utils.isWindows() ? "┐" : "\u256e";
+        String c3 = Utils.isWindows() ? "└" : "\u2570";
+        String c4 = Utils.isWindows() ? "┘" : "\u256f";
         return getAppNewLatestVersion()
             .map(newVersion -> String.format(BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text"), Utils.getAppVersion(), newVersion))
             .map(newVersionText ->
-                  "\n"
-                + "┌──" + StringUtils.repeat("─", newVersionText.length()) + "──┐\n"
-                + "│  " + newVersionText                                       + "  │\n"
-                + "│  " + StringUtils.center(message2, newVersionText.length())+ "  │\n"
-                + "└──" + StringUtils.repeat("─", newVersionText.length()) + "──┘");
+                "\n"
+                    + c1 + "──" + StringUtils.repeat("─", message2.length())   + "──" + c2 + "\n"
+                    + "│  " + StringUtils.center(newVersionText, message2.length()) + "  │\n"
+                    + "\u251c──" + StringUtils.repeat("─", message2.length())   + "──\u2524\n"
+                    + "│  " + message2                                              + "  │\n"
+                    + "│  " + StringUtils.center(message3, message2.length())       + "  │\n"
+                    + c3 + "──" + StringUtils.repeat("─", message2.length())   + "──" + c4);
     }
 
     public static String buildUserAgent() {

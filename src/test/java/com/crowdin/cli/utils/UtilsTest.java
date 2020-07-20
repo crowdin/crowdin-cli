@@ -35,7 +35,7 @@ public class UtilsTest {
 
     @Test
     public void testGetAppNewVersionMessage() {
-        assertNotNull(Utils.getNewVersionMassage());
+        assertNotNull(Utils.getNewVersionMessage());
     }
 
     @Test
