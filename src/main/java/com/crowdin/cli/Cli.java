@@ -26,7 +26,7 @@ public class Cli {
 
             boolean plain = Arrays.stream(args).anyMatch("--plain"::equals);
             if(!plain) {
-                Utils.getNewVersionMassage().ifPresent(System.out::println);
+                Utils.getNewVersionMessage().ifPresent(System.out::println);
             }
 
             System.exit(exitCode);
