@@ -21,9 +21,6 @@ public class ProjectUtils {
 
     private static final ResourceBundle RESOURCE_BUNDLE = BaseCli.RESOURCE_BUNDLE;
 
-    /**
-     * return deepest directory id
-     */
     public static Long createPath(
             Client client,
             Map<String, Long> directoryIdMap,
@@ -77,13 +74,15 @@ public class ProjectUtils {
             directoryId = directory.getId();
             directoryIdMap.put(key, directoryId);
             if (!plainView) {
-                System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
+                System.out.println(ExecutionStatus.OK.withIcon(String.format(
+                    RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
             } else {
                 System.out.println(key);
             }
         } catch (ExistsResponseException e) {
             if (!plainView) {
-                System.out.println(ExecutionStatus.SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
+                System.out.println(ExecutionStatus.SKIPPED.withIcon(String.format(
+                    RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
             }
             if (directoryIdMap.containsKey(key)) {
                 return directoryIdMap.get(key);
@@ -93,7 +92,8 @@ public class ProjectUtils {
         } catch (WaitResponseException e) {
             try {
                 Thread.sleep(500);
-            } catch (InterruptedException ignored) {
+            } catch (InterruptedException ie) {
+//                ignore
             }
             return createDirectory(directoryIdMap, client, request, key, plainView);
         } catch (ResponseException e) {

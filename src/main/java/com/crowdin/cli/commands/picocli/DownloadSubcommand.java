@@ -5,7 +5,7 @@ import com.crowdin.cli.client.CrowdinClient;
 import com.crowdin.cli.commands.actions.Action;
 import com.crowdin.cli.commands.actions.DownloadAction;
 import com.crowdin.cli.commands.actions.ListTranslationsAction;
-import com.crowdin.cli.commands.functionality.FSFiles;
+import com.crowdin.cli.commands.functionality.FsFiles;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.PropertiesBean;
 import picocli.CommandLine;
@@ -51,11 +51,13 @@ public class DownloadSubcommand extends Command {
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
         Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
 
-        FilesInterface files = new FSFiles();
+        FilesInterface files = new FsFiles();
 
         Action action = (dryrun)
             ? new ListTranslationsAction(noProgress, treeView, false, plainView)
-            : new DownloadAction(files, noProgress, languageId, branchName, ignoreMatch, isVerbose, skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly, plainView);
+            : new DownloadAction(
+                files, noProgress, languageId, branchName, ignoreMatch, isVerbose,
+                skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly, plainView);
         action.act(pb, client);
     }
 }

@@ -12,15 +12,21 @@ import java.util.Optional;
 public interface Project {
 
     Map<Long, Branch> getBranches();
+
     void addBranchToList(Branch branch);
+
     Map<Long, Directory> getDirectories();
+
     List<File> getFiles();
 
     Optional<Language> findLanguage(String id, boolean inProjectLanguages);
+
     Optional<Branch> findBranch(String branchName);
+
     Optional<File> findFile(String name, Long directoryId, Long branchId);
 
     List<Language> getSupportedLanguages();
+
     List<Language> getProjectLanguages(boolean withPseudoLang);
 
     Optional<Map<String, Map<String, String>>> getLanguageMapping();

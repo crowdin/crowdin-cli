@@ -5,26 +5,16 @@ import com.crowdin.cli.utils.http.ServerSocketFactory;
 import com.crowdin.cli.utils.http.SimpleHttpServer;
 import lombok.Data;
 import org.apache.commons.codec.binary.Base64;
-import org.apache.http.NameValuePair;
-import org.apache.http.client.entity.UrlEncodedFormEntity;
-import org.apache.http.client.methods.CloseableHttpResponse;
-import org.apache.http.client.methods.HttpPost;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.message.BasicNameValuePair;
-import org.apache.http.util.EntityUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.awt.*;
-import java.io.IOException;
+import java.awt.Desktop;
 import java.net.URI;
-import java.util.ArrayList;
-import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
-import static com.crowdin.cli.BaseCli.*;
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.BaseCli.URL_OAUTH_AUTH;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 public class OAuthUtil {
@@ -46,9 +36,11 @@ public class OAuthUtil {
                     result = new Result(accessToken, expiresIn);
                     responseText = RESOURCE_BUNDLE.getString("message.html_page.main_text_successful");
                 } else if (request.getParams().containsKey("error")) {
-                    result = new Result(new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.error_response"), URL_OAUTH_AUTH, request.getParams().get("error"))));
+                    result = new Result(new RuntimeException(
+                        String.format(RESOURCE_BUNDLE.getString("error.error_response"), URL_OAUTH_AUTH, request.getParams().get("error"))));
                 } else {
-                    result = new Result(new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.unexpected_response"), URL_OAUTH_AUTH, request)));
+                    result = new Result(new RuntimeException(
+                        String.format(RESOURCE_BUNDLE.getString("error.unexpected_response"), URL_OAUTH_AUTH, request)));
                 }
                 HttpResponse
                     .ok(String.format(RESOURCE_BUNDLE.getString("message.html_page.body"),
@@ -111,6 +103,7 @@ public class OAuthUtil {
                     return decodedJson.getString("domain");
                 }
             } catch (JSONException ignore) {
+//                do nothing
             }
         }
         return null;

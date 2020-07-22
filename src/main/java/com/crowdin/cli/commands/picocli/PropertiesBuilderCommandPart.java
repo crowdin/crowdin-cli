@@ -11,7 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import static com.crowdin.cli.BaseCli.*;
+import static com.crowdin.cli.BaseCli.DEFAULT_CONFIGS;
+import static com.crowdin.cli.BaseCli.DEFAULT_IDENTITY_FILES;
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 public class PropertiesBuilderCommandPart {
 

@@ -21,27 +21,31 @@ public class PropertiesBean {
 
     @Override
     public String toString() {
-        return "PropertiesBean{" +
-                "preserveHierarchy=" + preserveHierarchy +
-                ", files=" + files +
-                ", projectId='" + projectId + '\'' +
-                ", apiToken='" + apiToken + '\'' +
-                ", basePath='" + basePath + '\'' +
-                ", baseUrl='" + baseUrl + '\'' +
-                '}';
+        return "PropertiesBean{"
+            + "preserveHierarchy=" + preserveHierarchy
+            + ", files=" + files
+            + ", projectId='" + projectId + '\''
+            + ", apiToken='" + apiToken + '\''
+            + ", basePath='" + basePath + '\''
+            + ", baseUrl='" + baseUrl + '\''
+            + '}';
     }
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         PropertiesBean that = (PropertiesBean) o;
-        return Objects.equals(preserveHierarchy, that.preserveHierarchy) &&
-            Objects.equals(files, that.files) &&
-            Objects.equals(projectId, that.projectId) &&
-            Objects.equals(apiToken, that.apiToken) &&
-            Objects.equals(basePath, that.basePath) &&
-            Objects.equals(baseUrl, that.baseUrl);
+        return Objects.equals(preserveHierarchy, that.preserveHierarchy)
+            && Objects.equals(files, that.files)
+            && Objects.equals(projectId, that.projectId)
+            && Objects.equals(apiToken, that.apiToken)
+            && Objects.equals(basePath, that.basePath)
+            && Objects.equals(baseUrl, that.baseUrl);
     }
 
     @Override

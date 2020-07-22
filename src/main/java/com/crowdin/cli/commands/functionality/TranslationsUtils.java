@@ -11,7 +11,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 public class TranslationsUtils {
 
-    public static String replaceDoubleAsterisk(String sourcePattern, String translationPattern, String sourceFile) {//File fileSource, String basePath) {
+    public static String replaceDoubleAsterisk(String sourcePattern, String translationPattern, String sourceFile) {
         if (StringUtils.isAnyEmpty(translationPattern, sourceFile)) {
             throw new RuntimeException("No sources and/or translations");
         }

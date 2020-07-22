@@ -12,7 +12,9 @@ import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import java.util.Map;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.*;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 public class StringAddAction implements Action {
 
@@ -59,7 +61,8 @@ public class StringAddAction implements Action {
                 }
                 Long fileId = paths.get(file).getId();
 
-                AddSourceStringRequest request = RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden);
+                AddSourceStringRequest request =
+                    RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden);
                 client.addSourceString(request);
                 System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_for_file_uploaded"), file)));
             }

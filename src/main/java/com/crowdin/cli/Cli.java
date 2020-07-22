@@ -1,7 +1,7 @@
 package com.crowdin.cli;
 
-import com.crowdin.cli.commands.picocli.RootCommand;
 import com.crowdin.cli.commands.picocli.HelpCommand;
+import com.crowdin.cli.commands.picocli.RootCommand;
 import com.crowdin.cli.utils.OutputUtil;
 import com.crowdin.cli.utils.Utils;
 import picocli.CommandLine;
@@ -25,7 +25,7 @@ public class Cli {
             int exitCode = commandLine.execute(args);
 
             boolean plain = Arrays.stream(args).anyMatch("--plain"::equals);
-            if(!plain) {
+            if (!plain) {
                 Utils.getNewVersionMessage().ifPresent(System.out::println);
             }
 

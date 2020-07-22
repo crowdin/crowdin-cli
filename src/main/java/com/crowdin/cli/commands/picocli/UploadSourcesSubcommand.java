@@ -3,7 +3,7 @@ package com.crowdin.cli.commands.picocli;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name ="sources",
+    name = "sources",
         sortOptions = false
 )
 public class UploadSourcesSubcommand implements Runnable {

@@ -42,7 +42,7 @@
 
     <module name="LineLength">
         <property name="fileExtensions" value="java"/>
-        <property name="max" value="100"/>
+        <property name="max" value="150"/>
         <property name="ignorePattern" value="^package.*|^import.*|a href|href|http://|https://|ftp://"/>
     </module>
 
@@ -55,16 +55,16 @@
             <property name="message"
                       value="Consider using special escape sequence instead of octal value or Unicode escaped value."/>
         </module>
-        <module name="AvoidEscapedUnicodeCharacters">
-            <property name="allowEscapesForControlCharacters" value="true"/>
-            <property name="allowByTailComment" value="true"/>
-            <property name="allowNonPrintableEscapes" value="true"/>
-        </module>
+<!--        <module name="AvoidEscapedUnicodeCharacters">-->
+<!--            <property name="allowEscapesForControlCharacters" value="true"/>-->
+<!--            <property name="allowByTailComment" value="true"/>-->
+<!--            <property name="allowNonPrintableEscapes" value="true"/>-->
+<!--        </module>-->
         <module name="AvoidStarImport"/>
         <module name="OneTopLevelClass"/>
-        <module name="NoLineWrap">
-            <property name="tokens" value="PACKAGE_DEF, IMPORT, STATIC_IMPORT"/>
-        </module>
+<!--        <module name="NoLineWrap">-->
+<!--            <property name="tokens" value="PACKAGE_DEF, IMPORT, STATIC_IMPORT"/>-->
+<!--        </module>-->
         <module name="EmptyBlock">
             <property name="option" value="TEXT"/>
             <property name="tokens"
@@ -242,13 +242,13 @@
                     PARAMETER_DEF, VARIABLE_DEF, METHOD_DEF"/>
         </module>
         <module name="OverloadMethodsDeclarationOrder"/>
-        <module name="VariableDeclarationUsageDistance"/>
-        <module name="CustomImportOrder">
-            <property name="sortImportsInGroupAlphabetically" value="true"/>
-            <property name="separateLineBetweenGroups" value="true"/>
-            <property name="customImportOrderRules" value="STATIC###THIRD_PARTY_PACKAGE"/>
-            <property name="tokens" value="IMPORT, STATIC_IMPORT, PACKAGE_DEF"/>
-        </module>
+<!--        <module name="VariableDeclarationUsageDistance"/>-->
+<!--        <module name="CustomImportOrder">-->
+<!--            <property name="sortImportsInGroupAlphabetically" value="true"/>-->
+<!--            <property name="separateLineBetweenGroups" value="true"/>-->
+<!--&lt;!&ndash;            <property name="customImportOrderRules" value="STATIC###THIRD_PARTY_PACKAGE"/>&ndash;&gt;-->
+<!--            <property name="tokens" value="IMPORT, STATIC_IMPORT, PACKAGE_DEF"/>-->
+<!--        </module>-->
         <module name="MethodParamPad">
             <property name="tokens"
                       value="CTOR_DEF, LITERAL_NEW, METHOD_CALL, METHOD_DEF,
@@ -303,12 +303,12 @@
             <property name="allowedAnnotations" value="Override, Test"/>
             <property name="tokens" value="METHOD_DEF, CTOR_DEF, ANNOTATION_FIELD_DEF"/>
         </module>
-        <module name="MissingJavadocMethod">
-            <property name="scope" value="public"/>
-            <property name="minLineCount" value="2"/>
-            <property name="allowedAnnotations" value="Override, Test"/>
-            <property name="tokens" value="METHOD_DEF, CTOR_DEF, ANNOTATION_FIELD_DEF"/>
-        </module>
+<!--        <module name="MissingJavadocMethod">-->
+<!--            <property name="scope" value="public"/>-->
+<!--            <property name="minLineCount" value="2"/>-->
+<!--            <property name="allowedAnnotations" value="Override, Test"/>-->
+<!--            <property name="tokens" value="METHOD_DEF, CTOR_DEF, ANNOTATION_FIELD_DEF"/>-->
+<!--        </module>-->
         <module name="MethodName">
             <property name="format" value="^[a-z][a-z0-9][a-zA-Z0-9_]*$"/>
             <message key="name.invalidPattern"
@@ -320,9 +320,9 @@
         <module name="EmptyCatchBlock">
             <property name="exceptionVariableName" value="expected"/>
         </module>
-        <module name="CommentsIndentation">
-            <property name="tokens" value="SINGLE_LINE_COMMENT, BLOCK_COMMENT_BEGIN"/>
-        </module>
+<!--        <module name="CommentsIndentation">-->
+<!--            <property name="tokens" value="SINGLE_LINE_COMMENT, BLOCK_COMMENT_BEGIN"/>-->
+<!--        </module>-->
         <!-- https://checkstyle.org/config_filters.html#SuppressionXpathFilter -->
         <module name="SuppressionXpathFilter">
             <property name="file" value="${org.checkstyle.google.suppressionxpathfilter.config}"

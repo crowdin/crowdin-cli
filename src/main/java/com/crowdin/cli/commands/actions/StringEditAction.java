@@ -26,7 +26,9 @@ public class StringEditAction implements Action {
     private final Integer newMaxLength;
     private final Boolean isHidden;
 
-    public StringEditAction(boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, Boolean isHidden) {
+    public StringEditAction(
+        boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, Boolean isHidden
+    ) {
         this.noProgress = noProgress;
         this.id = id;
         this.identifier = identifier;

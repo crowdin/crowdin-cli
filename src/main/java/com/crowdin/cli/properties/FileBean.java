@@ -38,54 +38,61 @@ public class FileBean {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         FileBean fileBean = (FileBean) o;
-        return Objects.equals(source, fileBean.source) &&
-                Objects.equals(translation, fileBean.translation) &&
-                Objects.equals(ignore, fileBean.ignore) &&
-                Objects.equals(dest, fileBean.dest) &&
-                Objects.equals(type, fileBean.type) &&
-                Objects.equals(updateOption, fileBean.updateOption) &&
-                Objects.equals(languagesMapping, fileBean.languagesMapping) &&
-                Objects.equals(firstLineContainsHeader, fileBean.firstLineContainsHeader) &&
-                Objects.equals(scheme, fileBean.scheme) &&
-                Objects.equals(multilingualSpreadsheet, fileBean.multilingualSpreadsheet) &&
-                Objects.equals(translateAttributes, fileBean.translateAttributes) &&
-                Objects.equals(translateContent, fileBean.translateContent) &&
-                Objects.equals(translatableElements, fileBean.translatableElements) &&
-                Objects.equals(contentSegmentation, fileBean.contentSegmentation) &&
-                Objects.equals(escapeQuotes, fileBean.escapeQuotes) &&
-                Objects.equals(escapeSpecialCharacters, fileBean.escapeSpecialCharacters) &&
-                Objects.equals(translationReplace, fileBean.translationReplace);
+        return Objects.equals(source, fileBean.source)
+            && Objects.equals(translation, fileBean.translation)
+            && Objects.equals(ignore, fileBean.ignore)
+            && Objects.equals(dest, fileBean.dest)
+            && Objects.equals(type, fileBean.type)
+            && Objects.equals(updateOption, fileBean.updateOption)
+            && Objects.equals(languagesMapping, fileBean.languagesMapping)
+            && Objects.equals(firstLineContainsHeader, fileBean.firstLineContainsHeader)
+            && Objects.equals(scheme, fileBean.scheme)
+            && Objects.equals(multilingualSpreadsheet, fileBean.multilingualSpreadsheet)
+            && Objects.equals(translateAttributes, fileBean.translateAttributes)
+            && Objects.equals(translateContent, fileBean.translateContent)
+            && Objects.equals(translatableElements, fileBean.translatableElements)
+            && Objects.equals(contentSegmentation, fileBean.contentSegmentation)
+            && Objects.equals(escapeQuotes, fileBean.escapeQuotes)
+            && Objects.equals(escapeSpecialCharacters, fileBean.escapeSpecialCharacters)
+            && Objects.equals(translationReplace, fileBean.translationReplace);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(source, translation, ignore, dest, type, updateOption, languagesMapping, firstLineContainsHeader, scheme, multilingualSpreadsheet, translateAttributes, translateContent, translatableElements, contentSegmentation, escapeQuotes, escapeSpecialCharacters, translationReplace);
+        return Objects.hash(
+            source, translation, ignore, dest, type, updateOption, languagesMapping, firstLineContainsHeader,
+            scheme, multilingualSpreadsheet, translateAttributes, translateContent, translatableElements,
+            contentSegmentation, escapeQuotes, escapeSpecialCharacters, translationReplace);
     }
 
     @Override
     public String toString() {
-        return "FileBean{" +
-                "source='" + source + '\'' +
-                ", translation='" + translation + '\'' +
-                ", ignore=" + ignore +
-                ", dest='" + dest + '\'' +
-                ", type='" + type + '\'' +
-                ", updateOption='" + updateOption + '\'' +
-                ", languagesMapping=" + languagesMapping +
-                ", firstLineContainsHeader=" + firstLineContainsHeader +
-                ", scheme='" + scheme + '\'' +
-                ", multilingualSpreadsheet=" + multilingualSpreadsheet +
-                ", translateAttributes=" + translateAttributes +
-                ", translateContent=" + translateContent +
-                ", translatableElements=" + translatableElements +
-                ", contentSegmentation=" + contentSegmentation +
-                ", escapeQuotes=" + escapeQuotes +
-                ", escapeSpecialCharacters=" + escapeSpecialCharacters +
-                ", translationReplace=" + translationReplace +
-                '}';
+        return "FileBean{"
+            + "source='" + source + '\''
+            + ", translation='" + translation + '\''
+            + ", ignore=" + ignore
+            + ", dest='" + dest + '\''
+            + ", type='" + type + '\''
+            + ", updateOption='" + updateOption + '\''
+            + ", languagesMapping=" + languagesMapping
+            + ", firstLineContainsHeader=" + firstLineContainsHeader
+            + ", scheme='" + scheme + '\''
+            + ", multilingualSpreadsheet=" + multilingualSpreadsheet
+            + ", translateAttributes=" + translateAttributes
+            + ", translateContent=" + translateContent
+            + ", translatableElements=" + translatableElements
+            + ", contentSegmentation=" + contentSegmentation
+            + ", escapeQuotes=" + escapeQuotes
+            + ", escapeSpecialCharacters=" + escapeSpecialCharacters
+            + ", translationReplace=" + translationReplace
+            + '}';
     }
 
     private Integer escapeSpecialCharacters;

@@ -32,7 +32,7 @@ public class PropertiesBeanUtils {
         if (fileUpdateOption == null) {
             return Optional.empty();
         }
-        switch(fileUpdateOption) {
+        switch (fileUpdateOption) {
             case UPDATE_OPTION_KEEP_TRANSLATIONS_CONF:
                 return Optional.of(UpdateOption.KEEP_TRANSLATIONS);
             case UPDATE_OPTION_KEEP_TRANSLATIONS_AND_APPROVALS_CONF:

@@ -19,8 +19,8 @@ public class BaseCli {
     };
 
     public static final Map<String, String> PLACEHOLDER_MAPPING_FOR_SERVER = new HashMap<String, String>() {{
-       put("name", "language");
-    }};
+                put("name", "language");
+        }};
 
     public static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages/messages");
 

@@ -2,7 +2,8 @@ package com.crowdin.cli.utils.concurrency;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.concurrent.*;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class ConcurrencyUtil {
 
@@ -13,7 +14,7 @@ public class ConcurrencyUtil {
     }
 
     /**
-     * Executes list of provided tasks in thread pool and waits until all tasks are finished
+     * Executes list of provided tasks in thread pool and waits until all tasks are finished.
      *
      * @param tasks list of tasks to execute in parallel
      */

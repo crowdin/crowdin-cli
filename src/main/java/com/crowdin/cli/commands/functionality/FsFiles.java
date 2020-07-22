@@ -12,7 +12,7 @@ import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
-public class FSFiles implements FilesInterface {
+public class FsFiles implements FilesInterface {
 
     @Override
     public void writeToFile(String file, InputStream data) throws IOException {
@@ -33,9 +33,9 @@ public class FSFiles implements FilesInterface {
 
     @Override
     public List<File> extractZipArchive(File zipArchive, File dir) {
-        ZipFile zFile;
+        ZipFile zipFile;
         try {
-            zFile = new ZipFile(zipArchive);
+            zipFile = new ZipFile(zipArchive);
         } catch (net.lingala.zip4j.exception.ZipException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.archive_not_exist"), zipArchive.getAbsolutePath()));
         }
@@ -47,7 +47,7 @@ public class FSFiles implements FilesInterface {
             }
         }
         try {
-            zFile.extractAll(dir.getAbsolutePath());
+            zipFile.extractAll(dir.getAbsolutePath());
         } catch (net.lingala.zip4j.exception.ZipException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.extract_archive"), zipArchive.getAbsolutePath()));
         }

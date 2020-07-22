@@ -164,9 +164,9 @@ public class FileHelper {
     private List<File> getlistDirectory(File directory) {
         List<File> resultList = new ArrayList<>();
         resultList.add(directory);
-        File[] fList = directory.listFiles();
-        if (fList != null) {
-            for (File file : fList) {
+        File[] fileList = directory.listFiles();
+        if (fileList != null) {
+            for (File file : fileList) {
                 if (Files.isDirectory(file.toPath(), LinkOption.NOFOLLOW_LINKS)) {
                     resultList.addAll(getlistDirectory(file));
                 }

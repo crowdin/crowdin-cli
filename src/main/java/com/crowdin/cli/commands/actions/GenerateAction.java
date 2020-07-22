@@ -13,8 +13,12 @@ import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
 
-import static com.crowdin.cli.BaseCli.*;
-import static com.crowdin.cli.properties.CliProperties.*;
+import static com.crowdin.cli.BaseCli.OAUTH_CLIENT_ID;
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.properties.CliProperties.API_TOKEN;
+import static com.crowdin.cli.properties.CliProperties.BASE_PATH;
+import static com.crowdin.cli.properties.CliProperties.BASE_URL;
+import static com.crowdin.cli.properties.CliProperties.PROJECT_ID;
 
 public class GenerateAction {
 
@@ -39,9 +43,12 @@ public class GenerateAction {
 
     public void act() {
         try {
-            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.command_generate_description"), destinationPath.toAbsolutePath()));
+            System.out.println(String.format(
+                RESOURCE_BUNDLE.getString("message.command_generate_description"),
+                destinationPath.toAbsolutePath()));
             if (Files.exists(destinationPath)) {
-                System.out.println(ExecutionStatus.SKIPPED.getIcon() + String.format(RESOURCE_BUNDLE.getString("message.already_exists"), destinationPath.toAbsolutePath()));
+                System.out.println(ExecutionStatus.SKIPPED.getIcon() + String.format(
+                        RESOURCE_BUNDLE.getString("message.already_exists"), destinationPath.toAbsolutePath()));
                 return;
             }
 
@@ -50,7 +57,9 @@ public class GenerateAction {
                 this.updateWithUserInputs(fileLines);
             }
             this.write(destinationPath, fileLines);
-            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.generate_successful"), this.isEnterprise ? ENTERPRISE_LINK : LINK));
+            System.out.println(String.format(
+                RESOURCE_BUNDLE.getString("message.generate_successful"),
+                this.isEnterprise ? ENTERPRISE_LINK : LINK));
 
         } catch (Exception e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.create_file"), e);
@@ -61,14 +70,16 @@ public class GenerateAction {
         try {
             Files.write(destinationPath, fileLines);
         } catch (IOException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.write_file"), destinationPath.toAbsolutePath()), e);
+            throw new RuntimeException(String.format(
+                RESOURCE_BUNDLE.getString("error.write_file"), destinationPath.toAbsolutePath()), e);
         }
     }
 
     private void updateWithUserInputs(List<String> fileLines) {
         Map<String, String> values = new HashMap<>();
 
-        withBrowser = !StringUtils.startsWithAny(ask(RESOURCE_BUNDLE.getString("message.ask_auth_via_browser") + ": (Y/n) "), "n", "N", "-");
+        withBrowser = !StringUtils.startsWithAny(ask(
+            RESOURCE_BUNDLE.getString("message.ask_auth_via_browser") + ": (Y/n) "), "n", "N", "-");
         if (withBrowser) {
             String token = OAuthUtil.getToken(OAUTH_CLIENT_ID);
             String organizationName = OAuthUtil.getDomainFromToken(token);
@@ -79,7 +90,8 @@ public class GenerateAction {
                 values.put(BASE_URL, BASE_URL_DEFAULT);
             }
         } else {
-            this.isEnterprise = StringUtils.startsWithAny(ask(RESOURCE_BUNDLE.getString("message.ask_is_enterprise") + ": (N/y) "), "y", "Y", "+");
+            this.isEnterprise = StringUtils.startsWithAny(ask(
+                    RESOURCE_BUNDLE.getString("message.ask_is_enterprise") + ": (N/y) "), "y", "Y", "+");
             if (this.isEnterprise) {
                 String organizationName = ask(RESOURCE_BUNDLE.getString("message.ask_organization_name") + ": ");
                 if (StringUtils.isNotEmpty(organizationName)) {

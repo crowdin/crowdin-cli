@@ -27,18 +27,18 @@ class Spinner extends Thread {
     }
 
     private final String[] unixFrames = new String[]{
-            "[●∙∙∙∙] ",
-            "[∙●∙∙∙] ",
-            "[∙∙●∙∙] ",
-            "[∙∙∙●∙] ",
-            "[∙∙∙∙●] ",
+        "[●∙∙∙∙] ",
+        "[∙●∙∙∙] ",
+        "[∙∙●∙∙] ",
+        "[∙∙∙●∙] ",
+        "[∙∙∙∙●] ",
     };
 
     private final String[] windowsFrames = new String[]{
-            "[ \\ ] ",
-            "[ | ] ",
-            "[ / ] ",
-            "[ - ] "
+        "[ \\ ] ",
+        "[ | ] ",
+        "[ / ] ",
+        "[ - ] "
     };
 
     private Spinner() {
@@ -58,7 +58,7 @@ class Spinner extends Thread {
             System.out.print(frame);
             try {
                 Thread.sleep(SPINNER_INTERVAL);
-            } catch (InterruptedException e) { /*ignore*/}
+            } catch (InterruptedException e) { /*ignore*/ }
             clearFrame(frame);
         }
         lock.unlock();
