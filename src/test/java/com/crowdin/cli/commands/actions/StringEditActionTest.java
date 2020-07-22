@@ -22,13 +22,18 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class StringEditActionTest {
 
     @ParameterizedTest
     @MethodSource
-    public void testStringList(Long id, String identifier, String newText, String newContext, Integer newMaxLength, Boolean newIsHidden) throws ResponseException {
+    public void testStringList(
+        Long id, String identifier, String newText, String newContext, Integer newMaxLength, Boolean newIsHidden
+    ) throws ResponseException {
         PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
@@ -45,19 +50,19 @@ public class StringEditActionTest {
 
         verify(client).downloadFullProject();
         List<PatchRequest> patches = new ArrayList<PatchRequest>() {{
-            if (newText != null) {
-                add(RequestBuilder.patch(newText, PatchOperation.REPLACE, "/text"));
-            }
-            if (newContext != null) {
-                add(RequestBuilder.patch(newContext, PatchOperation.REPLACE, "/context"));
-            }
-            if (newMaxLength != null) {
-                add(RequestBuilder.patch(newMaxLength, PatchOperation.REPLACE, "/maxLength"));
-            }
-            if (newIsHidden != null) {
-                add(RequestBuilder.patch(newIsHidden, PatchOperation.REPLACE, "/isHidden"));
-            }
-        }};
+                if (newText != null) {
+                    add(RequestBuilder.patch(newText, PatchOperation.REPLACE, "/text"));
+                }
+                if (newContext != null) {
+                    add(RequestBuilder.patch(newContext, PatchOperation.REPLACE, "/context"));
+                }
+                if (newMaxLength != null) {
+                    add(RequestBuilder.patch(newMaxLength, PatchOperation.REPLACE, "/maxLength"));
+                }
+                if (newIsHidden != null) {
+                    add(RequestBuilder.patch(newIsHidden, PatchOperation.REPLACE, "/isHidden"));
+                }
+            }};
         verify(client).listSourceString(null, null);
         verify(client).editSourceString(801L, patches);
         verifyNoMoreInteractions(client);

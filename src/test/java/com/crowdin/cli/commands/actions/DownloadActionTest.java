@@ -25,7 +25,13 @@ import java.util.concurrent.atomic.AtomicReference;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.verifyZeroInteractions;
+import static org.mockito.Mockito.when;
 
 public class DownloadActionTest {
 
@@ -43,11 +49,11 @@ public class DownloadActionTest {
 
     public static ProjectBuild buildProjectBuild(Long buildId, Long projectId, String status, Integer progress) {
         return new ProjectBuild() {{
-            setId(buildId);
-            setProjectId(projectId);
-            setStatus(status);
-            setProgress(progress);
-        }};
+                setId(buildId);
+                setProjectId(projectId);
+                setStatus(status);
+                setProgress(progress);
+            }};
     }
 
     @Test
@@ -123,9 +129,9 @@ public class DownloadActionTest {
                 zipArchive.set(invocation.getArgument(0));
                 tempDir.set(invocation.getArgument(1));
                 return new ArrayList<File>() {{
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
-                }};
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
+                    }};
             }));
 
         Action action = new DownloadAction(files, false, null, null, false, false, null, null, null, false);
@@ -163,9 +169,9 @@ public class DownloadActionTest {
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                         .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm() {{
-            setExportApprovedOnly(true);
-            setSkipUntranslatedFiles(true);
-        }};
+                setExportApprovedOnly(true);
+                setSkipUntranslatedFiles(true);
+            }};
         long buildId = 42L;
         InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
@@ -181,9 +187,9 @@ public class DownloadActionTest {
                     zipArchive.set(invocation.getArgument(0));
                     tempDir.set(invocation.getArgument(1));
                     return new ArrayList<File>() {{
-                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
-                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
-                    }};
+                            add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
+                            add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
+                        }};
                 }));
 
         Action action = new DownloadAction(files, false, null, null, false, false, null, true, true, false);
@@ -240,9 +246,9 @@ public class DownloadActionTest {
                 zipArchive.set(invocation.getArgument(0));
                 tempDir.set(invocation.getArgument(1));
                 return new ArrayList<File>() {{
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
-                }};
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
+                    }};
             }));
 
         Action action = new DownloadAction(files, false, null, null, false, false, null, null, null, false);
@@ -298,11 +304,11 @@ public class DownloadActionTest {
                 zipArchive.set(invocation.getArgument(0));
                 tempDir.set(invocation.getArgument(1));
                 return new ArrayList<File>() {{
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "second.po-CR-uk-UA"));
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "second.po-CR-ru-RU"));
-                }};
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "second.po-CR-uk-UA"));
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "second.po-CR-ru-RU"));
+                    }};
             }));
 
         Action action = new DownloadAction(files, false, null, null, false, false, null, null, null, false);
@@ -357,12 +363,12 @@ public class DownloadActionTest {
                 zipArchive.set(invocation.getArgument(0));
                 tempDir.set(invocation.getArgument(1));
                 return new ArrayList<File>() {{
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "second.po-CR-uk-UA"));
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "second.po-CR-ru-RU"));
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "third.po-CR-uk-UA"));
-                }};
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "second.po-CR-uk-UA"));
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "second.po-CR-ru-RU"));
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "third.po-CR-uk-UA"));
+                    }};
             }));
 
         Action action = new DownloadAction(files, false, null, null, false, true, null, null, null, false);
@@ -418,12 +424,12 @@ public class DownloadActionTest {
                     zipArchive.set(invocation.getArgument(0));
                     tempDir.set(invocation.getArgument(1));
                     return new ArrayList<File>() {{
-                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-UA"));
-                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
-                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "second.po-CR-UA"));
-                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "second.po-CR-ru-RU"));
-                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "third.po-CR-UA"));
-                    }};
+                            add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-UA"));
+                            add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
+                            add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "second.po-CR-UA"));
+                            add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "second.po-CR-ru-RU"));
+                            add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "third.po-CR-UA"));
+                        }};
                 }));
 
         Action action = new DownloadAction(files, false, null, null, false, true, null, null, null, false);
@@ -533,9 +539,9 @@ public class DownloadActionTest {
                 zipArchive.set(invocation.getArgument(0));
                 tempDir.set(invocation.getArgument(1));
                 return new ArrayList<File>() {{
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
-                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
-                }};
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
+                    }};
             }));
         doThrow(IOException.class)
             .when(files).deleteFile(any());

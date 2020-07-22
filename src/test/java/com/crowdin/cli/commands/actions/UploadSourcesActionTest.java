@@ -10,14 +10,27 @@ import com.crowdin.cli.properties.PropertiesBeanBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
-import com.crowdin.client.sourcefiles.model.*;
+import com.crowdin.client.sourcefiles.model.AddBranchRequest;
+import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
+import com.crowdin.client.sourcefiles.model.AddFileRequest;
+import com.crowdin.client.sourcefiles.model.Branch;
+import com.crowdin.client.sourcefiles.model.Directory;
+import com.crowdin.client.sourcefiles.model.OtherFileImportOptions;
+import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
+import com.crowdin.client.sourcefiles.model.SpreadsheetFileImportOptions;
+import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class UploadSourcesActionTest {
 
@@ -52,16 +65,18 @@ public class UploadSourcesActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("first.po");
-            setStorageId(1L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.po");
+                setStorageId(1L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -81,8 +96,8 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
         AddDirectoryRequest addDirectoryRequest = new AddDirectoryRequest() {{
-            setName("folder");
-        }};
+                setName("folder");
+            }};
         Directory directory = DirectoryBuilder.standard().setProjectId(Long.parseLong(pb.getProjectId()))
             .setIdentifiers("folder", 201L, null, null).build();
         when(client.addDirectory(eq(addDirectoryRequest)))
@@ -101,41 +116,47 @@ public class UploadSourcesActionTest {
         verify(client).uploadStorage(eq("second.po"), any());
         verify(client).uploadStorage(eq("third.po"), any());
         AddFileRequest addFileRequest1 = new AddFileRequest() {{
-            setName("first.po");
-            setStorageId(1L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.po");
+                setStorageId(1L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest1));
         AddFileRequest addFileRequest2 = new AddFileRequest() {{
-            setName("second.po");
-            setStorageId(2L);
-            setDirectoryId(201L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("second.po");
+                setStorageId(2L);
+                setDirectoryId(201L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest2));
         AddFileRequest addFileRequest3 = new AddFileRequest() {{
-            setName("third.po");
-            setStorageId(3L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("third.po");
+                setStorageId(3L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest3));
         verifyNoMoreInteractions(client);
     }
@@ -155,8 +176,8 @@ public class UploadSourcesActionTest {
         Branch branch = BranchBuilder.standard().setProjectId(Long.parseLong(pb.getProjectId()))
             .setIdentifiers("newBranch", 201L).build();
         AddBranchRequest addBranchRequest = new AddBranchRequest() {{
-            setName("newBranch");
-        }};
+                setName("newBranch");
+            }};
         when(client.addBranch(addBranchRequest))
             .thenReturn(branch);
 
@@ -167,17 +188,19 @@ public class UploadSourcesActionTest {
         verify(client).addBranch(addBranchRequest);
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("first.po");
-            setStorageId(1L);
-            setBranchId(201L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.po");
+                setStorageId(1L);
+                setBranchId(201L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -202,17 +225,19 @@ public class UploadSourcesActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("first.po");
-            setStorageId(1L);
-            setBranchId(201L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.po");
+                setStorageId(1L);
+                setBranchId(201L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -236,17 +261,19 @@ public class UploadSourcesActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("first.po");
-            setStorageId(1L);
-            setDirectoryId(null);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.po");
+                setStorageId(1L);
+                setDirectoryId(null);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -272,17 +299,19 @@ public class UploadSourcesActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("first.po");
-            setStorageId(1L);
-            setDirectoryId(101L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.po");
+                setStorageId(1L);
+                setDirectoryId(101L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -307,17 +336,19 @@ public class UploadSourcesActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("last.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("last.po");
-            setStorageId(1L);
-            setDirectoryId(null);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("last.po");
+                setStorageId(1L);
+                setDirectoryId(null);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -346,28 +377,32 @@ public class UploadSourcesActionTest {
         verify(client).uploadStorage(eq("first.po"), any());
         verify(client).uploadStorage(eq("second.po"), any());
         UpdateFileRequest updateFileRequest = new UpdateFileRequest() {{
-            setStorageId(1L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setStorageId(1L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).updateSource(eq(101L), eq(updateFileRequest));
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("second.po");
-            setStorageId(2L);
-            setDirectoryId(null);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("second.po");
+                setStorageId(2L);
+                setDirectoryId(null);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -393,24 +428,27 @@ public class UploadSourcesActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.csv"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("first.csv");
-            setStorageId(1L);
-            setImportOptions(new SpreadsheetFileImportOptions() {{
-                setScheme(new HashMap<String, Integer>() {{
-                    put("identifier", 0);
-                    put("source_phrase", 1);
-                    put("context", 2);
-                    put("uk", 3);
-                    put("ru", 4);
-                    put("fr", 5);
-                }});
-                setFirstLineContainsHeader(false);
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.csv");
+                setStorageId(1L);
+                setImportOptions(new SpreadsheetFileImportOptions() {{
+                        setScheme(new HashMap<String, Integer>() {{
+                                put("identifier", 0);
+                                put("source_phrase", 1);
+                                put("context", 2);
+                                put("uk", 3);
+                                put("ru", 4);
+                                put("fr", 5);
+                            }}
+                        );
+                        setFirstLineContainsHeader(false);
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }

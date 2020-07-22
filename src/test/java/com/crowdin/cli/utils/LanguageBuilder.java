@@ -5,7 +5,7 @@ import com.crowdin.client.languages.model.Language;
 public enum LanguageBuilder {
     UKR("Ukrainian", "ua", "ua", "ukr", "uk-UA", "uk_", "uk", "uk"),
     RUS("Russian", "ru", "ru", "rus", "ru-RU", "ru_", "ru", "ru"),
-    DEU("German", "de", "de","deu", "de-DE", "de_", "de", "de"),
+    DEU("German", "de", "de", "deu", "de-DE", "de_", "de", "de"),
     ENG("English", "en", "en", "eng", "en-GB", "en_001", "en", "en");
 
     private Language lang;

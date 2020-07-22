@@ -96,7 +96,7 @@ public class SourcesUtilsTest {
             arguments(Utils.normalizePath("f1/**/file.txt"), true),
             arguments(Utils.normalizePath("folder/?.txt"), true),
             arguments(Utils.normalizePath("folder/[a-z]/file.txt"), true),
-                arguments(Utils.normalizePath("folder/[a-z/file.txt"), false),
+            arguments(Utils.normalizePath("folder/[a-z/file.txt"), false),
             arguments(Utils.normalizePath("folder/file.txt"), false),
             arguments("", false)
         );

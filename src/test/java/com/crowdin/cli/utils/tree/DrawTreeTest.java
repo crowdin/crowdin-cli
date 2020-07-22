@@ -45,39 +45,47 @@ public class DrawTreeTest {
     public static Stream<Arguments> testDraw() {
         return Stream.of(
                 arguments(new ArrayList<String>() {{
-                }}, new ArrayList<String>() {{
-                    add(LAST_ELEM + ".");
-                }}),
+                    }},
+                    new ArrayList<String>() {{
+                        add(LAST_ELEM + ".");
+                    }}
+                ),
                 arguments(new ArrayList<String>() {{
-                    add(Utils.normalizePath("folder/file.po"));
-                }}, new ArrayList<String>() {{
-                    add(LAST_ELEM + ".");
-                    add(LAST_DIR + LAST_ELEM + "folder");
-                    add(LAST_DIR + LAST_DIR + LAST_ELEM + "file.po");
-                }}),
+                        add(Utils.normalizePath("folder/file.po"));
+                    }},
+                    new ArrayList<String>() {{
+                            add(LAST_ELEM + ".");
+                            add(LAST_DIR + LAST_ELEM + "folder");
+                            add(LAST_DIR + LAST_DIR + LAST_ELEM + "file.po");
+                        }}
+                ),
                 arguments(new ArrayList<String>() {{
-                    add(Utils.normalizePath("folder/file.po"));
-                    add(Utils.normalizePath("folder/next/meme.png"));
-                }}, new ArrayList<String>() {{
-                    add(LAST_ELEM + ".");
-                    add(LAST_DIR + LAST_ELEM + "folder");
-                    add(LAST_DIR + LAST_DIR + ELEM + "file.po");
-                    add(LAST_DIR + LAST_DIR + LAST_ELEM + "next");
-                    add(LAST_DIR + LAST_DIR + LAST_DIR + LAST_ELEM + "meme.png");
-                }}),
+                        add(Utils.normalizePath("folder/file.po"));
+                        add(Utils.normalizePath("folder/next/meme.png"));
+                    }},
+                    new ArrayList<String>() {{
+                            add(LAST_ELEM + ".");
+                            add(LAST_DIR + LAST_ELEM + "folder");
+                            add(LAST_DIR + LAST_DIR + ELEM + "file.po");
+                            add(LAST_DIR + LAST_DIR + LAST_ELEM + "next");
+                            add(LAST_DIR + LAST_DIR + LAST_DIR + LAST_ELEM + "meme.png");
+                        }}
+                ),
                 arguments(new ArrayList<String>() {{
-                    add(Utils.normalizePath("folder/file.po"));
-                    add(Utils.normalizePath("folder/next/meme.png"));
-                    add(Utils.normalizePath("dir/android.xml"));
-                }}, new ArrayList<String>() {{
-                    add(LAST_ELEM + ".");
-                    add(LAST_DIR + ELEM +       "folder");
-                    add(LAST_DIR + DIR +        ELEM +      "file.po");
-                    add(LAST_DIR + DIR +        LAST_ELEM + "next");
-                    add(LAST_DIR + DIR +        LAST_DIR +  LAST_ELEM + "meme.png");
-                    add(LAST_DIR + LAST_ELEM +  "dir");
-                    add(LAST_DIR + LAST_DIR +   LAST_ELEM + "android.xml");
-                }})
+                        add(Utils.normalizePath("folder/file.po"));
+                        add(Utils.normalizePath("folder/next/meme.png"));
+                        add(Utils.normalizePath("dir/android.xml"));
+                    }},
+                    new ArrayList<String>() {{
+                        add(LAST_ELEM + ".");
+                        add(LAST_DIR + ELEM +       "folder");
+                        add(LAST_DIR + DIR +        ELEM +      "file.po");
+                        add(LAST_DIR + DIR +        LAST_ELEM + "next");
+                        add(LAST_DIR + DIR +        LAST_DIR +  LAST_ELEM + "meme.png");
+                        add(LAST_DIR + LAST_ELEM +  "dir");
+                        add(LAST_DIR + LAST_DIR +   LAST_ELEM + "android.xml");
+                    }}
+                )
         );
     }
 }

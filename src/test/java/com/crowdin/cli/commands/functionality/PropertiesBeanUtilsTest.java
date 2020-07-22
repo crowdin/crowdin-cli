@@ -12,7 +12,8 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class PropertiesBeanUtilsTest {
@@ -21,6 +22,7 @@ public class PropertiesBeanUtilsTest {
     public void testConstructor() {
         assertDoesNotThrow(PropertiesBeanUtils::new);
     }
+
     @ParameterizedTest
     @MethodSource
     public void testGetSchemeObject(String updateOption, Map<String, Integer> expected) {
@@ -32,31 +34,35 @@ public class PropertiesBeanUtilsTest {
     private static Stream<Arguments> testGetSchemeObject() {
         return Stream.of(
             arguments("identifier,source_phrase,translation,context", new HashMap<String, Integer>() {{
-                put("identifier", 0);
-                put("source_phrase", 1);
-                put("translation", 2);
-                put("context", 3);
-            }}),
+                    put("identifier", 0);
+                    put("source_phrase", 1);
+                    put("translation", 2);
+                    put("context", 3);
+                }}
+            ),
             arguments("identifier,source_phrase,translation,context,max_length", new HashMap<String, Integer>() {{
-                put("identifier", 0);
-                put("source_phrase", 1);
-                put("translation", 2);
-                put("context", 3);
-                put("max_length", 4);
-            }}),
+                    put("identifier", 0);
+                    put("source_phrase", 1);
+                    put("translation", 2);
+                    put("context", 3);
+                    put("max_length", 4);
+                }}
+            ),
             arguments("identifier,source_phrase,context,uk,ru,fr", new HashMap<String, Integer>() {{
-                put("identifier", 0);
-                put("source_phrase", 1);
-                put("context", 2);
-                put("uk", 3);
-                put("ru", 4);
-                put("fr", 5);
-            }}),
-            arguments("", new HashMap<>()),
-            arguments(null, new HashMap<>()),
-            arguments("identifier", new HashMap<String, Integer>() {{
-                put("identifier", 0);
-            }})
+                    put("identifier", 0);
+                    put("source_phrase", 1);
+                    put("context", 2);
+                    put("uk", 3);
+                    put("ru", 4);
+                    put("fr", 5);
+                }}
+            ),
+                arguments("", new HashMap<>()),
+                arguments(null, new HashMap<>()),
+                arguments("identifier", new HashMap<String, Integer>() {{
+                        put("identifier", 0);
+                    }}
+            )
         );
     }
 
@@ -87,8 +93,8 @@ public class PropertiesBeanUtilsTest {
         return Stream.of(
             arguments(Utils.normalizePath("path/to/file.po"),
                 new HashMap<String, String>() {{
-                    put("path/to/", "here/");
-                }},
+                        put("path/to/", "here/");
+                    }},
                 Utils.normalizePath("here/file.po")),
             arguments(Utils.normalizePath("path/to/file.po"),
                 null,

@@ -17,7 +17,10 @@ import java.util.Arrays;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class UploadTranslationsActionTest {
 
@@ -37,7 +40,7 @@ public class UploadTranslationsActionTest {
     public void testUploadOneOfTwoTranslation_Project() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("first.po-CR-uk-UA"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%", Arrays.asList("*-CR-*"))
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -54,11 +57,11 @@ public class UploadTranslationsActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
         UploadTranslationsRequest uploadTranslationRequest = new UploadTranslationsRequest() {{
-            setStorageId(1L);
-            setFileId(301L);
-            setImportEqSuggestions(false);
-            setAutoApproveImported(false);
-        }};
+                setStorageId(1L);
+                setFileId(301L);
+                setImportEqSuggestions(false);
+                setAutoApproveImported(false);
+            }};
         verify(client).uploadTranslations(eq("ua"), eq(uploadTranslationRequest));
         verifyNoMoreInteractions(client);
     }
@@ -68,7 +71,7 @@ public class UploadTranslationsActionTest {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("first.po-CR-uk-UA"), "Hello, World!");
         project.addFile(Utils.normalizePath("first.po-CR-ru-RU"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%", Arrays.asList("*-CR-*"))
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -88,18 +91,18 @@ public class UploadTranslationsActionTest {
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
         verify(client).uploadStorage(eq("first.po-CR-ru-RU"), any());
         UploadTranslationsRequest uploadTranslationRequest1 = new UploadTranslationsRequest() {{
-            setStorageId(1L);
-            setFileId(301L);
-            setImportEqSuggestions(false);
-            setAutoApproveImported(false);
-        }};
+                setStorageId(1L);
+                setFileId(301L);
+                setImportEqSuggestions(false);
+                setAutoApproveImported(false);
+            }};
         verify(client).uploadTranslations(eq("ua"), eq(uploadTranslationRequest1));
         UploadTranslationsRequest uploadTranslationRequest2 = new UploadTranslationsRequest() {{
-            setStorageId(2L);
-            setFileId(301L);
-            setImportEqSuggestions(false);
-            setAutoApproveImported(false);
-        }};
+                setStorageId(2L);
+                setFileId(301L);
+                setImportEqSuggestions(false);
+                setAutoApproveImported(false);
+            }};
         verify(client).uploadTranslations(eq("ru"), eq(uploadTranslationRequest2));
         verifyNoMoreInteractions(client);
     }
@@ -108,7 +111,7 @@ public class UploadTranslationsActionTest {
     public void testUploadOneOfTwoTranslation_EmptyProject() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("first.po-CR-uk-UA"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%", Arrays.asList("*-CR-*"))
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -127,7 +130,7 @@ public class UploadTranslationsActionTest {
     public void testUploadSpreadsheetTranslation_Project() throws ResponseException {
         project.addFile(Utils.normalizePath("first.csv"), "Hello, World!");
         project.addFile(Utils.normalizePath("first.csv-CR"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR", Arrays.asList("*-CR"))
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -145,11 +148,11 @@ public class UploadTranslationsActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.csv-CR"), any());
         UploadTranslationsRequest uploadTranslationRequest = new UploadTranslationsRequest() {{
-            setStorageId(1L);
-            setFileId(301L);
-            setImportEqSuggestions(false);
-            setAutoApproveImported(false);
-        }};
+                setStorageId(1L);
+                setFileId(301L);
+                setImportEqSuggestions(false);
+                setAutoApproveImported(false);
+            }};
         verify(client).uploadTranslations(eq("ua"), eq(uploadTranslationRequest));
         verify(client).uploadTranslations(eq("ru"), eq(uploadTranslationRequest));
         verifyNoMoreInteractions(client);
@@ -176,11 +179,11 @@ public class UploadTranslationsActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
         UploadTranslationsRequest uploadTranslationRequest = new UploadTranslationsRequest() {{
-            setStorageId(1L);
-            setFileId(301L);
-            setImportEqSuggestions(false);
-            setAutoApproveImported(false);
-        }};
+                setStorageId(1L);
+                setFileId(301L);
+                setImportEqSuggestions(false);
+                setAutoApproveImported(false);
+            }};
         verify(client).uploadTranslations(eq("ua"), eq(uploadTranslationRequest));
         verifyNoMoreInteractions(client);
     }

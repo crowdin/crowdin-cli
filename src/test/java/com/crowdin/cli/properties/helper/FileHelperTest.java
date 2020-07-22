@@ -16,7 +16,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class FileHelperTest {
@@ -46,9 +48,9 @@ public class FileHelperTest {
     private static List<String> allDirs = Arrays.asList(f1, f11, f2, f21);
 
     private static List<String> all = new ArrayList<String>() {{
-        addAll(allFiles);
-        addAll(allDirs);
-    }};
+            addAll(allFiles);
+            addAll(allDirs);
+        }};
 
 
     @BeforeEach
@@ -62,13 +64,16 @@ public class FileHelperTest {
     }
 
     @Test
-    public void testNPE() {
+    public void testNpe() {
         assertThrows(NullPointerException.class, () -> new FileHelper(null), "FileHelper should throw NPE");
         FileHelper fileHelper = new FileHelper(project.getBasePath());
         assertThrows(NullPointerException.class, () -> fileHelper.getFiles(null), "FileHelper should throw NPE in getFiles");
-        assertThrows(NullPointerException.class, () -> fileHelper.filterOutIgnoredFiles(null, null), "FileHelper should throw NPE in filterOutIgnoredFiles");
-        assertThrows(NullPointerException.class, () -> fileHelper.filterOutIgnoredFiles(new ArrayList<>(), null), "FileHelper should throw NPE in filterOutIgnoredFiles");
-        assertThrows(NullPointerException.class, () -> fileHelper.filterOutIgnoredFiles(null, new ArrayList<>()), "FileHelper should throw NPE in filterOutIgnoredFiles");
+        assertThrows(NullPointerException.class, () -> fileHelper.filterOutIgnoredFiles(null, null),
+            "FileHelper should throw NPE in filterOutIgnoredFiles");
+        assertThrows(NullPointerException.class, () -> fileHelper.filterOutIgnoredFiles(new ArrayList<>(), null),
+            "FileHelper should throw NPE in filterOutIgnoredFiles");
+        assertThrows(NullPointerException.class, () -> fileHelper.filterOutIgnoredFiles(null, new ArrayList<>()),
+            "FileHelper should throw NPE in filterOutIgnoredFiles");
     }
 
     @Test

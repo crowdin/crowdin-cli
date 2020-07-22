@@ -20,7 +20,8 @@ public class TranslationsUtilsTest {
     @MethodSource
     public void testReplaceDoubleAsterisk(String sourcePattern, String translationPattern, String sourceFile, String expected) {
         String result = TranslationsUtils.replaceDoubleAsterisk(sourcePattern, translationPattern, sourceFile);
-        assertEquals(expected, result, String.format("SourcePat: %s TranslationPat: %s SourceFile: %s", sourcePattern, translationPattern, sourceFile));
+        assertEquals(expected, result,
+            String.format("SourcePat: %s TranslationPat: %s SourceFile: %s", sourcePattern, translationPattern, sourceFile));
     }
 
     static Stream<Arguments> testReplaceDoubleAsterisk() {
@@ -65,89 +66,103 @@ public class TranslationsUtilsTest {
 
     @ParameterizedTest
     @MethodSource
-    public void testPopulateLanguageMappingFromServer(Map<String, Map<String, String>> projectMapping, Map<String, Map<String, String>> serverMapping, Map<String, Map<String, String>> expected) {
+    public void testPopulateLanguageMappingFromServer(
+        Map<String, Map<String, String>> projectMapping, Map<String, Map<String, String>> serverMapping, Map<String, Map<String, String>> expected
+    ) {
         TranslationsUtils.populateLanguageMappingFromServer(projectMapping, serverMapping);
         assertEquals(expected, projectMapping, "Maps is not equal");
     }
 
     static Stream<Arguments> testPopulateLanguageMappingFromServer() {
         return Stream.of(
-                arguments(
-                    new HashMap<String, Map<String, String>>() {{
+            arguments(
+                new HashMap<String, Map<String, String>>() {{
                         put("two_letters_code", new HashMap<String, String>() {{
-                            put("zh", "zh_CN");
-                            put("fr", "fr_");
-                        }});
+                                put("zh", "zh_CN");
+                                put("fr", "fr_");
+                            }}
+                        );
                     }},
-                    new HashMap<>(),
-                    new HashMap<String, Map<String, String>>() {{
+                new HashMap<>(),
+                new HashMap<String, Map<String, String>>() {{
                         put("two_letters_code", new HashMap<String, String>() {{
-                            put("zh", "zh_CN");
-                            put("fr", "fr_");
-                        }});
+                                put("zh", "zh_CN");
+                                put("fr", "fr_");
+                            }}
+                        );
                     }}
-                ),
-                arguments(
-                    new HashMap<String, Map<String, String>>() {{
+            ),
+            arguments(
+                new HashMap<String, Map<String, String>>() {{
                         put("two_letters_code", new HashMap<String, String>() {{
-                            put("zh", "zh_CN");
-                            put("fr", "fr_");
-                        }});
+                                put("zh", "zh_CN");
+                                put("fr", "fr_");
+                            }}
+                        );
                     }},
-                    new HashMap<String, Map<String, String>>() {{
+                new HashMap<String, Map<String, String>>() {{
                         put("ua", new HashMap<String, String>() {{
-                            put("two_letters_code", "ua_");
-                        }});
+                                put("two_letters_code", "ua_");
+                            }}
+                        );
                     }},
-                    new HashMap<String, Map<String, String>>() {{
+                new HashMap<String, Map<String, String>>() {{
                         put("two_letters_code", new HashMap<String, String>() {{
-                            put("zh", "zh_CN");
-                            put("fr", "fr_");
-                            put("ua", "ua_");
-                        }});
+                                put("zh", "zh_CN");
+                                put("fr", "fr_");
+                                put("ua", "ua_");
+                            }}
+                        );
                     }}
-                ),
-                arguments(
-                    new HashMap<String, Map<String, String>>() {{
+            ),
+            arguments(
+                new HashMap<String, Map<String, String>>() {{
                         put("two_letters_code", new HashMap<String, String>() {{
-                            put("zh", "zh_CN");
-                            put("fr", "fr_");
-                        }});
+                                put("zh", "zh_CN");
+                                put("fr", "fr_");
+                            }}
+                        );
                     }},
-                    new HashMap<String, Map<String, String>>() {{
+                new HashMap<String, Map<String, String>>() {{
                         put("ua", new HashMap<String, String>() {{
-                            put("name", "ua_");
-                        }});
+                                put("name", "ua_");
+                            }}
+                        );
                     }},
-                    new HashMap<String, Map<String, String>>() {{
+                new HashMap<String, Map<String, String>>() {{
                         put("two_letters_code", new HashMap<String, String>() {{
-                            put("zh", "zh_CN");
-                            put("fr", "fr_");
-                        }});
+                                put("zh", "zh_CN");
+                                put("fr", "fr_");
+                            }}
+                        );
                         put("language", new HashMap<String, String>() {{
-                            put("ua", "ua_");
-                        }});
+                                put("ua", "ua_");
+                            }}
+                        );
                     }}
-                ),
-                arguments(
-                    new HashMap<String, Map<String, String>>() {{
+            ),
+            arguments(
+                new HashMap<String, Map<String, String>>() {{
                         put("two_letters_code", new HashMap<String, String>() {{
-                            put("zh", "zh_CN");
-                            put("fr", "fr_");
-                        }});
+                                put("zh", "zh_CN");
+                                put("fr", "fr_");
+                            }}
+                        );
                     }},
-                    new HashMap<String, Map<String, String>>() {{
+                new HashMap<String, Map<String, String>>() {{
                         put("fr", new HashMap<String, String>() {{
-                            put("two_letters_code", "fr_FR");
-                        }});
+                                put("two_letters_code", "fr_FR");
+                            }}
+                        );
                     }},
-                    new HashMap<String, Map<String, String>>() {{
+                new HashMap<String, Map<String, String>>() {{
                         put("two_letters_code", new HashMap<String, String>() {{
-                            put("zh", "zh_CN");
-                            put("fr", "fr_");
-                        }});
+                                put("zh", "zh_CN");
+                                put("fr", "fr_");
+                            }}
+                        );
                     }}
-                )
+            )
         );
     }
 

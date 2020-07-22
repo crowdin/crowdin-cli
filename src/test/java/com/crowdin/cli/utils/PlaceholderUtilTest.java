@@ -7,7 +7,13 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -45,14 +51,14 @@ public class PlaceholderUtilTest {
                 Utils.normalizePath("resources/%two_letters_code%_%original_file_name%"),
                 new String[] {Utils.normalizePath("resources/ua_messages.xml"), Utils.normalizePath("resources/ru_messages.xml")}
             ),
-            arguments( // Must be only de_messages
-                new Language[] {LanguageBuilder.DEU.build(), LanguageBuilder.ENG.build()},
-                new Language[] {LanguageBuilder.DEU.build()},
+            arguments(// Must be only de_messages
+                new Language[] { LanguageBuilder.DEU.build(), LanguageBuilder.ENG.build() },
+                new Language[] { LanguageBuilder.DEU.build() },
                 new File[] {new File("resources/messages.xml")},
                 Utils.normalizePath("resources/%two_letters_code%_%original_file_name%"),
                 new String[] {Utils.normalizePath("resources/de_messages.xml")}
             ),
-            arguments( // How to treat double asterisks
+            arguments(// How to treat double asterisks
                 new Language[] {LanguageBuilder.ENG.build()},
                 new Language[] {LanguageBuilder.ENG.build()},
                 new File[] {new File("resources/messages.xml")},
@@ -103,7 +109,7 @@ public class PlaceholderUtilTest {
     }
 
     @Test
-    public void testForNPE() {
+    public void testForNpe() {
         assertThrows(NullPointerException.class, () -> new PlaceholderUtil(null, null, null));
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(new ArrayList<>(), new ArrayList<>(), "/here/it/goes/");
 
@@ -119,9 +125,9 @@ public class PlaceholderUtilTest {
     public void testReplaceLanguageDependentPlaceholders() {
         String toFormat = "/path/to/%two_letters_code%/file.txt";
         List<String> expected = new ArrayList<String>() {{
-            add("/path/to/ru/file.txt");
-            add("/path/to/ua/file.txt");
-        }};
+                add("/path/to/ru/file.txt");
+                add("/path/to/ua/file.txt");
+            }};
         List<Language> langs = Arrays.asList(LanguageBuilder.RUS.build(), LanguageBuilder.UKR.build());
         Map<String, Map<String, String>> languageMapping = new HashMap<>();
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(langs, langs, "");
@@ -134,12 +140,14 @@ public class PlaceholderUtilTest {
         String toFormat = "path/to/%two_letters_code%/%language%/%file_name%";
         Language language = LanguageBuilder.UKR.build();
         Map<String, Map<String, String>> languageMapping = new HashMap<String, Map<String, String>>() {{
-            put("two_letters_code", new HashMap<String, String>() {{
-                put("ua", "UA");
-            }});
-        }};
+                put("two_letters_code", new HashMap<String, String>() {{
+                        put("ua", "UA");
+                    }}
+                );
+            }};
         String expected = "path/to/UA/Ukrainian/%file_name%";
-        List<Language> suppLangs = Arrays.asList(LanguageBuilder.RUS.build(), LanguageBuilder.UKR.build(), LanguageBuilder.ENG.build(), LanguageBuilder.DEU.build());
+        List<Language> suppLangs =
+            Arrays.asList(LanguageBuilder.RUS.build(), LanguageBuilder.UKR.build(), LanguageBuilder.ENG.build(), LanguageBuilder.DEU.build());
         List<Language> projLangs = Arrays.asList(LanguageBuilder.RUS.build(), LanguageBuilder.UKR.build());
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(suppLangs, projLangs, "");
         String result = placeholderUtil.replaceLanguageDependentPlaceholders(toFormat, languageMapping, language);
