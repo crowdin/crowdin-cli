@@ -188,6 +188,13 @@ sudo rpm -U crowdin3.rpm
 </details>
 
 <details>
+<summary><b>Arch Linux</b></summary>
+
+Visit the Crowdin CLI [package page](https://aur.archlinux.org/packages/crowdin-cli/) on Arch Linux user  repository.
+
+</details>
+
+<details>
 <summary><b>Standalone Version</b></summary>
 
 Crowdin CLI can be installed as a stand-alone Java application.
