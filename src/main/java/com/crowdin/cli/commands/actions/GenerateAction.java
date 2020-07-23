@@ -26,7 +26,7 @@ public class GenerateAction {
     public static final String BASE_URL_DEFAULT = "https://api.crowdin.com";
     public static final String BASE_ENTERPRISE_URL_DEFAULT = "https://%s.crowdin.com";
 
-    private Scanner scanner = new Scanner(System.in);
+    private Scanner scanner = new Scanner(System.in, "UTF-8");
     private boolean isEnterprise;
     private boolean withBrowser;
 
@@ -107,11 +107,10 @@ public class GenerateAction {
         }
         values.put(PROJECT_ID, askParam(PROJECT_ID));
         values.put(BASE_PATH, askWithDefault(RESOURCE_BUNDLE.getString("message.ask_project_directory"), BASE_PATH_DEFAULT));
-
-        for (String key : values.keySet()) {
+        for (Map.Entry<String, String> entry : values.entrySet()) {
             for (int i = 0; i < fileLines.size(); i++) {
-                if (fileLines.get(i).contains(key)) {
-                    fileLines.set(i, fileLines.get(i).replaceFirst(": \"*\"", String.format(": \"%s\"", values.get(key))));
+                if (fileLines.get(i).contains(entry.getKey())) {
+                    fileLines.set(i, fileLines.get(i).replaceFirst(": \"*\"", String.format(": \"%s\"", entry.getValue())));
                     break;
                 }
             }

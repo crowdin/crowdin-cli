@@ -5,6 +5,7 @@ import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
 
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.FileSystems;
 import java.util.List;
@@ -54,7 +55,7 @@ public class Utils {
             return (versionFile.size() > 0 && !getAppVersion().equals(versionFile.get(0)))
                 ? Optional.of(versionFile.get(0))
                 : Optional.empty();
-        } catch (Exception e) {
+        } catch (IOException e) {
             return Optional.empty();
         }
     }

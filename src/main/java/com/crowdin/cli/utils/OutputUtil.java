@@ -1,10 +1,17 @@
 package com.crowdin.cli.utils;
 
+import java.io.OutputStreamWriter;
+import java.io.PrintStream;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 
 public class OutputUtil {
+
+    public static void fancyErr(Throwable e, PrintStream out, boolean debug) {
+        fancyErr(e, new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8)), debug);
+    }
 
     public static void fancyErr(Throwable e, PrintWriter out, boolean debug) {
         if (debug) {

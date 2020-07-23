@@ -2,7 +2,9 @@ package com.crowdin.cli.utils.concurrency;
 
 import com.crowdin.cli.utils.OutputUtil;
 
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.BlockingQueue;
 import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
@@ -45,7 +47,7 @@ public class CrowdinExecutorService extends ThreadPoolExecutor {
             }
         }
         if (t != null) {
-            OutputUtil.fancyErr(t, new PrintWriter(System.err), debug);
+            OutputUtil.fancyErr(t, System.err, debug);
         }
     }
 }

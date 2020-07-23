@@ -10,6 +10,7 @@ import org.json.JSONObject;
 
 import java.awt.Desktop;
 import java.net.URI;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.BlockingQueue;
 
@@ -97,7 +98,7 @@ public class OAuthUtil {
         String[] parts = token.split("\\.");
         for (String part : parts) {
             try {
-                String decoded = new String(Base64.decodeBase64(part.getBytes()));
+                String decoded = new String(Base64.decodeBase64(part.getBytes(StandardCharsets.UTF_8)), StandardCharsets.UTF_8);
                 JSONObject decodedJson = new JSONObject(decoded);
                 if (decodedJson.has("domain")) {
                     return decodedJson.getString("domain");

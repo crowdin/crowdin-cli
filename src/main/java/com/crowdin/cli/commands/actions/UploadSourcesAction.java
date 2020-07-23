@@ -29,6 +29,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -128,7 +129,7 @@ public class UploadSourcesAction implements Action {
                             return (Runnable) () -> {
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
                                     request.setStorageId(client.uploadStorage(fileName, fileStream));
-                                } catch (Exception e) {
+                                } catch (IOException e) {
                                     throw new RuntimeException(
                                         String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }
@@ -170,7 +171,7 @@ public class UploadSourcesAction implements Action {
 
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
                                     request.setStorageId(client.uploadStorage(fileName, fileStream));
-                                } catch (Exception e) {
+                                } catch (IOException e) {
                                     throw new RuntimeException(
                                         String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }

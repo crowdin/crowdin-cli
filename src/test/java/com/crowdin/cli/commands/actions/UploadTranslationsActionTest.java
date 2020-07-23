@@ -24,7 +24,7 @@ import static org.mockito.Mockito.when;
 
 public class UploadTranslationsActionTest {
 
-    static TempProject project;
+    private TempProject project;
 
     @BeforeEach
     public void createProj() {

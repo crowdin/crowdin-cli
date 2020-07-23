@@ -24,6 +24,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.Map;
 
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
@@ -34,7 +35,7 @@ import static org.mockito.Mockito.when;
 
 public class UploadSourcesActionTest {
 
-    static TempProject project;
+    private TempProject project;
 
     @BeforeEach
     public void createProj() {
@@ -49,7 +50,7 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSource_EmptyProject() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -86,7 +87,7 @@ public class UploadSourcesActionTest {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("folder/second.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("third.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("**/*"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -164,7 +165,7 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithBranch_EmptyProject() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -208,7 +209,7 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithBranch_ProjectWithThatBranch() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -245,7 +246,7 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithDirectory_ProjectNotPreserveHierarchy() throws ResponseException {
         project.addFile(Utils.normalizePath("folder/first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("**/*"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -281,7 +282,7 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithDirectory_ProjectWithPreserveHierarchy() throws ResponseException {
         project.addFile(Utils.normalizePath("folder/first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("**/*"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -319,7 +320,7 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithDest_Project() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("first.po"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -357,7 +358,7 @@ public class UploadSourcesActionTest {
     public void testUpdateOneUploadOneSource_Project() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("second.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("*"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -392,7 +393,6 @@ public class UploadSourcesActionTest {
         AddFileRequest addFileRequest = new AddFileRequest() {{
                 setName("second.po");
                 setStorageId(2L);
-                setDirectoryId(null);
                 setImportOptions(new OtherFileImportOptions() {{
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
@@ -411,7 +411,7 @@ public class UploadSourcesActionTest {
     public void testAddCsvFile_EmptyProject() throws ResponseException {
 
         project.addFile(Utils.normalizePath("first.csv"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -427,19 +427,18 @@ public class UploadSourcesActionTest {
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.csv"), any());
+        Map<String, Integer> scheme = new HashMap<>();
+        scheme.put("identifier", 0);
+        scheme.put("source_phrase", 1);
+        scheme.put("context", 2);
+        scheme.put("uk", 3);
+        scheme.put("ru", 4);
+        scheme.put("fr", 5);
         AddFileRequest addFileRequest = new AddFileRequest() {{
                 setName("first.csv");
                 setStorageId(1L);
                 setImportOptions(new SpreadsheetFileImportOptions() {{
-                        setScheme(new HashMap<String, Integer>() {{
-                                put("identifier", 0);
-                                put("source_phrase", 1);
-                                put("context", 2);
-                                put("uk", 3);
-                                put("ru", 4);
-                                put("fr", 5);
-                            }}
-                        );
+                        setScheme(scheme);
                         setFirstLineContainsHeader(false);
                     }}
                 );

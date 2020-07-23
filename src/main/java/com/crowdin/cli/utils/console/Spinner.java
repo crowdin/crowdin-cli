@@ -51,24 +51,29 @@ class Spinner extends Thread {
         }
 
         lock.lock();
-
-        String[] frames = getFrames();
-        while (isSpin) {
-            String frame = frames[counter++ % frames.length] + message;
-            System.out.print(frame);
-            try {
-                Thread.sleep(SPINNER_INTERVAL);
-            } catch (InterruptedException e) { /*ignore*/ }
-            clearFrame(frame);
+        try {
+            String[] frames = getFrames();
+            while (isSpin) {
+                String frame = frames[counter++ % frames.length] + message;
+                System.out.print(frame);
+                try {
+                    Thread.sleep(SPINNER_INTERVAL);
+                } catch (InterruptedException e) { /*ignore*/ }
+                clearFrame(frame);
+            }
+        } finally {
+            lock.unlock();
         }
-        lock.unlock();
     }
 
     void stopSpinning(ExecutionStatus status) {
         isSpin = false;
         lock.lock();
-        System.out.println(status.getIcon() + message);
-        lock.unlock();
+        try {
+            System.out.println(status.getIcon() + message);
+        } finally {
+            lock.unlock();
+        }
     }
 
     private String[] getFrames() {

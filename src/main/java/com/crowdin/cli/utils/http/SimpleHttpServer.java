@@ -5,10 +5,12 @@ import com.crowdin.cli.utils.OutputUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -41,8 +43,8 @@ public class SimpleHttpServer extends Thread {
             this.serverSocket = serverSocket;
             while (!serverSocket.isClosed()) {
                 Socket socket = serverSocket.accept();
-                try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
-                     PrintWriter out = new PrintWriter(socket.getOutputStream())) {
+                try (BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream(), StandardCharsets.UTF_8));
+                     PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8))) {
                     HttpRequest request = HttpRequest.parse(in);
                     if (request.getPath() != null && listeners.containsKey(request.getPath())) {
                         listeners.get(request.getPath()).accept(request, out);
@@ -55,10 +57,10 @@ public class SimpleHttpServer extends Thread {
             }
         } catch (SocketException e) {
             if (e.getMessage() == null || !e.getMessage().contains("Socket closed")) {
-                OutputUtil.fancyErr(e, new PrintWriter(System.err), debug);
+                OutputUtil.fancyErr(e, System.err, debug);
             }
         } catch (Exception e) {
-            OutputUtil.fancyErr(e, new PrintWriter(System.err), debug);
+            OutputUtil.fancyErr(e, System.err, debug);
         }
     }
 

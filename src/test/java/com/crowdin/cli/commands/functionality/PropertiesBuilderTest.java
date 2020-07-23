@@ -63,7 +63,7 @@ public class PropertiesBuilderTest {
                 setTranslationParam("/hello/%two_letters_code%/%file_name%.%file_extension%");
             }};
 
-        PropertiesBuilder propBuilder = new PropertiesBuilder(Paths.get(tempProject.getBasePath()), new File("/crowdin.yml"), null, okParams);
+        PropertiesBuilder propBuilder = new PropertiesBuilder(Paths.get(tempProject.getBasePath()), new File("crowdin.yml"), null, okParams);
         PropertiesBean pb = propBuilder.build();
 
         assertEquals(pb.getPreserveHierarchy(), false);
@@ -77,9 +77,6 @@ public class PropertiesBuilderTest {
         String minimalConfigFileText = PropertiesBeanBuilder
             .minimalPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(tempProject.getBasePath()).buildToString();
-        PropertiesBean minimalBuiltConfigFile = PropertiesBeanBuilder
-            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "CR-%locale%")
-            .setBasePath(tempProject.getBasePath()).build();
         configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
 
         Params okParams = new Params() {{
@@ -103,9 +100,6 @@ public class PropertiesBuilderTest {
         String minimalConfigFileText = PropertiesBeanBuilder
             .minimalPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(tempProject.getBasePath()).buildToString();
-        PropertiesBean minimalBuiltConfigFile = PropertiesBeanBuilder
-            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "CR-%locale%")
-            .setBasePath(tempProject.getBasePath()).build();
         configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
 
         Params okParams = new Params() {{

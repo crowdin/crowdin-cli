@@ -9,6 +9,7 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 
+import java.util.List;
 import java.util.Map;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -23,10 +24,12 @@ public class StringAddAction implements Action {
     private final String identifier;
     private final Integer maxLength;
     private final String context;
-    private final String[] files;
+    private final List<String> files;
     private final Boolean hidden;
 
-    public StringAddAction(boolean noProgress, String text, String identifier, Integer maxLength, String context, String[] files, Boolean hidden) {
+    public StringAddAction(
+        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, Boolean hidden
+    ) {
         this.noProgress = noProgress;
         this.text = text;
         this.identifier = identifier;
@@ -48,7 +51,7 @@ public class StringAddAction implements Action {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
         }
 
-        if (files == null || files.length == 0) {
+        if (files == null || files.isEmpty()) {
             AddSourceStringRequest request = RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, null, this.hidden);
             client.addSourceString(request);
             System.out.println(OK.withIcon(RESOURCE_BUNDLE.getString("error.file_not_exists")));

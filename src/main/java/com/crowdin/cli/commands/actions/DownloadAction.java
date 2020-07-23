@@ -265,11 +265,11 @@ public class DownloadAction implements Action {
         List<String> allOmittedFilesNoSources = new ArrayList<>();
         for (String omittedFile : omittedFiles) {
             boolean isFound = false;
-            for (String projectFile : allProjectTranslations.keySet()) {
-                if (allProjectTranslations.get(projectFile).contains(omittedFile)) {
+            for (Map.Entry<String, List<String>> entry : allProjectTranslations.entrySet()) {
+                if (entry.getValue().contains(omittedFile)) {
                     isFound = true;
-                    allOmittedFiles.putIfAbsent(projectFile, new ArrayList<>());
-                    allOmittedFiles.get(projectFile).add(StringUtils.removeStart(omittedFile, Utils.PATH_SEPARATOR));
+                    allOmittedFiles.putIfAbsent(entry.getKey(), new ArrayList<>());
+                    allOmittedFiles.get(entry.getKey()).add(StringUtils.removeStart(omittedFile, Utils.PATH_SEPARATOR));
                 }
             }
             if (!isFound) {

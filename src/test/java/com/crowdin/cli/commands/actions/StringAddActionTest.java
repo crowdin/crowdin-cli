@@ -14,6 +14,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,7 +63,7 @@ public class StringAddActionTest {
         when(client.downloadFullProject())
             .thenReturn(projectBuilder.build());
 
-        Action action = new StringAddAction(true, text, identifier, maxLength, context, stringFiles, hidden);
+        Action action = new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), hidden);
         action.act(pb, client);
 
         verify(client).downloadFullProject();

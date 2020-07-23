@@ -35,7 +35,7 @@ import static org.mockito.Mockito.when;
 
 public class DownloadActionTest {
 
-    static TempProject project;
+    TempProject project;
 
     @BeforeEach
     public void createProj() {
@@ -582,7 +582,6 @@ public class DownloadActionTest {
                         .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
-        InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
         when(client.downloadBuild(eq(buildId)))

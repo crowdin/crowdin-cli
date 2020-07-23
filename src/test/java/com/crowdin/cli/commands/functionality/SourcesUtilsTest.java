@@ -35,7 +35,6 @@ public class SourcesUtilsTest {
 
     @Test
     public void testGetFilesEverythingNull1() {
-        SourcesUtils sourcesUtils = new SourcesUtils();
         assertThrows(NullPointerException.class, () -> SourcesUtils.getFiles(null, null, null, null));
     }
 

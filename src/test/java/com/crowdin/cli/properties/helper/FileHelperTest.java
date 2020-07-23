@@ -23,7 +23,7 @@ import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class FileHelperTest {
 
-    static TempProject project;
+    private TempProject project;
 
     private static String a =      Utils.normalizePath("a.txt");
     private static String ax =     Utils.normalizePath("a.xml");

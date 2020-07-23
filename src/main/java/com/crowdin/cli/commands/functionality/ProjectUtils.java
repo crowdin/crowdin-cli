@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -54,11 +55,12 @@ public class ProjectUtils {
         return directoryId;
     }
 
+    private static final Object obj = new Object();
     private static final Map<String, Lock> pathLocks = new ConcurrentHashMap<>();
 
     private static Long createDirectory(Map<String, Long> directoryIdMap, Client client, AddDirectoryRequest request, String key, boolean plainView) {
         Lock lock;
-        synchronized (pathLocks) {
+        synchronized (obj) {
             if (!pathLocks.containsKey(key)) {
                 pathLocks.put(key, new ReentrantLock());
             }
@@ -90,11 +92,7 @@ public class ProjectUtils {
                 throw new RuntimeException("Couldn't create directory '" + key + "' because it's already here");
             }
         } catch (WaitResponseException e) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException ie) {
-//                ignore
-            }
+            sleep(500);
             return createDirectory(directoryIdMap, client, request, key, plainView);
         } catch (ResponseException e) {
             throw new RuntimeException("Unhandled exception", e);
@@ -102,5 +100,13 @@ public class ProjectUtils {
             lock.unlock();
         }
         return directoryId;
+    }
+
+    private static void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ie) {
+//                ignore
+        }
     }
 }

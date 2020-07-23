@@ -33,7 +33,10 @@ public class TempProject {
     public File addFile(String path) {
         try {
             Path file = dir.resolve(path);
-            Files.createDirectories(file.getParent());
+            Path parentFile = file.getParent();
+            if (parentFile != null) {
+                Files.createDirectories(parentFile);
+            }
             Files.createFile(file);
             return file.toFile();
         } catch (IOException e) {
@@ -44,7 +47,10 @@ public class TempProject {
     public File addFile(String path, String text) {
         try {
             Path file = dir.resolve(path);
-            Files.createDirectories(file.getParent());
+            Path parentFile = file.getParent();
+            if (parentFile != null) {
+                Files.createDirectories(parentFile);
+            }
             Files.createFile(file);
             Files.write(file, Arrays.asList(text.split("\\n")));
             return file.toFile();

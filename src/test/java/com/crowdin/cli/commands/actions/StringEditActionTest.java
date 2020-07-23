@@ -48,7 +48,6 @@ public class StringEditActionTest {
         Action action = new StringEditAction(true, id, identifier, newText, newContext, newMaxLength, newIsHidden);
         action.act(pb, client);
 
-        verify(client).downloadFullProject();
         List<PatchRequest> patches = new ArrayList<PatchRequest>() {{
                 if (newText != null) {
                     add(RequestBuilder.patch(newText, PatchOperation.REPLACE, "/text"));
@@ -92,26 +91,7 @@ public class StringEditActionTest {
         Action action = new StringEditAction(true, null, null, null, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(pb, client));
 
-        verify(client).downloadFullProject();
         verify(client).listSourceString(null, null);
-        verifyNoMoreInteractions(client);
-    }
-
-    @Test
-    public void testGetProjectThrows() throws ResponseException {
-
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
-            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
-            .setBasePath(Utils.PATH_SEPARATOR);
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
-        when(client.downloadFullProject())
-            .thenThrow(new RuntimeException("Whoops"));
-
-        Action action = new StringEditAction(true, null, null, null, null, null, null);
-        assertThrows(RuntimeException.class, () -> action.act(pb, client));
-
-        verify(client).downloadFullProject();
         verifyNoMoreInteractions(client);
     }
 }

@@ -58,10 +58,10 @@ public class ProjectUtilsTest {
                 setDirectoryId(101L);
             }};
         when(client.addDirectory(eq(request1)))
-            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+            .thenReturn(DirectoryBuilder.standard().setProjectId(PROJECT_ID)
                 .setIdentifiers("folder", 101L, null, null).build());
         when(client.addDirectory(eq(request2)))
-            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+            .thenReturn(DirectoryBuilder.standard().setProjectId(PROJECT_ID)
                 .setIdentifiers("folder2", 102L, 101L, null).build());
 
         long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch, false);
@@ -85,7 +85,7 @@ public class ProjectUtilsTest {
                 setDirectoryId(101L);
             }};
         when(client.addDirectory(eq(request)))
-            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+            .thenReturn(DirectoryBuilder.standard().setProjectId(PROJECT_ID)
                 .setIdentifiers("folder2", 102L, 101L, null).build());
 
         long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch, false);
@@ -126,10 +126,10 @@ public class ProjectUtilsTest {
                 setDirectoryId(101L);
             }};
         when(client.addDirectory(eq(request1)))
-            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+            .thenReturn(DirectoryBuilder.standard().setProjectId(PROJECT_ID)
                 .setIdentifiers("folder", 101L, null, branch.getId()).build());
         when(client.addDirectory(eq(request2)))
-            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+            .thenReturn(DirectoryBuilder.standard().setProjectId(PROJECT_ID)
                 .setIdentifiers("folder2", 102L, 101L, branch.getId()).build());
 
         long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch, false);
@@ -153,7 +153,7 @@ public class ProjectUtilsTest {
                 setDirectoryId(101L);
             }};
         when(client.addDirectory(eq(request)))
-            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+            .thenReturn(DirectoryBuilder.standard().setProjectId(PROJECT_ID)
                 .setIdentifiers("folder2", 102L, 101L, branch.getId()).build());
 
         long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch, false);
@@ -188,7 +188,7 @@ public class ProjectUtilsTest {
             }};
         when(client.addDirectory(eq(request1)))
             .thenThrow(new WaitResponseException())
-            .thenReturn(DirectoryBuilder.standard().setProjectId((long) PROJECT_ID)
+            .thenReturn(DirectoryBuilder.standard().setProjectId(PROJECT_ID)
                 .setIdentifiers("folder", 101L, null, null).build());
 
         long resultDirectoryId = ProjectUtils.createPath(client, directoriesIdMap, filePath, branch, false);

@@ -2,6 +2,7 @@ package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.utils.file.FileUtils;
 import net.lingala.zip4j.core.ZipFile;
+import org.apache.commons.io.FileSystemUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -21,7 +22,12 @@ public class FsFiles implements FilesInterface {
 
     @Override
     public void copyFile(File fromFile, File toFile) {
-        toFile.getParentFile().mkdirs();
+        if (!toFile.getParentFile().exists()) {
+            boolean isCreated = toFile.getParentFile().mkdirs();
+            if (!isCreated) {
+                throw new RuntimeException(String.format("Couldn't create path '%s'", toFile.getParentFile()));
+            }
+        }
         if (!fromFile.renameTo(toFile)) {
             if (toFile.delete()) {
                 if (!fromFile.renameTo(toFile)) {
