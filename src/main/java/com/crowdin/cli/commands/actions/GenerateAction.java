@@ -30,7 +30,7 @@ public class GenerateAction {
     private boolean isEnterprise;
     private boolean withBrowser;
 
-    public static final String LINK = "https://support.crowdin.com/configuration-file-v3/";
+    public static final String LINK = "https://support.crowdin.com/configuration-file/";
     public static final String ENTERPRISE_LINK = "https://support.crowdin.com/enterprise/configuration-file/";
 
     private Path destinationPath;
