@@ -2,6 +2,7 @@ package com.crowdin.cli.properties;
 
 import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
+import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -227,7 +228,7 @@ public class CliProperties {
             if (!checkForDoubleAsterisks(params.getSourceParam(), params.getTranslationParam())) {
                 errors.add(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
             }
-            if (!containsLangPlaceholders(params.getTranslationParam())) {
+            if (!PlaceholderUtil.containsLangPlaceholders(params.getTranslationParam())) {
                 errors.add(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
             }
         } else if (params.getSourceParam() != null ^ params.getTranslationParam() != null) {
@@ -276,7 +277,7 @@ public class CliProperties {
                 if (!file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
                     file.setTranslation(Utils.PATH_SEPARATOR + file.getTranslation());
                 }
-                if (!containsLangPlaceholders(file.getTranslation()) && file.getScheme() != null) {
+                if (!PlaceholderUtil.containsLangPlaceholders(file.getTranslation()) && file.getScheme() != null) {
                     file.setTranslation(StringUtils.removeStart(file.getTranslation(), Utils.PATH_SEPARATOR));
                 }
             }
@@ -380,7 +381,7 @@ public class CliProperties {
                     if (!checkForDoubleAsterisks(fileBean.getSource(), fileBean.getTranslation())) {
                         errors.add(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
                     }
-                    if (!containsLangPlaceholders(fileBean.getTranslation()) && fileBean.getScheme() == null) {
+                    if (!PlaceholderUtil.containsLangPlaceholders(fileBean.getTranslation()) && fileBean.getScheme() == null) {
                         errors.add(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
                     }
                 }
@@ -406,18 +407,6 @@ public class CliProperties {
             }
         }
         return errors;
-    }
-
-    private static boolean containsLangPlaceholders(String translation) {
-        return StringUtils.containsAny(translation,
-                "%language%",
-                "%two_letters_code%",
-                "%three_letters_code%",
-                "%locale_with_underscore%",
-                "%locale%",
-                "%android_code%",
-                "%osx_code%",
-                "%osx_locale%");
     }
 
     private static boolean checkBaseUrl(String baseUrl) {

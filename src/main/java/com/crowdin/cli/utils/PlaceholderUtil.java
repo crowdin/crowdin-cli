@@ -134,4 +134,16 @@ public class PlaceholderUtil {
                 .replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
         return StringUtils.removeStart(toFormat, Utils.PATH_SEPARATOR);
     }
+
+    public static boolean containsLangPlaceholders(String translationsPattern) {
+        return StringUtils.containsAny(translationsPattern,
+            "%language%",
+            "%two_letters_code%",
+            "%three_letters_code%",
+            "%locale_with_underscore%",
+            "%locale%",
+            "%android_code%",
+            "%osx_code%",
+            "%osx_locale%");
+    }
 }

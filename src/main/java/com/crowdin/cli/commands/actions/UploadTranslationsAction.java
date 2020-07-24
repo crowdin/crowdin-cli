@@ -129,7 +129,7 @@ public class UploadTranslationsAction implements Action {
                 String fileSource = StringUtils.removeStart(source, pb.getBasePath());
                 String translation = TranslationsUtils.replaceDoubleAsterisk(file.getSource(), file.getTranslation(), fileSource);
                 translation = placeholderUtil.replaceFileDependentPlaceholders(translation, new java.io.File(source));
-                if (file.getScheme() != null) {
+                if (file.getScheme() != null && !PlaceholderUtil.containsLangPlaceholders(translation)) {
                     java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
                     if (!transFile.exists()) {
                         if (!plainView) {
