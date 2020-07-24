@@ -78,6 +78,7 @@ shadowJar {
     minimize {
         exclude(dependency('org.apache.httpcomponents:httpclient:4.5.3'))
         exclude(dependency('com.fasterxml.jackson.core:jackson-databind:2.9.10'))
+        exclude(dependency('info.picocli:picocli:4.4.0'))
     }
 }
 
