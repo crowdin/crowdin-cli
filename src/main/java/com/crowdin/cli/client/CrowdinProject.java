@@ -75,7 +75,7 @@ public class CrowdinProject implements Project {
 
     @Override
     public Optional<Language> findLanguage(String id, boolean inProjectLanguages) {
-        return ((inProjectLanguages) ? this.projectLanguages : this.supportedLanguages).stream()
+        return ((inProjectLanguages) ? this.getProjectLanguages(true) : this.getSupportedLanguages()).stream()
             .filter(lang -> lang.getId().equals(id))
             .findFirst();
     }
