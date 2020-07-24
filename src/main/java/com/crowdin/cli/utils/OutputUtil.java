@@ -23,5 +23,6 @@ public class OutputUtil {
                 out.println(ERROR.withIcon(cause.getMessage()));
             }
         }
+        out.flush();
     }
 }
