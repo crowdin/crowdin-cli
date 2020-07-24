@@ -59,16 +59,16 @@ public class CliPropertiesTest {
 
     @Test
     public void testFileBean() {
-        PropertiesBean pb_null = PropertiesBeanBuilder.minimalPropertiesBeanWithoutFileBean().build();
-        assertThrows(RuntimeException.class, () -> CliProperties.processProperties(pb_null, project.getBasePath()));
+        PropertiesBean pbNull = PropertiesBeanBuilder.minimalPropertiesBeanWithoutFileBean().build();
+        assertThrows(RuntimeException.class, () -> CliProperties.processProperties(pbNull, project.getBasePath()));
 
-        PropertiesBean pb2_noFields = PropertiesBeanBuilder.minimalPropertiesBeanWithoutFileBean().build();
-        pb2_noFields.setFiles(new FileBean());
-        assertThrows(RuntimeException.class, () -> CliProperties.processProperties(pb2_noFields, project.getBasePath()));
+        PropertiesBean pb2NoFields = PropertiesBeanBuilder.minimalPropertiesBeanWithoutFileBean().build();
+        pb2NoFields.setFiles(new FileBean());
+        assertThrows(RuntimeException.class, () -> CliProperties.processProperties(pb2NoFields, project.getBasePath()));
 
-        PropertiesBean pb3_allFields = PropertiesBeanBuilder
+        PropertiesBean pb3AllFields = PropertiesBeanBuilder
             .minimalPropertiesBean("*", PropertiesBeanBuilder.STANDARD_TRANSLATIONS).build();
-        FileBean fb = pb3_allFields.getFiles().get(0);
+        FileBean fb = pb3AllFields.getFiles().get(0);
         fb.setIgnore(Arrays.asList("*-CR-*"));
         fb.setDest("random-thing.po");
         fb.setType("gettext");
@@ -81,6 +81,6 @@ public class CliPropertiesTest {
         fb.setMultilingualSpreadsheet(true);
         fb.setScheme("identifier,source_phrase,context,uk,ru,fr");
         fb.setTranslationReplace(new HashMap<>());
-        assertThrows(RuntimeException.class, () -> CliProperties.processProperties(pb3_allFields, project.getBasePath()));
+        assertThrows(RuntimeException.class, () -> CliProperties.processProperties(pb3AllFields, project.getBasePath()));
     }
 }

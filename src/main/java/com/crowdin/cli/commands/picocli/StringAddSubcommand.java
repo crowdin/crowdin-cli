@@ -32,7 +32,7 @@ public class StringAddSubcommand extends Command {
     protected String context;
 
     @CommandLine.Option(names = {"--file"}, paramLabel = "...")
-    protected String[] files;
+    protected List<String> files;
 
     @CommandLine.Option(names = {"--hidden"})
     protected Boolean isHidden;
@@ -57,16 +57,16 @@ public class StringAddSubcommand extends Command {
             errors.add("'--max-len' cannot be lower than 0");
         }
         if (files != null) {
-            for (int i = 0; i < files.length; i++) {
-                String normalizedFile = StringUtils.removeStart(Utils.normalizePath(files[i]), Utils.PATH_SEPARATOR);
-                files[i] = normalizedFile;
+            for (int i = 0; i < files.size(); i++) {
+                String normalizedFile = StringUtils.removeStart(Utils.normalizePath(files.get(i)), Utils.PATH_SEPARATOR);
+                files.set(i, normalizedFile);
             }
         }
         if (!errors.isEmpty()) {
             String errorsInOne = errors.stream()
                 .map(error -> String.format(RESOURCE_BUNDLE.getString("message.item_list"), error))
                 .collect(Collectors.joining("\n"));
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.params_are_invalid")+"\n" + errorsInOne);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.params_are_invalid") + "\n" + errorsInOne);
         }
     }
 }

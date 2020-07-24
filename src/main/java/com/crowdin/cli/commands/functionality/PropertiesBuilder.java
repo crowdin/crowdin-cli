@@ -37,7 +37,9 @@ public class PropertiesBuilder {
         if (params != null) {
             if (params.getSourceParam() != null && new File(params.getSourceParam()).isAbsolute()) {
                 pb.setPreserveHierarchy(false);
-                pb.setBasePath(configFile.toPath().getRoot().toString());
+
+                Path root = configFile.toPath().getRoot();
+                pb.setBasePath((root != null) ? root.toString() : "/");
                 params.setSourceParam(StringUtils.removePattern(params.getSourceParam(), "^([a-zA-Z]:)?[\\\\/]+"));
             }
             CliProperties.populateWithParams(pb, params);

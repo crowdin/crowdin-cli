@@ -11,7 +11,9 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import static com.crowdin.cli.BaseCli.*;
+import static com.crowdin.cli.BaseCli.DEFAULT_CONFIGS;
+import static com.crowdin.cli.BaseCli.DEFAULT_IDENTITY_FILES;
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 public class PropertiesBuilderCommandPart {
 
@@ -40,22 +42,22 @@ public class PropertiesBuilderCommandPart {
     }
 
     private File getDefaultConfig() {
-        if (DEFAULT_CONFIGS == null || DEFAULT_CONFIGS.length == 0) {
+        if (DEFAULT_CONFIGS == null || DEFAULT_CONFIGS.isEmpty()) {
             throw new RuntimeException("Array of default values for config file is empty");
         }
-        return Arrays.stream(DEFAULT_CONFIGS)
+        return DEFAULT_CONFIGS.stream()
             .map(Paths::get)
             .filter(Files::exists)
             .findFirst()
             .map(Path::toFile)
-            .orElse(new File(DEFAULT_CONFIGS[0]));
+            .orElse(new File(DEFAULT_CONFIGS.get(0)));
     }
 
     private File getDefaultIdentityFile() {
-        if (DEFAULT_IDENTITY_FILES == null || DEFAULT_IDENTITY_FILES.length == 0) {
+        if (DEFAULT_IDENTITY_FILES == null || DEFAULT_IDENTITY_FILES.isEmpty()) {
             throw new RuntimeException("Array of default values for config file is empty");
         }
-        return Arrays.stream(DEFAULT_IDENTITY_FILES)
+        return DEFAULT_IDENTITY_FILES.stream()
             .map(Paths::get)
             .filter(Files::exists)
             .findFirst()

@@ -26,7 +26,9 @@ public class StringEditAction implements Action {
     private final Integer newMaxLength;
     private final Boolean isHidden;
 
-    public StringEditAction(boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, Boolean isHidden) {
+    public StringEditAction(
+        boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, Boolean isHidden
+    ) {
         this.noProgress = noProgress;
         this.id = id;
         this.identifier = identifier;
@@ -38,15 +40,6 @@ public class StringEditAction implements Action {
 
     @Override
     public void act(PropertiesBean pb, Client client) {
-        Project project;
-        try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
-            project = client.downloadFullProject();
-            ConsoleSpinner.stop(OK);
-        } catch (Exception e) {
-            ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
-        }
 
         List<SourceString> sourceStrings = client.listSourceString(null, null);
 

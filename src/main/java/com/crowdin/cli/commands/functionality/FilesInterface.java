@@ -8,9 +8,13 @@ import java.util.List;
 public interface FilesInterface {
 
     void writeToFile(String file, InputStream data) throws IOException;
+
     void copyFile(File fromFile, File toFile);
+
     List<File> extractZipArchive(File zipArchive, File dir);
+
     void deleteFile(File file) throws IOException;
+
     void deleteDirectory(File dir) throws IOException;
 
 }

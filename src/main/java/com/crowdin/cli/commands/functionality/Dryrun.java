@@ -13,14 +13,14 @@ public abstract class Dryrun {
 
     protected abstract List<String> getFiles();
 
-    private String message_key;
+    private String messageKey;
 
     protected Dryrun() {
         this("message.uploading_file");
     }
 
-    protected Dryrun(String message_key) {
-        this.message_key = message_key;
+    protected Dryrun(String messageKey) {
+        this.messageKey = messageKey;
     }
 
     public void run(boolean treeView) {
@@ -37,7 +37,7 @@ public abstract class Dryrun {
             DrawTree.draw(files).forEach(System.out::println);
         } else {
             if (!plainView) {
-                files.forEach(file -> System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString(message_key), file))));
+                files.forEach(file -> System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString(messageKey), file))));
             } else {
                 files.forEach(file -> System.out.println(file));
             }

@@ -14,6 +14,7 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -21,13 +22,18 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class StringAddActionTest {
 
     @ParameterizedTest
     @MethodSource
-    public void testStringAdd(String text, String identifier, Integer maxLength, String context, Boolean hidden, Map<String, Long> files, String[] stringFiles) throws ResponseException {
+    public void testStringAdd(
+        String text, String identifier, Integer maxLength, String context, Boolean hidden, Map<String, Long> files, String[] stringFiles
+    ) throws ResponseException {
         PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
@@ -57,7 +63,7 @@ public class StringAddActionTest {
         when(client.downloadFullProject())
             .thenReturn(projectBuilder.build());
 
-        Action action = new StringAddAction(true, text, identifier, maxLength, context, stringFiles, hidden);
+        Action action = new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), hidden);
         action.act(pb, client);
 
         verify(client).downloadFullProject();
@@ -69,8 +75,11 @@ public class StringAddActionTest {
     }
 
     public static Stream<Arguments> testStringAdd() {
+        Map<String, Long> headers = new HashMap<String, Long>() {{
+                put("first.csv", 801L);
+            }};
         return Stream.of(
-            arguments("first text", "1.1", 42, "It's first text", false, new HashMap<String, Long>() {{ put("first.csv", 801L); }}, new String[] {"first.csv"}),
+            arguments("first text", "1.1", 42, "It's first text", false, headers, new String[] {"first.csv"}),
             arguments("first text", "1.1", 42, "It's first text", false, null, new String[] {"notExist.csv"}),
             arguments("first text", "1.1", 42, "It's first text", false, new HashMap<String, Long>(), new String[0])
         );

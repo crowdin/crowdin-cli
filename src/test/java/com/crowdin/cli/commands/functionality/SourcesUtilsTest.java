@@ -35,7 +35,6 @@ public class SourcesUtilsTest {
 
     @Test
     public void testGetFilesEverythingNull1() {
-        SourcesUtils sourcesUtils = new SourcesUtils();
         assertThrows(NullPointerException.class, () -> SourcesUtils.getFiles(null, null, null, null));
     }
 
@@ -96,7 +95,7 @@ public class SourcesUtilsTest {
             arguments(Utils.normalizePath("f1/**/file.txt"), true),
             arguments(Utils.normalizePath("folder/?.txt"), true),
             arguments(Utils.normalizePath("folder/[a-z]/file.txt"), true),
-                arguments(Utils.normalizePath("folder/[a-z/file.txt"), false),
+            arguments(Utils.normalizePath("folder/[a-z/file.txt"), false),
             arguments(Utils.normalizePath("folder/file.txt"), false),
             arguments("", false)
         );

@@ -13,11 +13,14 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class ListProjectActionTest {
 
-    static TempProject project;
+    TempProject project;
 
     @BeforeEach
     public void createProj() {
@@ -31,7 +34,7 @@ public class ListProjectActionTest {
 
     @Test
     public void testForServerInteraction() throws ResponseException {
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -49,7 +52,7 @@ public class ListProjectActionTest {
 
     @Test
     public void testForNonexistentBranch() throws ResponseException {
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -67,7 +70,7 @@ public class ListProjectActionTest {
 
     @Test
     public void testForExistentBranch() throws ResponseException {
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();

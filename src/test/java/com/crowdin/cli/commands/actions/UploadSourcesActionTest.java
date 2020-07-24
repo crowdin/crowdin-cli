@@ -10,18 +10,32 @@ import com.crowdin.cli.properties.PropertiesBeanBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
-import com.crowdin.client.sourcefiles.model.*;
+import com.crowdin.client.sourcefiles.model.AddBranchRequest;
+import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
+import com.crowdin.client.sourcefiles.model.AddFileRequest;
+import com.crowdin.client.sourcefiles.model.Branch;
+import com.crowdin.client.sourcefiles.model.Directory;
+import com.crowdin.client.sourcefiles.model.OtherFileImportOptions;
+import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
+import com.crowdin.client.sourcefiles.model.SpreadsheetFileImportOptions;
+import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
+import java.util.Map;
 
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.eq;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class UploadSourcesActionTest {
 
-    static TempProject project;
+    private TempProject project;
 
     @BeforeEach
     public void createProj() {
@@ -36,7 +50,7 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSource_EmptyProject() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -52,16 +66,18 @@ public class UploadSourcesActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("first.po");
-            setStorageId(1L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.po");
+                setStorageId(1L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -71,7 +87,7 @@ public class UploadSourcesActionTest {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("folder/second.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("third.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("**/*"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -81,8 +97,8 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
         AddDirectoryRequest addDirectoryRequest = new AddDirectoryRequest() {{
-            setName("folder");
-        }};
+                setName("folder");
+            }};
         Directory directory = DirectoryBuilder.standard().setProjectId(Long.parseLong(pb.getProjectId()))
             .setIdentifiers("folder", 201L, null, null).build();
         when(client.addDirectory(eq(addDirectoryRequest)))
@@ -101,41 +117,47 @@ public class UploadSourcesActionTest {
         verify(client).uploadStorage(eq("second.po"), any());
         verify(client).uploadStorage(eq("third.po"), any());
         AddFileRequest addFileRequest1 = new AddFileRequest() {{
-            setName("first.po");
-            setStorageId(1L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.po");
+                setStorageId(1L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest1));
         AddFileRequest addFileRequest2 = new AddFileRequest() {{
-            setName("second.po");
-            setStorageId(2L);
-            setDirectoryId(201L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("second.po");
+                setStorageId(2L);
+                setDirectoryId(201L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest2));
         AddFileRequest addFileRequest3 = new AddFileRequest() {{
-            setName("third.po");
-            setStorageId(3L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("third.po");
+                setStorageId(3L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest3));
         verifyNoMoreInteractions(client);
     }
@@ -143,7 +165,7 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithBranch_EmptyProject() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -155,8 +177,8 @@ public class UploadSourcesActionTest {
         Branch branch = BranchBuilder.standard().setProjectId(Long.parseLong(pb.getProjectId()))
             .setIdentifiers("newBranch", 201L).build();
         AddBranchRequest addBranchRequest = new AddBranchRequest() {{
-            setName("newBranch");
-        }};
+                setName("newBranch");
+            }};
         when(client.addBranch(addBranchRequest))
             .thenReturn(branch);
 
@@ -167,17 +189,19 @@ public class UploadSourcesActionTest {
         verify(client).addBranch(addBranchRequest);
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("first.po");
-            setStorageId(1L);
-            setBranchId(201L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.po");
+                setStorageId(1L);
+                setBranchId(201L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -185,7 +209,7 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithBranch_ProjectWithThatBranch() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -202,17 +226,19 @@ public class UploadSourcesActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("first.po");
-            setStorageId(1L);
-            setBranchId(201L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.po");
+                setStorageId(1L);
+                setBranchId(201L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -220,7 +246,7 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithDirectory_ProjectNotPreserveHierarchy() throws ResponseException {
         project.addFile(Utils.normalizePath("folder/first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("**/*"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -236,17 +262,19 @@ public class UploadSourcesActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("first.po");
-            setStorageId(1L);
-            setDirectoryId(null);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.po");
+                setStorageId(1L);
+                setDirectoryId(null);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -254,7 +282,7 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithDirectory_ProjectWithPreserveHierarchy() throws ResponseException {
         project.addFile(Utils.normalizePath("folder/first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("**/*"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -272,17 +300,19 @@ public class UploadSourcesActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("first.po");
-            setStorageId(1L);
-            setDirectoryId(101L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.po");
+                setStorageId(1L);
+                setDirectoryId(101L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -290,7 +320,7 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithDest_Project() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("first.po"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -307,17 +337,19 @@ public class UploadSourcesActionTest {
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("last.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("last.po");
-            setStorageId(1L);
-            setDirectoryId(null);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("last.po");
+                setStorageId(1L);
+                setDirectoryId(null);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -326,7 +358,7 @@ public class UploadSourcesActionTest {
     public void testUpdateOneUploadOneSource_Project() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("second.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("*"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -346,28 +378,31 @@ public class UploadSourcesActionTest {
         verify(client).uploadStorage(eq("first.po"), any());
         verify(client).uploadStorage(eq("second.po"), any());
         UpdateFileRequest updateFileRequest = new UpdateFileRequest() {{
-            setStorageId(1L);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setStorageId(1L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).updateSource(eq(101L), eq(updateFileRequest));
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("second.po");
-            setStorageId(2L);
-            setDirectoryId(null);
-            setImportOptions(new OtherFileImportOptions() {{
-                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("second.po");
+                setStorageId(2L);
+                setImportOptions(new OtherFileImportOptions() {{
+                        setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -376,7 +411,7 @@ public class UploadSourcesActionTest {
     public void testAddCsvFile_EmptyProject() throws ResponseException {
 
         project.addFile(Utils.normalizePath("first.csv"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = new PropertiesBeanBuilder()
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
         PropertiesBean pb = pbBuilder.build();
@@ -392,25 +427,27 @@ public class UploadSourcesActionTest {
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.csv"), any());
+        Map<String, Integer> scheme = new HashMap<>();
+        scheme.put("identifier", 0);
+        scheme.put("source_phrase", 1);
+        scheme.put("context", 2);
+        scheme.put("uk", 3);
+        scheme.put("ru", 4);
+        scheme.put("fr", 5);
         AddFileRequest addFileRequest = new AddFileRequest() {{
-            setName("first.csv");
-            setStorageId(1L);
-            setImportOptions(new SpreadsheetFileImportOptions() {{
-                setScheme(new HashMap<String, Integer>() {{
-                    put("identifier", 0);
-                    put("source_phrase", 1);
-                    put("context", 2);
-                    put("uk", 3);
-                    put("ru", 4);
-                    put("fr", 5);
-                }});
-                setFirstLineContainsHeader(false);
-            }});
-            setExportOptions(new PropertyFileExportOptions() {{
-                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
-                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
-            }});
-        }};
+                setName("first.csv");
+                setStorageId(1L);
+                setImportOptions(new SpreadsheetFileImportOptions() {{
+                        setScheme(scheme);
+                        setFirstLineContainsHeader(false);
+                    }}
+                );
+                setExportOptions(new PropertyFileExportOptions() {{
+                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                        setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                    }}
+                );
+            }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }

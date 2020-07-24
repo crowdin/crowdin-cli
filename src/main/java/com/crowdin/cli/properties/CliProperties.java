@@ -2,6 +2,7 @@ package com.crowdin.cli.properties;
 
 import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
+import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -10,7 +11,11 @@ import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -85,7 +90,7 @@ public class CliProperties {
             String errorsInOne = errors.stream()
                 .map(error -> String.format(RESOURCE_BUNDLE.getString("message.item_list"), error))
                 .collect(Collectors.joining("\n"));
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_is_invalid")+"\n" + errorsInOne);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_is_invalid") + "\n" + errorsInOne);
         }
 
         return pb;
@@ -111,23 +116,23 @@ public class CliProperties {
 
     private static FileBean buildFileBeanFromMap(Map<String, Object> fbProperties) {
         FileBean fileBean = new FileBean();
-        getProperty(        fileBean::setSource,                    fbProperties, SOURCE);
-        getProperty(        fileBean::setDest,                      fbProperties, DEST);
-        getProperty(        fileBean::setType,                      fbProperties, TYPE);
-        getProperty(        fileBean::setTranslation,               fbProperties, TRANSLATION);
-        getProperty(        fileBean::setUpdateOption,              fbProperties, UPDATE_OPTION);
-        getProperty(        fileBean::setScheme,                    fbProperties, SCHEME);
-        getProperty(        fileBean::setIgnore,                    fbProperties, IGNORE);
-        getProperty(        fileBean::setTranslatableElements,      fbProperties, TRANSLATABLE_ELEMENTS);
-        getProperty(        fileBean::setLanguagesMapping,          fbProperties, LANGUAGES_MAPPING);
-        getProperty(        fileBean::setTranslationReplace,        fbProperties, TRANSLATION_REPLACE);
-        getProperty(        fileBean::setEscapeQuotes,              fbProperties, ESCAPE_QUOTES);
-        getProperty(        fileBean::setEscapeSpecialCharacters,   fbProperties, ESCAPE_SPECIAL_CHARACTERS);
-        getBooleanProperty( fileBean::setFirstLineContainsHeader,   fbProperties, FIRST_LINE_CONTAINS_HEADER);
-        getBooleanProperty( fileBean::setTranslateAttributes,       fbProperties, TRANSLATE_ATTRIBUTES);
-        getBooleanProperty( fileBean::setTranslateContent,          fbProperties, TRANSLATE_CONTENT);
-        getBooleanProperty( fileBean::setContentSegmentation,       fbProperties, CONTENT_SEGMENTATION);
-        getBooleanProperty( fileBean::setMultilingualSpreadsheet,   fbProperties, MULTILINGUAL_SPREADSHEET);
+        getProperty(fileBean::setSource,                    fbProperties, SOURCE);
+        getProperty(fileBean::setDest,                      fbProperties, DEST);
+        getProperty(fileBean::setType,                      fbProperties, TYPE);
+        getProperty(fileBean::setTranslation,               fbProperties, TRANSLATION);
+        getProperty(fileBean::setUpdateOption,              fbProperties, UPDATE_OPTION);
+        getProperty(fileBean::setScheme,                    fbProperties, SCHEME);
+        getProperty(fileBean::setIgnore,                    fbProperties, IGNORE);
+        getProperty(fileBean::setTranslatableElements,      fbProperties, TRANSLATABLE_ELEMENTS);
+        getProperty(fileBean::setLanguagesMapping,          fbProperties, LANGUAGES_MAPPING);
+        getProperty(fileBean::setTranslationReplace,        fbProperties, TRANSLATION_REPLACE);
+        getProperty(fileBean::setEscapeQuotes,              fbProperties, ESCAPE_QUOTES);
+        getProperty(fileBean::setEscapeSpecialCharacters,   fbProperties, ESCAPE_SPECIAL_CHARACTERS);
+        getBooleanProperty(fileBean::setFirstLineContainsHeader,   fbProperties, FIRST_LINE_CONTAINS_HEADER);
+        getBooleanProperty(fileBean::setTranslateAttributes,       fbProperties, TRANSLATE_ATTRIBUTES);
+        getBooleanProperty(fileBean::setTranslateContent,          fbProperties, TRANSLATE_CONTENT);
+        getBooleanProperty(fileBean::setContentSegmentation,       fbProperties, CONTENT_SEGMENTATION);
+        getBooleanProperty(fileBean::setMultilingualSpreadsheet,   fbProperties, MULTILINGUAL_SPREADSHEET);
         return fileBean;
     }
 
@@ -177,7 +182,7 @@ public class CliProperties {
             String errorsInOne = errors.stream()
                 .map(error -> String.format(RESOURCE_BUNDLE.getString("message.item_list"), error))
                 .collect(Collectors.joining("\n"));
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.params_are_invalid")+"\n" + errorsInOne);
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.params_are_invalid") + "\n" + errorsInOne);
         }
         if (params.getIdParam() != null) {
             pb.setProjectId(params.getIdParam());
@@ -223,7 +228,7 @@ public class CliProperties {
             if (!checkForDoubleAsterisks(params.getSourceParam(), params.getTranslationParam())) {
                 errors.add(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
             }
-            if (!containsLangPlaceholders(params.getTranslationParam())) {
+            if (!PlaceholderUtil.containsLangPlaceholders(params.getTranslationParam())) {
                 errors.add(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
             }
         } else if (params.getSourceParam() != null ^ params.getTranslationParam() != null) {
@@ -272,15 +277,14 @@ public class CliProperties {
                 if (!file.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
                     file.setTranslation(Utils.PATH_SEPARATOR + file.getTranslation());
                 }
-                if (!containsLangPlaceholders(file.getTranslation()) && file.getScheme() != null) {
+                if (!PlaceholderUtil.containsLangPlaceholders(file.getTranslation()) && file.getScheme() != null) {
                     file.setTranslation(StringUtils.removeStart(file.getTranslation(), Utils.PATH_SEPARATOR));
                 }
             }
 
 
             //Ignore
-            if (file.getIgnore() == null || file.getIgnore().isEmpty()) {
-            } else {
+            if (file.getIgnore() != null && !file.getIgnore().isEmpty()) {
                 List<String> ignores = new ArrayList<>();
                 for (String ignore : file.getIgnore()) {
                     ignores.add(ignore.replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
@@ -288,55 +292,47 @@ public class CliProperties {
                 file.setIgnore(ignores);
             }
             //dest
-            if (StringUtils.isEmpty(file.getDest())) {
-            } else {
+            if (StringUtils.isNotEmpty(file.getDest())) {
                 file.setDest(file.getDest().replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
             }
-            //Type
-            if (StringUtils.isEmpty(file.getType())) {
-            } else {
-            }
-            //Update option
-            if (StringUtils.isEmpty(file.getUpdateOption())) {
-            } else {
-            }
+//            //Type
+//            if (StringUtils.isEmpty(file.getType())) {
+//            }
+//            //Update option
+//            if (StringUtils.isEmpty(file.getUpdateOption())) {
+//            }
             //Translate attributes
             if (file.getTranslateAttributes() == null) {
                 file.setTranslateAttributes(Boolean.FALSE);
-            } else {
             }
             //Translate content
             file.setTranslateContent(file.getTranslateContent() != null ? file.getTranslateContent() : Boolean.TRUE);
-            //Translatable elements
-            if (file.getTranslatableElements() == null || file.getTranslatableElements().isEmpty()) {
-            } else {
-            }
+//            //Translatable elements
+//            if (file.getTranslatableElements() == null || file.getTranslatableElements().isEmpty()) {
+//            }
             //Content segmentation
             file.setContentSegmentation(file.getContentSegmentation() != null ? file.getContentSegmentation() : Boolean.TRUE);
             //escape quotes
             if (file.getEscapeQuotes() == null) {
                 file.setEscapeQuotes(3);
             }
-            //Language mapping
-            if (file.getLanguagesMapping() == null || file.getLanguagesMapping().isEmpty()) {
-            } else {
-            }
-            //Multilingual spreadsheet
-            if (file.getMultilingualSpreadsheet() == null) {
-            }
+//            //Language mapping
+//            if (file.getLanguagesMapping() == null || file.getLanguagesMapping().isEmpty()) {
+//            }
+//            //Multilingual spreadsheet
+//            if (file.getMultilingualSpreadsheet() == null) {
+//            }
             //first line contain header
             if (file.getFirstLineContainsHeader() == null) {
                 file.setFirstLineContainsHeader(Boolean.FALSE);
-            } else {
             }
-            //scheme
-            if (StringUtils.isEmpty(file.getScheme())) {
-            } else {
-            }
-            //translation repalce
-            if (file.getTranslationReplace() == null || file.getTranslationReplace().isEmpty()) {
-            } else {
-            }
+//            //scheme
+//            if (StringUtils.isEmpty(file.getScheme())) {
+//            } else {
+//            }
+//            //translation repalce
+//            if (file.getTranslationReplace() == null || file.getTranslationReplace().isEmpty()) {
+//            }
         }
     }
 
@@ -385,7 +381,7 @@ public class CliProperties {
                     if (!checkForDoubleAsterisks(fileBean.getSource(), fileBean.getTranslation())) {
                         errors.add(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
                     }
-                    if (!containsLangPlaceholders(fileBean.getTranslation()) && fileBean.getScheme() == null) {
+                    if (!PlaceholderUtil.containsLangPlaceholders(fileBean.getTranslation()) && fileBean.getScheme() == null) {
                         errors.add(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
                     }
                 }
@@ -411,18 +407,6 @@ public class CliProperties {
             }
         }
         return errors;
-    }
-
-    private static boolean containsLangPlaceholders(String translation) {
-        return StringUtils.containsAny(translation,
-                "%language%",
-                "%two_letters_code%",
-                "%three_letters_code%",
-                "%locale_with_underscore%",
-                "%locale%",
-                "%android_code%",
-                "%osx_code%",
-                "%osx_locale%");
     }
 
     private static boolean checkBaseUrl(String baseUrl) {

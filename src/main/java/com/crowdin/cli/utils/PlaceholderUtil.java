@@ -5,7 +5,11 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public class PlaceholderUtil {
@@ -27,7 +31,7 @@ public class PlaceholderUtil {
     private List<Language> projectLangs;
     private String basePath;
 
-    public PlaceholderUtil(List<com.crowdin.client.languages.model.Language> supportedLangs, List<com.crowdin.client.languages.model.Language> projectLangs, String basePath) {
+    public PlaceholderUtil(List<Language> supportedLangs, List<com.crowdin.client.languages.model.Language> projectLangs, String basePath) {
         if (supportedLangs == null || projectLangs == null || basePath == null) {
             throw new NullPointerException("in PlaceholderUtil.contructor");
         }
@@ -41,15 +45,16 @@ public class PlaceholderUtil {
             return new ArrayList<>();
         }
         List<String> res = new ArrayList<>();
-        for(String str : toFormat) {
+        for (String str : toFormat) {
             res.addAll(this.format(sources, str, onProjectLangs));
         }
         return res;
     }
 
     public Set<String> format(List<File> sources, String toFormat, boolean onProjectLangs) {
-        if (sources == null || toFormat == null)
+        if (sources == null || toFormat == null) {
             return new HashSet<>();
+        }
         List<Language> languages = (onProjectLangs ? projectLangs : supportedLangs);
         Set<String> result = languages.stream()
                 .map(lang -> this.replaceLanguageDependentPlaceholders(toFormat, lang))
@@ -87,7 +92,8 @@ public class PlaceholderUtil {
         }
         toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LANGUAGE, lang.getId(), lang.getName(), languageMapping);
         toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LOCALE, lang.getId(), lang.getLocale(), languageMapping);
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LOCALE_WITH_UNDERSCORE, lang.getId(), lang.getLocale().replace("-", "_"), languageMapping);
+        toFormat =
+            replaceWithMapping(toFormat, PLACEHOLDER_LOCALE_WITH_UNDERSCORE, lang.getId(), lang.getLocale().replace("-", "_"), languageMapping);
         toFormat = replaceWithMapping(toFormat, PLACEHOLDER_TWO_LETTERS_CODE, lang.getId(), lang.getTwoLettersCode(), languageMapping);
         toFormat = replaceWithMapping(toFormat, PLACEHOLDER_THREE_LETTERS_CODE, lang.getId(), lang.getThreeLettersCode(), languageMapping);
         toFormat = replaceWithMapping(toFormat, PLACEHOLDER_ANDROID_CODE, lang.getId(), lang.getAndroidCode(), languageMapping);
@@ -95,7 +101,9 @@ public class PlaceholderUtil {
         return replaceWithMapping(toFormat, PLACEHOLDER_OSX_CODE, lang.getId(), lang.getOsxCode(), languageMapping);
     }
 
-    private String replaceWithMapping(String toFormat, String placeholder, String langCode, String defaultMapping, Map<String, Map<String, String>> langMapping) {
+    private String replaceWithMapping(
+        String toFormat, String placeholder, String langCode, String defaultMapping, Map<String, Map<String, String>> langMapping
+    ) {
         return toFormat.replace(
                 placeholder,
                 langMapping.containsKey(placeholder.replaceAll("%", ""))
@@ -117,10 +125,25 @@ public class PlaceholderUtil {
                 .replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt)
                 .replace(PLACEHOLDER_FILE_EXTENTION, fileExt)
                 .replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
-        String doubleAsterisks = Utils.PATH_SEPARATOR + StringUtils.removeStart(fileParent, StringUtils.removeStart(StringUtils.substringBefore(toFormat, Utils.PATH_SEPARATOR + "**"), Utils.PATH_SEPARATOR));
+        String doubleAsterisks =
+            Utils.PATH_SEPARATOR
+                + StringUtils.removeStart(fileParent,
+                    StringUtils.removeStart(StringUtils.substringBefore(toFormat, Utils.PATH_SEPARATOR + "**"), Utils.PATH_SEPARATOR));
         toFormat = toFormat
                 .replace(Utils.PATH_SEPARATOR + "**", doubleAsterisks)
                 .replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
         return StringUtils.removeStart(toFormat, Utils.PATH_SEPARATOR);
+    }
+
+    public static boolean containsLangPlaceholders(String translationsPattern) {
+        return StringUtils.containsAny(translationsPattern,
+            "%language%",
+            "%two_letters_code%",
+            "%three_letters_code%",
+            "%locale_with_underscore%",
+            "%locale%",
+            "%android_code%",
+            "%osx_code%",
+            "%osx_locale%");
     }
 }

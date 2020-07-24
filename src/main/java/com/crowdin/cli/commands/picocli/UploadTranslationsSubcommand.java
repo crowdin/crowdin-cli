@@ -10,7 +10,7 @@ import com.crowdin.cli.properties.PropertiesBean;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name ="translations",
+    name = "translations",
     sortOptions = false
 )
 public class UploadTranslationsSubcommand extends Command {

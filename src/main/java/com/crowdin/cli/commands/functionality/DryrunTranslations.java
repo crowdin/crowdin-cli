@@ -21,7 +21,10 @@ public class DryrunTranslations extends Dryrun {
     private Optional<Map<String, Map<String, String>>> projectLanguageMapping;
     private Optional<Language> language;
 
-    public DryrunTranslations(PropertiesBean pb, Optional<Map<String, Map<String, String>>> projectLanguageMapping, PlaceholderUtil placeholderUtil, Optional<Language> language, boolean filesMustExist) {
+    public DryrunTranslations(
+        PropertiesBean pb, Optional<Map<String, Map<String, String>>> projectLanguageMapping,
+        PlaceholderUtil placeholderUtil, Optional<Language> language, boolean filesMustExist
+    ) {
         super("message.translation_file");
         this.pb = pb;
         this.placeholderUtil = placeholderUtil;
@@ -41,7 +44,8 @@ public class DryrunTranslations extends Dryrun {
                     return placeholderUtil.replaceFileDependentPlaceholders(translation, source);
                 })
                 .flatMap(translation -> {
-                    Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
+                    Map<String, Map<String, String>> languageMapping =
+                        file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
                     if (projectLanguageMapping.isPresent()) {
                         TranslationsUtils.populateLanguageMappingFromServer(languageMapping, projectLanguageMapping.get());
                     }

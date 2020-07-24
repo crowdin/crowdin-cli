@@ -2,7 +2,11 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.Project;
-import com.crowdin.cli.commands.functionality.*;
+import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
+import com.crowdin.cli.commands.functionality.ProjectUtils;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.functionality.SourcesUtils;
+import com.crowdin.cli.commands.functionality.TranslationsUtils;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
@@ -10,11 +14,22 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
-import com.crowdin.client.sourcefiles.model.*;
+import com.crowdin.client.sourcefiles.model.AddBranchRequest;
+import com.crowdin.client.sourcefiles.model.AddFileRequest;
+import com.crowdin.client.sourcefiles.model.Branch;
+import com.crowdin.client.sourcefiles.model.ExportOptions;
+import com.crowdin.client.sourcefiles.model.File;
+import com.crowdin.client.sourcefiles.model.ImportOptions;
+import com.crowdin.client.sourcefiles.model.OtherFileImportOptions;
+import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
+import com.crowdin.client.sourcefiles.model.SpreadsheetFileImportOptions;
+import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
+import com.crowdin.client.sourcefiles.model.XmlFileImportOptions;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -23,7 +38,10 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.*;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 public class UploadSourcesAction implements Action {
 
@@ -45,7 +63,7 @@ public class UploadSourcesAction implements Action {
     public void act(PropertiesBean pb, Client client) {
         Project project;
         try {
-            if(!plainView) {
+            if (!plainView) {
                 ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
             }
             project = client.downloadFullProject();
@@ -86,7 +104,7 @@ public class UploadSourcesAction implements Action {
                                 ? StringUtils.removePattern(file.getDest(), "^[\\\\/]")
                                 : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
                         final String fileFullPath = (branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + filePath;
-                        final String fileName = fileFullPath.substring(fileFullPath.lastIndexOf(Utils.PATH_SEPARATOR)+1);
+                        final String fileName = fileFullPath.substring(fileFullPath.lastIndexOf(Utils.PATH_SEPARATOR) + 1);
 
                         synchronized (uploadedSources) {
                             if (uploadedSources.contains(fileFullPath)) {
@@ -111,14 +129,16 @@ public class UploadSourcesAction implements Action {
                             return (Runnable) () -> {
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
                                     request.setStorageId(client.uploadStorage(fileName, fileStream));
-                                } catch (Exception e) {
-                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
+                                } catch (IOException e) {
+                                    throw new RuntimeException(
+                                        String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }
 
                                 try {
                                     client.updateSource(sourceId, request);
-                                    if(!plainView) {
-                                        System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
+                                    if (!plainView) {
+                                        System.out.println(
+                                            OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
                                     } else {
                                         System.out.println(fileFullPath);
                                     }
@@ -151,15 +171,16 @@ public class UploadSourcesAction implements Action {
 
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
                                     request.setStorageId(client.uploadStorage(fileName, fileStream));
-                                } catch (Exception e) {
-                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
+                                } catch (IOException e) {
+                                    throw new RuntimeException(
+                                        String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }
                                 try {
                                     client.addSource(request);
                                 } catch (Exception e) {
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath), e);
                                 }
-                                if(!plainView) {
+                                if (!plainView) {
                                     System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
                                 } else {
                                     System.out.println(fileFullPath);
@@ -168,7 +189,8 @@ public class UploadSourcesAction implements Action {
                         } else {
                             return (Runnable) () -> {
                                 if (!plainView) {
-                                    System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
+                                    System.out.println(SKIPPED.withIcon(String.format(
+                                        RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
                                 }
                             };
                         }

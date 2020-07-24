@@ -80,8 +80,9 @@ public class ProjectBuilder {
         File file = FileBuilder.standard().setProjectId(project.getProjectId())
                 .setIdentifiers(name, type, id, directoryId, branchId).build();
         file.setExportOptions(new GeneralFileExportOptions() {{
-            setExportPattern(exportPattern);
-        }});
+                setExportPattern(exportPattern);
+            }}
+        );
         files.add(file);
         return this;
     }

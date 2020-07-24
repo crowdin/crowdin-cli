@@ -11,7 +11,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 public class TranslationsUtils {
 
-    public static String replaceDoubleAsterisk(String sourcePattern, String translationPattern, String sourceFile) {//File fileSource, String basePath) {
+    public static String replaceDoubleAsterisk(String sourcePattern, String translationPattern, String sourceFile) {
         if (StringUtils.isAnyEmpty(translationPattern, sourceFile)) {
             throw new RuntimeException("No sources and/or translations");
         }
@@ -53,11 +53,12 @@ public class TranslationsUtils {
     }
 
     public static void populateLanguageMappingFromServer(Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from) {
-        for (String langCode : from.keySet()) {
-            for (String fromPlaceholder : from.get(langCode).keySet()) {
-                String toPlaceholder = BaseCli.PLACEHOLDER_MAPPING_FOR_SERVER.getOrDefault(fromPlaceholder, fromPlaceholder);
+        for (Map.Entry<String, Map<String, String>> langCodeEntry : from.entrySet()) {
+            for (Map.Entry<String, String> fromPlaceholderEntry : langCodeEntry.getValue().entrySet()) {
+                String toPlaceholder =
+                    BaseCli.PLACEHOLDER_MAPPING_FOR_SERVER.getOrDefault(fromPlaceholderEntry.getKey(), fromPlaceholderEntry.getKey());
                 toPopulate.putIfAbsent(toPlaceholder, new HashMap<>());
-                toPopulate.get(toPlaceholder).putIfAbsent(langCode, from.get(langCode).get(fromPlaceholder));
+                toPopulate.get(toPlaceholder).putIfAbsent(langCodeEntry.getKey(), fromPlaceholderEntry.getValue());
             }
         }
     }

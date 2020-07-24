@@ -13,28 +13,31 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 public class ProjectFilesUtilsTest {
 
     private static final long TEST_PROJECT_ID = 42;
+
     @Test
     public void testIsMultilingualFile() {
-        File file1_NoExportOptions = FileBuilder.standard().setProjectId(TEST_PROJECT_ID)
+        File file1NoExportOptions = FileBuilder.standard().setProjectId(TEST_PROJECT_ID)
             .setIdentifiers("first.po", "gettext", 101L, null, null).build();
-        File file2_NoExportPattern = FileBuilder.standard().setProjectId(TEST_PROJECT_ID)
+        File file2NoExportPattern = FileBuilder.standard().setProjectId(TEST_PROJECT_ID)
             .setIdentifiers("first.po", "gettext", 101L, null, null).build();
-        file2_NoExportPattern.setExportOptions(new PropertyFileExportOptions());
-        File file3_PropertyFileEO = FileBuilder.standard().setProjectId(TEST_PROJECT_ID)
+        file2NoExportPattern.setExportOptions(new PropertyFileExportOptions());
+        File file3PropertyFileEO = FileBuilder.standard().setProjectId(TEST_PROJECT_ID)
             .setIdentifiers("first.po", "gettext", 101L, null, null).build();
-        file3_PropertyFileEO.setExportOptions(new PropertyFileExportOptions() {{
-            setExportPattern("anything");
-        }});
-        File file4_GeneralFileEO = FileBuilder.standard().setProjectId(TEST_PROJECT_ID)
+        file3PropertyFileEO.setExportOptions(new PropertyFileExportOptions() {{
+                setExportPattern("anything");
+            }}
+        );
+        File file4GeneralFileEO = FileBuilder.standard().setProjectId(TEST_PROJECT_ID)
             .setIdentifiers("first.po", "gettext", 101L, null, null).build();
-        file4_GeneralFileEO.setExportOptions(new GeneralFileExportOptions() {{
-            setExportPattern("anything");
-        }});
+        file4GeneralFileEO.setExportOptions(new GeneralFileExportOptions() {{
+                setExportPattern("anything");
+            }}
+        );
 
-        assertTrue(ProjectFilesUtils.isMultilingualFile(file1_NoExportOptions));
-        assertTrue(ProjectFilesUtils.isMultilingualFile(file2_NoExportPattern));
-        assertFalse(ProjectFilesUtils.isMultilingualFile(file3_PropertyFileEO));
-        assertFalse(ProjectFilesUtils.isMultilingualFile(file4_GeneralFileEO));
+        assertTrue(ProjectFilesUtils.isMultilingualFile(file1NoExportOptions));
+        assertTrue(ProjectFilesUtils.isMultilingualFile(file2NoExportPattern));
+        assertFalse(ProjectFilesUtils.isMultilingualFile(file3PropertyFileEO));
+        assertFalse(ProjectFilesUtils.isMultilingualFile(file4GeneralFileEO));
 
 
     }

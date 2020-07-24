@@ -15,7 +15,7 @@ public class ConcurrencyUtilsTest {
     @Test
     public void dumbTestSingleThread() {
         AtomicInteger counter = new AtomicInteger(0);
-        List<Runnable> tasks = Stream.iterate(1, n -> n+1).limit(10000)
+        List<Runnable> tasks = Stream.iterate(1, n -> n + 1).limit(10000)
             .map(x -> (Runnable) counter::incrementAndGet)
             .collect(Collectors.toList());
         ConcurrencyUtil.executeAndWaitSingleThread(tasks, false);
@@ -25,7 +25,7 @@ public class ConcurrencyUtilsTest {
     @Test
     public void dumbTest() {
         AtomicInteger counter = new AtomicInteger(0);
-        List<Runnable> tasks = Stream.iterate(1, n -> n+1).limit(10000)
+        List<Runnable> tasks = Stream.iterate(1, n -> n + 1).limit(10000)
             .map(x -> (Runnable) counter::incrementAndGet)
             .collect(Collectors.toList());
         ConcurrencyUtil.executeAndWait(tasks, false);

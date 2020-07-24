@@ -5,7 +5,11 @@ import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.sourcefiles.model.File;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -71,7 +75,7 @@ public class CrowdinProject implements Project {
 
     @Override
     public Optional<Language> findLanguage(String id, boolean inProjectLanguages) {
-        return ((inProjectLanguages) ? this.projectLanguages : this.supportedLanguages).stream()
+        return ((inProjectLanguages) ? this.getProjectLanguages(true) : this.getSupportedLanguages()).stream()
             .filter(lang -> lang.getId().equals(id))
             .findFirst();
     }

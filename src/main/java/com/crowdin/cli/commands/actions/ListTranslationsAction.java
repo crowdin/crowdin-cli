@@ -10,7 +10,9 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import java.util.Optional;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.*;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 public class ListTranslationsAction implements Action {
 
@@ -49,8 +51,10 @@ public class ListTranslationsAction implements Action {
             }
         }
 
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(!isLocal), pb.getBasePath());
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(
+            project.getSupportedLanguages(), project.getProjectLanguages(!isLocal), pb.getBasePath());
 
-        (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, Optional.empty(), false)).run(treeView, plainView);
+        (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, Optional.empty(), false))
+            .run(treeView, plainView);
     }
 }

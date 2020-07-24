@@ -14,6 +14,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -21,9 +22,6 @@ public class ProjectUtils {
 
     private static final ResourceBundle RESOURCE_BUNDLE = BaseCli.RESOURCE_BUNDLE;
 
-    /**
-     * return deepest directory id
-     */
     public static Long createPath(
             Client client,
             Map<String, Long> directoryIdMap,
@@ -57,11 +55,12 @@ public class ProjectUtils {
         return directoryId;
     }
 
+    private static final Object obj = new Object();
     private static final Map<String, Lock> pathLocks = new ConcurrentHashMap<>();
 
     private static Long createDirectory(Map<String, Long> directoryIdMap, Client client, AddDirectoryRequest request, String key, boolean plainView) {
         Lock lock;
-        synchronized (pathLocks) {
+        synchronized (obj) {
             if (!pathLocks.containsKey(key)) {
                 pathLocks.put(key, new ReentrantLock());
             }
@@ -77,13 +76,15 @@ public class ProjectUtils {
             directoryId = directory.getId();
             directoryIdMap.put(key, directoryId);
             if (!plainView) {
-                System.out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
+                System.out.println(ExecutionStatus.OK.withIcon(String.format(
+                    RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
             } else {
                 System.out.println(key);
             }
         } catch (ExistsResponseException e) {
             if (!plainView) {
-                System.out.println(ExecutionStatus.SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
+                System.out.println(ExecutionStatus.SKIPPED.withIcon(String.format(
+                    RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
             }
             if (directoryIdMap.containsKey(key)) {
                 return directoryIdMap.get(key);
@@ -91,10 +92,7 @@ public class ProjectUtils {
                 throw new RuntimeException("Couldn't create directory '" + key + "' because it's already here");
             }
         } catch (WaitResponseException e) {
-            try {
-                Thread.sleep(500);
-            } catch (InterruptedException ignored) {
-            }
+            sleep(500);
             return createDirectory(directoryIdMap, client, request, key, plainView);
         } catch (ResponseException e) {
             throw new RuntimeException("Unhandled exception", e);
@@ -102,5 +100,13 @@ public class ProjectUtils {
             lock.unlock();
         }
         return directoryId;
+    }
+
+    private static void sleep(int millis) {
+        try {
+            Thread.sleep(millis);
+        } catch (InterruptedException ie) {
+//                ignore
+        }
     }
 }

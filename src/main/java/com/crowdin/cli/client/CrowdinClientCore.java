@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 public class CrowdinClientCore {
 
-    private final static long millisToRetry = 100;
+    private static final long millisToRetry = 100;
 
     protected static <T> List<T> unwrap(ResponseList<T> list) {
         return list
@@ -25,6 +25,7 @@ public class CrowdinClientCore {
     }
 
     /**
+     * Util logic for downloading full lists.
      *
      * @param request represents function with two args (limit, offset)
      * @param <T> represents model
@@ -49,7 +50,8 @@ public class CrowdinClientCore {
             if (StringUtils.contains(e.getMessage(), errorMessageContains)) {
                 try {
                     Thread.sleep(millisToRetry);
-                } catch (InterruptedException ee) {
+                } catch (InterruptedException ie) {
+//                    ignore
                 }
                 return executeRequest(request);
             } else {
@@ -58,7 +60,7 @@ public class CrowdinClientCore {
         }
     }
 
-    protected static <T> T executeRequest(Callable<T> r){
+    protected static <T> T executeRequest(Callable<T> r) {
         try {
             return r.call();
         } catch (HttpBadRequestException e) {

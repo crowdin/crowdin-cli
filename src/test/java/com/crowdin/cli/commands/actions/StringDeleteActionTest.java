@@ -19,7 +19,10 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
-import static org.mockito.Mockito.*;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.when;
 
 public class StringDeleteActionTest {
 
@@ -53,9 +56,12 @@ public class StringDeleteActionTest {
     public static Stream<Arguments> testStringList() {
         return Stream.of(
             arguments(Arrays.asList(
-                SourceStringBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers(801L, "first. text", "context", "first. identifier", null).build(),
-                SourceStringBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers(802L, "second. text", "context", "second. identifier", null).build(),
-                SourceStringBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers(803L, "third. text", "context", "third. identifier", null).build()
+                SourceStringBuilder.standard().setProjectId(PROJECT_ID)
+                    .setIdentifiers(801L, "first. text", "context", "first. identifier", null).build(),
+                SourceStringBuilder.standard().setProjectId(PROJECT_ID)
+                    .setIdentifiers(802L, "second. text", "context", "second. identifier", null).build(),
+                SourceStringBuilder.standard().setProjectId(PROJECT_ID)
+                    .setIdentifiers(803L, "third. text", "context", "third. identifier", null).build()
             ), Arrays.asList(801L), Arrays.asList("second. text"), Arrays.asList("third. identifier")),
             arguments(Arrays.asList(), Arrays.asList(801L), Arrays.asList("second. text"), Arrays.asList("third. identifier"))
         );

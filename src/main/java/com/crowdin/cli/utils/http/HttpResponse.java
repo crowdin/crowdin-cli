@@ -33,14 +33,20 @@ public class HttpResponse {
     }
 
     public static HttpResponse redirect(String url) {
-        return new HttpResponse("301", new HashMap<String, String>() {{ put("Location", url); }}, null);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Location", url);
+        return new HttpResponse("301", headers, null);
     }
 
     public static HttpResponse notFoundHtml(String body) {
-        return new HttpResponse("404 Not Found", new HashMap<String, String>() {{ put("Content-Type", "text/html; charset=utf-8"); }}, body);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "text/html; charset=utf-8");
+        return new HttpResponse("404 Not Found", headers, body);
     }
 
     public static HttpResponse ok(String body) {
-        return new HttpResponse("200", new HashMap<String, String>() {{ put("Content-Type", "text/html; charset=utf-8"); }}, body);
+        Map<String, String> headers = new HashMap<>();
+        headers.put("Content-Type", "text/html; charset=utf-8");
+        return new HttpResponse("200", headers, body);
     }
 }

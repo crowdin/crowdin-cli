@@ -9,7 +9,9 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -65,7 +67,7 @@ public class FileHelper {
             throw new NullPointerException("NPE in FileHelper.getFiles");
         }
 
-        List<File> resultList = new ArrayList<>();
+        Set<File> resultList = new HashSet<>();
 
         String[] nodes = Utils.normalizePath(source).split(Utils.PATH_SEPARATOR_REGEX);
         resultList.add(new File(basePath));
@@ -82,7 +84,7 @@ public class FileHelper {
                 break;
             }
         }
-        return resultList;
+        return new ArrayList<>(resultList);
     }
 
     /**
@@ -144,17 +146,20 @@ public class FileHelper {
      * @param node        the current element of the pattern being matched.
      * @return the new list of results.
      */
-    private List<File> findFiles(List<File> paths, String node) {
-        List<File> result = new ArrayList<>();
+    private Set<File> findFiles(Set<File> paths, String node) {
+        Set<File> result = new HashSet<>();
         for (File file : paths) {
             if (!file.exists()) {
                 continue;
             }
             if (DOUBLED_ASTERISK.equals(node)) {
                 result.addAll(getlistDirectory(file));
-            } else {
+            } else if (file.isDirectory()) {
                 FileFilter fileFilter = new RegexFileFilter(node);
                 File[] files = file.listFiles(fileFilter);
+                if (files == null) {
+                    continue;
+                }
                 result.addAll(Arrays.asList(files));
             }
         }
@@ -164,9 +169,9 @@ public class FileHelper {
     private List<File> getlistDirectory(File directory) {
         List<File> resultList = new ArrayList<>();
         resultList.add(directory);
-        File[] fList = directory.listFiles();
-        if (fList != null) {
-            for (File file : fList) {
+        File[] fileList = directory.listFiles();
+        if (fileList != null) {
+            for (File file : fileList) {
                 if (Files.isDirectory(file.toPath(), LinkOption.NOFOLLOW_LINKS)) {
                     resultList.addAll(getlistDirectory(file));
                 }

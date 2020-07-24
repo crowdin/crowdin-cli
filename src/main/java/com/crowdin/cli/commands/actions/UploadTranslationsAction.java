@@ -20,11 +20,18 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.*;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.*;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 public class UploadTranslationsAction implements Action {
 
@@ -36,7 +43,10 @@ public class UploadTranslationsAction implements Action {
     private boolean debug;
     private boolean plainView;
 
-    public UploadTranslationsAction(boolean noProgress, String languageId, String branchName, boolean importEqSuggestions, boolean autoApproveImported, boolean debug, boolean plainView) {
+    public UploadTranslationsAction(
+        boolean noProgress, String languageId, String branchName, boolean importEqSuggestions,
+        boolean autoApproveImported, boolean debug, boolean plainView
+    ) {
         this.noProgress = noProgress || plainView;
         this.languageId = languageId;
         this.branchName = branchName;
@@ -107,7 +117,9 @@ public class UploadTranslationsAction implements Action {
 
                 if (!paths.containsKey(filePath)) {
                     if (!plainView) {
-                        System.out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"), StringUtils.removeStart(source, pb.getBasePath()), filePath)));
+                        System.out.println(ERROR.withIcon(String.format(
+                            RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"),
+                            StringUtils.removeStart(source, pb.getBasePath()), filePath)));
                     }
                     return;
                 }
@@ -117,11 +129,13 @@ public class UploadTranslationsAction implements Action {
                 String fileSource = StringUtils.removeStart(source, pb.getBasePath());
                 String translation = TranslationsUtils.replaceDoubleAsterisk(file.getSource(), file.getTranslation(), fileSource);
                 translation = placeholderUtil.replaceFileDependentPlaceholders(translation, new java.io.File(source));
-                if (file.getScheme() != null) {
+                if (file.getScheme() != null && !PlaceholderUtil.containsLangPlaceholders(translation)) {
                     java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
                     if (!transFile.exists()) {
                         if (!plainView) {
-                            System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
+                            System.out.println(SKIPPED.withIcon(String.format(
+                                RESOURCE_BUNDLE.getString("error.translation_not_exists"),
+                                StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
                         }
                         return;
                     }
@@ -132,7 +146,8 @@ public class UploadTranslationsAction implements Action {
                     preparedRequests.put(transFile, Pair.of(languages, request));
                 } else {
                     for (Language language : languages) {
-                        Map<String, Map<String, String>> languageMapping = file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
+                        Map<String, Map<String, String>> languageMapping =
+                            file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
                         if (projectLanguageMapping.isPresent()) {
                             TranslationsUtils.populateLanguageMappingFromServer(languageMapping, projectLanguageMapping.get());
                         }
@@ -142,7 +157,9 @@ public class UploadTranslationsAction implements Action {
                         java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
                         if (!transFile.exists()) {
                             if (!plainView) {
-                                System.out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.translation_not_exists"), StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
+                                System.out.println(SKIPPED.withIcon(String.format(
+                                    RESOURCE_BUNDLE.getString("error.translation_not_exists"),
+                                    StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
                             }
                             continue;
                         }
@@ -175,8 +192,9 @@ public class UploadTranslationsAction implements Action {
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
                     }
                     if (!plainView) {
-                        System.out.println(
-                                OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.translation_uploaded"), StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()))));
+                        System.out.println(OK.withIcon(String.format(
+                            RESOURCE_BUNDLE.getString("message.translation_uploaded"),
+                            StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()))));
                     } else {
                         System.out.println(StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()));
                     }
