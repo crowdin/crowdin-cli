@@ -1,9 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
-## [3.2.1] - 2020-07-15
+## [3.2.1] - 2020-07-24
 - Added: Browser authorization for `init` command
+- Added: Static analysis tools Spotbugs, Checkstyle
+- Updated: Bump Gradle version
 - Updated: Improve `--plain` mode for directories
+- Updated: Improve new version message and change borders
+- Fixed: Bug with in-Context language in the 'download' command for '-l' option
+- Fixed: Bug with language placeholders for fileBeans with scheme
 
 ## [3.2.0] - 2020-07-08
 - Added: Strings management functionality
