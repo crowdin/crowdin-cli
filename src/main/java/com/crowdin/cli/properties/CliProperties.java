@@ -384,6 +384,9 @@ public class CliProperties {
                     if (!PlaceholderUtil.containsLangPlaceholders(fileBean.getTranslation()) && fileBean.getScheme() == null) {
                         errors.add(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
                     }
+                    if (hasRelativePaths(fileBean.getTranslation())) {
+                        errors.add(RESOURCE_BUNDLE.getString("error.config.translation_contains_relative_paths"));
+                    }
                 }
 
                 String updateOption = fileBean.getUpdateOption();
@@ -423,5 +426,9 @@ public class CliProperties {
 
     private static boolean checkForDoubleAsterisks(String source, String translation) {
         return !(StringUtils.contains(translation, "**") && !StringUtils.contains(source, "**"));
+    }
+
+    private static boolean hasRelativePaths(String path) {
+        return StringUtils.containsAny(path, "../", "/./");
     }
 }
