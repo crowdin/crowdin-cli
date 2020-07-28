@@ -119,22 +119,23 @@ public class CrowdinClient extends CrowdinClientCore implements Client {
                 .getProjectProgress(this.projectId, 500, 0, langaugeId));
     }
 
-    private com.crowdin.client.projectsgroups.model.Project downloadProjectInfo() throws ResponseException {
+    public com.crowdin.client.projectsgroups.model.Project downloadProjectInfo() {
         try {
             return executeRequest(
                 () -> (com.crowdin.client.projectsgroups.model.Project) this.client.getProjectsGroupsApi()
                     .getProject(this.projectId)
                     .getData());
         } catch (Exception e) {
-            if (e.getMessage().contains("Organization Not Found")) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.response.organization_not_found"));
-            } else if (e.getMessage().contains("Not Found")) {
-                throw new RuntimeException(
-                    String.format(RESOURCE_BUNDLE.getString("error.response.project_not_found"), projectId));
-            } else if (e.getMessage().contains("Unauthorized")) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.response.unauthorized"));
+            if (e.getMessage() == null || e.getMessage().isEmpty()) {
+                throw e;
+            } else if (e.getMessage().contains("401")) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.response.401"));
+            } else if (e.getMessage().contains("403")) {
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.response.403"), this.projectId));
+            } else if (e.getMessage().contains("404") && StringUtils.containsIgnoreCase(e.getMessage(), "Project Not Found")) {
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.response.404_project_not_found"), this.projectId));
             } else {
-                throw new RuntimeException("Unhandled Exception: " + e.getMessage());
+                throw e;
             }
         }
     }

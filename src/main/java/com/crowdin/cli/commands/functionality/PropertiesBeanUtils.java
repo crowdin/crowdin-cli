@@ -57,7 +57,7 @@ public class PropertiesBeanUtils {
 
     public static String getOrganization(String baseUrl) {
         String organization = baseUrl
-            .replaceAll("^https?://", "")
+            .replaceAll("^https?:?/?/?", "")
             .replaceAll("\\.?crowdin.com(/api/v2)?$", "")
             .replaceAll("\\.?api", "")
             .replaceAll("\\.?[^.]+\\.dev$", "")
@@ -70,5 +70,9 @@ public class PropertiesBeanUtils {
         return baseUrl.matches("^http://.+\\.dev\\.crowdin\\.com(/api/v2)?$")
             || baseUrl.matches("^https://.+\\.test\\.crowdin\\.com(/api/v2)?$")
             || baseUrl.matches("^https://.+\\.e-test\\.crowdin\\.com(/api/v2)?$");
+    }
+
+    public static boolean isCrowdinUrl(String string) {
+        return string.matches("((https?)?:?/?/?)?.*\\.crowdin\\.com.*");
     }
 }

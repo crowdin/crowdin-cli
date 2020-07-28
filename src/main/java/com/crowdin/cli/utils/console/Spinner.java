@@ -67,10 +67,14 @@ class Spinner extends Thread {
     }
 
     void stopSpinning(ExecutionStatus status) {
+        this.stopSpinning(status, this.message);
+    }
+
+    void stopSpinning(ExecutionStatus status, String stopMessage) {
         isSpin = false;
         lock.lock();
         try {
-            System.out.println(status.getIcon() + message);
+            System.out.println(status.getIcon() + stopMessage);
         } finally {
             lock.unlock();
         }

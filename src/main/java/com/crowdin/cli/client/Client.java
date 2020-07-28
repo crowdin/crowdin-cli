@@ -24,6 +24,8 @@ public interface Client {
 
     Project downloadProjectWithLanguages() throws ResponseException;
 
+    com.crowdin.client.projectsgroups.model.Project downloadProjectInfo();
+
     Branch addBranch(AddBranchRequest request);
 
     Long uploadStorage(String fileName, InputStream content);
