@@ -134,8 +134,10 @@ public class CrowdinClient extends CrowdinClientCore implements Client {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.response.403"), this.projectId));
             } else if (e.getMessage().contains("404") && StringUtils.containsIgnoreCase(e.getMessage(), "Project Not Found")) {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.response.404_project_not_found"), this.projectId));
+            } else if (e.getMessage().contains("404") && StringUtils.containsIgnoreCase(e.getMessage(), "Organization Not Found")) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found"));
             } else {
-                throw e;
+                throw new RuntimeException("Error from server: " + e.getMessage());
             }
         }
     }
