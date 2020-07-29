@@ -58,7 +58,7 @@ public class PropertiesBeanUtils {
     public static String getOrganization(String baseUrl) {
         String organization = baseUrl
             .replaceAll("^https?:?/?/?", "")
-            .replaceAll("\\.?crowdin.com(/api/v2)?$", "")
+            .replaceAll("\\.?crowdin.com(/api/v2)?/?$", "")
             .replaceAll("\\.?api", "")
             .replaceAll("\\.?[^.]+\\.dev$", "")
             .replaceAll(".+\\.test$", "")
