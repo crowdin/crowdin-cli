@@ -193,7 +193,7 @@ public class GenerateAction {
             client.downloadProjectInfo();
             ConsoleSpinner.stop(OK, RESOURCE_BUNDLE.getString("message.spinner.validation_success"));
         } catch (Exception e) {
-             ConsoleSpinner.stop(WARNING, e.getMessage());
+            ConsoleSpinner.stop(WARNING, e.getMessage());
         }
     }
 }

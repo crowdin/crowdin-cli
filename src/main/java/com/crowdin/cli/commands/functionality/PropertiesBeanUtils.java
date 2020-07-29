@@ -73,6 +73,6 @@ public class PropertiesBeanUtils {
     }
 
     public static boolean isCrowdinUrl(String string) {
-        return string.matches("((https?)?:?/?/?)?.*\\.crowdin\\.com.*");
+        return string.matches("(https?:?/?/?)?.*\\.crowdin\\.com.*");
     }
 }
