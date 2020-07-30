@@ -12,8 +12,8 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class ListBranchesAction implements Action {
 
-    private static boolean noProgress;
-    private static boolean plainView;
+    private boolean noProgress;
+    private boolean plainView;
 
     public ListBranchesAction(boolean noProgress,  boolean plainView) {
         this.noProgress = noProgress || plainView;
