@@ -45,8 +45,8 @@ public class StringEditActionTest {
         when(client.listSourceString(null, null))
             .thenReturn(Arrays.asList(SourceStringBuilder.standard().setProjectId(42L).setIdentifiers(801L, "old", "old", "old", null).build()));
 
-        Action action = new StringEditAction(true, id, identifier, newText, newContext, newMaxLength, newIsHidden);
-        action.act(pb, client);
+        ClientAction action = new StringEditAction(true, id, identifier, newText, newContext, newMaxLength, newIsHidden);
+        action.act(Outputter.getDefault(), pb, client);
 
         List<PatchRequest> patches = new ArrayList<PatchRequest>() {{
                 if (newText != null) {
@@ -88,8 +88,8 @@ public class StringEditActionTest {
         when(client.listSourceString(null, null))
             .thenReturn(Arrays.asList(SourceStringBuilder.standard().setProjectId(42L).setIdentifiers(801L, "old", "old", "old", null).build()));
 
-        Action action = new StringEditAction(true, null, null, null, null, null, null);
-        assertThrows(RuntimeException.class, () -> action.act(pb, client));
+        ClientAction action = new StringEditAction(true, null, null, null, null, null, null);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).listSourceString(null, null);
         verifyNoMoreInteractions(client);

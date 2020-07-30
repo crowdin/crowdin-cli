@@ -10,7 +10,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-public class ListBranchesAction implements Action {
+public class ListBranchesAction implements ClientAction {
 
     private boolean noProgress;
     private boolean plainView;
@@ -21,11 +21,11 @@ public class ListBranchesAction implements Action {
     }
 
     @Override
-    public void act(PropertiesBean pb, Client client) {
+    public void act(Outputter out, PropertiesBean pb, Client client) {
         Project project;
         try {
             if (!plainView) {
-                ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+                ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
             }
             project = client.downloadFullProject();
             ConsoleSpinner.stop(OK);
@@ -35,6 +35,6 @@ public class ListBranchesAction implements Action {
         }
 
         new DryrunBranches(project.getBranches())
-            .run(false, plainView);
+            .run(out, false, plainView);
     }
 }

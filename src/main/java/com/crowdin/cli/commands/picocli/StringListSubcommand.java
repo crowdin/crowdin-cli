@@ -1,18 +1,18 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
-import com.crowdin.cli.commands.actions.Action;
+import com.crowdin.cli.commands.actions.ClientAction;
 import com.crowdin.cli.commands.actions.StringListAction;
-import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
+import java.util.Collections;
+import java.util.List;
+
 @CommandLine.Command(
     name = "list"
 )
-public class StringListSubcommand extends Command {
+class StringListSubcommand extends ClientActCommand {
 
     @CommandLine.Option(names = {"--file"}, paramLabel = "...")
     protected String file;
@@ -20,23 +20,16 @@ public class StringListSubcommand extends Command {
     @CommandLine.Option(names = {"--filter"}, paramLabel = "...")
     protected String filter;
 
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
-
     @Override
-    public void run() {
-        checkOptions();
-
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
-
-        Action action = new StringListAction(noProgress, isVerbose, file, filter);
-        action.act(pb, client);
-    }
-
-    private void checkOptions() {
+    protected List<String> checkOptions() {
         if (file != null) {
             file = StringUtils.removeStart(Utils.normalizePath(file), Utils.PATH_SEPARATOR);
         }
+        return Collections.emptyList();
+    }
+
+    @Override
+    protected ClientAction getAction() {
+        return new StringListAction(noProgress, isVerbose, file, filter);
     }
 }

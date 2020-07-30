@@ -42,8 +42,8 @@ public class StringDeleteActionTest {
             .thenReturn(strings);
 
 
-        Action action = new StringDeleteAction(true, ids, texts, identifiers);
-        action.act(pb, client);
+        ClientAction action = new StringDeleteAction(true, ids, texts, identifiers);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).listSourceString(null, null);
@@ -78,8 +78,8 @@ public class StringDeleteActionTest {
         when(client.downloadFullProject())
             .thenThrow(new RuntimeException("Whoops"));
 
-        Action action = new StringDeleteAction(true, null, null, null);
-        assertThrows(RuntimeException.class, () -> action.act(pb, client));
+        ClientAction action = new StringDeleteAction(true, null, null, null);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
         verifyNoMoreInteractions(client);

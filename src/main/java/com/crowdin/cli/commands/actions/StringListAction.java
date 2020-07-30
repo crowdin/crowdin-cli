@@ -21,7 +21,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-public class StringListAction implements Action {
+public class StringListAction implements ClientAction {
 
     private final boolean noProgress;
     private final boolean isVerbose;
@@ -36,10 +36,10 @@ public class StringListAction implements Action {
     }
 
     @Override
-    public void act(PropertiesBean pb, Client client) {
+    public void act(Outputter out, PropertiesBean pb, Client client) {
         Project project;
         try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
             project = client.downloadFullProject();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
@@ -70,20 +70,20 @@ public class StringListAction implements Action {
             }
         }
         if (sourceStrings.isEmpty()) {
-            System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.source_string_list_not_found")));
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.source_string_list_not_found")));
         }
         sourceStrings.forEach(ss -> {
-            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getText()));
+            out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getText()));
             if (isVerbose) {
                 if (ss.getContext() != null) {
-                    System.out.println(String.format(
+                    out.println(String.format(
                         RESOURCE_BUNDLE.getString("message.source_string_list_context"), ss.getContext().trim().replaceAll("\n", "\n\t\t")));
                 }
                 if (ss.getFileId() != null) {
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_file"), reversePaths.get(ss.getFileId())));
+                    out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_file"), reversePaths.get(ss.getFileId())));
                 }
                 if (ss.getMaxLength() != null && ss.getMaxLength() != 0) {
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_max_length"), ss.getMaxLength()));
+                    out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_max_length"), ss.getMaxLength()));
                 }
             }
         });

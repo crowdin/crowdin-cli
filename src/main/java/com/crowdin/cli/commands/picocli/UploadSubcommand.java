@@ -10,13 +10,6 @@ import picocli.CommandLine;
         UploadTranslationsSubcommand.class,
         UploadSourcesSubcommand.class
     })
-public class UploadSubcommand implements Runnable {
+class UploadSubcommand extends UploadSourcesCommand {
 
-    @CommandLine.Mixin
-    private UploadSourcesCommand uploadSourcesCommand;
-
-    @Override
-    public void run() {
-        uploadSourcesCommand.run();
-    }
 }

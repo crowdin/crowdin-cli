@@ -33,7 +33,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-public class UploadTranslationsAction implements Action {
+public class UploadTranslationsAction implements ClientAction {
 
     private boolean noProgress;
     private String languageId;
@@ -57,11 +57,11 @@ public class UploadTranslationsAction implements Action {
     }
 
     @Override
-    public void act(PropertiesBean pb, Client client) {
+    public void act(Outputter out, PropertiesBean pb, Client client) {
         Project project;
         try {
             if (!plainView) {
-                ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+                ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
             }
             project = client.downloadFullProject();
             ConsoleSpinner.stop(OK);
@@ -72,7 +72,7 @@ public class UploadTranslationsAction implements Action {
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
-                System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
+                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
                 return;
             } else {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
@@ -103,7 +103,7 @@ public class UploadTranslationsAction implements Action {
 
             if (fileSourcesWithoutIgnores.isEmpty()) {
                 if (!plainView) {
-                    System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("error.no_sources")));
+                    out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("error.no_sources")));
                 }
                 continue;
             }
@@ -117,7 +117,7 @@ public class UploadTranslationsAction implements Action {
 
                 if (!paths.containsKey(filePath)) {
                     if (!plainView) {
-                        System.out.println(ERROR.withIcon(String.format(
+                        out.println(ERROR.withIcon(String.format(
                             RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"),
                             StringUtils.removeStart(source, pb.getBasePath()), filePath)));
                     }
@@ -133,7 +133,7 @@ public class UploadTranslationsAction implements Action {
                     java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
                     if (!transFile.exists()) {
                         if (!plainView) {
-                            System.out.println(SKIPPED.withIcon(String.format(
+                            out.println(SKIPPED.withIcon(String.format(
                                 RESOURCE_BUNDLE.getString("error.translation_not_exists"),
                                 StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
                         }
@@ -157,7 +157,7 @@ public class UploadTranslationsAction implements Action {
                         java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
                         if (!transFile.exists()) {
                             if (!plainView) {
-                                System.out.println(SKIPPED.withIcon(String.format(
+                                out.println(SKIPPED.withIcon(String.format(
                                     RESOURCE_BUNDLE.getString("error.translation_not_exists"),
                                     StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
                             }
@@ -192,11 +192,11 @@ public class UploadTranslationsAction implements Action {
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
                     }
                     if (!plainView) {
-                        System.out.println(OK.withIcon(String.format(
+                        out.println(OK.withIcon(String.format(
                             RESOURCE_BUNDLE.getString("message.translation_uploaded"),
                             StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()))));
                     } else {
-                        System.out.println(StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()));
+                        out.println(StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()));
                     }
                 })
                 .collect(Collectors.toList());

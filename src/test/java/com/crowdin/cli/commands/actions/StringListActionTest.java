@@ -40,8 +40,8 @@ public class StringListActionTest {
                 .setProjectId(Long.parseLong(pb.getProjectId()))
                 .setIdentifiers(701L, "7-0-1", "seven-o-one", "7.0.1", 101L).build()));
 
-        Action action = new StringListAction(true, true, file, filter);
-        action.act(pb, client);
+        ClientAction action = new StringListAction(true, true, file, filter);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         if (file != null) {
@@ -70,8 +70,8 @@ public class StringListActionTest {
         when(client.downloadFullProject())
             .thenThrow(new RuntimeException("Whoops"));
 
-        Action action = new StringListAction(true, true, null, null);
-        assertThrows(RuntimeException.class, () -> action.act(pb, client));
+        ClientAction action = new StringListAction(true, true, null, null);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
         verifyNoMoreInteractions(client);
@@ -89,8 +89,8 @@ public class StringListActionTest {
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 101L, null, null).build());
 
-        Action action = new StringListAction(true, true, "notexist.csv", null);
-        assertThrows(RuntimeException.class, () -> action.act(pb, client));
+        ClientAction action = new StringListAction(true, true, "notexist.csv", null);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
         verifyNoMoreInteractions(client);

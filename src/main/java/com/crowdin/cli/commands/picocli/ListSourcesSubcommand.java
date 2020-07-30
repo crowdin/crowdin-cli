@@ -1,16 +1,12 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
-import com.crowdin.cli.commands.actions.Action;
+import com.crowdin.cli.commands.actions.ClientAction;
 import com.crowdin.cli.commands.actions.ListSourcesAction;
-import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
-import com.crowdin.cli.properties.PropertiesBean;
 import picocli.CommandLine;
 
 @CommandLine.Command(
     name = "sources")
-public class ListSourcesSubcommand extends Command {
+class ListSourcesSubcommand extends ClientActCommand {
 
     @CommandLine.Option(names = {"-b", "--branch"})
     protected String branch;
@@ -21,15 +17,13 @@ public class ListSourcesSubcommand extends Command {
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
 
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
+    @Override
+    protected ClientAction getAction() {
+        return new ListSourcesAction(this.noProgress, this.treeView, this.plainView);
+    }
 
     @Override
-    public void run() {
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
-
-        Action action = new ListSourcesAction(this.noProgress, this.treeView, this.plainView);
-        action.act(pb, client);
+    protected boolean isAnsi() {
+        return !plainView;
     }
 }

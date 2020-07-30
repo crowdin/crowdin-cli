@@ -1,20 +1,16 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
-import com.crowdin.cli.commands.actions.Action;
+import com.crowdin.cli.commands.actions.ClientAction;
 import com.crowdin.cli.commands.actions.DownloadAction;
 import com.crowdin.cli.commands.actions.ListTranslationsAction;
 import com.crowdin.cli.commands.functionality.FsFiles;
-import com.crowdin.cli.commands.functionality.FilesInterface;
-import com.crowdin.cli.properties.PropertiesBean;
 import picocli.CommandLine;
 
 @CommandLine.Command(
     name = "download",
     sortOptions = false,
     aliases = "pull")
-public class DownloadSubcommand extends Command {
+class DownloadSubcommand extends ClientActCommand {
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branchName;
@@ -43,21 +39,17 @@ public class DownloadSubcommand extends Command {
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
 
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
-
     @Override
-    public void run() {
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
-
-        FilesInterface files = new FsFiles();
-
-        Action action = (dryrun)
+    protected ClientAction getAction() {
+        return (dryrun)
             ? new ListTranslationsAction(noProgress, treeView, false, plainView)
             : new DownloadAction(
-                files, noProgress, languageId, branchName, ignoreMatch, isVerbose,
+                new FsFiles(), noProgress, languageId, branchName, ignoreMatch, isVerbose,
                 skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly, plainView);
-        action.act(pb, client);
+    }
+
+    @Override
+    protected boolean isAnsi() {
+        return super.isAnsi() && !plainView;
     }
 }

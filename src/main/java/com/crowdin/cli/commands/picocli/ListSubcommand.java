@@ -10,7 +10,7 @@ import picocli.CommandLine;
         ListTranslationsSubcommand.class,
         ListBranchesSubcommand.class
     })
-public class ListSubcommand extends HelpCommand {
+class ListSubcommand extends HelpCommand {
     @Override
     protected CommandLine getCommand(CommandLine rootCommand) {
         return rootCommand.getSubcommands().get("list");

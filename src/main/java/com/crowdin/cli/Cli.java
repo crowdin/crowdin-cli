@@ -1,10 +1,7 @@
 package com.crowdin.cli;
 
-import com.crowdin.cli.commands.picocli.HelpCommand;
-import com.crowdin.cli.commands.picocli.RootCommand;
-import com.crowdin.cli.utils.OutputUtil;
+import com.crowdin.cli.commands.picocli.PicocliRunner;
 import com.crowdin.cli.utils.Utils;
-import picocli.CommandLine;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
@@ -15,14 +12,9 @@ public class Cli {
     public static void main(String[] args) {
         try {
             setSystemProperties();
-            CommandLine.Help.ColorScheme colorScheme = buildColorScheme();
-            CommandLine.IExecutionExceptionHandler executionExceptionHandler = buildExecutionExceptionHandler();
-            CommandLine commandLine = new CommandLine(new RootCommand())
-                .setExecutionExceptionHandler(executionExceptionHandler)
-                .setColorScheme(colorScheme);
 
-            HelpCommand.setOptions(commandLine, System.out, colorScheme);
-            int exitCode = commandLine.execute(args);
+            PicocliRunner picocliRunner = PicocliRunner.getInstance();
+            int exitCode = picocliRunner.execute(args);
 
             boolean plain = Arrays.stream(args).anyMatch("--plain"::equals);
             if (!plain) {
@@ -63,24 +55,5 @@ public class Cli {
             );
             System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
         }
-    }
-
-    private static CommandLine.Help.ColorScheme buildColorScheme() {
-        return new CommandLine.Help.ColorScheme.Builder()
-                .commands(CommandLine.Help.Ansi.Style.fg_green)
-                .options(CommandLine.Help.Ansi.Style.fg_green)
-                .parameters(CommandLine.Help.Ansi.Style.fg_green)
-                .errors(CommandLine.Help.Ansi.Style.fg_red)
-                .build();
-    }
-
-    private static CommandLine.IExecutionExceptionHandler buildExecutionExceptionHandler() {
-        return (ex, cmd, pr) -> {
-            boolean isDebug = pr.originalArgs().contains("--debug");
-            OutputUtil.fancyErr(ex, cmd.getErr(), isDebug);
-            return cmd.getExitCodeExceptionMapper() != null
-                    ? cmd.getExitCodeExceptionMapper().getExitCode(ex)
-                    : cmd.getCommandSpec().exitCodeOnExecutionException();
-        };
     }
 }

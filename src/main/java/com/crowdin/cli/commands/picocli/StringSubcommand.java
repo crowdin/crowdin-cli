@@ -11,7 +11,7 @@ import picocli.CommandLine;
         StringEditSubcommand.class
     }
 )
-public class StringSubcommand extends HelpCommand {
+class StringSubcommand extends HelpCommand {
     @Override
     protected CommandLine getCommand(CommandLine rootCommand) {
         return rootCommand.getSubcommands().get("string");

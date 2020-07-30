@@ -11,7 +11,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-public class ListSourcesAction implements Action {
+public class ListSourcesAction implements ClientAction {
 
     private boolean noProgress;
     private boolean treeView;
@@ -24,11 +24,11 @@ public class ListSourcesAction implements Action {
     }
 
     @Override
-    public void act(PropertiesBean pb, Client client) {
+    public void act(Outputter out, PropertiesBean pb, Client client) {
         Project project;
         try {
             if (!plainView) {
-                ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+                ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
             }
             project = client.downloadProjectWithLanguages();
             ConsoleSpinner.stop(OK);
@@ -38,6 +38,6 @@ public class ListSourcesAction implements Action {
         }
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
 
-        (new DryrunSources(pb, placeholderUtil)).run(treeView, plainView);
+        (new DryrunSources(pb, placeholderUtil)).run(out, treeView, plainView);
     }
 }

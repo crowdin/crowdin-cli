@@ -1,18 +1,16 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
-import com.crowdin.cli.commands.actions.Action;
+import com.crowdin.cli.commands.actions.ClientAction;
 import com.crowdin.cli.commands.actions.StringDeleteAction;
-import com.crowdin.cli.properties.PropertiesBean;
 import picocli.CommandLine;
 
+import java.util.Collections;
 import java.util.List;
 
 @CommandLine.Command(
     name = "delete"
 )
-public class StringDeleteSubcommand extends Command {
+class StringDeleteSubcommand extends ClientActCommand {
 
     @CommandLine.Option(names = {"--id"}, paramLabel = "...")
     protected List<Long> ids;
@@ -23,23 +21,17 @@ public class StringDeleteSubcommand extends Command {
     @CommandLine.Option(names = {"--identifier"}, paramLabel = "...", hidden = true)
     protected List<String> identifiers;
 
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
-
     @Override
-    public void run() {
-        checkOptions();
-
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
-
-        Action action = new StringDeleteAction(noProgress, ids, texts, identifiers);
-        action.act(pb, client);
+    protected List<String> checkOptions() {
+        if ((ids == null || ids.isEmpty()) && (texts == null || texts.isEmpty()) && (identifiers == null || identifiers.isEmpty())) {
+            return Collections.singletonList(RESOURCE_BUNDLE.getString("error.source_string_id_not_specified"));
+        } else {
+            return Collections.emptyList();
+        }
     }
 
-    private void checkOptions() {
-        if ((ids == null || ids.isEmpty()) && (texts == null || texts.isEmpty()) && (identifiers == null || identifiers.isEmpty())) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.source_string_id_not_specified"));
-        }
+    @Override
+    protected ClientAction getAction() {
+        return new StringDeleteAction(noProgress, ids, texts, identifiers);
     }
 }

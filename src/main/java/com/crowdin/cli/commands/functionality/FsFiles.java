@@ -2,7 +2,6 @@ package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.utils.file.FileUtils;
 import net.lingala.zip4j.core.ZipFile;
-import org.apache.commons.io.FileSystemUtils;
 
 import java.io.File;
 import java.io.IOException;
@@ -31,7 +30,7 @@ public class FsFiles implements FilesInterface {
         if (!fromFile.renameTo(toFile)) {
             if (toFile.delete()) {
                 if (!fromFile.renameTo(toFile)) {
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("error.replacing_file"), toFile.getAbsolutePath()));
+                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.replacing_file"), toFile.getAbsolutePath()));
                 }
             }
         }
@@ -49,7 +48,7 @@ public class FsFiles implements FilesInterface {
             try {
                 java.nio.file.Files.createDirectory(dir.toPath());
             } catch (IOException ex) {
-                System.out.println(RESOURCE_BUNDLE.getString("error.creatingDirectory"));
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.creatingDirectory"));
             }
         }
         try {

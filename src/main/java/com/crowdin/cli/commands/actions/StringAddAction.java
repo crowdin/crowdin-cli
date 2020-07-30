@@ -17,7 +17,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-public class StringAddAction implements Action {
+public class StringAddAction implements ClientAction {
 
     private final boolean noProgress;
     private final String text;
@@ -40,10 +40,10 @@ public class StringAddAction implements Action {
     }
 
     @Override
-    public void act(PropertiesBean pb, Client client) {
+    public void act(Outputter out, PropertiesBean pb, Client client) {
         Project project;
         try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+            ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
             project = client.downloadFullProject();
             ConsoleSpinner.stop(OK);
         } catch (Exception e) {
@@ -54,12 +54,12 @@ public class StringAddAction implements Action {
         if (files == null || files.isEmpty()) {
             AddSourceStringRequest request = RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, null, this.hidden);
             client.addSourceString(request);
-            System.out.println(OK.withIcon(RESOURCE_BUNDLE.getString("error.file_not_exists")));
+            out.println(OK.withIcon(RESOURCE_BUNDLE.getString("error.file_not_exists")));
         } else {
             Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
             for (String file : files) {
                 if (!paths.containsKey(file)) {
-                    System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
+                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
                     continue;
                 }
                 Long fileId = paths.get(file).getId();
@@ -67,7 +67,7 @@ public class StringAddAction implements Action {
                 AddSourceStringRequest request =
                     RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden);
                 client.addSourceString(request);
-                System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_for_file_uploaded"), file)));
+                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_for_file_uploaded"), file)));
             }
         }
 

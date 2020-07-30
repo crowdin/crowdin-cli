@@ -44,8 +44,8 @@ public class ListTranslationsActionTest {
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                         .addFile("first.po", "gettext", 101L, null, null).build());
 
-        Action action = new ListTranslationsAction(false, false, false, false);
-        action.act(pb, client);
+        ClientAction action = new ListTranslationsAction(false, false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadProjectWithLanguages();
         verifyNoMoreInteractions(client);

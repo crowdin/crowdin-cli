@@ -15,7 +15,7 @@ import static com.crowdin.cli.BaseCli.DEFAULT_CONFIGS;
 import static com.crowdin.cli.BaseCli.DEFAULT_IDENTITY_FILES;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
-public class PropertiesBuilderCommandPart {
+class PropertiesBuilderCommandPart {
 
     @CommandLine.Option(names = {"--identity"}, paramLabel = "...")
     private File identityFile;

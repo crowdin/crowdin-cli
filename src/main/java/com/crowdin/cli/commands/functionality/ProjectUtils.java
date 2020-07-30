@@ -5,6 +5,7 @@ import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.exceptions.ExistsResponseException;
 import com.crowdin.cli.client.exceptions.ResponseException;
 import com.crowdin.cli.client.exceptions.WaitResponseException;
+import com.crowdin.cli.commands.actions.Outputter;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
@@ -14,7 +15,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.Map;
 import java.util.ResourceBundle;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -23,6 +23,7 @@ public class ProjectUtils {
     private static final ResourceBundle RESOURCE_BUNDLE = BaseCli.RESOURCE_BUNDLE;
 
     public static Long createPath(
+            Outputter out,
             Client client,
             Map<String, Long> directoryIdMap,
             String filePath,
@@ -49,7 +50,7 @@ public class ProjectUtils {
                 } else if (branchId != null) {
                     request.setBranchId(branchId.getId());
                 }
-                directoryId = createDirectory(directoryIdMap, client, request, parentPath.toString(), plainView);
+                directoryId = createDirectory(out, directoryIdMap, client, request, parentPath.toString(), plainView);
             }
         }
         return directoryId;
@@ -58,7 +59,7 @@ public class ProjectUtils {
     private static final Object obj = new Object();
     private static final Map<String, Lock> pathLocks = new ConcurrentHashMap<>();
 
-    private static Long createDirectory(Map<String, Long> directoryIdMap, Client client, AddDirectoryRequest request, String key, boolean plainView) {
+    private static Long createDirectory(Outputter out, Map<String, Long> directoryIdMap, Client client, AddDirectoryRequest request, String key, boolean plainView) {
         Lock lock;
         synchronized (obj) {
             if (!pathLocks.containsKey(key)) {
@@ -76,14 +77,14 @@ public class ProjectUtils {
             directoryId = directory.getId();
             directoryIdMap.put(key, directoryId);
             if (!plainView) {
-                System.out.println(ExecutionStatus.OK.withIcon(String.format(
+                out.println(ExecutionStatus.OK.withIcon(String.format(
                     RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
             } else {
-                System.out.println(key);
+                out.println(key);
             }
         } catch (ExistsResponseException e) {
             if (!plainView) {
-                System.out.println(ExecutionStatus.SKIPPED.withIcon(String.format(
+                out.println(ExecutionStatus.SKIPPED.withIcon(String.format(
                     RESOURCE_BUNDLE.getString("message.directory"), StringUtils.removePattern(key, "[\\\\/]$"))));
             }
             if (directoryIdMap.containsKey(key)) {
@@ -93,7 +94,7 @@ public class ProjectUtils {
             }
         } catch (WaitResponseException e) {
             sleep(500);
-            return createDirectory(directoryIdMap, client, request, key, plainView);
+            return createDirectory(out, directoryIdMap, client, request, key, plainView);
         } catch (ResponseException e) {
             throw new RuntimeException("Unhandled exception", e);
         } finally {

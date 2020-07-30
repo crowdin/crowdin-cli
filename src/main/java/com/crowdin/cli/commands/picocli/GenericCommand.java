@@ -8,11 +8,11 @@ import java.util.ResourceBundle;
 
 @CommandLine.Command(
         name = "command",
-        versionProvider = Command.VersionProvider.class,
+        versionProvider = PicocliRunner.VersionProvider.class,
         usageHelpAutoWidth = true,
         resourceBundle = "messages.messages"
 )
-public abstract class Command implements Runnable {
+abstract class GenericCommand implements Runnable {
 
     @CommandLine.Option(names = {"-V", "--version"}, versionHelp = true)
     boolean versionInfoRequested;
@@ -29,16 +29,8 @@ public abstract class Command implements Runnable {
     @CommandLine.Option(names = {"--debug"}, hidden = true)
     protected boolean debug;
 
+    @CommandLine.Option(names = {"--no-colors"})
+    protected boolean noColors;
+
     protected static final ResourceBundle RESOURCE_BUNDLE = BaseCli.RESOURCE_BUNDLE;
-
-    @Override
-    public void run() {
-    }
-
-    public static class VersionProvider implements CommandLine.IVersionProvider {
-        @Override
-        public String[] getVersion() throws Exception {
-            return new String[] {Utils.getAppVersion()};
-        }
-    }
 }

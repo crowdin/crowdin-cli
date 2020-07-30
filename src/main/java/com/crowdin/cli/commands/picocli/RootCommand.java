@@ -13,7 +13,7 @@ import picocli.CommandLine;
         StatusSubcommand.class,
         StringSubcommand.class
     })
-public class RootCommand extends HelpCommand {
+class RootCommand extends HelpCommand {
     @Override
     protected CommandLine getCommand(CommandLine rootCommand) {
         return rootCommand;

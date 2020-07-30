@@ -37,7 +37,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-public class DownloadAction implements Action {
+public class DownloadAction implements ClientAction {
 
     private FilesInterface files;
     private boolean noProgress;
@@ -49,6 +49,8 @@ public class DownloadAction implements Action {
     private Boolean skipUntranslatedFiles;
     private Boolean exportApprovedOnly;
     private boolean plainView;
+
+    private Outputter out;
 
     public DownloadAction(
             FilesInterface files, boolean noProgress, String languageId, String branchName,
@@ -68,7 +70,8 @@ public class DownloadAction implements Action {
     }
 
     @Override
-    public void act(PropertiesBean pb, Client client) {
+    public void act(Outputter out, PropertiesBean pb, Client client) {
+        this.out = out;
         boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
         this.checkOptions(isOrganization);
 
@@ -76,7 +79,7 @@ public class DownloadAction implements Action {
         try {
             if (!plainView) {
                 ConsoleSpinner.start(
-                    RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
+                    out, RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
             }
             project = client.downloadFullProject();
             ConsoleSpinner.stop(OK);
@@ -87,7 +90,7 @@ public class DownloadAction implements Action {
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
-                System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
+                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
                 return;
             } else {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
@@ -127,7 +130,7 @@ public class DownloadAction implements Action {
             .ifPresent(buildRequest::setBranchId);
 
         if (!plainView) {
-            System.out.println((languageId != null)
+            out.println((languageId != null)
                 ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId))
                 : OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive")));
         }
@@ -217,7 +220,7 @@ public class DownloadAction implements Action {
         try {
             if (!plainView) {
                 ConsoleSpinner.start(
-                    RESOURCE_BUNDLE.getString("message.spinner.building_translation"), this.noProgress);
+                    out, RESOURCE_BUNDLE.getString("message.spinner.building_translation"), this.noProgress);
             }
             build = client.startBuildingTranslation(request);
 
@@ -291,12 +294,12 @@ public class DownloadAction implements Action {
         new TreeMap<>(result.getLeft()).forEach((fromFile, toFile) -> { //files to extract
             files.copyFile(fromFile, toFile);
             if (!plainView) {
-                System.out.println(OK.withIcon(
+                out.println(OK.withIcon(
                     String.format(
                         RESOURCE_BUNDLE.getString("message.extracted_file"),
                         StringUtils.removeStart(toFile.getAbsolutePath(), basePath))));
             } else {
-                System.out.println(StringUtils.removeStart(toFile.getAbsolutePath(), basePath));
+                out.println(StringUtils.removeStart(toFile.getAbsolutePath(), basePath));
             }
         });
         if (!ignoreMatch && !plainView && !result.getRight().isEmpty()) {
@@ -305,22 +308,22 @@ public class DownloadAction implements Action {
             Map<String, List<String>> allOmittedFiles = new TreeMap<>(omittedFiles.getLeft());
             List<String> allOmittedFilesNoSources = omittedFiles.getRight();
             if (!allOmittedFiles.isEmpty()) {
-                System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted")));
+                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted")));
                 allOmittedFiles.forEach((file, translations) -> {
-                    System.out.println(String.format(
+                    out.println(String.format(
                         RESOURCE_BUNDLE.getString("message.item_list_with_count"), file, translations.size()));
                     if (isVerbose) {
-                        translations.forEach(trans -> System.out.println(
+                        translations.forEach(trans -> out.println(
                                 String.format(RESOURCE_BUNDLE.getString("message.item_list"), trans)));
                     }
                 });
             }
             if (!allOmittedFilesNoSources.isEmpty()) {
-                System.out.println(
+                out.println(
                     WARNING.withIcon(
                         RESOURCE_BUNDLE.getString("message.downloaded_files_omitted_without_sources")));
                 allOmittedFilesNoSources.forEach(file ->
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), file)));
+                    out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), file)));
             }
         }
     }
@@ -368,7 +371,7 @@ public class DownloadAction implements Action {
         try {
             if (!plainView) {
                 ConsoleSpinner.start(
-                    RESOURCE_BUNDLE.getString("message.spinner.downloading_translation"),
+                    out, RESOURCE_BUNDLE.getString("message.spinner.downloading_translation"),
                     this.noProgress);
             }
             InputStream data = client.downloadBuild(buildId);

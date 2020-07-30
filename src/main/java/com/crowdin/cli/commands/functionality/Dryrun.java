@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.commands.actions.Outputter;
 import com.crowdin.cli.utils.tree.DrawTree;
 
 import java.util.List;
@@ -23,23 +24,23 @@ public abstract class Dryrun {
         this.messageKey = messageKey;
     }
 
-    public void run(boolean treeView) {
-        run(treeView, false);
+    public void run(Outputter out, boolean treeView) {
+        run(out, treeView, false);
     }
 
-    public void run(boolean treeView, boolean plainView) {
+    public void run(Outputter out, boolean treeView, boolean plainView) {
         List<String> files = getFiles()
             .stream()
             .map(f -> f.replaceAll("^[/\\\\]+", ""))
             .sorted()
             .collect(Collectors.toList());
         if (treeView) {
-            DrawTree.draw(files).forEach(System.out::println);
+            DrawTree.draw(files).forEach(out::println);
         } else {
             if (!plainView) {
-                files.forEach(file -> System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString(messageKey), file))));
+                files.forEach(file -> out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString(messageKey), file))));
             } else {
-                files.forEach(file -> System.out.println(file));
+                files.forEach(out::println);
             }
         }
     }

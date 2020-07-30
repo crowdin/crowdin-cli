@@ -1,12 +1,14 @@
 package com.crowdin.cli.utils.console;
 
+import com.crowdin.cli.commands.actions.Outputter;
+
 public class ConsoleSpinner {
 
     private static Spinner worker;
 
-    public static void start(String contextMessage, boolean noProgress) {
+    public static void start(Outputter out, String contextMessage, boolean noProgress) {
         stop(ExecutionStatus.EMPTY);
-        worker = new Spinner(contextMessage, noProgress);
+        worker = new Spinner(out, contextMessage, noProgress);
         worker.start();
     }
 

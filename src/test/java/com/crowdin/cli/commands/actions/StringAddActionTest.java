@@ -63,8 +63,8 @@ public class StringAddActionTest {
         when(client.downloadFullProject())
             .thenReturn(projectBuilder.build());
 
-        Action action = new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), hidden);
-        action.act(pb, client);
+        ClientAction action = new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), hidden);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         for (AddSourceStringRequest request : requests) {
@@ -96,8 +96,8 @@ public class StringAddActionTest {
         when(client.downloadFullProject())
             .thenThrow(new RuntimeException("Whoops"));
 
-        Action action = new StringAddAction(false, null, null, null, null, null, null);
-        assertThrows(RuntimeException.class, () -> action.act(pb, client));
+        ClientAction action = new StringAddAction(false, null, null, null, null, null, null);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
         verifyNoMoreInteractions(client);

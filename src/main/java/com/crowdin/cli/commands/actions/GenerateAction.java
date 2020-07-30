@@ -29,7 +29,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-public class GenerateAction {
+public class GenerateAction implements Action {
 
     public static final String BASE_PATH_DEFAULT = ".";
     public static final String BASE_URL_DEFAULT = "https://api.crowdin.com";
@@ -50,13 +50,17 @@ public class GenerateAction {
         this.skipGenerateDescription = skipGenerateDescription;
     }
 
-    public void act() {
+    private Outputter out;
+
+    @Override
+    public void act(Outputter out) {
+        this.out = out;
         try {
-            System.out.println(String.format(
+            out.println(String.format(
                 RESOURCE_BUNDLE.getString("message.command_generate_description"),
                 destinationPath.toAbsolutePath()));
             if (Files.exists(destinationPath)) {
-                System.out.println(ExecutionStatus.SKIPPED.getIcon() + String.format(
+                out.println(ExecutionStatus.SKIPPED.getIcon() + String.format(
                         RESOURCE_BUNDLE.getString("message.already_exists"), destinationPath.toAbsolutePath()));
                 return;
             }
@@ -66,7 +70,7 @@ public class GenerateAction {
                 this.updateWithUserInputs(fileLines);
             }
             this.write(destinationPath, fileLines);
-            System.out.println(String.format(
+            out.println(String.format(
                 RESOURCE_BUNDLE.getString("message.generate_successful"),
                 this.isEnterprise ? ENTERPRISE_LINK : LINK));
 
@@ -92,7 +96,7 @@ public class GenerateAction {
         if (withBrowser) {
             String token;
             try {
-                ConsoleSpinner.start("Waiting for authorization to complete (Press <Ctrl>+C to exit)", false);
+                ConsoleSpinner.start(out, "Waiting for authorization to complete (Press <Ctrl>+C to exit)", false);
                 token = OAuthUtil.getToken(OAUTH_CLIENT_ID);
                 ConsoleSpinner.stop(OK, "Authorization finished successfully");
             } catch (Exception e) {
@@ -182,14 +186,14 @@ public class GenerateAction {
     }
 
     private String ask(String question) {
-        System.out.print(question);
+        out.print(question);
         return scanner.nextLine();
     }
 
     private void checkParametersForExistence(String apiToken, String baseUrl, Long projectId) {
         Client client = new CrowdinClient(apiToken, baseUrl, projectId);
         try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.validating_project"), false);
+            ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.validating_project"), false);
             client.downloadProjectInfo();
             ConsoleSpinner.stop(OK, RESOURCE_BUNDLE.getString("message.spinner.validation_success"));
         } catch (Exception e) {

@@ -4,7 +4,7 @@ import picocli.CommandLine;
 
 import java.io.PrintStream;
 
-public abstract class HelpCommand extends Command {
+abstract class HelpCommand extends GenericCommand {
 
     private static PrintStream out;
     private static CommandLine.Help.ColorScheme colorScheme;

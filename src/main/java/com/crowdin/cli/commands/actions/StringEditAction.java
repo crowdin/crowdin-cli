@@ -1,10 +1,8 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.Project;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.core.model.PatchOperation;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
@@ -13,10 +11,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-public class StringEditAction implements Action {
+public class StringEditAction implements ClientAction {
 
     private final boolean noProgress;
     private final Long id;
@@ -39,7 +36,7 @@ public class StringEditAction implements Action {
     }
 
     @Override
-    public void act(PropertiesBean pb, Client client) {
+    public void act(Outputter out, PropertiesBean pb, Client client) {
 
         List<SourceString> sourceStrings = client.listSourceString(null, null);
 
@@ -79,6 +76,6 @@ public class StringEditAction implements Action {
         }
 
         client.editSourceString(foundStringId, requests);
-        System.out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_updated"), foundStringId)));
+        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_updated"), foundStringId)));
     }
 }

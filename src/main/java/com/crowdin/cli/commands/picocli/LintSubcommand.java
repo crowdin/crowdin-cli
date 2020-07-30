@@ -1,17 +1,14 @@
 package com.crowdin.cli.commands.picocli;
 
+import com.crowdin.cli.commands.actions.ClientAction;
 import picocli.CommandLine;
 
 @CommandLine.Command(
     name = "lint")
-public class LintSubcommand extends Command {
+class LintSubcommand extends ClientActCommand {
 
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
-
-    @Override
-    public void run() {
-        propertiesBuilderCommandPart.buildPropertiesBean();
-        System.out.println(RESOURCE_BUNDLE.getString("message.configuration_ok"));
+    protected ClientAction getAction() {
+        return (out, pb, client) ->
+            out.println(CommandLine.Help.Ansi.AUTO.string(RESOURCE_BUNDLE.getString("message.configuration_ok")));
     }
 }

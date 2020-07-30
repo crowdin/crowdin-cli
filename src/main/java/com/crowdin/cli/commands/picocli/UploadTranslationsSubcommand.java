@@ -1,19 +1,15 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
-import com.crowdin.cli.commands.actions.Action;
+import com.crowdin.cli.commands.actions.ClientAction;
 import com.crowdin.cli.commands.actions.ListTranslationsAction;
 import com.crowdin.cli.commands.actions.UploadTranslationsAction;
-import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
-import com.crowdin.cli.properties.PropertiesBean;
 import picocli.CommandLine;
 
 @CommandLine.Command(
     name = "translations",
     sortOptions = false
 )
-public class UploadTranslationsSubcommand extends Command {
+class UploadTranslationsSubcommand extends ClientActCommand {
 
     @CommandLine.Option(names = {"--auto-approve-imported"}, negatable = true)
     protected boolean autoApproveImported;
@@ -36,17 +32,15 @@ public class UploadTranslationsSubcommand extends Command {
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
 
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
-
     @Override
-    public void run() {
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
-
-        Action action = (dryrun)
+    protected ClientAction getAction() {
+        return (dryrun)
             ? new ListTranslationsAction(noProgress, treeView, true, plainView)
             : new UploadTranslationsAction(noProgress, languageId, branch, importEqSuggestions, autoApproveImported, debug, plainView);
-        action.act(pb, client);
+    }
+
+    @Override
+    protected boolean isAnsi() {
+        return !plainView;
     }
 }
