@@ -25,4 +25,13 @@ public class ConsoleSpinner {
         worker.stopSpinning(status);
         worker = null;
     }
+
+
+    public static void stop(ExecutionStatus status, String message) {
+        if (worker == null) {
+            return;
+        }
+        worker.stopSpinning(status, message);
+        worker = null;
+    }
 }

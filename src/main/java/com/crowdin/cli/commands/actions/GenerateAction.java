@@ -1,13 +1,19 @@
 package com.crowdin.cli.commands.actions;
 
+import com.crowdin.cli.client.Client;
+import com.crowdin.cli.client.CrowdinClient;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.utils.OAuthUtil;
+import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,6 +25,9 @@ import static com.crowdin.cli.properties.CliProperties.API_TOKEN;
 import static com.crowdin.cli.properties.CliProperties.BASE_PATH;
 import static com.crowdin.cli.properties.CliProperties.BASE_URL;
 import static com.crowdin.cli.properties.CliProperties.PROJECT_ID;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 public class GenerateAction {
 
@@ -81,7 +90,15 @@ public class GenerateAction {
         withBrowser = !StringUtils.startsWithAny(ask(
             RESOURCE_BUNDLE.getString("message.ask_auth_via_browser") + ": (Y/n) "), "n", "N", "-");
         if (withBrowser) {
-            String token = OAuthUtil.getToken(OAUTH_CLIENT_ID);
+            String token;
+            try {
+                ConsoleSpinner.start("Waiting for authorization to complete (Press <Ctrl>+C to exit)", false);
+                token = OAuthUtil.getToken(OAUTH_CLIENT_ID);
+                ConsoleSpinner.stop(OK, "Authorization finished successfully");
+            } catch (Exception e) {
+                ConsoleSpinner.stop(ERROR, e.getMessage());
+                throw e;
+            }
             String organizationName = OAuthUtil.getDomainFromToken(token);
             values.put(API_TOKEN, token);
             if (StringUtils.isNotEmpty(organizationName)) {
@@ -95,7 +112,13 @@ public class GenerateAction {
             if (this.isEnterprise) {
                 String organizationName = ask(RESOURCE_BUNDLE.getString("message.ask_organization_name") + ": ");
                 if (StringUtils.isNotEmpty(organizationName)) {
-                    values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, organizationName));
+                    if (PropertiesBeanUtils.isCrowdinUrl(organizationName)) {
+                        String realOrganizationName = PropertiesBeanUtils.getOrganization(organizationName);
+                        System.out.println(String.format(RESOURCE_BUNDLE.getString("message.exctracted_organization_name"), realOrganizationName));
+                        values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, realOrganizationName));
+                    } else {
+                        values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, organizationName));
+                    }
                 } else {
                     this.isEnterprise = false;
                     values.put(BASE_URL, BASE_URL_DEFAULT);
@@ -103,10 +126,34 @@ public class GenerateAction {
             } else {
                 values.put(BASE_URL, BASE_URL_DEFAULT);
             }
-            values.put(API_TOKEN, askParam(API_TOKEN));
+            String apiToken = askParam(API_TOKEN);
+            if (!apiToken.isEmpty()) {
+                values.put(API_TOKEN, apiToken);
+            }
         }
-        values.put(PROJECT_ID, askParam(PROJECT_ID));
-        values.put(BASE_PATH, askWithDefault(RESOURCE_BUNDLE.getString("message.ask_project_directory"), BASE_PATH_DEFAULT));
+        while (true) {
+            String projectId = askParam(PROJECT_ID);
+            if (projectId.isEmpty()) {
+                break;
+            } else if (StringUtils.isNumeric(projectId)) {
+                values.put(PROJECT_ID, projectId);
+                break;
+            } else {
+                System.out.println(String.format(RESOURCE_BUNDLE.getString("error.init.project_id_is_not_number"), projectId));
+            }
+        }
+        if (values.containsKey(BASE_URL) && values.containsKey(PROJECT_ID) && values.containsKey(API_TOKEN)) {
+            this.checkParametersForExistence(values.get(API_TOKEN), values.get(BASE_URL), Long.parseLong(values.get(PROJECT_ID)));
+        } else {
+            System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("error.init.skip_project_validation")));
+        }
+        String basePath = askWithDefault(RESOURCE_BUNDLE.getString("message.ask_project_directory"), BASE_PATH_DEFAULT);
+        File basePathFile = Paths.get(basePath).normalize().toAbsolutePath().toFile();
+        if (!basePathFile.exists()) {
+            System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.init.path_not_exist"), basePathFile)));
+        }
+        values.put(BASE_PATH, basePath);
+
         for (Map.Entry<String, String> entry : values.entrySet()) {
             for (int i = 0; i < fileLines.size(); i++) {
                 if (fileLines.get(i).contains(entry.getKey())) {
@@ -137,5 +184,16 @@ public class GenerateAction {
     private String ask(String question) {
         System.out.print(question);
         return scanner.nextLine();
+    }
+
+    private void checkParametersForExistence(String apiToken, String baseUrl, Long projectId) {
+        Client client = new CrowdinClient(apiToken, baseUrl, projectId);
+        try {
+            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.validating_project"), false);
+            client.downloadProjectInfo();
+            ConsoleSpinner.stop(OK, RESOURCE_BUNDLE.getString("message.spinner.validation_success"));
+        } catch (Exception e) {
+            ConsoleSpinner.stop(WARNING, e.getMessage());
+        }
     }
 }
