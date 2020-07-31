@@ -75,18 +75,8 @@ public class DownloadAction implements ClientAction {
         boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
         this.checkOptions(isOrganization);
 
-        Project project;
-        try {
-            if (!plainView) {
-                ConsoleSpinner.start(
-                    out, RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
-            }
-            project = client.downloadFullProject();
-            ConsoleSpinner.stop(OK);
-        } catch (Exception e) {
-            ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
-        }
+        Project project = ConsoleSpinner
+            .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info", this.noProgress, this.plainView, client::downloadFullProject);
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
@@ -216,13 +206,8 @@ public class DownloadAction implements ClientAction {
     }
 
     private ProjectBuild buildTranslation(Client client, BuildProjectTranslationRequest request) {
-        ProjectBuild build;
-        try {
-            if (!plainView) {
-                ConsoleSpinner.start(
-                    out, RESOURCE_BUNDLE.getString("message.spinner.building_translation"), this.noProgress);
-            }
-            build = client.startBuildingTranslation(request);
+        return ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info", this.noProgress, this.plainView, () -> {
+            ProjectBuild build = client.startBuildingTranslation(request);
 
             while (!build.getStatus().equalsIgnoreCase("finished")) {
                 ConsoleSpinner.update(
@@ -231,14 +216,9 @@ public class DownloadAction implements ClientAction {
                 Thread.sleep(100);
                 build = client.checkBuildingTranslation(build.getId());
             }
-
             ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
-            ConsoleSpinner.stop(OK);
-        } catch (Exception e) {
-            ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.building_translation"), e);
-        }
-        return build;
+            return build;
+        });
     }
 
     private Pair<Map<File, File>, List<String>> sortFiles(
@@ -368,22 +348,12 @@ public class DownloadAction implements ClientAction {
     }
 
     private void downloadTranslations(Client client, Long buildId, String archivePath) {
+        InputStream data = ConsoleSpinner
+            .execute(out, "message.spinner.downloading_translation", "error.downloading_file", this.noProgress, this.plainView, () -> client.downloadBuild(buildId));
         try {
-            if (!plainView) {
-                ConsoleSpinner.start(
-                    out, RESOURCE_BUNDLE.getString("message.spinner.downloading_translation"),
-                    this.noProgress);
-            }
-            InputStream data = client.downloadBuild(buildId);
-
             files.writeToFile(archivePath, data);
-            ConsoleSpinner.stop(OK);
         } catch (IOException e) {
-            ConsoleSpinner.stop(ERROR);
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.write_file"), e);
-        } catch (Exception e) {
-            ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.downloading_file"), e);
         }
     }
 }

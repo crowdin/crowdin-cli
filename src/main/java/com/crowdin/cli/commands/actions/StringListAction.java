@@ -37,15 +37,8 @@ public class StringListAction implements ClientAction {
 
     @Override
     public void act(Outputter out, PropertiesBean pb, Client client) {
-        Project project;
-        try {
-            ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
-            project = client.downloadFullProject();
-            ConsoleSpinner.stop(OK);
-        } catch (Exception e) {
-            ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
-        }
+        Project project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+            this.noProgress, false, client::downloadFullProject);
 
         Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
         Map<Long, String> reversePaths = paths.entrySet()

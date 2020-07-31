@@ -61,17 +61,8 @@ public class UploadSourcesAction implements ClientAction {
 
     @Override
     public void act(Outputter out, PropertiesBean pb, Client client) {
-        Project project;
-        try {
-            if (!plainView) {
-                ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
-            }
-            project = client.downloadFullProject();
-            ConsoleSpinner.stop(OK);
-        } catch (Exception e) {
-            ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
-        }
+        Project project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+            this.noProgress, this.plainView, client::downloadFullProject);
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
 

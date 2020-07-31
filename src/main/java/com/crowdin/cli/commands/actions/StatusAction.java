@@ -31,15 +31,8 @@ public class StatusAction implements ClientAction {
 
     @Override
     public void act(Outputter out, PropertiesBean pb, Client client) {
-        Project project;
-        try {
-            ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
-            project = client.downloadProjectWithLanguages();
-            ConsoleSpinner.stop(OK);
-        } catch (Exception e) {
-            ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
-        }
+        Project project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+            this.noProgress, false, client::downloadProjectWithLanguages);
 
         Language language = (languageId != null)
             ? project.findLanguage(languageId, true)
