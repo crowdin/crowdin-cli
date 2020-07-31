@@ -2,15 +2,16 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinClient;
+import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.utils.OAuthUtil;
+import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.File;
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -35,26 +36,26 @@ public class GenerateAction implements Action {
     public static final String BASE_URL_DEFAULT = "https://api.crowdin.com";
     public static final String BASE_ENTERPRISE_URL_DEFAULT = "https://%s.crowdin.com";
 
-    private Scanner scanner = new Scanner(System.in, "UTF-8");
     private boolean isEnterprise;
     private boolean withBrowser;
 
     public static final String LINK = "https://support.crowdin.com/configuration-file/";
     public static final String ENTERPRISE_LINK = "https://support.crowdin.com/enterprise/configuration-file/";
 
+    private FilesInterface files;
     private Path destinationPath;
     private boolean skipGenerateDescription;
 
-    public GenerateAction(Path destinationPath, boolean skipGenerateDescription) {
+    public GenerateAction(FilesInterface files, Path destinationPath, boolean skipGenerateDescription) {
+        this.files = files;
         this.destinationPath = destinationPath;
         this.skipGenerateDescription = skipGenerateDescription;
     }
 
-    private Outputter out;
-
     @Override
     public void act(Outputter out) {
-        this.out = out;
+        Scanner scanner = new Scanner(System.in, "UTF-8");
+        Asking asking = new Asking(out, scanner);
         try {
             out.println(String.format(
                 RESOURCE_BUNDLE.getString("message.command_generate_description"),
@@ -65,11 +66,11 @@ public class GenerateAction implements Action {
                 return;
             }
 
-            List<String> fileLines = this.readResource("/crowdin.yml");
+            List<String> fileLines = Utils.readResource("/crowdin.yml");
             if (!skipGenerateDescription) {
-                this.updateWithUserInputs(fileLines);
+                this.updateWithUserInputs(out, asking, fileLines);
             }
-            this.write(destinationPath, fileLines);
+            files.writeToFile(destinationPath.toString(), new ByteArrayInputStream(StringUtils.join(fileLines, "").getBytes(StandardCharsets.UTF_8)));
             out.println(String.format(
                 RESOURCE_BUNDLE.getString("message.generate_successful"),
                 this.isEnterprise ? ENTERPRISE_LINK : LINK));
@@ -79,19 +80,10 @@ public class GenerateAction implements Action {
         }
     }
 
-    private void write(Path path, List<String> fileLines) {
-        try {
-            Files.write(destinationPath, fileLines);
-        } catch (IOException e) {
-            throw new RuntimeException(String.format(
-                RESOURCE_BUNDLE.getString("error.write_file"), destinationPath.toAbsolutePath()), e);
-        }
-    }
-
-    private void updateWithUserInputs(List<String> fileLines) {
+    private void updateWithUserInputs(Outputter out, Asking asking, List<String> fileLines) {
         Map<String, String> values = new HashMap<>();
 
-        withBrowser = !StringUtils.startsWithAny(ask(
+        withBrowser = !StringUtils.startsWithAny(asking.ask(
             RESOURCE_BUNDLE.getString("message.ask_auth_via_browser") + ": (Y/n) "), "n", "N", "-");
         if (withBrowser) {
             String token;
@@ -111,10 +103,10 @@ public class GenerateAction implements Action {
                 values.put(BASE_URL, BASE_URL_DEFAULT);
             }
         } else {
-            this.isEnterprise = StringUtils.startsWithAny(ask(
+            this.isEnterprise = StringUtils.startsWithAny(asking.ask(
                     RESOURCE_BUNDLE.getString("message.ask_is_enterprise") + ": (N/y) "), "y", "Y", "+");
             if (this.isEnterprise) {
-                String organizationName = ask(RESOURCE_BUNDLE.getString("message.ask_organization_name") + ": ");
+                String organizationName = asking.ask(RESOURCE_BUNDLE.getString("message.ask_organization_name") + ": ");
                 if (StringUtils.isNotEmpty(organizationName)) {
                     if (PropertiesBeanUtils.isCrowdinUrl(organizationName)) {
                         String realOrganizationName = PropertiesBeanUtils.getOrganization(organizationName);
@@ -130,13 +122,14 @@ public class GenerateAction implements Action {
             } else {
                 values.put(BASE_URL, BASE_URL_DEFAULT);
             }
-            String apiToken = askParam(API_TOKEN);
+//<<<<<<< HEAD
+            String apiToken = asking.askParam(API_TOKEN);
             if (!apiToken.isEmpty()) {
                 values.put(API_TOKEN, apiToken);
             }
         }
         while (true) {
-            String projectId = askParam(PROJECT_ID);
+            String projectId = asking.askParam(PROJECT_ID);
             if (projectId.isEmpty()) {
                 break;
             } else if (StringUtils.isNumeric(projectId)) {
@@ -147,12 +140,12 @@ public class GenerateAction implements Action {
             }
         }
         if (values.containsKey(BASE_URL) && values.containsKey(PROJECT_ID) && values.containsKey(API_TOKEN)) {
-            this.checkParametersForExistence(values.get(API_TOKEN), values.get(BASE_URL), Long.parseLong(values.get(PROJECT_ID)));
+            this.checkParametersForExistence(out, values.get(API_TOKEN), values.get(BASE_URL), Long.parseLong(values.get(PROJECT_ID)));
         } else {
             System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("error.init.skip_project_validation")));
         }
-        String basePath = askWithDefault(RESOURCE_BUNDLE.getString("message.ask_project_directory"), BASE_PATH_DEFAULT);
-        File basePathFile = Paths.get(basePath).normalize().toAbsolutePath().toFile();
+        String basePath = asking.askWithDefault(RESOURCE_BUNDLE.getString("message.ask_project_directory"), BASE_PATH_DEFAULT);
+        java.io.File basePathFile = Paths.get(basePath).normalize().toAbsolutePath().toFile();
         if (!basePathFile.exists()) {
             System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.init.path_not_exist"), basePathFile)));
         }
@@ -168,29 +161,32 @@ public class GenerateAction implements Action {
         }
     }
 
-    private List<String> readResource(String fileName) {
-        try {
-            return IOUtils.readLines(this.getClass().getResourceAsStream(fileName), "UTF-8");
-        } catch (IOException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.read_resource_file"), fileName), e);
+    public static class Asking {
+
+        private Outputter out;
+        private Scanner scanner;
+
+        public Asking(Outputter out, Scanner scanner) {
+            this.out = out;
+            this.scanner = scanner;
+        }
+
+        public String askParam(String key) {
+            return ask(StringUtils.capitalize(key.replaceAll("_", " ")) + ": ");
+        }
+
+        public String askWithDefault(String question, String def) {
+            String input = ask(question + ": (" + def + ") ");
+            return StringUtils.isNotEmpty(input) ? input : def;
+        }
+
+        public String ask(String question) {
+            out.print(question);
+            return scanner.nextLine();
         }
     }
 
-    private String askParam(String key) {
-        return ask(StringUtils.capitalize(key.replaceAll("_", " ")) + ": ");
-    }
-
-    private String askWithDefault(String question, String def) {
-        String input = ask(question + ": (" + def + ") ");
-        return StringUtils.isNotEmpty(input) ? input : def;
-    }
-
-    private String ask(String question) {
-        out.print(question);
-        return scanner.nextLine();
-    }
-
-    private void checkParametersForExistence(String apiToken, String baseUrl, Long projectId) {
+    private void checkParametersForExistence(Outputter out, String apiToken, String baseUrl, Long projectId) {
         Client client = new CrowdinClient(apiToken, baseUrl, projectId);
         try {
             ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.validating_project"), false);

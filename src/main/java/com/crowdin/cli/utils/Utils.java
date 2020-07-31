@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+
 
 public class Utils {
 
@@ -57,6 +59,14 @@ public class Utils {
                 : Optional.empty();
         } catch (IOException e) {
             return Optional.empty();
+        }
+    }
+
+    public static List<String> readResource(String path) {
+        try {
+            return IOUtils.readLines(Utils.class.getResourceAsStream(path), "UTF-8");
+        } catch (IOException e) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.read_resource_file"), path), e);
         }
     }
 

@@ -2,6 +2,7 @@ package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.commands.actions.Action;
 import com.crowdin.cli.commands.actions.GenerateAction;
+import com.crowdin.cli.commands.functionality.FsFiles;
 import picocli.CommandLine;
 
 import java.nio.file.Path;
@@ -19,6 +20,6 @@ class GenerateSubcommand extends ActCommand {
 
     @Override
     protected Action getAction() {
-        return new GenerateAction(destinationPath, skipGenerateDescription);
+        return new GenerateAction(new FsFiles(), destinationPath, skipGenerateDescription);
     }
 }
