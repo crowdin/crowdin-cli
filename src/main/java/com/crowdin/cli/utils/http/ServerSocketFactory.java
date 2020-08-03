@@ -4,7 +4,7 @@ import javax.net.ssl.SSLServerSocketFactory;
 import java.io.IOException;
 import java.net.ServerSocket;
 
-public interface ServerSocketFactory {
+interface ServerSocketFactory {
 
     ServerSocket get(int port);
 

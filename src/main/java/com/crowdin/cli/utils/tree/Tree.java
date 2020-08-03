@@ -1,15 +1,12 @@
 package com.crowdin.cli.utils.tree;
 
-import com.crowdin.cli.utils.tree.interfaces.Visitable;
-import com.crowdin.cli.utils.tree.interfaces.Visitor;
-
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
 
-public class Tree<T> implements Visitable<T> {
+class Tree<T> implements Visitable<T> {
     private final Set<Tree<T>> children = new LinkedHashSet<>();
     private Tree<T> lastChild;
     private final T data;
@@ -47,7 +44,7 @@ public class Tree<T> implements Visitable<T> {
         if (lastChild != null) {
             children.add(lastChild);
         }
-        lastChild = new Tree(data);
+        lastChild = new Tree<>(data);
         return lastChild;
     }
 }

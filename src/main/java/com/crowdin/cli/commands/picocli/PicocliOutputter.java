@@ -14,6 +14,7 @@ class PicocliOutputter implements Outputter {
         this.out = out;
         this.ansi = (isOn) ? CommandLine.Help.Ansi.AUTO : CommandLine.Help.Ansi.OFF;
     }
+
     @Override
     public void println(String string) {
         this.out.println(ansi(string));

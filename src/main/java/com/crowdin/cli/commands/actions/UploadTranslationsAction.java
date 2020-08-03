@@ -1,7 +1,8 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.Project;
+import com.crowdin.cli.client.CrowdinProjectFull;
+import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
@@ -24,7 +25,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -58,7 +58,7 @@ public class UploadTranslationsAction implements ClientAction {
 
     @Override
     public void act(Outputter out, PropertiesBean pb, Client client) {
-        Project project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+        CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, this.plainView, client::downloadFullProject);
 
         if (!project.isManagerAccess()) {
@@ -72,12 +72,12 @@ public class UploadTranslationsAction implements ClientAction {
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
-        Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
+        LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
         Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
 
         List<Language> languages = (languageId != null)
-            ? project.findLanguage(languageId, true)
+            ? project.findLanguageById(languageId, true)
                 .map(Collections::singletonList)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)))
             : project.getProjectLanguages(false);
@@ -137,11 +137,10 @@ public class UploadTranslationsAction implements ClientAction {
                     preparedRequests.put(transFile, Pair.of(languages, request));
                 } else {
                     for (Language language : languages) {
-                        Map<String, Map<String, String>> languageMapping =
-                            file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
-                        if (projectLanguageMapping.isPresent()) {
-                            TranslationsUtils.populateLanguageMappingFromServer(languageMapping, projectLanguageMapping.get());
-                        }
+                        LanguageMapping localLanguageMapping =
+                            LanguageMapping.fromConfigFileLanguageMapping(file.getLanguagesMapping());
+                        LanguageMapping languageMapping =
+                            LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
 
                         String transFileName = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
                         transFileName = PropertiesBeanUtils.useTranslationReplace(transFileName, file.getTranslationReplace());

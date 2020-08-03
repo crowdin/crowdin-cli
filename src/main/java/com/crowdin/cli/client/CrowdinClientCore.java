@@ -12,7 +12,7 @@ import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 import java.util.stream.Collectors;
 
-public class CrowdinClientCore {
+class CrowdinClientCore {
 
     private static final long millisToRetry = 100;
 

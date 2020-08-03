@@ -1,5 +1,6 @@
 package com.crowdin.cli.utils;
 
+import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.client.languages.model.Language;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -8,7 +9,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -81,14 +81,14 @@ public class PlaceholderUtil {
                 .replace(PLACEHOLDER_OSX_CODE, lang.getOsxCode());
     }
 
-    public List<String> replaceLanguageDependentPlaceholders(String toFormat, Map<String, Map<String, String>> languageMapping) {
+    public List<String> replaceLanguageDependentPlaceholders(String toFormat, LanguageMapping languageMapping) {
         return projectLangs
             .stream()
             .map(lang -> replaceLanguageDependentPlaceholders(toFormat, languageMapping, lang))
             .collect(Collectors.toList());
     }
 
-    public String replaceLanguageDependentPlaceholders(String toFormat, Map<String, Map<String, String>> languageMapping, Language lang) {
+    public String replaceLanguageDependentPlaceholders(String toFormat, LanguageMapping languageMapping, Language lang) {
         if (toFormat == null || lang == null || languageMapping == null) {
             throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");
         }
@@ -105,13 +105,13 @@ public class PlaceholderUtil {
     }
 
     private String replaceWithMapping(
-        String toFormat, String placeholder, String langCode, String defaultMapping, Map<String, Map<String, String>> langMapping
+        String toFormat, String placeholder, String langCode, String defaultMapping, LanguageMapping langMapping
     ) {
         return toFormat.replace(
-                placeholder,
-                langMapping.containsKey(placeholder.replaceAll("%", ""))
-                    ? langMapping.get(placeholder.replaceAll("%", "")).getOrDefault(langCode, defaultMapping)
-                    : defaultMapping);
+            placeholder,
+            langMapping.containsValue(langCode, placeholder.replaceAll("%", ""))
+                ? langMapping.getValue(langCode, placeholder.replaceAll("%", ""))
+                : defaultMapping);
     }
 
     public String replaceFileDependentPlaceholders(String toFormat, File file) {

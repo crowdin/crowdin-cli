@@ -9,14 +9,12 @@ import com.crowdin.client.core.http.impl.json.JacksonJsonTransformer;
 import com.crowdin.client.core.model.ClientConfig;
 import com.crowdin.client.core.model.Credentials;
 import com.crowdin.client.core.model.PatchRequest;
-import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.Directory;
-import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
@@ -55,62 +53,23 @@ public class CrowdinClient extends CrowdinClientCore implements Client {
     }
 
     @Override
-    public CrowdinProject downloadFullProject() throws ResponseException {
-        com.crowdin.client.projectsgroups.model.Project projectInfo = downloadProjectInfo();
-        List<File> files =
-            executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
-                .listFiles(this.projectId, null, null, null, limit, offset))));
-        List<Directory> directories =
-            executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
-                .listDirectories(this.projectId, null, null, null, limit, offset))));
-        List<Branch> branches =
-            executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
-                .listBranches(this.projectId, null, limit, offset))));
-        List<Language> supportedLanguages = unwrap(executeRequest(() -> this.client.getLanguagesApi()
-            .listSupportedLanguages(499, 0)));
-        List<Language> projectLanguages = supportedLanguages.stream()
-            .filter(language -> projectInfo.getTargetLanguageIds().contains(language.getId()))
-            .collect(Collectors.toList());
-        CrowdinProject project = new CrowdinProject();
-        project.setFiles(files);
-        project.setDirectories(directories);
-        project.setBranches(branches);
-        project.setSupportedLanguages(supportedLanguages);
-        project.setProjectLanguages(projectLanguages);
-        if (projectInfo instanceof ProjectSettings) {
-            project.setManagerAccess(true);
-            ProjectSettings projectSettings = (ProjectSettings) projectInfo;
-            if (projectSettings.isInContext()) {
-                project.setPseudoLanguageId(projectSettings.getInContextPseudoLanguageId());
-            }
-            project.setLanguageMapping(projectSettings.getLanguageMapping());
-        } else {
-            project.setManagerAccess(false);
-        }
+    public CrowdinProjectFull downloadFullProject() {
+        CrowdinProjectFull project = new CrowdinProjectFull();
+        this.populateProjectFull(project);
         return project;
     }
 
     @Override
-    public Project downloadProjectWithLanguages() throws ResponseException {
-        com.crowdin.client.projectsgroups.model.Project projectInfo = downloadProjectInfo();
-        List<Language> supportedLanguages = unwrap(executeRequest(() -> this.client.getLanguagesApi()
-            .listSupportedLanguages(499, 0)));
-        List<Language> projectLanguages = supportedLanguages.stream()
-            .filter(language -> projectInfo.getTargetLanguageIds().contains(language.getId()))
-            .collect(Collectors.toList());
+    public CrowdinProject downloadProjectWithLanguages() {
         CrowdinProject project = new CrowdinProject();
-        project.setSupportedLanguages(supportedLanguages);
-        project.setProjectLanguages(projectLanguages);
-        if (projectInfo instanceof ProjectSettings) {
-            project.setManagerAccess(true);
-            ProjectSettings projectSettings = (ProjectSettings) projectInfo;
-            if (projectSettings.isInContext()) {
-                project.setPseudoLanguageId(projectSettings.getInContextPseudoLanguageId());
-            }
-            project.setLanguageMapping(projectSettings.getLanguageMapping());
-        } else {
-            project.setManagerAccess(false);
-        }
+        this.populateProjectWithLangs(project);
+        return project;
+    }
+
+    @Override
+    public CrowdinProjectInfo downloadProjectInfo() {
+        CrowdinProjectInfo project = new CrowdinProjectInfo();
+        this.populateProjectInfo(project);
         return project;
     }
 
@@ -119,7 +78,42 @@ public class CrowdinClient extends CrowdinClientCore implements Client {
                 .getProjectProgress(this.projectId, 500, 0, langaugeId));
     }
 
-    public com.crowdin.client.projectsgroups.model.Project downloadProjectInfo() {
+    private void populateProjectFull(CrowdinProjectFull project) {
+        populateProjectWithLangs(project);
+        project.setFiles(executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
+            .listFiles(this.projectId, null, null, null, limit, offset)))));
+        project.setDirectories(executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
+            .listDirectories(this.projectId, null, null, null, limit, offset)))));
+        project.setBranches(executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
+            .listBranches(this.projectId, null, limit, offset)))));
+    }
+
+    private void populateProjectWithLangs(CrowdinProject project) {
+        populateProjectInfo(project);
+        project.setSupportedLanguages(unwrap(executeRequest(() -> this.client.getLanguagesApi()
+            .listSupportedLanguages(499, 0))));
+        project.setProjectLanguages(project.getSupportedLanguages().stream()
+            .filter(language -> project.getTargetLanguageIds().contains(language.getId()))
+            .collect(Collectors.toList()));
+    }
+
+    private void populateProjectInfo(CrowdinProjectInfo project) {
+        com.crowdin.client.projectsgroups.model.Project projectModel = this.getProject();
+        project.setProjectId(projectModel.getId());
+        project.setTargetLanguageIds(projectModel.getTargetLanguageIds());
+        if (projectModel instanceof ProjectSettings) {
+            project.setAccessLevel(CrowdinProjectInfo.Access.MANAGER);
+            ProjectSettings projectSettings = (ProjectSettings) projectModel;
+            if (projectSettings.isInContext()) {
+                project.setInContextLanguageId(projectSettings.getInContextPseudoLanguageId());
+            }
+            project.setLanguageMapping(LanguageMapping.fromServerLanguageMapping(projectSettings.getLanguageMapping()));
+        } else {
+            project.setAccessLevel(CrowdinProjectInfo.Access.TRANSLATOR);
+        }
+    }
+
+    private com.crowdin.client.projectsgroups.model.Project getProject() {
         try {
             return executeRequest(
                 () -> (com.crowdin.client.projectsgroups.model.Project) this.client.getProjectsGroupsApi()

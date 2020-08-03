@@ -2,10 +2,9 @@ package com.crowdin.cli.utils.tree;
 
 import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.utils.Utils;
-import com.crowdin.cli.utils.tree.interfaces.Visitor;
 
 
-public class PrintIndentedVisitor implements Visitor<String, String> {
+class PrintIndentedVisitor implements Visitor<String, String> {
 
     private static final String ELEM = Utils.isWindows()
         ? BaseCli.RESOURCE_BUNDLE.getString("message.tree.win.elem")

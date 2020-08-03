@@ -172,7 +172,8 @@ public class ProjectUtilsTest {
         Branch branch = null;
         when(client.addDirectory(any())).thenThrow(new ResponseException("Error while creating directory"));
 
-        assertThrows(RuntimeException.class, () -> ProjectUtils.createPath(Outputter.getDefault(), client, directoriesIdMap, filePath, branch, false));
+        assertThrows(RuntimeException.class,
+            () -> ProjectUtils.createPath(Outputter.getDefault(), client, directoriesIdMap, filePath, branch, false));
 
         verify(client).addDirectory(any());
         verifyNoMoreInteractions(client);

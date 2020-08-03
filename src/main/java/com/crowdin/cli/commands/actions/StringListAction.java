@@ -1,7 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.Project;
+import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -17,8 +17,6 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 public class StringListAction implements ClientAction {
@@ -37,7 +35,7 @@ public class StringListAction implements ClientAction {
 
     @Override
     public void act(Outputter out, PropertiesBean pb, Client client) {
-        Project project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+        CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, client::downloadFullProject);
 
         Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());

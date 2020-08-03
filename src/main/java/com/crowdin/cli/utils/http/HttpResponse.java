@@ -12,7 +12,7 @@ import java.util.Map;
 @Data
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class HttpResponse {
+class HttpResponse {
 
     private String code;
     private Map<String, String> headers;

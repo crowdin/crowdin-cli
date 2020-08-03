@@ -17,7 +17,7 @@ abstract class ClientActCommand extends GenericCommand {
     private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
 
     @Override
-    final public void run() {
+    public final void run() {
         List<String> errors = checkOptions();
         if (errors != null && !errors.isEmpty()) {
             String errorsInOne = errors.stream()

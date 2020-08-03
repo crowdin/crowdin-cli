@@ -1,7 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.Project;
+import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.commands.functionality.DryrunProjectFiles;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -9,8 +9,6 @@ import com.crowdin.client.sourcefiles.model.Branch;
 import org.apache.commons.lang3.StringUtils;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class ListProjectAction implements ClientAction {
 
@@ -28,11 +26,12 @@ public class ListProjectAction implements ClientAction {
 
     @Override
     public void act(Outputter out, PropertiesBean pb, Client client) {
-        Project project = ConsoleSpinner
-            .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info", this.noProgress, this.plainView, client::downloadFullProject);
+        CrowdinProjectFull project = ConsoleSpinner
+            .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+                this.noProgress, this.plainView, client::downloadFullProject);
 
         Long branchId = (StringUtils.isNotEmpty(this.branchName))
-            ? project.findBranch(this.branchName)
+            ? project.findBranchByName(this.branchName)
                 .map(Branch::getId)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
             : null;

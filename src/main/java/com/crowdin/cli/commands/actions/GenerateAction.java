@@ -4,7 +4,7 @@ import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinClient;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
-import com.crowdin.cli.utils.OAuthUtil;
+import com.crowdin.cli.utils.http.OAuthUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;

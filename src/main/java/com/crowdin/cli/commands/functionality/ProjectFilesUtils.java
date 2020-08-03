@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.sourcefiles.model.Branch;
@@ -44,7 +45,7 @@ public class ProjectFilesUtils {
             Map<Long, String> directoryPaths,
             Optional<Long> branchId,
             PlaceholderUtil placeholderUtil,
-            Map<String, Map<String, String>> languageMapping,
+            LanguageMapping languageMapping,
             String basePath
     ) {
         Map<String, List<String>> allProjectTranslations = new HashMap<>();

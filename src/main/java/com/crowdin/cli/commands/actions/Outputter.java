@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.actions;
 public interface Outputter {
 
     void println(String string);
+
     void print(String string);
 
     static Outputter getDefault() {

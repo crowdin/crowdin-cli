@@ -1,14 +1,13 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.languages.model.Language;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -18,11 +17,11 @@ public class DryrunTranslations extends Dryrun {
     private PropertiesBean pb;
     private PlaceholderUtil placeholderUtil;
     private boolean filesMustExist;
-    private Optional<Map<String, Map<String, String>>> projectLanguageMapping;
+    private LanguageMapping projectLanguageMapping;
     private Optional<Language> language;
 
     public DryrunTranslations(
-        PropertiesBean pb, Optional<Map<String, Map<String, String>>> projectLanguageMapping,
+        PropertiesBean pb, LanguageMapping projectLanguageMapping,
         PlaceholderUtil placeholderUtil, Optional<Language> language, boolean filesMustExist
     ) {
         super("message.translation_file");
@@ -44,11 +43,8 @@ public class DryrunTranslations extends Dryrun {
                     return placeholderUtil.replaceFileDependentPlaceholders(translation, source);
                 })
                 .flatMap(translation -> {
-                    Map<String, Map<String, String>> languageMapping =
-                        file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
-                    if (projectLanguageMapping.isPresent()) {
-                        TranslationsUtils.populateLanguageMappingFromServer(languageMapping, projectLanguageMapping.get());
-                    }
+                    LanguageMapping localLanguageMapping = LanguageMapping.fromConfigFileLanguageMapping(file.getLanguagesMapping());
+                    LanguageMapping languageMapping = LanguageMapping.populate(localLanguageMapping, projectLanguageMapping);
                     return language
                         .map(l -> Stream.of(placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, l)))
                         .orElseGet(() -> placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping).stream());

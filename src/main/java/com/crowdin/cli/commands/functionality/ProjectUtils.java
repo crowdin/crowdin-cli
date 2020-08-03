@@ -59,7 +59,9 @@ public class ProjectUtils {
     private static final Object obj = new Object();
     private static final Map<String, Lock> pathLocks = new ConcurrentHashMap<>();
 
-    private static Long createDirectory(Outputter out, Map<String, Long> directoryIdMap, Client client, AddDirectoryRequest request, String key, boolean plainView) {
+    private static Long createDirectory(
+        Outputter out, Map<String, Long> directoryIdMap, Client client, AddDirectoryRequest request, String key, boolean plainView
+    ) {
         Lock lock;
         synchronized (obj) {
             if (!pathLocks.containsKey(key)) {

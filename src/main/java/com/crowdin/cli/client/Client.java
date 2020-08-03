@@ -20,11 +20,11 @@ import java.util.List;
 
 public interface Client {
 
-    Project downloadFullProject() throws ResponseException;
+    CrowdinProjectFull downloadFullProject() throws ResponseException;
 
-    Project downloadProjectWithLanguages() throws ResponseException;
+    CrowdinProject downloadProjectWithLanguages() throws ResponseException;
 
-    com.crowdin.client.projectsgroups.model.Project downloadProjectInfo();
+    CrowdinProjectInfo downloadProjectInfo();
 
     Branch addBranch(AddBranchRequest request);
 

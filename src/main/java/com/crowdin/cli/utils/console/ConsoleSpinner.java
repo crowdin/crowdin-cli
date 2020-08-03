@@ -11,9 +11,12 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class ConsoleSpinner {
 
+    private static final Object object = new Object();
     private static Spinner worker;
 
-    public static <T> T execute(Outputter out, String waitingMessageKey, String errorMessageKey, boolean noProgress, boolean isPlain, @NonNull Callable<T> callable) {
+    public static <T> T execute(
+        Outputter out, String waitingMessageKey, String errorMessageKey, boolean noProgress, boolean isPlain, @NonNull Callable<T> callable
+    ) {
         try {
             if (!isPlain) {
                 ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString(waitingMessageKey), noProgress);
@@ -28,33 +31,41 @@ public class ConsoleSpinner {
     }
 
     public static void start(Outputter out, String contextMessage, boolean noProgress) {
-        stop(ExecutionStatus.EMPTY);
-        worker = new Spinner(out, contextMessage, noProgress);
-        worker.start();
+        synchronized (object) {
+            stop(ExecutionStatus.EMPTY);
+            worker = new Spinner(out, contextMessage, noProgress);
+            worker.start();
+        }
     }
 
     public static void update(String contextMessage) {
-        if (worker == null) {
-            return;
+        synchronized (object) {
+            if (worker == null) {
+                return;
+            }
+            worker.setMessage(contextMessage);
         }
-        worker.setMessage(contextMessage);
     }
 
 
     public static void stop(ExecutionStatus status) {
-        if (worker == null) {
-            return;
+        synchronized (object) {
+            if (worker == null) {
+                return;
+            }
+            worker.stopSpinning(status);
+            worker = null;
         }
-        worker.stopSpinning(status);
-        worker = null;
     }
 
 
     public static void stop(ExecutionStatus status, String message) {
-        if (worker == null) {
-            return;
+        synchronized (object) {
+            if (worker == null) {
+                return;
+            }
+            worker.stopSpinning(status, message);
+            worker = null;
         }
-        worker.stopSpinning(status, message);
-        worker = null;
     }
 }

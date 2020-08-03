@@ -122,7 +122,9 @@ public class GenerateActionTest {
         return setResponses(authViaBrowser, isEnterprise, null, apiToken, projectId, basePath);
     }
 
-    private static InputStream setResponses(boolean authViaBrowser, boolean isEnterprise, String organizationName, String apiToken, String projectId, String basePath) {
+    private static InputStream setResponses(
+        boolean authViaBrowser, boolean isEnterprise, String organizationName, String apiToken, String projectId, String basePath
+    ) {
         String responsesString =
             (authViaBrowser ? "yes" : "no") + "\n"
             + (isEnterprise ? "yes" + "\n" + organizationName : "no") + "\n"

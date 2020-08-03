@@ -77,7 +77,7 @@ class Spinner extends Thread {
         isSpin = false;
         lock.lock();
         try {
-            out.println(status.withIcon(message) + stopMessage);
+            out.println(status.withIcon(stopMessage));
         } finally {
             lock.unlock();
         }

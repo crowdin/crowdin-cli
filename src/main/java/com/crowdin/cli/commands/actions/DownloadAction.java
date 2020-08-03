@@ -1,7 +1,8 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.Project;
+import com.crowdin.cli.client.CrowdinProjectFull;
+import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
@@ -33,7 +34,6 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
@@ -73,10 +73,11 @@ public class DownloadAction implements ClientAction {
     public void act(Outputter out, PropertiesBean pb, Client client) {
         this.out = out;
         boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
-        this.checkOptions(isOrganization);
+        this.checkOptions();
 
-        Project project = ConsoleSpinner
-            .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info", this.noProgress, this.plainView, client::downloadFullProject);
+        CrowdinProjectFull project = ConsoleSpinner
+            .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+                this.noProgress, this.plainView, client::downloadFullProject);
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
@@ -92,14 +93,14 @@ public class DownloadAction implements ClientAction {
                 project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
         Optional<Language> language = Optional.ofNullable(languageId)
-            .map(lang -> project.findLanguage(lang, true)
+            .map(lang -> project.findLanguageById(lang, true)
                 .orElseThrow(() -> new RuntimeException(
                     String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))));
         Optional<Branch> branch = Optional.ofNullable(this.branchName)
-            .map(br -> project.findBranch(br)
+            .map(br -> project.findBranchByName(br)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))));
 
-        Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
+        LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
         CrowdinTranslationCreateProjectBuildForm buildRequest = new CrowdinTranslationCreateProjectBuildForm();
         buildRequest.setSkipUntranslatedStrings(this.skipTranslatedOnly);
@@ -155,18 +156,12 @@ public class DownloadAction implements ClientAction {
                     SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
                         .map(File::getAbsolutePath)
                         .collect(Collectors.toList());
-                Map<String, Map<String, String>> languageMapping =
-                    file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
-                Map<String, Map<String, String>> projLanguageMapping = new HashMap<>();
-                if (projectLanguageMapping.isPresent()) {
-                    TranslationsUtils.populateLanguageMappingFromServer(languageMapping, projectLanguageMapping.get());
-                    TranslationsUtils
-                        .populateLanguageMappingFromServer(projLanguageMapping, projectLanguageMapping.get());
-                }
+                LanguageMapping localLanguageMapping = LanguageMapping.fromConfigFileLanguageMapping(file.getLanguagesMapping());
+                LanguageMapping languageMapping = LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
                 Map<String, String> translationReplace =
                     file.getTranslationReplace() != null ? file.getTranslationReplace() : new HashMap<>();
                 return this.doTranslationMapping(
-                    forLanguages, file.getTranslation(), projLanguageMapping, languageMapping,
+                    forLanguages, file.getTranslation(), languageMapping, languageMapping,
                     translationReplace, sources, file.getSource(), pb.getBasePath(), placeholderUtil);
             })
             .flatMap(map -> map.entrySet().stream())
@@ -176,13 +171,10 @@ public class DownloadAction implements ClientAction {
         Map<Long, String> directoryPaths = (branch.isPresent())
             ? ProjectFilesUtils.buildDirectoryPaths(project.getDirectories())
             : ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches());
-        Map<String, Map<String, String>> langMapping = new HashMap<>();
-        TranslationsUtils
-            .populateLanguageMappingFromServer(langMapping, projectLanguageMapping.orElse(new HashMap<>()));
         Map<String, List<String>> allProjectTranslations = ProjectFilesUtils
                 .buildAllProjectTranslations(
                     project.getFiles(), directoryPaths, branch.map(Branch::getId),
-                    placeholderUtil, langMapping, pb.getBasePath());
+                    placeholderUtil, serverLanguageMapping, pb.getBasePath());
 
         this.unpackFiles(
             downloadedFilesProc, filesWithMapping, allProjectTranslations,
@@ -196,7 +188,7 @@ public class DownloadAction implements ClientAction {
         }
     }
 
-    private void checkOptions(boolean isOrganization) {
+    private void checkOptions() {
         if (skipTranslatedOnly != null
                 && skipUntranslatedFiles != null
                 && skipTranslatedOnly
@@ -206,19 +198,20 @@ public class DownloadAction implements ClientAction {
     }
 
     private ProjectBuild buildTranslation(Client client, BuildProjectTranslationRequest request) {
-        return ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info", this.noProgress, this.plainView, () -> {
-            ProjectBuild build = client.startBuildingTranslation(request);
+        return ConsoleSpinner.execute(out, "message.spinner.fetching_project_info",
+            "error.collect_project_info", this.noProgress, this.plainView, () -> {
+                ProjectBuild build = client.startBuildingTranslation(request);
 
-            while (!build.getStatus().equalsIgnoreCase("finished")) {
-                ConsoleSpinner.update(
-                    String.format(RESOURCE_BUNDLE.getString("message.building_translation"),
-                        Math.toIntExact(build.getProgress())));
-                Thread.sleep(100);
-                build = client.checkBuildingTranslation(build.getId());
-            }
-            ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
-            return build;
-        });
+                while (!build.getStatus().equalsIgnoreCase("finished")) {
+                    ConsoleSpinner.update(
+                        String.format(RESOURCE_BUNDLE.getString("message.building_translation"),
+                            Math.toIntExact(build.getProgress())));
+                    Thread.sleep(100);
+                    build = client.checkBuildingTranslation(build.getId());
+                }
+                ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
+                return build;
+            });
     }
 
     private Pair<Map<File, File>, List<String>> sortFiles(
@@ -311,8 +304,8 @@ public class DownloadAction implements ClientAction {
     private Map<String, String> doTranslationMapping(
         List<Language> languages,
         String translation,
-        Map<String, Map<String, String>> projLanguageMapping,
-        Map<String, Map<String, String>> languageMapping,
+        LanguageMapping projLanguageMapping,
+        LanguageMapping languageMapping,
         Map<String, String> translationReplace,
         List<String> sources,
         String source,
@@ -349,7 +342,8 @@ public class DownloadAction implements ClientAction {
 
     private void downloadTranslations(Client client, Long buildId, String archivePath) {
         InputStream data = ConsoleSpinner
-            .execute(out, "message.spinner.downloading_translation", "error.downloading_file", this.noProgress, this.plainView, () -> client.downloadBuild(buildId));
+            .execute(out, "message.spinner.downloading_translation", "error.downloading_file",
+                this.noProgress, this.plainView, () -> client.downloadBuild(buildId));
         try {
             files.writeToFile(archivePath, data);
         } catch (IOException e) {

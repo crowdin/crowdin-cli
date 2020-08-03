@@ -1,7 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.Project;
+import com.crowdin.cli.client.CrowdinProject;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
@@ -10,8 +10,6 @@ import com.crowdin.client.translationstatus.model.LanguageProgress;
 import java.util.List;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class StatusAction implements ClientAction {
 
@@ -31,19 +29,19 @@ public class StatusAction implements ClientAction {
 
     @Override
     public void act(Outputter out, PropertiesBean pb, Client client) {
-        Project project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+        CrowdinProject project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, client::downloadProjectWithLanguages);
 
-        Language language = (languageId != null)
-            ? project.findLanguage(languageId, true)
-                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)))
-            : null;
+        if (languageId != null) {
+            project.findLanguageById(languageId, true)
+                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)));
+        }
 
         List<LanguageProgress> progresses = client.getProjectProgress(languageId);
 
         if (isVerbose) {
             progresses.forEach(pr -> {
-                out.println(project.findLanguage(pr.getLanguageId(), true).get().getName() + "(" + pr.getLanguageId() + "): ");
+                out.println(project.findLanguageById(pr.getLanguageId(), true).get().getName() + "(" + pr.getLanguageId() + "): ");
                 if (showTranslated) {
                     out.println(String.format(RESOURCE_BUNDLE.getString("message.translation_progress"),
                         pr.getTranslationProgress(),

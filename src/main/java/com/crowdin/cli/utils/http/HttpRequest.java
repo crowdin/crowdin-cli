@@ -13,7 +13,7 @@ import java.util.Map;
 @Data
 @AllArgsConstructor(access = AccessLevel.PROTECTED)
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class HttpRequest {
+class HttpRequest {
 
     private String method;
     private String path;

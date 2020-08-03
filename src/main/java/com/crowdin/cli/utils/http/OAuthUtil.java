@@ -1,8 +1,5 @@
-package com.crowdin.cli.utils;
+package com.crowdin.cli.utils.http;
 
-import com.crowdin.cli.utils.http.HttpResponse;
-import com.crowdin.cli.utils.http.ServerSocketFactory;
-import com.crowdin.cli.utils.http.SimpleHttpServer;
 import lombok.Data;
 import org.apache.commons.codec.binary.Base64;
 import org.json.JSONException;

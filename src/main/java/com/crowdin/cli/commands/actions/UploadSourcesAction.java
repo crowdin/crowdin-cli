@@ -1,7 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.Project;
+import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.ProjectUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
@@ -38,7 +38,6 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
@@ -61,7 +60,7 @@ public class UploadSourcesAction implements ClientAction {
 
     @Override
     public void act(Outputter out, PropertiesBean pb, Client client) {
-        Project project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+        CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, this.plainView, client::downloadFullProject);
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
@@ -232,11 +231,11 @@ public class UploadSourcesAction implements ClientAction {
         return exportOptions;
     }
 
-    private Branch getOrCreateBranch(Outputter out, String branchName, Client client, Project project) {
+    private Branch getOrCreateBranch(Outputter out, String branchName, Client client, CrowdinProjectFull project) {
         if (StringUtils.isEmpty(branchName)) {
             return null;
         }
-        Optional<Branch> branchOpt = project.findBranch(branchName);
+        Optional<Branch> branchOpt = project.findBranchByName(branchName);
         if (branchOpt.isPresent()) {
             return branchOpt.get();
         } else {
@@ -246,7 +245,7 @@ public class UploadSourcesAction implements ClientAction {
             if (!plainView) {
                 out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branchName)));
             }
-            project.addBranchToList(newBranch);
+            project.addBranchToLocalList(newBranch);
             return newBranch;
         }
     }
