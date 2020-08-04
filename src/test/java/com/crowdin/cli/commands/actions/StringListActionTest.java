@@ -2,7 +2,7 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.ProjectBuilder;
-import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.client.models.SourceStringBuilder;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.PropertiesBeanBuilder;

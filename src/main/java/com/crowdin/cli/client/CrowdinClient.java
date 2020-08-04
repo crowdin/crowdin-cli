@@ -1,8 +1,5 @@
 package com.crowdin.cli.client;
 
-import com.crowdin.cli.client.exceptions.ExistsResponseException;
-import com.crowdin.cli.client.exceptions.ResponseException;
-import com.crowdin.cli.client.exceptions.WaitResponseException;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.core.http.impl.json.JacksonJsonTransformer;
@@ -28,10 +25,11 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
-
-import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 public class CrowdinClient extends CrowdinClientCore implements Client {
 
@@ -55,49 +53,45 @@ public class CrowdinClient extends CrowdinClientCore implements Client {
     @Override
     public CrowdinProjectFull downloadFullProject() {
         CrowdinProjectFull project = new CrowdinProjectFull();
-        this.populateProjectFull(project);
+        this.populateProjectWithInfo(project);
+        this.populateProjectWithLangs(project, project.getTargetLanguageIds());
+        this.populateProjectWithStructure(project);
         return project;
     }
 
     @Override
     public CrowdinProject downloadProjectWithLanguages() {
         CrowdinProject project = new CrowdinProject();
-        this.populateProjectWithLangs(project);
+        this.populateProjectWithInfo(project);
+        this.populateProjectWithLangs(project, project.getTargetLanguageIds());
         return project;
     }
 
     @Override
     public CrowdinProjectInfo downloadProjectInfo() {
         CrowdinProjectInfo project = new CrowdinProjectInfo();
-        this.populateProjectInfo(project);
+        this.populateProjectWithInfo(project);
         return project;
     }
 
-    public List<LanguageProgress> getProjectProgress(String langaugeId) {
-        return unwrap(this.client.getTranslationStatusApi()
-                .getProjectProgress(this.projectId, 500, 0, langaugeId));
+    private void populateProjectWithStructure(CrowdinProjectFull project) {
+        project.setFiles(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
+            .listFiles(this.projectId, null, null, null, limit, offset)));
+        project.setDirectories(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
+            .listDirectories(this.projectId, null, null, null, limit, offset)));
+        project.setBranches(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
+            .listBranches(this.projectId, null, limit, offset)));
     }
 
-    private void populateProjectFull(CrowdinProjectFull project) {
-        populateProjectWithLangs(project);
-        project.setFiles(executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
-            .listFiles(this.projectId, null, null, null, limit, offset)))));
-        project.setDirectories(executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
-            .listDirectories(this.projectId, null, null, null, limit, offset)))));
-        project.setBranches(executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceFilesApi()
-            .listBranches(this.projectId, null, limit, offset)))));
-    }
-
-    private void populateProjectWithLangs(CrowdinProject project) {
-        populateProjectInfo(project);
-        project.setSupportedLanguages(unwrap(executeRequest(() -> this.client.getLanguagesApi()
-            .listSupportedLanguages(499, 0))));
+    private void populateProjectWithLangs(CrowdinProject project, List<String> targetLanguageIds) {
+        project.setSupportedLanguages(executeRequestFullList((limit, offset) -> this.client.getLanguagesApi()
+            .listSupportedLanguages(limit, offset)));
         project.setProjectLanguages(project.getSupportedLanguages().stream()
-            .filter(language -> project.getTargetLanguageIds().contains(language.getId()))
+            .filter(language -> targetLanguageIds.contains(language.getId()))
             .collect(Collectors.toList()));
     }
 
-    private void populateProjectInfo(CrowdinProjectInfo project) {
+    private void populateProjectWithInfo(CrowdinProjectInfo project) {
         com.crowdin.client.projectsgroups.model.Project projectModel = this.getProject();
         project.setProjectId(projectModel.getId());
         project.setTargetLanguageIds(projectModel.getTargetLanguageIds());
@@ -114,26 +108,16 @@ public class CrowdinClient extends CrowdinClientCore implements Client {
     }
 
     private com.crowdin.client.projectsgroups.model.Project getProject() {
-        try {
-            return executeRequest(
-                () -> (com.crowdin.client.projectsgroups.model.Project) this.client.getProjectsGroupsApi()
-                    .getProject(this.projectId)
-                    .getData());
-        } catch (Exception e) {
-            if (e.getMessage() == null || e.getMessage().isEmpty()) {
-                throw e;
-            } else if (e.getMessage().contains("401")) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.response.401"));
-            } else if (e.getMessage().contains("403")) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.response.403"), this.projectId));
-            } else if (e.getMessage().contains("404") && StringUtils.containsIgnoreCase(e.getMessage(), "Project Not Found")) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.response.404_project_not_found"), this.projectId));
-            } else if (e.getMessage().contains("404") && StringUtils.containsIgnoreCase(e.getMessage(), "Organization Not Found")) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found"));
-            } else {
-                throw new RuntimeException("Error from server: " + e.getMessage());
-            }
-        }
+        return executeRequest(
+            () -> (com.crowdin.client.projectsgroups.model.Project) this.client.getProjectsGroupsApi()
+                .getProject(this.projectId)
+                .getData());
+    }
+
+    @Override
+    public List<LanguageProgress> getProjectProgress(String languageId) {
+        return executeRequestFullList((limit, offset) -> this.client.getTranslationStatusApi()
+            .getProjectProgress(this.projectId, limit, offset, languageId));
     }
 
     @Override
@@ -153,45 +137,39 @@ public class CrowdinClient extends CrowdinClientCore implements Client {
 
     @Override
     public Directory addDirectory(AddDirectoryRequest request) throws ResponseException {
-        try {
-            return executeRequest(() -> this.client.getSourceFilesApi()
-                .addDirectory(this.projectId, request)
-                .getData());
-        } catch (Exception e) {
-            if (StringUtils.containsAny(
-                    e.getMessage(),
-                    "Name must be unique", "This file is currently being updated")) {
-                throw new ExistsResponseException();
-            } else if (StringUtils.contains(e.getMessage(), "Already creating directory")) {
-                throw new WaitResponseException();
-            } else {
-                throw new RuntimeException(e.getMessage());
-            }
-        }
+        Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
+                put((code, message) -> StringUtils.containsAny(message, "Name must be unique", "This file is currently being updated"),
+                    new ExistsResponseException());
+                put((code, message) -> StringUtils.contains(message, "Already creating directory"),
+                    new WaitResponseException());
+            }};
+        return executeRequest(errorHandlers, () -> this.client.getSourceFilesApi()
+            .addDirectory(this.projectId, request)
+            .getData());
     }
 
     @Override
     public void updateSource(Long sourceId, UpdateFileRequest request) {
-        executeRequestWithRetryIfErrorContains(
+        executeRequestWithPossibleRetry(
+            (code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"),
             () -> this.client.getSourceFilesApi()
-                .updateOrRestoreFile(this.projectId, sourceId, request),
-            "File from storage with id #" + request.getStorageId() + " was not found");
+                .updateOrRestoreFile(this.projectId, sourceId, request));
     }
 
     @Override
     public void addSource(AddFileRequest request) {
-        executeRequestWithRetryIfErrorContains(
+        executeRequestWithPossibleRetry(
+            (code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"),
             () -> this.client.getSourceFilesApi()
-                .addFile(this.projectId, request),
-            "File from storage with id #" + request.getStorageId() + " was not found");
+                .addFile(this.projectId, request));
     }
 
     @Override
     public void uploadTranslations(String languageId, UploadTranslationsRequest request) {
-        executeRequestWithRetryIfErrorContains(
+        executeRequestWithPossibleRetry(
+            (code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"),
             () -> this.client.getTranslationsApi()
-                .uploadTranslations(this.projectId, languageId, request),
-            "File from storage with id #" + request.getStorageId() + " was not found");
+                .uploadTranslations(this.projectId, languageId, request));
     }
 
     @Override
@@ -223,25 +201,15 @@ public class CrowdinClient extends CrowdinClientCore implements Client {
 
     @Override
     public SourceString addSourceString(AddSourceStringRequest request) {
-        try {
-            return executeRequest(() -> this.client.getSourceStringsApi()
-                .addSourceString(this.projectId, request)
-                .getData());
-        } catch (Exception e) {
-            if (exceptionMessageContainsAll(e, "identifier", "isEmpty")) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.identifier_option_required"));
-            } else if (exceptionMessageContainsAll(e, "fileId", "isEmpty")) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.file_option_required"));
-            } else {
-                throw e;
-            }
-        }
+        return executeRequest(() -> this.client.getSourceStringsApi()
+            .addSourceString(this.projectId, request)
+            .getData());
     }
 
     @Override
     public List<SourceString> listSourceString(Long fileId, String filter) {
-        return executeRequestFullList((limit, offset) -> unwrap(executeRequest(() -> this.client.getSourceStringsApi()
-            .listSourceStrings(this.projectId, fileId, filter, limit, offset))));
+        return executeRequestFullList((limit, offset) -> this.client.getSourceStringsApi()
+            .listSourceStrings(this.projectId, fileId, filter, limit, offset));
     }
 
     @Override

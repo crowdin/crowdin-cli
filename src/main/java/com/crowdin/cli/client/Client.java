@@ -1,6 +1,5 @@
 package com.crowdin.cli.client;
 
-import com.crowdin.cli.client.exceptions.ResponseException;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;

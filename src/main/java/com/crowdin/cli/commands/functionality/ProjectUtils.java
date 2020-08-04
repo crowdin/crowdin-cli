@@ -2,9 +2,9 @@ package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.exceptions.ExistsResponseException;
-import com.crowdin.cli.client.exceptions.ResponseException;
-import com.crowdin.cli.client.exceptions.WaitResponseException;
+import com.crowdin.cli.client.ExistsResponseException;
+import com.crowdin.cli.client.ResponseException;
+import com.crowdin.cli.client.WaitResponseException;
 import com.crowdin.cli.commands.actions.Outputter;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ExecutionStatus;

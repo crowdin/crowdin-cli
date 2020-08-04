@@ -14,7 +14,7 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-public class CrowdinExecutorService extends ThreadPoolExecutor {
+class CrowdinExecutorService extends ThreadPoolExecutor {
 
     private boolean debug;
 

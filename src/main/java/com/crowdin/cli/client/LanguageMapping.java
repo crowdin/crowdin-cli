@@ -24,6 +24,11 @@ public final class LanguageMapping {
         }
     }
 
+    public String getValueOrDefault(String langCode, String placeholder, String defaultValue) {
+        String value = getValue(langCode, placeholder);
+        return (value != null) ? value : defaultValue;
+    }
+
     private LanguageMapping(Map<String, Map<String, String>> languageMapping) {
         this.languageMapping = languageMapping;
     }

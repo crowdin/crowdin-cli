@@ -42,7 +42,7 @@ public class CheckNewVersionAction implements Action {
                     + "@|yellow " + c1 + "──" + StringUtils.repeat("─", message2.length())   + "──" + c2 + "|@\n"
                     + "@|yellow │|@  " + StringUtils.center(newVersionText, message2.length()) + "  @|yellow │|@\n"
                     + "@|yellow \u251c──" + StringUtils.repeat("─", message2.length())   + "──\u2524|@\n"
-                    + "@|yellow │|@  " + StringUtils.center(message2, message2.length()+"@|cyan |@".length())                                              + "  @|yellow │|@\n"
+                    + "@|yellow │|@  " + StringUtils.center(message2, message2.length() + "@|cyan |@".length()) + "  @|yellow │|@\n"
                     + "@|yellow │|@  " + StringUtils.center(message3, message2.length())       + "  @|yellow │|@\n"
                     + "@|yellow " + c3 + "──" + StringUtils.repeat("─", message2.length())   + "──" + c4 + "|@");
     }
