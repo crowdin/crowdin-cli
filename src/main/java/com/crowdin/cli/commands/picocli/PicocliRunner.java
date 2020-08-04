@@ -33,6 +33,14 @@ public class PicocliRunner {
         return commandLine.execute(args);
     }
 
+    public boolean hasMatchedArg(String name) {
+        CommandLine.ParseResult parseResult = commandLine.getParseResult();
+        return parseResult != null
+            && ((parseResult.hasSubcommand())
+                ? parseResult.subcommand().hasMatchedOption(name)
+                : parseResult.hasMatchedOption(name));
+    }
+
     private void init() {
         CommandLine.Help.ColorScheme colorScheme = buildColorScheme();
         CommandLine.IExecutionExceptionHandler executionExceptionHandler = buildExecutionExceptionHandler();

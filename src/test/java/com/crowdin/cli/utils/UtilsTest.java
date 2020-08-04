@@ -29,16 +29,6 @@ public class UtilsTest {
     }
 
     @Test
-    public void testGetAppNewLatestVersion() {
-        assertNotNull(Utils.getAppNewLatestVersion());
-    }
-
-    @Test
-    public void testGetAppNewVersionMessage() {
-        assertNotNull(Utils.getNewVersionMessage());
-    }
-
-    @Test
     public void testBuildUserAgent() {
         assertNotNull(Utils.buildUserAgent());
     }

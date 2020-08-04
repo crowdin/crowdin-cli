@@ -43,6 +43,10 @@ public class Utils {
         return CROWDIN_PROPERTIES.getString(APPLICATION_VERSION);
     }
 
+    public static String getLatestVersionUrl() {
+        return CROWDIN_PROPERTIES.getString("application.version_file_url");
+    }
+
     public static String getBaseUrl() {
         return CROWDIN_PROPERTIES.getString(APPLICATION_BASE_URL);
     }
@@ -51,42 +55,12 @@ public class Utils {
         return SystemUtils.IS_OS_WINDOWS;
     }
 
-    public static Optional<String> getAppNewLatestVersion() {
-        try {
-            List<String> versionFile = IOUtils.readLines(new URL(CROWDIN_PROPERTIES.getString("application.version_file_url")).openStream(), "UTF-8");
-            return (versionFile.size() > 0 && !getAppVersion().equals(versionFile.get(0)))
-                ? Optional.of(versionFile.get(0))
-                : Optional.empty();
-        } catch (IOException e) {
-            return Optional.empty();
-        }
-    }
-
     public static List<String> readResource(String path) {
         try {
             return IOUtils.readLines(Utils.class.getResourceAsStream(path), "UTF-8");
         } catch (IOException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.read_resource_file"), path), e);
         }
-    }
-
-    public static Optional<String> getNewVersionMessage() {
-        String message2 = BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text.2");
-        String message3 = BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text.3");
-        String c1 = Utils.isWindows() ? "┌" : "\u256d";
-        String c2 = Utils.isWindows() ? "┐" : "\u256e";
-        String c3 = Utils.isWindows() ? "└" : "\u2570";
-        String c4 = Utils.isWindows() ? "┘" : "\u256f";
-        return getAppNewLatestVersion()
-            .map(newVersion -> String.format(BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text"), Utils.getAppVersion(), newVersion))
-            .map(newVersionText ->
-                "\n"
-                    + c1 + "──" + StringUtils.repeat("─", message2.length())   + "──" + c2 + "\n"
-                    + "│  " + StringUtils.center(newVersionText, message2.length()) + "  │\n"
-                    + "\u251c──" + StringUtils.repeat("─", message2.length())   + "──\u2524\n"
-                    + "│  " + message2                                              + "  │\n"
-                    + "│  " + StringUtils.center(message3, message2.length())       + "  │\n"
-                    + c3 + "──" + StringUtils.repeat("─", message2.length())   + "──" + c4);
     }
 
     public static String buildUserAgent() {
