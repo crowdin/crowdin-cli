@@ -1,6 +1,22 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.2.2] - 2020-09-01
+
+### Added
+- Colors support ([#301](https://github.com/crowdin/crowdin-cli/pull/301))
+- Add new 'crowdin list branches' command ([#300](https://github.com/crowdin/crowdin-cli/pull/300))
+- Add checking for relative paths in translation patterns ([#296](https://github.com/crowdin/crowdin-cli/pull/296))
+- Add autocomplete script to artifacts ([#298](https://github.com/crowdin/crowdin-cli/pull/298))
+
+### Updated
+- Improve 'crowdin init' ([#297](https://github.com/crowdin/crowdin-cli/pull/297))
+- Improve searching for multilanguage csv translation files ([#299](https://github.com/crowdin/crowdin-cli/pull/299))
+- Refactoring ([#301](https://github.com/crowdin/crowdin-cli/pull/301))
+
+### Fixed
+- Fix init command to accept path formats on Windows ([#305](https://github.com/crowdin/crowdin-cli/pull/305))
+
 ## [3.2.1] - 2020-07-24
 - Added: Browser authorization for `init` command
 - Added: Static analysis tools Spotbugs, Checkstyle
