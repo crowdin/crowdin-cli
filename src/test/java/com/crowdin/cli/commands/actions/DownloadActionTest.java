@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
 
@@ -68,11 +69,11 @@ public class DownloadActionTest {
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
-        InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
+        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
         when(client.downloadBuild(eq(buildId)))
-            .thenReturn(zipArchiveData);
+            .thenReturn(urlMock);
 
         FilesInterface files = mock(FilesInterface.class);
         AtomicReference<File> zipArchive = new AtomicReference<>();
@@ -93,7 +94,7 @@ public class DownloadActionTest {
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
 
-        verify(files).writeToFile(any(), eq(zipArchiveData));
+        verify(files).writeToFile(any(), any());
         verify(files).extractZipArchive(any(), any());
         verify(files).deleteFile(eq(zipArchive.get()));
         verify(files).deleteDirectory(tempDir.get());
@@ -115,11 +116,11 @@ public class DownloadActionTest {
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
-        InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
+        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
         when(client.downloadBuild(eq(buildId)))
-            .thenReturn(zipArchiveData);
+            .thenReturn(urlMock);
 
         FilesInterface files = mock(FilesInterface.class);
         AtomicReference<File> zipArchive = new AtomicReference<>();
@@ -142,7 +143,7 @@ public class DownloadActionTest {
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
 
-        verify(files).writeToFile(any(), eq(zipArchiveData));
+        verify(files).writeToFile(any(), any());
         verify(files).extractZipArchive(any(), any());
         verify(files).copyFile(
             new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"),
@@ -173,11 +174,11 @@ public class DownloadActionTest {
                 setSkipUntranslatedFiles(true);
             }};
         long buildId = 42L;
-        InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
                 .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
+        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
         when(client.downloadBuild(eq(buildId)))
-                .thenReturn(zipArchiveData);
+                .thenReturn(urlMock);
 
         FilesInterface files = mock(FilesInterface.class);
         AtomicReference<File> zipArchive = new AtomicReference<>();
@@ -200,7 +201,7 @@ public class DownloadActionTest {
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
 
-        verify(files).writeToFile(any(), eq(zipArchiveData));
+        verify(files).writeToFile(any(), any());
         verify(files).extractZipArchive(any(), any());
         verify(files).copyFile(
                 new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"),
@@ -228,15 +229,15 @@ public class DownloadActionTest {
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
-        InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "building", 25));
         when(client.checkBuildingTranslation(eq(buildId)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "building", 50))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "building", 75))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
+        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
         when(client.downloadBuild(eq(buildId)))
-            .thenReturn(zipArchiveData);
+            .thenReturn(urlMock);
 
         FilesInterface files = mock(FilesInterface.class);
         AtomicReference<File> zipArchive = new AtomicReference<>();
@@ -260,7 +261,7 @@ public class DownloadActionTest {
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
 
-        verify(files).writeToFile(any(), eq(zipArchiveData));
+        verify(files).writeToFile(any(), any());
         verify(files).extractZipArchive(any(), any());
         verify(files).copyFile(
             new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"),
@@ -290,11 +291,11 @@ public class DownloadActionTest {
                 .build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
-        InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
+        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
         when(client.downloadBuild(eq(buildId)))
-            .thenReturn(zipArchiveData);
+            .thenReturn(urlMock);
 
         FilesInterface files = mock(FilesInterface.class);
         AtomicReference<File> zipArchive = new AtomicReference<>();
@@ -319,7 +320,7 @@ public class DownloadActionTest {
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
 
-        verify(files).writeToFile(any(), eq(zipArchiveData));
+        verify(files).writeToFile(any(), any());
         verify(files).extractZipArchive(any(), any());
         verify(files).copyFile(
             new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"),
@@ -349,11 +350,11 @@ public class DownloadActionTest {
                 .build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
-        InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
+        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
         when(client.downloadBuild(eq(buildId)))
-            .thenReturn(zipArchiveData);
+            .thenReturn(urlMock);
 
         FilesInterface files = mock(FilesInterface.class);
         AtomicReference<File> zipArchive = new AtomicReference<>();
@@ -379,7 +380,7 @@ public class DownloadActionTest {
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
 
-        verify(files).writeToFile(any(), eq(zipArchiveData));
+        verify(files).writeToFile(any(), any());
         verify(files).extractZipArchive(any(), any());
         verify(files).copyFile(
             new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"),
@@ -410,11 +411,11 @@ public class DownloadActionTest {
                 .build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
-        InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
                 .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
+        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
         when(client.downloadBuild(eq(buildId)))
-                .thenReturn(zipArchiveData);
+                .thenReturn(urlMock);
 
         FilesInterface files = mock(FilesInterface.class);
         AtomicReference<File> zipArchive = new AtomicReference<>();
@@ -440,7 +441,7 @@ public class DownloadActionTest {
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
 
-        verify(files).writeToFile(any(), eq(zipArchiveData));
+        verify(files).writeToFile(any(), any());
         verify(files).extractZipArchive(any(), any());
         verify(files).copyFile(
                 new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"),
@@ -468,11 +469,11 @@ public class DownloadActionTest {
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
-        InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenThrow(new RuntimeException());
+        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
         when(client.downloadBuild(eq(buildId)))
-            .thenReturn(zipArchiveData);
+            .thenReturn(urlMock);
 
         FilesInterface files = mock(FilesInterface.class);
 
@@ -525,11 +526,11 @@ public class DownloadActionTest {
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
-        InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
+        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
         when(client.downloadBuild(eq(buildId)))
-            .thenReturn(zipArchiveData);
+            .thenReturn(urlMock);
 
         FilesInterface files = mock(FilesInterface.class);
         AtomicReference<File> zipArchive = new AtomicReference<>();
@@ -554,7 +555,7 @@ public class DownloadActionTest {
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
 
-        verify(files).writeToFile(any(), eq(zipArchiveData));
+        verify(files).writeToFile(any(), any());
         verify(files).extractZipArchive(any(), any());
         verify(files).copyFile(
             new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"),
@@ -615,11 +616,11 @@ public class DownloadActionTest {
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
-        InputStream zipArchiveData = IOUtils.toInputStream("not-really-zip-archive", "UTF-8");
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
+        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
         when(client.downloadBuild(eq(buildId)))
-            .thenReturn(zipArchiveData);
+            .thenReturn(urlMock);
 
         FilesInterface files = mock(FilesInterface.class);
         doThrow(IOException.class)
@@ -634,7 +635,7 @@ public class DownloadActionTest {
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
 
-        verify(files).writeToFile(any(), eq(zipArchiveData));
+        verify(files).writeToFile(any(), any());
         verifyNoMoreInteractions(files);
     }
 

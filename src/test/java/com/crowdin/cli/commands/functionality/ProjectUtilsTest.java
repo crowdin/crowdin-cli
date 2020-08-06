@@ -170,7 +170,7 @@ public class ProjectUtilsTest {
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>();
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
         Branch branch = null;
-        when(client.addDirectory(any())).thenThrow(new ResponseException("Error while creating directory"));
+        when(client.addDirectory(any())).thenThrow(new RuntimeException("Error while creating directory"));
 
         assertThrows(RuntimeException.class,
             () -> ProjectUtils.createPath(Outputter.getDefault(), client, directoriesIdMap, filePath, branch, false));

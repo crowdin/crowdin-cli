@@ -24,6 +24,7 @@ import org.apache.commons.lang3.tuple.Pair;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -341,10 +342,10 @@ public class DownloadAction implements ClientAction {
     }
 
     private void downloadTranslations(Client client, Long buildId, String archivePath) {
-        InputStream data = ConsoleSpinner
+        URL url = ConsoleSpinner
             .execute(out, "message.spinner.downloading_translation", "error.downloading_file",
                 this.noProgress, this.plainView, () -> client.downloadBuild(buildId));
-        try {
+        try (InputStream data = url.openStream()) {
             files.writeToFile(archivePath, data);
         } catch (IOException e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.write_file"), e);

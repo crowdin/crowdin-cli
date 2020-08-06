@@ -1,10 +1,5 @@
 package com.crowdin.cli.client;
 
-import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
-import com.crowdin.cli.utils.Utils;
-import com.crowdin.client.core.http.impl.json.JacksonJsonTransformer;
-import com.crowdin.client.core.model.ClientConfig;
-import com.crowdin.client.core.model.Credentials;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
@@ -31,22 +26,13 @@ import java.util.Map;
 import java.util.function.BiPredicate;
 import java.util.stream.Collectors;
 
-public class CrowdinClient extends CrowdinClientCore implements Client {
+class CrowdinClient extends CrowdinClientCore implements Client {
 
     private final com.crowdin.client.Client client;
     private final long projectId;
 
-    public CrowdinClient(String apiToken, String baseUrl, long projectId) {
-        boolean isTesting = PropertiesBeanUtils.isUrlForTesting(baseUrl);
-        String organization = PropertiesBeanUtils.getOrganization(baseUrl);
-        Credentials credentials = (isTesting)
-            ? new Credentials(apiToken, organization, baseUrl)
-            : new Credentials(apiToken, organization);
-        ClientConfig clientConfig = ClientConfig.builder()
-            .jsonTransformer(new JacksonJsonTransformer())
-            .userAgent(Utils.buildUserAgent())
-            .build();
-        this.client = new com.crowdin.client.Client(credentials, clientConfig);
+    public CrowdinClient(com.crowdin.client.Client client, long projectId) {
+        this.client = client;
         this.projectId = projectId;
     }
 
@@ -187,13 +173,13 @@ public class CrowdinClient extends CrowdinClientCore implements Client {
     }
 
     @Override
-    public InputStream downloadBuild(Long buildId) {
+    public URL downloadBuild(Long buildId) {
         String url = executeRequest(() -> this.client.getTranslationsApi()
             .downloadProjectTranslations(this.projectId, buildId)
             .getData()
             .getUrl());
         try {
-            return new URL(url).openStream();
+            return new URL(url);
         } catch (IOException e) {
             throw new RuntimeException("Unexpected exception: malformed download url: " + url, e);
         }

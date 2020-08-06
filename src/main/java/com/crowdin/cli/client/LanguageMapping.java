@@ -53,7 +53,7 @@ public final class LanguageMapping {
     /**
      * Language mapping from configuration file. It  has the following structure:
      * {
-     *     "two_letters_code": {
+     *     "three_letters_code": {
      *         "uk": "ua"
      *     },
      *     "name": {

@@ -1,13 +1,12 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
-import com.crowdin.cli.utils.http.OAuthUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
+import com.crowdin.cli.utils.http.OAuthUtil;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayInputStream;
@@ -187,7 +186,7 @@ public class GenerateAction implements Action {
     }
 
     private void checkParametersForExistence(Outputter out, String apiToken, String baseUrl, Long projectId) {
-        Client client = new CrowdinClient(apiToken, baseUrl, projectId);
+        Client client = Client.getDefault(apiToken, baseUrl, projectId);
         try {
             ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.validating_project"), false);
             client.downloadProjectInfo();

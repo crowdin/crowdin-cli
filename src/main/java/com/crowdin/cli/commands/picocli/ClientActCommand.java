@@ -1,7 +1,6 @@
 package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
 import com.crowdin.cli.commands.actions.ClientAction;
 import com.crowdin.cli.commands.actions.Outputter;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -26,7 +25,7 @@ abstract class ClientActCommand extends GenericCommand {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.params_are_invalid") + "\n" + errorsInOne);
         }
         PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
+        Client client = Client.getDefault(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
         Outputter out = new PicocliOutputter(System.out, isAnsi());
         ClientAction action = getAction();
         action.act(out, pb, client);

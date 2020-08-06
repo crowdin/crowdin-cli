@@ -32,6 +32,11 @@ abstract class CrowdinClientCore {
                 new RuntimeException(RESOURCE_BUNDLE.getString("error.response.404_project_not_found")));
             put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Organization Not Found"),
                 new RuntimeException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found")));
+            put((code, message) -> StringUtils.containsAny(message,
+                "PKIX path building failed",
+                "sun.security.provider.certpath.SunCertPathBuilderException",
+                "unable to find valid certification path to requested target"),
+                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.certificate")));
             put((code, message) -> code.equals("<empty_code>") && message.equals("<empty_message>"),
                 new RuntimeException("Empty error message from server"));
         }};
@@ -87,8 +92,8 @@ abstract class CrowdinClientCore {
                 .collect(Collectors.joining("\n"));
             throw new RuntimeException(errorMessage);
         } catch (HttpException e) {
-            String code = (e.getError().code != null) ? e.getError().code : "<empty code>";
-            String message = (e.getError().message != null) ? e.getError().message : "<empty message>";
+            String code = (e.getError().code != null) ? e.getError().code : "<empty_code>";
+            String message = (e.getError().message != null) ? e.getError().message : "<empty_message>";
             for (Map.Entry<BiPredicate<String, String>, R> errorHandler : errorHandlers.entrySet()) {
                 if (errorHandler.getKey().test(code, message)) {
                     throw errorHandler.getValue();
@@ -101,7 +106,7 @@ abstract class CrowdinClientCore {
             }
             throw new RuntimeException(String.format("Error from server: <Code: %s, Message: %s>", code, message));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw e;
         }
     }
 

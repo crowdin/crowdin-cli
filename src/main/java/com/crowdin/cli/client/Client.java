@@ -1,5 +1,10 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.utils.Utils;
+import com.crowdin.client.core.http.impl.json.JacksonJsonTransformer;
+import com.crowdin.client.core.model.ClientConfig;
+import com.crowdin.client.core.model.Credentials;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
@@ -15,13 +20,14 @@ import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
 
 import java.io.InputStream;
+import java.net.URL;
 import java.util.List;
 
 public interface Client {
 
-    CrowdinProjectFull downloadFullProject() throws ResponseException;
+    CrowdinProjectFull downloadFullProject();
 
-    CrowdinProject downloadProjectWithLanguages() throws ResponseException;
+    CrowdinProject downloadProjectWithLanguages();
 
     CrowdinProjectInfo downloadProjectInfo();
 
@@ -41,7 +47,7 @@ public interface Client {
 
     ProjectBuild checkBuildingTranslation(Long buildId);
 
-    InputStream downloadBuild(Long buildId);
+    URL downloadBuild(Long buildId);
 
     List<LanguageProgress> getProjectProgress(String languageId);
 
@@ -52,4 +58,18 @@ public interface Client {
     void deleteSourceString(Long id);
 
     SourceString editSourceString(Long sourceId, List<PatchRequest> requests);
+
+    static Client getDefault(String apiToken, String baseUrl, long projectId) {
+        boolean isTesting = PropertiesBeanUtils.isUrlForTesting(baseUrl);
+        String organization = PropertiesBeanUtils.getOrganization(baseUrl);
+        Credentials credentials = (isTesting)
+            ? new Credentials(apiToken, organization, baseUrl)
+            : new Credentials(apiToken, organization);
+        ClientConfig clientConfig = ClientConfig.builder()
+            .jsonTransformer(new JacksonJsonTransformer())
+            .userAgent(Utils.buildUserAgent())
+            .build();
+        com.crowdin.client.Client client = new com.crowdin.client.Client(credentials, clientConfig);
+        return new CrowdinClient(client, projectId);
+    }
 }
