@@ -37,6 +37,8 @@ abstract class CrowdinClientCore {
                 "sun.security.provider.certpath.SunCertPathBuilderException",
                 "unable to find valid certification path to requested target"),
                 new RuntimeException(RESOURCE_BUNDLE.getString("error.response.certificate")));
+            put((code, message) -> message.equals("Name or service not known"),
+                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.url_not_known")));
             put((code, message) -> code.equals("<empty_code>") && message.equals("<empty_message>"),
                 new RuntimeException("Empty error message from server"));
         }};
