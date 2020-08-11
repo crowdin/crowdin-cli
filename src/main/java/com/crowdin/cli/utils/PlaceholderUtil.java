@@ -26,6 +26,7 @@ public class PlaceholderUtil {
     protected static final String PLACEHOLDER_OSX_LOCALE = "%osx_locale%";
     protected static final String PLACEHOLDER_ORIGINAL_FILE_NAME = "%original_file_name%";
     protected static final String PLACEHOLDER_ORIGINAL_PATH = "%original_path%";
+    protected static final String PLACEHOLDER_LANGUAGE_ID = "%language_id%";
 
     private List<Language> supportedLangs;
     private List<Language> projectLangs;
@@ -69,6 +70,7 @@ public class PlaceholderUtil {
             throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");
         }
         return toFormat
+                .replace(PLACEHOLDER_LANGUAGE_ID, lang.getId())
                 .replace(PLACEHOLDER_LANGUAGE, lang.getName())
                 .replace(PLACEHOLDER_LOCALE, lang.getLocale())
                 .replace(PLACEHOLDER_LOCALE_WITH_UNDERSCORE, lang.getLocale().replace("-", "_"))
@@ -90,6 +92,7 @@ public class PlaceholderUtil {
         if (toFormat == null || lang == null || languageMapping == null) {
             throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");
         }
+        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LANGUAGE_ID, lang.getId(), lang.getId(), languageMapping);
         toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LANGUAGE, lang.getId(), lang.getName(), languageMapping);
         toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LOCALE, lang.getId(), lang.getLocale(), languageMapping);
         toFormat =

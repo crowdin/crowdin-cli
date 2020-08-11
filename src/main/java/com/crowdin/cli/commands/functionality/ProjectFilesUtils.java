@@ -54,7 +54,7 @@ public class ProjectFilesUtils {
             }
             String path = getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName();
             Stream<String> translations = isMultilingualFile(fe)
-                ? Stream.of(Utils.normalizePath(fe.getName()))
+                ? Stream.concat(Stream.of(Utils.normalizePath(fe.getName())), placeholderUtil.replaceLanguageDependentPlaceholders(Utils.normalizePath("%language_id%/" + fe.getName()), languageMapping).stream())
                 : placeholderUtil.replaceLanguageDependentPlaceholders(Utils.normalizePath(getExportPattern(fe.getExportOptions())), languageMapping)
                     .stream()
                     .map(tr -> placeholderUtil.replaceFileDependentPlaceholders(tr, new java.io.File(basePath + path)))
