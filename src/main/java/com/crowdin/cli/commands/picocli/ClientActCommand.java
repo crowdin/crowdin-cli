@@ -1,37 +1,31 @@
 package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.actions.ClientAction;
-import com.crowdin.cli.commands.actions.Outputter;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.PropertiesBean;
 import picocli.CommandLine;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.stream.Collectors;
 
 abstract class ClientActCommand extends GenericCommand {
 
     @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
+    private ConfigurationProperties configProperties;
 
     @Override
-    public final void run() {
-        List<String> errors = checkOptions();
-        if (errors != null && !errors.isEmpty()) {
-            String errorsInOne = errors.stream()
-                .map(error -> String.format(RESOURCE_BUNDLE.getString("message.item_list"), error))
-                .collect(Collectors.joining("\n"));
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.params_are_invalid") + "\n" + errorsInOne);
-        }
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
+    protected final void act(Actions actions, Outputter out) {
+        PropertiesBean pb = actions
+            .buildProperties(configProperties.getConfigFile(), configProperties.getIdentityFile(), configProperties.getParams())
+            .act(out);
         Client client = Client.getDefault(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
-        Outputter out = new PicocliOutputter(System.out, isAnsi());
-        ClientAction action = getAction();
+        ClientAction action = getAction(actions);
         action.act(out, pb, client);
     }
 
-    protected abstract ClientAction getAction();
+    protected abstract ClientAction getAction(Actions actions);
 
     protected List<String> checkOptions() {
         return Collections.emptyList();

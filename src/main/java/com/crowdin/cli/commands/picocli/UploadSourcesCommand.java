@@ -1,11 +1,10 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.commands.actions.ClientAction;
-import com.crowdin.cli.commands.actions.ListSourcesAction;
-import com.crowdin.cli.commands.actions.UploadSourcesAction;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
 import picocli.CommandLine;
 
-class UploadSourcesCommand extends ClientActCommand {
+class UploadSourcesCommand extends ClientActPlainMixin {
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
@@ -19,18 +18,10 @@ class UploadSourcesCommand extends ClientActCommand {
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
-    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
-    protected boolean plainView;
-
     @Override
-    protected ClientAction getAction() {
+    protected ClientAction getAction(Actions actions) {
         return (dryrun)
-            ? new ListSourcesAction(this.noProgress, this.treeView, plainView)
-            : new UploadSourcesAction(this.branch, this.noProgress, this.autoUpdate, debug, plainView);
-    }
-
-    @Override
-    protected boolean isAnsi() {
-        return !plainView;
+            ? actions.listSources(this.noProgress, this.treeView, plainView)
+            : actions.uploadSources(this.branch, this.noProgress, this.autoUpdate, debug, plainView);
     }
 }

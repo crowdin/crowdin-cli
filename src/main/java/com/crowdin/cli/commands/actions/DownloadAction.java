@@ -3,6 +3,8 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.LanguageMapping;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
@@ -38,7 +40,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-public class DownloadAction implements ClientAction {
+class DownloadAction implements ClientAction {
 
     private FilesInterface files;
     private boolean noProgress;
@@ -74,7 +76,6 @@ public class DownloadAction implements ClientAction {
     public void act(Outputter out, PropertiesBean pb, Client client) {
         this.out = out;
         boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
-        this.checkOptions();
 
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
@@ -186,15 +187,6 @@ public class DownloadAction implements ClientAction {
             files.deleteFile(downloadedZipArchive);
         } catch (IOException e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.clearing_temp"), e);
-        }
-    }
-
-    private void checkOptions() {
-        if (skipTranslatedOnly != null
-                && skipUntranslatedFiles != null
-                && skipTranslatedOnly
-                && skipUntranslatedFiles) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
         }
     }
 

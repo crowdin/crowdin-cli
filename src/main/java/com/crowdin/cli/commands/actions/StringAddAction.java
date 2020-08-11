@@ -2,6 +2,8 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProjectFull;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.PropertiesBean;
@@ -16,7 +18,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-public class StringAddAction implements ClientAction {
+class StringAddAction implements ClientAction {
 
     private final boolean noProgress;
     private final String text;

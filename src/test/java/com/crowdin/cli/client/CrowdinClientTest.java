@@ -69,66 +69,56 @@ public class CrowdinClientTest {
     private HttpClient httpClientMock;
     private Client client;
 
-    private final String preUrl = "https://testme.crowdin.com";
-    private final String url = "https://testme.crowdin.com/api/v2";
+    private static final String preUrl = "https://testme.crowdin.com";
+    private static final String url = "https://testme.crowdin.com/api/v2";
 
-    private final long projectId = 42;
-//    private final long anotherProjectId = 43;
-    private final long fileId = 82;
-    private final String languageId = "uk";
-    private final long buildId = 62;
-    private final long stringId = 52;
-    private final String downloadUrl = "https://downloadme.crowdin.com";
-    private final String downloadUrlMalformed = "https";
+    private static final long projectId = 42;
+    private static final long fileId = 82;
+    private static final String languageId = "uk";
+    private static final long buildId = 62;
+    private static final long stringId = 52;
+    private static final String downloadUrl = "https://downloadme.crowdin.com";
+    private static final String downloadUrlMalformed = "https";
 
-    private final String listFilesUrl =
+    private static final String listFilesUrl =
         String.format("%s/projects/%d/files", url, projectId);
-    private final String listDirectoriesUrl =
+    private static final String listDirectoriesUrl =
         String.format("%s/projects/%d/directories", url, projectId);
-    private final String listBranchesUrl =
+    private static final String listBranchesUrl =
         String.format("%s/projects/%d/branches", url, projectId);
-    private final String listSupportedLanguagesUrl =
+    private static final String listSupportedLanguagesUrl =
         String.format("%s/languages", url);
-    private final String getProjectUrl =
+    private static final String getProjectUrl =
         String.format("%s/projects/%d", url, projectId);
-//    private final String getProjectUrlTranslator =
-//        String.format("%s/projects/%d", url, anotherProjectId);
 
-    private final String getProjectProgressUrl =
+    private static final String getProjectProgressUrl =
         String.format("%s/projects/%d/languages/progress", url, projectId);
-    private final String addBranchUrl =
+    private static final String addBranchUrl =
         String.format("%s/projects/%d/branches", url, projectId);
-    private final String uploadStorageUrl =
+    private static final String uploadStorageUrl =
         String.format("%s/storages", url);
-    private final String addDirectoryUrl =
+    private static final String addDirectoryUrl =
         String.format("%s/projects/%d/directories", url, projectId);
-//    private final String addDirectoryUrlThrows =
-//        String.format("%s/projects/%d/directories", url, anotherProjectId);
-    private final String updateSourceUrl =
+    private static final String updateSourceUrl =
         String.format("%s/projects/%d/files/%d", url, projectId, fileId);
-//    private final String updateSourceUrlRepeat =
-//        String.format("%s/projects/%d/files/%d", url, anotherProjectId, fileId);
-    private final String addSourceUrl =
+    private static final String addSourceUrl =
         String.format("%s/projects/%d/files", url, projectId);
-    private final String uploadTranslationsUrl =
+    private static final String uploadTranslationsUrl =
         String.format("%s/projects/%d/translations/%s", url, projectId, languageId);
-    private final String startBuildingTranslationsUrl =
+    private static final String startBuildingTranslationsUrl =
         String.format("%s/projects/%d/translations/builds", url, projectId);
-    private final String checkBuildingTranslationUrl =
+    private static final String checkBuildingTranslationUrl =
         String.format("%s/projects/%d/translations/builds/%d", url, projectId, buildId);
-    private final String downloadBuildUrl =
+    private static final String downloadBuildUrl =
         String.format("%s/projects/%d/translations/builds/%d/download", url, projectId, buildId);
-//    private final String downloadBuildUrlInvalid =
-//        String.format("%s/projects/%d/translations/builds/%d/download", url, anotherProjectId, buildId);
-    private final String addSourceStringUrl =
+    private static final String addSourceStringUrl =
         String.format("%s/projects/%d/strings", url, projectId);
-    private final String listSourceStringUrl =
+    private static final String listSourceStringUrl =
         String.format("%s/projects/%d/strings", url, projectId);
-    private final String deleteSourceStringUrl =
+    private static final String deleteSourceStringUrl =
         String.format("%s/projects/%d/strings/%d", url, projectId, stringId);
-    private final String editSourceStringUrl =
+    private static final String editSourceStringUrl =
         String.format("%s/projects/%d/strings/%d", url, projectId, stringId);
-
 
     @BeforeEach
     public void init() {
@@ -145,47 +135,47 @@ public class CrowdinClientTest {
     @Test
     public void testDownloadProjectFull() {
         Project project = new Project() {{
-            setId(projectId);
-            setTargetLanguageIds(Arrays.asList("en"));
-        }};
+                setId(projectId);
+                setTargetLanguageIds(Arrays.asList("en"));
+            }};
         List<LanguageResponseObject> supportedLangs = Arrays.asList(
             new LanguageResponseObject() {{
-                setData(LanguageBuilder.ENG.build());
-            }},
+                    setData(LanguageBuilder.ENG.build());
+                }},
             new LanguageResponseObject() {{
-                setData(LanguageBuilder.UKR.build());
-            }}
+                    setData(LanguageBuilder.UKR.build());
+                }}
         );
         List<FileResponseObject> files = Arrays.asList(
             new FileResponseObject() {{
-                setData(new File());
-            }}
+                    setData(new File());
+                }}
         );
         List<DirectoryResponseObject> directories = Arrays.asList(
             new DirectoryResponseObject() {{
-                setData(new Directory());
-            }}
+                    setData(new Directory());
+                }}
         );
         List<BranchResponseObject> branches = Arrays.asList(
             new BranchResponseObject() {{
-                setData(new Branch());
-            }}
+                    setData(new Branch());
+                }}
         );
         ProjectResponseObject projectResponse = new ProjectResponseObject() {{
-            setData(project);
-        }};
+                setData(project);
+            }};
         LanguageResponseList langsResponse = new LanguageResponseList() {{
-            setData(supportedLangs);
-        }};
+                setData(supportedLangs);
+            }};
         FileResponseList filesResponse = new FileResponseList() {{
-            setData(files);
-        }};
+                setData(files);
+            }};
         DirectoryResponseList directoriesResponse = new DirectoryResponseList() {{
-            setData(directories);
-        }};
+                setData(directories);
+            }};
         BranchResponseList branchesResponse = new BranchResponseList() {{
-            setData(branches);
-        }};
+                setData(branches);
+            }};
         when(httpClientMock.get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class)))
             .thenReturn(projectResponse);
         when(httpClientMock.get(eq(listSupportedLanguagesUrl), any(), eq(LanguageResponseList.class)))
@@ -226,11 +216,11 @@ public class CrowdinClientTest {
                 }}
         );
         ProjectResponseObject projectResponse = new ProjectResponseObject() {{
-            setData(project);
-        }};
+                setData(project);
+            }};
         LanguageResponseList langsResponse = new LanguageResponseList() {{
-            setData(supportedLangs);
-        }};
+                setData(supportedLangs);
+            }};
         when(httpClientMock.get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class)))
             .thenReturn(projectResponse);
         when(httpClientMock.get(eq(listSupportedLanguagesUrl), any(), eq(LanguageResponseList.class)))
@@ -269,15 +259,15 @@ public class CrowdinClientTest {
     @Test
     public void testDownloadProjectInfoManagerAccessWithInContext() {
         Project project = new ProjectSettings() {{
-            setId(projectId);
-            setTargetLanguageIds(Arrays.asList("uk", "ua"));
-            setLanguageMapping(new HashMap<>());
-            setInContext(true);
-            setInContextPseudoLanguageId("ach");
-        }};
+                setId(projectId);
+                setTargetLanguageIds(Arrays.asList("uk", "ua"));
+                setLanguageMapping(new HashMap<>());
+                setInContext(true);
+                setInContextPseudoLanguageId("ach");
+            }};
         ProjectResponseObject response = new ProjectResponseObject() {{
-            setData(project);
-        }};
+                setData(project);
+            }};
         when(httpClientMock.get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class)))
             .thenReturn(response);
 
@@ -291,12 +281,12 @@ public class CrowdinClientTest {
     @Test
     public void testDownloadProjectInfoTranslatorAccess() {
         Project project = new Project() {{
-            setId(projectId);
-            setTargetLanguageIds(Arrays.asList("uk", "ua"));
-        }};
+                setId(projectId);
+                setTargetLanguageIds(Arrays.asList("uk", "ua"));
+            }};
         ProjectResponseObject response = new ProjectResponseObject() {{
-            setData(project);
-        }};
+                setData(project);
+            }};
         when(httpClientMock.get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class)))
             .thenReturn(response);
 
@@ -311,8 +301,8 @@ public class CrowdinClientTest {
     @Test
     public void testGetProjectProgress() {
         LanguageProgressResponseList response = new LanguageProgressResponseList() {{
-            setData(new ArrayList<>());
-        }};
+                setData(new ArrayList<>());
+            }};
         when(httpClientMock.get(eq(getProjectProgressUrl), any(), eq(LanguageProgressResponseList.class)))
             .thenReturn(response);
 
@@ -326,8 +316,8 @@ public class CrowdinClientTest {
     public void testAddBranch() {
         AddBranchRequest request = new AddBranchRequest();
         BranchResponseObject response = new BranchResponseObject() {{
-            setData(new Branch());
-        }};
+                setData(new Branch());
+            }};
         when(httpClientMock.post(eq(addBranchUrl), any(), any(), eq(BranchResponseObject.class)))
             .thenReturn(response);
 
@@ -341,8 +331,8 @@ public class CrowdinClientTest {
     public void testUploadStorage() throws IOException {
         InputStream requestData = IOUtils.toInputStream("Something to send", "UTF-8");
         StorageResponseObject response = new StorageResponseObject() {{
-            setData(new Storage());
-        }};
+                setData(new Storage());
+            }};
         when(httpClientMock.post(eq(uploadStorageUrl), any(), any(), eq(StorageResponseObject.class)))
             .thenReturn(response);
 
@@ -356,8 +346,8 @@ public class CrowdinClientTest {
     public void testAddDirectory() throws ResponseException {
         AddDirectoryRequest request = new AddDirectoryRequest();
         DirectoryResponseObject response = new DirectoryResponseObject() {{
-            setData(new Directory());
-        }};
+                setData(new Directory());
+            }};
         when(httpClientMock.post(eq(addDirectoryUrl), any(), any(), eq(DirectoryResponseObject.class)))
             .thenReturn(response);
 
@@ -370,9 +360,6 @@ public class CrowdinClientTest {
     @Test
     public void testAddDirectoryThrows() throws ResponseException {
         AddDirectoryRequest request = new AddDirectoryRequest();
-        DirectoryResponseObject response = new DirectoryResponseObject() {{
-            setData(new Directory());
-        }};
         when(httpClientMock.post(eq(addDirectoryUrl), any(), any(), eq(DirectoryResponseObject.class)))
             .thenThrow(HttpExceptionBuilder.build("unknown", "problem"));
 
@@ -385,8 +372,8 @@ public class CrowdinClientTest {
     @Test
     public void testUpdateSource() {
         FileResponseObject response = new FileResponseObject() {{
-            setData(new File());
-        }};
+                setData(new File());
+            }};
         UpdateFileRequest request = new UpdateFileRequest();
         request.setStorageId(100L);
         when(httpClientMock.put(eq(updateSourceUrl), any(), any(), eq(FileResponseObject.class)))
@@ -402,8 +389,8 @@ public class CrowdinClientTest {
     @Test
     public void testAddSource() {
         FileResponseObject response = new FileResponseObject() {{
-            setData(new File());
-        }};
+                setData(new File());
+            }};
         AddFileRequest request = new AddFileRequest();
         request.setStorageId(100L);
         when(httpClientMock.post(eq(addSourceUrl), any(), any(), eq(FileResponseObject.class)))
@@ -434,8 +421,8 @@ public class CrowdinClientTest {
     @Test
     public void testUploadTranslationsWithRepeat() {
         UploadTranslationsResponseObject response = new UploadTranslationsResponseObject() {{
-            setData(new UploadTranslationsResponse());
-        }};
+                setData(new UploadTranslationsResponse());
+            }};
         UploadTranslationsRequest request = new UploadTranslationsRequest();
         request.setStorageId(100L);
         when(httpClientMock.post(eq(uploadTranslationsUrl), any(), any(), eq(UploadTranslationsResponseObject.class)))
@@ -451,8 +438,8 @@ public class CrowdinClientTest {
     @Test
     public void testStartBuildingTranslation() {
         ProjectBuildResponseObject response = new ProjectBuildResponseObject() {{
-            setData(new ProjectBuild());
-        }};
+                setData(new ProjectBuild());
+            }};
         when(httpClientMock.post(eq(startBuildingTranslationsUrl), any(), any(), eq(ProjectBuildResponseObject.class)))
             .thenReturn(response);
         BuildProjectTranslationRequest request = new BuildProjectTranslationRequest() {
@@ -481,10 +468,11 @@ public class CrowdinClientTest {
     @Test
     public void testDownloadBuild() {
         DownloadLinkResponseObject response = new DownloadLinkResponseObject() {{
-            setData(new DownloadLink() {{
-                setUrl(downloadUrl);
-            }});
-        }};
+                setData(new DownloadLink() {{
+                        setUrl(downloadUrl);
+                    }}
+                );
+            }};
         when(httpClientMock.get(eq(downloadBuildUrl), any(), eq(DownloadLinkResponseObject.class)))
             .thenReturn(response);
 
@@ -497,10 +485,11 @@ public class CrowdinClientTest {
     @Test
     public void testDownloadBuildMalformed() {
         DownloadLinkResponseObject response = new DownloadLinkResponseObject() {{
-            setData(new DownloadLink() {{
-                setUrl(downloadUrlMalformed);
-            }});
-        }};
+                setData(new DownloadLink() {{
+                        setUrl(downloadUrlMalformed);
+                    }}
+                );
+            }};
         when(httpClientMock.get(eq(downloadBuildUrl), any(), eq(DownloadLinkResponseObject.class)))
             .thenReturn(response);
 

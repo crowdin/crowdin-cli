@@ -2,11 +2,13 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProjectFull;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.DryrunBranches;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 
-public class ListBranchesAction implements ClientAction {
+class ListBranchesAction implements ClientAction {
 
     private boolean noProgress;
     private boolean plainView;

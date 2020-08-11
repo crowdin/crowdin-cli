@@ -5,6 +5,8 @@ import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.client.models.BranchBuilder;
 import com.crowdin.cli.client.models.DirectoryBuilder;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.PropertiesBeanBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;

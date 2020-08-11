@@ -2,6 +2,8 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProject;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.DryrunTranslations;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
@@ -12,7 +14,7 @@ import java.util.Optional;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-public class ListTranslationsAction implements ClientAction {
+class ListTranslationsAction implements ClientAction {
 
     private boolean noProgress;
     private boolean treeView;

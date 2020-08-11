@@ -5,7 +5,7 @@ import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.ExistsResponseException;
 import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.client.WaitResponseException;
-import com.crowdin.cli.commands.actions.Outputter;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;

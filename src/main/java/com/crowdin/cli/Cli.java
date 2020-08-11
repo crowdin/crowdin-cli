@@ -1,5 +1,8 @@
 package com.crowdin.cli;
 
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.actions.CliActions;
+import com.crowdin.cli.commands.picocli.CommandNames;
 import com.crowdin.cli.commands.picocli.PicocliRunner;
 
 import java.net.Authenticator;
@@ -12,9 +15,10 @@ public class Cli {
             setSystemProperties();
 
             PicocliRunner picocliRunner = PicocliRunner.getInstance();
-            int exitCode = picocliRunner.execute(args);
+            Actions actions = new CliActions();
+            int exitCode = picocliRunner.execute(actions, args);
             if (exitCode != -1 && !picocliRunner.hasMatchedArg("plain")) {
-                picocliRunner.execute("check-new-version");
+                picocliRunner.execute(actions, CommandNames.CHECK_NEW_VERSION);
             }
 
             System.exit(exitCode);

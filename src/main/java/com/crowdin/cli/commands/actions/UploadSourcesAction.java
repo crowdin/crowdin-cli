@@ -2,6 +2,8 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProjectFull;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.ProjectUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
@@ -42,7 +44,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-public class UploadSourcesAction implements ClientAction {
+class UploadSourcesAction implements ClientAction {
 
     private String branchName;
     private boolean noProgress;

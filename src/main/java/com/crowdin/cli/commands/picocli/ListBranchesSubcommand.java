@@ -1,24 +1,16 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.commands.actions.ClientAction;
-import com.crowdin.cli.commands.actions.ListBranchesAction;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "branches"
+    name = CommandNames.LIST_BRANCHES
 )
-class ListBranchesSubcommand extends ClientActCommand {
-
-    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
-    protected boolean plainView;
+class ListBranchesSubcommand extends ClientActPlainMixin {
 
     @Override
-    protected ClientAction getAction() {
-        return new ListBranchesAction(this.noProgress, this.plainView);
-    }
-
-    @Override
-    protected boolean isAnsi() {
-        return !plainView;
+    protected ClientAction getAction(Actions actions) {
+        return actions.listBranches(this.noProgress, this.plainView);
     }
 }

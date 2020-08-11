@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.client.core.model.PatchOperation;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
+import com.crowdin.client.translations.model.UploadTranslationsRequest;
 
 public class RequestBuilder {
 
@@ -14,6 +15,14 @@ public class RequestBuilder {
         request.setContext(context);
         request.setFileId(fileId);
         request.setIsHidden(hidden);
+        return request;
+    }
+
+    public static UploadTranslationsRequest uploadTranslations(Long fileId, boolean importEqSuggestions, boolean autoApproveImported) {
+        UploadTranslationsRequest request = new UploadTranslationsRequest();
+        request.setFileId(fileId);
+        request.setImportEqSuggestions(importEqSuggestions);
+        request.setAutoApproveImported(autoApproveImported);
         return request;
     }
 

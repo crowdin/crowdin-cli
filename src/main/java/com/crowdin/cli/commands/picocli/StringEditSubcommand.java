@@ -1,14 +1,14 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.commands.actions.ClientAction;
-import com.crowdin.cli.commands.actions.StringEditAction;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
 import picocli.CommandLine;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
-    name = "edit"
+    name = CommandNames.STRING_EDIT
 )
 class StringEditSubcommand extends ClientActCommand {
 
@@ -45,8 +45,8 @@ class StringEditSubcommand extends ClientActCommand {
     }
 
     @Override
-    protected ClientAction getAction() {
-        return new StringEditAction(noProgress, id, identifier, newText, newContext, newMaxLength, newIsHidden);
+    protected ClientAction getAction(Actions actions) {
+        return actions.stringEdit(noProgress, id, identifier, newText, newContext, newMaxLength, newIsHidden);
     }
 
 

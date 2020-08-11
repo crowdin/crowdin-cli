@@ -2,16 +2,17 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProject;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
 
 import java.util.List;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
-public class StatusAction implements ClientAction {
+class StatusAction implements ClientAction {
 
     private boolean noProgress;
     private String languageId;
@@ -41,7 +42,8 @@ public class StatusAction implements ClientAction {
 
         if (isVerbose) {
             progresses.forEach(pr -> {
-                out.println(project.findLanguageById(pr.getLanguageId(), true).get().getName() + "(" + pr.getLanguageId() + "): ");
+                out.println(String.format(RESOURCE_BUNDLE.getString("message.language"),
+                    project.findLanguageById(pr.getLanguageId(), true).get().getName(), pr.getLanguageId()));
                 if (showTranslated) {
                     out.println(String.format(RESOURCE_BUNDLE.getString("message.translation_progress"),
                         pr.getTranslationProgress(),

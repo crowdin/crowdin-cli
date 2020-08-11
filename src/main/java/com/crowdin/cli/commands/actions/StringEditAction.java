@@ -1,6 +1,8 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.client.core.model.PatchOperation;
@@ -13,7 +15,7 @@ import java.util.List;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-public class StringEditAction implements ClientAction {
+class StringEditAction implements ClientAction {
 
     private final boolean noProgress;
     private final Long id;

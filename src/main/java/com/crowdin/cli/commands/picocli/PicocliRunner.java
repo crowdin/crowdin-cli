@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.picocli;
 
+import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.utils.OutputUtil;
 import com.crowdin.cli.utils.Utils;
 import picocli.CommandLine;
@@ -11,7 +12,8 @@ public class PicocliRunner {
 
     private static PicocliRunner INSTANCE;
 
-    CommandLine commandLine;
+    private CommandLine commandLine;
+    private RootCommand rootCommand;
 
     private PicocliRunner() {
         init();
@@ -29,7 +31,8 @@ public class PicocliRunner {
      * @param args arguments from command line.
      * @return exit code (0 - OK, 1 - Errors)
      */
-    public int execute(String... args) {
+    public int execute(Actions actions, String... args) {
+        GenericCommand.init(actions);
         return commandLine.execute(args);
     }
 
@@ -42,9 +45,10 @@ public class PicocliRunner {
     }
 
     private void init() {
+        rootCommand = new RootCommand();
         CommandLine.Help.ColorScheme colorScheme = buildColorScheme();
         CommandLine.IExecutionExceptionHandler executionExceptionHandler = buildExecutionExceptionHandler();
-        this.commandLine = new CommandLine(new RootCommand())
+        this.commandLine = new CommandLine(rootCommand)
             .setExecutionExceptionHandler(executionExceptionHandler)
             .setColorScheme(colorScheme);
         HelpCommand.setOptions(commandLine, System.out, colorScheme);
@@ -69,7 +73,7 @@ public class PicocliRunner {
         };
     }
 
-    public static class VersionProvider implements CommandLine.IVersionProvider {
+    static class VersionProvider implements CommandLine.IVersionProvider {
         @Override
         public String[] getVersion() {
             return new String[] {Utils.getAppVersion()};

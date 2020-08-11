@@ -1,11 +1,11 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.commands.actions.ClientAction;
-import com.crowdin.cli.commands.actions.StatusAction;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "status",
+    name = CommandNames.STATUS,
     sortOptions = false,
     subcommands = {
         StatusTranslationSubcommand.class,
@@ -18,7 +18,7 @@ class StatusSubcommand extends ClientActCommand {
     protected String languageId;
 
     @Override
-    protected ClientAction getAction() {
-        return new StatusAction(noProgress, languageId, isVerbose, true, true);
+    protected ClientAction getAction(Actions actions) {
+        return actions.status(noProgress, languageId, isVerbose, true, true);
     }
 }

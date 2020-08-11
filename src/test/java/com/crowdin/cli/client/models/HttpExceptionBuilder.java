@@ -18,15 +18,18 @@ public class HttpExceptionBuilder {
 
     public static HttpBadRequestException buildBadRequest(String key, String code, String message) {
         return new HttpBadRequestException() {{
-            setErrors(Arrays.asList(new ErrorHolder() {{
-                setError(new ErrorKey() {{
-                    setKey(key);
-                    setErrors(Arrays.asList(new Error() {{
-                        setCode(code);
-                        setMessage(message);
-                    }}));
-                }});
-            }}));
-        }};
+                setErrors(Arrays.asList(new ErrorHolder() {{
+                        setError(new ErrorKey() {{
+                                setKey(key);
+                                setErrors(Arrays.asList(new Error() {{
+                                        setCode(code);
+                                        setMessage(message);
+                                    }}
+                                ));
+                            }}
+                        );
+                    }}
+                ));
+            }};
     }
 }

@@ -12,20 +12,23 @@ public class LanguageMappingTest {
 
     private static final Map<String, Map<String, String>> SERVER_LANGUAGE_MAPPING =
         new HashMap<String, Map<String, String>>() {{
-            put("uk", new HashMap<String, String>() {{
-                put("name", "Ukrainian");
-                put("two_letters_code", "ua");
-            }});
-        }};
+                put("uk", new HashMap<String, String>() {{
+                        put("name", "Ukrainian");
+                        put("two_letters_code", "ua");
+                    }}
+                );
+            }};
     private static final Map<String, Map<String, String>> CONFIG_FILE_LANGUAGE_MAPPING =
         new HashMap<String, Map<String, String>>() {{
-            put("three_letters_code", new HashMap<String, String>() {{
-                put("uk", "ua");
-            }});
-            put("name", new HashMap<String, String>() {{
-                put("uk", "_Ukrainian_");
-            }});
-        }};
+                put("three_letters_code", new HashMap<String, String>() {{
+                        put("uk", "ua");
+                    }}
+                );
+                put("name", new HashMap<String, String>() {{
+                        put("uk", "_Ukrainian_");
+                    }}
+                );
+            }};
 
     @Test
     public void testLanguageMappingForServer() {

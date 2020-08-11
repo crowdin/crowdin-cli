@@ -1,6 +1,6 @@
 package com.crowdin.cli.utils.console;
 
-import com.crowdin.cli.commands.actions.Outputter;
+import com.crowdin.cli.commands.Outputter;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;

@@ -2,12 +2,14 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProject;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.DryrunSources;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 
-public class ListSourcesAction implements ClientAction {
+class ListSourcesAction implements ClientAction {
 
     private boolean noProgress;
     private boolean treeView;

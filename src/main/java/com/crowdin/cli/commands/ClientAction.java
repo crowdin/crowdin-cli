@@ -1,6 +1,7 @@
-package com.crowdin.cli.commands.actions;
+package com.crowdin.cli.commands;
 
 import com.crowdin.cli.client.Client;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.PropertiesBean;
 
 public interface ClientAction {

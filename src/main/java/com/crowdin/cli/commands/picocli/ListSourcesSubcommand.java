@@ -1,12 +1,13 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.commands.actions.ClientAction;
-import com.crowdin.cli.commands.actions.ListSourcesAction;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "sources")
-class ListSourcesSubcommand extends ClientActCommand {
+    name = CommandNames.LIST_SOURCES
+)
+class ListSourcesSubcommand extends ClientActPlainMixin {
 
     @CommandLine.Option(names = {"-b", "--branch"})
     protected String branch;
@@ -14,16 +15,8 @@ class ListSourcesSubcommand extends ClientActCommand {
     @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
-    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
-    protected boolean plainView;
-
     @Override
-    protected ClientAction getAction() {
-        return new ListSourcesAction(this.noProgress, this.treeView, this.plainView);
-    }
-
-    @Override
-    protected boolean isAnsi() {
-        return !plainView;
+    protected ClientAction getAction(Actions actions) {
+        return actions.listSources(this.noProgress, this.treeView, this.plainView);
     }
 }

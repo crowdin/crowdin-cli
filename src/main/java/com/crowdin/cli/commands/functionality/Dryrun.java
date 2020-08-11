@@ -1,6 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
-import com.crowdin.cli.commands.actions.Outputter;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.utils.tree.DrawTree;
 
 import java.util.List;

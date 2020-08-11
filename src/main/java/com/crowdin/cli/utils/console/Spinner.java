@@ -1,6 +1,6 @@
 package com.crowdin.cli.utils.console;
 
-import com.crowdin.cli.commands.actions.Outputter;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.utils.Utils;
 
 import java.util.concurrent.locks.ReentrantLock;

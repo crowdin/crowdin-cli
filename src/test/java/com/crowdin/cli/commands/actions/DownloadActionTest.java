@@ -3,6 +3,8 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ResponseException;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.PropertiesBeanBuilder;
@@ -11,14 +13,12 @@ import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
 import com.crowdin.client.translations.model.ProjectBuild;
-import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.concurrent.atomic.AtomicReference;
@@ -637,23 +637,5 @@ public class DownloadActionTest {
 
         verify(files).writeToFile(any(), any());
         verifyNoMoreInteractions(files);
-    }
-
-    @Test
-    public void testSkipUnTranslatedFilesSources_fail() throws ResponseException, IOException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
-            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
-            .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
-
-        Client client = mock(Client.class);
-
-        FilesInterface files = mock(FilesInterface.class);
-
-        ClientAction action = new DownloadAction(files, false, null, null, false, false, true, true, null, false);
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
-
-        verifyZeroInteractions(client);
-        verifyZeroInteractions(files);
     }
 }

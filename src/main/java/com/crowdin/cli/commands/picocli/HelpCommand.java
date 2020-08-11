@@ -1,5 +1,7 @@
 package com.crowdin.cli.commands.picocli;
 
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.Outputter;
 import picocli.CommandLine;
 
 import java.io.PrintStream;
@@ -17,7 +19,7 @@ abstract class HelpCommand extends GenericCommand {
     }
 
     @Override
-    public void run() {
+    public void act(Actions actions, Outputter outputter) {
         getCommand(rootCommand).usage(out, colorScheme);
     }
 

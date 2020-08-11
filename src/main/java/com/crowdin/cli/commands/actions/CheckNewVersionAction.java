@@ -1,6 +1,8 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.BaseCli;
+import com.crowdin.cli.commands.Action;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -10,7 +12,7 @@ import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 
-public class CheckNewVersionAction implements Action {
+class CheckNewVersionAction implements Action {
 
     @Override
     public void act(Outputter out) {

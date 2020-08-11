@@ -1,5 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
+import com.crowdin.cli.commands.Action;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;

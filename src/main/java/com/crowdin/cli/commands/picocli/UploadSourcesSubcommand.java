@@ -3,8 +3,8 @@ package com.crowdin.cli.commands.picocli;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "sources",
-        sortOptions = false
+    name = CommandNames.UPLOAD_SOURCES,
+    sortOptions = false
 )
 class UploadSourcesSubcommand extends UploadSourcesCommand {
 

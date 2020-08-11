@@ -1,14 +1,14 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.commands.actions.ClientAction;
-import com.crowdin.cli.commands.actions.StringDeleteAction;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
 import picocli.CommandLine;
 
 import java.util.Collections;
 import java.util.List;
 
 @CommandLine.Command(
-    name = "delete"
+    name = CommandNames.STRING_DELETE
 )
 class StringDeleteSubcommand extends ClientActCommand {
 
@@ -31,7 +31,7 @@ class StringDeleteSubcommand extends ClientActCommand {
     }
 
     @Override
-    protected ClientAction getAction() {
-        return new StringDeleteAction(noProgress, ids, texts, identifiers);
+    protected ClientAction getAction(Actions actions) {
+        return actions.stringDelete(noProgress, ids, texts, identifiers);
     }
 }

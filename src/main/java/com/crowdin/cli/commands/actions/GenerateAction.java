@@ -1,6 +1,8 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
+import com.crowdin.cli.commands.Action;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.utils.Utils;
@@ -29,7 +31,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-public class GenerateAction implements Action {
+class GenerateAction implements Action {
 
     public static final String BASE_PATH_DEFAULT = ".";
     public static final String BASE_URL_DEFAULT = "https://api.crowdin.com";
@@ -121,7 +123,6 @@ public class GenerateAction implements Action {
             } else {
                 values.put(BASE_URL, BASE_URL_DEFAULT);
             }
-//<<<<<<< HEAD
             String apiToken = asking.askParam(API_TOKEN);
             if (!apiToken.isEmpty()) {
                 values.put(API_TOKEN, apiToken);

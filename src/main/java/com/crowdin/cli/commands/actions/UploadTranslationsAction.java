@@ -3,8 +3,11 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.LanguageMapping;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.commands.functionality.TranslationsUtils;
 import com.crowdin.cli.properties.FileBean;
@@ -33,7 +36,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-public class UploadTranslationsAction implements ClientAction {
+class UploadTranslationsAction implements ClientAction {
 
     private boolean noProgress;
     private String languageId;
@@ -130,10 +133,7 @@ public class UploadTranslationsAction implements ClientAction {
                         }
                         return;
                     }
-                    UploadTranslationsRequest request = new UploadTranslationsRequest();
-                    request.setFileId(fileId);
-                    request.setImportEqSuggestions(this.importEqSuggestions);
-                    request.setAutoApproveImported(this.autoApproveImported);
+                    UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported);
                     preparedRequests.put(transFile, Pair.of(languages, request));
                 } else {
                     for (Language language : languages) {
@@ -153,10 +153,7 @@ public class UploadTranslationsAction implements ClientAction {
                             }
                             continue;
                         }
-                        UploadTranslationsRequest request = new UploadTranslationsRequest();
-                        request.setFileId(fileId);
-                        request.setImportEqSuggestions(this.importEqSuggestions);
-                        request.setAutoApproveImported(this.autoApproveImported);
+                        UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported);
                         preparedRequests.put(transFile, Pair.of(Collections.singletonList(language), request));
                     }
                 }

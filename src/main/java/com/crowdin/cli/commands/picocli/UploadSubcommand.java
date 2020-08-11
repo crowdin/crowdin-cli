@@ -3,8 +3,8 @@ package com.crowdin.cli.commands.picocli;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "upload",
-    aliases = "push",
+    name = CommandNames.UPLOAD,
+    aliases = CommandNames.ALIAS_UPLOAD,
     sortOptions = false,
     subcommands = {
         UploadTranslationsSubcommand.class,

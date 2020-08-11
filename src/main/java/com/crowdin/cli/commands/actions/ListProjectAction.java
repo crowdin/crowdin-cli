@@ -2,6 +2,8 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProjectFull;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.DryrunProjectFiles;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -10,7 +12,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
-public class ListProjectAction implements ClientAction {
+class ListProjectAction implements ClientAction {
 
     private boolean noProgress;
     private String branchName;

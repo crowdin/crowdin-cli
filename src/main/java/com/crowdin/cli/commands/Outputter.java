@@ -1,4 +1,4 @@
-package com.crowdin.cli.commands.actions;
+package com.crowdin.cli.commands;
 
 public interface Outputter {
 

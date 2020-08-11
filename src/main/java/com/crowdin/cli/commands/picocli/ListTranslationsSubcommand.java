@@ -1,26 +1,19 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.commands.actions.ClientAction;
-import com.crowdin.cli.commands.actions.ListTranslationsAction;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "translations")
-class ListTranslationsSubcommand extends ClientActCommand {
+    name = CommandNames.LIST_TRANSLATIONS
+)
+class ListTranslationsSubcommand extends ClientActPlainMixin {
 
     @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
-    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
-    protected boolean plainView;
-
     @Override
-    protected ClientAction getAction() {
-        return new ListTranslationsAction(this.noProgress, this.treeView, false, this.plainView);
-    }
-
-    @Override
-    protected boolean isAnsi() {
-        return !plainView;
+    protected ClientAction getAction(Actions actions) {
+        return actions.listTranslations(this.noProgress, this.treeView, false, this.plainView);
     }
 }

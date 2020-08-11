@@ -1,18 +1,17 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.commands.actions.ClientAction;
-import com.crowdin.cli.commands.actions.StringAddAction;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @CommandLine.Command(
     sortOptions = false,
-    name = "add"
+    name = CommandNames.STRING_ADD
 )
 class StringAddSubcommand extends ClientActCommand {
 
@@ -38,7 +37,7 @@ class StringAddSubcommand extends ClientActCommand {
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
         if (maxLength != null && maxLength < 0) {
-            errors.add("'--max-len' cannot be lower than 0");
+            errors.add("'--max-length' cannot be lower than 0");
         }
         if (files != null) {
             for (int i = 0; i < files.size(); i++) {
@@ -50,7 +49,7 @@ class StringAddSubcommand extends ClientActCommand {
     }
 
     @Override
-    protected ClientAction getAction() {
-        return new StringAddAction(noProgress, text, identifier, maxLength, context, files, isHidden);
+    protected ClientAction getAction(Actions actions) {
+        return actions.stringAdd(noProgress, text, identifier, maxLength, context, files, isHidden);
     }
 }

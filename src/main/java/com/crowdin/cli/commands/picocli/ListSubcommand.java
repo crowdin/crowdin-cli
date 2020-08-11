@@ -3,7 +3,7 @@ package com.crowdin.cli.commands.picocli;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "list",
+    name = CommandNames.LIST,
     subcommands = {
         ListProjectSubcommand.class,
         ListSourcesSubcommand.class,
