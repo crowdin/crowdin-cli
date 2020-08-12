@@ -163,7 +163,7 @@ class DownloadAction implements ClientAction {
                 Map<String, String> translationReplace =
                     file.getTranslationReplace() != null ? file.getTranslationReplace() : new HashMap<>();
                 return this.doTranslationMapping(
-                    forLanguages, file.getTranslation(), languageMapping, languageMapping,
+                    forLanguages, file.getTranslation(), serverLanguageMapping, languageMapping,
                     translationReplace, sources, file.getSource(), pb.getBasePath(), placeholderUtil);
             })
             .flatMap(map -> map.entrySet().stream())
