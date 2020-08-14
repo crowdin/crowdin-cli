@@ -1,10 +1,12 @@
 package com.crowdin.cli.client;
 
 import lombok.NonNull;
+import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.Map;
 
+@ToString
 public final class LanguageMapping {
     private final Map<String, Map<String, String>> languageMapping;
 

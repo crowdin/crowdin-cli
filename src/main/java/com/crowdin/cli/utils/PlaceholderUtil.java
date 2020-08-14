@@ -96,7 +96,8 @@ public class PlaceholderUtil {
             .replaceAll(PLACEHOLDER_LANGUAGE_ID, langMapping.getValueOrDefault(lang.getId(),
                 PLACEHOLDER_LANGUAGE_ID.replaceAll("%", ""), lang.getId()))
             .replaceAll(PLACEHOLDER_LANGUAGE, langMapping.getValueOrDefault(lang.getId(),
-                PLACEHOLDER_LANGUAGE.replaceAll("%", ""), lang.getName()))
+                PLACEHOLDER_LANGUAGE.replaceAll("%", ""), langMapping.getValueOrDefault(
+                    lang.getId(), "name", lang.getName())))
             .replaceAll(PLACEHOLDER_LOCALE, langMapping.getValueOrDefault(lang.getId(),
                 PLACEHOLDER_LOCALE.replaceAll("%", ""), lang.getLocale()))
             .replaceAll(PLACEHOLDER_LOCALE_WITH_UNDERSCORE, langMapping.getValueOrDefault(lang.getId(),
