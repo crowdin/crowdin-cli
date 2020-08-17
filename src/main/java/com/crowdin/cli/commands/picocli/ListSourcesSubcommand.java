@@ -1,16 +1,13 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
-import com.crowdin.cli.commands.actions.Action;
-import com.crowdin.cli.commands.actions.ListSourcesAction;
-import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "sources")
-public class ListSourcesSubcommand extends Command {
+    name = CommandNames.LIST_SOURCES
+)
+class ListSourcesSubcommand extends ClientActPlainMixin {
 
     @CommandLine.Option(names = {"-b", "--branch"})
     protected String branch;
@@ -18,18 +15,8 @@ public class ListSourcesSubcommand extends Command {
     @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
-    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
-    protected boolean plainView;
-
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
-
     @Override
-    public void run() {
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
-
-        Action action = new ListSourcesAction(this.noProgress, this.treeView, this.plainView);
-        action.act(pb, client);
+    protected ClientAction getAction(Actions actions) {
+        return actions.listSources(this.noProgress, this.treeView, this.plainView);
     }
 }

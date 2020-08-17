@@ -1,5 +1,6 @@
 package com.crowdin.cli.utils.console;
 
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.utils.Utils;
 
 import java.util.concurrent.locks.ReentrantLock;
@@ -10,13 +11,15 @@ class Spinner extends Thread {
 
     private static final ReentrantLock lock = new ReentrantLock();
 
+    private Outputter out;
     private int counter;
     private boolean isSpin;
     private String message;
     private boolean noProgress;
 
-    Spinner(String message, boolean noProgress) {
+    Spinner(Outputter out, String message, boolean noProgress) {
         this();
+        this.out = out;
         this.message = message;
         this.noProgress = noProgress;
         isSpin = true;
@@ -55,7 +58,7 @@ class Spinner extends Thread {
             String[] frames = getFrames();
             while (isSpin) {
                 String frame = frames[counter++ % frames.length] + message;
-                System.out.print(frame);
+                out.print(frame);
                 try {
                     Thread.sleep(SPINNER_INTERVAL);
                 } catch (InterruptedException e) { /*ignore*/ }
@@ -74,7 +77,7 @@ class Spinner extends Thread {
         isSpin = false;
         lock.lock();
         try {
-            System.out.println(status.getIcon() + stopMessage);
+            out.println(status.withIcon(stopMessage));
         } finally {
             lock.unlock();
         }
@@ -87,7 +90,7 @@ class Spinner extends Thread {
     private void clearFrame(String frame) {
         int bound = frame.length();
         for (int value = 0; value < bound; value++) {
-            System.out.print("\b \b");
+            out.print("\b \b");
         }
     }
 }

@@ -3,16 +3,9 @@ package com.crowdin.cli.commands.picocli;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "sources",
-        sortOptions = false
+    name = CommandNames.UPLOAD_SOURCES,
+    sortOptions = false
 )
-public class UploadSourcesSubcommand implements Runnable {
+class UploadSourcesSubcommand extends UploadSourcesCommand {
 
-    @CommandLine.Mixin
-    private UploadSourcesCommand uploadSourcesCommand;
-
-    @Override
-    public void run() {
-        uploadSourcesCommand.run();
-    }
 }

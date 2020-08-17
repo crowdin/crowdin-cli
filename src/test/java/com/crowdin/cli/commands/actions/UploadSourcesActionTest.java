@@ -2,9 +2,11 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.ProjectBuilder;
-import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.client.models.BranchBuilder;
 import com.crowdin.cli.client.models.DirectoryBuilder;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.PropertiesBeanBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
@@ -60,8 +62,8 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        Action action = new UploadSourcesAction(null, false, true, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
@@ -108,8 +110,8 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("third.po"), any()))
             .thenReturn(3L);
 
-        Action action = new UploadSourcesAction(null, false, true, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
@@ -182,8 +184,8 @@ public class UploadSourcesActionTest {
         when(client.addBranch(addBranchRequest))
             .thenReturn(branch);
 
-        Action action = new UploadSourcesAction("newBranch", false, true, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadSourcesAction("newBranch", false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).addBranch(addBranchRequest);
@@ -220,8 +222,8 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        Action action = new UploadSourcesAction("newBranch", false, true, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadSourcesAction("newBranch", false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
@@ -256,8 +258,8 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        Action action = new UploadSourcesAction(null, false, true, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
@@ -294,8 +296,8 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        Action action = new UploadSourcesAction(null, false, true, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
@@ -331,8 +333,8 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("last.po"), any()))
             .thenReturn(1L);
 
-        Action action = new UploadSourcesAction(null, false, true, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("last.po"), any());
@@ -371,8 +373,8 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("second.po"), any()))
             .thenReturn(2L);
 
-        Action action = new UploadSourcesAction(null, false, true, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
@@ -422,8 +424,8 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.csv"), any()))
                 .thenReturn(1L);
 
-        Action action = new UploadSourcesAction(null, false, true, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.csv"), any());

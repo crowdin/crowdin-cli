@@ -16,7 +16,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
-public class SimpleHttpServer extends Thread {
+class SimpleHttpServer extends Thread {
 
     private final ServerSocketFactory factory;
     private final int port;

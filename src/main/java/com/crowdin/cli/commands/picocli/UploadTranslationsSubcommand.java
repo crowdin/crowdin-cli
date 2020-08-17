@@ -1,19 +1,14 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
-import com.crowdin.cli.commands.actions.Action;
-import com.crowdin.cli.commands.actions.ListTranslationsAction;
-import com.crowdin.cli.commands.actions.UploadTranslationsAction;
-import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "translations",
+    name = CommandNames.UPLOAD_TRANSLATIONS,
     sortOptions = false
 )
-public class UploadTranslationsSubcommand extends Command {
+class UploadTranslationsSubcommand extends ClientActPlainMixin {
 
     @CommandLine.Option(names = {"--auto-approve-imported"}, negatable = true)
     protected boolean autoApproveImported;
@@ -33,20 +28,10 @@ public class UploadTranslationsSubcommand extends Command {
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
-    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
-    protected boolean plainView;
-
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
-
     @Override
-    public void run() {
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
-
-        Action action = (dryrun)
-            ? new ListTranslationsAction(noProgress, treeView, true, plainView)
-            : new UploadTranslationsAction(noProgress, languageId, branch, importEqSuggestions, autoApproveImported, debug, plainView);
-        action.act(pb, client);
+    protected ClientAction getAction(Actions actions) {
+        return (dryrun)
+            ? actions.listTranslations(noProgress, treeView, true, plainView)
+            : actions.uploadTranslations(noProgress, languageId, branch, importEqSuggestions, autoApproveImported, debug, plainView);
     }
 }

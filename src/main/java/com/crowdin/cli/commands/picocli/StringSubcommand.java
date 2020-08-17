@@ -3,7 +3,7 @@ package com.crowdin.cli.commands.picocli;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "string",
+    name = CommandNames.STRING,
     subcommands = {
         StringListSubcommand.class,
         StringAddSubcommand.class,
@@ -11,7 +11,7 @@ import picocli.CommandLine;
         StringEditSubcommand.class
     }
 )
-public class StringSubcommand extends HelpCommand {
+class StringSubcommand extends HelpCommand {
     @Override
     protected CommandLine getCommand(CommandLine rootCommand) {
         return rootCommand.getSubcommands().get("string");

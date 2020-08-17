@@ -1,9 +1,13 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.Project;
+import com.crowdin.cli.client.CrowdinProjectFull;
+import com.crowdin.cli.client.LanguageMapping;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.commands.functionality.TranslationsUtils;
 import com.crowdin.cli.properties.FileBean;
@@ -24,7 +28,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -33,7 +36,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-public class UploadTranslationsAction implements Action {
+class UploadTranslationsAction implements ClientAction {
 
     private boolean noProgress;
     private String languageId;
@@ -57,22 +60,13 @@ public class UploadTranslationsAction implements Action {
     }
 
     @Override
-    public void act(PropertiesBean pb, Client client) {
-        Project project;
-        try {
-            if (!plainView) {
-                ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
-            }
-            project = client.downloadFullProject();
-            ConsoleSpinner.stop(OK);
-        } catch (Exception e) {
-            ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
-        }
+    public void act(Outputter out, PropertiesBean pb, Client client) {
+        CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+            this.noProgress, this.plainView, client::downloadFullProject);
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
-                System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
+                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
                 return;
             } else {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
@@ -81,12 +75,12 @@ public class UploadTranslationsAction implements Action {
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
-        Optional<Map<String, Map<String, String>>> projectLanguageMapping = project.getLanguageMapping();
+        LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
         Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
 
         List<Language> languages = (languageId != null)
-            ? project.findLanguage(languageId, true)
+            ? project.findLanguageById(languageId, true)
                 .map(Collections::singletonList)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)))
             : project.getProjectLanguages(false);
@@ -103,7 +97,7 @@ public class UploadTranslationsAction implements Action {
 
             if (fileSourcesWithoutIgnores.isEmpty()) {
                 if (!plainView) {
-                    System.out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("error.no_sources")));
+                    out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("error.no_sources")));
                 }
                 continue;
             }
@@ -117,7 +111,7 @@ public class UploadTranslationsAction implements Action {
 
                 if (!paths.containsKey(filePath)) {
                     if (!plainView) {
-                        System.out.println(ERROR.withIcon(String.format(
+                        out.println(ERROR.withIcon(String.format(
                             RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"),
                             StringUtils.removeStart(source, pb.getBasePath()), filePath)));
                     }
@@ -133,40 +127,33 @@ public class UploadTranslationsAction implements Action {
                     java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
                     if (!transFile.exists()) {
                         if (!plainView) {
-                            System.out.println(SKIPPED.withIcon(String.format(
+                            out.println(SKIPPED.withIcon(String.format(
                                 RESOURCE_BUNDLE.getString("error.translation_not_exists"),
                                 StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
                         }
                         return;
                     }
-                    UploadTranslationsRequest request = new UploadTranslationsRequest();
-                    request.setFileId(fileId);
-                    request.setImportEqSuggestions(this.importEqSuggestions);
-                    request.setAutoApproveImported(this.autoApproveImported);
+                    UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported);
                     preparedRequests.put(transFile, Pair.of(languages, request));
                 } else {
                     for (Language language : languages) {
-                        Map<String, Map<String, String>> languageMapping =
-                            file.getLanguagesMapping() != null ? file.getLanguagesMapping() : new HashMap<>();
-                        if (projectLanguageMapping.isPresent()) {
-                            TranslationsUtils.populateLanguageMappingFromServer(languageMapping, projectLanguageMapping.get());
-                        }
+                        LanguageMapping localLanguageMapping =
+                            LanguageMapping.fromConfigFileLanguageMapping(file.getLanguagesMapping());
+                        LanguageMapping languageMapping =
+                            LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
 
                         String transFileName = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
                         transFileName = PropertiesBeanUtils.useTranslationReplace(transFileName, file.getTranslationReplace());
                         java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
                         if (!transFile.exists()) {
                             if (!plainView) {
-                                System.out.println(SKIPPED.withIcon(String.format(
+                                out.println(SKIPPED.withIcon(String.format(
                                     RESOURCE_BUNDLE.getString("error.translation_not_exists"),
                                     StringUtils.removeStart(transFile.getAbsolutePath(), pb.getBasePath()))));
                             }
                             continue;
                         }
-                        UploadTranslationsRequest request = new UploadTranslationsRequest();
-                        request.setFileId(fileId);
-                        request.setImportEqSuggestions(this.importEqSuggestions);
-                        request.setAutoApproveImported(this.autoApproveImported);
+                        UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported);
                         preparedRequests.put(transFile, Pair.of(Collections.singletonList(language), request));
                     }
                 }
@@ -192,11 +179,11 @@ public class UploadTranslationsAction implements Action {
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
                     }
                     if (!plainView) {
-                        System.out.println(OK.withIcon(String.format(
+                        out.println(OK.withIcon(String.format(
                             RESOURCE_BUNDLE.getString("message.translation_uploaded"),
                             StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()))));
                     } else {
-                        System.out.println(StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()));
+                        out.println(StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()));
                     }
                 })
                 .collect(Collectors.toList());

@@ -1,15 +1,10 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
-import com.crowdin.cli.commands.actions.Action;
-import com.crowdin.cli.commands.actions.ListSourcesAction;
-import com.crowdin.cli.commands.actions.UploadSourcesAction;
-import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
 import picocli.CommandLine;
 
-public class UploadSourcesCommand extends Command {
+class UploadSourcesCommand extends ClientActPlainMixin {
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
@@ -23,20 +18,10 @@ public class UploadSourcesCommand extends Command {
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
-    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
-    protected boolean plainView;
-
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
-
     @Override
-    public void run() {
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
-
-        Action action = (dryrun)
-            ? new ListSourcesAction(this.noProgress, this.treeView, plainView)
-            : new UploadSourcesAction(this.branch, this.noProgress, this.autoUpdate, debug, plainView);
-        action.act(pb, client);
+    protected ClientAction getAction(Actions actions) {
+        return (dryrun)
+            ? actions.listSources(this.noProgress, this.treeView, plainView)
+            : actions.uploadSources(this.branch, this.noProgress, this.autoUpdate, debug, plainView);
     }
 }

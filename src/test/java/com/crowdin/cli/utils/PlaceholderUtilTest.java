@@ -1,5 +1,6 @@
 package com.crowdin.cli.utils;
 
+import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.client.languages.model.Language;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -129,9 +130,8 @@ public class PlaceholderUtilTest {
                 add("/path/to/ua/file.txt");
             }};
         List<Language> langs = Arrays.asList(LanguageBuilder.RUS.build(), LanguageBuilder.UKR.build());
-        Map<String, Map<String, String>> languageMapping = new HashMap<>();
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(langs, langs, "");
-        List<String> result = placeholderUtil.replaceLanguageDependentPlaceholders(toFormat, languageMapping);
+        List<String> result = placeholderUtil.replaceLanguageDependentPlaceholders(toFormat, LanguageMapping.fromServerLanguageMapping(null));
         assertEquals(expected, result);
     }
 
@@ -139,12 +139,13 @@ public class PlaceholderUtilTest {
     public void testReplaceLanguageDependentPlaceholdersLang() {
         String toFormat = "path/to/%two_letters_code%/%language%/%file_name%";
         Language language = LanguageBuilder.UKR.build();
-        Map<String, Map<String, String>> languageMapping = new HashMap<String, Map<String, String>>() {{
-                put("two_letters_code", new HashMap<String, String>() {{
-                        put("ua", "UA");
+        LanguageMapping languageMapping = LanguageMapping.fromServerLanguageMapping(new HashMap<String, Map<String, String>>() {{
+                put("ua", new HashMap<String, String>() {{
+                        put("two_letters_code", "UA");
                     }}
                 );
-            }};
+            }}
+        );
         String expected = "path/to/UA/Ukrainian/%file_name%";
         List<Language> suppLangs =
             Arrays.asList(LanguageBuilder.RUS.build(), LanguageBuilder.UKR.build(), LanguageBuilder.ENG.build(), LanguageBuilder.DEU.build());

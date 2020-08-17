@@ -2,7 +2,9 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.ProjectBuilder;
-import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.ResponseException;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.PropertiesBeanBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
@@ -51,8 +53,8 @@ public class UploadTranslationsActionTest {
         when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
             .thenReturn(1L);
 
-        Action action = new UploadTranslationsAction(false, null, null, false, false, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
@@ -84,8 +86,8 @@ public class UploadTranslationsActionTest {
         when(client.uploadStorage(eq("first.po-CR-ru-RU"), any()))
             .thenReturn(2L);
 
-        Action action = new UploadTranslationsAction(false, null, null, false, false, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
@@ -119,8 +121,8 @@ public class UploadTranslationsActionTest {
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
 
-        Action action = new UploadTranslationsAction(false, null, null, false, false, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verifyNoMoreInteractions(client);
@@ -142,8 +144,8 @@ public class UploadTranslationsActionTest {
         when(client.uploadStorage(eq("first.csv-CR"), any()))
             .thenReturn(1L);
 
-        Action action = new UploadTranslationsAction(false, null, null, false, false, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.csv-CR"), any());
@@ -173,8 +175,8 @@ public class UploadTranslationsActionTest {
         when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
             .thenReturn(1L);
 
-        Action action = new UploadTranslationsAction(false, null, null, false, false, false, false);
-        action.act(pb, client);
+        ClientAction action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());

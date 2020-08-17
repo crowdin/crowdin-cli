@@ -1,16 +1,16 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
-import com.crowdin.cli.commands.actions.Action;
-import com.crowdin.cli.commands.actions.StringEditAction;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
 import picocli.CommandLine;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @CommandLine.Command(
-    name = "edit"
+    name = CommandNames.STRING_EDIT
 )
-public class StringEditSubcommand extends Command {
+class StringEditSubcommand extends ClientActCommand {
 
     @CommandLine.Option(names = {"--id"}, paramLabel = "...")
     protected Long id;
@@ -30,30 +30,23 @@ public class StringEditSubcommand extends Command {
     @CommandLine.Option(names = {"--hidden"}, negatable = true)
     protected Boolean newIsHidden;
 
-
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
-
     @Override
-    public void run() {
-        checkOptions();
-
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
-
-        Action action = new StringEditAction(noProgress, id, identifier, newText, newContext, newMaxLength, newIsHidden);
-        action.act(pb, client);
-    }
-
-    private void checkOptions() {
+    protected List<String> checkOptions() {
+        List<String> errors = new ArrayList<>();
         if (id == null && identifier == null) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.source_string_id_not_specified"));
+            errors.add(RESOURCE_BUNDLE.getString("error.source_string_id_not_specified"));
         } else if (id != null && identifier != null) {
-            throw new RuntimeException("You can't use both identifiers");
+            errors.add("You can't use both identifiers");
         }
         if (newText == null && newContext == null && newMaxLength == null && newIsHidden == null) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.source_string_no_edit"));
+            errors.add(RESOURCE_BUNDLE.getString("error.source_string_no_edit"));
         }
+        return errors;
+    }
+
+    @Override
+    protected ClientAction getAction(Actions actions) {
+        return actions.stringEdit(noProgress, id, identifier, newText, newContext, newMaxLength, newIsHidden);
     }
 
 

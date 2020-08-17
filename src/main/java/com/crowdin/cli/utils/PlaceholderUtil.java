@@ -1,5 +1,6 @@
 package com.crowdin.cli.utils;
 
+import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.client.languages.model.Language;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -8,7 +9,6 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -81,37 +81,37 @@ public class PlaceholderUtil {
                 .replace(PLACEHOLDER_OSX_CODE, lang.getOsxCode());
     }
 
-    public List<String> replaceLanguageDependentPlaceholders(String toFormat, Map<String, Map<String, String>> languageMapping) {
+    public List<String> replaceLanguageDependentPlaceholders(String toFormat, LanguageMapping languageMapping) {
         return projectLangs
             .stream()
             .map(lang -> replaceLanguageDependentPlaceholders(toFormat, languageMapping, lang))
             .collect(Collectors.toList());
     }
 
-    public String replaceLanguageDependentPlaceholders(String toFormat, Map<String, Map<String, String>> languageMapping, Language lang) {
-        if (toFormat == null || lang == null || languageMapping == null) {
+    public String replaceLanguageDependentPlaceholders(String toFormat, LanguageMapping langMapping, Language lang) {
+        if (toFormat == null || lang == null || langMapping == null) {
             throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");
         }
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LANGUAGE_ID, lang.getId(), lang.getId(), languageMapping);
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LANGUAGE, lang.getId(), lang.getName(), languageMapping);
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_LOCALE, lang.getId(), lang.getLocale(), languageMapping);
-        toFormat =
-            replaceWithMapping(toFormat, PLACEHOLDER_LOCALE_WITH_UNDERSCORE, lang.getId(), lang.getLocale().replace("-", "_"), languageMapping);
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_TWO_LETTERS_CODE, lang.getId(), lang.getTwoLettersCode(), languageMapping);
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_THREE_LETTERS_CODE, lang.getId(), lang.getThreeLettersCode(), languageMapping);
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_ANDROID_CODE, lang.getId(), lang.getAndroidCode(), languageMapping);
-        toFormat = replaceWithMapping(toFormat, PLACEHOLDER_OSX_LOCALE, lang.getId(), lang.getOsxLocale(), languageMapping);
-        return replaceWithMapping(toFormat, PLACEHOLDER_OSX_CODE, lang.getId(), lang.getOsxCode(), languageMapping);
-    }
-
-    private String replaceWithMapping(
-        String toFormat, String placeholder, String langCode, String defaultMapping, Map<String, Map<String, String>> langMapping
-    ) {
-        return toFormat.replace(
-                placeholder,
-                langMapping.containsKey(placeholder.replaceAll("%", ""))
-                    ? langMapping.get(placeholder.replaceAll("%", "")).getOrDefault(langCode, defaultMapping)
-                    : defaultMapping);
+        return toFormat
+            .replaceAll(PLACEHOLDER_LANGUAGE_ID, langMapping.getValueOrDefault(lang.getId(),
+                PLACEHOLDER_LANGUAGE_ID.replaceAll("%", ""), lang.getId()))
+            .replaceAll(PLACEHOLDER_LANGUAGE, langMapping.getValueOrDefault(lang.getId(),
+                PLACEHOLDER_LANGUAGE.replaceAll("%", ""), langMapping.getValueOrDefault(
+                    lang.getId(), "name", lang.getName())))
+            .replaceAll(PLACEHOLDER_LOCALE, langMapping.getValueOrDefault(lang.getId(),
+                PLACEHOLDER_LOCALE.replaceAll("%", ""), lang.getLocale()))
+            .replaceAll(PLACEHOLDER_LOCALE_WITH_UNDERSCORE, langMapping.getValueOrDefault(lang.getId(),
+                PLACEHOLDER_LOCALE_WITH_UNDERSCORE.replaceAll("%", ""), lang.getLocale().replace("-", "_")))
+            .replaceAll(PLACEHOLDER_TWO_LETTERS_CODE, langMapping.getValueOrDefault(lang.getId(),
+                PLACEHOLDER_TWO_LETTERS_CODE.replaceAll("%", ""), lang.getTwoLettersCode()))
+            .replaceAll(PLACEHOLDER_THREE_LETTERS_CODE, langMapping.getValueOrDefault(lang.getId(),
+                PLACEHOLDER_THREE_LETTERS_CODE.replaceAll("%", ""), lang.getThreeLettersCode()))
+            .replaceAll(PLACEHOLDER_ANDROID_CODE, langMapping.getValueOrDefault(lang.getId(),
+                PLACEHOLDER_ANDROID_CODE.replaceAll("%", ""), lang.getAndroidCode()))
+            .replaceAll(PLACEHOLDER_OSX_LOCALE, langMapping.getValueOrDefault(lang.getId(),
+                PLACEHOLDER_OSX_LOCALE.replaceAll("%", ""), lang.getOsxLocale()))
+            .replaceAll(PLACEHOLDER_OSX_CODE, langMapping.getValueOrDefault(lang.getId(),
+                PLACEHOLDER_OSX_CODE.replaceAll("%", ""), lang.getOsxCode()));
     }
 
     public String replaceFileDependentPlaceholders(String toFormat, File file) {

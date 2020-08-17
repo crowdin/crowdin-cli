@@ -2,8 +2,10 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.ProjectBuilder;
-import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.client.models.SourceStringBuilder;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.PropertiesBeanBuilder;
 import com.crowdin.cli.utils.Utils;
@@ -42,8 +44,8 @@ public class StringDeleteActionTest {
             .thenReturn(strings);
 
 
-        Action action = new StringDeleteAction(true, ids, texts, identifiers);
-        action.act(pb, client);
+        ClientAction action = new StringDeleteAction(true, ids, texts, identifiers);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).listSourceString(null, null);
@@ -78,8 +80,8 @@ public class StringDeleteActionTest {
         when(client.downloadFullProject())
             .thenThrow(new RuntimeException("Whoops"));
 
-        Action action = new StringDeleteAction(true, null, null, null);
-        assertThrows(RuntimeException.class, () -> action.act(pb, client));
+        ClientAction action = new StringDeleteAction(true, null, null, null);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
         verifyNoMoreInteractions(client);

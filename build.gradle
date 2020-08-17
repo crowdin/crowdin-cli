@@ -53,7 +53,7 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok:1.18.12'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.12'
 
-    implementation 'info.picocli:picocli:4.4.0'
+    implementation 'info.picocli:picocli:4.5.0'
 
     implementation 'com.github.crowdin:crowdin-api-client-java:1.2.3'
 
@@ -76,9 +76,9 @@ shadowJar {
     setArchivesBaseName('crowdin-cli')
     getArchiveClassifier().set('')
     minimize {
-        exclude(dependency('org.apache.httpcomponents:httpclient:4.5.3'))
-        exclude(dependency('com.fasterxml.jackson.core:jackson-databind:2.9.10'))
-        exclude(dependency('info.picocli:picocli:4.4.0'))
+        exclude(dependency('org.apache.httpcomponents:httpclient'))
+        exclude(dependency('com.fasterxml.jackson.core:jackson-databind'))
+        exclude(dependency('info.picocli:picocli'))
     }
 }
 

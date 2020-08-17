@@ -51,15 +51,4 @@ public class TranslationsUtils {
         translationPattern = translationPattern.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
         return translationPattern;
     }
-
-    public static void populateLanguageMappingFromServer(Map<String, Map<String, String>> toPopulate, Map<String, Map<String, String>> from) {
-        for (Map.Entry<String, Map<String, String>> langCodeEntry : from.entrySet()) {
-            for (Map.Entry<String, String> fromPlaceholderEntry : langCodeEntry.getValue().entrySet()) {
-                String toPlaceholder =
-                    BaseCli.PLACEHOLDER_MAPPING_FOR_SERVER.getOrDefault(fromPlaceholderEntry.getKey(), fromPlaceholderEntry.getKey());
-                toPopulate.putIfAbsent(toPlaceholder, new HashMap<>());
-                toPopulate.get(toPlaceholder).putIfAbsent(langCodeEntry.getKey(), fromPlaceholderEntry.getValue());
-            }
-        }
-    }
 }

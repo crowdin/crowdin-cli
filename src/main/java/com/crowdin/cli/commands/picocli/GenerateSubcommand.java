@@ -1,14 +1,16 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.commands.actions.GenerateAction;
+import com.crowdin.cli.commands.Action;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.functionality.FsFiles;
 import picocli.CommandLine;
 
 import java.nio.file.Path;
 
 @CommandLine.Command(
-    name = "generate",
-    aliases = "init")
-public class GenerateSubcommand extends Command {
+    name = CommandNames.GENERATE,
+    aliases = CommandNames.ALIAS_GENERATE)
+class GenerateSubcommand extends ActCommand {
 
     @CommandLine.Option(names = {"-d", "--destination"}, paramLabel = "...", defaultValue = "crowdin.yml")
     private Path destinationPath;
@@ -17,8 +19,7 @@ public class GenerateSubcommand extends Command {
     private boolean skipGenerateDescription;
 
     @Override
-    public void run() {
-        GenerateAction action = new GenerateAction(destinationPath, skipGenerateDescription);
-        action.act();
+    protected Action getAction(Actions actions) {
+        return actions.generate(new FsFiles(), destinationPath, skipGenerateDescription);
     }
 }

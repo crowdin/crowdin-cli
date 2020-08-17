@@ -1,19 +1,18 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.Project;
+import com.crowdin.cli.client.CrowdinProject;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
 
 import java.util.List;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-public class StatusAction implements Action {
+class StatusAction implements ClientAction {
 
     private boolean noProgress;
     private String languageId;
@@ -30,35 +29,29 @@ public class StatusAction implements Action {
     }
 
     @Override
-    public void act(PropertiesBean pb, Client client) {
-        Project project;
-        try {
-            ConsoleSpinner.start(RESOURCE_BUNDLE.getString("message.spinner.fetching_project_info"), this.noProgress);
-            project = client.downloadProjectWithLanguages();
-            ConsoleSpinner.stop(OK);
-        } catch (Exception e) {
-            ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.collect_project_info"), e);
-        }
+    public void act(Outputter out, PropertiesBean pb, Client client) {
+        CrowdinProject project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+            this.noProgress, false, client::downloadProjectWithLanguages);
 
-        Language language = (languageId != null)
-            ? project.findLanguage(languageId, true)
-                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)))
-            : null;
+        if (languageId != null) {
+            project.findLanguageById(languageId, true)
+                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)));
+        }
 
         List<LanguageProgress> progresses = client.getProjectProgress(languageId);
 
         if (isVerbose) {
             progresses.forEach(pr -> {
-                System.out.println(project.findLanguage(pr.getLanguageId(), true).get().getName() + "(" + pr.getLanguageId() + "): ");
+                out.println(String.format(RESOURCE_BUNDLE.getString("message.language"),
+                    project.findLanguageById(pr.getLanguageId(), true).get().getName(), pr.getLanguageId()));
                 if (showTranslated) {
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("message.translation_progress"),
+                    out.println(String.format(RESOURCE_BUNDLE.getString("message.translation_progress"),
                         pr.getTranslationProgress(),
                         pr.getWords().getTranslated(), pr.getWords().getTotal(),
                         pr.getPhrases().getTranslated(), pr.getPhrases().getTotal()));
                 }
                 if (showApproved) {
-                    System.out.println(String.format(RESOURCE_BUNDLE.getString("message.approval_progress"),
+                    out.println(String.format(RESOURCE_BUNDLE.getString("message.approval_progress"),
                         pr.getApprovalProgress(),
                         pr.getWords().getApproved(), pr.getWords().getTotal(),
                         pr.getPhrases().getApproved(), pr.getPhrases().getTotal()));
@@ -66,17 +59,17 @@ public class StatusAction implements Action {
             });
         } else {
             if (showTranslated && showApproved) {
-                System.out.println(RESOURCE_BUNDLE.getString("message.translation"));
+                out.println(RESOURCE_BUNDLE.getString("message.translation"));
             }
             if (showTranslated) {
-                progresses.forEach(pr -> System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
+                progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                     pr.getLanguageId(), pr.getTranslationProgress())));
             }
             if (showTranslated && showApproved) {
-                System.out.println(RESOURCE_BUNDLE.getString("message.approval"));
+                out.println(RESOURCE_BUNDLE.getString("message.approval"));
             }
             if (showApproved) {
-                progresses.forEach(pr -> System.out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
+                progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                     pr.getLanguageId(), pr.getApprovalProgress())));
             }
         }

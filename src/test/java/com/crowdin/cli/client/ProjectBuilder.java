@@ -22,7 +22,8 @@ import java.util.stream.Collectors;
 public class ProjectBuilder {
 
     private ProjectSettings projectSettings;
-    private CrowdinProject project;
+    private CrowdinProjectFull project;
+    private Map<String, Map<String, String>> languageMapping = new HashMap<>();
 
     private List<Directory> directories = new ArrayList<>();
     private List<File> files = new ArrayList<>();
@@ -40,11 +41,11 @@ public class ProjectBuilder {
             .filter(language -> projectSettings.getTargetLanguageIds().contains(language.getId()))
             .collect(Collectors.toList());
 
-        CrowdinProject project = new CrowdinProject();
+        CrowdinProjectFull project = new CrowdinProjectFull();
         project.setBranches(branches);
         project.setSupportedLanguages(supportedLanguages);
         project.setProjectLanguages(projectLanguages);
-        project.setManagerAccess(true);
+        project.setAccessLevel(CrowdinProjectInfo.Access.MANAGER);
         projectBuilder.project = project;
         projectBuilder.projectSettings = projectSettings;
         return projectBuilder;
@@ -88,10 +89,6 @@ public class ProjectBuilder {
     }
 
     public ProjectBuilder addLanguageMapping(String langLocale, String placeholder, String value) {
-        Map<String, Map<String, String>> languageMapping = (Map<String, Map<String, String>>) projectSettings.getLanguageMapping();
-        if (languageMapping == null) {
-            languageMapping = new HashMap<>();
-        }
         languageMapping.putIfAbsent(langLocale, new HashMap<>());
         languageMapping.get(langLocale).put(placeholder, value);
 
@@ -99,10 +96,10 @@ public class ProjectBuilder {
         return this;
     }
 
-    public Project build() {
+    public CrowdinProjectFull build() {
         project.setDirectories(directories);
         project.setFiles(files);
-        project.setLanguageMapping(projectSettings.getLanguageMapping());
+        project.setLanguageMapping(LanguageMapping.fromServerLanguageMapping(projectSettings.getLanguageMapping()));
         return project;
     }
 

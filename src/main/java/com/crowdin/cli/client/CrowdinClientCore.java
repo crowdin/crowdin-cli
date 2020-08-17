@@ -7,22 +7,41 @@ import com.crowdin.client.core.model.ResponseObject;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.concurrent.Callable;
+import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.BiPredicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
-public class CrowdinClientCore {
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+
+abstract class CrowdinClientCore {
 
     private static final long millisToRetry = 100;
 
-    protected static <T> List<T> unwrap(ResponseList<T> list) {
-        return list
-            .getData()
-            .stream()
-            .map(ResponseObject::getData)
-            .collect(Collectors.toList());
-    }
+    private static final Map<BiPredicate<String, String>, RuntimeException> standardErrorHandlers =
+        new LinkedHashMap<BiPredicate<String, String>, RuntimeException>() {{
+            put((code, message) -> code.equals("401"),
+                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.401")));
+            put((code, message) -> code.equals("403"),
+                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.403")));
+            put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Project Not Found"),
+                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.404_project_not_found")));
+            put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Organization Not Found"),
+                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found")));
+            put((code, message) -> StringUtils.containsAny(message,
+                "PKIX path building failed",
+                "sun.security.provider.certpath.SunCertPathBuilderException",
+                "unable to find valid certification path to requested target"),
+                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.certificate")));
+            put((code, message) -> message.equals("Name or service not known"),
+                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.url_not_known")));
+            put((code, message) -> code.equals("<empty_code>") && message.equals("<empty_message>"),
+                new RuntimeException("Empty error message from server"));
+        }};
 
     /**
      * Util logic for downloading full lists.
@@ -31,40 +50,43 @@ public class CrowdinClientCore {
      * @param <T> represents model
      * @return list of models accumulated from request function
      */
-    protected static <T> List<T> executeRequestFullList(BiFunction<Integer, Integer, List<T>> request) {
+    protected static <T> List<T> executeRequestFullList(BiFunction<Integer, Integer, ResponseList<T>> request) {
         List<T> directories = new ArrayList<>();
         long counter;
         int limit = 500;
         do {
-            List<T> dirs = executeRequest(() -> request.apply(limit, directories.size()));
+            List<T> dirs = unwrap(executeRequest(() -> request.apply(limit, directories.size())));
             directories.addAll(dirs);
             counter = dirs.size();
         } while (counter == limit);
         return directories;
     }
 
-    protected static <T> T executeRequestWithRetryIfErrorContains(Callable<T> request, String errorMessageContains) {
+    protected static <T> T executeRequestWithPossibleRetry(BiPredicate<String, String> expectedError, Supplier<T> request) {
+        Map<BiPredicate<String, String>, RepeatException> errorHandler = new LinkedHashMap<BiPredicate<String, String>, RepeatException>() {{
+                put(expectedError, new RepeatException());
+            }};
         try {
-            return executeRequest(request);
-        } catch (Exception e) {
-            if (StringUtils.contains(e.getMessage(), errorMessageContains)) {
-                try {
-                    Thread.sleep(millisToRetry);
-                } catch (InterruptedException ie) {
+            return executeRequest(errorHandler, request);
+        } catch (RepeatException e) {
+            try {
+                Thread.sleep(millisToRetry);
+            } catch (InterruptedException ie) {
 //                    ignore
-                }
-                return executeRequest(request);
-            } else {
-                throw new RuntimeException(e.getMessage());
             }
+            return executeRequest(request);
         }
     }
 
-    protected static <T> T executeRequest(Callable<T> r) {
+    protected static <T> T executeRequest(Supplier<T> r) {
+        return executeRequest(new HashMap<BiPredicate<String, String>, RuntimeException>(), r);
+    }
+
+    protected static <T, R extends Exception> T executeRequest(Map<BiPredicate<String, String>, R> errorHandlers, Supplier<T> r) throws R {
         try {
-            return r.call();
+            return r.get();
         } catch (HttpBadRequestException e) {
-            String errorMessage = e.getErrors()
+            String errorMessage = "Wrong parameters: \n" + e.getErrors()
                 .stream()
                 .flatMap(holder -> holder.getError().getErrors()
                     .stream()
@@ -72,21 +94,29 @@ public class CrowdinClientCore {
                 .collect(Collectors.joining("\n"));
             throw new RuntimeException(errorMessage);
         } catch (HttpException e) {
-            throw new RuntimeException(e.getError().code + ": " + e.getError().message);
+            String code = (e.getError().code != null) ? e.getError().code : "<empty_code>";
+            String message = (e.getError().message != null) ? e.getError().message : "<empty_message>";
+            for (Map.Entry<BiPredicate<String, String>, R> errorHandler : errorHandlers.entrySet()) {
+                if (errorHandler.getKey().test(code, message)) {
+                    throw errorHandler.getValue();
+                }
+            }
+            for (Map.Entry<BiPredicate<String, String>, RuntimeException> errorHandler : standardErrorHandlers.entrySet()) {
+                if (errorHandler.getKey().test(code, message)) {
+                    throw errorHandler.getValue();
+                }
+            }
+            throw new RuntimeException(String.format("Error from server: <Code: %s, Message: %s>", code, message));
         } catch (Exception e) {
-            throw new RuntimeException(e);
+            throw e;
         }
     }
 
-    protected static boolean exceptionMessageContainsAll(Exception e, String... strings) {
-        if (e == null || e.getMessage() == null) {
-            return false;
-        }
-        for (String string : strings) {
-            if (!StringUtils.containsIgnoreCase(e.getMessage(), string)) {
-                return false;
-            }
-        }
-        return true;
+    private static <T> List<T> unwrap(ResponseList<T> list) {
+        return list
+            .getData()
+            .stream()
+            .map(ResponseObject::getData)
+            .collect(Collectors.toList());
     }
 }

@@ -2,7 +2,9 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.ProjectBuilder;
-import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.ResponseException;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.PropertiesBeanBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
@@ -43,8 +45,8 @@ public class ListProjectActionTest {
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null).build());
 
-        Action action = new ListProjectAction(false, null, true, false);
-        action.act(pb, client);
+        ClientAction action = new ListProjectAction(false, null, true, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verifyNoMoreInteractions(client);
@@ -61,8 +63,8 @@ public class ListProjectActionTest {
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null).build());
 
-        Action action = new ListProjectAction(false, "nonexistentBranch", false, false);
-        assertThrows(RuntimeException.class, () -> action.act(pb, client));
+        ClientAction action = new ListProjectAction(false, "nonexistentBranch", false, false);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
         verifyNoMoreInteractions(client);
@@ -80,8 +82,8 @@ public class ListProjectActionTest {
                 .addFile("first.po", "gettext", 101L, null, null)
                 .addBranches(1L, "existentBranch").build());
 
-        Action action = new ListProjectAction(false, "existentBranch", false, false);
-        action.act(pb, client);
+        ClientAction action = new ListProjectAction(false, "existentBranch", false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verifyNoMoreInteractions(client);

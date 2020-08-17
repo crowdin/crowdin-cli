@@ -1,32 +1,19 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.client.CrowdinClient;
-import com.crowdin.cli.commands.actions.Action;
-import com.crowdin.cli.commands.actions.ListTranslationsAction;
-import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.ClientAction;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "translations")
-public class ListTranslationsSubcommand extends Command {
+    name = CommandNames.LIST_TRANSLATIONS
+)
+class ListTranslationsSubcommand extends ClientActPlainMixin {
 
     @CommandLine.Option(names = {"--tree"})
     protected boolean treeView;
 
-    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
-    protected boolean plainView;
-
-    @CommandLine.Mixin
-    private PropertiesBuilderCommandPart propertiesBuilderCommandPart;
-
     @Override
-    public void run() {
-        PropertiesBean pb = propertiesBuilderCommandPart.buildPropertiesBean();
-        Client client = new CrowdinClient(pb.getApiToken(), pb.getBaseUrl(), Long.parseLong(pb.getProjectId()));
-
-        Action action = new ListTranslationsAction(noProgress, treeView, false, plainView);
-        action.act(pb, client);
+    protected ClientAction getAction(Actions actions) {
+        return actions.listTranslations(this.noProgress, this.treeView, false, this.plainView);
     }
 }

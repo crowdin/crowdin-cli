@@ -1,32 +1,24 @@
 package com.crowdin.cli;
 
-import com.crowdin.cli.commands.picocli.HelpCommand;
-import com.crowdin.cli.commands.picocli.RootCommand;
-import com.crowdin.cli.utils.OutputUtil;
-import com.crowdin.cli.utils.Utils;
-import picocli.CommandLine;
+import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.commands.actions.CliActions;
+import com.crowdin.cli.commands.picocli.CommandNames;
+import com.crowdin.cli.commands.picocli.PicocliRunner;
 
 import java.net.Authenticator;
 import java.net.PasswordAuthentication;
-import java.util.Arrays;
 
 public class Cli {
 
     public static void main(String[] args) {
         try {
             setSystemProperties();
-            CommandLine.Help.ColorScheme colorScheme = buildColorScheme();
-            CommandLine.IExecutionExceptionHandler executionExceptionHandler = buildExecutionExceptionHandler();
-            CommandLine commandLine = new CommandLine(new RootCommand())
-                .setExecutionExceptionHandler(executionExceptionHandler)
-                .setColorScheme(colorScheme);
 
-            HelpCommand.setOptions(commandLine, System.out, colorScheme);
-            int exitCode = commandLine.execute(args);
-
-            boolean plain = Arrays.stream(args).anyMatch("--plain"::equals);
-            if (!plain) {
-                Utils.getNewVersionMessage().ifPresent(System.out::println);
+            PicocliRunner picocliRunner = PicocliRunner.getInstance();
+            Actions actions = new CliActions();
+            int exitCode = picocliRunner.execute(actions, args);
+            if (exitCode != -1 && !picocliRunner.hasMatchedArg("plain")) {
+                picocliRunner.execute(actions, CommandNames.CHECK_NEW_VERSION);
             }
 
             System.exit(exitCode);
@@ -63,24 +55,5 @@ public class Cli {
             );
             System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
         }
-    }
-
-    private static CommandLine.Help.ColorScheme buildColorScheme() {
-        return new CommandLine.Help.ColorScheme.Builder()
-                .commands(CommandLine.Help.Ansi.Style.fg_green)
-                .options(CommandLine.Help.Ansi.Style.fg_green)
-                .parameters(CommandLine.Help.Ansi.Style.fg_green)
-                .errors(CommandLine.Help.Ansi.Style.fg_red)
-                .build();
-    }
-
-    private static CommandLine.IExecutionExceptionHandler buildExecutionExceptionHandler() {
-        return (ex, cmd, pr) -> {
-            boolean isDebug = pr.originalArgs().contains("--debug");
-            OutputUtil.fancyErr(ex, cmd.getErr(), isDebug);
-            return cmd.getExitCodeExceptionMapper() != null
-                    ? cmd.getExitCodeExceptionMapper().getExitCode(ex)
-                    : cmd.getCommandSpec().exitCodeOnExecutionException();
-        };
     }
 }

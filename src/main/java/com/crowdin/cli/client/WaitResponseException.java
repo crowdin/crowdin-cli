@@ -1,4 +1,4 @@
-package com.crowdin.cli.client.exceptions;
+package com.crowdin.cli.client;
 
 public class WaitResponseException extends ResponseException {
 }

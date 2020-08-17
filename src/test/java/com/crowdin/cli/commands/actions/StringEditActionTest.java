@@ -2,8 +2,10 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.ProjectBuilder;
-import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.client.models.SourceStringBuilder;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.PropertiesBeanBuilder;
@@ -45,8 +47,8 @@ public class StringEditActionTest {
         when(client.listSourceString(null, null))
             .thenReturn(Arrays.asList(SourceStringBuilder.standard().setProjectId(42L).setIdentifiers(801L, "old", "old", "old", null).build()));
 
-        Action action = new StringEditAction(true, id, identifier, newText, newContext, newMaxLength, newIsHidden);
-        action.act(pb, client);
+        ClientAction action = new StringEditAction(true, id, identifier, newText, newContext, newMaxLength, newIsHidden);
+        action.act(Outputter.getDefault(), pb, client);
 
         List<PatchRequest> patches = new ArrayList<PatchRequest>() {{
                 if (newText != null) {
@@ -88,8 +90,8 @@ public class StringEditActionTest {
         when(client.listSourceString(null, null))
             .thenReturn(Arrays.asList(SourceStringBuilder.standard().setProjectId(42L).setIdentifiers(801L, "old", "old", "old", null).build()));
 
-        Action action = new StringEditAction(true, null, null, null, null, null, null);
-        assertThrows(RuntimeException.class, () -> action.act(pb, client));
+        ClientAction action = new StringEditAction(true, null, null, null, null, null, null);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).listSourceString(null, null);
         verifyNoMoreInteractions(client);

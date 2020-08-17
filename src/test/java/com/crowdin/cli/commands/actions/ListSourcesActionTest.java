@@ -2,7 +2,9 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.ProjectBuilder;
-import com.crowdin.cli.client.exceptions.ResponseException;
+import com.crowdin.cli.client.ResponseException;
+import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.PropertiesBeanBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
@@ -41,8 +43,8 @@ public class ListSourcesActionTest {
         when(client.downloadProjectWithLanguages())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
 
-        Action action = new ListSourcesAction(false, false, false);
-        action.act(pb, client);
+        ClientAction action = new ListSourcesAction(false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadProjectWithLanguages();
         verifyNoMoreInteractions(client);
@@ -58,9 +60,9 @@ public class ListSourcesActionTest {
         when(client.downloadProjectWithLanguages())
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
 
-        Action action = new ListSourcesAction(false, false, false);
-        action.act(pb, client);
+        ClientAction action = new ListSourcesAction(false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
         pb.setPreserveHierarchy(true);
-        action.act(pb, client);
+        action.act(Outputter.getDefault(), pb, client);
     }
 }
