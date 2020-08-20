@@ -16,6 +16,8 @@ public class BaseCli {
 
     public static final List<String> DEFAULT_CONFIGS = Collections.unmodifiableList(Arrays.asList("crowdin.yml", "crowdin.yaml"));
 
+    public static final String DEFAULT_GLOSSARY_NAME="Created in Crowdin CLI (%s)";
+
     public static final List<String> DEFAULT_IDENTITY_FILES = Collections.unmodifiableList(Arrays.asList(
         System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yml",
         System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yaml"

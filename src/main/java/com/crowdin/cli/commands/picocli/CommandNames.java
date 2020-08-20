@@ -29,6 +29,11 @@ public final class CommandNames {
     public static final String STRING_EDIT = "edit";
     public static final String STRING_LIST = "list";
 
+    public static final String GLOSSARY = "glossary";
+    public static final String GLOSSARY_LIST = "list";
+    public static final String GLOSSARY_UPLOAD = "upload";
+    public static final String GLOSSARY_DOWNLOAD = "download";
+
     public static final String UPLOAD = "upload";
     public static final String ALIAS_UPLOAD = "push";
     public static final String UPLOAD_SOURCES = "sources";

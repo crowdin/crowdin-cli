@@ -1,9 +1,15 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.client.core.model.Format;
 import com.crowdin.client.core.model.PatchOperation;
 import com.crowdin.client.core.model.PatchRequest;
+import com.crowdin.client.glossaries.model.AddGlossaryRequest;
+import com.crowdin.client.glossaries.model.ExportGlossaryRequest;
+import com.crowdin.client.glossaries.model.ImportGlossaryRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
+
+import java.util.Map;
 
 public class RequestBuilder {
 
@@ -31,6 +37,25 @@ public class RequestBuilder {
         request.setValue(value);
         request.setOp(op);
         request.setPath(path);
+        return request;
+    }
+
+    public static AddGlossaryRequest addGlossary(String name) {
+        AddGlossaryRequest request = new AddGlossaryRequest();
+        request.setName(name);
+        return request;
+    }
+
+    public static ImportGlossaryRequest importGlossary(Long storageId, Map<String, Integer> scheme) {
+        ImportGlossaryRequest request = new ImportGlossaryRequest();
+        request.setStorageId(storageId);
+        request.setScheme(scheme);
+        return request;
+    }
+
+    public static ExportGlossaryRequest exportGlossary(Format format) {
+        ExportGlossaryRequest request = new ExportGlossaryRequest();
+        request.setFormat(format);
         return request;
     }
 

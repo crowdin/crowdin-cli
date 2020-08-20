@@ -7,10 +7,12 @@ import com.crowdin.cli.commands.Step;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.Params;
 import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.client.core.model.Format;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 public class CliActions implements Actions {
 
@@ -89,6 +91,21 @@ public class CliActions implements Actions {
         boolean autoApproveImported, boolean debug, boolean plainView
     ) {
         return new UploadTranslationsAction(noProgress, languageId, branchName, importEqSuggestions, autoApproveImported, debug, plainView);
+    }
+
+    @Override
+    public ClientAction glossaryList(boolean plainView, boolean isVerbose) {
+        return new GlossaryListAction(plainView, isVerbose);
+    }
+
+    @Override
+    public ClientAction glossaryUpload(java.io.File file, Long id, String name, Map<String, Integer> scheme) {
+        return new GlossaryUploadAction(file, id, name, scheme);
+    }
+
+    @Override
+    public ClientAction glossaryDownload(Long id, String name, Format format, boolean noProgress, File to, FilesInterface files) {
+        return new GlossaryDownloadAction(id, name, format, noProgress, to, files);
     }
 
     @Override

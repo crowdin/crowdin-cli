@@ -6,6 +6,13 @@ import com.crowdin.client.core.http.impl.json.JacksonJsonTransformer;
 import com.crowdin.client.core.model.ClientConfig;
 import com.crowdin.client.core.model.Credentials;
 import com.crowdin.client.core.model.PatchRequest;
+import com.crowdin.client.glossaries.model.AddGlossaryRequest;
+import com.crowdin.client.glossaries.model.ExportGlossaryRequest;
+import com.crowdin.client.glossaries.model.Glossary;
+import com.crowdin.client.glossaries.model.GlossaryExportStatus;
+import com.crowdin.client.glossaries.model.GlossaryImportStatus;
+import com.crowdin.client.glossaries.model.ImportGlossaryRequest;
+import com.crowdin.client.glossaries.model.Term;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
@@ -22,6 +29,7 @@ import com.crowdin.client.translationstatus.model.LanguageProgress;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 
 public interface Client {
 
@@ -58,6 +66,22 @@ public interface Client {
     void deleteSourceString(Long id);
 
     SourceString editSourceString(Long sourceId, List<PatchRequest> requests);
+
+    List<Glossary> listGlossaries();
+
+    Optional<Glossary> getGlossary(Long glossaryId);
+
+    Glossary addGlossary(AddGlossaryRequest request);
+
+    GlossaryImportStatus importGlossary(Long glossaryId, ImportGlossaryRequest request);
+
+    List<Term> listTerms(Long glossaryId);
+
+    GlossaryExportStatus startExportingGlossary(Long glossaryId, ExportGlossaryRequest request);
+
+    GlossaryExportStatus checkExportingGlossary(Long glossaryId, String exportId);
+
+    URL downloadGlossary(Long glossaryId, String exportId);
 
     static Client getDefault(String apiToken, String baseUrl, long projectId) {
         boolean isTesting = PropertiesBeanUtils.isUrlForTesting(baseUrl);

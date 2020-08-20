@@ -3,10 +3,13 @@ package com.crowdin.cli.commands;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.Params;
 import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.client.core.model.Format;
+import lombok.NonNull;
 
 import java.io.File;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Map;
 
 public interface Actions {
 
@@ -42,6 +45,12 @@ public interface Actions {
     ClientAction uploadTranslations(
         boolean noProgress, String languageId, String branchName, boolean importEqSuggestions,
         boolean autoApproveImported, boolean debug, boolean plainView);
+
+    ClientAction glossaryList(boolean plainView, boolean isVerbose);
+
+    ClientAction glossaryUpload(java.io.File file, Long id, String name, Map<String, Integer> scheme);
+
+    ClientAction glossaryDownload(Long id, String name, Format format, boolean noProgress, File to, FilesInterface files);
 
     Action checkNewVersion();
 
