@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.actions;
 
+import com.crowdin.cli.MockitoUtils;
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ResponseException;
@@ -71,7 +72,7 @@ public class DownloadActionTest {
         long buildId = 42L;
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
-        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadBuild(eq(buildId)))
             .thenReturn(urlMock);
 
@@ -118,7 +119,7 @@ public class DownloadActionTest {
         long buildId = 42L;
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
-        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadBuild(eq(buildId)))
             .thenReturn(urlMock);
 
@@ -176,7 +177,7 @@ public class DownloadActionTest {
         long buildId = 42L;
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
                 .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
-        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadBuild(eq(buildId)))
                 .thenReturn(urlMock);
 
@@ -235,7 +236,7 @@ public class DownloadActionTest {
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "building", 50))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "building", 75))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
-        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadBuild(eq(buildId)))
             .thenReturn(urlMock);
 
@@ -293,7 +294,7 @@ public class DownloadActionTest {
         long buildId = 42L;
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
-        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadBuild(eq(buildId)))
             .thenReturn(urlMock);
 
@@ -352,7 +353,7 @@ public class DownloadActionTest {
         long buildId = 42L;
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
-        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadBuild(eq(buildId)))
             .thenReturn(urlMock);
 
@@ -413,7 +414,7 @@ public class DownloadActionTest {
         long buildId = 42L;
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
                 .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
-        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadBuild(eq(buildId)))
                 .thenReturn(urlMock);
 
@@ -471,7 +472,7 @@ public class DownloadActionTest {
         long buildId = 42L;
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenThrow(new RuntimeException());
-        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadBuild(eq(buildId)))
             .thenReturn(urlMock);
 
@@ -528,7 +529,7 @@ public class DownloadActionTest {
         long buildId = 42L;
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
-        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadBuild(eq(buildId)))
             .thenReturn(urlMock);
 
@@ -618,7 +619,7 @@ public class DownloadActionTest {
         long buildId = 42L;
         when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
             .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
-        URL urlMock = new URL("file://" + getClass().getProtectionDomain().getCodeSource().getLocation().getPath());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadBuild(eq(buildId)))
             .thenReturn(urlMock);
 

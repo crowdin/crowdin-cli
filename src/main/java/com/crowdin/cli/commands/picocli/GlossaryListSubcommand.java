@@ -7,7 +7,7 @@ import picocli.CommandLine;
 @CommandLine.Command(
     name = CommandNames.GLOSSARY_LIST
 )
-public class GlossaryListSubcommand extends ClientActPlainMixin {
+class GlossaryListSubcommand extends ClientActPlainMixin {
 
     @Override
     protected ClientAction getAction(Actions actions) {

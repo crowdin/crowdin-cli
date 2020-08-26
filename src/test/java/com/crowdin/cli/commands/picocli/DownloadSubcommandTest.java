@@ -8,8 +8,6 @@ import static org.mockito.Mockito.verify;
 
 public class DownloadSubcommandTest extends PicocliTestUtils {
 
-
-
     @Test
     public void testDownloadWrongOptions() {
         this.executeInvalidParams(CommandNames.DOWNLOAD, "--skip-untranslated-strings", "--skip-untranslated-files", "--debug");

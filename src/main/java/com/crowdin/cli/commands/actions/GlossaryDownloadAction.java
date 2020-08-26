@@ -56,7 +56,7 @@ class GlossaryDownloadAction implements ClientAction {
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.glossary.not_found_by_id")));
         } else if (name != null) {
             List<Glossary> foundGlossaries = client.listGlossaries().stream()
-                .filter(gl -> gl.getName() != null & gl.getName().equals(name))
+                .filter(gl -> gl.getName() != null && gl.getName().equals(name))
                 .collect(Collectors.toList());
             if (foundGlossaries.isEmpty()) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.glossary.not_found_by_name"));
@@ -74,7 +74,7 @@ class GlossaryDownloadAction implements ClientAction {
         return ConsoleSpinner.execute(out, "message.spinner.building_glossary", "error.glossary.build_glossary", this.noProgress, false, () -> {
             GlossaryExportStatus status = client.startExportingGlossary(glossaryId, request);
 
-            while(!status.getStatus().equalsIgnoreCase("Finished")) {
+            while (!status.getStatus().equalsIgnoreCase("Finished")) {
                 ConsoleSpinner.update(
                     String.format(RESOURCE_BUNDLE.getString("message.spinner.building_glossary_percents"),
                         status.getProgress()));

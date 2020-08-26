@@ -10,7 +10,7 @@ import picocli.CommandLine;
         GlossaryDownloadSubcommand.class
     }
 )
-public class GlossarySubcommand extends HelpCommand {
+class GlossarySubcommand extends HelpCommand {
     @Override
     protected CommandLine getCommand(CommandLine rootCommand) {
         return rootCommand.getSubcommands().get(CommandNames.GLOSSARY);

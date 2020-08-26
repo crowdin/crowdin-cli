@@ -27,11 +27,13 @@ class GlossaryListAction implements ClientAction {
         List<Glossary> glossaries = client.listGlossaries();
         for (Glossary glossary : glossaries) {
             if (!plainView) {
-                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.glossary.list"), glossary.getName(), glossary.getId(), glossary.getTerms())));
+                out.println(OK.withIcon(
+                    String.format(RESOURCE_BUNDLE.getString("message.glossary.list"), glossary.getName(), glossary.getId(), glossary.getTerms())));
                 if (isVerbose) {
                     List<Term> terms = client.listTerms(glossary.getId());
                     for (Term term : terms) {
-                        out.println(String.format(RESOURCE_BUNDLE.getString("message.glossary.list_term"), term.getId(), term.getText(), term.getDescription()));
+                        out.println(String.format(
+                            RESOURCE_BUNDLE.getString("message.glossary.list_term"), term.getId(), term.getText(), term.getDescription()));
                     }
                 }
             } else {

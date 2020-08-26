@@ -14,7 +14,7 @@ import java.util.List;
 @CommandLine.Command(
     name = CommandNames.GLOSSARY_DOWNLOAD
 )
-public class GlossaryDownloadSubcommand extends ClientActCommand {
+class GlossaryDownloadSubcommand extends ClientActCommand {
 
     @CommandLine.Option(names = {"--id"}, paramLabel = "...")
     private Long id;

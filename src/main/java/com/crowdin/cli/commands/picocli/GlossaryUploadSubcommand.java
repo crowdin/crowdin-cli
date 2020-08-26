@@ -14,7 +14,7 @@ import java.util.Map;
 @CommandLine.Command(
     name = CommandNames.GLOSSARY_UPLOAD
 )
-public class GlossaryUploadSubcommand extends ClientActCommand {
+class GlossaryUploadSubcommand extends ClientActCommand {
 
     @CommandLine.Parameters(descriptionKey = "crowdin.glossary.upload.file")
     private File file;
@@ -43,7 +43,7 @@ public class GlossaryUploadSubcommand extends ClientActCommand {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.wrong_format"));
         }
         if (!equalsAny(FilenameUtils.getExtension(file.getName()), "csv", "xls", "xlsx") && scheme != null) {
-                errors.add(RESOURCE_BUNDLE.getString("error.glossary.scheme_and_wrong_format"));
+            errors.add(RESOURCE_BUNDLE.getString("error.glossary.scheme_and_wrong_format"));
         }
         if (id != null && name != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.id_and_name"));

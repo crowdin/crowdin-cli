@@ -35,7 +35,7 @@ class GlossaryUploadAction implements ClientAction {
 
     @Override
     public void act(Outputter out, PropertiesBean pb, Client client) {
-        Glossary targetGlossary = null;
+        Glossary targetGlossary;
         if (id != null) {
             targetGlossary = client.getGlossary(id)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.glossary.not_found_by_id")));
@@ -61,6 +61,7 @@ class GlossaryUploadAction implements ClientAction {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_to_storage"), e);
         }
         client.importGlossary(targetGlossary.getId(), RequestBuilder.importGlossary(storageId, scheme));
-        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.glossary.import_success"), targetGlossary.getId(), targetGlossary.getName())));
+        out.println(OK.withIcon(
+            String.format(RESOURCE_BUNDLE.getString("message.glossary.import_success"), targetGlossary.getId(), targetGlossary.getName())));
     }
 }

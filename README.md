@@ -416,6 +416,16 @@ To show translation and proofreading progress for a project use the following co
 
 Also, you can use the `--verbose` option to see more information.
 
+## Glossary management
+
+There is a possibility to upload/download glossaries.
+
+| Command                     | Description                        |
+|-----------------------------|------------------------------------|
+| `crowdin glossary list`     | Show a list of glossaries. <br>Use —verbose to show term lists for glossaries |
+| `crowdin glossary upload`   | Upload glossary from a file (in TBX, CSV, or XLSX file format) <br>either to the specified glossary or to a new one |
+| `crowdin glossary download` | Download glossary file (in TBX, CSV, or XLSX file format) <br>from the specified glossary |
+
 ## Seeking Assistance
 
 If you find any problems or would like to suggest a feature, please read the [How can I contribute](/CONTRIBUTING.md#how-can-i-contribute) section in our contributing guidelines.
