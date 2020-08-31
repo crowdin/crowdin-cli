@@ -154,7 +154,7 @@ class GenerateAction implements Action {
         for (Map.Entry<String, String> entry : values.entrySet()) {
             for (int i = 0; i < fileLines.size(); i++) {
                 if (fileLines.get(i).contains(entry.getKey())) {
-                    fileLines.set(i, fileLines.get(i).replaceFirst(": \"*\"", String.format(": \"%s\"", entry.getValue())));
+                    fileLines.set(i, fileLines.get(i).replaceFirst(": \"*\"", String.format(": \"%s\"", Utils.regexPath(entry.getValue()))));
                     break;
                 }
             }
