@@ -90,7 +90,7 @@ abstract class CrowdinClientCore {
                 .stream()
                 .flatMap(holder -> holder.getError().getErrors()
                     .stream()
-                    .map(error -> holder.getError().getKey() + ": " + error.getCode() + ": " + error.getMessage()))
+                    .map(error -> String.format("<key: %s, code: %d, message: %s>", holder.getError().getKey(), error.getCode(), error.getMessage())))
                 .collect(Collectors.joining("\n"));
             throw new RuntimeException(errorMessage);
         } catch (HttpException e) {
