@@ -38,6 +38,6 @@ class ListProjectAction implements ClientAction {
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
             : null;
 
-        (new DryrunProjectFiles(project.getFiles(), project.getDirectories(), project.getBranches(), branchId)).run(out, treeView, plainView);
+        (new DryrunProjectFiles(project.getFileInfos(), project.getDirectories(), project.getBranches(), branchId)).run(out, treeView, plainView);
     }
 }

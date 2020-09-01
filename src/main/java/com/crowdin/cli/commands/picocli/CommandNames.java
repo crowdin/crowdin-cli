@@ -34,6 +34,11 @@ public final class CommandNames {
     public static final String GLOSSARY_UPLOAD = "upload";
     public static final String GLOSSARY_DOWNLOAD = "download";
 
+    public static final String TM = "tm";
+    public static final String TM_LIST = "list";
+    public static final String TM_UPLOAD = "upload";
+    public static final String TM_DOWNLOAD = "download";
+
     public static final String UPLOAD = "upload";
     public static final String ALIAS_UPLOAD = "push";
     public static final String UPLOAD_SOURCES = "sources";

@@ -13,6 +13,7 @@ import picocli.CommandLine;
         StatusSubcommand.class,
         StringSubcommand.class,
         GlossarySubcommand.class,
+        TmSubcommand.class,
         CheckNewVersionSubcommand.class
     })
 class RootCommand extends HelpCommand {

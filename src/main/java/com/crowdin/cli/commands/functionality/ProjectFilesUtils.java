@@ -7,6 +7,7 @@ import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.sourcefiles.model.ExportOptions;
 import com.crowdin.client.sourcefiles.model.File;
+import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcefiles.model.GeneralFileExportOptions;
 import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
 
@@ -19,9 +20,11 @@ import java.util.stream.Stream;
 
 public class ProjectFilesUtils {
 
-    public static Map<String, File> buildFilePaths(Map<Long, Directory> directories, Map<Long, Branch> branchNames, List<File> files) {
+    public static Map<String, FileInfo> buildFilePaths(
+        Map<Long, Directory> directories, Map<Long, Branch> branchNames, List<? extends FileInfo> files
+    ) {
         Map<Long, String> directoryPaths = buildDirectoryPaths(directories, branchNames);
-        Map<String, File> filePathsToId = new HashMap<>();
+        Map<String, FileInfo> filePathsToId = new HashMap<>();
         files.forEach(fe -> filePathsToId.put(getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName(), fe));
         return filePathsToId;
     }
@@ -84,7 +87,7 @@ public class ProjectFilesUtils {
         return ((branchId != null) ? branchNames.get(branchId).getName() + Utils.PATH_SEPARATOR : "");
     }
 
-    private static Optional<Long> getParentId(File fe) {
+    private static Optional<Long> getParentId(FileInfo fe) {
         return (fe.getDirectoryId() != null) ? Optional.of(fe.getDirectoryId()) : Optional.ofNullable(fe.getBranchId());
     }
 

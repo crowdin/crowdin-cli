@@ -3,8 +3,8 @@ package com.crowdin.cli.commands;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.Params;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.client.core.model.Format;
-import lombok.NonNull;
+import com.crowdin.client.glossaries.model.GlossariesFormat;
+import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -50,7 +50,14 @@ public interface Actions {
 
     ClientAction glossaryUpload(java.io.File file, Long id, String name, Map<String, Integer> scheme);
 
-    ClientAction glossaryDownload(Long id, String name, Format format, boolean noProgress, File to, FilesInterface files);
+    ClientAction glossaryDownload(Long id, String name, GlossariesFormat format, boolean noProgress, File to, FilesInterface files);
+
+    ClientAction tmList(boolean plainView);
+
+    ClientAction tmUpload(File file, Long id, String name, Map<String, Integer> scheme);
+
+    ClientAction tmDownload(Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,
+                            String targetLanguageId, boolean noProgress, File to, FilesInterface files);
 
     Action checkNewVersion();
 

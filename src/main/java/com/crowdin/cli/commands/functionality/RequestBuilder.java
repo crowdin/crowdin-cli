@@ -1,12 +1,16 @@
 package com.crowdin.cli.commands.functionality;
 
-import com.crowdin.client.core.model.Format;
 import com.crowdin.client.core.model.PatchOperation;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.glossaries.model.AddGlossaryRequest;
 import com.crowdin.client.glossaries.model.ExportGlossaryRequest;
+import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.glossaries.model.ImportGlossaryRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
+import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
+import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
+import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
+import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 
 import java.util.Map;
@@ -53,8 +57,31 @@ public class RequestBuilder {
         return request;
     }
 
-    public static ExportGlossaryRequest exportGlossary(Format format) {
+    public static ExportGlossaryRequest exportGlossary(GlossariesFormat format) {
         ExportGlossaryRequest request = new ExportGlossaryRequest();
+        request.setFormat(format);
+        return request;
+    }
+
+    public static AddTranslationMemoryRequest addTm(String name) {
+        AddTranslationMemoryRequest request = new AddTranslationMemoryRequest();
+        request.setName(name);
+        return request;
+    }
+
+    public static TranslationMemoryImportRequest importTranslationMemory(Long storageId, Map<String, Integer> scheme) {
+        TranslationMemoryImportRequest request = new TranslationMemoryImportRequest();
+        request.setStorageId(storageId);
+        request.setScheme(scheme);
+        return request;
+    }
+
+    public static TranslationMemoryExportRequest exportTranslationMemory(
+        String sourceLanguageId, String targetLanguageId, TranslationMemoryFormat format
+    ) {
+        TranslationMemoryExportRequest request = new TranslationMemoryExportRequest();
+        request.setSourceLanguageId(sourceLanguageId);
+        request.setTargetLanguageId(targetLanguageId);
         request.setFormat(format);
         return request;
     }

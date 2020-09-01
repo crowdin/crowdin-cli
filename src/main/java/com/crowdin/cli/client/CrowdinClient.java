@@ -18,6 +18,12 @@ import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
 import com.crowdin.client.storage.model.Storage;
+import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
+import com.crowdin.client.translationmemory.model.TranslationMemory;
+import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
+import com.crowdin.client.translationmemory.model.TranslationMemoryExportStatus;
+import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
+import com.crowdin.client.translationmemory.model.TranslationMemoryImportStatus;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
@@ -27,7 +33,6 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -276,6 +281,64 @@ class CrowdinClient extends CrowdinClientCore implements Client {
     public URL downloadGlossary(Long glossaryId, String exportId) {
         String url = executeRequest(() -> this.client.getGlossariesApi()
             .downloadGlossary(glossaryId, exportId)
+            .getData()
+            .getUrl());
+        try {
+            return new URL(url);
+        } catch (IOException e) {
+            throw new RuntimeException("Unexpected exception: malformed download url: " + url, e);
+        }
+    }
+
+    @Override
+    public List<TranslationMemory> listTms() {
+        return executeRequestFullList((limit, offset) -> this.client.getTranslationMemoryApi()
+            .listTms(null, limit, offset));
+    }
+
+    @Override
+    public Optional<TranslationMemory> getTm(Long tmId) {
+        try {
+            return Optional.of(executeRequest(() -> this.client.getTranslationMemoryApi()
+                .getTm(tmId)
+                .getData()));
+        } catch (Exception e) {
+            return Optional.empty();
+        }
+    }
+
+    @Override
+    public TranslationMemory addTm(AddTranslationMemoryRequest request) {
+        return executeRequest(() -> this.client.getTranslationMemoryApi()
+            .addTm(request)
+            .getData());
+    }
+
+    @Override
+    public TranslationMemoryImportStatus importTm(Long tmId, TranslationMemoryImportRequest request) {
+        return executeRequest(() -> this.client.getTranslationMemoryApi()
+            .importTm(tmId, request)
+            .getData());
+    }
+
+    @Override
+    public TranslationMemoryExportStatus startExportingTm(Long tmId, TranslationMemoryExportRequest request) {
+        return executeRequest(() -> this.client.getTranslationMemoryApi()
+            .exportTm(tmId, request)
+            .getData());
+    }
+
+    @Override
+    public TranslationMemoryExportStatus checkExportingTm(Long tmId, String exportId) {
+        return executeRequest(() -> this.client.getTranslationMemoryApi()
+            .checkTmExportStatus(tmId, exportId)
+            .getData());
+    }
+
+    @Override
+    public URL downloadTm(Long tmId, String exportId) {
+        String url = executeRequest(() -> this.client.getTranslationMemoryApi()
+            .downloadTm(tmId, exportId)
             .getData()
             .getUrl());
         try {

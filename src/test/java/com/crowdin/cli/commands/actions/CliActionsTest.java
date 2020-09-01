@@ -94,6 +94,21 @@ public class CliActionsTest {
     }
 
     @Test
+    public void testTmList() {
+        assertNotNull(actions.tmList(false));
+    }
+
+    @Test
+    public void testTmUpload() {
+        assertNotNull(actions.tmUpload(null, null, null, null));
+    }
+
+    @Test
+    public void testTmDownload() {
+        assertNotNull(actions.tmDownload(null, null, null, null, null, false, null, null));
+    }
+
+    @Test
     public void testCheckNewVersion() {
         assertNotNull(actions.checkNewVersion());
     }

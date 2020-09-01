@@ -7,8 +7,8 @@ import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.client.core.model.Format;
 import com.crowdin.client.glossaries.model.ExportGlossaryRequest;
+import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.glossaries.model.Glossary;
 import com.crowdin.client.glossaries.model.GlossaryExportStatus;
 
@@ -25,12 +25,12 @@ class GlossaryDownloadAction implements ClientAction {
 
     private final Long id;
     private final String name;
-    private final Format format;
+    private final GlossariesFormat format;
     private final boolean noProgress;
     private File to;
     private final FilesInterface files;
 
-    public GlossaryDownloadAction(Long id, String name, Format format, boolean noProgress, File to, FilesInterface files) {
+    public GlossaryDownloadAction(Long id, String name, GlossariesFormat format, boolean noProgress, File to, FilesInterface files) {
         this.id = id;
         this.name = name;
         this.format = format;

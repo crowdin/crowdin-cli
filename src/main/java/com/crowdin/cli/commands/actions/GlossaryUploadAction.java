@@ -57,7 +57,7 @@ class GlossaryUploadAction implements ClientAction {
         Long storageId;
         try (InputStream fileStream = new FileInputStream(file)) {
             storageId = client.uploadStorage(file.getName(), fileStream);
-        } catch (IOException e) {
+        } catch (Exception e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_to_storage"), e);
         }
         client.importGlossary(targetGlossary.getId(), RequestBuilder.importGlossary(storageId, scheme));

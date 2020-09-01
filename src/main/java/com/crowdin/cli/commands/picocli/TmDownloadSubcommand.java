@@ -3,7 +3,7 @@ package com.crowdin.cli.commands.picocli;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.ClientAction;
 import com.crowdin.cli.commands.functionality.FsFiles;
-import com.crowdin.client.glossaries.model.GlossariesFormat;
+import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import org.apache.commons.io.FilenameUtils;
 import picocli.CommandLine;
 
@@ -12,9 +12,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
-    name = CommandNames.GLOSSARY_DOWNLOAD
+    name = CommandNames.TM_DOWNLOAD
 )
-class GlossaryDownloadSubcommand extends ClientActCommand {
+class TmDownloadSubcommand extends ClientActCommand {
 
     @CommandLine.Option(names = {"--id"}, paramLabel = "...")
     private Long id;
@@ -22,15 +22,21 @@ class GlossaryDownloadSubcommand extends ClientActCommand {
     @CommandLine.Option(names = {"--name"}, paramLabel = "...")
     private String name;
 
+    @CommandLine.Option(names = {"--source-language-id"}, paramLabel = "...")
+    private String sourceLanguageId;
+
+    @CommandLine.Option(names = {"--target-language-id"}, paramLabel = "...")
+    private String targetLanguageid;
+
     @CommandLine.Option(names = {"--format"}, paramLabel = "...")
-    private GlossariesFormat format;
+    private TranslationMemoryFormat format;
 
     @CommandLine.Option(names = "--to", paramLabel = "...")
     private File to;
 
     @Override
     protected ClientAction getAction(Actions actions) {
-        return actions.glossaryDownload(id, name, format, noProgress, to, new FsFiles());
+        return actions.tmDownload(id, name, format, sourceLanguageId, targetLanguageid, noProgress, to, new FsFiles());
     }
 
     @Override
@@ -39,15 +45,15 @@ class GlossaryDownloadSubcommand extends ClientActCommand {
         if (to != null && format == null) {
             String extension = FilenameUtils.getExtension(to.getName());
             try {
-                format = GlossariesFormat.from(extension);
+                format = TranslationMemoryFormat.from(extension);
             } catch (IllegalArgumentException e) {
-                errors.add(RESOURCE_BUNDLE.getString("error.glossary.wrong_format"));
+                errors.add(RESOURCE_BUNDLE.getString("error.tm.wrong_format"));
             }
         }
         if (id != null && name != null) {
-            errors.add(RESOURCE_BUNDLE.getString("error.glossary.id_and_name"));
+            errors.add(RESOURCE_BUNDLE.getString("error.tm.id_and_name"));
         } else if (id == null && name == null) {
-            errors.add(RESOURCE_BUNDLE.getString("error.glossary.no_id_and_no_name"));
+            errors.add(RESOURCE_BUNDLE.getString("error.tm.no_id_and_no_name"));
         }
         return errors;
     }

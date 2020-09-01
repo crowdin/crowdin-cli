@@ -20,7 +20,7 @@ import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.ExportOptions;
-import com.crowdin.client.sourcefiles.model.File;
+import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcefiles.model.ImportOptions;
 import com.crowdin.client.sourcefiles.model.OtherFileImportOptions;
 import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
@@ -30,6 +30,7 @@ import com.crowdin.client.sourcefiles.model.XmlFileImportOptions;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -71,14 +72,14 @@ class UploadSourcesAction implements ClientAction {
 
         Map<String, Long> directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
                 .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-        Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
+        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
 
         List<String> uploadedSources = new ArrayList<>();
 
         List<Runnable> tasks = pb.getFiles().stream()
             .map(file -> (Runnable) () -> {
                 List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
-                    .map(java.io.File::getAbsolutePath)
+                    .map(File::getAbsolutePath)
                     .collect(Collectors.toList());
                 if (sources.isEmpty()) {
                     if (!plainView) {
@@ -91,7 +92,7 @@ class UploadSourcesAction implements ClientAction {
                     (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
                 List<Runnable> taskss = sources.stream()
                     .map(source -> {
-                        final java.io.File sourceFile = new java.io.File(source);
+                        final File sourceFile = new File(source);
                         final String filePath = (file.getDest() != null)
                                 ? StringUtils.removePattern(file.getDest(), "^[\\\\/]")
                                 : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
@@ -109,7 +110,7 @@ class UploadSourcesAction implements ClientAction {
                             uploadedSources.add(fileFullPath);
                         }
 
-                        File projectFile = paths.get(fileFullPath);
+                        FileInfo projectFile = paths.get(fileFullPath);
                         if (autoUpdate && projectFile != null) {
                             final UpdateFileRequest request = new UpdateFileRequest();
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));

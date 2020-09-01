@@ -21,6 +21,12 @@ import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
+import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
+import com.crowdin.client.translationmemory.model.TranslationMemory;
+import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
+import com.crowdin.client.translationmemory.model.TranslationMemoryExportStatus;
+import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
+import com.crowdin.client.translationmemory.model.TranslationMemoryImportStatus;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
@@ -82,6 +88,20 @@ public interface Client {
     GlossaryExportStatus checkExportingGlossary(Long glossaryId, String exportId);
 
     URL downloadGlossary(Long glossaryId, String exportId);
+
+    List<TranslationMemory> listTms();
+
+    Optional<TranslationMemory> getTm(Long tmId);
+
+    TranslationMemory addTm(AddTranslationMemoryRequest request);
+
+    TranslationMemoryImportStatus importTm(Long tmId, TranslationMemoryImportRequest request);
+
+    TranslationMemoryExportStatus startExportingTm(Long tmId, TranslationMemoryExportRequest request);
+
+    TranslationMemoryExportStatus checkExportingTm(Long tmId, String exportId);
+
+    URL downloadTm(Long tmId, String exportId);
 
     static Client getDefault(String apiToken, String baseUrl, long projectId) {
         boolean isTesting = PropertiesBeanUtils.isUrlForTesting(baseUrl);

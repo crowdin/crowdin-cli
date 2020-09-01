@@ -1,6 +1,6 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.client.core.model.Format;
+import com.crowdin.client.glossaries.model.GlossariesFormat;
 import org.junit.jupiter.api.Test;
 
 import static org.mockito.ArgumentMatchers.any;
@@ -23,7 +23,7 @@ public class GlossaryDownloadSubcommandTest extends PicocliTestUtils {
     public void testGlossaryDownload_fileWithExt() {
         this.execute(CommandNames.GLOSSARY, CommandNames.GLOSSARY_DOWNLOAD, "--id", "42", "--debug", "--to", "file.tbx");
         verify(actionsMock)
-            .glossaryDownload(eq(42L), isNull(), eq(Format.TBX), anyBoolean(), any(), any());
+            .glossaryDownload(eq(42L), isNull(), eq(GlossariesFormat.TBX), anyBoolean(), any(), any());
         this.check(true);
     }
 

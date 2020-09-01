@@ -35,7 +35,7 @@ import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.sourcefiles.model.DirectoryResponseList;
 import com.crowdin.client.sourcefiles.model.DirectoryResponseObject;
 import com.crowdin.client.sourcefiles.model.File;
-import com.crowdin.client.sourcefiles.model.FileResponseList;
+import com.crowdin.client.sourcefiles.model.FileInfoResponseList;
 import com.crowdin.client.sourcefiles.model.FileResponseObject;
 import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
@@ -44,6 +44,16 @@ import com.crowdin.client.sourcestrings.model.SourceStringResponseList;
 import com.crowdin.client.sourcestrings.model.SourceStringResponseObject;
 import com.crowdin.client.storage.model.Storage;
 import com.crowdin.client.storage.model.StorageResponseObject;
+import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
+import com.crowdin.client.translationmemory.model.TranslationMemory;
+import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
+import com.crowdin.client.translationmemory.model.TranslationMemoryExportStatus;
+import com.crowdin.client.translationmemory.model.TranslationMemoryExportStatusResponseObject;
+import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
+import com.crowdin.client.translationmemory.model.TranslationMemoryImportStatus;
+import com.crowdin.client.translationmemory.model.TranslationMemoryImportStatusResponseObject;
+import com.crowdin.client.translationmemory.model.TranslationMemoryResponseList;
+import com.crowdin.client.translationmemory.model.TranslationMemoryResponseObject;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.ProjectBuildResponseObject;
@@ -92,7 +102,9 @@ public class CrowdinClientTest {
     private static final String downloadUrl = "https://downloadme.crowdin.com";
     private static final String downloadUrlMalformed = "https";
     private static final long glossaryId = 92;
-    private static final String exportGlossaryId = "1-0-2";
+    private static final String exportGlossaryId = "9-2";
+    private static final long tmId = 102;
+    private static final String exportTmId = "1-0-2";
 
     private static final String listFilesUrl =
         String.format("%s/projects/%d/files", url, projectId);
@@ -152,6 +164,21 @@ public class CrowdinClientTest {
     private static final String listTermsUrl =
         String.format("%s/glossaries/%d/terms", url, glossaryId);
 
+    private static final String listTmsUrl =
+        String.format("%s/tms", url);
+    private static final String getTmUrl =
+        String.format("%s/tms/%d", url, tmId);
+    private static final String addTmUrl =
+        String.format("%s/tms", url);
+    private static final String importTmUrl =
+        String.format("%s/tms/%s/imports", url, tmId);
+    private static final String startExportingTmUrl =
+        String.format("%s/tms/%d/exports", url, tmId);
+    private static final String checkExportingTmUrl =
+        String.format("%s/tms/%d/exports/%s", url, tmId, exportTmId);
+    private static final String downloadTmUrl =
+        String.format("%s/tms/%d/exports/%s/download", url, tmId, exportTmId);
+
     @BeforeEach
     public void init() {
         Credentials creds = new Credentials("VeryBigToken", "TestingCompany", preUrl);
@@ -199,7 +226,7 @@ public class CrowdinClientTest {
         LanguageResponseList langsResponse = new LanguageResponseList() {{
                 setData(supportedLangs);
             }};
-        FileResponseList filesResponse = new FileResponseList() {{
+        FileInfoResponseList filesResponse = new FileInfoResponseList() {{
                 setData(files);
             }};
         DirectoryResponseList directoriesResponse = new DirectoryResponseList() {{
@@ -212,7 +239,7 @@ public class CrowdinClientTest {
             .thenReturn(projectResponse);
         when(httpClientMock.get(eq(listSupportedLanguagesUrl), any(), eq(LanguageResponseList.class)))
             .thenReturn(langsResponse);
-        when(httpClientMock.get(eq(listFilesUrl), any(), eq(FileResponseList.class)))
+        when(httpClientMock.get(eq(listFilesUrl), any(), eq(FileInfoResponseList.class)))
             .thenReturn(filesResponse);
         when(httpClientMock.get(eq(listDirectoriesUrl), any(), eq(DirectoryResponseList.class)))
             .thenReturn(directoriesResponse);
@@ -227,7 +254,7 @@ public class CrowdinClientTest {
 
         verify(httpClientMock).get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class));
         verify(httpClientMock).get(eq(listSupportedLanguagesUrl), any(), eq(LanguageResponseList.class));
-        verify(httpClientMock).get(eq(listFilesUrl), any(), eq(FileResponseList.class));
+        verify(httpClientMock).get(eq(listFilesUrl), any(), eq(FileInfoResponseList.class));
         verify(httpClientMock).get(eq(listDirectoriesUrl), any(), eq(DirectoryResponseList.class));
         verify(httpClientMock).get(eq(listBranchesUrl), any(), eq(BranchResponseList.class));
         verifyNoMoreInteractions(httpClientMock);
@@ -729,6 +756,136 @@ public class CrowdinClientTest {
         verify(httpClientMock).get(eq(listTermsUrl), any(), eq(TermResponseList.class));
         verifyNoMoreInteractions(httpClientMock);
     }
+
+    @Test
+    public void testListTms() {
+        TranslationMemoryResponseList response = new TranslationMemoryResponseList() {{
+                setData(new ArrayList<>());
+            }};
+        when(httpClientMock.get(eq(listTmsUrl), any(), eq(TranslationMemoryResponseList.class)))
+            .thenReturn(response);
+
+        client.listTms();
+
+        verify(httpClientMock).get(eq(listTmsUrl), any(), eq(TranslationMemoryResponseList.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
+    @Test
+    public void testGetTm() {
+        TranslationMemoryResponseObject response = new TranslationMemoryResponseObject() {{
+                setData(new TranslationMemory());
+            }};
+        when(httpClientMock.get(eq(getTmUrl), any(), eq(TranslationMemoryResponseObject.class)))
+            .thenReturn(response);
+
+        client.getTm(tmId);
+
+        verify(httpClientMock).get(eq(getTmUrl), any(), eq(TranslationMemoryResponseObject.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
+    @Test
+    public void testGetTm_notFound() {
+        when(httpClientMock.get(eq(getTmUrl), any(), eq(TranslationMemoryResponseObject.class)))
+            .thenThrow(new RuntimeException("any"));
+
+        client.getTm(tmId);
+
+        verify(httpClientMock).get(eq(getTmUrl), any(), eq(TranslationMemoryResponseObject.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
+    @Test
+    public void testAddTm() {
+        TranslationMemoryResponseObject response = new TranslationMemoryResponseObject() {{
+                setData(new TranslationMemory());
+            }};
+        when(httpClientMock.post(eq(addTmUrl), any(), any(), eq(TranslationMemoryResponseObject.class)))
+            .thenReturn(response);
+
+        client.addTm(new AddTranslationMemoryRequest());
+
+        verify(httpClientMock).post(eq(addTmUrl), any(), any(), eq(TranslationMemoryResponseObject.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
+    @Test
+    public void testImportTm() {
+        TranslationMemoryImportStatusResponseObject response = new TranslationMemoryImportStatusResponseObject() {{
+                setData(new TranslationMemoryImportStatus());
+            }};
+        when(httpClientMock.post(eq(importTmUrl), any(), any(), eq(TranslationMemoryImportStatusResponseObject.class)))
+            .thenReturn(response);
+
+        client.importTm(tmId, new TranslationMemoryImportRequest());
+
+        verify(httpClientMock).post(eq(importTmUrl), any(), any(), eq(TranslationMemoryImportStatusResponseObject.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
+    @Test
+    public void testStartExportingTm() {
+        TranslationMemoryExportStatusResponseObject response = new TranslationMemoryExportStatusResponseObject() {{
+                setData(new TranslationMemoryExportStatus());
+            }};
+        when(httpClientMock.post(eq(startExportingTmUrl), any(), any(), eq(TranslationMemoryExportStatusResponseObject.class)))
+            .thenReturn(response);
+
+        client.startExportingTm(tmId, new TranslationMemoryExportRequest());
+
+        verify(httpClientMock).post(eq(startExportingTmUrl), any(), any(), eq(TranslationMemoryExportStatusResponseObject.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
+    @Test
+    public void testCheckExportingTm() {
+        TranslationMemoryExportStatusResponseObject response = new TranslationMemoryExportStatusResponseObject() {{
+                setData(new TranslationMemoryExportStatus());
+            }};
+        when(httpClientMock.get(eq(checkExportingTmUrl), any(), eq(TranslationMemoryExportStatusResponseObject.class)))
+            .thenReturn(response);
+
+        client.checkExportingTm(tmId, exportTmId);
+
+        verify(httpClientMock).get(eq(checkExportingTmUrl), any(), eq(TranslationMemoryExportStatusResponseObject.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
+    @Test
+    public void testDownloadTm() {
+        DownloadLinkResponseObject response = new DownloadLinkResponseObject() {{
+                setData(new DownloadLink() {{
+                        setUrl(downloadUrl);
+                    }}
+                );
+            }};
+        when(httpClientMock.get(eq(downloadTmUrl), any(), eq(DownloadLinkResponseObject.class)))
+            .thenReturn(response);
+
+        client.downloadTm(tmId, exportTmId);
+
+        verify(httpClientMock).get(eq(downloadTmUrl), any(), eq(DownloadLinkResponseObject.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
+    @Test
+    public void testDownloadTm_throwsMalformedUrl() {
+        DownloadLinkResponseObject response = new DownloadLinkResponseObject() {{
+                setData(new DownloadLink() {{
+                        setUrl(downloadUrlMalformed);
+                    }}
+                );
+            }};
+        when(httpClientMock.get(eq(downloadTmUrl), any(), eq(DownloadLinkResponseObject.class)))
+            .thenReturn(response);
+
+        assertThrows(RuntimeException.class, () -> client.downloadTm(tmId, exportTmId));
+
+        verify(httpClientMock).get(eq(downloadTmUrl), any(), eq(DownloadLinkResponseObject.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
 
 
     @Test

@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.sourcefiles.model.File;
+import com.crowdin.client.sourcefiles.model.FileInfo;
 
 import java.util.List;
 import java.util.Map;
@@ -11,12 +12,12 @@ import java.util.stream.Collectors;
 
 public class DryrunProjectFiles extends Dryrun {
 
-    private List<File> files;
+    private List<FileInfo> files;
     private Map<Long, Directory> directories;
     private Map<Long, Branch> branches;
     private Long branchId;
 
-    public DryrunProjectFiles(List<File> files, Map<Long, Directory> directories, Map<Long, Branch> branches, Long branchId) {
+    public DryrunProjectFiles(List<FileInfo> files, Map<Long, Directory> directories, Map<Long, Branch> branches, Long branchId) {
         this.files = files;
         this.directories = directories;
         this.branches = branches;

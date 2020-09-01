@@ -7,7 +7,8 @@ import com.crowdin.cli.commands.Step;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.Params;
 import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.client.core.model.Format;
+import com.crowdin.client.glossaries.model.GlossariesFormat;
+import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -104,8 +105,26 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public ClientAction glossaryDownload(Long id, String name, Format format, boolean noProgress, File to, FilesInterface files) {
+    public ClientAction glossaryDownload(Long id, String name, GlossariesFormat format, boolean noProgress, File to, FilesInterface files) {
         return new GlossaryDownloadAction(id, name, format, noProgress, to, files);
+    }
+
+    @Override
+    public ClientAction tmList(boolean plainView) {
+        return new TmListAction(plainView);
+    }
+
+    @Override
+    public ClientAction tmUpload(File file, Long id, String name, Map<String, Integer> scheme) {
+        return new TmUploadAction(file, id, name, scheme);
+    }
+
+    @Override
+    public ClientAction tmDownload(
+        Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,
+        String targetLanguageId, boolean noProgress, File to, FilesInterface files
+    ) {
+        return new TmDownloadAction(id, name, format, sourceLanguageId, targetLanguageId, noProgress, to, files);
     }
 
     @Override

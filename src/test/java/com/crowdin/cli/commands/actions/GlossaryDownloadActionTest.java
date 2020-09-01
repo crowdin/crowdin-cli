@@ -8,7 +8,7 @@ import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.properties.PropertiesBeanBuilder;
-import com.crowdin.client.core.model.Format;
+import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.glossaries.model.Glossary;
 import com.crowdin.client.glossaries.model.GlossaryExportStatus;
 import org.junit.jupiter.api.Test;
@@ -46,7 +46,7 @@ public class GlossaryDownloadActionTest {
         FilesInterface filesMock = mock(FilesInterface.class);
         Client clientMock = mock(Client.class);
         File to = new File("nowhere.tbx");
-        Format format = Format.TBX;
+        GlossariesFormat format = GlossariesFormat.TBX;
 
         Optional<Glossary> targetGlossary = Optional.of(new Glossary() {{
                 setId(glossaryId);
@@ -88,7 +88,7 @@ public class GlossaryDownloadActionTest {
     public void test_findByName() throws IOException {
         FilesInterface filesMock = mock(FilesInterface.class);
         Client clientMock = mock(Client.class);
-        Format format = Format.TBX;
+        GlossariesFormat format = GlossariesFormat.TBX;
 
         List<Glossary> glossaries = Arrays.asList(
             new Glossary() {{
@@ -199,7 +199,7 @@ public class GlossaryDownloadActionTest {
         FilesInterface filesMock = mock(FilesInterface.class);
         Client clientMock = mock(Client.class);
         File to = new File("nowhere.tbx");
-        Format format = Format.TBX;
+        GlossariesFormat format = GlossariesFormat.TBX;
 
         Optional<Glossary> targetGlossary = Optional.of(new Glossary() {{
                 setId(glossaryId);
