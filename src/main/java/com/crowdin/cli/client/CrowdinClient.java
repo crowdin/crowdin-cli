@@ -54,7 +54,7 @@ class CrowdinClient extends CrowdinClientCore implements Client {
     public CrowdinProjectFull downloadFullProject() {
         CrowdinProjectFull project = new CrowdinProjectFull();
         this.populateProjectWithInfo(project);
-        this.populateProjectWithLangs(project, project.getTargetLanguageIds());
+        this.populateProjectWithLangs(project);
         this.populateProjectWithStructure(project);
         return project;
     }
@@ -63,7 +63,7 @@ class CrowdinClient extends CrowdinClientCore implements Client {
     public CrowdinProject downloadProjectWithLanguages() {
         CrowdinProject project = new CrowdinProject();
         this.populateProjectWithInfo(project);
-        this.populateProjectWithLangs(project, project.getTargetLanguageIds());
+        this.populateProjectWithLangs(project);
         return project;
     }
 
@@ -83,23 +83,20 @@ class CrowdinClient extends CrowdinClientCore implements Client {
             .listBranches(this.projectId, null, limit, offset)));
     }
 
-    private void populateProjectWithLangs(CrowdinProject project, List<String> targetLanguageIds) {
+    private void populateProjectWithLangs(CrowdinProject project) {
         project.setSupportedLanguages(executeRequestFullList((limit, offset) -> this.client.getLanguagesApi()
             .listSupportedLanguages(limit, offset)));
-        project.setProjectLanguages(project.getSupportedLanguages().stream()
-            .filter(language -> targetLanguageIds.contains(language.getId()))
-            .collect(Collectors.toList()));
     }
 
     private void populateProjectWithInfo(CrowdinProjectInfo project) {
         com.crowdin.client.projectsgroups.model.Project projectModel = this.getProject();
         project.setProjectId(projectModel.getId());
-        project.setTargetLanguageIds(projectModel.getTargetLanguageIds());
+        project.setProjectLanguages(projectModel.getTargetLanguages());
         if (projectModel instanceof ProjectSettings) {
             project.setAccessLevel(CrowdinProjectInfo.Access.MANAGER);
             ProjectSettings projectSettings = (ProjectSettings) projectModel;
             if (projectSettings.isInContext()) {
-                project.setInContextLanguageId(projectSettings.getInContextPseudoLanguageId());
+                project.setInContextLanguage(projectSettings.getInContextPseudoLanguage());
             }
             project.setLanguageMapping(LanguageMapping.fromServerLanguageMapping(projectSettings.getLanguageMapping()));
         } else {

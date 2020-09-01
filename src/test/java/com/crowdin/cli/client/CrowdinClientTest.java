@@ -195,7 +195,7 @@ public class CrowdinClientTest {
     public void testDownloadProjectFull() {
         Project project = new Project() {{
                 setId(projectId);
-                setTargetLanguageIds(Arrays.asList("en"));
+                setTargetLanguages(Arrays.asList(LanguageBuilder.ENG.build()));
             }};
         List<LanguageResponseObject> supportedLangs = Arrays.asList(
             new LanguageResponseObject() {{
@@ -264,7 +264,7 @@ public class CrowdinClientTest {
     public void testDownloadProjectWithLangs() {
         Project project = new Project() {{
                 setId(projectId);
-                setTargetLanguageIds(Arrays.asList("en"));
+                setTargetLanguages(Arrays.asList(LanguageBuilder.ENG.build()));
             }};
         List<LanguageResponseObject> supportedLangs = Arrays.asList(
             new LanguageResponseObject() {{
@@ -309,7 +309,7 @@ public class CrowdinClientTest {
         CrowdinProjectInfo projectInfo = client.downloadProjectInfo();
 
         assertTrue(projectInfo.isManagerAccess());
-        assertFalse(projectInfo.getInContextLanguageId().isPresent());
+        assertFalse(projectInfo.getInContextLanguage().isPresent());
 
         verify(httpClientMock).get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class));
         verifyNoMoreInteractions(httpClientMock);
@@ -322,7 +322,7 @@ public class CrowdinClientTest {
                 setTargetLanguageIds(Arrays.asList("uk", "ua"));
                 setLanguageMapping(new HashMap<>());
                 setInContext(true);
-                setInContextPseudoLanguageId("ach");
+                setInContextPseudoLanguage(LanguageBuilder.ENG.build());
             }};
         ProjectResponseObject response = new ProjectResponseObject() {{
                 setData(project);
@@ -331,7 +331,7 @@ public class CrowdinClientTest {
             .thenReturn(response);
 
         CrowdinProjectInfo projectInfo = client.downloadProjectInfo();
-        assertTrue(projectInfo.getInContextLanguageId().isPresent());
+        assertTrue(projectInfo.getInContextLanguage().isPresent());
 
         verify(httpClientMock).get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class));
         verifyNoMoreInteractions(httpClientMock);

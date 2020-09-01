@@ -9,7 +9,6 @@ import java.util.Optional;
 public class CrowdinProject extends CrowdinProjectInfo {
 
     private List<Language> supportedLanguages;
-    private List<Language> projectLanguages;
 
     CrowdinProject() {
 
@@ -21,22 +20,6 @@ public class CrowdinProject extends CrowdinProjectInfo {
 
     public List<Language> getSupportedLanguages() {
         return this.supportedLanguages;
-    }
-
-    void setProjectLanguages(List<Language> projectLanguages) {
-        this.projectLanguages = projectLanguages;
-    }
-
-    public List<Language> getProjectLanguages(boolean withInContextLang) {
-        if (withInContextLang) {
-            List<Language> projectLanguagesWithPseudo = new ArrayList<>(projectLanguages);
-            this.getInContextLanguageId()
-                .flatMap(id -> this.findLanguageById(id, false))
-                .ifPresent(projectLanguagesWithPseudo::add);
-            return projectLanguagesWithPseudo;
-        } else {
-            return projectLanguages;
-        }
     }
 
     public Optional<Language> findLanguageById(String langId, boolean onlyProjLangs) {
