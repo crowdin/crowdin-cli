@@ -34,4 +34,9 @@ public class BaseCli {
     public static final String URL_OAUTH_AUTH = "https://accounts.crowdin.com/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=token&scope=project";
 
     public static final String OAUTH_CLIENT_ID = "wQEqvhU3vLOa2XicmUyT";
+
+    public static final String HTTP_PROXY_HOST_ENV = "HTTP_PROXY_HOST";
+    public static final String HTTP_PROXY_PORT_ENV = "HTTP_PROXY_PORT";
+    public static final String HTTP_PROXY_USER_ENV = "HTTP_PROXY_USER";
+    public static final String HTTP_PROXY_PASSWORD_ENV = "HTTP_PROXY_PASSWORD";
 }

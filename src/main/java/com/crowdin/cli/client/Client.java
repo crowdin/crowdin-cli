@@ -113,6 +113,12 @@ public interface Client {
             .jsonTransformer(new JacksonJsonTransformer())
             .userAgent(Utils.buildUserAgent())
             .build();
+        Utils.proxyHost()
+            .map(pair -> new ClientConfig.Host(pair.getKey(), pair.getValue()))
+            .ifPresent(clientConfig::setProxy);
+        Utils.proxyCredentials()
+            .map(pair -> new ClientConfig.UsernamePasswordCredentials(pair.getKey(), pair.getValue()))
+            .ifPresent(clientConfig::setProxyCreds);
         com.crowdin.client.Client client = new com.crowdin.client.Client(credentials, clientConfig);
         return new CrowdinClient(client, projectId);
     }
