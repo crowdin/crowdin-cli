@@ -38,6 +38,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -76,6 +77,7 @@ class UploadSourcesAction implements ClientAction {
 
         List<String> uploadedSources = new ArrayList<>();
 
+        AtomicBoolean errorsPresented = new AtomicBoolean(false);
         List<Runnable> tasks = pb.getFiles().stream()
             .map(file -> (Runnable) () -> {
                 List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
@@ -83,6 +85,7 @@ class UploadSourcesAction implements ClientAction {
                     .collect(Collectors.toList());
                 if (sources.isEmpty()) {
                     if (!plainView) {
+                        errorsPresented.set(true);
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
                     } else {
                         return;
@@ -123,6 +126,7 @@ class UploadSourcesAction implements ClientAction {
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
                                     request.setStorageId(client.uploadStorage(fileName, fileStream));
                                 } catch (IOException e) {
+                                    errorsPresented.set(true);
                                     throw new RuntimeException(
                                         String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }
@@ -136,6 +140,7 @@ class UploadSourcesAction implements ClientAction {
                                         out.println(fileFullPath);
                                     }
                                 } catch (Exception e) {
+                                    errorsPresented.set(true);
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath), e);
                                 }
                             };
@@ -153,6 +158,7 @@ class UploadSourcesAction implements ClientAction {
                                 try {
                                     directoryId = ProjectUtils.createPath(out, client, directoryPaths, filePath, branchId, plainView);
                                 } catch (Exception e) {
+                                    errorsPresented.set(true);
                                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.creating_directories"), e);
                                 }
 
@@ -165,12 +171,14 @@ class UploadSourcesAction implements ClientAction {
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
                                     request.setStorageId(client.uploadStorage(fileName, fileStream));
                                 } catch (IOException e) {
+                                    errorsPresented.set(true);
                                     throw new RuntimeException(
                                         String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }
                                 try {
                                     client.addSource(request);
                                 } catch (Exception e) {
+                                    errorsPresented.set(true);
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath), e);
                                 }
                                 if (!plainView) {
@@ -194,6 +202,9 @@ class UploadSourcesAction implements ClientAction {
             })
             .collect(Collectors.toList());
         ConcurrencyUtil.executeAndWaitSingleThread(tasks, debug);
+        if (errorsPresented.get()) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.errors_presented"));
+        }
     }
 
     private ImportOptions buildImportOptions(java.io.File sourceFile, FileBean fileBean) {
