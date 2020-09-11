@@ -33,6 +33,8 @@ import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
 
 import java.io.InputStream;
+import java.net.Authenticator;
+import java.net.PasswordAuthentication;
 import java.net.URL;
 import java.util.List;
 import java.util.Optional;
@@ -115,10 +117,20 @@ public interface Client {
             .build();
         Utils.proxyHost()
             .map(pair -> new ClientConfig.Host(pair.getKey(), pair.getValue()))
-            .ifPresent(clientConfig::setProxy);
+            .ifPresent(proxy -> {
+                clientConfig.setProxy(proxy);
+
+                System.setProperty("https.proxyHost", proxy.getHost());
+                System.setProperty("https.proxyPort", String.valueOf(proxy.getPort()));
+            });
         Utils.proxyCredentials()
             .map(pair -> new ClientConfig.UsernamePasswordCredentials(pair.getKey(), pair.getValue()))
-            .ifPresent(clientConfig::setProxyCreds);
+            .ifPresent(proxyCreds -> {
+                clientConfig.setProxyCreds(proxyCreds);
+
+                System.setProperty("https.proxyUser", proxyCreds.getUsername());
+                System.setProperty("https.proxyPassword", proxyCreds.getPassword());
+            });
         com.crowdin.client.Client client = new com.crowdin.client.Client(credentials, clientConfig);
         return new CrowdinClient(client, projectId);
     }
