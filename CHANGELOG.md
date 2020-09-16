@@ -1,6 +1,23 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.3.0] -
+
+### Added
+
+- Glossary management. For more details - `crowdin glossary -h` ([#304](https://github.com/crowdin/crowdin-cli/pull/304))
+- Translation memory management. For more details - `crowdin tm -h` ([#304](https://github.com/crowdin/crowdin-cli/pull/304))
+
+### Updated
+
+- Return non-zero code when errors presented in `upload` command ([#304](https://github.com/crowdin/crowdin-cli/pull/304/commits/2faae71c0102caa2c8bb6b64c2cc3f6ae405bb99))
+- Update how CLI gets a list of project languages and in-context language ([#304](https://github.com/crowdin/crowdin-cli/pull/304/commits/8e3f8d0e6fbb1258ee942d5f81fa9eb4b8e0d86b))
+
+### Fixed
+
+- Fix Proxy ([#304](https://github.com/crowdin/crowdin-cli/pull/304))
+- Fix `init` command to accept path formats on Windows ([#305](https://github.com/crowdin/crowdin-cli/pull/305))
+
 ## [3.2.2] - 2020-09-01
 
 ### Added
