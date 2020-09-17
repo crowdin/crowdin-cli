@@ -28,9 +28,12 @@ class TmUploadSubcommand extends ClientActCommand {
     @CommandLine.Option(names = {"--scheme"}, paramLabel = "...")
     private Map<String, Integer> scheme;
 
+    @CommandLine.Option(names = {"--first-line-contains-header"})
+    private Boolean firstLineContainsHeader;
+
     @Override
     protected ClientAction getAction(Actions actions) {
-        return actions.tmUpload(file, id, name, scheme);
+        return actions.tmUpload(file, id, name, scheme, firstLineContainsHeader);
     }
 
     @Override
@@ -42,6 +45,9 @@ class TmUploadSubcommand extends ClientActCommand {
         }
         if (!equalsAny(FilenameUtils.getExtension(file.getName()), "tmx", "csv", "xls", "xlsx")) {
             errors.add(RESOURCE_BUNDLE.getString("error.tm.wrong_format"));
+        }
+        if (!equalsAny(FilenameUtils.getExtension(file.getName()), "csv", "xls", "xlsx") && firstLineContainsHeader != null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.tm.first_line_contains_header_and_wrong_format"));
         }
         return errors;
     }

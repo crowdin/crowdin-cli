@@ -48,13 +48,13 @@ public interface Actions {
 
     ClientAction glossaryList(boolean plainView, boolean isVerbose);
 
-    ClientAction glossaryUpload(java.io.File file, Long id, String name, Map<String, Integer> scheme);
+    ClientAction glossaryUpload(java.io.File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
 
     ClientAction glossaryDownload(Long id, String name, GlossariesFormat format, boolean noProgress, File to, FilesInterface files);
 
     ClientAction tmList(boolean plainView);
 
-    ClientAction tmUpload(File file, Long id, String name, Map<String, Integer> scheme);
+    ClientAction tmUpload(File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
 
     ClientAction tmDownload(Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,
                             String targetLanguageId, boolean noProgress, File to, FilesInterface files);

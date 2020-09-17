@@ -25,12 +25,14 @@ class TmUploadAction implements ClientAction {
     private final Long id;
     private final String name;
     private final Map<String, Integer> scheme;
+    private final Boolean firstLineContainsHeader;
 
-    public TmUploadAction(File file, Long id, String name, Map<String, Integer> scheme) {
+    public TmUploadAction(File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
         this.file = file;
         this.id = id;
         this.name = name;
         this.scheme = scheme;
+        this.firstLineContainsHeader = firstLineContainsHeader;
     }
 
     @Override
@@ -42,7 +44,7 @@ class TmUploadAction implements ClientAction {
         } catch (Exception e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_to_storage"), e);
         }
-        client.importTm(targetTm.getId(), RequestBuilder.importTranslationMemory(storageId, scheme));
+        client.importTm(targetTm.getId(), RequestBuilder.importTranslationMemory(storageId, scheme, firstLineContainsHeader));
         out.println(OK.withIcon(
             String.format(RESOURCE_BUNDLE.getString("message.tm.import_success"), targetTm.getId(), targetTm.getName())));
     }

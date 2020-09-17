@@ -25,12 +25,14 @@ class GlossaryUploadAction implements ClientAction {
     private final Long id;
     private final String name;
     private final Map<String, Integer> scheme;
+    private final Boolean firstLineContainsHeader;
 
-    public GlossaryUploadAction(@NonNull java.io.File file, Long id, String name, Map<String, Integer> scheme) {
+    public GlossaryUploadAction(@NonNull java.io.File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
         this.file = file;
         this.id = id;
         this.name = name;
         this.scheme = scheme;
+        this.firstLineContainsHeader = firstLineContainsHeader;
     }
 
     @Override
@@ -60,7 +62,7 @@ class GlossaryUploadAction implements ClientAction {
         } catch (Exception e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_to_storage"), e);
         }
-        client.importGlossary(targetGlossary.getId(), RequestBuilder.importGlossary(storageId, scheme));
+        client.importGlossary(targetGlossary.getId(), RequestBuilder.importGlossary(storageId, scheme, firstLineContainsHeader));
         out.println(OK.withIcon(
             String.format(RESOURCE_BUNDLE.getString("message.glossary.import_success"), targetGlossary.getId(), targetGlossary.getName())));
     }

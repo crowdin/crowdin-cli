@@ -50,10 +50,11 @@ public class RequestBuilder {
         return request;
     }
 
-    public static ImportGlossaryRequest importGlossary(Long storageId, Map<String, Integer> scheme) {
+    public static ImportGlossaryRequest importGlossary(Long storageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
         ImportGlossaryRequest request = new ImportGlossaryRequest();
         request.setStorageId(storageId);
         request.setScheme(scheme);
+        request.setFirstLineContainsHeader(firstLineContainsHeader);
         return request;
     }
 
@@ -69,10 +70,11 @@ public class RequestBuilder {
         return request;
     }
 
-    public static TranslationMemoryImportRequest importTranslationMemory(Long storageId, Map<String, Integer> scheme) {
+    public static TranslationMemoryImportRequest importTranslationMemory(Long storageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
         TranslationMemoryImportRequest request = new TranslationMemoryImportRequest();
         request.setStorageId(storageId);
         request.setScheme(scheme);
+        request.setFirstLineContainsHeader(firstLineContainsHeader);
         return request;
     }
 

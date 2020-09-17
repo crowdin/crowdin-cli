@@ -100,8 +100,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public ClientAction glossaryUpload(java.io.File file, Long id, String name, Map<String, Integer> scheme) {
-        return new GlossaryUploadAction(file, id, name, scheme);
+    public ClientAction glossaryUpload(java.io.File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
+        return new GlossaryUploadAction(file, id, name, scheme, firstLineContainsHeader);
     }
 
     @Override
@@ -115,8 +115,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public ClientAction tmUpload(File file, Long id, String name, Map<String, Integer> scheme) {
-        return new TmUploadAction(file, id, name, scheme);
+    public ClientAction tmUpload(File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
+        return new TmUploadAction(file, id, name, scheme, firstLineContainsHeader);
     }
 
     @Override

@@ -28,9 +28,12 @@ class GlossaryUploadSubcommand extends ClientActCommand {
     @CommandLine.Option(names = {"--scheme"}, paramLabel = "...")
     private Map<String, Integer> scheme;
 
+    @CommandLine.Option(names = {"--first-line-contains-header"})
+    private Boolean firstLineContainsHeader;
+
     @Override
     protected ClientAction getAction(Actions actions) {
-        return actions.glossaryUpload(file, id, name, scheme);
+        return actions.glossaryUpload(file, id, name, scheme, firstLineContainsHeader);
     }
 
     @Override
@@ -44,6 +47,9 @@ class GlossaryUploadSubcommand extends ClientActCommand {
         }
         if (!equalsAny(FilenameUtils.getExtension(file.getName()), "csv", "xls", "xlsx") && scheme != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.scheme_and_wrong_format"));
+        }
+        if (!equalsAny(FilenameUtils.getExtension(file.getName()), "csv", "xls", "xlsx") && firstLineContainsHeader != null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.glossary.first_line_contains_header_and_wrong_format"));
         }
         if (id != null && name != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.id_and_name"));

@@ -85,7 +85,7 @@ public class CliActionsTest {
 
     @Test
     public void testGlossaryUpload() {
-        assertNotNull(actions.glossaryUpload(new File("nowhere.txt"), null, null, null));
+        assertNotNull(actions.glossaryUpload(new File("nowhere.txt"), null, null, null, null));
     }
 
     @Test
@@ -100,7 +100,7 @@ public class CliActionsTest {
 
     @Test
     public void testTmUpload() {
-        assertNotNull(actions.tmUpload(null, null, null, null));
+        assertNotNull(actions.tmUpload(null, null, null, null, null));
     }
 
     @Test

@@ -11,7 +11,7 @@ public class GlossaryUploadSubcommandTest extends PicocliTestUtils {
     public void testGlossaryUpload() {
         this.execute(CommandNames.GLOSSARY, CommandNames.GLOSSARY_UPLOAD, getClass().getClassLoader().getResource("file.csv").getFile());
         verify(actionsMock)
-            .glossaryUpload(any(), any(), any(), any());
+            .glossaryUpload(any(), any(), any(), any(), any());
         check(true);
     }
 
