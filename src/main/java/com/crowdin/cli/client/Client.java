@@ -127,9 +127,21 @@ public interface Client {
             .map(pair -> new ClientConfig.UsernamePasswordCredentials(pair.getKey(), pair.getValue()))
             .ifPresent(proxyCreds -> {
                 clientConfig.setProxyCreds(proxyCreds);
-
-                System.setProperty("https.proxyUser", proxyCreds.getUsername());
-                System.setProperty("https.proxyPassword", proxyCreds.getPassword());
+                if (proxyCreds.getUsername() != null && proxyCreds.getPassword() != null) {
+                    Authenticator.setDefault(
+                        new Authenticator() {
+                            @Override
+                            public PasswordAuthentication getPasswordAuthentication() {
+                                if (getRequestorType() == RequestorType.PROXY) {
+                                    return new PasswordAuthentication(proxyCreds.getUsername(), proxyCreds.getPassword().toCharArray());
+                                } else {
+                                    return null;
+                                }
+                            }
+                        }
+                    );
+                    System.setProperty("jdk.http.auth.tunneling.disabledSchemes", "");
+                }
             });
         com.crowdin.client.Client client = new com.crowdin.client.Client(credentials, clientConfig);
         return new CrowdinClient(client, projectId);
