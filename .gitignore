@@ -6,3 +6,5 @@
 *.iws
 crowdin.yml
 /testing
+dist
+jdeploy-bundle

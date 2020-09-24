@@ -1,0 +1,31 @@
+{
+  "bin": {
+    "crowdin": "jdeploy-bundle/jdeploy.js"
+  },
+  "author": "Crowdin",
+  "description": "Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project",
+  "main": "index.js",
+  "preferGlobal": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/crowdin/crowdin-cli.git"
+  },
+  "version": "3.2.2",
+  "jdeploy": {
+    "jar": "dist/crowdin-cli.jar"
+  },
+  "dependencies": {
+    "shelljs": "^0.7.5"
+  },
+  "license": "MIT",
+  "name": "@crowdin/cli",
+  "files": [
+    "jdeploy-bundle"
+  ],
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "Crowdin", "CLI", "Client", "Sync", "Localization"
+  ]
+}

@@ -15,6 +15,7 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 
 [![Build Status](https://dev.azure.com/crowdin/crowdin-cli-3/_apis/build/status/Build%20and%20Test?branchName=cli3)](https://dev.azure.com/crowdin/crowdin-cli-3/_build/latest?definitionId=22&branchName=cli3&cacheSeconds=1000)
 [![Docker Pulls](https://img.shields.io/docker/pulls/crowdin/cli?logo=docker&cacheSeconds=2000)](https://hub.docker.com/r/crowdin/cli)
+[![npm](https://img.shields.io/npm/dt/@crowdin/cli?logo=npm&cacheSeconds=2000)](https://www.npmjs.com/package/@crowdin/cli)
 ![Azure DevOps tests (branch)](https://img.shields.io/azure-devops/tests/crowdin/crowdin-cli-3/22/cli3?cacheSeconds=2000)
 [![codecov](https://codecov.io/gh/crowdin/crowdin-cli/branch/cli3/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli)
 [![GitHub contributors](https://img.shields.io/github/contributors/crowdin/crowdin-cli?cacheSeconds=1000)](https://github.com/crowdin/crowdin-cli/graphs/contributors)
@@ -40,7 +41,7 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 
 ---
 
-[<p align="center"><img src="https://github.com/crowdin/crowdin-cli/blob/docs/cli.png" data-canonical-src="https://github.com/crowdin/crowdin-cli/blob/docs/cli.png" width="700" height="auto" align="center"/></p>](https://crowdin.com)
+[<p align="center"><img src="https://raw.githubusercontent.com/crowdin/crowdin-cli/docs/cli.png" data-canonical-src="https://raw.githubusercontent.com/crowdin/crowdin-cli/docs/cli.png" width="700" height="auto" align="center"/></p>](https://crowdin.com)
 
 ## What's New
 
@@ -191,6 +192,13 @@ sudo rpm -U crowdin3.rpm
 <summary><b>Arch Linux</b></summary>
 
 Visit the Crowdin CLI [package page](https://aur.archlinux.org/packages/crowdin-cli/) on Arch Linux user  repository.
+
+</details>
+
+<details>
+<summary><b>NPM</b></summary>
+
+`npm i -g @crowdin/cli`
 
 </details>
 
