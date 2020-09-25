@@ -163,9 +163,6 @@ class UploadTranslationsAction implements ClientAction {
                         preparedRequests.put(transFile, Pair.of(Collections.singletonList(language), request));
                     }
                 }
-                if (containsErrors.get()) {
-                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.execution_contains_errors"));
-                }
             });
 
             List<Runnable> tasks = preparedRequests.entrySet()
@@ -178,6 +175,7 @@ class UploadTranslationsAction implements ClientAction {
                         Long storageId = client.uploadStorage(translationFile.getName(), fileStream);
                         request.setStorageId(storageId);
                     } catch (Exception e) {
+                        containsErrors.set(true);
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation_to_storage"), e);
                     }
                     try {
@@ -185,6 +183,7 @@ class UploadTranslationsAction implements ClientAction {
                             client.uploadTranslations(lang.getId(), request);
                         }
                     } catch (Exception e) {
+                        containsErrors.set(true);
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
                     }
                     if (!plainView) {
@@ -197,6 +196,10 @@ class UploadTranslationsAction implements ClientAction {
                 })
                 .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks, debug);
+
+            if (containsErrors.get()) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.execution_contains_errors"));
+            }
         }
     }
 }

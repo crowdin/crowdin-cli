@@ -82,9 +82,59 @@ public class StringAddActionTest {
             }};
         return Stream.of(
             arguments("first text", "1.1", 42, "It's first text", false, headers, new String[] {"first.csv"}),
-            arguments("first text", "1.1", 42, "It's first text", false, null, new String[] {"notExist.csv"}),
             arguments("first text", "1.1", 42, "It's first text", false, new HashMap<String, Long>(), new String[0])
         );
+    }
+
+    @Test
+    public void testStirngAdd_throwsNotFound() {
+        String text = "first text";
+        String identifier = "1.1";
+        Integer maxLength = 42;
+        String context = "It's first text";
+        Boolean hidden = false;
+        Map<String, Long> files = null;
+        String[] stringFiles = new String[] {"notExist.csv"};
+
+
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(Utils.PATH_SEPARATOR);
+        PropertiesBean pb = pbBuilder.build();
+
+
+
+        List<AddSourceStringRequest> requests = new ArrayList<>();
+        if (files != null) {
+            if (files.size() == 0) {
+                requests.add(RequestBuilder.addString(text, identifier, maxLength, context, null, hidden));
+            } else {
+                for (Long fileId : files.values()) {
+                    requests.add(RequestBuilder.addString(text, identifier, maxLength, context, fileId, hidden));
+                }
+            }
+        }
+
+        ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
+        if (files != null) {
+            for (Map.Entry<String, Long> pathWithId : files.entrySet()) {
+                projectBuilder.addFile(pathWithId.getKey(), "csv", pathWithId.getValue(), null, null);
+            }
+        }
+
+        Client client = mock(Client.class);
+        when(client.downloadFullProject())
+            .thenReturn(projectBuilder.build());
+
+        ClientAction action = new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), hidden);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+
+        verify(client).downloadFullProject();
+        for (AddSourceStringRequest request : requests) {
+            verify(client).addSourceString(request);
+        }
+
+        verifyNoMoreInteractions(client);
     }
 
     @Test

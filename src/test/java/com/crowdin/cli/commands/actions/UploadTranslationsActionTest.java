@@ -17,6 +17,7 @@ import org.junit.jupiter.api.Test;
 
 import java.util.Arrays;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
@@ -54,7 +55,7 @@ public class UploadTranslationsActionTest {
             .thenReturn(1L);
 
         ClientAction action = new UploadTranslationsAction(false, null, null, false, false, false, false);
-        action.act(Outputter.getDefault(), pb, client);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
@@ -122,7 +123,7 @@ public class UploadTranslationsActionTest {
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
 
         ClientAction action = new UploadTranslationsAction(false, null, null, false, false, false, false);
-        action.act(Outputter.getDefault(), pb, client);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
         verifyNoMoreInteractions(client);
@@ -176,7 +177,7 @@ public class UploadTranslationsActionTest {
             .thenReturn(1L);
 
         ClientAction action = new UploadTranslationsAction(false, null, null, false, false, false, false);
-        action.act(Outputter.getDefault(), pb, client);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
