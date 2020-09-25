@@ -3,8 +3,10 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.commands.ClientAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemory;
 
 import java.io.File;
@@ -37,7 +39,8 @@ class TmUploadAction implements ClientAction {
 
     @Override
     public void act(Outputter out, PropertiesBean pb, Client client) {
-        TranslationMemory targetTm = this.getTm(client);
+        boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
+        TranslationMemory targetTm = this.getTm(client, isOrganization);
         Long storageId;
         try (InputStream fileStream = new FileInputStream(file)) {
             storageId = client.uploadStorage(file.getName(), fileStream);
@@ -49,7 +52,7 @@ class TmUploadAction implements ClientAction {
             String.format(RESOURCE_BUNDLE.getString("message.tm.import_success"), targetTm.getId(), targetTm.getName())));
     }
 
-    private TranslationMemory getTm(Client client) {
+    private TranslationMemory getTm(Client client, boolean isEnterprise) {
         if (id != null) {
             return client.getTm(id)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.not_found_by_id")));
@@ -65,8 +68,10 @@ class TmUploadAction implements ClientAction {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.more_than_one_tm_by_that_name"));
             }
         } else {
-            return client.addTm(
-                RequestBuilder.addTm(String.format(DEFAULT_TM_NAME, file.getName())));
+            AddTranslationMemoryRequest addTmRequest = (isEnterprise)
+                ? RequestBuilder.addTmEnterprise(String.format(DEFAULT_TM_NAME, file.getName()), 0L)
+                : RequestBuilder.addTm(String.format(DEFAULT_TM_NAME, file.getName()));
+            return client.addTm(addTmRequest);
         }
     }
 }

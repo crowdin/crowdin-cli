@@ -50,6 +50,13 @@ public class RequestBuilder {
         return request;
     }
 
+    public static AddGlossaryRequest addGlossaryEnterprise(String name, Long groupId) {
+        AddGlossaryRequest request = new AddGlossaryRequest();
+        request.setName(name);
+        request.setGroupId(groupId);
+        return request;
+    }
+
     public static ImportGlossaryRequest importGlossary(Long storageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
         ImportGlossaryRequest request = new ImportGlossaryRequest();
         request.setStorageId(storageId);
@@ -67,6 +74,13 @@ public class RequestBuilder {
     public static AddTranslationMemoryRequest addTm(String name) {
         AddTranslationMemoryRequest request = new AddTranslationMemoryRequest();
         request.setName(name);
+        return request;
+    }
+
+    public static AddTranslationMemoryRequest addTmEnterprise(String name, Long groupId) {
+        AddTranslationMemoryRequest request = new AddTranslationMemoryRequest();
+        request.setName(name);
+        request.setGroupId(groupId);
         return request;
     }
 

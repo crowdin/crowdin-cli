@@ -3,8 +3,10 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.Client;
 import com.crowdin.cli.commands.ClientAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.client.glossaries.model.AddGlossaryRequest;
 import com.crowdin.client.glossaries.model.Glossary;
 import lombok.NonNull;
 
@@ -37,6 +39,7 @@ class GlossaryUploadAction implements ClientAction {
 
     @Override
     public void act(Outputter out, PropertiesBean pb, Client client) {
+        boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
         Glossary targetGlossary;
         if (id != null) {
             targetGlossary = client.getGlossary(id)
@@ -53,8 +56,10 @@ class GlossaryUploadAction implements ClientAction {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.glossary.more_than_one_glossary_by_that_name"));
             }
         } else {
-            targetGlossary = client.addGlossary(
-                RequestBuilder.addGlossary(String.format(DEFAULT_GLOSSARY_NAME, file.getName())));
+            AddGlossaryRequest addGlossaryRequest = (isOrganization)
+                ? RequestBuilder.addGlossaryEnterprise(String.format(DEFAULT_GLOSSARY_NAME, file.getName()), 0L)
+                : RequestBuilder.addGlossary(String.format(DEFAULT_GLOSSARY_NAME, file.getName()));
+            targetGlossary = client.addGlossary(addGlossaryRequest);
         }
         Long storageId;
         try (InputStream fileStream = new FileInputStream(file)) {
