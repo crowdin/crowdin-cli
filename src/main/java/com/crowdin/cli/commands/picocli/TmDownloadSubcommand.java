@@ -55,6 +55,11 @@ class TmDownloadSubcommand extends ClientActCommand {
         } else if (id == null && name == null) {
             errors.add(RESOURCE_BUNDLE.getString("error.tm.no_id_and_no_name"));
         }
+        if (sourceLanguageId != null && targetLanguageid == null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.tm.target_language_id_is_null"));
+        } else if (sourceLanguageId == null && targetLanguageid != null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.tm.source_language_id_is_null"));
+        }
         return errors;
     }
 }

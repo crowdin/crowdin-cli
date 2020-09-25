@@ -47,6 +47,8 @@ class GlossaryUploadSubcommand extends ClientActCommand {
         }
         if (!equalsAny(FilenameUtils.getExtension(file.getName()), "csv", "xls", "xlsx") && scheme != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.scheme_and_wrong_format"));
+        } else if (equalsAny(FilenameUtils.getExtension(file.getName()), "csv", "xls", "xlsx") && scheme == null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.glossary.scheme_is_required"));
         }
         if (!equalsAny(FilenameUtils.getExtension(file.getName()), "csv", "xls", "xlsx") && firstLineContainsHeader != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.first_line_contains_header_and_wrong_format"));

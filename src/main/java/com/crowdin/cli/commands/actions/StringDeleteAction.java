@@ -57,7 +57,7 @@ class StringDeleteAction implements ClientAction {
         }
 
         if (sourceStrings.isEmpty()) {
-            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("error.source_string_not_found")));
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.source_string_not_found"));
         }
     }
 }

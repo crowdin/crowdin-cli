@@ -29,6 +29,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -105,12 +106,14 @@ class UploadTranslationsAction implements ClientAction {
 
             Map<java.io.File, Pair<List<Language>, UploadTranslationsRequest>> preparedRequests = new HashMap<>();
             String branchPath = (StringUtils.isNotEmpty(this.branchName) ? branchName + Utils.PATH_SEPARATOR : "");
+            AtomicBoolean containsErrors = new AtomicBoolean(false);
             fileSourcesWithoutIgnores.forEach(source -> {
                 String filePath = branchPath + (StringUtils.isNotEmpty(file.getDest())
                     ? StringUtils.removeStart(file.getDest(), Utils.PATH_SEPARATOR)
                     : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
 
                 if (!paths.containsKey(filePath)) {
+                    containsErrors.set(true);
                     if (!plainView) {
                         out.println(ERROR.withIcon(String.format(
                             RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"),
@@ -127,6 +130,7 @@ class UploadTranslationsAction implements ClientAction {
                 if (file.getScheme() != null && !PlaceholderUtil.containsLangPlaceholders(translation)) {
                     java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
                     if (!transFile.exists()) {
+                        containsErrors.set(true);
                         if (!plainView) {
                             out.println(SKIPPED.withIcon(String.format(
                                 RESOURCE_BUNDLE.getString("error.translation_not_exists"),
@@ -147,6 +151,7 @@ class UploadTranslationsAction implements ClientAction {
                         transFileName = PropertiesBeanUtils.useTranslationReplace(transFileName, file.getTranslationReplace());
                         java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
                         if (!transFile.exists()) {
+                            containsErrors.set(true);
                             if (!plainView) {
                                 out.println(SKIPPED.withIcon(String.format(
                                     RESOURCE_BUNDLE.getString("error.translation_not_exists"),
@@ -157,6 +162,9 @@ class UploadTranslationsAction implements ClientAction {
                         UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported);
                         preparedRequests.put(transFile, Pair.of(Collections.singletonList(language), request));
                     }
+                }
+                if (containsErrors.get()) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.execution_contains_errors"));
                 }
             });
 
