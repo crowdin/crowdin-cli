@@ -41,7 +41,7 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 
 ---
 
-[<p align="center"><img src="https://raw.githubusercontent.com/crowdin/crowdin-cli/docs/cli.png" data-canonical-src="https://raw.githubusercontent.com/crowdin/crowdin-cli/docs/cli.png" width="700" height="auto" align="center"/></p>](https://crowdin.com)
+[<p align="center"><img src="https://raw.githubusercontent.com/crowdin/crowdin-cli/docs/cli.png" data-canonical-src="https://raw.githubusercontent.com/crowdin/crowdin-cli/docs/cli.png" width="100%" height="auto" align="center"/></p>](https://crowdin.com)
 
 ## What's New
 
