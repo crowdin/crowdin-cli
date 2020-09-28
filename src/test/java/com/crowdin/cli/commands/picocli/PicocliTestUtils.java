@@ -94,6 +94,18 @@ public class PicocliTestUtils {
             .thenReturn(clientActionMock);
         when(actionsMock.uploadTranslations(anyBoolean(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(clientActionMock);
+        when(actionsMock.glossaryList(anyBoolean(), anyBoolean()))
+            .thenReturn(clientActionMock);
+        when(actionsMock.glossaryUpload(any(), any(), any(), any(), any()))
+            .thenReturn(clientActionMock);
+        when(actionsMock.glossaryDownload(any(), any(), any(), anyBoolean(), any(), any()))
+            .thenReturn(clientActionMock);
+        when(actionsMock.tmDownload(any(), any(), any(), any(), any(), anyBoolean(), any(), any()))
+            .thenReturn(clientActionMock);
+        when(actionsMock.tmList(anyBoolean()))
+            .thenReturn(clientActionMock);
+        when(actionsMock.tmUpload(any(), any(), any(), any(), any()))
+            .thenReturn(clientActionMock);
         when(actionsMock.checkNewVersion())
             .thenReturn(actionMock);
         when(actionsMock.buildProperties(any(), any(), any()))

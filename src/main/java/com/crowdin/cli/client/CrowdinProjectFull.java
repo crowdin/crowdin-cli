@@ -3,20 +3,24 @@ package com.crowdin.cli.client;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.sourcefiles.model.File;
+import com.crowdin.client.sourcefiles.model.FileInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+
 public class CrowdinProjectFull extends CrowdinProject {
 
-    private List<File> files;
+    private List<? extends FileInfo> files;
     private List<Directory> directories;
     private List<Branch> branches;
 
-    void setFiles(List<File> files) {
+    void setFiles(List<? extends FileInfo> files) {
         this.files = files;
     }
 
@@ -51,7 +55,24 @@ public class CrowdinProjectFull extends CrowdinProject {
             .collect(Collectors.toMap(Directory::getId, Function.identity()));
     }
 
+    /**
+     * returns list of files. Should be checked with isManagerAccess. Otherwise use getFileInfos()
+     * @return list of files
+     */
     public List<File> getFiles() {
-        return files;
+        if (files.isEmpty()) {
+            return new ArrayList<>();
+        } else {
+            FileInfo first = files.get(0);
+            if (first instanceof File) {
+                return (List<File>) files;
+            } else {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+            }
+        }
+    }
+
+    public List<FileInfo> getFileInfos() {
+        return (List<FileInfo>) files;
     }
 }

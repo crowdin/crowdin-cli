@@ -15,6 +15,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -64,9 +65,37 @@ public class StringDeleteActionTest {
                     .setIdentifiers(802L, "second. text", "context", "second. identifier", null).build(),
                 SourceStringBuilder.standard().setProjectId(PROJECT_ID)
                     .setIdentifiers(803L, "third. text", "context", "third. identifier", null).build()
-            ), Arrays.asList(801L), Arrays.asList("second. text"), Arrays.asList("third. identifier")),
-            arguments(Arrays.asList(), Arrays.asList(801L), Arrays.asList("second. text"), Arrays.asList("third. identifier"))
+            ), Arrays.asList(801L), Arrays.asList("second. text"), Arrays.asList("third. identifier"))
         );
+    }
+
+    @Test
+    public void testStringList_throwsNotFound() {
+        List<SourceString> strings = new ArrayList<>();
+        List<Long> ids = Arrays.asList(801L);
+        List<String> texts = Arrays.asList("second. text");
+        List<String> identifiers = Arrays.asList("third. identifier");
+
+        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(Utils.PATH_SEPARATOR);
+        PropertiesBean pb = pbBuilder.build();
+        Client client = mock(Client.class);
+        when(client.downloadFullProject())
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+        when(client.listSourceString(null, null))
+            .thenReturn(strings);
+
+
+        ClientAction action = new StringDeleteAction(true, ids, texts, identifiers);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+
+        verify(client).downloadFullProject();
+        verify(client).listSourceString(null, null);
+        for (SourceString sourceString : strings) {
+            verify(client).deleteSourceString(sourceString.getId());
+        }
+        verifyNoMoreInteractions(client);
     }
 
     @Test

@@ -340,7 +340,7 @@ class DownloadAction implements ClientAction {
         try (InputStream data = url.openStream()) {
             files.writeToFile(archivePath, data);
         } catch (IOException e) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.write_file"), e);
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.write_file"), archivePath), e);
         }
     }
 }

@@ -2,8 +2,18 @@ package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.client.core.model.PatchOperation;
 import com.crowdin.client.core.model.PatchRequest;
+import com.crowdin.client.glossaries.model.AddGlossaryRequest;
+import com.crowdin.client.glossaries.model.ExportGlossaryRequest;
+import com.crowdin.client.glossaries.model.GlossariesFormat;
+import com.crowdin.client.glossaries.model.ImportGlossaryRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
+import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
+import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
+import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
+import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
+
+import java.util.Map;
 
 public class RequestBuilder {
 
@@ -31,6 +41,64 @@ public class RequestBuilder {
         request.setValue(value);
         request.setOp(op);
         request.setPath(path);
+        return request;
+    }
+
+    public static AddGlossaryRequest addGlossary(String name) {
+        AddGlossaryRequest request = new AddGlossaryRequest();
+        request.setName(name);
+        return request;
+    }
+
+    public static AddGlossaryRequest addGlossaryEnterprise(String name, Long groupId) {
+        AddGlossaryRequest request = new AddGlossaryRequest();
+        request.setName(name);
+        request.setGroupId(groupId);
+        return request;
+    }
+
+    public static ImportGlossaryRequest importGlossary(Long storageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
+        ImportGlossaryRequest request = new ImportGlossaryRequest();
+        request.setStorageId(storageId);
+        request.setScheme(scheme);
+        request.setFirstLineContainsHeader(firstLineContainsHeader);
+        return request;
+    }
+
+    public static ExportGlossaryRequest exportGlossary(GlossariesFormat format) {
+        ExportGlossaryRequest request = new ExportGlossaryRequest();
+        request.setFormat(format);
+        return request;
+    }
+
+    public static AddTranslationMemoryRequest addTm(String name) {
+        AddTranslationMemoryRequest request = new AddTranslationMemoryRequest();
+        request.setName(name);
+        return request;
+    }
+
+    public static AddTranslationMemoryRequest addTmEnterprise(String name, Long groupId) {
+        AddTranslationMemoryRequest request = new AddTranslationMemoryRequest();
+        request.setName(name);
+        request.setGroupId(groupId);
+        return request;
+    }
+
+    public static TranslationMemoryImportRequest importTranslationMemory(Long storageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
+        TranslationMemoryImportRequest request = new TranslationMemoryImportRequest();
+        request.setStorageId(storageId);
+        request.setScheme(scheme);
+        request.setFirstLineContainsHeader(firstLineContainsHeader);
+        return request;
+    }
+
+    public static TranslationMemoryExportRequest exportTranslationMemory(
+        String sourceLanguageId, String targetLanguageId, TranslationMemoryFormat format
+    ) {
+        TranslationMemoryExportRequest request = new TranslationMemoryExportRequest();
+        request.setSourceLanguageId(sourceLanguageId);
+        request.setTargetLanguageId(targetLanguageId);
+        request.setFormat(format);
         return request;
     }
 

@@ -16,6 +16,9 @@ public class BaseCli {
 
     public static final List<String> DEFAULT_CONFIGS = Collections.unmodifiableList(Arrays.asList("crowdin.yml", "crowdin.yaml"));
 
+    public static final String DEFAULT_GLOSSARY_NAME = "Created in Crowdin CLI (%s)";
+    public static final String DEFAULT_TM_NAME = "Created in Crowdin CLI (%s)";
+
     public static final List<String> DEFAULT_IDENTITY_FILES = Collections.unmodifiableList(Arrays.asList(
         System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yml",
         System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yaml"
@@ -31,4 +34,9 @@ public class BaseCli {
     public static final String URL_OAUTH_AUTH = "https://accounts.crowdin.com/oauth/authorize?client_id=%s&redirect_uri=%s&response_type=token&scope=project";
 
     public static final String OAUTH_CLIENT_ID = "wQEqvhU3vLOa2XicmUyT";
+
+    public static final String HTTP_PROXY_HOST_ENV = "HTTP_PROXY_HOST";
+    public static final String HTTP_PROXY_PORT_ENV = "HTTP_PROXY_PORT";
+    public static final String HTTP_PROXY_USER_ENV = "HTTP_PROXY_USER";
+    public static final String HTTP_PROXY_PASSWORD_ENV = "HTTP_PROXY_PASSWORD";
 }

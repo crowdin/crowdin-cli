@@ -1,17 +1,20 @@
 package com.crowdin.cli.utils;
 
-import com.crowdin.cli.BaseCli;
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.SystemUtils;
+import org.apache.commons.lang3.tuple.ImmutablePair;
+import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
-import java.net.URL;
 import java.nio.file.FileSystems;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
+import static com.crowdin.cli.BaseCli.HTTP_PROXY_HOST_ENV;
+import static com.crowdin.cli.BaseCli.HTTP_PROXY_PASSWORD_ENV;
+import static com.crowdin.cli.BaseCli.HTTP_PROXY_PORT_ENV;
+import static com.crowdin.cli.BaseCli.HTTP_PROXY_USER_ENV;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 
@@ -79,5 +82,26 @@ public class Utils {
 
     public static String regexPath(String path) {
         return path.replaceAll("\\\\", "\\\\\\\\");
+    }
+
+    public static Optional<Pair<String, Integer>> proxyHost() {
+        if (System.getenv(HTTP_PROXY_HOST_ENV) == null || System.getenv(HTTP_PROXY_PORT_ENV) == null) {
+            return Optional.empty();
+        }
+        Integer port;
+        try {
+            port = new Integer(System.getenv(HTTP_PROXY_PORT_ENV));
+        } catch (NumberFormatException e) {
+            return Optional.empty();
+        }
+        return Optional.of(new ImmutablePair<>(System.getenv(HTTP_PROXY_HOST_ENV), port));
+    }
+
+    public static Optional<Pair<String, String>> proxyCredentials() {
+        if (System.getenv(HTTP_PROXY_USER_ENV) != null && System.getenv(HTTP_PROXY_PASSWORD_ENV) != null) {
+            return Optional.of(new ImmutablePair<>(System.getenv(HTTP_PROXY_USER_ENV), System.getenv(HTTP_PROXY_PASSWORD_ENV)));
+        } else {
+            return Optional.empty();
+        }
     }
 }

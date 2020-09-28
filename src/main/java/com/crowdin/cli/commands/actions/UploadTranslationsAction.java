@@ -18,6 +18,7 @@ import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.File;
+import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -28,6 +29,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -77,7 +79,7 @@ class UploadTranslationsAction implements ClientAction {
 
         LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
-        Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
+        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
 
         List<Language> languages = (languageId != null)
             ? project.findLanguageById(languageId, true)
@@ -104,12 +106,14 @@ class UploadTranslationsAction implements ClientAction {
 
             Map<java.io.File, Pair<List<Language>, UploadTranslationsRequest>> preparedRequests = new HashMap<>();
             String branchPath = (StringUtils.isNotEmpty(this.branchName) ? branchName + Utils.PATH_SEPARATOR : "");
+            AtomicBoolean containsErrors = new AtomicBoolean(false);
             fileSourcesWithoutIgnores.forEach(source -> {
                 String filePath = branchPath + (StringUtils.isNotEmpty(file.getDest())
                     ? StringUtils.removeStart(file.getDest(), Utils.PATH_SEPARATOR)
                     : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
 
                 if (!paths.containsKey(filePath)) {
+                    containsErrors.set(true);
                     if (!plainView) {
                         out.println(ERROR.withIcon(String.format(
                             RESOURCE_BUNDLE.getString("error.source_not_exists_in_project"),
@@ -126,6 +130,7 @@ class UploadTranslationsAction implements ClientAction {
                 if (file.getScheme() != null && !PlaceholderUtil.containsLangPlaceholders(translation)) {
                     java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
                     if (!transFile.exists()) {
+                        containsErrors.set(true);
                         if (!plainView) {
                             out.println(SKIPPED.withIcon(String.format(
                                 RESOURCE_BUNDLE.getString("error.translation_not_exists"),
@@ -146,6 +151,7 @@ class UploadTranslationsAction implements ClientAction {
                         transFileName = PropertiesBeanUtils.useTranslationReplace(transFileName, file.getTranslationReplace());
                         java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
                         if (!transFile.exists()) {
+                            containsErrors.set(true);
                             if (!plainView) {
                                 out.println(SKIPPED.withIcon(String.format(
                                     RESOURCE_BUNDLE.getString("error.translation_not_exists"),
@@ -169,6 +175,7 @@ class UploadTranslationsAction implements ClientAction {
                         Long storageId = client.uploadStorage(translationFile.getName(), fileStream);
                         request.setStorageId(storageId);
                     } catch (Exception e) {
+                        containsErrors.set(true);
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation_to_storage"), e);
                     }
                     try {
@@ -176,6 +183,7 @@ class UploadTranslationsAction implements ClientAction {
                             client.uploadTranslations(lang.getId(), request);
                         }
                     } catch (Exception e) {
+                        containsErrors.set(true);
                         throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
                     }
                     if (!plainView) {
@@ -188,6 +196,10 @@ class UploadTranslationsAction implements ClientAction {
                 })
                 .collect(Collectors.toList());
             ConcurrencyUtil.executeAndWait(tasks, debug);
+
+            if (containsErrors.get()) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.execution_contains_errors"));
+            }
         }
     }
 }

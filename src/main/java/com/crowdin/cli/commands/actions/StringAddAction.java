@@ -9,6 +9,7 @@ import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.File;
+import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 
 import java.util.List;
@@ -50,11 +51,17 @@ class StringAddAction implements ClientAction {
             client.addSourceString(request);
             out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.source_string_uploaded")));
         } else {
-            Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
+            Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
+            boolean containsError = false;
             for (String file : files) {
                 if (!paths.containsKey(file)) {
-                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
-                    continue;
+                    if (files.size() > 1) {
+                        containsError = true;
+                        out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
+                        continue;
+                    } else {
+                        throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
+                    }
                 }
                 Long fileId = paths.get(file).getId();
 
@@ -62,6 +69,9 @@ class StringAddAction implements ClientAction {
                     RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden);
                 client.addSourceString(request);
                 out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_for_file_uploaded"), file)));
+            }
+            if (containsError) {
+                throw new RuntimeException();
             }
         }
 

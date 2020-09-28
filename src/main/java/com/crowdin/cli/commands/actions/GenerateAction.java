@@ -71,7 +71,8 @@ class GenerateAction implements Action {
             if (!skipGenerateDescription) {
                 this.updateWithUserInputs(out, asking, fileLines);
             }
-            files.writeToFile(destinationPath.toString(), new ByteArrayInputStream(StringUtils.join(fileLines, "\n").getBytes(StandardCharsets.UTF_8)));
+            files.writeToFile(
+                destinationPath.toString(), new ByteArrayInputStream(StringUtils.join(fileLines, "\n").getBytes(StandardCharsets.UTF_8)));
             out.println(String.format(
                 RESOURCE_BUNDLE.getString("message.generate_successful"),
                 this.isEnterprise ? ENTERPRISE_LINK : LINK));

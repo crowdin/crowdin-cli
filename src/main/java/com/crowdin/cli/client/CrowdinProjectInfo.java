@@ -1,5 +1,8 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.client.languages.model.Language;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -7,9 +10,9 @@ public class CrowdinProjectInfo {
 
     private Long projectId;
     private Access accessLevel;
-    private String inContextLanguageId;
+    private Language inContextLanguage;
     private LanguageMapping languageMapping;
-    private List<String> targetLanguageIds;
+    private List<Language> projectLanguages;
 
     CrowdinProjectInfo() {
 
@@ -31,12 +34,12 @@ public class CrowdinProjectInfo {
         return accessLevel == Access.MANAGER;
     }
 
-    void setInContextLanguageId(String inContextLanguageId) {
-        this.inContextLanguageId = inContextLanguageId;
+    void setInContextLanguage(Language inContextLanguage) {
+        this.inContextLanguage = inContextLanguage;
     }
 
-    protected Optional<String> getInContextLanguageId() {
-        return Optional.ofNullable(inContextLanguageId);
+    protected Optional<Language> getInContextLanguage() {
+        return Optional.ofNullable(inContextLanguage);
     }
 
     void setLanguageMapping(LanguageMapping languageMapping) {
@@ -47,12 +50,19 @@ public class CrowdinProjectInfo {
         return this.languageMapping;
     }
 
-    void setTargetLanguageIds(List<String> targetLanguageIds) {
-        this.targetLanguageIds = targetLanguageIds;
+    void setProjectLanguages(List<Language> projectLanguages) {
+        this.projectLanguages = projectLanguages;
     }
 
-    List<String> getTargetLanguageIds() {
-        return this.targetLanguageIds;
+    public List<Language> getProjectLanguages(boolean withInContextLang) {
+        if (withInContextLang) {
+            List<Language> projectLanguagesWithPseudo = new ArrayList<>(projectLanguages);
+            this.getInContextLanguage()
+                .ifPresent(projectLanguagesWithPseudo::add);
+            return projectLanguagesWithPseudo;
+        } else {
+            return projectLanguages;
+        }
     }
 
     public enum Access {

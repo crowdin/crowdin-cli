@@ -147,7 +147,7 @@ public class CliProperties {
         String param = properties.containsKey(envKey)
             ? System.getenv(properties.get(envKey).toString())
             : (properties.containsKey(key))
-                ? properties.get(key).toString()
+                ? (properties.get(key) != null) ? properties.get(key).toString() : null
                 : null;
         if (param != null) {
             setter.accept(param);
