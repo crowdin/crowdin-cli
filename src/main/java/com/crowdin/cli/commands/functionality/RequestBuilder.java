@@ -11,6 +11,7 @@ import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
+import com.crowdin.client.translations.model.ExportPrjoectTranslationRequest;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 
 import java.util.Map;
@@ -100,6 +101,30 @@ public class RequestBuilder {
         request.setTargetLanguageId(targetLanguageId);
         request.setFormat(format);
         return request;
+    }
+
+    public static ExportPrjoectTranslationRequest exportProjectTranslation(
+        String format, Boolean skipUntranslatedStrings, Boolean skipUntranslatedFiles, Integer exportWithMinApprovalsCount
+    ) {
+        ExportPrjoectTranslationRequest request = new ExportPrjoectTranslationRequest();
+        request.setFormat(format);
+        request.setSkipUntranslatedStrings(skipUntranslatedStrings);
+        request.setSkipUntranslatedFiles(skipUntranslatedFiles);
+        request.setExportWithMinApprovalsCount(exportWithMinApprovalsCount);
+        return request;
+    }
+
+    public static ExportPrjoectTranslationRequest exportProjectTranslation(ExportPrjoectTranslationRequest request) {
+        ExportPrjoectTranslationRequest copy = new ExportPrjoectTranslationRequest();
+        copy.setTargetLanguageId(request.getTargetLanguageId());
+        copy.setFormat(request.getFormat());
+        copy.setBranchIds(request.getBranchIds());
+        copy.setDirectoryIds(request.getDirectoryIds());
+        copy.setFileIds(request.getFileIds());
+        copy.setSkipUntranslatedStrings(request.getSkipUntranslatedStrings());
+        copy.setSkipUntranslatedFiles(request.getSkipUntranslatedFiles());
+        copy.setExportWithMinApprovalsCount(request.getExportWithMinApprovalsCount());
+        return copy;
     }
 
 }

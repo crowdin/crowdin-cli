@@ -82,6 +82,20 @@ public class CliProperties {
 
     private static final String TRANSLATION_REPLACE = "translation_replace";
 
+    private static final String TARGETS = "targets";
+
+    private static final String NAME = "name";
+
+    private static final String TARGET = "target";
+
+    private static final String SOURCES = "sources";
+
+    private static final String SOURCEDIRS = "sourceDirs";
+
+    private static final String SOURCEBRANCHES = "sourceBranches";
+
+    private static final String LABELS = "labels";
+
     public static PropertiesBean processProperties(PropertiesBean pb, String basePathIfEmpty) {
         setDefaultValues(pb, basePathIfEmpty);
 
@@ -111,6 +125,10 @@ public class CliProperties {
             .stream()
             .map(CliProperties::buildFileBeanFromMap)
             .forEach(pb::setFiles);
+        pb.setTargets(((List<Map<String, Object>>) properties.getOrDefault(TARGETS, Collections.EMPTY_LIST))
+            .stream()
+            .map(CliProperties::buildTargetBeanFromMap)
+            .collect(Collectors.toList()));
         return pb;
     }
 
@@ -134,6 +152,26 @@ public class CliProperties {
         getBooleanProperty(fileBean::setContentSegmentation,       fbProperties, CONTENT_SEGMENTATION);
         getBooleanProperty(fileBean::setMultilingualSpreadsheet,   fbProperties, MULTILINGUAL_SPREADSHEET);
         return fileBean;
+    }
+
+    private static TargetBean buildTargetBeanFromMap(Map<String, Object> tbProperties) {
+        TargetBean tb = new TargetBean();
+        getProperty(tb::setName, tbProperties, NAME);
+        tb.setFiles(((List<Map<String, Object>>)tbProperties.getOrDefault(FILES, Collections.EMPTY_LIST))
+            .stream()
+            .map(CliProperties::buildTargetFileBeanFromMap)
+            .collect(Collectors.toList()));
+        return tb;
+    }
+
+    private static TargetBean.FileBean buildTargetFileBeanFromMap(Map<String, Object> fbProperties) {
+        TargetBean.FileBean fb = new TargetBean.FileBean();
+        getProperty(fb::setTarget, fbProperties, TARGET);
+        getProperty(fb::setSources, fbProperties, SOURCES);
+        getProperty(fb::setSourceDirs, fbProperties, SOURCEDIRS);
+        getProperty(fb::setSourceBranches, fbProperties, SOURCEBRANCHES);
+        getProperty(fb::setLabels, fbProperties, LABELS);
+        return fb;
     }
 
     public static void populateWithCredentials(PropertiesBean pb, Map<String, Object> properties) {
@@ -409,6 +447,31 @@ public class CliProperties {
                 }
             }
         }
+
+        if (pb.getTargets() != null) {
+            for (TargetBean targetBean : pb.getTargets()) {
+                if (StringUtils.isEmpty(targetBean.getName())) {
+                    errors.add("Target does not contain 'name' parameter");
+                }
+                String tbName = StringUtils.isEmpty(targetBean.getName()) ? "no name" : String.format("'%s'", targetBean.getName());
+                if (targetBean.getFiles() != null) {
+                    for (TargetBean.FileBean fileBean : targetBean.getFiles()) {
+                        if (StringUtils.isEmpty(fileBean.getTarget())) {
+                            errors.add(String.format("Target with %s contains 'files' with no 'target' parameter", tbName));
+                        }
+                        boolean filesEmpty = fileBean.getSources() == null || fileBean.getSources().isEmpty();
+                        boolean dirsEmpty = fileBean.getSourceDirs() == null || fileBean.getSourceDirs().isEmpty();
+                        boolean branchesEmpty = fileBean.getSourceBranches() == null || fileBean.getSourceBranches().isEmpty();
+                        if (filesEmpty && dirsEmpty && branchesEmpty) {
+                            errors.add(String.format("One of files of target %s does not contain sources", tbName));
+                        } else if ((filesEmpty ? 0 : 1) + (dirsEmpty ? 0 : 1) + (branchesEmpty ? 0 : 1) > 1) {
+                            errors.add(String.format("One of files of target %s contains more than one source types", tbName));
+                        }
+                    }
+                }
+            }
+        }
+
         return errors;
     }
 

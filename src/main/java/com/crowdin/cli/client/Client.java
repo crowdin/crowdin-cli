@@ -28,6 +28,7 @@ import com.crowdin.client.translationmemory.model.TranslationMemoryExportStatus;
 import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryImportStatus;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
+import com.crowdin.client.translations.model.ExportPrjoectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
@@ -104,6 +105,8 @@ public interface Client {
     TranslationMemoryExportStatus checkExportingTm(Long tmId, String exportId);
 
     URL downloadTm(Long tmId, String exportId);
+
+    URL exportProjectTranslation(ExportPrjoectTranslationRequest request);
 
     static Client getDefault(String apiToken, String baseUrl, long projectId) {
         boolean isTesting = PropertiesBeanUtils.isUrlForTesting(baseUrl);

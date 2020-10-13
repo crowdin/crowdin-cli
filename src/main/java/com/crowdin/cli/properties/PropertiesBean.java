@@ -1,5 +1,6 @@
 package com.crowdin.cli.properties;
 
+import java.lang.annotation.Target;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -17,13 +18,16 @@ public class PropertiesBean {
 
     private String baseUrl;
 
-    private final List<FileBean> files = new ArrayList<FileBean>();
+    private final List<FileBean> files = new ArrayList<>();
+
+    private List<TargetBean> targets;
 
     @Override
     public String toString() {
         return "PropertiesBean{"
             + "preserveHierarchy=" + preserveHierarchy
             + ", files=" + files
+            + ", targets=" + targets
             + ", projectId='" + projectId + '\''
             + ", apiToken='" + apiToken + '\''
             + ", basePath='" + basePath + '\''
@@ -42,6 +46,7 @@ public class PropertiesBean {
         PropertiesBean that = (PropertiesBean) o;
         return Objects.equals(preserveHierarchy, that.preserveHierarchy)
             && Objects.equals(files, that.files)
+            && Objects.equals(targets, that.targets)
             && Objects.equals(projectId, that.projectId)
             && Objects.equals(apiToken, that.apiToken)
             && Objects.equals(basePath, that.basePath)
@@ -101,5 +106,13 @@ public class PropertiesBean {
 
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
+    }
+
+    public List<TargetBean> getTargets() {
+        return targets;
+    }
+
+    public void setTargets(List<TargetBean> targets) {
+        this.targets = targets;
     }
 }

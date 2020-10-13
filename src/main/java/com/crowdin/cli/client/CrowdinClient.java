@@ -1,6 +1,8 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.client.core.model.DownloadLink;
 import com.crowdin.client.core.model.PatchRequest;
+import com.crowdin.client.core.model.ResponseObject;
 import com.crowdin.client.glossaries.model.AddGlossaryRequest;
 import com.crowdin.client.glossaries.model.ExportGlossaryRequest;
 import com.crowdin.client.glossaries.model.Glossary;
@@ -25,6 +27,7 @@ import com.crowdin.client.translationmemory.model.TranslationMemoryExportStatus;
 import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryImportStatus;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
+import com.crowdin.client.translations.model.ExportPrjoectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
@@ -38,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.function.BiPredicate;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
 class CrowdinClient extends CrowdinClientCore implements Client {
@@ -185,15 +189,9 @@ class CrowdinClient extends CrowdinClientCore implements Client {
 
     @Override
     public URL downloadBuild(Long buildId) {
-        String url = executeRequest(() -> this.client.getTranslationsApi()
+        return url(executeRequest(() -> this.client.getTranslationsApi()
             .downloadProjectTranslations(this.projectId, buildId)
-            .getData()
-            .getUrl());
-        try {
-            return new URL(url);
-        } catch (IOException e) {
-            throw new RuntimeException("Unexpected exception: malformed download url: " + url, e);
-        }
+            .getData()));
     }
 
     @Override
@@ -276,15 +274,9 @@ class CrowdinClient extends CrowdinClientCore implements Client {
 
     @Override
     public URL downloadGlossary(Long glossaryId, String exportId) {
-        String url = executeRequest(() -> this.client.getGlossariesApi()
+        return url(executeRequest(() -> this.client.getGlossariesApi()
             .downloadGlossary(glossaryId, exportId)
-            .getData()
-            .getUrl());
-        try {
-            return new URL(url);
-        } catch (IOException e) {
-            throw new RuntimeException("Unexpected exception: malformed download url: " + url, e);
-        }
+            .getData()));
     }
 
     @Override
@@ -334,15 +326,9 @@ class CrowdinClient extends CrowdinClientCore implements Client {
 
     @Override
     public URL downloadTm(Long tmId, String exportId) {
-        String url = executeRequest(() -> this.client.getTranslationMemoryApi()
+        return url(executeRequest(() -> this.client.getTranslationMemoryApi()
             .downloadTm(tmId, exportId)
-            .getData()
-            .getUrl());
-        try {
-            return new URL(url);
-        } catch (IOException e) {
-            throw new RuntimeException("Unexpected exception: malformed download url: " + url, e);
-        }
+            .getData()));
     }
 
     @Override
@@ -350,4 +336,20 @@ class CrowdinClient extends CrowdinClientCore implements Client {
         return executeRequestFullList((limit, offset) -> this.client.getGlossariesApi()
             .listTerms(glossaryId, null, null, null, limit, offset));
     }
+
+    @Override
+    public URL exportProjectTranslation(ExportPrjoectTranslationRequest request) {
+        return url(executeRequest(() -> this.client.getTranslationsApi()
+            .exportProjectTranslation(this.projectId, request)
+            .getData()));
+    }
+
+    private URL url(DownloadLink downloadLink) {
+        try {
+            return new URL(downloadLink.getUrl());
+        } catch (IOException e) {
+            throw new RuntimeException("Unexpected exception: malformed download url: " + downloadLink.getUrl(), e);
+        }
+    }
+
 }

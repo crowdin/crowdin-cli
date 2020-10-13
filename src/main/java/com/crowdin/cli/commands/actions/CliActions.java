@@ -137,5 +137,13 @@ public class CliActions implements Actions {
         return new BuildPropertiesStep(configFile, identityFile, params);
     }
 
+    @Override
+    public ClientAction downloadTargets(
+        List<String> targetNames, FilesInterface files, boolean noProgress, List<String> langIds, boolean isVerbose,
+        Boolean skipTranslatedOnly, Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView, boolean debug
+    ) {
+        return new DownloadTargetsAction(targetNames, files, noProgress, langIds, isVerbose, skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly, plainView, debug);
+    }
+
 
 }

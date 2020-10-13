@@ -138,15 +138,23 @@ public class PlaceholderUtil {
         return StringUtils.removeStart(toFormat, Utils.PATH_SEPARATOR);
     }
 
+    public static boolean containsFilePlaceholders(String pattern) {
+        return StringUtils.containsAny(pattern,
+            PLACEHOLDER_FILE_EXTENTION,
+            PLACEHOLDER_FILE_NAME,
+            PLACEHOLDER_ORIGINAL_FILE_NAME,
+            PLACEHOLDER_ORIGINAL_PATH);
+    }
+
     public static boolean containsLangPlaceholders(String translationsPattern) {
         return StringUtils.containsAny(translationsPattern,
-            "%language%",
-            "%two_letters_code%",
-            "%three_letters_code%",
-            "%locale_with_underscore%",
-            "%locale%",
-            "%android_code%",
-            "%osx_code%",
-            "%osx_locale%");
+            PLACEHOLDER_LANGUAGE,
+            PLACEHOLDER_TWO_LETTERS_CODE,
+            PLACEHOLDER_THREE_LETTERS_CODE,
+            PLACEHOLDER_LOCALE_WITH_UNDERSCORE,
+            PLACEHOLDER_LOCALE,
+            PLACEHOLDER_ANDROID_CODE,
+            PLACEHOLDER_OSX_CODE,
+            PLACEHOLDER_OSX_LOCALE);
     }
 }

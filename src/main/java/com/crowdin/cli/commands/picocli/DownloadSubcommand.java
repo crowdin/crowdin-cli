@@ -12,7 +12,9 @@ import java.util.List;
 @CommandLine.Command(
     name = CommandNames.DOWNLOAD,
     sortOptions = false,
-    aliases = CommandNames.ALIAS_DOWNLOAD)
+    aliases = CommandNames.ALIAS_DOWNLOAD,
+    subcommands = DownloadTargetsSubcommand.class
+)
 class DownloadSubcommand extends ClientActPlainMixin {
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")

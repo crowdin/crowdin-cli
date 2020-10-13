@@ -59,6 +59,9 @@ public interface Actions {
     ClientAction tmDownload(Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,
                             String targetLanguageId, boolean noProgress, File to, FilesInterface files);
 
+    ClientAction downloadTargets(List<String> targetNames, FilesInterface files, boolean noProgress, List<String> langIds, boolean isVerbose, Boolean skipTranslatedOnly,
+                                 Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView, boolean debug);
+
     Action checkNewVersion();
 
     Step<PropertiesBean> buildProperties(File configFile, File identityFile, Params params);
