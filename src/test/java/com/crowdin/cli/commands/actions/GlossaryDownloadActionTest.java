@@ -1,13 +1,13 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.MockitoUtils;
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ClientGlossary;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
-import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.properties.PropertiesBeanBuilder;
+import com.crowdin.cli.properties.BaseProperties;
+import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.glossaries.model.Glossary;
 import com.crowdin.client.glossaries.model.GlossaryExportStatus;
@@ -35,7 +35,7 @@ public class GlossaryDownloadActionTest {
     private static final String glossaryName = "FirstName";
     private static final String glossaryName2 = "SecondName";
     private static final String exportId = "52";
-    private final PropertiesBean pb = PropertiesBeanBuilder
+    private final BaseProperties pb = NewPropertiesWithFilesUtilBuilder
         .minimalBuiltPropertiesBean()
         .setBasePath(".")
         .build();
@@ -44,7 +44,7 @@ public class GlossaryDownloadActionTest {
     @Test
     public void test_findById() throws IOException {
         FilesInterface filesMock = mock(FilesInterface.class);
-        Client clientMock = mock(Client.class);
+        ClientGlossary clientMock = mock(ClientGlossary.class);
         File to = new File("nowhere.tbx");
         GlossariesFormat format = GlossariesFormat.TBX;
 
@@ -71,7 +71,7 @@ public class GlossaryDownloadActionTest {
         when(clientMock.downloadGlossary(eq(glossaryId), eq(exportId)))
             .thenReturn(MockitoUtils.getMockUrl(getClass()));
 
-        ClientAction action = new GlossaryDownloadAction(glossaryId, null, format, true, to, filesMock);
+        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(glossaryId, null, format, true, to, filesMock);
         action.act(outputter, pb, clientMock);
 
         verify(filesMock).writeToFile(eq("nowhere.tbx"), any());
@@ -87,7 +87,7 @@ public class GlossaryDownloadActionTest {
     @Test
     public void test_findByName() throws IOException {
         FilesInterface filesMock = mock(FilesInterface.class);
-        Client clientMock = mock(Client.class);
+        ClientGlossary clientMock = mock(ClientGlossary.class);
         GlossariesFormat format = GlossariesFormat.TBX;
 
         List<Glossary> glossaries = Arrays.asList(
@@ -118,7 +118,7 @@ public class GlossaryDownloadActionTest {
         when(clientMock.downloadGlossary(eq(glossaryId), eq(exportId)))
             .thenReturn(MockitoUtils.getMockUrl(getClass()));
 
-        ClientAction action = new GlossaryDownloadAction(null, glossaryName, format, true, null, filesMock);
+        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(null, glossaryName, format, true, null, filesMock);
         action.act(outputter, pb, clientMock);
 
         verify(filesMock).writeToFile(eq(glossaryName + ".tbx"), any());
@@ -134,7 +134,7 @@ public class GlossaryDownloadActionTest {
     @Test
     public void test_findByName_throwsNoGlossaries() {
         FilesInterface filesMock = mock(FilesInterface.class);
-        Client clientMock = mock(Client.class);
+        ClientGlossary clientMock = mock(ClientGlossary.class);
 
         List<Glossary> glossaries = Arrays.asList(
             new Glossary() {{
@@ -150,7 +150,7 @@ public class GlossaryDownloadActionTest {
         when(clientMock.listGlossaries())
             .thenReturn(glossaries);
 
-        ClientAction action = new GlossaryDownloadAction(null, glossaryName, null, true, null, filesMock);
+        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(null, glossaryName, null, true, null, filesMock);
         assertThrows(RuntimeException.class, () -> action.act(outputter, pb, clientMock));
 
         verify(clientMock).listGlossaries();
@@ -160,7 +160,7 @@ public class GlossaryDownloadActionTest {
     @Test
     public void test_findByName_throwsTooManyGlossaries() {
         FilesInterface filesMock = mock(FilesInterface.class);
-        Client clientMock = mock(Client.class);
+        ClientGlossary clientMock = mock(ClientGlossary.class);
 
         List<Glossary> glossaries = Arrays.asList(
             new Glossary() {{
@@ -176,7 +176,7 @@ public class GlossaryDownloadActionTest {
         when(clientMock.listGlossaries())
             .thenReturn(glossaries);
 
-        ClientAction action = new GlossaryDownloadAction(null, glossaryName, null, true, null, filesMock);
+        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(null, glossaryName, null, true, null, filesMock);
         assertThrows(RuntimeException.class, () -> action.act(outputter, pb, clientMock));
 
         verify(clientMock).listGlossaries();
@@ -186,9 +186,9 @@ public class GlossaryDownloadActionTest {
     @Test
     public void test_throwsNoIdentifiers() {
         FilesInterface filesMock = mock(FilesInterface.class);
-        Client clientMock = mock(Client.class);
+        ClientGlossary clientMock = mock(ClientGlossary.class);
 
-        ClientAction action = new GlossaryDownloadAction(null, null, null, true, null, filesMock);
+        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(null, null, null, true, null, filesMock);
         assertThrows(RuntimeException.class, () -> action.act(outputter, pb, clientMock));
 
         verifyNoMoreInteractions(clientMock);
@@ -197,7 +197,7 @@ public class GlossaryDownloadActionTest {
     @Test
     public void test_throwsWhenWriteToFile() throws IOException {
         FilesInterface filesMock = mock(FilesInterface.class);
-        Client clientMock = mock(Client.class);
+        ClientGlossary clientMock = mock(ClientGlossary.class);
         File to = new File("nowhere.tbx");
         GlossariesFormat format = GlossariesFormat.TBX;
 
@@ -228,7 +228,7 @@ public class GlossaryDownloadActionTest {
         when(clientMock.downloadGlossary(eq(glossaryId), eq(exportId)))
             .thenReturn(MockitoUtils.getMockUrl(getClass()));
 
-        ClientAction action = new GlossaryDownloadAction(glossaryId, null, format, true, to, filesMock);
+        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(glossaryId, null, format, true, to, filesMock);
         assertThrows(RuntimeException.class, () -> action.act(outputter, pb, clientMock));
 
         verify(filesMock).writeToFile(eq("nowhere.tbx"), any());

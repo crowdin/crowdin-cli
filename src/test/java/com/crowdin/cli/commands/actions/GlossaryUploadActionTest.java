@@ -1,10 +1,10 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ClientGlossary;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.properties.PropertiesBeanBuilder;
+import com.crowdin.cli.properties.BaseProperties;
+import com.crowdin.cli.properties.NewBasePropertiesUtilBuilder;
 import com.crowdin.client.glossaries.model.AddGlossaryRequest;
 import com.crowdin.client.glossaries.model.Glossary;
 import org.junit.jupiter.api.BeforeEach;
@@ -17,7 +17,6 @@ import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -32,18 +31,18 @@ public class GlossaryUploadActionTest {
     private static final String glossaryNameUnique = "uniqueGlossary";
     private static final String glossaryNameRepeated = "twoGlossariesWithSameName";
     private static final String glossaryNameNotExist = "notExistentGlossary";
-    PropertiesBean pb = PropertiesBeanBuilder
-        .minimalBuiltPropertiesBean()
-        .setBasePath(".")
+    BaseProperties pb = NewBasePropertiesUtilBuilder
+        .minimalBuilt()
         .build();
     File file = new File(getClass().getClassLoader().getResource("file.txt").getFile());
     File fileNotExist = new File("nowhere.txt");
 
-    private Client clientMock;
+    private ClientGlossary clientMock;
+    private NewAction<BaseProperties, ClientGlossary> action;
 
     @BeforeEach
     public void beforeEach() {
-        clientMock = mock(Client.class);
+        clientMock = mock(ClientGlossary.class);
 
         List<Glossary> glossaries = Arrays.asList(
             new Glossary() {{
@@ -80,7 +79,7 @@ public class GlossaryUploadActionTest {
 
     @Test
     public void test_withId() {
-        ClientAction action = new GlossaryUploadAction(file, glossaryId, null, null, null);
+        action = new GlossaryUploadAction(file, glossaryId, null, null, null);
         action.act(Outputter.getDefault(), pb, clientMock);
 
         verify(clientMock).getGlossary(eq(glossaryId));
@@ -91,7 +90,7 @@ public class GlossaryUploadActionTest {
 
     @Test
     public void test_withName() {
-        ClientAction action = new GlossaryUploadAction(file, null, glossaryNameUnique, null, null);
+        action = new GlossaryUploadAction(file, null, glossaryNameUnique, null, null);
         action.act(Outputter.getDefault(), pb, clientMock);
 
         verify(clientMock).listGlossaries();
@@ -102,7 +101,7 @@ public class GlossaryUploadActionTest {
 
     @Test
     public void test_noIdentifiers_createNew() {
-        ClientAction action = new GlossaryUploadAction(file, null, null, null, null);
+        action = new GlossaryUploadAction(file, null, null, null, null);
         action.act(Outputter.getDefault(), pb, clientMock);
 
         verify(clientMock).addGlossary(any());
@@ -113,7 +112,7 @@ public class GlossaryUploadActionTest {
 
     @Test
     public void test_withName_notFound_createNew() {
-        ClientAction action = new GlossaryUploadAction(file, null, glossaryNameNotExist, null, null);
+        action = new GlossaryUploadAction(file, null, glossaryNameNotExist, null, null);
         action.act(Outputter.getDefault(), pb, clientMock);
 
         verify(clientMock).listGlossaries();
@@ -125,7 +124,7 @@ public class GlossaryUploadActionTest {
 
     @Test
     public void test_withId_throwsNotFound() {
-        ClientAction action = new GlossaryUploadAction(file, glossaryIdNotExist, null, null, null);
+        action = new GlossaryUploadAction(file, glossaryIdNotExist, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, clientMock));
 
         verify(clientMock).getGlossary(eq(glossaryIdNotExist));
@@ -134,7 +133,7 @@ public class GlossaryUploadActionTest {
 
     @Test
     public void test_withName_throwsTooManyWithTargetName() {
-        ClientAction action = new GlossaryUploadAction(file, null, glossaryNameRepeated, null, null);
+        action = new GlossaryUploadAction(file, null, glossaryNameRepeated, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, clientMock));
 
         verify(clientMock).listGlossaries();
@@ -143,7 +142,7 @@ public class GlossaryUploadActionTest {
 
     @Test
     public void test_standard_throwsFileNotFound() {
-        ClientAction action = new GlossaryUploadAction(fileNotExist, glossaryId, null, null, null);
+        action = new GlossaryUploadAction(fileNotExist, glossaryId, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, clientMock));
 
         verify(clientMock).getGlossary(eq(glossaryId));

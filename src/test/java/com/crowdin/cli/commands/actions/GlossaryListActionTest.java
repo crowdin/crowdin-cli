@@ -1,10 +1,10 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ClientGlossary;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.properties.PropertiesBeanBuilder;
+import com.crowdin.cli.properties.BaseProperties;
+import com.crowdin.cli.properties.NewBasePropertiesUtilBuilder;
 import com.crowdin.client.glossaries.model.Glossary;
 import com.crowdin.client.glossaries.model.Term;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,16 +21,16 @@ import static org.mockito.Mockito.when;
 
 public class GlossaryListActionTest {
 
-    Client clientMock;
-    PropertiesBean pb = PropertiesBeanBuilder
-        .minimalBuiltPropertiesBean()
-        .setBasePath(".")
+    ClientGlossary clientMock;
+    BaseProperties pb = NewBasePropertiesUtilBuilder
+        .minimalBuilt()
         .build();
     Outputter outputter = Outputter.getDefault();
+    NewAction<BaseProperties, ClientGlossary> action;
 
     @BeforeEach
     public void beforeEach() {
-        clientMock = mock(Client.class);
+        clientMock = mock(ClientGlossary.class);
 
         List<Glossary> glossaries = Arrays.asList(
             new Glossary() {{
@@ -73,7 +73,7 @@ public class GlossaryListActionTest {
 
     @Test
     public void test_standard() {
-        ClientAction action = new GlossaryListAction(false, false);
+        action = new GlossaryListAction(false, false);
         action.act(outputter, pb, clientMock);
 
         verify(clientMock).listGlossaries();
@@ -82,7 +82,7 @@ public class GlossaryListActionTest {
 
     @Test
     public void test_plainView() {
-        ClientAction action = new GlossaryListAction(true, false);
+        action = new GlossaryListAction(true, false);
         action.act(outputter, pb, clientMock);
 
         verify(clientMock).listGlossaries();
@@ -91,7 +91,7 @@ public class GlossaryListActionTest {
 
     @Test
     public void test_verbose() {
-        ClientAction action = new GlossaryListAction(false, true);
+        action = new GlossaryListAction(false, true);
         action.act(outputter, pb, clientMock);
 
         verify(clientMock).listGlossaries();

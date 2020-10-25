@@ -1,6 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import org.apache.commons.lang3.StringUtils;
 
@@ -10,10 +10,10 @@ import java.util.stream.Collectors;
 
 public class DryrunSources extends Dryrun {
 
-    private PropertiesBean pb;
+    private PropertiesWithFiles pb;
     private PlaceholderUtil placeholderUtil;
 
-    public DryrunSources(PropertiesBean pb, PlaceholderUtil placeholderUtil) {
+    public DryrunSources(PropertiesWithFiles pb, PlaceholderUtil placeholderUtil) {
         this.pb = pb;
         this.placeholderUtil = placeholderUtil;
     }

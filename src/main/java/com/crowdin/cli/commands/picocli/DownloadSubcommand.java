@@ -1,8 +1,10 @@
 package com.crowdin.cli.commands.picocli;
 
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.functionality.FsFiles;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import picocli.CommandLine;
 
 import java.util.Arrays;
@@ -15,7 +17,7 @@ import java.util.List;
     aliases = CommandNames.ALIAS_DOWNLOAD,
     subcommands = DownloadTargetsSubcommand.class
 )
-class DownloadSubcommand extends ClientActPlainMixin {
+class DownloadSubcommand extends ActCommandWithFiles {
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branchName;
@@ -42,7 +44,7 @@ class DownloadSubcommand extends ClientActPlainMixin {
     protected Boolean exportApprovedOnly;
 
     @Override
-    protected ClientAction getAction(Actions actions) {
+    protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
             ? actions.listTranslations(noProgress, treeView, false, plainView)
             : actions.download(
@@ -56,5 +58,13 @@ class DownloadSubcommand extends ClientActPlainMixin {
             return Arrays.asList(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
         }
         return Collections.emptyList();
+    }
+
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
+    @Override
+    protected boolean isAnsi() {
+        return super.isAnsi() && !plainView;
     }
 }

@@ -1,8 +1,8 @@
 package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.BaseCli;
-import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.ExistsResponseException;
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.client.WaitResponseException;
 import com.crowdin.cli.commands.Outputter;
@@ -24,7 +24,7 @@ public class ProjectUtils {
 
     public static Long createPath(
             Outputter out,
-            Client client,
+            ProjectClient client,
             Map<String, Long> directoryIdMap,
             String filePath,
             com.crowdin.client.sourcefiles.model.Branch branchId,
@@ -60,7 +60,7 @@ public class ProjectUtils {
     private static final Map<String, Lock> pathLocks = new ConcurrentHashMap<>();
 
     private static Long createDirectory(
-        Outputter out, Map<String, Long> directoryIdMap, Client client, AddDirectoryRequest request, String key, boolean plainView
+        Outputter out, Map<String, Long> directoryIdMap, ProjectClient client, AddDirectoryRequest request, String key, boolean plainView
     ) {
         Lock lock;
         synchronized (obj) {

@@ -1,7 +1,9 @@
 package com.crowdin.cli.commands.picocli;
 
+import com.crowdin.cli.client.ClientGlossary;
 import com.crowdin.cli.commands.Actions;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
+import com.crowdin.cli.properties.BaseProperties;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
@@ -14,7 +16,7 @@ import java.util.Map;
 @CommandLine.Command(
     name = CommandNames.GLOSSARY_UPLOAD
 )
-class GlossaryUploadSubcommand extends ClientActCommand {
+class GlossaryUploadSubcommand extends ActCommandGlossary {
 
     @CommandLine.Parameters(descriptionKey = "crowdin.glossary.upload.file")
     private File file;
@@ -32,7 +34,7 @@ class GlossaryUploadSubcommand extends ClientActCommand {
     private Boolean firstLineContainsHeader;
 
     @Override
-    protected ClientAction getAction(Actions actions) {
+    protected NewAction<BaseProperties, ClientGlossary> getAction(Actions actions) {
         return actions.glossaryUpload(file, id, name, scheme, firstLineContainsHeader);
     }
 

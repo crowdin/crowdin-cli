@@ -1,14 +1,14 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.client.models.BranchBuilder;
 import com.crowdin.cli.client.models.DirectoryBuilder;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.properties.PropertiesBeanBuilder;
+import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
@@ -52,17 +52,17 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSource_EmptyProject() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -89,11 +89,11 @@ public class UploadSourcesActionTest {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("folder/second.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("third.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("**/*"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("first.po"), any()))
@@ -110,7 +110,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("third.po"), any()))
             .thenReturn(3L);
 
-        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -167,11 +167,11 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithBranch_EmptyProject() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("first.po"), any()))
@@ -184,7 +184,7 @@ public class UploadSourcesActionTest {
         when(client.addBranch(addBranchRequest))
             .thenReturn(branch);
 
-        ClientAction action = new UploadSourcesAction("newBranch", false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("newBranch", false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -211,18 +211,18 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithBranch_ProjectWithThatBranch() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addBranches(201L, "newBranch").build());
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        ClientAction action = new UploadSourcesAction("newBranch", false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("newBranch", false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -248,17 +248,17 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithDirectory_ProjectNotPreserveHierarchy() throws ResponseException {
         project.addFile(Utils.normalizePath("folder/first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("**/*"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -284,19 +284,19 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithDirectory_ProjectWithPreserveHierarchy() throws ResponseException {
         project.addFile(Utils.normalizePath("folder/first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("**/*"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
         pb.setPreserveHierarchy(true);
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addDirectory("folder", 101L, null, null).build());
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -322,18 +322,18 @@ public class UploadSourcesActionTest {
     @Test
     public void testUploadOneSourceWithDest_Project() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("first.po"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setDest("last.po");
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("last.po"), any()))
             .thenReturn(1L);
 
-        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -360,11 +360,11 @@ public class UploadSourcesActionTest {
     public void testUpdateOneUploadOneSource_Project() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("second.po"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean(Utils.normalizePath("*"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null).build());
@@ -373,7 +373,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("second.po"), any()))
             .thenReturn(2L);
 
-        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -413,18 +413,18 @@ public class UploadSourcesActionTest {
     public void testAddCsvFile_EmptyProject() throws ResponseException {
 
         project.addFile(Utils.normalizePath("first.csv"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setScheme("identifier,source_phrase,context,uk,ru,fr");
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("first.csv"), any()))
                 .thenReturn(1L);
 
-        ClientAction action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();

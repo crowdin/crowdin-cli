@@ -1,14 +1,14 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.BaseCli;
-import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProjectFull;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.TargetBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
@@ -34,7 +34,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-public class DownloadTargetsAction implements ClientAction {
+class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectClient> {
 
     private List<String> targetNames;
     private FilesInterface files;
@@ -64,7 +64,7 @@ public class DownloadTargetsAction implements ClientAction {
     }
 
     @Override
-    public void act(Outputter out, PropertiesBean pb, Client client) {
+    public void act(Outputter out, PropertiesWithTargets pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
                 this.noProgress, this.plainView, client::downloadFullProject);
@@ -100,8 +100,11 @@ public class DownloadTargetsAction implements ClientAction {
                     }
                     String exportFileFormat = FILE_FORMAT_MAPPER.get(FilenameUtils.getExtension(fb.getTarget()));
 
-                    Integer exportWithMinApprovalsCount = null;//(exportApprovedOnly != null && exportApprovedOnly) ? 1 : 0; // waiting for api updates
-                    ExportPrjoectTranslationRequest templateRequest = RequestBuilder.exportProjectTranslation(exportFileFormat, skipTranslatedOnly, skipUntranslatedFiles, exportWithMinApprovalsCount);
+                    Integer exportWithMinApprovalsCount = null;
+                        //(exportApprovedOnly != null && exportApprovedOnly) ? 1 : 0; // waiting for api updates
+                    ExportPrjoectTranslationRequest templateRequest
+                        = RequestBuilder.exportProjectTranslation(
+                            exportFileFormat, skipTranslatedOnly, skipUntranslatedFiles, exportWithMinApprovalsCount);
                     if (fb.getSources() != null && !fb.getSources().isEmpty()) {
                         List<Long> sourceIds = new ArrayList<>();
                         for (String source : fb.getSources()) {
@@ -141,7 +144,7 @@ public class DownloadTargetsAction implements ClientAction {
                         .collect(Collectors.toMap(Language::getId, Function.identity()));
 
                     List<Pair<String, ExportPrjoectTranslationRequest>> builtRequests = new ArrayList<>();
-                    for(String langId : langIds) {
+                    for (String langId : langIds) {
                         if (!projectLanguages.containsKey(langId)) {
                             errors.add(String.format("Coudln't find '%s' language", langId));
                             continue;
@@ -170,7 +173,10 @@ public class DownloadTargetsAction implements ClientAction {
                     } catch (IOException e) {
                         throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.write_file"), targetFile), e);
                     }
-                    out.println(OK.withIcon(String.format("@|fg(green) Successfully executed|@ @|fg(green),bold '%s'|@ @|fg(green) target for|@ @|fg(green),bold %s|@ @|fg(green) language|@", tb.getName(), builtRequest.getValue().getTargetLanguageId())));
+                    out.println(OK.withIcon(
+                        String.format("@|fg(green) Successfully executed|@ @|fg(green),bold '%s'|@ "
+                                + "@|fg(green) target for|@ @|fg(green),bold %s|@ @|fg(green) language|@",
+                            tb.getName(), builtRequest.getValue().getTargetLanguageId())));
                 })
                 .collect(Collectors.toList());
 

@@ -1,14 +1,16 @@
 package com.crowdin.cli.commands.picocli;
 
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import picocli.CommandLine;
 
 @CommandLine.Command(
     name = CommandNames.UPLOAD_TRANSLATIONS,
     sortOptions = false
 )
-class UploadTranslationsSubcommand extends ClientActPlainMixin {
+class UploadTranslationsSubcommand extends ActCommandWithFiles {
 
     @CommandLine.Option(names = {"--auto-approve-imported"}, negatable = true)
     protected boolean autoApproveImported;
@@ -29,9 +31,17 @@ class UploadTranslationsSubcommand extends ClientActPlainMixin {
     protected boolean treeView;
 
     @Override
-    protected ClientAction getAction(Actions actions) {
+    protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
             ? actions.listTranslations(noProgress, treeView, true, plainView)
             : actions.uploadTranslations(noProgress, languageId, branch, importEqSuggestions, autoApproveImported, debug, plainView);
+    }
+
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
+    @Override
+    protected final boolean isAnsi() {
+        return super.isAnsi() && !plainView;
     }
 }

@@ -1,18 +1,18 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProjectFull;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.DryrunProjectFiles;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.Branch;
 import org.apache.commons.lang3.StringUtils;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
-class ListProjectAction implements ClientAction {
+class ListProjectAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private boolean noProgress;
     private String branchName;
@@ -27,7 +27,7 @@ class ListProjectAction implements ClientAction {
     }
 
     @Override
-    public void act(Outputter out, PropertiesBean pb, Client client) {
+    public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
                 this.noProgress, this.plainView, client::downloadFullProject);

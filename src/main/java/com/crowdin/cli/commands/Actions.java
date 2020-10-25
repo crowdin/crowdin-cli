@@ -1,8 +1,14 @@
 package com.crowdin.cli.commands;
 
+import com.crowdin.cli.client.ClientGlossary;
+import com.crowdin.cli.client.ClientTm;
+import com.crowdin.cli.client.NoClient;
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.functionality.FilesInterface;
-import com.crowdin.cli.properties.Params;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.BaseProperties;
+import com.crowdin.cli.properties.NewNoProperties;
+import com.crowdin.cli.properties.PropertiesWithTargets;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 
@@ -13,57 +19,69 @@ import java.util.Map;
 
 public interface Actions {
 
-    ClientAction download(
+    NewAction<PropertiesWithFiles, ProjectClient> download(
         FilesInterface files, boolean noProgress, String languageId, String branchName,
         boolean ignoreMatch, boolean isVerbose, Boolean skipTranslatedOnly,
         Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView
     );
 
-    Action generate(FilesInterface files, Path destinationPath, boolean skipGenerateDescription);
+    NewAction<NewNoProperties, NoClient> generate(FilesInterface files, Path destinationPath, boolean skipGenerateDescription);
 
-    ClientAction listBranches(boolean noProgress,  boolean plainView);
+    NewAction<PropertiesWithFiles, ProjectClient> listBranches(boolean noProgress, boolean plainView);
 
-    ClientAction listProject(boolean noProgress, String branchName, boolean treeView, boolean plainView);
+    NewAction<PropertiesWithFiles, ProjectClient> listProject(
+        boolean noProgress, String branchName, boolean treeView, boolean plainView);
 
-    ClientAction listSources(boolean noProgress, boolean treeView, boolean plainView);
+    NewAction<PropertiesWithFiles, ProjectClient> listSources(
+        boolean noProgress, boolean treeView, boolean plainView);
 
-    ClientAction listTranslations(boolean noProgress, boolean treeView, boolean isLocal, boolean plainView);
+    NewAction<PropertiesWithFiles, ProjectClient> listTranslations(
+        boolean noProgress, boolean treeView, boolean isLocal, boolean plainView);
 
-    ClientAction status(boolean noProgress, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved);
+    NewAction<PropertiesWithFiles, ProjectClient> status(
+        boolean noProgress, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved);
 
-    ClientAction stringAdd(boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, Boolean hidden);
+    NewAction<PropertiesWithFiles, ProjectClient> stringAdd(
+        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, Boolean hidden);
 
-    ClientAction stringDelete(boolean noProgress, List<Long> ids, List<String> texts, List<String> identifiers);
+    NewAction<PropertiesWithFiles, ProjectClient> stringDelete(
+        boolean noProgress, List<Long> ids, List<String> texts, List<String> identifiers);
 
-    ClientAction stringEdit(
+    NewAction<PropertiesWithFiles, ProjectClient> stringEdit(
         boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, Boolean isHidden);
 
-    ClientAction stringList(boolean noProgress, boolean isVerbose, String file, String filter);
+    NewAction<PropertiesWithFiles, ProjectClient> stringList(
+        boolean noProgress, boolean isVerbose, String file, String filter);
 
-    ClientAction uploadSources(String branchName, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView);
+    NewAction<PropertiesWithFiles, ProjectClient> uploadSources(
+        String branchName, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView);
 
-    ClientAction uploadTranslations(
+    NewAction<PropertiesWithFiles, ProjectClient> uploadTranslations(
         boolean noProgress, String languageId, String branchName, boolean importEqSuggestions,
         boolean autoApproveImported, boolean debug, boolean plainView);
 
-    ClientAction glossaryList(boolean plainView, boolean isVerbose);
+    NewAction<BaseProperties, ClientGlossary> glossaryList(boolean plainView, boolean isVerbose);
 
-    ClientAction glossaryUpload(java.io.File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
+    NewAction<BaseProperties, ClientGlossary> glossaryUpload(
+        java.io.File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
 
-    ClientAction glossaryDownload(Long id, String name, GlossariesFormat format, boolean noProgress, File to, FilesInterface files);
+    NewAction<BaseProperties, ClientGlossary> glossaryDownload(
+        Long id, String name, GlossariesFormat format, boolean noProgress, File to, FilesInterface files);
 
-    ClientAction tmList(boolean plainView);
+    NewAction<BaseProperties, ClientTm> tmList(boolean plainView);
 
-    ClientAction tmUpload(File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
+    NewAction<BaseProperties, ClientTm> tmUpload(
+        File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
 
-    ClientAction tmDownload(Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,
-                            String targetLanguageId, boolean noProgress, File to, FilesInterface files);
+    NewAction<BaseProperties, ClientTm> tmDownload(
+        Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,
+        String targetLanguageId, boolean noProgress, File to, FilesInterface files);
 
-    ClientAction downloadTargets(List<String> targetNames, FilesInterface files, boolean noProgress, List<String> langIds, boolean isVerbose, Boolean skipTranslatedOnly,
-                                 Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView, boolean debug);
+    NewAction<PropertiesWithTargets, ProjectClient> downloadTargets(
+        List<String> targetNames, FilesInterface files, boolean noProgress, List<String> langIds, boolean isVerbose, Boolean skipTranslatedOnly,
+        Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView, boolean debug);
 
-    Action checkNewVersion();
+    NewAction<NewNoProperties, NoClient> checkNewVersion();
 
-    Step<PropertiesBean> buildProperties(File configFile, File identityFile, Params params);
 
 }

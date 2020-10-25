@@ -1,13 +1,13 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.client.models.SourceStringBuilder;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.properties.PropertiesBeanBuilder;
+import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.sourcestrings.model.SourceString;
 import org.junit.jupiter.api.Test;
@@ -31,21 +31,24 @@ public class StringDeleteActionTest {
 
     public static final Long PROJECT_ID = 42L;
 
+    private PropertiesWithFiles pb;
+    private ProjectClient client = mock(ProjectClient.class);
+    private NewAction<PropertiesWithFiles, ProjectClient> action;
+
     @ParameterizedTest
     @MethodSource
     public void testStringList(List<SourceString> strings, List<Long> ids, List<String> texts, List<String> identifiers) throws ResponseException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
+        pb = pbBuilder.build();
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.listSourceString(null, null))
             .thenReturn(strings);
 
 
-        ClientAction action = new StringDeleteAction(true, ids, texts, identifiers);
+        action = new StringDeleteAction(true, ids, texts, identifiers);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -76,18 +79,17 @@ public class StringDeleteActionTest {
         List<String> texts = Arrays.asList("second. text");
         List<String> identifiers = Arrays.asList("third. identifier");
 
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
+        pb = pbBuilder.build();
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.listSourceString(null, null))
             .thenReturn(strings);
 
 
-        ClientAction action = new StringDeleteAction(true, ids, texts, identifiers);
+        action = new StringDeleteAction(true, ids, texts, identifiers);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -101,15 +103,14 @@ public class StringDeleteActionTest {
     @Test
     public void testGetProjectThrows() throws ResponseException {
 
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
+        pb = pbBuilder.build();
         when(client.downloadFullProject())
             .thenThrow(new RuntimeException("Whoops"));
 
-        ClientAction action = new StringDeleteAction(true, null, null, null);
+        action = new StringDeleteAction(true, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();

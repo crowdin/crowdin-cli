@@ -1,12 +1,12 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ResponseException;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.properties.PropertiesBeanBuilder;
+import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
@@ -43,18 +43,18 @@ public class UploadTranslationsActionTest {
     public void testUploadOneOfTwoTranslation_Project() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("first.po-CR-uk-UA"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%", Arrays.asList("*-CR-*"))
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 301L, null, null).build());
         when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
             .thenReturn(1L);
 
-        ClientAction action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -74,11 +74,11 @@ public class UploadTranslationsActionTest {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("first.po-CR-uk-UA"), "Hello, World!");
         project.addFile(Utils.normalizePath("first.po-CR-ru-RU"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%", Arrays.asList("*-CR-*"))
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 301L, null, null).build());
@@ -87,7 +87,7 @@ public class UploadTranslationsActionTest {
         when(client.uploadStorage(eq("first.po-CR-ru-RU"), any()))
             .thenReturn(2L);
 
-        ClientAction action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -114,15 +114,15 @@ public class UploadTranslationsActionTest {
     public void testUploadOneOfTwoTranslation_EmptyProject() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("first.po-CR-uk-UA"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%", Arrays.asList("*-CR-*"))
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
 
-        ClientAction action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -133,19 +133,19 @@ public class UploadTranslationsActionTest {
     public void testUploadSpreadsheetTranslation_Project() throws ResponseException {
         project.addFile(Utils.normalizePath("first.csv"), "Hello, World!");
         project.addFile(Utils.normalizePath("first.csv-CR"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR", Arrays.asList("*-CR"))
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setScheme("identifier,source_phrase,context,uk,ru,fr");
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 301L, null, null).build());
         when(client.uploadStorage(eq("first.csv-CR"), any()))
             .thenReturn(1L);
 
-        ClientAction action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -165,18 +165,18 @@ public class UploadTranslationsActionTest {
     public void testUploadWithDest() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("first.po-CR-uk-UA"), "Hello, World!");
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%", Arrays.asList("*-CR-*"), "/second.po")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
-        Client client = mock(Client.class);
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("second.po", "gettext", 301L, null, null).build());
         when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
             .thenReturn(1L);
 
-        ClientAction action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();

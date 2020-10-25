@@ -1,14 +1,13 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.MockitoUtils;
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ClientTm;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
-import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.properties.PropertiesBeanBuilder;
+import com.crowdin.cli.properties.BaseProperties;
+import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.client.translationmemory.model.TranslationMemory;
-import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryExportStatus;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -41,11 +40,12 @@ public class TmDownloadActionTest {
     private final File to = new File("somewhere.tmx");
 
     private final Outputter out = Outputter.getDefault();
-    private final PropertiesBean pb = PropertiesBeanBuilder
+    private final BaseProperties pb = NewPropertiesWithFilesUtilBuilder
         .minimalBuiltPropertiesBean()
         .build();
-    private final Client clientMock = mock(Client.class);
+    private final ClientTm clientMock = mock(ClientTm.class);
     private final FilesInterface filesMock = mock(FilesInterface.class);
+    private NewAction<BaseProperties, ClientTm> action;
 
     @BeforeEach
     public void beforeEach() {
@@ -90,8 +90,8 @@ public class TmDownloadActionTest {
 
     @Test
     public void test_findById() throws IOException {
-        ClientAction clientAction = new TmDownloadAction(tmIdValid, null, null, null, null, false, this.to, filesMock);
-        clientAction.act(out, pb, clientMock);
+        action = new TmDownloadAction(tmIdValid, null, null, null, null, false, this.to, filesMock);
+        action.act(out, pb, clientMock);
 
         verify(clientMock).getTm(eq(tmIdValid));
         verify(clientMock).startExportingTm(eq(tmIdValid), any());
@@ -103,8 +103,8 @@ public class TmDownloadActionTest {
 
     @Test
     public void test_findById_throwsNotFound() {
-        ClientAction clientAction = new TmDownloadAction(tmIdNotExist, null, null, null, null, false, this.to, filesMock);
-        assertThrows(RuntimeException.class, () -> clientAction.act(out, pb, clientMock));
+        action = new TmDownloadAction(tmIdNotExist, null, null, null, null, false, this.to, filesMock);
+        assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
 
         verify(clientMock).getTm(eq(tmIdNotExist));
         verifyNoMoreInteractions(clientMock);
@@ -113,8 +113,8 @@ public class TmDownloadActionTest {
 
     @Test
     public void test_findByName() throws IOException {
-        ClientAction clientAction = new TmDownloadAction(null, tmNameValid, null, null, null, false, this.to, filesMock);
-        clientAction.act(out, pb, clientMock);
+        action = new TmDownloadAction(null, tmNameValid, null, null, null, false, this.to, filesMock);
+        action.act(out, pb, clientMock);
 
         verify(clientMock).listTms();
         verify(clientMock).startExportingTm(eq(tmIdValid), any());
@@ -126,8 +126,8 @@ public class TmDownloadActionTest {
 
     @Test
     public void test_findByName_throwsNoTms() {
-        ClientAction clientAction = new TmDownloadAction(null, tmNameNotExist, null, null, null, false, this.to, filesMock);
-        assertThrows(RuntimeException.class, () -> clientAction.act(out, pb, clientMock));
+        action = new TmDownloadAction(null, tmNameNotExist, null, null, null, false, this.to, filesMock);
+        assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
 
         verify(clientMock).listTms();
         verifyNoMoreInteractions(clientMock);
@@ -136,8 +136,8 @@ public class TmDownloadActionTest {
 
     @Test
     public void test_findByName_throwsTooManyTms() {
-        ClientAction clientAction = new TmDownloadAction(null, tmNameRepeats, null, null, null, false, this.to, filesMock);
-        assertThrows(RuntimeException.class, () -> clientAction.act(out, pb, clientMock));
+        action = new TmDownloadAction(null, tmNameRepeats, null, null, null, false, this.to, filesMock);
+        assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
 
         verify(clientMock).listTms();
         verifyNoMoreInteractions(clientMock);
@@ -146,8 +146,8 @@ public class TmDownloadActionTest {
 
     @Test
     public void test_throwsNoIdentifiers() {
-        ClientAction clientAction = new TmDownloadAction(null, null, null, null, null, false, this.to, filesMock);
-        assertThrows(RuntimeException.class, () -> clientAction.act(out, pb, clientMock));
+        action = new TmDownloadAction(null, null, null, null, null, false, this.to, filesMock);
+        assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
 
         verifyNoMoreInteractions(clientMock);
         verifyNoMoreInteractions(filesMock);
@@ -155,8 +155,8 @@ public class TmDownloadActionTest {
 
     @Test
     public void test_longBuild() throws IOException {
-        ClientAction clientAction = new TmDownloadAction(tmIdRepeats, null, null, null, null, false, this.to, filesMock);
-        clientAction.act(out, pb, clientMock);
+        action = new TmDownloadAction(tmIdRepeats, null, null, null, null, false, this.to, filesMock);
+        action.act(out, pb, clientMock);
 
         verify(clientMock).getTm(eq(tmIdRepeats));
         verify(clientMock).startExportingTm(eq(tmIdRepeats), any());
@@ -173,8 +173,8 @@ public class TmDownloadActionTest {
             .when(filesMock)
             .writeToFile(anyString(), any());
 
-        ClientAction clientAction = new TmDownloadAction(tmIdValid, null, null, null, null, false, this.to, filesMock);
-        assertThrows(RuntimeException.class, () -> clientAction.act(out, pb, clientMock));
+        action = new TmDownloadAction(tmIdValid, null, null, null, null, false, this.to, filesMock);
+        assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
 
         verify(clientMock).getTm(eq(tmIdValid));
         verify(clientMock).startExportingTm(eq(tmIdValid), any());
@@ -186,8 +186,8 @@ public class TmDownloadActionTest {
 
     @Test
     public void test_toIsNull() throws IOException {
-        ClientAction clientAction = new TmDownloadAction(tmIdValid, null, null, null, null, false, null, filesMock);
-        clientAction.act(out, pb, clientMock);
+        action = new TmDownloadAction(tmIdValid, null, null, null, null, false, null, filesMock);
+        action.act(out, pb, clientMock);
 
         verify(clientMock).getTm(eq(tmIdValid));
         verify(clientMock).startExportingTm(eq(tmIdValid), any());

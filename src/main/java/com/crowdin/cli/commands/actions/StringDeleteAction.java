@@ -1,14 +1,12 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProjectFull;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.client.sourcefiles.model.File;
-import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcestrings.model.SourceString;
 
 import java.util.List;
@@ -17,9 +15,8 @@ import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
-import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-class StringDeleteAction implements ClientAction {
+class StringDeleteAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private final boolean noProgress;
     private final List<Long> ids;
@@ -34,7 +31,7 @@ class StringDeleteAction implements ClientAction {
     }
 
     @Override
-    public void act(Outputter out, PropertiesBean pb, Client client) {
+    public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, client::downloadFullProject);
 

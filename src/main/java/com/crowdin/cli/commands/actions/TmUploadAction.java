@@ -1,17 +1,16 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ClientTm;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemory;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,7 @@ import static com.crowdin.cli.BaseCli.DEFAULT_TM_NAME;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-class TmUploadAction implements ClientAction {
+class TmUploadAction implements NewAction<BaseProperties, ClientTm> {
 
     private final File file;
     private final Long id;
@@ -38,7 +37,7 @@ class TmUploadAction implements ClientAction {
     }
 
     @Override
-    public void act(Outputter out, PropertiesBean pb, Client client) {
+    public void act(Outputter out, BaseProperties pb, ClientTm client) {
         boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
         TranslationMemory targetTm = this.getTm(client, isOrganization);
         Long storageId;
@@ -52,7 +51,7 @@ class TmUploadAction implements ClientAction {
             String.format(RESOURCE_BUNDLE.getString("message.tm.import_success"), targetTm.getId(), targetTm.getName())));
     }
 
-    private TranslationMemory getTm(Client client, boolean isEnterprise) {
+    private TranslationMemory getTm(ClientTm client, boolean isEnterprise) {
         if (id != null) {
             return client.getTm(id)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.not_found_by_id")));

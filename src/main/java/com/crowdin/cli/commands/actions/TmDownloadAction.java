@@ -1,11 +1,11 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ClientTm;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.translationmemory.model.TranslationMemory;
 import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
-class TmDownloadAction implements ClientAction {
+class TmDownloadAction implements NewAction<BaseProperties, ClientTm> {
 
     private final Long id;
     private final String name;
@@ -47,7 +47,7 @@ class TmDownloadAction implements ClientAction {
     }
 
     @Override
-    public void act(Outputter out, PropertiesBean pb, Client client) {
+    public void act(Outputter out, BaseProperties pb, ClientTm client) {
         TranslationMemory targetTm = getGlossary(client);
         if (to == null) {
             to = new File(targetTm.getName() + "."
@@ -59,7 +59,7 @@ class TmDownloadAction implements ClientAction {
         out.println(String.format(RESOURCE_BUNDLE.getString("message.glossary.download_success"), to));
     }
 
-    private TranslationMemory getGlossary(Client client) {
+    private TranslationMemory getGlossary(ClientTm client) {
         if (id != null) {
             return client.getTm(id)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.not_found_by_id")));
@@ -79,7 +79,7 @@ class TmDownloadAction implements ClientAction {
         }
     }
 
-    private TranslationMemoryExportStatus buildGlossary(Outputter out, Client client, Long tmId, TranslationMemoryExportRequest request) {
+    private TranslationMemoryExportStatus buildGlossary(Outputter out, ClientTm client, Long tmId, TranslationMemoryExportRequest request) {
         return ConsoleSpinner.execute(out, "message.spinner.building_tm", "error.tm.build_tm", this.noProgress, false, () -> {
             TranslationMemoryExportStatus status = client.startExportingTm(tmId, request);
 
@@ -93,7 +93,7 @@ class TmDownloadAction implements ClientAction {
         });
     }
 
-    private void downloadTm(Client client, Long tmId, String exportId) {
+    private void downloadTm(ClientTm client, Long tmId, String exportId) {
         URL url = client.downloadTm(tmId, exportId);
         try (InputStream data = url.openStream()) {
             files.writeToFile(to.toString(), data);

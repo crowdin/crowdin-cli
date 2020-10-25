@@ -112,9 +112,4 @@ public class CliActionsTest {
     public void testCheckNewVersion() {
         assertNotNull(actions.checkNewVersion());
     }
-
-    @Test
-    public void testBuildProperties() {
-        assertNotNull(actions.buildProperties(null, null, null));
-    }
 }

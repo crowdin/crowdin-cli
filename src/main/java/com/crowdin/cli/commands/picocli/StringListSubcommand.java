@@ -1,7 +1,9 @@
 package com.crowdin.cli.commands.picocli;
 
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
@@ -12,7 +14,7 @@ import java.util.List;
 @CommandLine.Command(
     name = CommandNames.STRING_LIST
 )
-class StringListSubcommand extends ClientActCommand {
+class StringListSubcommand extends ActCommandWithFiles {
 
     @CommandLine.Option(names = {"--file"}, paramLabel = "...")
     protected String file;
@@ -29,7 +31,7 @@ class StringListSubcommand extends ClientActCommand {
     }
 
     @Override
-    protected ClientAction getAction(Actions actions) {
+    protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return actions.stringList(noProgress, isVerbose, file, filter);
     }
 }

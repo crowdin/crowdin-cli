@@ -1,16 +1,16 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.LanguageMapping;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.commands.functionality.TranslationsUtils;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -40,7 +40,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-class DownloadAction implements ClientAction {
+class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private FilesInterface files;
     private boolean noProgress;
@@ -73,7 +73,7 @@ class DownloadAction implements ClientAction {
     }
 
     @Override
-    public void act(Outputter out, PropertiesBean pb, Client client) {
+    public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
         this.out = out;
         boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
 
@@ -190,7 +190,7 @@ class DownloadAction implements ClientAction {
         }
     }
 
-    private ProjectBuild buildTranslation(Client client, BuildProjectTranslationRequest request) {
+    private ProjectBuild buildTranslation(ProjectClient client, BuildProjectTranslationRequest request) {
         return ConsoleSpinner.execute(out, "message.spinner.fetching_project_info",
             "error.collect_project_info", this.noProgress, this.plainView, () -> {
                 ProjectBuild build = client.startBuildingTranslation(request);
@@ -333,7 +333,7 @@ class DownloadAction implements ClientAction {
         return mapping;
     }
 
-    private void downloadTranslations(Client client, Long buildId, String archivePath) {
+    private void downloadTranslations(ProjectClient client, Long buildId, String archivePath) {
         URL url = ConsoleSpinner
             .execute(out, "message.spinner.downloading_translation", "error.downloading_file",
                 this.noProgress, this.plainView, () -> client.downloadBuild(buildId));

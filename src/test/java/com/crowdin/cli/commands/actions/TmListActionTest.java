@@ -1,14 +1,13 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ClientTm;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.properties.PropertiesBeanBuilder;
+import com.crowdin.cli.properties.BaseProperties;
+import com.crowdin.cli.properties.NewBasePropertiesUtilBuilder;
 import com.crowdin.client.translationmemory.model.TranslationMemory;
 import org.junit.jupiter.api.Test;
 
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -33,17 +32,18 @@ public class TmListActionTest {
     List<TranslationMemory> emptyList = Collections.emptyList();
 
     Outputter out = Outputter.getDefault();
-    PropertiesBean pb = PropertiesBeanBuilder
-        .minimalBuiltPropertiesBean()
+    BaseProperties pb = NewBasePropertiesUtilBuilder
+        .minimalBuilt()
         .build();
-    Client clientMock = mock(Client.class);
+    ClientTm clientMock = mock(ClientTm.class);
+    NewAction<BaseProperties, ClientTm> action;
 
     @Test
     public void test_standard() {
         when(clientMock.listTms())
             .thenReturn(standardList);
 
-        ClientAction action = new TmListAction(false);
+        action = new TmListAction(false);
         action.act(out, pb, clientMock);
 
         verify(clientMock).listTms();
@@ -55,7 +55,7 @@ public class TmListActionTest {
         when(clientMock.listTms())
             .thenReturn(standardList);
 
-        ClientAction action = new TmListAction(true);
+        action = new TmListAction(true);
         action.act(out, pb, clientMock);
 
         verify(clientMock).listTms();
@@ -67,7 +67,7 @@ public class TmListActionTest {
         when(clientMock.listTms())
             .thenReturn(emptyList);
 
-        ClientAction action = new TmListAction(false);
+        action = new TmListAction(false);
         action.act(out, pb, clientMock);
 
         verify(clientMock).listTms();
@@ -79,7 +79,7 @@ public class TmListActionTest {
         when(clientMock.listTms())
             .thenReturn(emptyList);
 
-        ClientAction action = new TmListAction(true);
+        action = new TmListAction(true);
         action.act(out, pb, clientMock);
 
         verify(clientMock).listTms();

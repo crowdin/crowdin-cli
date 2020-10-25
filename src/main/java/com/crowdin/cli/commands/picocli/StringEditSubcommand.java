@@ -1,7 +1,9 @@
 package com.crowdin.cli.commands.picocli;
 
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import picocli.CommandLine;
 
 import java.util.ArrayList;
@@ -10,7 +12,7 @@ import java.util.List;
 @CommandLine.Command(
     name = CommandNames.STRING_EDIT
 )
-class StringEditSubcommand extends ClientActCommand {
+class StringEditSubcommand extends ActCommandWithFiles {
 
     @CommandLine.Option(names = {"--id"}, paramLabel = "...")
     protected Long id;
@@ -45,7 +47,7 @@ class StringEditSubcommand extends ClientActCommand {
     }
 
     @Override
-    protected ClientAction getAction(Actions actions) {
+    protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return actions.stringEdit(noProgress, id, identifier, newText, newContext, newMaxLength, newIsHidden);
     }
 

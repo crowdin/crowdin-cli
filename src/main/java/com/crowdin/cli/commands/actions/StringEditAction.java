@@ -1,10 +1,10 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.client.core.model.PatchOperation;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
@@ -15,7 +15,7 @@ import java.util.List;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-class StringEditAction implements ClientAction {
+class StringEditAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private final boolean noProgress;
     private final Long id;
@@ -38,7 +38,7 @@ class StringEditAction implements ClientAction {
     }
 
     @Override
-    public void act(Outputter out, PropertiesBean pb, Client client) {
+    public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
 
         List<SourceString> sourceStrings = client.listSourceString(null, null);
 

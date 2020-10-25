@@ -1,17 +1,16 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ClientGlossary;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.client.glossaries.model.AddGlossaryRequest;
 import com.crowdin.client.glossaries.model.Glossary;
 import lombok.NonNull;
 
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
 import java.util.Map;
@@ -21,7 +20,7 @@ import static com.crowdin.cli.BaseCli.DEFAULT_GLOSSARY_NAME;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-class GlossaryUploadAction implements ClientAction {
+class GlossaryUploadAction implements NewAction<BaseProperties, ClientGlossary> {
 
     private final java.io.File file;
     private final Long id;
@@ -38,7 +37,7 @@ class GlossaryUploadAction implements ClientAction {
     }
 
     @Override
-    public void act(Outputter out, PropertiesBean pb, Client client) {
+    public void act(Outputter out, BaseProperties pb, ClientGlossary client) {
         boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
         Glossary targetGlossary;
         if (id != null) {

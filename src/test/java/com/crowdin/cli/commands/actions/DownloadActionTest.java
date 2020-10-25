@@ -1,14 +1,14 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.MockitoUtils;
-import com.crowdin.cli.client.Client;
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ResponseException;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
-import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.properties.PropertiesBeanBuilder;
+import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
@@ -32,7 +32,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.verifyZeroInteractions;
 import static org.mockito.Mockito.when;
 
 public class DownloadActionTest {
@@ -60,12 +59,12 @@ public class DownloadActionTest {
 
     @Test
     public void testEmptyProject() throws ResponseException, IOException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
 
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
@@ -87,7 +86,8 @@ public class DownloadActionTest {
                 return new ArrayList<>();
             }));
 
-        ClientAction action = new DownloadAction(files, false, null, null, false, false, null, null, null, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, null, null, false, false, null, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -104,14 +104,14 @@ public class DownloadActionTest {
 
     @Test
     public void testProjectOneFittingFile() throws ResponseException, IOException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
 
         project.addFile("first.po");
 
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
@@ -136,7 +136,8 @@ public class DownloadActionTest {
                     }};
             }));
 
-        ClientAction action = new DownloadAction(files, false, null, null, false, false, null, null, null, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, null, null, false, false, null, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -159,14 +160,14 @@ public class DownloadActionTest {
 
     @Test
     public void testProjectOneFittingFile_WithExportApprovedOnly_WithSkipUntranslatedFiles() throws ResponseException, IOException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
 
         project.addFile("first.po");
 
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                         .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
@@ -194,7 +195,8 @@ public class DownloadActionTest {
                         }};
                 }));
 
-        ClientAction action = new DownloadAction(files, false, null, null, false, false, null, true, true, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, null, null, false, false, null, true, true, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -217,14 +219,14 @@ public class DownloadActionTest {
 
     @Test
     public void testProjectOneFittingFile_LongBuild() throws ResponseException, IOException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
 
         project.addFile("first.po");
 
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
@@ -253,7 +255,8 @@ public class DownloadActionTest {
                     }};
             }));
 
-        ClientAction action = new DownloadAction(files, false, null, null, false, false, null, null, null, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, null, null, false, false, null, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -277,14 +280,14 @@ public class DownloadActionTest {
 
     @Test
     public void testProjectOneFittingOneUnfittingFile_LongBuild() throws ResponseException, IOException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
 
         project.addFile("first.po");
 
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%")
@@ -313,7 +316,8 @@ public class DownloadActionTest {
                     }};
             }));
 
-        ClientAction action = new DownloadAction(files, false, null, null, false, false, null, null, null, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, null, null, false, false, null, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -336,14 +340,14 @@ public class DownloadActionTest {
 
     @Test
     public void testProjectOneFittingOneUnfittingOneWithUnfoundSourceFile_LongBuild() throws ResponseException, IOException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
 
         project.addFile("first.po");
 
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%")
@@ -373,7 +377,8 @@ public class DownloadActionTest {
                     }};
             }));
 
-        ClientAction action = new DownloadAction(files, false, null, null, false, true, null, null, null, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, null, null, false, true, null, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -396,14 +401,14 @@ public class DownloadActionTest {
 
     @Test
     public void testProjectOneFittingFile_WithLanguageMapping() throws ResponseException, IOException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
 
         project.addFile("first.po");
 
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%")
@@ -434,7 +439,8 @@ public class DownloadActionTest {
                         }};
                 }));
 
-        ClientAction action = new DownloadAction(files, false, null, null, false, true, null, null, null, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, null, null, false, true, null, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -457,14 +463,14 @@ public class DownloadActionTest {
 
     @Test
     public void testProjectOneFittingFile_FailBuild() throws ResponseException, IOException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
 
         project.addFile("first.po");
 
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
@@ -478,7 +484,8 @@ public class DownloadActionTest {
 
         FilesInterface files = mock(FilesInterface.class);
 
-        ClientAction action = new DownloadAction(files, false, null, null, false, false, null, null, null, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, null, null, false, false, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -490,20 +497,21 @@ public class DownloadActionTest {
 
     @Test
     public void testProjectOneFittingFile_failDownloadProject() throws ResponseException, IOException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
 
         project.addFile("first.po");
 
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenThrow(new RuntimeException());
 
         FilesInterface files = mock(FilesInterface.class);
 
-        ClientAction action = new DownloadAction(files, false, null, null, false, false, null, null, null, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, null, null, false, false, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -514,14 +522,14 @@ public class DownloadActionTest {
 
     @Test
     public void testProjectOneFittingFile_failDeleteFile() throws ResponseException, IOException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
 
         project.addFile("first.po");
 
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
@@ -548,7 +556,8 @@ public class DownloadActionTest {
         doThrow(IOException.class)
             .when(files).deleteFile(any());
 
-        ClientAction action = new DownloadAction(files, false, null, null, false, false, null, null, null, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, null, null, false, false, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -571,14 +580,14 @@ public class DownloadActionTest {
 
     @Test
     public void testProjectOneFittingFile_failDownloadingException() throws ResponseException, IOException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
 
         project.addFile("first.po");
 
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                         .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
@@ -591,7 +600,8 @@ public class DownloadActionTest {
 
         FilesInterface files = mock(FilesInterface.class);
 
-        ClientAction action = new DownloadAction(files, false, null, null, false, false, null, null, null, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, null, null, false, false, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -604,14 +614,14 @@ public class DownloadActionTest {
 
     @Test
     public void testProjectOneFittingFile_failWritingFile() throws ResponseException, IOException {
-        PropertiesBeanBuilder pbBuilder = PropertiesBeanBuilder
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
-        PropertiesBean pb = pbBuilder.build();
+        PropertiesWithFiles pb = pbBuilder.build();
 
         project.addFile("first.po");
 
-        Client client = mock(Client.class);
+        ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
@@ -628,7 +638,8 @@ public class DownloadActionTest {
             .when(files)
                 .writeToFile(any(), any());
 
-        ClientAction action = new DownloadAction(files, false, null, null, false, false, null, null, null, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, null, null, false, false, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();

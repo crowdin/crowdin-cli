@@ -1,15 +1,6 @@
 package com.crowdin.cli.client;
 
-import com.crowdin.client.core.model.DownloadLink;
 import com.crowdin.client.core.model.PatchRequest;
-import com.crowdin.client.core.model.ResponseObject;
-import com.crowdin.client.glossaries.model.AddGlossaryRequest;
-import com.crowdin.client.glossaries.model.ExportGlossaryRequest;
-import com.crowdin.client.glossaries.model.Glossary;
-import com.crowdin.client.glossaries.model.GlossaryExportStatus;
-import com.crowdin.client.glossaries.model.GlossaryImportStatus;
-import com.crowdin.client.glossaries.model.ImportGlossaryRequest;
-import com.crowdin.client.glossaries.model.Term;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
@@ -20,12 +11,6 @@ import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
 import com.crowdin.client.storage.model.Storage;
-import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
-import com.crowdin.client.translationmemory.model.TranslationMemory;
-import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
-import com.crowdin.client.translationmemory.model.TranslationMemoryExportStatus;
-import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
-import com.crowdin.client.translationmemory.model.TranslationMemoryImportStatus;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ExportPrjoectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
@@ -33,23 +18,19 @@ import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiPredicate;
-import java.util.function.Supplier;
-import java.util.stream.Collectors;
 
-class CrowdinClient extends CrowdinClientCore implements Client {
+class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
 
     private final com.crowdin.client.Client client;
     private final long projectId;
 
-    public CrowdinClient(com.crowdin.client.Client client, long projectId) {
+    public CrowdinProjectClient(com.crowdin.client.Client client, long projectId) {
         this.client = client;
         this.projectId = projectId;
     }
@@ -224,132 +205,9 @@ class CrowdinClient extends CrowdinClientCore implements Client {
     }
 
     @Override
-    public List<Glossary> listGlossaries() {
-        return executeRequestFullList((limit, offset) -> this.client.getGlossariesApi()
-            .listGlossaries(null, limit, offset));
-    }
-
-    @Override
-    public Optional<Glossary> getGlossary(Long glossaryId) {
-        try {
-            return Optional.of(executeRequest(() -> this.client.getGlossariesApi()
-                .getGlossary(glossaryId)
-                .getData()));
-        } catch (Exception e) {
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public Glossary addGlossary(AddGlossaryRequest request) {
-        return executeRequest(() -> this.client.getGlossariesApi()
-            .addGlossary(request)
-            .getData());
-    }
-
-    @Override
-    public GlossaryImportStatus importGlossary(Long glossaryId, ImportGlossaryRequest request) {
-        Map<BiPredicate<String, String>, RuntimeException> errorHandler = new LinkedHashMap<BiPredicate<String, String>, RuntimeException>() {{
-                put((code, message) -> code.equals("409") && message.contains("Another import is currently in progress"),
-                    new RuntimeException("Another import is currently in progress. Please wait until it's finished."));
-            }};
-        return executeRequest(errorHandler, () -> this.client.getGlossariesApi()
-            .importGlossary(glossaryId, request)
-            .getData());
-    }
-
-    @Override
-    public GlossaryExportStatus startExportingGlossary(Long glossaryId, ExportGlossaryRequest request) {
-        return executeRequest(() -> this.client.getGlossariesApi()
-            .exportGlossary(glossaryId, request)
-            .getData());
-    }
-
-    @Override
-    public GlossaryExportStatus checkExportingGlossary(Long glossaryId, String exportId) {
-        return executeRequest(() -> this.client.getGlossariesApi()
-            .checkGlossaryExportStatus(glossaryId, exportId)
-            .getData());
-    }
-
-    @Override
-    public URL downloadGlossary(Long glossaryId, String exportId) {
-        return url(executeRequest(() -> this.client.getGlossariesApi()
-            .downloadGlossary(glossaryId, exportId)
-            .getData()));
-    }
-
-    @Override
-    public List<TranslationMemory> listTms() {
-        return executeRequestFullList((limit, offset) -> this.client.getTranslationMemoryApi()
-            .listTms(null, limit, offset));
-    }
-
-    @Override
-    public Optional<TranslationMemory> getTm(Long tmId) {
-        try {
-            return Optional.of(executeRequest(() -> this.client.getTranslationMemoryApi()
-                .getTm(tmId)
-                .getData()));
-        } catch (Exception e) {
-            return Optional.empty();
-        }
-    }
-
-    @Override
-    public TranslationMemory addTm(AddTranslationMemoryRequest request) {
-        return executeRequest(() -> this.client.getTranslationMemoryApi()
-            .addTm(request)
-            .getData());
-    }
-
-    @Override
-    public TranslationMemoryImportStatus importTm(Long tmId, TranslationMemoryImportRequest request) {
-        return executeRequest(() -> this.client.getTranslationMemoryApi()
-            .importTm(tmId, request)
-            .getData());
-    }
-
-    @Override
-    public TranslationMemoryExportStatus startExportingTm(Long tmId, TranslationMemoryExportRequest request) {
-        return executeRequest(() -> this.client.getTranslationMemoryApi()
-            .exportTm(tmId, request)
-            .getData());
-    }
-
-    @Override
-    public TranslationMemoryExportStatus checkExportingTm(Long tmId, String exportId) {
-        return executeRequest(() -> this.client.getTranslationMemoryApi()
-            .checkTmExportStatus(tmId, exportId)
-            .getData());
-    }
-
-    @Override
-    public URL downloadTm(Long tmId, String exportId) {
-        return url(executeRequest(() -> this.client.getTranslationMemoryApi()
-            .downloadTm(tmId, exportId)
-            .getData()));
-    }
-
-    @Override
-    public List<Term> listTerms(Long glossaryId) {
-        return executeRequestFullList((limit, offset) -> this.client.getGlossariesApi()
-            .listTerms(glossaryId, null, null, null, limit, offset));
-    }
-
-    @Override
     public URL exportProjectTranslation(ExportPrjoectTranslationRequest request) {
         return url(executeRequest(() -> this.client.getTranslationsApi()
             .exportProjectTranslation(this.projectId, request)
             .getData()));
     }
-
-    private URL url(DownloadLink downloadLink) {
-        try {
-            return new URL(downloadLink.getUrl());
-        } catch (IOException e) {
-            throw new RuntimeException("Unexpected exception: malformed download url: " + downloadLink.getUrl(), e);
-        }
-    }
-
 }

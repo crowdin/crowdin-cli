@@ -1,11 +1,11 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.MockitoUtils;
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ClientTm;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.PropertiesBean;
-import com.crowdin.cli.properties.PropertiesBeanBuilder;
+import com.crowdin.cli.properties.BaseProperties;
+import com.crowdin.cli.properties.NewBasePropertiesUtilBuilder;
 import com.crowdin.client.translationmemory.model.TranslationMemory;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -34,10 +34,11 @@ public class TmUploadActionTest {
     private final Long storageId = 52L;
 
     private final Outputter out = Outputter.getDefault();
-    private final PropertiesBean pb = PropertiesBeanBuilder
-        .minimalBuiltPropertiesBean()
+    private final BaseProperties pb = NewBasePropertiesUtilBuilder
+        .minimalBuilt()
         .build();
-    private final Client clientMock = mock(Client.class);
+    private final ClientTm clientMock = mock(ClientTm.class);
+    private NewAction<BaseProperties, ClientTm> action;
     private final File file = MockitoUtils.getResourceFile("file.tmx", this.getClass());
 
     @BeforeEach
@@ -72,7 +73,7 @@ public class TmUploadActionTest {
 
     @Test
     public void test_findById() {
-        ClientAction action = new TmUploadAction(file, tmIdExists, null, null, null);
+        action = new TmUploadAction(file, tmIdExists, null, null, null);
         action.act(out, pb, clientMock);
 
         verify(clientMock).getTm(eq(tmIdExists));
@@ -83,7 +84,7 @@ public class TmUploadActionTest {
 
     @Test
     public void test_findById_throwsNotExists() {
-        ClientAction action = new TmUploadAction(file, tmIdNotExists, null, null, null);
+        action = new TmUploadAction(file, tmIdNotExists, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
 
         verify(clientMock).getTm(eq(tmIdNotExists));
@@ -92,7 +93,7 @@ public class TmUploadActionTest {
 
     @Test
     public void test_findByName() {
-        ClientAction action = new TmUploadAction(file, null, tmNameExists, null, null);
+        action = new TmUploadAction(file, null, tmNameExists, null, null);
         action.act(out, pb, clientMock);
 
         verify(clientMock).listTms();
@@ -103,7 +104,7 @@ public class TmUploadActionTest {
 
     @Test
     public void test_findByName_notExists() {
-        ClientAction action = new TmUploadAction(file, null, tmNameNotExists, null, null);
+        action = new TmUploadAction(file, null, tmNameNotExists, null, null);
         action.act(out, pb, clientMock);
 
         verify(clientMock).listTms();
@@ -115,7 +116,7 @@ public class TmUploadActionTest {
 
     @Test
     public void test_findByName_throwsToManyTms() {
-        ClientAction action = new TmUploadAction(file, null, tmNameRepeats, null, null);
+        action = new TmUploadAction(file, null, tmNameRepeats, null, null);
         assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
 
         verify(clientMock).listTms();
@@ -124,7 +125,7 @@ public class TmUploadActionTest {
 
     @Test
     public void test_noIdentifiers() {
-        ClientAction action = new TmUploadAction(file, null, null, null, null);
+        action = new TmUploadAction(file, null, null, null, null);
         action.act(out, pb, clientMock);
 
         verify(clientMock).addTm(any());
@@ -137,7 +138,7 @@ public class TmUploadActionTest {
     public void test_throwsUploadStorage() {
         when(clientMock.uploadStorage(anyString(), any()))
             .thenThrow(new RuntimeException());
-        ClientAction action = new TmUploadAction(file, tmIdExists, null, null, null);
+        action = new TmUploadAction(file, tmIdExists, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
 
         verify(clientMock).getTm(eq(tmIdExists));

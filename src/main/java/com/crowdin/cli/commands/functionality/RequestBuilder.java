@@ -85,7 +85,9 @@ public class RequestBuilder {
         return request;
     }
 
-    public static TranslationMemoryImportRequest importTranslationMemory(Long storageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
+    public static TranslationMemoryImportRequest importTranslationMemory(
+        Long storageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
+    ) {
         TranslationMemoryImportRequest request = new TranslationMemoryImportRequest();
         request.setStorageId(storageId);
         request.setScheme(scheme);
