@@ -40,7 +40,7 @@ class StringDeleteAction implements NewAction<PropertiesWithFiles, ProjectClient
             .stream()
             .collect(Collectors.toMap((entry) -> entry.getValue().getId(), Map.Entry::getKey));
 
-        List<SourceString> sourceStrings = client.listSourceString(null, null)
+        List<SourceString> sourceStrings = client.listSourceString(null, null, null)
             .stream()
             .filter(sourceString -> (ids != null && ids.contains(sourceString.getId()))
                 || (texts != null && sourceString.getText() instanceof String && texts.contains(sourceString.getText()))

@@ -11,7 +11,7 @@ import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
-import com.crowdin.client.translations.model.ExportPrjoectTranslationRequest;
+import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 
 import java.util.Map;
@@ -105,19 +105,19 @@ public class RequestBuilder {
         return request;
     }
 
-    public static ExportPrjoectTranslationRequest exportProjectTranslation(
-        String format, Boolean skipUntranslatedStrings, Boolean skipUntranslatedFiles, Integer exportWithMinApprovalsCount
+    public static ExportProjectTranslationRequest exportProjectTranslation(
+        String format, Boolean skipUntranslatedStrings, Boolean skipUntranslatedFiles, Boolean exportApprovedOnly
     ) {
-        ExportPrjoectTranslationRequest request = new ExportPrjoectTranslationRequest();
+        ExportProjectTranslationRequest request = new ExportProjectTranslationRequest();
         request.setFormat(format);
         request.setSkipUntranslatedStrings(skipUntranslatedStrings);
         request.setSkipUntranslatedFiles(skipUntranslatedFiles);
-        request.setExportWithMinApprovalsCount(exportWithMinApprovalsCount);
+        request.setExportApprovedOnly(exportApprovedOnly);
         return request;
     }
 
-    public static ExportPrjoectTranslationRequest exportProjectTranslation(ExportPrjoectTranslationRequest request) {
-        ExportPrjoectTranslationRequest copy = new ExportPrjoectTranslationRequest();
+    public static ExportProjectTranslationRequest exportProjectTranslation(ExportProjectTranslationRequest request) {
+        ExportProjectTranslationRequest copy = new ExportProjectTranslationRequest();
         copy.setTargetLanguageId(request.getTargetLanguageId());
         copy.setFormat(request.getFormat());
         copy.setBranchIds(request.getBranchIds());
@@ -125,7 +125,7 @@ public class RequestBuilder {
         copy.setFileIds(request.getFileIds());
         copy.setSkipUntranslatedStrings(request.getSkipUntranslatedStrings());
         copy.setSkipUntranslatedFiles(request.getSkipUntranslatedFiles());
-        copy.setExportWithMinApprovalsCount(request.getExportWithMinApprovalsCount());
+        copy.setExportApprovedOnly(request.getExportApprovedOnly());
         return copy;
     }
 

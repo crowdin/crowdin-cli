@@ -54,10 +54,10 @@ class StringListAction implements NewAction<PropertiesWithFiles, ProjectClient> 
 
         List<SourceString> sourceStrings;
         if (StringUtils.isEmpty(file)) {
-            sourceStrings = client.listSourceString(null, encodedFilter);
+            sourceStrings = client.listSourceString(null, null, encodedFilter);
         } else {
             if (paths.containsKey(file)) {
-                sourceStrings = client.listSourceString(paths.get(file).getId(), encodedFilter);
+                sourceStrings = client.listSourceString(paths.get(file).getId(), null, encodedFilter);
             } else {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
             }

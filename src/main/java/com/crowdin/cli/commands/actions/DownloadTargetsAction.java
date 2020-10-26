@@ -13,9 +13,10 @@ import com.crowdin.cli.properties.TargetBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
+import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.Branch;
-import com.crowdin.client.translations.model.ExportPrjoectTranslationRequest;
+import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
 import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -89,6 +90,9 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                 .filter(tb -> targetNames.contains(tb.getName()))
                 .collect(Collectors.toList());
 
+        Map<String, Long> labels = client.listLabels().stream()
+            .collect(Collectors.toMap(Label::getTitle, Label::getId));
+
         for (TargetBean tb : targetBeans) {
 
             List<Runnable> tasks = tb.getFiles().stream()
@@ -96,13 +100,12 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                     List<String> errors = new ArrayList<>();
 
                     if (!FILE_FORMAT_MAPPER.containsKey(FilenameUtils.getExtension(fb.getTarget()))) {
-                        errors.add(String.format("Crowdin doesn't support '%s' file format", FilenameUtils.getExtension(fb.getTarget())));
+                        errors.add(String.format(RESOURCE_BUNDLE.getString("error.crowdin_not_support_file_format"), FilenameUtils.getExtension(fb.getTarget())));
                     }
                     String exportFileFormat = FILE_FORMAT_MAPPER.get(FilenameUtils.getExtension(fb.getTarget()));
 
-                    Integer exportWithMinApprovalsCount = null;
-                        //(exportApprovedOnly != null && exportApprovedOnly) ? 1 : 0; // waiting for api updates
-                    ExportPrjoectTranslationRequest templateRequest
+                    Boolean exportWithMinApprovalsCount = exportApprovedOnly;
+                    ExportProjectTranslationRequest templateRequest
                         = RequestBuilder.exportProjectTranslation(
                             exportFileFormat, skipTranslatedOnly, skipUntranslatedFiles, exportWithMinApprovalsCount);
                     if (fb.getSources() != null && !fb.getSources().isEmpty()) {
@@ -111,7 +114,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                             if (projectFiles.containsKey(source)) {
                                 sourceIds.add(projectFiles.get(source));
                             } else {
-                                errors.add(String.format("Couldn't find '%s' file in project", source));
+                                errors.add(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), source));
                             }
                         }
                         templateRequest.setFileIds(sourceIds);
@@ -121,7 +124,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                             if (projectDirs.containsKey(dir)) {
                                 dirIds.add(projectDirs.get(dir));
                             } else {
-                                errors.add(String.format("Couldn't find '%s' directory in project", dir));
+                                errors.add(String.format(RESOURCE_BUNDLE.getString("error.dir_not_exists"), dir));
                             }
                         }
                         templateRequest.setDirectoryIds(dirIds);
@@ -131,7 +134,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                             if (projectBranches.containsKey(branch)) {
                                 branchIds.add(projectBranches.get(branch));
                             } else {
-                                errors.add(String.format("Couldn't find '%s' branch in project", branch));
+                                errors.add(String.format(RESOURCE_BUNDLE.getString("error.branch_not_exists"), branch));
                             }
                         }
                         templateRequest.setBranchIds(branchIds);
@@ -143,13 +146,25 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                         .stream()
                         .collect(Collectors.toMap(Language::getId, Function.identity()));
 
-                    List<Pair<String, ExportPrjoectTranslationRequest>> builtRequests = new ArrayList<>();
+                    if (fb.getLabels() != null) {
+                        List<Long> labelIds = new ArrayList<>();
+                        for (String labelTitle : fb.getLabels()) {
+                            if (labels.containsKey(labelTitle)) {
+                                labelIds.add(labels.get(labelTitle));
+                            } else {
+                                errors.add(out.format(String.format(RESOURCE_BUNDLE.getString("error.label_not_exists"), labelTitle)));
+                            }
+                        }
+                        templateRequest.setLabelIds(labelIds);
+                    }
+
+                    List<Pair<String, ExportProjectTranslationRequest>> builtRequests = new ArrayList<>();
                     for (String langId : langIds) {
                         if (!projectLanguages.containsKey(langId)) {
-                            errors.add(String.format("Coudln't find '%s' language", langId));
+                            errors.add(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), langId));
                             continue;
                         }
-                        ExportPrjoectTranslationRequest request = RequestBuilder.exportProjectTranslation(templateRequest);
+                        ExportProjectTranslationRequest request = RequestBuilder.exportProjectTranslation(templateRequest);
                         request.setTargetLanguageId(langId);
                         String targetFileLang = placeholderUtil.replaceLanguageDependentPlaceholders(fb.getTarget(), projectLanguages.get(langId));
                         builtRequests.add(Pair.of(targetFileLang, request));
@@ -159,13 +174,14 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                         String listOfErrors = errors.stream()
                             .map(er -> String.format("\t- %s", er))
                             .collect(Collectors.joining("\n"));
-                        throw new RuntimeException(String.format("Errors presented in '%s' target\n%s", tb.getName(), listOfErrors));
+                        throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.target_has_list_of_errors") + "\n%s", tb.getName(), listOfErrors));
+                    } else {
+                        return builtRequests.stream();
                     }
-                    return builtRequests.stream();
                 })
                 .map(builtRequest -> (Runnable) () -> {
                     String targetFile = builtRequest.getLeft();
-                    ExportPrjoectTranslationRequest request = builtRequest.getRight();
+                    ExportProjectTranslationRequest request = builtRequest.getRight();
 
                     URL downloadUrl = client.exportProjectTranslation(request);
                     try (InputStream data = downloadUrl.openStream()) {
@@ -174,8 +190,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                         throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.write_file"), targetFile), e);
                     }
                     out.println(OK.withIcon(
-                        String.format("@|fg(green) Successfully executed|@ @|fg(green),bold '%s'|@ "
-                                + "@|fg(green) target for|@ @|fg(green),bold %s|@ @|fg(green) language|@",
+                        String.format(RESOURCE_BUNDLE.getString("message.target_success"),
                             tb.getName(), builtRequest.getValue().getTargetLanguageId())));
                 })
                 .collect(Collectors.toList());
@@ -184,7 +199,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
         }
 
         if (pb.getTargets().isEmpty()) {
-            out.println(WARNING.withIcon("Couldn't find any targets to execute"));
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_targets_to_exec")));
         }
     }
 

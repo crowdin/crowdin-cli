@@ -1,6 +1,7 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.client.core.model.PatchRequest;
+import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
@@ -10,7 +11,7 @@ import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
-import com.crowdin.client.translations.model.ExportPrjoectTranslationRequest;
+import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
@@ -49,11 +50,13 @@ public interface ProjectClient extends Client {
 
     SourceString addSourceString(AddSourceStringRequest request);
 
-    List<SourceString> listSourceString(Long fileId, String filter);
+    List<SourceString> listSourceString(Long fileId, String labelIds, String filter);
 
     void deleteSourceString(Long id);
 
     SourceString editSourceString(Long sourceId, List<PatchRequest> requests);
 
-    URL exportProjectTranslation(ExportPrjoectTranslationRequest request);
+    URL exportProjectTranslation(ExportProjectTranslationRequest request);
+
+    List<Label> listLabels();
 }

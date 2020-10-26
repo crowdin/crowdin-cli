@@ -44,7 +44,7 @@ public class StringDeleteActionTest {
         pb = pbBuilder.build();
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
-        when(client.listSourceString(null, null))
+        when(client.listSourceString(null, null, null))
             .thenReturn(strings);
 
 
@@ -52,7 +52,7 @@ public class StringDeleteActionTest {
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
-        verify(client).listSourceString(null, null);
+        verify(client).listSourceString(null, null, null);
         for (SourceString sourceString : strings) {
             verify(client).deleteSourceString(sourceString.getId());
         }
@@ -85,7 +85,7 @@ public class StringDeleteActionTest {
         pb = pbBuilder.build();
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
-        when(client.listSourceString(null, null))
+        when(client.listSourceString(null, null, null))
             .thenReturn(strings);
 
 
@@ -93,7 +93,7 @@ public class StringDeleteActionTest {
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
-        verify(client).listSourceString(null, null);
+        verify(client).listSourceString(null, null, null);
         for (SourceString sourceString : strings) {
             verify(client).deleteSourceString(sourceString.getId());
         }

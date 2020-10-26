@@ -156,6 +156,19 @@ public class PropertiesWithTargetsBuilder extends PropertiesBuilder<PropertiesWi
             errors.add(RESOURCE_BUNDLE.getString("error.config.empty_section_target"));
         } else {
             for (TargetBean tb : props.getTargets())  {
+                if (StringUtils.isBlank(tb.getName())) {
+                    errors.add(RESOURCE_BUNDLE.getString("error.config.target_has_no_name"));
+                }
+                String tbName = (StringUtils.isBlank(tb.getName())) ? "with no name" : "'" + tb.getName() + "'";
+                for (TargetBean.FileBean fb : tb.getFiles()) {
+                    int contFiles = (fb.getSources() != null && !fb.getSources().isEmpty()) ? 1 : 0;
+                    int contDirs = (fb.getSourceDirs() != null && !fb.getSourceDirs().isEmpty()) ? 1 : 0;
+                    int contBranches = (fb.getSourceBranches() != null && !fb.getSourceBranches().isEmpty()) ? 1 : 0;
+                    if (contFiles + contDirs + contBranches > 1) {
+                        errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.target_has_more_than_one_type_of_sources"), tbName));
+                    }
+
+                }
             }
         }
         return errors;

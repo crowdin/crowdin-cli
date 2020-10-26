@@ -40,7 +40,7 @@ public class StringListActionTest {
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 101L, null, null).build());
-        when(client.listSourceString(101L, filter))
+        when(client.listSourceString(101L, null, filter))
             .thenReturn(Arrays.asList(SourceStringBuilder.standard()
                 .setProjectId(Long.parseLong(pb.getProjectId()))
                 .setIdentifiers(701L, "7-0-1", "seven-o-one", "7.0.1", 101L).build()));
@@ -50,9 +50,9 @@ public class StringListActionTest {
 
         verify(client).downloadFullProject();
         if (file != null) {
-            verify(client).listSourceString(101L, filter);
+            verify(client).listSourceString(101L, null, filter);
         } else {
-            verify(client).listSourceString(null, filter);
+            verify(client).listSourceString(null, null, filter);
         }
         verifyNoMoreInteractions(client);
     }

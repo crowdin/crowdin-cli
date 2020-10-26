@@ -40,7 +40,7 @@ class StringEditAction implements NewAction<PropertiesWithFiles, ProjectClient> 
     @Override
     public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
 
-        List<SourceString> sourceStrings = client.listSourceString(null, null);
+        List<SourceString> sourceStrings = client.listSourceString(null, null, null);
 
         Long foundStringId;
         if (id != null) {

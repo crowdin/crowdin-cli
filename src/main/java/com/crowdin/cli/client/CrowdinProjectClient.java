@@ -1,6 +1,7 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.client.core.model.PatchRequest;
+import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
@@ -12,7 +13,7 @@ import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
 import com.crowdin.client.storage.model.Storage;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
-import com.crowdin.client.translations.model.ExportPrjoectTranslationRequest;
+import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
@@ -183,9 +184,9 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
-    public List<SourceString> listSourceString(Long fileId, String filter) {
+    public List<SourceString> listSourceString(Long fileId, String labelIds, String filter) {
         return executeRequestFullList((limit, offset) -> this.client.getSourceStringsApi()
-            .listSourceStrings(this.projectId, fileId, filter, limit, offset));
+            .listSourceStrings(this.projectId, fileId, null, labelIds, filter, limit, offset));
     }
 
     @Override
@@ -205,9 +206,15 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
-    public URL exportProjectTranslation(ExportPrjoectTranslationRequest request) {
+    public URL exportProjectTranslation(ExportProjectTranslationRequest request) {
         return url(executeRequest(() -> this.client.getTranslationsApi()
             .exportProjectTranslation(this.projectId, request)
             .getData()));
+    }
+
+    @Override
+    public List<Label> listLabels() {
+        return executeRequestFullList((limit, offset) -> this.client.getLabelsApi()
+            .listLabels(this.projectId, limit, offset));
     }
 }
