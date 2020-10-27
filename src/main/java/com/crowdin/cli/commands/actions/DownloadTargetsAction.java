@@ -84,14 +84,42 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
             .values().stream()
             .collect(Collectors.toMap(Branch::getName, Branch::getId));
 
-        List<TargetBean> targetBeans = ((targetNames.size() == 1 && targetNames.get(0).equals(BaseCli.ALL)) || targetNames.isEmpty())
-            ? pb.getTargets()
-            : pb.getTargets().stream()
-                .filter(tb -> targetNames.contains(tb.getName()))
-                .collect(Collectors.toList());
+        List<TargetBean> targetBeans = new ArrayList<>();
+        if ((targetNames.size() == 1 && targetNames.get(0).equals(BaseCli.ALL)) || targetNames.isEmpty()) {
+            targetBeans.addAll(pb.getTargets());
+        } else {
+            Map<String, TargetBean> allTargetNames = pb.getTargets().stream()
+                .collect(Collectors.toMap(TargetBean::getName, Function.identity()));
+            for (String targetName : targetNames) {
+                if (allTargetNames.containsKey(targetName)) {
+                    targetBeans.add(allTargetNames.get(targetName));
+                } else {
+                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.no_target_to_exec"), targetName)));
+                }
+            }
+        }
 
         Map<String, Long> labels = client.listLabels().stream()
             .collect(Collectors.toMap(Label::getTitle, Label::getId));
+
+        Map<String, Language> projectLanguages = project.getProjectLanguages(false)
+            .stream()
+            .collect(Collectors.toMap(Language::getId, Function.identity()));
+
+        List<String> specifiedLangs;
+        if ((langIds.size() == 1 && langIds.get(0).equals(BaseCli.ALL)) || langIds.isEmpty()) {
+            specifiedLangs = new ArrayList<>(projectLanguages.keySet());
+        } else {
+            String unfoundLangs = langIds.stream()
+                .filter(lang -> !projectLanguages.containsKey(lang))
+                .map(lang -> "'" + lang + "'")
+                .collect(Collectors.joining(", "));
+            if (!unfoundLangs.isEmpty()) {
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), unfoundLangs));
+            } else {
+                specifiedLangs = langIds;
+            }
+        }
 
         for (TargetBean tb : targetBeans) {
 
@@ -142,9 +170,6 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                         throw new RuntimeException("Unexpected error: no source identifiers");
                     }
 
-                    Map<String, Language> projectLanguages = project.getProjectLanguages(false)
-                        .stream()
-                        .collect(Collectors.toMap(Language::getId, Function.identity()));
 
                     if (fb.getLabels() != null) {
                         List<Long> labelIds = new ArrayList<>();
@@ -159,11 +184,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                     }
 
                     List<Pair<String, ExportProjectTranslationRequest>> builtRequests = new ArrayList<>();
-                    for (String langId : langIds) {
-                        if (!projectLanguages.containsKey(langId)) {
-                            errors.add(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), langId));
-                            continue;
-                        }
+                    for (String langId : specifiedLangs) {
                         ExportProjectTranslationRequest request = RequestBuilder.exportProjectTranslation(templateRequest);
                         request.setTargetLanguageId(langId);
                         String targetFileLang = placeholderUtil.replaceLanguageDependentPlaceholders(fb.getTarget(), projectLanguages.get(langId));

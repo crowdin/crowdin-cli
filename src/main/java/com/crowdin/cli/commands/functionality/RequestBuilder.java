@@ -120,6 +120,7 @@ public class RequestBuilder {
         ExportProjectTranslationRequest copy = new ExportProjectTranslationRequest();
         copy.setTargetLanguageId(request.getTargetLanguageId());
         copy.setFormat(request.getFormat());
+        copy.setLabelIds(request.getLabelIds());
         copy.setBranchIds(request.getBranchIds());
         copy.setDirectoryIds(request.getDirectoryIds());
         copy.setFileIds(request.getFileIds());

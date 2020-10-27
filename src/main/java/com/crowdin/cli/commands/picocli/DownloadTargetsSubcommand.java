@@ -17,10 +17,10 @@ import java.util.List;
 )
 public class DownloadTargetsSubcommand extends ActCommandWithTargets {
 
-    @CommandLine.Parameters(defaultValue = BaseCli.ALL)
+    @CommandLine.Parameters(defaultValue = BaseCli.ALL, descriptionKey = "crowdin.download.targets.targetNames")
     protected List<String> targetNames;
 
-    @CommandLine.Option(names = {"-l", "--lang"}, paramLabel = "...", required = true)
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", defaultValue = BaseCli.ALL)
     protected List<String> langIds;
 
     @CommandLine.Option(names = {"--skip-untranslated-strings"}, descriptionKey = "crowdin.download.skipUntranslatedStrings")
