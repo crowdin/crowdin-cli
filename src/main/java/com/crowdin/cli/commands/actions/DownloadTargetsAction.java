@@ -16,6 +16,7 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.Branch;
+import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
 import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
@@ -77,7 +78,10 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
         Map<String, Long> projectFiles = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos())
             .entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getId()));
-        Map<String, Long> projectDirs = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories())
+        Map<Long, Directory> dirs = project.getDirectories().entrySet().stream()
+            .filter(e -> e.getValue().getBranchId() == null)
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+        Map<String, Long> projectDirs = ProjectFilesUtils.buildDirectoryPaths(dirs)
             .entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
         Map<String, Long> projectBranches = project.getBranches()
@@ -158,7 +162,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                         templateRequest.setDirectoryIds(dirIds);
                     } else if (fb.getSourceBranches() != null && !fb.getSourceBranches().isEmpty()) {
                         List<Long> branchIds = new ArrayList<>();
-                        for (String branch : fb.getSourceDirs()) {
+                        for (String branch : fb.getSourceBranches()) {
                             if (projectBranches.containsKey(branch)) {
                                 branchIds.add(projectBranches.get(branch));
                             } else {
