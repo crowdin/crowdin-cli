@@ -83,9 +83,9 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String SOURCES = "sources";
 
-    public static final String SOURCEDIRS = "sourceDirs";
+    public static final String SOURCEDIRS = "source_directories";
 
-    public static final String SOURCEBRANCHES = "sourceBranches";
+    public static final String SOURCEBRANCHES = "source_branches";
 
     public static final String LABELS = "labels";
 
