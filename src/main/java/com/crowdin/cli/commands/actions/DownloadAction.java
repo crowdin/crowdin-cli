@@ -11,12 +11,14 @@ import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.commands.functionality.TranslationsUtils;
 import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.properties.PseudoLocalization;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
+import com.crowdin.client.translations.model.CrowdinTranslationCraeteProjectPseudoBuildForm;
 import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
 import com.crowdin.client.translations.model.ProjectBuild;
 import org.apache.commons.lang3.StringUtils;
@@ -45,6 +47,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     private FilesInterface files;
     private boolean noProgress;
     private String languageId;
+    private boolean pseudo;
     private String branchName;
     private boolean ignoreMatch;
     private boolean isVerbose;
@@ -56,13 +59,14 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     private Outputter out;
 
     public DownloadAction(
-            FilesInterface files, boolean noProgress, String languageId, String branchName,
+            FilesInterface files, boolean noProgress, String languageId, boolean pseudo, String branchName,
             boolean ignoreMatch, boolean isVerbose, Boolean skipTranslatedOnly,
             Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView
     ) {
         this.files = files;
         this.noProgress = noProgress || plainView;
         this.languageId = languageId;
+        this.pseudo = pseudo;
         this.branchName = branchName;
         this.ignoreMatch = ignoreMatch;
         this.isVerbose = isVerbose;
@@ -104,30 +108,46 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
         LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
-        CrowdinTranslationCreateProjectBuildForm buildRequest = new CrowdinTranslationCreateProjectBuildForm();
-        buildRequest.setSkipUntranslatedStrings(this.skipTranslatedOnly);
-        buildRequest.setSkipUntranslatedFiles(this.skipUntranslatedFiles);
-        if (isOrganization) {
-            if (this.exportApprovedOnly != null && this.exportApprovedOnly) {
-                buildRequest.setExportWithMinApprovalsCount(1);
+
+        BuildProjectTranslationRequest request;
+        if (pseudo) {
+            CrowdinTranslationCraeteProjectPseudoBuildForm buildRequest = new CrowdinTranslationCraeteProjectPseudoBuildForm();
+            buildRequest.setPseudo(true);
+            PseudoLocalization pl = pb.getPseudoLocalization();
+            if (pl != null) {
+                buildRequest.setLengthTransformation(pl.getLengthCorrection());
+                buildRequest.setPrefix(pl.getPrefix());
+                buildRequest.setSuffix(pl.getSuffix());
+                buildRequest.setCharTransformation(pl.getCharTransformation());
             }
+            request = buildRequest;
         } else {
-            buildRequest.setExportApprovedOnly(this.exportApprovedOnly);
+            CrowdinTranslationCreateProjectBuildForm buildRequest = new CrowdinTranslationCreateProjectBuildForm();
+            buildRequest.setSkipUntranslatedStrings(this.skipTranslatedOnly);
+            buildRequest.setSkipUntranslatedFiles(this.skipUntranslatedFiles);
+            if (isOrganization) {
+                if (this.exportApprovedOnly != null && this.exportApprovedOnly) {
+                    buildRequest.setExportWithMinApprovalsCount(1);
+                }
+            } else {
+                buildRequest.setExportApprovedOnly(this.exportApprovedOnly);
+            }
+            language
+                .map(Language::getId)
+                .map(Collections::singletonList)
+                .ifPresent(buildRequest::setTargetLanguageIds);
+            branch
+                .map(Branch::getId)
+                .ifPresent(buildRequest::setBranchId);
+            request = buildRequest;
         }
-        language
-            .map(Language::getId)
-            .map(Collections::singletonList)
-            .ifPresent(buildRequest::setTargetLanguageIds);
-        branch
-            .map(Branch::getId)
-            .ifPresent(buildRequest::setBranchId);
 
         if (!plainView) {
             out.println((languageId != null)
                 ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId))
                 : OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive")));
         }
-        ProjectBuild projectBuild = buildTranslation(client, buildRequest);
+        ProjectBuild projectBuild = buildTranslation(client, request);
 
         String currentTimeMillis = Long.toString(System.currentTimeMillis());
         File baseTempDir =
@@ -150,7 +170,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
         List<Language> forLanguages = language
             .map(Collections::singletonList)
-            .orElse(project.getProjectLanguages(true));
+            .orElse((pseudo) ? project.getSupportedLanguages() : project.getProjectLanguages(true));
 
         Map<String, String> filesWithMapping = pb.getFiles().stream()
             .map(file -> {

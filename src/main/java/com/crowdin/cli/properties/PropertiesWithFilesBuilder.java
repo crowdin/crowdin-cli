@@ -47,6 +47,7 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
             .stream()
             .map(PropertiesWithFilesBuilder::buildFileBeanFromMap)
             .collect(Collectors.toList()));
+        props.setPseudoLocalization(PseudoLocalization.buildFromMap((Map<String, Object>) configFileParams.getOrDefault(PSEUDO_LOCALIZATION, Collections.EMPTY_MAP)));
     }
 
     private static FileBean buildFileBeanFromMap(Map<String, Object> fbProperties) {
@@ -284,6 +285,14 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
                     errors.add(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
                 } else if (StringUtils.isNotEmpty(fileBean.getDest()) && !props.getPreserveHierarchy()) {
                     errors.add(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
+                }
+            }
+        }
+        if (props.getPseudoLocalization() != null) {
+            PseudoLocalization pl = props.getPseudoLocalization();
+            if (pl.getLengthCorrection() != null) {
+                if (pl.getLengthCorrection() < -51 || pl.getLengthCorrection() > 100) {
+                    errors.add("Acceptable values for 'length_correction' must be from -50 to 100");
                 }
             }
         }

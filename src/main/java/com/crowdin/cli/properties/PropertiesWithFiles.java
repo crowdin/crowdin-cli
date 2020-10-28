@@ -12,4 +12,5 @@ public class PropertiesWithFiles extends IdProperties {
     private Boolean preserveHierarchy;
 
     private List<FileBean> files;
+    private PseudoLocalization pseudoLocalization;
 }

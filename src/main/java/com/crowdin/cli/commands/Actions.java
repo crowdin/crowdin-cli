@@ -20,7 +20,7 @@ import java.util.Map;
 public interface Actions {
 
     NewAction<PropertiesWithFiles, ProjectClient> download(
-        FilesInterface files, boolean noProgress, String languageId, String branchName,
+        FilesInterface files, boolean noProgress, String languageId, boolean pseudo, String branchName,
         boolean ignoreMatch, boolean isVerbose, Boolean skipTranslatedOnly,
         Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView
     );

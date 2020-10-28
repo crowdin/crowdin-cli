@@ -58,7 +58,7 @@ public class PicocliTestUtils {
         actionsMock = mock(Actions.class);
         actionMock = mock(NewAction.class);
 
-        when(actionsMock.download(any(), anyBoolean(), any(), any(), anyBoolean(), anyBoolean(), any(), any(), any(), anyBoolean()))
+        when(actionsMock.download(any(), anyBoolean(), any(), anyBoolean(), any(), anyBoolean(), anyBoolean(), any(), any(), any(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.generate(any(), any(), anyBoolean()))
             .thenReturn(actionMock);

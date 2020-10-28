@@ -23,11 +23,11 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<PropertiesWithFiles, ProjectClient> download(
-        FilesInterface files, boolean noProgress, String languageId, String branchName,
+        FilesInterface files, boolean noProgress, String languageId, boolean pseudo, String branchName,
         boolean ignoreMatch, boolean isVerbose, Boolean skipTranslatedOnly,
         Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView
     ) {
-        return new DownloadAction(files, noProgress, languageId, branchName, ignoreMatch, isVerbose,
+        return new DownloadAction(files, noProgress, languageId, pseudo, branchName, ignoreMatch, isVerbose,
             skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly, plainView);
     }
 

@@ -89,6 +89,16 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String LABELS = "labels";
 
+    public static final String PSEUDO_LOCALIZATION= "pseudo_localization";
+
+    public static final String LENGTH_CORRECTION = "length_correction";
+
+    public static final String PREFIX = "prefix";
+
+    public static final String SUFFIX = "suffix";
+
+    public static final String CHARACTER_TRANSFORMATION = "character_transformation";
+
     private Map<String, Object> configFileParams;
     private Map<String, Object> identityFileParams;
     private P params;
@@ -154,7 +164,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     protected abstract List<String> checkProperties(T props);
 
-    protected static <V> void setEnvOrPropertyIfExists(Consumer<String> setter, Map<String, Object> properties, String envKey, String key) {
+    static void setEnvOrPropertyIfExists(Consumer<String> setter, Map<String, Object> properties, String envKey, String key) {
         String param = properties.containsKey(envKey)
             ? System.getenv(properties.get(envKey).toString())
             : (properties.containsKey(key))
@@ -165,7 +175,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
         }
     }
 
-    protected static void setBooleanPropertyIfExists(Consumer<Boolean> setter, Map<String, Object> properties, String key) {
+    static void setBooleanPropertyIfExists(Consumer<Boolean> setter, Map<String, Object> properties, String key) {
         Boolean param = properties.containsKey(key)
             ? properties.get(key).toString().equals("1")
             ? Boolean.TRUE
@@ -176,7 +186,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
         }
     }
 
-    protected static <T> void setPropertyIfExists(Consumer<T> setter, Map<String, Object> properties, String key) {
+    static <T> void setPropertyIfExists(Consumer<T> setter, Map<String, Object> properties, String key) {
         try {
             T param = (T) properties.getOrDefault(key, null);
             if (param != null) {
@@ -184,6 +194,19 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
             }
         } catch (ClassCastException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param"), key), e);
+        }
+    }
+
+    static void setEnumPropertyIfExists(Consumer<String> setter, Map<String, Object> properties, String key, String acceptableValuesEnum) {
+        try {
+            String param = (String) properties.get(key);
+            if (param != null) {
+                setter.accept(param);
+            }
+        } catch (ClassCastException e) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.config.enum_class_exception"), key, acceptableValuesEnum));
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.config.enum_wrong_value"), key, acceptableValuesEnum));
         }
     }
 

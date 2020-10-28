@@ -28,6 +28,9 @@ class DownloadSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...")
     protected String languageId;
 
+    @CommandLine.Option(names = {"--pseudo"}, descriptionKey = "crowdin.download.pseudo")
+    protected boolean pseudo;
+
     @CommandLine.Option(names = {"--dryrun"})
     protected boolean dryrun;
 
@@ -48,7 +51,7 @@ class DownloadSubcommand extends ActCommandWithFiles {
         return (dryrun)
             ? actions.listTranslations(noProgress, treeView, false, plainView)
             : actions.download(
-                new FsFiles(), noProgress, languageId, branchName, ignoreMatch, isVerbose,
+                new FsFiles(), noProgress, languageId, pseudo, branchName, ignoreMatch, isVerbose,
                 skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly, plainView);
     }
 
