@@ -1,16 +1,20 @@
 package com.crowdin.cli.properties;
 
+import com.crowdin.cli.commands.Outputter;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 /**
  * Loads Properties from map. Источником для параметров являются мапа с
@@ -83,9 +87,9 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String SOURCES = "sources";
 
-    public static final String SOURCEDIRS = "source_directories";
+    public static final String DIRECTORIES = "directories";
 
-    public static final String SOURCEBRANCHES = "source_branches";
+    public static final String BRANCHES = "branches";
 
     public static final String LABELS = "labels";
 
@@ -99,9 +103,14 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String CHARACTER_TRANSFORMATION = "character_transformation";
 
+    private Outputter out;
     private Map<String, Object> configFileParams;
     private Map<String, Object> identityFileParams;
     private P params;
+
+    public PropertiesBuilder(Outputter out) {
+        this.out = out;
+    }
 
     public PropertiesBuilder<T, P> addConfigParams(Map<String, Object> configFileParams) {
         if (configFileParams != null) {
@@ -141,9 +150,12 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
         return props;
     }
 
-    private void throwErrorIfNeeded(List<String> errors, String text) {
-        if (errors != null && !errors.isEmpty()) {
-            String errorsInOne = errors.stream()
+    private void throwErrorIfNeeded(Messages messages, String text) {
+        messages.getWarnings().stream()
+            .map(WARNING::withIcon)
+            .forEach(out::println);
+        if (!messages.getErrors().isEmpty()) {
+            String errorsInOne = messages.getErrors().stream()
                 .map(error -> String.format(RESOURCE_BUNDLE.getString("message.item_list"), error))
                 .collect(Collectors.joining("\n"));
             throw new RuntimeException(text + "\n" + errorsInOne);
@@ -156,13 +168,29 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     protected abstract void populateWithConfigFileParams(T props, @NonNull Map<String, Object> configFileParams);
 
-    protected abstract List<String> checkArgParams(@NonNull P params);
+    protected abstract Messages checkArgParams(@NonNull P params);
 
     protected abstract void populateWithArgParams(T props, @NonNull P params);
 
     protected abstract void populateWithDefaultValues(T props);
 
-    protected abstract List<String> checkProperties(T props);
+    protected abstract Messages checkProperties(T props);
+
+    static List<Map<String, Object>> getListOfMaps(Map<String, Object> map, String key) {
+        try {
+            return (List<Map<String, Object>>) map.getOrDefault(key, Collections.emptyList());
+        } catch (ClassCastException e) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param"), key), e);
+        }
+    }
+
+    static Map<String, Object> getMap(Map<String, Object> map, String key) {
+        try {
+            return (Map<String, Object>) map.getOrDefault(key, Collections.emptyMap());
+        } catch (ClassCastException e) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param"), key), e);
+        }
+    }
 
     static void setEnvOrPropertyIfExists(Consumer<String> setter, Map<String, Object> properties, String envKey, String key) {
         String param = properties.containsKey(envKey)
@@ -231,6 +259,33 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
     }
 
 
+    static class Messages {
+        private List<String> errors = new ArrayList<>();
+        private List<String> warnings = new ArrayList<>();
 
+        public void addError(String error) {
+            this.errors.add(error);
+        }
 
+        public void addAllErrors(List<String> errors) {
+            this.errors.addAll(errors);
+        }
+
+        public void addWarning(String warning) {
+            this.warnings.add(warning);
+        }
+
+        public void populate(Messages other) {
+            this.errors.addAll(other.errors);
+            this.warnings.addAll(other.warnings);
+        }
+
+        public List<String> getErrors() {
+            return errors;
+        }
+
+        public List<String> getWarnings() {
+            return warnings;
+        }
+    }
 }

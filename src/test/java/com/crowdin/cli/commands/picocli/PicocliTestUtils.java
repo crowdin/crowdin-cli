@@ -3,7 +3,7 @@ package com.crowdin.cli.commands.picocli;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.properties.NewBasePropertiesUtilBuilder;
-import com.crowdin.cli.properties.NewNoProperties;
+import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.NewPropertiesWithTargetsUtilBuilder;
 import com.crowdin.cli.properties.PropertiesBuilders;
@@ -102,13 +102,13 @@ public class PicocliTestUtils {
 
     private void mockBuilders() {
         properitesBuildersMock = mock(PropertiesBuilders.class);
-        when(properitesBuildersMock.buildBaseProperties(any(), any(), any()))
+        when(properitesBuildersMock.buildBaseProperties(any(), any(), any(), any()))
             .thenReturn(NewBasePropertiesUtilBuilder.minimalBuilt().build());
         when(properitesBuildersMock.buildNoProperties())
-            .thenReturn(new NewNoProperties());
-        when(properitesBuildersMock.buildPropertiesWithFiles(any(), any(), any()))
+            .thenReturn(new NoProperties());
+        when(properitesBuildersMock.buildPropertiesWithFiles(any(), any(), any(), any()))
             .thenReturn(NewPropertiesWithFilesUtilBuilder.minimalBuiltPropertiesBean().build());
-        when(properitesBuildersMock.buildPropertiesWithTargets(any(), any(), any()))
+        when(properitesBuildersMock.buildPropertiesWithTargets(any(), any(), any(), any()))
             .thenReturn(NewPropertiesWithTargetsUtilBuilder.minimalBuilt().build());
     }
 }

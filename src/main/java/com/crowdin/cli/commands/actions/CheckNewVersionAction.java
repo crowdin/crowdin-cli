@@ -4,7 +4,7 @@ import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.NoClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.NewNoProperties;
+import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -14,10 +14,10 @@ import java.net.URL;
 import java.util.List;
 import java.util.Optional;
 
-class CheckNewVersionAction implements NewAction<NewNoProperties, NoClient> {
+class CheckNewVersionAction implements NewAction<NoProperties, NoClient> {
 
     @Override
-    public void act(Outputter out, NewNoProperties pb, NoClient client) {
+    public void act(Outputter out, NoProperties pb, NoClient client) {
         getNewVersionMessage().ifPresent(out::println);
     }
 

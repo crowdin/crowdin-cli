@@ -75,7 +75,7 @@ class TmDownloadAction implements NewAction<BaseProperties, ClientTm> {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.more_than_one_tm_by_that_name"));
             }
         } else {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.no_identifiers"));
+            throw new RuntimeException("Unexpected error: " + RESOURCE_BUNDLE.getString("error.tm.no_identifiers"));
         }
     }
 

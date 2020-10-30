@@ -1,23 +1,34 @@
 package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.Clients;
-import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.client.NoClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
-import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.properties.AllProperties;
+import com.crowdin.cli.properties.NoParams;
+import com.crowdin.cli.properties.PropertiesBuilders;
 import picocli.CommandLine;
 
 @CommandLine.Command(
     name = CommandNames.LINT)
-class LintSubcommand extends ActCommandWithFiles {
+class LintSubcommand extends GenericActCommand<AllProperties, NoClient> {
 
-    protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
+    @CommandLine.Mixin
+    private ConfigurationFilesProperties properties;
+
+    protected NewAction<AllProperties, NoClient> getAction(Actions actions) {
         return (out, pb, client) ->
             out.println(CommandLine.Help.Ansi.AUTO.string(RESOURCE_BUNDLE.getString("message.configuration_ok")));
     }
 
     @Override
-    protected ProjectClient getClient(PropertiesWithFiles properties) {
-        return Clients.getProjectClient(properties.getApiToken(), properties.getBaseUrl(), Long.parseLong(properties.getProjectId()));
+    protected AllProperties getProperties(PropertiesBuilders propertiesBuilders, Outputter out) {
+        return propertiesBuilders.buildChecker(out, properties.getConfigFile(), properties.getIdentityFile(), new NoParams());
+    }
+
+    @Override
+    protected NoClient getClient(AllProperties properties) {
+        return Clients.noClient();
     }
 }

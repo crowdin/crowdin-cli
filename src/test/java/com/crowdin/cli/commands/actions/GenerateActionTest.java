@@ -4,7 +4,7 @@ import com.crowdin.cli.client.NoClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
-import com.crowdin.cli.properties.NewNoProperties;
+import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import org.junit.jupiter.api.AfterEach;
@@ -29,7 +29,7 @@ public class GenerateActionTest {
 
     TempProject project;
 
-    private NewAction<NewNoProperties, NoClient> action;
+    private NewAction<NoProperties, NoClient> action;
 
     @BeforeEach
     public void createProj() {
@@ -48,7 +48,7 @@ public class GenerateActionTest {
         System.setIn(responsesIS);
 
         action = new GenerateAction(files, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
-        action.act(Outputter.getDefault(), new NewNoProperties(), mock(NoClient.class));
+        action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class));
 
         verify(files).writeToFile(anyString(), any());
         verifyNoMoreInteractions(files);
@@ -62,7 +62,7 @@ public class GenerateActionTest {
         System.setIn(responsesIS);
 
         action = new GenerateAction(files, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NewNoProperties(), mock(NoClient.class)));
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class)));
 
         verify(files).writeToFile(anyString(), any());
         verifyNoMoreInteractions(files);
@@ -76,7 +76,7 @@ public class GenerateActionTest {
         System.setIn(responsesIS);
 
         action = new GenerateAction(files, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NewNoProperties(), mock(NoClient.class)));
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class)));
 
         verify(files).writeToFile(anyString(), any());
         verifyNoMoreInteractions(files);
@@ -90,7 +90,7 @@ public class GenerateActionTest {
         System.setIn(responsesIS);
 
         action = new GenerateAction(files, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NewNoProperties(), mock(NoClient.class)));
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class)));
 
         verify(files).writeToFile(anyString(), any());
         verifyNoMoreInteractions(files);
@@ -104,7 +104,7 @@ public class GenerateActionTest {
         System.setIn(responsesIS);
 
         action = new GenerateAction(files, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NewNoProperties(), mock(NoClient.class)));
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class)));
 
         verify(files).writeToFile(anyString(), any());
         verifyNoMoreInteractions(files);
@@ -119,7 +119,7 @@ public class GenerateActionTest {
         System.setIn(responsesIS);
 
         action = new GenerateAction(files, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
-        action.act(Outputter.getDefault(), new NewNoProperties(), mock(NoClient.class));
+        action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class));
 
         verifyNoMoreInteractions(files);
     }

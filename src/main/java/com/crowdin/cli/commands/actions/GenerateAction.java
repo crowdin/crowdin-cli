@@ -7,7 +7,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
-import com.crowdin.cli.properties.NewNoProperties;
+import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
@@ -34,7 +34,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-class GenerateAction implements NewAction<NewNoProperties, NoClient> {
+class GenerateAction implements NewAction<NoProperties, NoClient> {
 
     public static final String BASE_PATH_DEFAULT = ".";
     public static final String BASE_URL_DEFAULT = "https://api.crowdin.com";
@@ -57,7 +57,7 @@ class GenerateAction implements NewAction<NewNoProperties, NoClient> {
     }
 
     @Override
-    public void act(Outputter out, NewNoProperties noProperties, NoClient noClient) {
+    public void act(Outputter out, NoProperties noProperties, NoClient noClient) {
         Scanner scanner = new Scanner(System.in, "UTF-8");
         Asking asking = new Asking(out, scanner);
         try {

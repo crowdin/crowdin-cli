@@ -32,14 +32,14 @@ public abstract class GenericActCommand<P extends Properties, C extends Client> 
         }
         Outputter out = new PicocliOutputter(System.out, isAnsi());
         NewAction<P, C> action = this.getAction(actions);
-        P properties = this.getProperties(propertiesBuilders);
+        P properties = this.getProperties(propertiesBuilders, out);
         C client = this.getClient(properties);
         action.act(out, properties, client);
     }
 
     protected abstract NewAction<P, C> getAction(Actions actions);
 
-    protected abstract P getProperties(PropertiesBuilders propertiesBuilders);
+    protected abstract P getProperties(PropertiesBuilders propertiesBuilders, Outputter out);
 
     protected abstract C getClient(P properties);
 

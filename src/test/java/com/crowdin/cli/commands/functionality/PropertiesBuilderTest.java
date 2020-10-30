@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ParamsWithFiles;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
@@ -20,6 +21,7 @@ public class PropertiesBuilderTest {
     private TempProject tempProject;
 
     private PropertiesBuilders propertiesBuilders = new PropertiesBuilders();
+    private Outputter out = Outputter.getDefault();
 
     @BeforeEach
     private void initFolder() {
@@ -33,7 +35,7 @@ public class PropertiesBuilderTest {
 
     @Test
     public void testError_EverythingEmpty() {
-        assertThrows(NullPointerException.class, () -> propertiesBuilders.buildPropertiesWithFiles(null, null, null));
+        assertThrows(NullPointerException.class, () -> propertiesBuilders.buildPropertiesWithFiles(out, null, null, null));
     }
 
     @Test
@@ -45,7 +47,7 @@ public class PropertiesBuilderTest {
                 setTranslationParam("/hello/%two_letters_code%/%file_name%.%file_extension%");
             }};
 
-        PropertiesWithFiles pb = propertiesBuilders.buildPropertiesWithFiles(new File("crowdin.yml"), null, okParams);
+        PropertiesWithFiles pb = propertiesBuilders.buildPropertiesWithFiles(out, new File("crowdin.yml"), null, okParams);
 
         assertEquals(pb.getPreserveHierarchy(), false);
         assertEquals(pb.getFiles().size(), 1);
@@ -67,7 +69,7 @@ public class PropertiesBuilderTest {
                 setTranslationParam("/hello/%two_letters_code%/%file_name%.%file_extension%");
             }};
 
-        PropertiesWithFiles pb = propertiesBuilders.buildPropertiesWithFiles(configFile, null, okParams);
+        PropertiesWithFiles pb = propertiesBuilders.buildPropertiesWithFiles(out, configFile, null, okParams);
 
         assertEquals(pb.getPreserveHierarchy(), false);
         assertEquals(pb.getFiles().size(), 1);
@@ -89,7 +91,7 @@ public class PropertiesBuilderTest {
 
         System.out.println("configFile = " + configFile);
         System.out.println("okParams = " + okParams.getBasePathParam());
-        PropertiesWithFiles pb = propertiesBuilders.buildPropertiesWithFiles(configFile, null, okParams);
+        PropertiesWithFiles pb = propertiesBuilders.buildPropertiesWithFiles(out, configFile, null, okParams);
 
         assertEquals(tempProject.getBasePath() + "folder2" + Utils.PATH_SEPARATOR, pb.getBasePath());
     }

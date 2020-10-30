@@ -6,7 +6,7 @@ import picocli.CommandLine;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class ProjectParams extends Params {
+public class ProjectParams extends BaseParams {
 
     @CommandLine.Option(names = {"-i", "--project-id"}, paramLabel = "...", descriptionKey = "params.project-id")
     private String idParam;

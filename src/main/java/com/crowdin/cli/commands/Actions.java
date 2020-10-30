@@ -6,7 +6,7 @@ import com.crowdin.cli.client.NoClient;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.BaseProperties;
-import com.crowdin.cli.properties.NewNoProperties;
+import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
@@ -25,7 +25,7 @@ public interface Actions {
         Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView
     );
 
-    NewAction<NewNoProperties, NoClient> generate(FilesInterface files, Path destinationPath, boolean skipGenerateDescription);
+    NewAction<NoProperties, NoClient> generate(FilesInterface files, Path destinationPath, boolean skipGenerateDescription);
 
     NewAction<PropertiesWithFiles, ProjectClient> listBranches(boolean noProgress, boolean plainView);
 
@@ -81,7 +81,7 @@ public interface Actions {
         List<String> targetNames, FilesInterface files, boolean noProgress, List<String> langIds, boolean isVerbose, Boolean skipTranslatedOnly,
         Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView, boolean debug);
 
-    NewAction<NewNoProperties, NoClient> checkNewVersion();
+    NewAction<NoProperties, NoClient> checkNewVersion();
 
 
 }

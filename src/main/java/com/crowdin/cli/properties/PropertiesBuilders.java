@@ -1,13 +1,14 @@
 package com.crowdin.cli.properties;
 
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.utils.file.FileUtils;
 
 import java.io.File;
 
 public class PropertiesBuilders {
 
-    public PropertiesWithFiles buildPropertiesWithFiles(File configFile, File identityFile, ParamsWithFiles params) {
-        PropertiesWithFilesBuilder builder = new PropertiesWithFilesBuilder();
+    public PropertiesWithFiles buildPropertiesWithFiles(Outputter out, File configFile, File identityFile, ParamsWithFiles params) {
+        PropertiesWithFilesBuilder builder = new PropertiesWithFilesBuilder(out);
         if (!((configFile == null || !configFile.exists()) && params != null)) {
             builder.addConfigParams(FileUtils.readYamlFile(configFile));
         }
@@ -20,8 +21,8 @@ public class PropertiesBuilders {
         return builder.build();
     }
 
-    public PropertiesWithTargets buildPropertiesWithTargets(File configFile, File identityFile, ProjectParams params) {
-        PropertiesWithTargetsBuilder builder = new PropertiesWithTargetsBuilder();
+    public PropertiesWithTargets buildPropertiesWithTargets(Outputter out, File configFile, File identityFile, ProjectParams params) {
+        PropertiesWithTargetsBuilder builder = new PropertiesWithTargetsBuilder(out);
         if (configFile != null) {
             builder.addConfigParams(FileUtils.readYamlFile(configFile));
         }
@@ -34,8 +35,8 @@ public class PropertiesBuilders {
         return builder.build();
     }
 
-    public BaseProperties buildBaseProperties(File configFile, File identityFile, Params params) {
-        BasePropertiesBuilder builder = new BasePropertiesBuilder();
+    public BaseProperties buildBaseProperties(Outputter out, File configFile, File identityFile, BaseParams params) {
+        BasePropertiesBuilder builder = new BasePropertiesBuilder(out);
         if (configFile != null) {
             builder.addConfigParams(FileUtils.readYamlFile(configFile));
         }
@@ -48,7 +49,21 @@ public class PropertiesBuilders {
         return builder.build();
     }
 
-    public NewNoProperties buildNoProperties() {
-        return new NewNoProperties();
+    public AllProperties buildChecker(Outputter out, File configFile, File identityFile, NoParams params) {
+        PropertiesBuilderChecker builder = new PropertiesBuilderChecker(out);
+        if (configFile != null) {
+            builder.addConfigParams(FileUtils.readYamlFile(configFile));
+        }
+        if (identityFile != null) {
+            builder.addIdentityParams(FileUtils.readYamlFile(identityFile));
+        }
+        if (params != null) {
+            builder.addParams(params);
+        }
+        return builder.build();
+    }
+
+    public NoProperties buildNoProperties() {
+        return new NoProperties();
     }
 }

@@ -8,7 +8,7 @@ import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.BaseProperties;
-import com.crowdin.cli.properties.NewNoProperties;
+import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
@@ -32,7 +32,7 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<NewNoProperties, NoClient> generate(FilesInterface files, Path destinationPath, boolean skipGenerateDescription) {
+    public NewAction<NoProperties, NoClient> generate(FilesInterface files, Path destinationPath, boolean skipGenerateDescription) {
         return new GenerateAction(files, destinationPath, skipGenerateDescription);
     }
 
@@ -152,7 +152,7 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<NewNoProperties, NoClient> checkNewVersion() {
+    public NewAction<NoProperties, NoClient> checkNewVersion() {
         return new CheckNewVersionAction();
     }
 
