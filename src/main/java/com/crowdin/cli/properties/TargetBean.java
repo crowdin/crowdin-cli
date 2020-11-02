@@ -1,5 +1,6 @@
 package com.crowdin.cli.properties;
 
+import com.crowdin.cli.utils.Utils;
 import lombok.Data;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -8,6 +9,7 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.FILE_FORMAT_MAPPER;
@@ -62,6 +64,32 @@ public class TargetBean {
             PropertiesBuilder.setPropertyIfExists(fb::setSourceBranches, map, BRANCHES);
             PropertiesBuilder.setPropertyIfExists(fb::setLabels, map, LABELS);
             return fb;
+        }
+
+        @Override
+        public void populateWithDefaultValues(TargetBean bean) {
+            for (FileBean fb : bean.getFiles()) {
+                if (fb.getSources() != null) {
+                    apply(fb.getSources(), s -> StringUtils.removeStart(Utils.normalizePath(s), Utils.PATH_SEPARATOR));
+                }
+                if (fb.getSourceDirs() != null) {
+                    apply(fb.getSourceDirs(), s -> {
+                        String s1 = Utils.normalizePath(s);
+                        String s2 = StringUtils.removeEnd(s1, Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR;
+                        return StringUtils.removeStart(s2, Utils.PATH_SEPARATOR);
+                    });
+                }
+                if (fb.getSourceBranches() != null) {
+                    apply(fb.getSourceBranches(), s ->
+                        StringUtils.removeStart(StringUtils.removeEnd(s, Utils.PATH_SEPARATOR_REGEX), Utils.PATH_SEPARATOR_REGEX));
+                }
+            }
+        }
+
+        private void apply(List<String> list, Function<String, String> op) {
+            for (int i = 0; i < list.size(); i++) {
+                list.set(i, op.apply(list.get(i)));
+            }
         }
 
         @Override

@@ -13,10 +13,10 @@ import com.crowdin.cli.properties.TargetBean;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
+import com.crowdin.cli.utils.file.FileUtils;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.Branch;
-import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
 import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
@@ -78,10 +78,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
         Map<String, Long> projectFiles = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos())
             .entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getId()));
-        Map<Long, Directory> dirs = project.getDirectories().entrySet().stream()
-            .filter(e -> e.getValue().getBranchId() == null)
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-        Map<String, Long> projectDirs = ProjectFilesUtils.buildDirectoryPaths(dirs)
+        Map<String, Long> projectDirs = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
             .entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
         Map<String, Long> projectBranches = project.getBranches()
@@ -205,7 +202,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                     }
                 })
                 .map(builtRequest -> (Runnable) () -> {
-                    String targetFile = builtRequest.getLeft();
+                    String targetFile = FileUtils.joinPaths(pb.getBasePath(), builtRequest.getLeft());
                     ExportProjectTranslationRequest request = builtRequest.getRight();
 
                     URL downloadUrl = client.exportProjectTranslation(request);
