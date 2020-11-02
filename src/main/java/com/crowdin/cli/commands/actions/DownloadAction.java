@@ -143,9 +143,11 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         }
 
         if (!plainView) {
-            out.println((languageId != null)
-                ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId))
-                : OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive")));
+            out.println((pseudo)
+                ? OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive_pseudo"))
+                : (languageId != null)
+                    ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId))
+                    : OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive")));
         }
         ProjectBuild projectBuild = buildTranslation(client, request);
 
