@@ -430,19 +430,19 @@ There is a possibility to upload/download glossaries.
 
 | Command                     | Description                        |
 |-----------------------------|------------------------------------|
-| `crowdin glossary list`     | Show a list of glossaries. <br>Use —verbose to show term lists for glossaries |
-| `crowdin glossary upload`   | Upload glossary from a file (in TBX, CSV, or XLSX file format) <br>either to the specified glossary or to a new one |
-| `crowdin glossary download` | Download glossary file (in TBX, CSV, or XLSX file format) <br>from the specified glossary |
+| `crowdin glossary list`     | Show a list of glossaries. <br>Use `--verbose` to show term lists for glossaries |
+| `crowdin glossary upload`   | Upload glossary from a file (in TBX, CSV, or XLS/XLSX file format) <br>either to the specified glossary or to a new one |
+| `crowdin glossary download` | Download glossary to a file (in TBX, CSV, or XLS/XLSX file format) <br>from the specified glossary |
 
-## Translation memory management
+## Translation Memory management
 
 To manage translation memories use the following commands:
 
 | Command                 | Description                            |
 |-------------------------|----------------------------------------|
 | `crowdin tm list`       | Show a list of translation memories    |
-| `crowdin tm upload`     | Upload translation memory from a file <br/>(Supported file formats: TMX, CSV, XLS/XLSX)  |
-| `crowdin tm download`   | Download translation memory to a file  |
+| `crowdin tm upload`     | Upload translation memory from a file <br>(in TMX, CSV, or XLS/XLSX file format) <br>either to the specified translation memory or to a new one |
+| `crowdin tm download`   | Download translation memory to a file <br>(in TMX, CSV, or XLS/XLSX file format) <br>from the specified translation memory |
 
 ## Seeking Assistance
 
