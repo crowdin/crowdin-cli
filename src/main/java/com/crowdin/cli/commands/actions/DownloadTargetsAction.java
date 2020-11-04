@@ -128,10 +128,10 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                 .flatMap(fb -> {
                     List<String> errors = new ArrayList<>();
 
-                    if (!FILE_FORMAT_MAPPER.containsKey(FilenameUtils.getExtension(fb.getTarget()))) {
-                        errors.add(String.format("Unexpected error: " + RESOURCE_BUNDLE.getString("error.crowdin_not_support_file_format"), FilenameUtils.getExtension(fb.getTarget())));
+                    if (!FILE_FORMAT_MAPPER.containsKey(FilenameUtils.getExtension(fb.getFile()))) {
+                        errors.add(String.format("Unexpected error: " + RESOURCE_BUNDLE.getString("error.crowdin_not_support_file_format"), FilenameUtils.getExtension(fb.getFile())));
                     }
-                    String exportFileFormat = FILE_FORMAT_MAPPER.get(FilenameUtils.getExtension(fb.getTarget()));
+                    String exportFileFormat = FILE_FORMAT_MAPPER.get(FilenameUtils.getExtension(fb.getFile()));
 
                     Boolean exportWithMinApprovalsCount = exportApprovedOnly;
                     ExportProjectTranslationRequest templateRequest
@@ -188,7 +188,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                     for (String langId : specifiedLangs) {
                         ExportProjectTranslationRequest request = RequestBuilder.exportProjectTranslation(templateRequest);
                         request.setTargetLanguageId(langId);
-                        String targetFileLang = placeholderUtil.replaceLanguageDependentPlaceholders(fb.getTarget(), projectLanguages.get(langId));
+                        String targetFileLang = placeholderUtil.replaceLanguageDependentPlaceholders(fb.getFile(), projectLanguages.get(langId));
                         builtRequests.add(Pair.of(targetFileLang, request));
                     }
 

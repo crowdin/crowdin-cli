@@ -83,7 +83,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String NAME = "name";
 
-    public static final String TARGET = "target";
+    public static final String FILE = "file";
 
     public static final String SOURCES = "sources";
 

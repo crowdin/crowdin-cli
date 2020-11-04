@@ -20,7 +20,7 @@ import static com.crowdin.cli.properties.PropertiesBuilder.FILES;
 import static com.crowdin.cli.properties.PropertiesBuilder.LABELS;
 import static com.crowdin.cli.properties.PropertiesBuilder.NAME;
 import static com.crowdin.cli.properties.PropertiesBuilder.SOURCES;
-import static com.crowdin.cli.properties.PropertiesBuilder.TARGET;
+import static com.crowdin.cli.properties.PropertiesBuilder.FILE;
 
 @Data
 public class TargetBean {
@@ -32,7 +32,7 @@ public class TargetBean {
 
     @Data
     public static class FileBean {
-        private String target;
+        private String file;
         private List<String> sources;
         private List<String> sourceDirs;
         private List<String> sourceBranches;
@@ -58,7 +58,7 @@ public class TargetBean {
 
         private TargetBean.FileBean buildTargetFileBeanFromMap(Map<String, Object> map) {
             TargetBean.FileBean fb = new TargetBean.FileBean();
-            PropertiesBuilder.setPropertyIfExists(fb::setTarget, map, TARGET);
+            PropertiesBuilder.setPropertyIfExists(fb::setFile, map, FILE);
             PropertiesBuilder.setPropertyIfExists(fb::setSources, map, SOURCES);
             PropertiesBuilder.setPropertyIfExists(fb::setSourceDirs, map, DIRECTORIES);
             PropertiesBuilder.setPropertyIfExists(fb::setSourceBranches, map, BRANCHES);
@@ -108,10 +108,10 @@ public class TargetBean {
                 } else if (contFiles + contDirs + contBranches == 0) {
                     errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.target_has_no_sources"), tbName));
                 }
-                if (fb.getTarget() == null) {
+                if (fb.getFile() == null) {
                     errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.target_has_no_target_field"), tbName));
-                } else if (!FILE_FORMAT_MAPPER.containsKey(FilenameUtils.getExtension(fb.getTarget()))) {
-                    errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.target_contains_wrong_format"), tbName, FilenameUtils.getExtension(fb.getTarget())));
+                } else if (!FILE_FORMAT_MAPPER.containsKey(FilenameUtils.getExtension(fb.getFile()))) {
+                    errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.target_contains_wrong_format"), tbName, FilenameUtils.getExtension(fb.getFile())));
                 }
             }
             return errors;
