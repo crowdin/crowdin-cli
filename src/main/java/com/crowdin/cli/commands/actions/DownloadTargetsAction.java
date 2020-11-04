@@ -103,7 +103,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
         Map<String, Long> labels = client.listLabels().stream()
             .collect(Collectors.toMap(Label::getTitle, Label::getId));
 
-        Map<String, Language> projectLanguages = project.getProjectLanguages(false)
+        Map<String, Language> projectLanguages = project.getProjectLanguages(true)
             .stream()
             .collect(Collectors.toMap(Language::getId, Function.identity()));
 
