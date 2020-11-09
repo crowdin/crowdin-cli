@@ -63,18 +63,18 @@ public class FileBean {
         @Override
         public FileBean buildFromMap(Map<String, Object> map) {
             FileBean fileBean = new FileBean();
-            PropertiesBuilder.setPropertyIfExists(fileBean::setSource,                    map, SOURCE);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setDest,                      map, DEST);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setType,                      map, TYPE);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslation,               map, TRANSLATION);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setUpdateOption,              map, UPDATE_OPTION);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setScheme,                    map, SCHEME);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setIgnore,                    map, IGNORE);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslatableElements,      map, TRANSLATABLE_ELEMENTS);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setLanguagesMapping,          map, LANGUAGES_MAPPING);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslationReplace,        map, TRANSLATION_REPLACE);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setEscapeQuotes,              map, ESCAPE_QUOTES);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setEscapeSpecialCharacters,   map, ESCAPE_SPECIAL_CHARACTERS);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setSource,                    map, SOURCE, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setDest,                      map, DEST, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setType,                      map, TYPE, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslation,               map, TRANSLATION, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setUpdateOption,              map, UPDATE_OPTION, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setScheme,                    map, SCHEME, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setIgnore,                    map, IGNORE, List.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslatableElements,      map, TRANSLATABLE_ELEMENTS, List.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setLanguagesMapping,          map, LANGUAGES_MAPPING, Map.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslationReplace,        map, TRANSLATION_REPLACE, Map.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setEscapeQuotes,              map, ESCAPE_QUOTES, Integer.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setEscapeSpecialCharacters,   map, ESCAPE_SPECIAL_CHARACTERS, Integer.class);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setFirstLineContainsHeader,   map, FIRST_LINE_CONTAINS_HEADER);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setTranslateAttributes,       map, TRANSLATE_ATTRIBUTES);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setTranslateContent,          map, TRANSLATE_CONTENT);

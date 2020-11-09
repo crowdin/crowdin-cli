@@ -214,14 +214,38 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
         }
     }
 
-    static <T> void setPropertyIfExists(Consumer<T> setter, Map<String, Object> properties, String key) {
+    static <T> void setPropertyIfExists(Consumer<T> setter, Map<String, Object> properties, String key, Class<T> clazz) {
+        Object param = null;
         try {
-            T param = (T) properties.getOrDefault(key, null);
-            if (param != null) {
-                setter.accept(param);
+            param = properties.getOrDefault(key, null);
+            @SuppressWarnings("unchecked")
+            T paramType = (T) param;
+            if (paramType != null) {
+                setter.accept(paramType);
             }
         } catch (ClassCastException e) {
+            if (param != null) {
+                String desiredType = typeName(clazz);
+                String presentType = typeName(param.getClass());
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param_type"), key, presentType, desiredType));
+            }
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param"), key), e);
+        }
+    }
+
+    private static String typeName(Class<?> clazz) {
+        if (Integer.class.isAssignableFrom(clazz)) {
+            return "Integer";
+        } else if (Double.class.isAssignableFrom(clazz)) {
+            return "Double";
+        } else if (Boolean.class.isAssignableFrom(clazz)) {
+            return "Boolean";
+        } else if (String.class.isAssignableFrom(clazz)) {
+            return "String";
+        } else if (List.class.isAssignableFrom(clazz)) {
+            return "List";
+        } else {
+            return "Map";
         }
     }
 
