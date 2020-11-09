@@ -1,11 +1,11 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ClientGlossary;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.glossaries.model.ExportGlossaryRequest;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
-class GlossaryDownloadAction implements ClientAction {
+class GlossaryDownloadAction implements NewAction<BaseProperties, ClientGlossary> {
 
     private final Long id;
     private final String name;
@@ -40,7 +40,7 @@ class GlossaryDownloadAction implements ClientAction {
     }
 
     @Override
-    public void act(Outputter out, PropertiesBean pb, Client client) {
+    public void act(Outputter out, BaseProperties pb, ClientGlossary client) {
         Glossary targetGlossary = getGlossary(client);
         if (to == null) {
             to = new File(targetGlossary.getName() + "." + ((format != null) ? format.toString().toLowerCase() : "tbx"));
@@ -50,7 +50,7 @@ class GlossaryDownloadAction implements ClientAction {
         out.println(String.format(RESOURCE_BUNDLE.getString("message.glossary.download_success"), to));
     }
 
-    private Glossary getGlossary(Client client) {
+    private Glossary getGlossary(ClientGlossary client) {
         if (id != null) {
             return client.getGlossary(id)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.glossary.not_found_by_id")));
@@ -70,7 +70,7 @@ class GlossaryDownloadAction implements ClientAction {
         }
     }
 
-    private GlossaryExportStatus buildGlossary(Outputter out, Client client, Long glossaryId, ExportGlossaryRequest request) {
+    private GlossaryExportStatus buildGlossary(Outputter out, ClientGlossary client, Long glossaryId, ExportGlossaryRequest request) {
         return ConsoleSpinner.execute(out, "message.spinner.building_glossary", "error.glossary.build_glossary", this.noProgress, false, () -> {
             GlossaryExportStatus status = client.startExportingGlossary(glossaryId, request);
 
@@ -86,7 +86,7 @@ class GlossaryDownloadAction implements ClientAction {
         });
     }
 
-    private void downloadGlossary(Client client, Long glossaryId, String exportId) {
+    private void downloadGlossary(ClientGlossary client, Long glossaryId, String exportId) {
         URL url = client.downloadGlossary(glossaryId, exportId);
         try (InputStream data = url.openStream()) {
             files.writeToFile(to.toString(), data);

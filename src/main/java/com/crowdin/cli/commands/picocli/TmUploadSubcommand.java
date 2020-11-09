@@ -1,7 +1,9 @@
 package com.crowdin.cli.commands.picocli;
 
+import com.crowdin.cli.client.ClientTm;
 import com.crowdin.cli.commands.Actions;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
+import com.crowdin.cli.properties.BaseProperties;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
@@ -14,7 +16,7 @@ import java.util.Map;
 @CommandLine.Command(
     name = CommandNames.TM_UPLOAD
 )
-class TmUploadSubcommand extends ClientActCommand {
+class TmUploadSubcommand extends ActCommandTm {
 
     @CommandLine.Parameters(descriptionKey = "crowdin.glossary.upload.file")
     private File file;
@@ -32,7 +34,7 @@ class TmUploadSubcommand extends ClientActCommand {
     private Boolean firstLineContainsHeader;
 
     @Override
-    protected ClientAction getAction(Actions actions) {
+    protected NewAction<BaseProperties, ClientTm> getAction(Actions actions) {
         return actions.tmUpload(file, id, name, scheme, firstLineContainsHeader);
     }
 

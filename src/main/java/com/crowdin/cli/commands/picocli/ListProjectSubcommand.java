@@ -1,12 +1,14 @@
 package com.crowdin.cli.commands.picocli;
 
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import picocli.CommandLine;
 
 @CommandLine.Command(
     name = CommandNames.LIST_PROJECT)
-class ListProjectSubcommand extends ClientActPlainMixin {
+class ListProjectSubcommand extends ActCommandWithFiles {
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
@@ -15,7 +17,15 @@ class ListProjectSubcommand extends ClientActPlainMixin {
     protected boolean treeView;
 
     @Override
-    protected ClientAction getAction(Actions actions) {
+    protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return actions.listProject(this.noProgress, this.branch, this.treeView, this.plainView);
+    }
+
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
+    @Override
+    protected final boolean isAnsi() {
+        return super.isAnsi() && !plainView;
     }
 }

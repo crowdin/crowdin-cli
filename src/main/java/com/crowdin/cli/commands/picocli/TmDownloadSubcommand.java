@@ -1,8 +1,10 @@
 package com.crowdin.cli.commands.picocli;
 
+import com.crowdin.cli.client.ClientTm;
 import com.crowdin.cli.commands.Actions;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.functionality.FsFiles;
+import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import org.apache.commons.io.FilenameUtils;
 import picocli.CommandLine;
@@ -14,7 +16,7 @@ import java.util.List;
 @CommandLine.Command(
     name = CommandNames.TM_DOWNLOAD
 )
-class TmDownloadSubcommand extends ClientActCommand {
+class TmDownloadSubcommand extends ActCommandTm {
 
     @CommandLine.Option(names = {"--id"}, paramLabel = "...")
     private Long id;
@@ -35,7 +37,7 @@ class TmDownloadSubcommand extends ClientActCommand {
     private File to;
 
     @Override
-    protected ClientAction getAction(Actions actions) {
+    protected NewAction<BaseProperties, ClientTm> getAction(Actions actions) {
         return actions.tmDownload(id, name, format, sourceLanguageId, targetLanguageid, noProgress, to, new FsFiles());
     }
 

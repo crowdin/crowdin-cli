@@ -17,15 +17,16 @@ class PicocliOutputter implements Outputter {
 
     @Override
     public void println(String string) {
-        this.out.println(ansi(string));
+        this.out.println(format(string));
     }
 
     @Override
     public void print(String string) {
-        this.out.print(ansi(string));
+        this.out.print(format(string));
     }
 
-    private String ansi(String string) {
+    @Override
+    public String format(String string) {
         return ansi.string(string);
     }
 }

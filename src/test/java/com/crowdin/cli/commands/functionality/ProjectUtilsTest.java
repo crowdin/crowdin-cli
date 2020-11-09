@@ -1,6 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
-import com.crowdin.cli.client.Client;
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.client.WaitResponseException;
 import com.crowdin.cli.client.models.BranchBuilder;
@@ -28,10 +28,11 @@ import static org.mockito.Mockito.when;
 public class ProjectUtilsTest {
 
     private static final Long PROJECT_ID = 42L;
+    ProjectClient client;
 
     @Test
     public void testCreatePath_PathExists() {
-        Client client = mock(Client.class);
+        client = mock(ProjectClient.class);
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>() {{
                 put(Utils.normalizePath("folder/"), 101L);
                 put(Utils.normalizePath("folder/folder2/"), 102L);
@@ -47,7 +48,7 @@ public class ProjectUtilsTest {
 
     @Test
     public void testCreatePath_PathNotExists() throws ResponseException {
-        Client client = mock(Client.class);
+        client = mock(ProjectClient.class);
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>();
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
         Branch branch = null;
@@ -75,7 +76,7 @@ public class ProjectUtilsTest {
 
     @Test
     public void testCreatePath_HalfPathNotExists() throws ResponseException {
-        Client client = mock(Client.class);
+        client = mock(ProjectClient.class);
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>() {{
                 put(Utils.normalizePath("folder/"), 101L);
             }};
@@ -98,7 +99,7 @@ public class ProjectUtilsTest {
 
     @Test
     public void testCreatePath_PathExists_WithBranch() {
-        Client client = mock(Client.class);
+        client = mock(ProjectClient.class);
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>() {{
                 put(Utils.normalizePath("branch/folder/"), 101L);
                 put(Utils.normalizePath("branch/folder/folder2/"), 102L);
@@ -114,7 +115,7 @@ public class ProjectUtilsTest {
 
     @Test
     public void testCreatePath_PathNotExists_WithBranch() throws ResponseException {
-        Client client = mock(Client.class);
+        client = mock(ProjectClient.class);
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>();
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
         Branch branch = BranchBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers("branch", 301L).build();
@@ -143,7 +144,7 @@ public class ProjectUtilsTest {
 
     @Test
     public void testCreatePath_HalfPathNotExists_WithBranch() throws ResponseException {
-        Client client = mock(Client.class);
+        client = mock(ProjectClient.class);
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>() {{
                 put(Utils.normalizePath("branch/folder/"), 101L);
             }};
@@ -166,7 +167,7 @@ public class ProjectUtilsTest {
 
     @Test
     public void testCreatePath_PathNotExists_ResponseException() throws ResponseException {
-        Client client = mock(Client.class);
+        client = mock(ProjectClient.class);
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>();
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
         Branch branch = null;
@@ -181,7 +182,7 @@ public class ProjectUtilsTest {
 
     @Test
     public void testCreatePathForWaitResponseException() throws ResponseException {
-        Client client = mock(Client.class);
+        client = mock(ProjectClient.class);
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>();
         String filePath = Utils.normalizePath("folder/file.txt");
         Branch branch = null;

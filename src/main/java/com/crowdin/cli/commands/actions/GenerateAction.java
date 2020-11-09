@@ -1,10 +1,13 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.Action;
+import com.crowdin.cli.client.Clients;
+import com.crowdin.cli.client.NoClient;
+import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
@@ -23,15 +26,15 @@ import java.util.Scanner;
 
 import static com.crowdin.cli.BaseCli.OAUTH_CLIENT_ID;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.properties.CliProperties.API_TOKEN;
-import static com.crowdin.cli.properties.CliProperties.BASE_PATH;
-import static com.crowdin.cli.properties.CliProperties.BASE_URL;
-import static com.crowdin.cli.properties.CliProperties.PROJECT_ID;
+import static com.crowdin.cli.properties.PropertiesBuilder.API_TOKEN;
+import static com.crowdin.cli.properties.PropertiesBuilder.BASE_PATH;
+import static com.crowdin.cli.properties.PropertiesBuilder.BASE_URL;
+import static com.crowdin.cli.properties.PropertiesBuilder.PROJECT_ID;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-class GenerateAction implements Action {
+class GenerateAction implements NewAction<NoProperties, NoClient> {
 
     public static final String BASE_PATH_DEFAULT = ".";
     public static final String BASE_URL_DEFAULT = "https://api.crowdin.com";
@@ -54,7 +57,7 @@ class GenerateAction implements Action {
     }
 
     @Override
-    public void act(Outputter out) {
+    public void act(Outputter out, NoProperties noProperties, NoClient noClient) {
         Scanner scanner = new Scanner(System.in, "UTF-8");
         Asking asking = new Asking(out, scanner);
         try {
@@ -188,7 +191,7 @@ class GenerateAction implements Action {
     }
 
     private void checkParametersForExistence(Outputter out, String apiToken, String baseUrl, Long projectId) {
-        Client client = Client.getDefault(apiToken, baseUrl, projectId);
+        ProjectClient client = Clients.getProjectClient(apiToken, baseUrl, projectId);
         try {
             ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.validating_project"), false);
             client.downloadProjectInfo();

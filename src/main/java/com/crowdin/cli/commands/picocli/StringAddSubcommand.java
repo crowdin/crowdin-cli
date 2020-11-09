@@ -1,7 +1,9 @@
 package com.crowdin.cli.commands.picocli;
 
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
@@ -13,7 +15,7 @@ import java.util.List;
     sortOptions = false,
     name = CommandNames.STRING_ADD
 )
-class StringAddSubcommand extends ClientActCommand {
+class StringAddSubcommand extends ActCommandWithFiles {
 
     @CommandLine.Parameters(descriptionKey = "crowdin.string.add.text")
     protected String text;
@@ -49,7 +51,7 @@ class StringAddSubcommand extends ClientActCommand {
     }
 
     @Override
-    protected ClientAction getAction(Actions actions) {
+    protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return actions.stringAdd(noProgress, text, identifier, maxLength, context, files, isHidden);
     }
 }

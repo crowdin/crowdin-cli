@@ -1,13 +1,12 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
 import com.crowdin.cli.client.CrowdinProjectFull;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcestrings.model.SourceString;
 import org.apache.commons.lang3.StringUtils;
@@ -22,7 +21,7 @@ import java.util.stream.Collectors;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-class StringListAction implements ClientAction {
+class StringListAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private final boolean noProgress;
     private final boolean isVerbose;
@@ -37,7 +36,7 @@ class StringListAction implements ClientAction {
     }
 
     @Override
-    public void act(Outputter out, PropertiesBean pb, Client client) {
+    public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, client::downloadFullProject);
 
@@ -55,10 +54,10 @@ class StringListAction implements ClientAction {
 
         List<SourceString> sourceStrings;
         if (StringUtils.isEmpty(file)) {
-            sourceStrings = client.listSourceString(null, encodedFilter);
+            sourceStrings = client.listSourceString(null, null, encodedFilter);
         } else {
             if (paths.containsKey(file)) {
-                sourceStrings = client.listSourceString(paths.get(file).getId(), encodedFilter);
+                sourceStrings = client.listSourceString(paths.get(file).getId(), null, encodedFilter);
             } else {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
             }

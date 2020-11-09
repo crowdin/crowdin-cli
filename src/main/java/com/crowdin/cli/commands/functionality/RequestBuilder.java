@@ -11,6 +11,7 @@ import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
+import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 
 import java.util.Map;
@@ -84,7 +85,9 @@ public class RequestBuilder {
         return request;
     }
 
-    public static TranslationMemoryImportRequest importTranslationMemory(Long storageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
+    public static TranslationMemoryImportRequest importTranslationMemory(
+        Long storageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
+    ) {
         TranslationMemoryImportRequest request = new TranslationMemoryImportRequest();
         request.setStorageId(storageId);
         request.setScheme(scheme);
@@ -100,6 +103,31 @@ public class RequestBuilder {
         request.setTargetLanguageId(targetLanguageId);
         request.setFormat(format);
         return request;
+    }
+
+    public static ExportProjectTranslationRequest exportProjectTranslation(
+        String format, Boolean skipUntranslatedStrings, Boolean skipUntranslatedFiles, Boolean exportApprovedOnly
+    ) {
+        ExportProjectTranslationRequest request = new ExportProjectTranslationRequest();
+        request.setFormat(format);
+        request.setSkipUntranslatedStrings(skipUntranslatedStrings);
+        request.setSkipUntranslatedFiles(skipUntranslatedFiles);
+        request.setExportApprovedOnly(exportApprovedOnly);
+        return request;
+    }
+
+    public static ExportProjectTranslationRequest exportProjectTranslation(ExportProjectTranslationRequest request) {
+        ExportProjectTranslationRequest copy = new ExportProjectTranslationRequest();
+        copy.setTargetLanguageId(request.getTargetLanguageId());
+        copy.setFormat(request.getFormat());
+        copy.setLabelIds(request.getLabelIds());
+        copy.setBranchIds(request.getBranchIds());
+        copy.setDirectoryIds(request.getDirectoryIds());
+        copy.setFileIds(request.getFileIds());
+        copy.setSkipUntranslatedStrings(request.getSkipUntranslatedStrings());
+        copy.setSkipUntranslatedFiles(request.getSkipUntranslatedFiles());
+        copy.setExportApprovedOnly(request.getExportApprovedOnly());
+        return copy;
     }
 
 }

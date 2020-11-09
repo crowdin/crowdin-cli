@@ -1,5 +1,6 @@
 package com.crowdin.cli.utils.file;
 
+import com.crowdin.cli.utils.Utils;
 import org.apache.commons.io.IOUtils;
 import org.yaml.snakeyaml.Yaml;
 
@@ -49,5 +50,9 @@ public class FileUtils {
         IOUtils.copy(data, fileOutputStream);
         fileOutputStream.flush();
         fileOutputStream.close();
+    }
+
+    public static String joinPaths(String... paths) {
+        return Utils.normalizePath(String.join(Utils.PATH_SEPARATOR, paths));
     }
 }

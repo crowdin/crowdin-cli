@@ -1,8 +1,10 @@
 package com.crowdin.cli.commands.picocli;
 
+import com.crowdin.cli.client.ClientGlossary;
 import com.crowdin.cli.commands.Actions;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.functionality.FsFiles;
+import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import org.apache.commons.io.FilenameUtils;
 import picocli.CommandLine;
@@ -14,7 +16,7 @@ import java.util.List;
 @CommandLine.Command(
     name = CommandNames.GLOSSARY_DOWNLOAD
 )
-class GlossaryDownloadSubcommand extends ClientActCommand {
+class GlossaryDownloadSubcommand extends ActCommandGlossary {
 
     @CommandLine.Option(names = {"--id"}, paramLabel = "...")
     private Long id;
@@ -29,7 +31,7 @@ class GlossaryDownloadSubcommand extends ClientActCommand {
     private File to;
 
     @Override
-    protected ClientAction getAction(Actions actions) {
+    protected NewAction<BaseProperties, ClientGlossary> getAction(Actions actions) {
         return actions.glossaryDownload(id, name, format, noProgress, to, new FsFiles());
     }
 

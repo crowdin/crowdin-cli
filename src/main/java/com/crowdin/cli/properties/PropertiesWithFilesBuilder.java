@@ -1,0 +1,128 @@
+package com.crowdin.cli.properties;
+
+import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.utils.PlaceholderUtil;
+import lombok.NonNull;
+import org.apache.commons.lang3.StringUtils;
+
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.Arrays;
+import java.util.Map;
+
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+
+public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWithFiles, ParamsWithFiles> {
+
+    public PropertiesWithFilesBuilder(Outputter outputter) {
+        super(outputter);
+    }
+
+    @Override
+    protected PropertiesWithFiles getEmptyInstance() {
+        return new PropertiesWithFiles();
+    }
+
+    @Override
+    protected void populateWithIdentityFileParams(PropertiesWithFiles props, Map<String, Object> identityFileParams) {
+        BaseProperties.CONFIGURATOR.populateWithValues(props, identityFileParams);
+        IdProperties.CONFIGURATOR.populateWithValues(props, identityFileParams);
+    }
+
+    @Override
+    protected void populateWithConfigFileParams(PropertiesWithFiles props, @NonNull Map<String, Object> configFileParams) {
+        if (configFileParams.isEmpty()) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.empty_properties_file"));
+        }
+        BaseProperties.CONFIGURATOR.populateWithValues(props, configFileParams);
+        IdProperties.CONFIGURATOR.populateWithValues(props, configFileParams);
+        PropertiesWithFiles.CONFIGURATOR.populateWithValues(props, configFileParams);
+    }
+
+    @Override
+    protected Messages checkArgParams(ParamsWithFiles params) {
+        Messages messages = new Messages();
+        if (params == null) {
+            return messages;
+        }
+        if (params.getBaseUrlParam() != null && !checkBaseUrl(params.getBaseUrlParam())) {
+            messages.addError(RESOURCE_BUNDLE.getString("error.config.wrong_base_url"));
+        }
+        if (params.getBasePathParam() != null) {
+            if (!checkBasePathExists(params.getBasePathParam())) {
+                messages.addError(String.format(RESOURCE_BUNDLE.getString("error.config.base_path_not_exist"), params.getBasePathParam()));
+            } else if (!checkBasePathIsDir(params.getBasePathParam())) {
+                messages.addError(String.format(RESOURCE_BUNDLE.getString("error.config.base_path_is_not_dir"), params.getBasePathParam()));
+            }
+        }
+        if (params.getSourceParam() != null && params.getTranslationParam() != null) {
+            if (!checkForDoubleAsterisks(params.getSourceParam(), params.getTranslationParam())) {
+                messages.addError(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
+            }
+            if (!PlaceholderUtil.containsLangPlaceholders(params.getTranslationParam())) {
+                messages.addError(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
+            }
+        } else if (params.getSourceParam() != null ^ params.getTranslationParam() != null) {
+            messages.addError(RESOURCE_BUNDLE.getString("error.config.params_xor_source_translation"));
+        }
+        return messages;
+    }
+
+    @Override
+    protected void populateWithArgParams(@NonNull PropertiesWithFiles props, @NonNull ParamsWithFiles params) {
+        if (params.getSourceParam() != null && params.getTranslationParam() != null && new File(params.getSourceParam()).isAbsolute()) {
+            props.setPreserveHierarchy(false);
+
+            Path root = Paths.get(System.getProperty("user.dir")).getRoot();
+            props.setBasePath((root != null) ? root.toString() : "/");
+            params.setSourceParam(StringUtils.removePattern(params.getSourceParam(), "^([a-zA-Z]:)?[\\\\/]+"));
+        }
+        if (params.getIdParam() != null) {
+            props.setProjectId(params.getIdParam());
+        }
+        if (params.getTokenParam() != null) {
+            props.setApiToken(params.getTokenParam());
+        }
+        if (params.getBasePathParam() != null) {
+            props.setBasePath(params.getBasePathParam());
+        }
+        if (params.getBaseUrlParam() != null) {
+            props.setBaseUrl(params.getBaseUrlParam());
+        }
+        if (params.getSourceParam() != null && params.getTranslationParam() != null) {
+            props.setPreserveHierarchy(false);
+            FileBean fb = new FileBean();
+            if (params.getSourceParam() != null) {
+                fb.setSource(StringUtils.removePattern(params.getSourceParam(), "^([a-zA-Z]:)?[\\\\/]+"));
+            }
+            if (params.getTranslationParam() != null) {
+                fb.setTranslation(params.getTranslationParam());
+            }
+            props.setFiles(Arrays.asList(fb));
+        }
+    }
+
+    @Override
+    protected void populateWithDefaultValues(PropertiesWithFiles props) {
+        if (props == null) {
+            return;
+        }
+        BaseProperties.CONFIGURATOR.populateWithDefaultValues(props);
+        IdProperties.CONFIGURATOR.populateWithDefaultValues(props);
+        PropertiesWithFiles.CONFIGURATOR.populateWithDefaultValues(props);
+    }
+
+    @Override
+    protected Messages checkProperties(PropertiesWithFiles props) {
+        Messages messages = new Messages();
+        if (props == null) {
+            messages.addError(RESOURCE_BUNDLE.getString("error.config.property_bean_null"));
+            return messages;
+        }
+        messages.populate(BaseProperties.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
+        messages.populate(IdProperties.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
+        messages.populate(PropertiesWithFiles.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
+        return messages;
+    }
+}

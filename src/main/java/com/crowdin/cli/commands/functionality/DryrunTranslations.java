@@ -1,7 +1,7 @@
 package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.client.LanguageMapping;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.languages.model.Language;
@@ -14,14 +14,14 @@ import java.util.stream.Stream;
 
 public class DryrunTranslations extends Dryrun {
 
-    private PropertiesBean pb;
+    private PropertiesWithFiles pb;
     private PlaceholderUtil placeholderUtil;
     private boolean filesMustExist;
     private LanguageMapping projectLanguageMapping;
     private Optional<Language> language;
 
     public DryrunTranslations(
-        PropertiesBean pb, LanguageMapping projectLanguageMapping,
+        PropertiesWithFiles pb, LanguageMapping projectLanguageMapping,
         PlaceholderUtil placeholderUtil, Optional<Language> language, boolean filesMustExist
     ) {
         super("message.translation_file");

@@ -1,28 +1,23 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.commands.Action;
-import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.client.Client;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.properties.BaseParams;
+import com.crowdin.cli.properties.BaseProperties;
+import com.crowdin.cli.properties.Params;
+import com.crowdin.cli.properties.PropertiesBuilders;
+import picocli.CommandLine;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.stream.Collectors;
+public abstract class ActCommand<C extends Client> extends GenericActCommand<BaseProperties, C> {
 
-abstract class ActCommand extends GenericCommand {
+    @CommandLine.Mixin
+    private ConfigurationFilesProperties properties;
+
+    @CommandLine.ArgGroup(exclusive = false, headingKey = "params.heading")
+    private BaseParams params;
 
     @Override
-    public final void act(Actions actions, Outputter out) {
-        Action action = getAction(actions);
-        action.act(out);
-    }
-
-    protected abstract Action getAction(Actions actions);
-
-    protected List<String> checkOptions() {
-        return Collections.emptyList();
-    }
-
-    protected boolean isAnsi() {
-        return !this.noColors;
+    protected BaseProperties getProperties(PropertiesBuilders propertiesBuilders, Outputter out) {
+        return propertiesBuilders.buildBaseProperties(out, properties.getConfigFile(), properties.getIdentityFile(), params);
     }
 }

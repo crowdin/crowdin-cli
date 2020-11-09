@@ -2,10 +2,15 @@ package com.crowdin.cli.client;
 
 import com.crowdin.client.core.http.exceptions.HttpBadRequestException;
 import com.crowdin.client.core.http.exceptions.HttpException;
+import com.crowdin.client.core.model.DownloadLink;
 import com.crowdin.client.core.model.ResponseList;
 import com.crowdin.client.core.model.ResponseObject;
+import com.crowdin.client.storage.model.Storage;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.IOException;
+import java.io.InputStream;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -118,5 +123,13 @@ abstract class CrowdinClientCore {
             .stream()
             .map(ResponseObject::getData)
             .collect(Collectors.toList());
+    }
+
+    protected URL url(DownloadLink downloadLink) {
+        try {
+            return new URL(downloadLink.getUrl());
+        } catch (IOException e) {
+            throw new RuntimeException("Unexpected exception: malformed download url: " + downloadLink.getUrl(), e);
+        }
     }
 }

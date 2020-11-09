@@ -6,6 +6,8 @@ public interface Outputter {
 
     void print(String string);
 
+    String format(String string);
+
     static Outputter getDefault() {
         return new Outputter() {
             @Override
@@ -16,6 +18,11 @@ public interface Outputter {
             @Override
             public void print(String string) {
                 System.out.print(string);
+            }
+
+            @Override
+            public String format(String string) {
+                return string;
             }
         };
     }

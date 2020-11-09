@@ -19,6 +19,8 @@ public class BaseCli {
     public static final String DEFAULT_GLOSSARY_NAME = "Created in Crowdin CLI (%s)";
     public static final String DEFAULT_TM_NAME = "Created in Crowdin CLI (%s)";
 
+    public static final String ALL = "ALL";
+
     public static final List<String> DEFAULT_IDENTITY_FILES = Collections.unmodifiableList(Arrays.asList(
         System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yml",
         System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yaml"
@@ -26,6 +28,16 @@ public class BaseCli {
 
     public static final Map<String, String> PLACEHOLDER_MAPPING_FOR_SERVER = Collections.unmodifiableMap(new HashMap<String, String>() {{
                 put("name", "language");
+        }}
+    );
+
+    /**
+     * File format -> Export File Format (see https://support.crowdin.com/api/v2/#operation/api.projects.translations.exports.post)
+     */
+    public static final Map<String, String> FILE_FORMAT_MAPPER = Collections.unmodifiableMap(new HashMap<String, String>() {{
+                put("xliff", "xliff");
+                put("xml", "android");
+                put("strings", "macosx");
         }}
     );
 

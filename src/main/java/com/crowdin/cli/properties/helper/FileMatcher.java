@@ -1,7 +1,5 @@
 package com.crowdin.cli.properties.helper;
 
-import com.crowdin.cli.properties.FileBean;
-import com.crowdin.cli.properties.PropertiesBean;
 import com.crowdin.cli.utils.Utils;
 
 import java.io.File;

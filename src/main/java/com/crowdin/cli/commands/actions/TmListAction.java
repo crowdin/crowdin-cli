@@ -1,9 +1,9 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ClientTm;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.client.translationmemory.model.TranslationMemory;
 
 import java.util.List;
@@ -11,7 +11,7 @@ import java.util.List;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-class TmListAction implements ClientAction {
+class TmListAction implements NewAction<BaseProperties, ClientTm> {
 
     private final boolean plainView;
 
@@ -20,7 +20,7 @@ class TmListAction implements ClientAction {
     }
 
     @Override
-    public void act(Outputter out, PropertiesBean pb, Client client) {
+    public void act(Outputter out, BaseProperties pb, ClientTm client) {
         List<TranslationMemory> tms = client.listTms();
         for (TranslationMemory tm : tms) {
             if (!plainView) {

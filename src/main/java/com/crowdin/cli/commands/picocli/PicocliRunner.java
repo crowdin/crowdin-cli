@@ -1,6 +1,7 @@
 package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.commands.Actions;
+import com.crowdin.cli.properties.PropertiesBuilders;
 import com.crowdin.cli.utils.OutputUtil;
 import com.crowdin.cli.utils.Utils;
 import picocli.CommandLine;
@@ -31,8 +32,8 @@ public class PicocliRunner {
      * @param args arguments from command line.
      * @return exit code (0 - OK, 1 - Errors)
      */
-    public int execute(Actions actions, String... args) {
-        GenericCommand.init(actions);
+    public int execute(Actions actions, PropertiesBuilders propertiesBuilders, String... args) {
+        GenericActCommand.init(actions, propertiesBuilders);
         return commandLine.execute(args);
     }
 

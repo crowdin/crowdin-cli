@@ -1,9 +1,9 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.Client;
-import com.crowdin.cli.commands.ClientAction;
+import com.crowdin.cli.client.ClientGlossary;
+import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.PropertiesBean;
+import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.client.glossaries.model.Glossary;
 import com.crowdin.client.glossaries.model.Term;
 
@@ -12,7 +12,7 @@ import java.util.List;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-class GlossaryListAction implements ClientAction {
+class GlossaryListAction implements NewAction<BaseProperties, ClientGlossary> {
 
     private final boolean isVerbose;
     private final boolean plainView;
@@ -23,7 +23,7 @@ class GlossaryListAction implements ClientAction {
     }
 
     @Override
-    public void act(Outputter out, PropertiesBean pb, Client client) {
+    public void act(Outputter out, BaseProperties pb, ClientGlossary client) {
         List<Glossary> glossaries = client.listGlossaries();
         for (Glossary glossary : glossaries) {
             if (!plainView) {

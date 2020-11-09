@@ -1,246 +1,173 @@
 package com.crowdin.cli.properties;
 
+import com.crowdin.cli.commands.functionality.SourcesUtils;
+import com.crowdin.cli.utils.PlaceholderUtil;
+import com.crowdin.cli.utils.Utils;
+import lombok.Data;
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.properties.PropertiesBuilder.CONTENT_SEGMENTATION;
+import static com.crowdin.cli.properties.PropertiesBuilder.DEST;
+import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_QUOTES;
+import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_SPECIAL_CHARACTERS;
+import static com.crowdin.cli.properties.PropertiesBuilder.FIRST_LINE_CONTAINS_HEADER;
+import static com.crowdin.cli.properties.PropertiesBuilder.IGNORE;
+import static com.crowdin.cli.properties.PropertiesBuilder.LANGUAGES_MAPPING;
+import static com.crowdin.cli.properties.PropertiesBuilder.MULTILINGUAL_SPREADSHEET;
+import static com.crowdin.cli.properties.PropertiesBuilder.SCHEME;
+import static com.crowdin.cli.properties.PropertiesBuilder.SOURCE;
+import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATABLE_ELEMENTS;
+import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATE_ATTRIBUTES;
+import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATE_CONTENT;
+import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATION;
+import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATION_REPLACE;
+import static com.crowdin.cli.properties.PropertiesBuilder.TYPE;
+import static com.crowdin.cli.properties.PropertiesBuilder.UPDATE_OPTION;
+import static com.crowdin.cli.properties.PropertiesBuilder.checkForDoubleAsterisks;
+import static com.crowdin.cli.properties.PropertiesBuilder.hasRelativePaths;
 
+@Data
 public class FileBean {
+
+    static FileBeanConfigurator CONFIGURATOR = new FileBeanConfigurator();
+
     private String source;
-
     private String translation;
-
     private List<String> ignore;
-
     private String dest;
-
     private String type;
-
     private String updateOption;
-
     private Map<String, Map<String, String>> languagesMapping;
-
     private Boolean firstLineContainsHeader;
-
     private String scheme;
-
     private Boolean multilingualSpreadsheet;
-
     private Boolean translateAttributes;
-
     private Boolean translateContent;
-
     private List<String> translatableElements;
-
     private Boolean contentSegmentation;
-
     private Integer escapeQuotes;
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        FileBean fileBean = (FileBean) o;
-        return Objects.equals(source, fileBean.source)
-            && Objects.equals(translation, fileBean.translation)
-            && Objects.equals(ignore, fileBean.ignore)
-            && Objects.equals(dest, fileBean.dest)
-            && Objects.equals(type, fileBean.type)
-            && Objects.equals(updateOption, fileBean.updateOption)
-            && Objects.equals(languagesMapping, fileBean.languagesMapping)
-            && Objects.equals(firstLineContainsHeader, fileBean.firstLineContainsHeader)
-            && Objects.equals(scheme, fileBean.scheme)
-            && Objects.equals(multilingualSpreadsheet, fileBean.multilingualSpreadsheet)
-            && Objects.equals(translateAttributes, fileBean.translateAttributes)
-            && Objects.equals(translateContent, fileBean.translateContent)
-            && Objects.equals(translatableElements, fileBean.translatableElements)
-            && Objects.equals(contentSegmentation, fileBean.contentSegmentation)
-            && Objects.equals(escapeQuotes, fileBean.escapeQuotes)
-            && Objects.equals(escapeSpecialCharacters, fileBean.escapeSpecialCharacters)
-            && Objects.equals(translationReplace, fileBean.translationReplace);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(
-            source, translation, ignore, dest, type, updateOption, languagesMapping, firstLineContainsHeader,
-            scheme, multilingualSpreadsheet, translateAttributes, translateContent, translatableElements,
-            contentSegmentation, escapeQuotes, escapeSpecialCharacters, translationReplace);
-    }
-
-    @Override
-    public String toString() {
-        return "FileBean{"
-            + "source='" + source + '\''
-            + ", translation='" + translation + '\''
-            + ", ignore=" + ignore
-            + ", dest='" + dest + '\''
-            + ", type='" + type + '\''
-            + ", updateOption='" + updateOption + '\''
-            + ", languagesMapping=" + languagesMapping
-            + ", firstLineContainsHeader=" + firstLineContainsHeader
-            + ", scheme='" + scheme + '\''
-            + ", multilingualSpreadsheet=" + multilingualSpreadsheet
-            + ", translateAttributes=" + translateAttributes
-            + ", translateContent=" + translateContent
-            + ", translatableElements=" + translatableElements
-            + ", contentSegmentation=" + contentSegmentation
-            + ", escapeQuotes=" + escapeQuotes
-            + ", escapeSpecialCharacters=" + escapeSpecialCharacters
-            + ", translationReplace=" + translationReplace
-            + '}';
-    }
-
     private Integer escapeSpecialCharacters;
-
     private Map<String, String> translationReplace;
 
-    public FileBean() {
+    static class FileBeanConfigurator implements BeanConfigurator<FileBean> {
 
-    }
+        private FileBeanConfigurator() {
 
-    public FileBean(String source, String translation) {
-        this.source = source;
-        this.translation = translation;
-    }
+        }
 
-    public String getTranslation() {
-        return translation;
-    }
+        @Override
+        public FileBean buildFromMap(Map<String, Object> map) {
+            FileBean fileBean = new FileBean();
+            PropertiesBuilder.setPropertyIfExists(fileBean::setSource,                    map, SOURCE);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setDest,                      map, DEST);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setType,                      map, TYPE);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslation,               map, TRANSLATION);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setUpdateOption,              map, UPDATE_OPTION);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setScheme,                    map, SCHEME);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setIgnore,                    map, IGNORE);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslatableElements,      map, TRANSLATABLE_ELEMENTS);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setLanguagesMapping,          map, LANGUAGES_MAPPING);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslationReplace,        map, TRANSLATION_REPLACE);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setEscapeQuotes,              map, ESCAPE_QUOTES);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setEscapeSpecialCharacters,   map, ESCAPE_SPECIAL_CHARACTERS);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setFirstLineContainsHeader,   map, FIRST_LINE_CONTAINS_HEADER);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setTranslateAttributes,       map, TRANSLATE_ATTRIBUTES);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setTranslateContent,          map, TRANSLATE_CONTENT);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setContentSegmentation,       map, CONTENT_SEGMENTATION);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setMultilingualSpreadsheet,   map, MULTILINGUAL_SPREADSHEET);
+            return fileBean;
+        }
 
-    public void setTranslation(String translation) {
-        this.translation = translation;
-    }
+        @Override
+        public void populateWithDefaultValues(FileBean bean) {
+            //Source
+            if (bean.getSource() != null) {
+                bean.setSource(bean.getSource().replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
+            }
+            //Translation
+            if (bean.getTranslation() != null) {
+                bean.setTranslation(bean.getTranslation().replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
+                if (!bean.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
+                    bean.setTranslation(Utils.PATH_SEPARATOR + bean.getTranslation());
+                }
+                if (!PlaceholderUtil.containsLangPlaceholders(bean.getTranslation()) && bean.getScheme() != null) {
+                    bean.setTranslation(StringUtils.removeStart(bean.getTranslation(), Utils.PATH_SEPARATOR));
+                }
+            }
 
-    public Map<String, Map<String, String>> getLanguagesMapping() {
-        return languagesMapping;
-    }
 
-    public void setLanguagesMapping(Map<String, Map<String, String>> languagesMapping) {
-        this.languagesMapping = languagesMapping;
-    }
+            //Ignore
+            if (bean.getIgnore() != null && !bean.getIgnore().isEmpty()) {
+                List<String> ignores = new ArrayList<>();
+                for (String ignore : bean.getIgnore()) {
+                    ignores.add(ignore.replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
+                }
+                bean.setIgnore(ignores);
+            }
+            //dest
+            if (StringUtils.isNotEmpty(bean.getDest())) {
+                bean.setDest(bean.getDest().replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
+            }
+            //Translate attributes
+            if (bean.getTranslateAttributes() == null) {
+                bean.setTranslateAttributes(Boolean.FALSE);
+            }
+            //Translate content
+            bean.setTranslateContent(bean.getTranslateContent() != null ? bean.getTranslateContent() : Boolean.TRUE);
+            //Content segmentation
+            bean.setContentSegmentation(bean.getContentSegmentation() != null ? bean.getContentSegmentation() : Boolean.TRUE);
+            //escape quotes
+            if (bean.getEscapeQuotes() == null) {
+                bean.setEscapeQuotes(3);
+            }
+            //first line contain header
+            if (bean.getFirstLineContainsHeader() == null) {
+                bean.setFirstLineContainsHeader(Boolean.FALSE);
+            }
+        }
 
-    public String getSource() {
-        return source;
-    }
+        @Override
+        public List<String> checkProperties(FileBean bean) {
+            List<String> errors = new ArrayList<>();
+            if (StringUtils.isEmpty(bean.getSource())) {
+                errors.add(RESOURCE_BUNDLE.getString("error.config.empty_source_section"));
+            }
+            if (StringUtils.isEmpty(bean.getTranslation())) {
+                errors.add(RESOURCE_BUNDLE.getString("error.config.empty_translation_section"));
+            } else {
+                if (!checkForDoubleAsterisks(bean.getSource(), bean.getTranslation())) {
+                    errors.add(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
+                }
+                if (!PlaceholderUtil.containsLangPlaceholders(bean.getTranslation()) && bean.getScheme() == null) {
+                    errors.add(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
+                }
+                if (hasRelativePaths(bean.getTranslation())) {
+                    errors.add(RESOURCE_BUNDLE.getString("error.config.translation_contains_relative_paths"));
+                }
+            }
 
-    public void setSource(String source) {
-        this.source = source;
-    }
+            String updateOption = bean.getUpdateOption();
+            if (updateOption != null && !(updateOption.equals("update_as_unapproved") || updateOption.equals("update_without_changes"))) {
+                errors.add(RESOURCE_BUNDLE.getString("error.config.update_option"));
+            }
+            Integer escQuotes = bean.getEscapeQuotes();
+            if (escQuotes != null && (escQuotes < 0 || escQuotes > 3)) {
+                errors.add(RESOURCE_BUNDLE.getString("error.config.escape_quotes"));
+            }
+            Integer escSpecialCharacters = bean.getEscapeSpecialCharacters();
+            if (escSpecialCharacters != null && (escSpecialCharacters < 0 || escSpecialCharacters > 1)) {
+                errors.add(RESOURCE_BUNDLE.getString("error.config.escape_special_characters"));
+            }
 
-    public List<String> getIgnore() {
-        return ignore;
-    }
-
-    public void setIgnore(List<String> ignore) {
-        this.ignore = ignore;
-    }
-
-    public String getDest() {
-        return dest;
-    }
-
-    public void setDest(String dest) {
-        this.dest = dest;
-    }
-
-    public String getType() {
-        return type;
-    }
-
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    public String getUpdateOption() {
-        return updateOption;
-    }
-
-    public void setUpdateOption(String updateOption) {
-        this.updateOption = updateOption;
-    }
-
-    public Boolean getFirstLineContainsHeader() {
-        return firstLineContainsHeader;
-    }
-
-    public void setFirstLineContainsHeader(Boolean firstLineContainsHeader) {
-        this.firstLineContainsHeader = firstLineContainsHeader;
-    }
-
-    public String getScheme() {
-        return scheme;
-    }
-
-    public void setScheme(String scheme) {
-        this.scheme = scheme;
-    }
-
-    public Boolean getMultilingualSpreadsheet() {
-        return multilingualSpreadsheet;
-    }
-
-    public void setMultilingualSpreadsheet(Boolean multilingualSpreadsheet) {
-        this.multilingualSpreadsheet = multilingualSpreadsheet;
-    }
-
-    public Boolean getTranslateAttributes() {
-        return translateAttributes;
-    }
-
-    public void setTranslateAttributes(Boolean translateAttributes) {
-        this.translateAttributes = translateAttributes;
-    }
-
-    public Boolean getTranslateContent() {
-        return translateContent;
-    }
-
-    public void setTranslateContent(Boolean translateContent) {
-        this.translateContent = translateContent;
-    }
-
-    public List<String> getTranslatableElements() {
-        return translatableElements;
-    }
-
-    public void setTranslatableElements(List<String> translatableElements) {
-        this.translatableElements = translatableElements;
-    }
-
-    public Boolean getContentSegmentation() {
-        return contentSegmentation;
-    }
-
-    public void setContentSegmentation(Boolean contentSegmentation) {
-        this.contentSegmentation = contentSegmentation;
-    }
-
-    public Integer getEscapeQuotes() {
-        return escapeQuotes;
-    }
-
-    public void setEscapeQuotes(Integer escapeQuotes) {
-        this.escapeQuotes = escapeQuotes;
-    }
-
-    public Integer getEscapeSpecialCharacters() {
-        return escapeSpecialCharacters;
-    }
-
-    public void setEscapeSpecialCharacters(Integer escapeSpecialCharacters) {
-        this.escapeSpecialCharacters = escapeSpecialCharacters;
-    }
-
-    public Map<String, String> getTranslationReplace() {
-        return translationReplace;
-    }
-
-    public void setTranslationReplace(Map<String, String> translationReplace) {
-        this.translationReplace = translationReplace;
+            if (StringUtils.isNotEmpty(bean.getDest()) && SourcesUtils.containsPattern(bean.getSource())) {
+                errors.add(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
+            }
+            return errors;
+        }
     }
 }
