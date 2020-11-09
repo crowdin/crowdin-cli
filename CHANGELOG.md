@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.4.0] - 2020-11-09
+
+### Added
+
+- Ability to download translation from Crowdin to the specified target file (`crowdin download targets`) [Read more](https://github.com/crowdin/crowdin-cli/wiki/Download-translation-from-Crowdin-to-the-specified-target-file) ([#316](https://github.com/crowdin/crowdin-cli/pull/316))
+- Pseudo-localization downloading (`crowdin download --pseudo`) [Read more](https://github.com/crowdin/crowdin-cli/wiki/Pseudo-localization-download) ([#316](https://github.com/crowdin/crowdin-cli/pull/316))
+
 ## [3.3.0] - 2020-09-28
 
 ### Added
