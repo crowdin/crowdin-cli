@@ -34,6 +34,7 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
   * [Versions Management](#versions-management)
   * [Source strings management](#source-strings-management)
   * [Translation and proofreading progress](#translation-and-proofreading-progress)
+  * [Advanced features](#advanced-features)
 * [Seeking Assistance](#seeking-assistance)
 * [Contributing](#contributing)
 * [Authors](#authors)
@@ -443,6 +444,10 @@ To manage translation memories use the following commands:
 | `crowdin tm list`       | Show a list of translation memories    |
 | `crowdin tm upload`     | Upload translation memory from a file <br>(in TMX, CSV, or XLS/XLSX file format) <br>either to the specified translation memory or to a new one |
 | `crowdin tm download`   | Download translation memory to a file <br>(in TMX, CSV, or XLS/XLSX file format) <br>from the specified translation memory |
+
+## Advanced features
+
+Visit the [Crowdin CLI Wiki](https://github.com/crowdin/crowdin-cli/wiki) to read more about CLI advanced features (like pseudo-localization, translations downloading to the specified file, etc.)
 
 ## Seeking Assistance
 
