@@ -129,7 +129,6 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                 if (file.getScheme() != null && !PlaceholderUtil.containsLangPlaceholders(translation)) {
                     java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + translation);
                     if (!transFile.exists()) {
-                        containsErrors.set(true);
                         if (!plainView) {
                             out.println(SKIPPED.withIcon(String.format(
                                 RESOURCE_BUNDLE.getString("error.translation_not_exists"),
@@ -150,7 +149,6 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         transFileName = PropertiesBeanUtils.useTranslationReplace(transFileName, file.getTranslationReplace());
                         java.io.File transFile = new java.io.File(pb.getBasePath() + Utils.PATH_SEPARATOR + transFileName);
                         if (!transFile.exists()) {
-                            containsErrors.set(true);
                             if (!plainView) {
                                 out.println(SKIPPED.withIcon(String.format(
                                     RESOURCE_BUNDLE.getString("error.translation_not_exists"),
