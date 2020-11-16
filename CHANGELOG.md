@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.4.1] - 2020-11-16
+
+### Updated
+
+- Do not return exit code 1 if translation files are missing ([#325](https://github.com/crowdin/crowdin-cli/pull/325))
+
 ## [3.4.0] - 2020-11-09
 
 ### Added
