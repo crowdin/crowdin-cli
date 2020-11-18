@@ -177,19 +177,21 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
     protected abstract Messages checkProperties(T props);
 
     static List<Map<String, Object>> getListOfMaps(Map<String, Object> map, String key) {
-        try {
-            return (List<Map<String, Object>>) map.getOrDefault(key, Collections.emptyList());
-        } catch (ClassCastException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param"), key), e);
+        List<?> list = PropertiesBuilder.checkProperty(map, key, List.class, Collections.emptyList());
+        for (Object obj : list) {
+            if (!(obj instanceof Map)) {
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param_list_type"), key, typeName(obj.getClass()), typeName(Map.class)));
+            }
         }
+        @SuppressWarnings("unchecked")
+        List<Map<String, Object>> returnType = (List<Map<String, Object>>) list;
+        return returnType;
     }
 
     static Map<String, Object> getMap(Map<String, Object> map, String key) {
-        try {
-            return (Map<String, Object>) map.getOrDefault(key, Collections.emptyMap());
-        } catch (ClassCastException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param"), key), e);
-        }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> returnType = (Map<String, Object>) PropertiesBuilder.checkProperty(map, key, Map.class, Collections.emptyMap());
+        return returnType;
     }
 
     static void setEnvOrPropertyIfExists(Consumer<String> setter, Map<String, Object> properties, String envKey, String key) {
@@ -215,20 +217,24 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
     }
 
     static <T> void setPropertyIfExists(Consumer<T> setter, Map<String, Object> properties, String key, Class<T> clazz) {
-        Object param = null;
+        T param = checkProperty(properties, key, clazz, null);
+        if (param != null) {
+            setter.accept(param);
+        }
+    }
+
+    private static <T> T checkProperty(Map<String, Object> properties, String key, Class<T> clazz, T defaultValue) {
         try {
-            param = properties.getOrDefault(key, null);
-            @SuppressWarnings("unchecked")
-            T paramType = (T) param;
-            if (paramType != null) {
-                setter.accept(paramType);
-            }
-        } catch (ClassCastException e) {
-            if (param != null) {
+           Object  param = properties.getOrDefault(key, defaultValue);
+            if (param != null && !clazz.isAssignableFrom(param.getClass())) {
                 String desiredType = typeName(clazz);
                 String presentType = typeName(param.getClass());
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param_type"), key, presentType, desiredType));
             }
+            @SuppressWarnings("unchecked")
+            T paramWithType = (T) param;
+            return paramWithType;
+        } catch (ClassCastException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param"), key), e);
         }
     }
