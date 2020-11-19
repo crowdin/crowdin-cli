@@ -59,4 +59,6 @@ public interface ProjectClient extends Client {
     URL exportProjectTranslation(ExportProjectTranslationRequest request);
 
     List<Label> listLabels();
+
+    URL downloadFile(Long fileId);
 }

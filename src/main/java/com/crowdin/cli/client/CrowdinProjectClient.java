@@ -217,4 +217,11 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return executeRequestFullList((limit, offset) -> this.client.getLabelsApi()
             .listLabels(this.projectId, limit, offset));
     }
+
+    @Override
+    public URL downloadFile(Long fileId) {
+        return url(executeRequest(() -> this.client.getSourceFilesApi()
+            .downloadFile(this.projectId, fileId)
+            .getData()));
+    }
 }

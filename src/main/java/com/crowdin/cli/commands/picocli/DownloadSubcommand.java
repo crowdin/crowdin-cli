@@ -15,7 +15,10 @@ import java.util.List;
     name = CommandNames.DOWNLOAD,
     sortOptions = false,
     aliases = CommandNames.ALIAS_DOWNLOAD,
-    subcommands = DownloadTargetsSubcommand.class
+    subcommands = {
+        DownloadTargetsSubcommand.class,
+        DownloadSourcesSubcommand.class
+    }
 )
 class DownloadSubcommand extends ActCommandWithFiles {
 

@@ -7,9 +7,11 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
+import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_HOST_ENV;
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_PASSWORD_ENV;
@@ -76,12 +78,24 @@ public class Utils {
             System.getProperty("os.version"));
     }
 
+    public static String unixPath(String path) {
+        return path.replaceAll("[\\\\/]+", "/");
+    }
+
     public static String normalizePath(String path) {
         return path.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
     }
 
+    public static String noSepAtStart(String path) {
+        return path.replaceAll("^[\\\\/]+", "");
+    }
+
     public static String regexPath(String path) {
         return path.replaceAll("\\\\", "\\\\\\\\");
+    }
+
+    public static String joinPaths(String... pathes) {
+        return String.join(Utils.PATH_SEPARATOR, pathes).replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
     }
 
     public static Optional<Pair<String, Integer>> proxyHost() {

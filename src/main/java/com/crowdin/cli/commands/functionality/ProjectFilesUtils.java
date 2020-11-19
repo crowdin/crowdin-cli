@@ -29,6 +29,15 @@ public class ProjectFilesUtils {
         return filePathsToId;
     }
 
+    public static Map<String, FileInfo> buildFilePaths(
+        Map<Long, Directory> directories, List<? extends FileInfo> files
+    ) {
+        Map<Long, String> directoryPaths = buildDirectoryPaths(directories);
+        Map<String, FileInfo> filePathsToId = new HashMap<>();
+        files.forEach(fe -> filePathsToId.put(Optional.ofNullable(fe.getDirectoryId()).map(directoryPaths::get).orElse("") + fe.getName(), fe));
+        return filePathsToId;
+    }
+
     public static Map<Long, String> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, Branch> branches) {
         Map<Long, String> directoryPaths = new HashMap<>();
         directories.forEach((k, dir) ->
