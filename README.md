@@ -1,2 +1,2 @@
-# crowdin-cli3
+# crowdin-cli
 A command-line client for the Crowdin API
