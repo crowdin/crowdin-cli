@@ -87,7 +87,7 @@ public class DownloadActionTest {
             }));
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, false, null, false, false, null, null, null, false);
+            new DownloadAction(files, false, null, false, null, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -137,7 +137,7 @@ public class DownloadActionTest {
             }));
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, false, null, false, false, null, null, null, false);
+            new DownloadAction(files, false, null, false, null, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -164,6 +164,8 @@ public class DownloadActionTest {
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setExportApprovedOnly(true);
+        pb.getFiles().get(0).setSkipUntranslatedFiles(true);
 
         project.addFile("first.po");
 
@@ -196,7 +198,7 @@ public class DownloadActionTest {
                 }));
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, false, null, false, false, null, true, true, false);
+            new DownloadAction(files, false, null, false, null, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -256,7 +258,7 @@ public class DownloadActionTest {
             }));
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, false, null, false, false, null, null, null, false);
+            new DownloadAction(files, false, null, false, null, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -317,7 +319,7 @@ public class DownloadActionTest {
             }));
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, false, null, false, false, null, null, null, false);
+            new DownloadAction(files, false, null, false, null, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -378,7 +380,7 @@ public class DownloadActionTest {
             }));
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, false, null, false, true, null, null, null, false);
+            new DownloadAction(files, false, null, false, null, false, true, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -440,7 +442,7 @@ public class DownloadActionTest {
                 }));
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, false, null, false, true, null, null, null, false);
+            new DownloadAction(files, false, null, false, null, false, true, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -485,7 +487,7 @@ public class DownloadActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, false, null, false, false, null, null, null, false);
+            new DownloadAction(files, false, null, false, null, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -511,7 +513,7 @@ public class DownloadActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, false, null, false, false, null, null, null, false);
+            new DownloadAction(files, false, null, false, null, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -546,6 +548,8 @@ public class DownloadActionTest {
         AtomicReference<File> tempDir = new AtomicReference<>();
         when(files.extractZipArchive(any(), any()))
             .thenAnswer((invocation -> {
+                System.out.println("invocation.getArgument(0) = " + invocation.getArgument(0));
+                System.out.println("invocation.getArgument(1) = " + invocation.getArgument(1));
                 zipArchive.set(invocation.getArgument(0));
                 tempDir.set(invocation.getArgument(1));
                 return new ArrayList<File>() {{
@@ -557,8 +561,9 @@ public class DownloadActionTest {
             .when(files).deleteFile(any());
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, false, null, false, false, null, null, null, false);
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+            new DownloadAction(files, false, null, false, null, false, false, false);
+//        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
@@ -601,7 +606,7 @@ public class DownloadActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, false, null, false, false, null, null, null, false);
+            new DownloadAction(files, false, null, false, null, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -639,7 +644,7 @@ public class DownloadActionTest {
                 .writeToFile(any(), any());
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, false, null, false, false, null, null, null, false);
+            new DownloadAction(files, false, null, false, null, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();

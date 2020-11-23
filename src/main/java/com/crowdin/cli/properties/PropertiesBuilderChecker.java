@@ -81,7 +81,8 @@ public class PropertiesBuilderChecker extends PropertiesBuilder<AllProperties, N
         messages.populate(BaseProperties.CONFIGURATOR.checkProperties(props.getIdProperties(), PropertiesConfigurator.CheckType.LINT));
         messages.populate(IdProperties.CONFIGURATOR.checkProperties(props.getIdProperties(), PropertiesConfigurator.CheckType.LINT));
         messages.populate(PropertiesWithFiles.CONFIGURATOR.checkProperties(props.getPropertiesWithFiles(), PropertiesConfigurator.CheckType.LINT));
-        messages.populate(PropertiesWithTargets.CONFIGURATOR.checkProperties(props.getPropertiesWithTargets(), PropertiesConfigurator.CheckType.LINT));
+        messages.populate(PropertiesWithTargets.CONFIGURATOR.checkProperties(
+            props.getPropertiesWithTargets(), PropertiesConfigurator.CheckType.LINT));
         return messages;
     }
 }

@@ -9,15 +9,10 @@ import static org.mockito.Mockito.verify;
 public class DownloadSubcommandTest extends PicocliTestUtils {
 
     @Test
-    public void testDownloadWrongOptions() {
-        this.executeInvalidParams(CommandNames.DOWNLOAD, "--skip-untranslated-strings", "--skip-untranslated-files", "--debug");
-    }
-
-    @Test
     public void testDownload() {
         this.execute(CommandNames.DOWNLOAD, "--debug");
         verify(actionsMock)
-            .download(any(), anyBoolean(), any(), anyBoolean(), any(), anyBoolean(), anyBoolean(), any(), any(), any(), anyBoolean());
+            .download(any(), anyBoolean(), any(), anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 

@@ -3,9 +3,9 @@ package com.crowdin.cli.commands.picocli;
 import com.crowdin.cli.client.Clients;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.ProjectParams;
-import com.crowdin.cli.properties.PropertiesWithTargets;
+import com.crowdin.cli.properties.ParamsWithTargets;
 import com.crowdin.cli.properties.PropertiesBuilders;
+import com.crowdin.cli.properties.PropertiesWithTargets;
 import picocli.CommandLine;
 
 public abstract class ActCommandWithTargets extends GenericActCommand<PropertiesWithTargets, ProjectClient> {
@@ -14,7 +14,7 @@ public abstract class ActCommandWithTargets extends GenericActCommand<Properties
     private ConfigurationFilesProperties properties;
 
     @CommandLine.ArgGroup(exclusive = false, headingKey = "params.heading")
-    private ProjectParams params;
+    private ParamsWithTargets params;
 
     @Override
     public PropertiesWithTargets getProperties(PropertiesBuilders propertiesBuilders, Outputter out) {

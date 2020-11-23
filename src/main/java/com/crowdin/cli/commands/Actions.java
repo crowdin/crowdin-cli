@@ -21,8 +21,7 @@ public interface Actions {
 
     NewAction<PropertiesWithFiles, ProjectClient> download(
         FilesInterface files, boolean noProgress, String languageId, boolean pseudo, String branchName,
-        boolean ignoreMatch, boolean isVerbose, Boolean skipTranslatedOnly,
-        Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView
+        boolean ignoreMatch, boolean isVerbose, boolean plainView
     );
 
     NewAction<NoProperties, NoClient> generate(FilesInterface files, Path destinationPath, boolean skipGenerateDescription);
@@ -78,8 +77,8 @@ public interface Actions {
         String targetLanguageId, boolean noProgress, File to, FilesInterface files);
 
     NewAction<PropertiesWithTargets, ProjectClient> downloadTargets(
-        List<String> targetNames, FilesInterface files, boolean noProgress, List<String> langIds, boolean isVerbose, Boolean skipTranslatedOnly,
-        Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView, boolean debug);
+        List<String> targetNames, FilesInterface files, boolean noProgress,
+        List<String> langIds, boolean isVerbose, boolean plainView, boolean debug);
 
     NewAction<NoProperties, NoClient> checkNewVersion();
 

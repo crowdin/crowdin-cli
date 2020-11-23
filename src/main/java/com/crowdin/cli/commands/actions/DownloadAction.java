@@ -8,8 +8,10 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.commands.functionality.TranslationsUtils;
+import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.PseudoLocalization;
 import com.crowdin.cli.utils.PlaceholderUtil;
@@ -18,12 +20,13 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
-import com.crowdin.client.translations.model.CrowdinTranslationCraeteProjectPseudoBuildForm;
 import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
 import com.crowdin.client.translations.model.ProjectBuild;
+import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
+import org.apache.commons.lang3.tuple.Triple;
 
 import java.io.File;
 import java.io.IOException;
@@ -39,6 +42,7 @@ import java.util.TreeMap;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
@@ -51,17 +55,13 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     private String branchName;
     private boolean ignoreMatch;
     private boolean isVerbose;
-    private Boolean skipTranslatedOnly;
-    private Boolean skipUntranslatedFiles;
-    private Boolean exportApprovedOnly;
     private boolean plainView;
 
     private Outputter out;
 
     public DownloadAction(
             FilesInterface files, boolean noProgress, String languageId, boolean pseudo, String branchName,
-            boolean ignoreMatch, boolean isVerbose, Boolean skipTranslatedOnly,
-            Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView
+            boolean ignoreMatch, boolean isVerbose, boolean plainView
     ) {
         this.files = files;
         this.noProgress = noProgress || plainView;
@@ -70,9 +70,6 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         this.branchName = branchName;
         this.ignoreMatch = ignoreMatch;
         this.isVerbose = isVerbose;
-        this.skipTranslatedOnly = skipTranslatedOnly;
-        this.skipUntranslatedFiles = skipUntranslatedFiles;
-        this.exportApprovedOnly = exportApprovedOnly;
         this.plainView = plainView;
     }
 
@@ -108,58 +105,99 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
         LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
+        List<Language> forLanguages = language
+            .map(Collections::singletonList)
+            .orElse(project.getProjectLanguages(true));
 
-        BuildProjectTranslationRequest request;
+        List<Pair<Map<String, String>, Pair<File, List<String>>>> fileBeansWithDownloadedFiles = new ArrayList<>();
+        List<File> tempDirs = new ArrayList<>();
         if (pseudo) {
-            CrowdinTranslationCraeteProjectPseudoBuildForm buildRequest = new CrowdinTranslationCraeteProjectPseudoBuildForm();
-            buildRequest.setPseudo(true);
             PseudoLocalization pl = pb.getPseudoLocalization();
-            if (pl != null) {
-                buildRequest.setLengthTransformation(pl.getLengthCorrection());
-                buildRequest.setPrefix(pl.getPrefix());
-                buildRequest.setSuffix(pl.getSuffix());
-                buildRequest.setCharTransformation(pl.getCharTransformation());
+            BuildProjectTranslationRequest request = (pl != null)
+                ? RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(
+                    true, pl.getLengthCorrection(), pl.getPrefix(), pl.getSuffix(), pl.getCharTransformation())
+                : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(true, null, null, null, null);
+            Pair<File, List<String>> downloadedFiles = this.download(request, client, pb.getBasePath());
+            for (FileBean fb : pb.getFiles()) {
+                Map<String, String> filesWithMapping = this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil);
+                fileBeansWithDownloadedFiles.add(Pair.of(filesWithMapping, downloadedFiles));
             }
-            request = buildRequest;
+            tempDirs.add(downloadedFiles.getLeft());
         } else {
-            CrowdinTranslationCreateProjectBuildForm buildRequest = new CrowdinTranslationCreateProjectBuildForm();
-            buildRequest.setSkipUntranslatedStrings(this.skipTranslatedOnly);
-            buildRequest.setSkipUntranslatedFiles(this.skipUntranslatedFiles);
-            if (isOrganization) {
-                if (this.exportApprovedOnly != null && this.exportApprovedOnly) {
-                    buildRequest.setExportWithMinApprovalsCount(1);
-                }
-            } else {
-                buildRequest.setExportApprovedOnly(this.exportApprovedOnly);
-            }
+            CrowdinTranslationCreateProjectBuildForm templateRequest = new CrowdinTranslationCreateProjectBuildForm();
             language
                 .map(Language::getId)
                 .map(Collections::singletonList)
-                .ifPresent(buildRequest::setTargetLanguageIds);
+                .ifPresent(templateRequest::setTargetLanguageIds);
             branch
                 .map(Branch::getId)
-                .ifPresent(buildRequest::setBranchId);
-            request = buildRequest;
+                .ifPresent(templateRequest::setBranchId);
+            pb.getFiles().stream()
+                .map(fb -> Triple.of(fb.getSkipTranslatedOnly(), fb.getSkipUntranslatedFiles(), fb.getExportApprovedOnly()))
+                .distinct()
+                .forEach(downloadConfiguration -> {
+                    CrowdinTranslationCreateProjectBuildForm buildRequest = RequestBuilder.crowdinTranslationCreateProjectBuildForm(templateRequest);
+                    buildRequest.setSkipUntranslatedStrings(downloadConfiguration.getLeft());
+                    buildRequest.setSkipUntranslatedFiles(downloadConfiguration.getMiddle());
+                    if (isOrganization) {
+                        if (downloadConfiguration.getRight() != null && downloadConfiguration.getRight()) {
+                            buildRequest.setExportWithMinApprovalsCount(1);
+                        }
+                    } else {
+                        buildRequest.setExportApprovedOnly(downloadConfiguration.getRight());
+                    }
+                    Pair<File, List<String>> downloadedFiles = this.download(buildRequest, client, pb.getBasePath());
+                    for (FileBean fb : pb.getFiles()) {
+                        if (fb.getSkipTranslatedOnly() == downloadConfiguration.getLeft()
+                            && fb.getSkipUntranslatedFiles() == downloadConfiguration.getMiddle()
+                            && fb.getExportApprovedOnly() == downloadConfiguration.getRight()) {
+
+                            Map<String, String> filesWithMapping =
+                                this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil);
+                            fileBeansWithDownloadedFiles.add(Pair.of(filesWithMapping, downloadedFiles));
+                        }
+                    }
+                    tempDirs.add(downloadedFiles.getLeft());
+                });
         }
 
-        if (!plainView) {
-            out.println((pseudo)
-                ? OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive_pseudo"))
-                : (languageId != null)
-                    ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId))
-                    : OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive")));
+        System.out.println(42);
+
+        Map<Long, String> directoryPaths = (branch.isPresent())
+            ? ProjectFilesUtils.buildDirectoryPaths(project.getDirectories())
+            : ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches());
+        Map<String, List<String>> allProjectTranslations = ProjectFilesUtils
+            .buildAllProjectTranslations(
+                project.getFiles(), directoryPaths, branch.map(Branch::getId),
+                placeholderUtil, serverLanguageMapping, pb.getBasePath());
+
+        for (Pair<Map<String, String>, Pair<File, List<String>>> data : fileBeansWithDownloadedFiles) {
+            Map<String, String> filesWithMapping = data.getKey();
+            File tempDir = data.getValue().getKey();
+            List<String> downloadedFiles = data.getValue().getValue();
+
+            this.unpackFiles(
+                downloadedFiles, filesWithMapping, allProjectTranslations,
+                pb.getBasePath(), tempDir.getAbsolutePath() + Utils.PATH_SEPARATOR);
         }
+        try {
+            for (File tempDir : tempDirs) {
+                files.deleteDirectory(tempDir);
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.clearing_temp"), e);
+        }
+    }
+
+    private Pair<File, List<String>> download(BuildProjectTranslationRequest request, ProjectClient client, String basePath) {
         ProjectBuild projectBuild = buildTranslation(client, request);
-
-        String currentTimeMillis = Long.toString(System.currentTimeMillis());
+        String randomHash = RandomStringUtils.random(11, false, true);
         File baseTempDir =
-                new File(StringUtils.removeEnd(
-                    pb.getBasePath(),
-                    Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + currentTimeMillis + Utils.PATH_SEPARATOR);
+            new File(StringUtils.removeEnd(
+                basePath,
+                Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + "CrowdinTranslations_" + randomHash + Utils.PATH_SEPARATOR);
         String downloadedZipArchivePath =
-                StringUtils.removeEnd(
-                    pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR
-                        + "translations" + currentTimeMillis + ".zip";
+            StringUtils.removeEnd(basePath, Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR + "CrowdinTranslations_" + randomHash + ".zip";
         File downloadedZipArchive = new File(downloadedZipArchivePath);
 
         this.downloadTranslations(client, projectBuild.getId(), downloadedZipArchivePath);
@@ -170,46 +208,28 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 .removeStart(f.getAbsolutePath(), baseTempDir.getAbsolutePath() + Utils.PATH_SEPARATOR))
             .collect(Collectors.toList());
 
-        List<Language> forLanguages = language
-            .map(Collections::singletonList)
-            .orElse((pseudo) ? project.getSupportedLanguages() : project.getProjectLanguages(true));
-
-        Map<String, String> filesWithMapping = pb.getFiles().stream()
-            .map(file -> {
-                List<String> sources =
-                    SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
-                        .map(File::getAbsolutePath)
-                        .collect(Collectors.toList());
-                LanguageMapping localLanguageMapping = LanguageMapping.fromConfigFileLanguageMapping(file.getLanguagesMapping());
-                LanguageMapping languageMapping = LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
-                Map<String, String> translationReplace =
-                    file.getTranslationReplace() != null ? file.getTranslationReplace() : new HashMap<>();
-                return this.doTranslationMapping(
-                    forLanguages, file.getTranslation(), serverLanguageMapping, languageMapping,
-                    translationReplace, sources, file.getSource(), pb.getBasePath(), placeholderUtil);
-            })
-            .flatMap(map -> map.entrySet().stream())
-            .distinct()
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-        Map<Long, String> directoryPaths = (branch.isPresent())
-            ? ProjectFilesUtils.buildDirectoryPaths(project.getDirectories())
-            : ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches());
-        Map<String, List<String>> allProjectTranslations = ProjectFilesUtils
-                .buildAllProjectTranslations(
-                    project.getFiles(), directoryPaths, branch.map(Branch::getId),
-                    placeholderUtil, serverLanguageMapping, pb.getBasePath());
-
-        this.unpackFiles(
-            downloadedFilesProc, filesWithMapping, allProjectTranslations,
-            pb.getBasePath(), baseTempDir.getAbsolutePath() + Utils.PATH_SEPARATOR);
-
         try {
-            files.deleteDirectory(baseTempDir);
             files.deleteFile(downloadedZipArchive);
         } catch (IOException e) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.clearing_temp"), e);
+            out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("error.deleting_archive"), downloadedZipArchive)));
         }
+        return Pair.of(baseTempDir, downloadedFilesProc);
+    }
+
+    private Map<String, String> getFiles(
+        FileBean fb, String basePath, LanguageMapping serverLanguageMapping, List<Language> forLanguages, PlaceholderUtil placeholderUtil
+    ) {
+        List<String> sources =
+            SourcesUtils.getFiles(basePath, fb.getSource(), fb.getIgnore(), placeholderUtil)
+                .map(File::getAbsolutePath)
+                .collect(Collectors.toList());
+        LanguageMapping localLanguageMapping = LanguageMapping.fromConfigFileLanguageMapping(fb.getLanguagesMapping());
+        LanguageMapping languageMapping = LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
+        Map<String, String> translationReplace =
+            fb.getTranslationReplace() != null ? fb.getTranslationReplace() : new HashMap<>();
+        return this.doTranslationMapping(
+            forLanguages, fb.getTranslation(), serverLanguageMapping, languageMapping,
+            translationReplace, sources, fb.getSource(), basePath, placeholderUtil);
     }
 
     private ProjectBuild buildTranslation(ProjectClient client, BuildProjectTranslationRequest request) {

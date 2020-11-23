@@ -23,20 +23,10 @@ public class DownloadTargetsSubcommand extends ActCommandWithTargets {
     @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", defaultValue = BaseCli.ALL)
     protected List<String> langIds;
 
-    @CommandLine.Option(names = {"--skip-untranslated-strings"}, descriptionKey = "crowdin.download.skipUntranslatedStrings")
-    protected Boolean skipTranslatedOnly;
-
-    @CommandLine.Option(names = {"--skip-untranslated-files"}, descriptionKey = "crowdin.download.skipUntranslatedFiles")
-    protected Boolean skipUntranslatedFiles;
-
-    @CommandLine.Option(names = {"--export-only-approved"}, descriptionKey = "crowdin.download.exportOnlyApproved")
-    protected Boolean exportApprovedOnly;
-
     @Override
     protected NewAction<PropertiesWithTargets, ProjectClient> getAction(Actions actions) {
         return actions.downloadTargets(
-            targetNames, new FsFiles(), noProgress, langIds, isVerbose, skipTranslatedOnly,
-            skipUntranslatedFiles, exportApprovedOnly, plainView, debug);
+            targetNames, new FsFiles(), noProgress, langIds, isVerbose, plainView, debug);
     }
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")

@@ -16,9 +16,12 @@ import static com.crowdin.cli.BaseCli.FILE_FORMAT_MAPPER;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.properties.PropertiesBuilder.BRANCHES;
 import static com.crowdin.cli.properties.PropertiesBuilder.DIRECTORIES;
+import static com.crowdin.cli.properties.PropertiesBuilder.EXPORT_APPROVED_ONLY;
 import static com.crowdin.cli.properties.PropertiesBuilder.FILES;
 import static com.crowdin.cli.properties.PropertiesBuilder.LABELS;
 import static com.crowdin.cli.properties.PropertiesBuilder.NAME;
+import static com.crowdin.cli.properties.PropertiesBuilder.SKIP_UNTRANSLATED_FILES;
+import static com.crowdin.cli.properties.PropertiesBuilder.SKIP_UNTRANSLATED_STRINGS;
 import static com.crowdin.cli.properties.PropertiesBuilder.SOURCES;
 import static com.crowdin.cli.properties.PropertiesBuilder.FILE;
 
@@ -37,6 +40,9 @@ public class TargetBean {
         private List<String> sourceDirs;
         private List<String> sourceBranches;
         private List<String> labels;
+        private Boolean skipTranslatedOnly;
+        private Boolean skipUntranslatedFiles;
+        private Boolean exportApprovedOnly;
     }
 
     static class TargetBeanConfigurator implements BeanConfigurator<TargetBean> {
@@ -49,7 +55,7 @@ public class TargetBean {
         public TargetBean buildFromMap(Map<String, Object> map) {
             TargetBean tb = new TargetBean();
             PropertiesBuilder.setPropertyIfExists(tb::setName, map, NAME, String.class);
-            tb.setFiles(((List<Map<String, Object>>) map.getOrDefault(FILES, Collections.EMPTY_LIST))
+            tb.setFiles(PropertiesBuilder.getListOfMaps(map, FILES)
                 .stream()
                 .map(this::buildTargetFileBeanFromMap)
                 .collect(Collectors.toList()));
@@ -63,6 +69,9 @@ public class TargetBean {
             PropertiesBuilder.setPropertyIfExists(fb::setSourceDirs, map, DIRECTORIES, List.class);
             PropertiesBuilder.setPropertyIfExists(fb::setSourceBranches, map, BRANCHES, List.class);
             PropertiesBuilder.setPropertyIfExists(fb::setLabels, map, LABELS, List.class);
+            PropertiesBuilder.setBooleanPropertyIfExists(fb::setSkipTranslatedOnly,   map, SKIP_UNTRANSLATED_STRINGS);
+            PropertiesBuilder.setBooleanPropertyIfExists(fb::setSkipUntranslatedFiles,     map, SKIP_UNTRANSLATED_FILES);
+            PropertiesBuilder.setBooleanPropertyIfExists(fb::setExportApprovedOnly,        map, EXPORT_APPROVED_ONLY);
             return fb;
         }
 
@@ -111,7 +120,12 @@ public class TargetBean {
                 if (fb.getFile() == null) {
                     errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.target_has_no_target_field"), tbName));
                 } else if (!FILE_FORMAT_MAPPER.containsKey(FilenameUtils.getExtension(fb.getFile()))) {
-                    errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.target_contains_wrong_format"), tbName, FilenameUtils.getExtension(fb.getFile())));
+                    errors.add(String.format(RESOURCE_BUNDLE.getString("error.config.target_contains_wrong_format"),
+                        tbName, FilenameUtils.getExtension(fb.getFile())));
+                }
+                if (fb.getSkipTranslatedOnly() != null && fb.getSkipUntranslatedFiles() != null
+                    && fb.getSkipTranslatedOnly() && fb.getSkipUntranslatedFiles()) {
+                    errors.add(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
                 }
             }
             return errors;

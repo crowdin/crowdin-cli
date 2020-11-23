@@ -93,7 +93,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String LABELS = "labels";
 
-    public static final String PSEUDO_LOCALIZATION= "pseudo_localization";
+    public static final String PSEUDO_LOCALIZATION = "pseudo_localization";
 
     public static final String LENGTH_CORRECTION = "length_correction";
 
@@ -102,6 +102,12 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
     public static final String SUFFIX = "suffix";
 
     public static final String CHARACTER_TRANSFORMATION = "character_transformation";
+
+    public static final String SKIP_UNTRANSLATED_STRINGS = "skip_untranslated_strings";
+
+    public static final String SKIP_UNTRANSLATED_FILES = "skip_untranslated_files";
+
+    public static final String EXPORT_APPROVED_ONLY = "skip_approved_only";
 
     private Outputter out;
     private Map<String, Object> configFileParams;
