@@ -4,6 +4,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.functionality.FsFiles;
+import com.crowdin.cli.properties.ParamsWithFiles;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import picocli.CommandLine;
 
@@ -40,6 +41,15 @@ class DownloadSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
+    @CommandLine.Option(names = {"--skip-untranslated-strings"}, descriptionKey = "params.skipUntranslatedStrings")
+    protected Boolean skipTranslatedOnly;
+
+    @CommandLine.Option(names = {"--skip-untranslated-files"}, descriptionKey = "params.skipUntranslatedFiles")
+    protected Boolean skipUntranslatedFiles;
+
+    @CommandLine.Option(names = {"--export-only-approved"}, descriptionKey = "params.exportOnlyApproved")
+    protected Boolean exportApprovedOnly;
+
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
@@ -53,5 +63,10 @@ class DownloadSubcommand extends ActCommandWithFiles {
     @Override
     protected boolean isAnsi() {
         return super.isAnsi() && !plainView;
+    }
+
+    @Override
+    protected void updateParams(ParamsWithFiles params) {
+        params.setExportOptions(skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly);
     }
 }
