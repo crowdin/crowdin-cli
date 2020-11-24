@@ -17,7 +17,7 @@ class StringEditSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--id"}, paramLabel = "...")
     protected Long id;
 
-    @CommandLine.Option(names = {"--identifier"}, paramLabel = "...", hidden = true)
+    @CommandLine.Option(names = {"--identifier"}, paramLabel = "...")
     protected String identifier;
 
     @CommandLine.Option(names = {"--text"}, paramLabel = "...")
