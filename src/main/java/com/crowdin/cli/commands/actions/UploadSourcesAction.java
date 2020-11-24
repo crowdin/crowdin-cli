@@ -7,6 +7,7 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.ProjectUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.commands.functionality.TranslationsUtils;
 import com.crowdin.cli.properties.FileBean;
@@ -16,6 +17,7 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
+import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
@@ -77,6 +79,15 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
         List<String> uploadedSources = new ArrayList<>();
 
+        Map<String, Long> labels = client.listLabels().stream()
+            .collect(Collectors.toMap(Label::getTitle, Label::getId));
+
+        pb.getFiles().stream()
+            .filter(fb -> fb.getLabels() != null)
+            .flatMap(fb -> fb.getLabels().stream())
+            .distinct()
+            .forEach(labelTitle -> labels.computeIfAbsent(labelTitle, (title) -> client.addLabel(RequestBuilder.addLabel(title)).getId()));
+
         AtomicBoolean errorsPresented = new AtomicBoolean(false);
         List<Runnable> tasks = pb.getFiles().stream()
             .map(file -> (Runnable) () -> {
@@ -120,6 +131,11 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             request.setImportOptions(buildImportOptions(sourceFile, file));
                             PropertiesBeanUtils.getUpdateOption(file.getUpdateOption()).ifPresent(request::setUpdateOption);
 
+                            if (file.getLabels() != null) {
+                                List<Long> labelsIds = file.getLabels().stream().map(labels::get).collect(Collectors.toList());
+                                request.setAttachLabelIds(labelsIds);
+                            }
+
                             final Long sourceId = projectFile.getId();
 
                             return (Runnable) () -> {
@@ -151,6 +167,10 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             request.setImportOptions(buildImportOptions(sourceFile, file));
                             if (file.getType() != null) {
                                 request.setType(file.getType());
+                            }
+                            if (file.getLabels() != null) {
+                                List<Long> labelsIds = file.getLabels().stream().map(labels::get).collect(Collectors.toList());
+                                request.setAttachLabelIds(labelsIds);
                             }
 
                             return (Runnable) () -> {

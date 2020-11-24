@@ -1,6 +1,7 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.client.core.model.PatchRequest;
+import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
@@ -186,7 +187,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     @Override
     public List<SourceString> listSourceString(Long fileId, String labelIds, String filter) {
         return executeRequestFullList((limit, offset) -> this.client.getSourceStringsApi()
-            .listSourceStrings(this.projectId, fileId, null, labelIds, filter, limit, offset));
+            .listSourceStrings(this.projectId, fileId, null, labelIds, filter, null, limit, offset));
     }
 
     @Override
@@ -216,6 +217,13 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     public List<Label> listLabels() {
         return executeRequestFullList((limit, offset) -> this.client.getLabelsApi()
             .listLabels(this.projectId, limit, offset));
+    }
+
+    @Override
+    public Label addLabel(AddLabelRequest request) {
+        return executeRequest(() -> this.client.getLabelsApi()
+            .addLabel(this.projectId, request)
+            .getData());
     }
 
     @Override

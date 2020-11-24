@@ -6,6 +6,7 @@ import com.crowdin.client.glossaries.model.AddGlossaryRequest;
 import com.crowdin.client.glossaries.model.ExportGlossaryRequest;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.glossaries.model.ImportGlossaryRequest;
+import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
@@ -156,6 +157,12 @@ public class RequestBuilder {
         requestCopy.setExportApprovedOnly(request.getExportApprovedOnly());
         requestCopy.setExportWithMinApprovalsCount(request.getExportWithMinApprovalsCount());
         return requestCopy;
+    }
+
+    public static AddLabelRequest addLabel(String title) {
+        AddLabelRequest request = new AddLabelRequest();
+        request.setTitle(title);
+        return request;
     }
 
 }

@@ -18,6 +18,7 @@ import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_SPECIAL_CHARAC
 import static com.crowdin.cli.properties.PropertiesBuilder.EXPORT_APPROVED_ONLY;
 import static com.crowdin.cli.properties.PropertiesBuilder.FIRST_LINE_CONTAINS_HEADER;
 import static com.crowdin.cli.properties.PropertiesBuilder.IGNORE;
+import static com.crowdin.cli.properties.PropertiesBuilder.LABELS;
 import static com.crowdin.cli.properties.PropertiesBuilder.LANGUAGES_MAPPING;
 import static com.crowdin.cli.properties.PropertiesBuilder.MULTILINGUAL_SPREADSHEET;
 import static com.crowdin.cli.properties.PropertiesBuilder.SCHEME;
@@ -59,6 +60,7 @@ public class FileBean {
     private Boolean skipTranslatedOnly;
     private Boolean skipUntranslatedFiles;
     private Boolean exportApprovedOnly;
+    private List<String> labels;
 
     static class FileBeanConfigurator implements BeanConfigurator<FileBean> {
 
@@ -89,6 +91,7 @@ public class FileBean {
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setSkipTranslatedOnly,   map, SKIP_UNTRANSLATED_STRINGS);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setSkipUntranslatedFiles,     map, SKIP_UNTRANSLATED_FILES);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setExportApprovedOnly,        map, EXPORT_APPROVED_ONLY);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setLabels,                    map, LABELS);
             return fileBean;
         }
 

@@ -8,8 +8,11 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
@@ -114,6 +117,11 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
             }
             if (params.getExportApprovedOnly() != null) {
                 fb.setExportApprovedOnly(params.getExportApprovedOnly());
+            }
+            if (params.getLabels() != null) {
+                Set<String> labels = (fb.getLabels() != null) ? new HashSet<>(fb.getLabels()) : new HashSet<>();
+                labels.addAll(params.getLabels());
+                fb.setLabels(new ArrayList<>(labels));
             }
         }
     }
