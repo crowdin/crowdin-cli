@@ -48,7 +48,7 @@ public class TargetBean {
         @Override
         public TargetBean buildFromMap(Map<String, Object> map) {
             TargetBean tb = new TargetBean();
-            PropertiesBuilder.setPropertyIfExists(tb::setName, map, NAME);
+            PropertiesBuilder.setPropertyIfExists(tb::setName, map, NAME, String.class);
             tb.setFiles(((List<Map<String, Object>>) map.getOrDefault(FILES, Collections.EMPTY_LIST))
                 .stream()
                 .map(this::buildTargetFileBeanFromMap)
@@ -58,11 +58,11 @@ public class TargetBean {
 
         private TargetBean.FileBean buildTargetFileBeanFromMap(Map<String, Object> map) {
             TargetBean.FileBean fb = new TargetBean.FileBean();
-            PropertiesBuilder.setPropertyIfExists(fb::setFile, map, FILE);
-            PropertiesBuilder.setPropertyIfExists(fb::setSources, map, SOURCES);
-            PropertiesBuilder.setPropertyIfExists(fb::setSourceDirs, map, DIRECTORIES);
-            PropertiesBuilder.setPropertyIfExists(fb::setSourceBranches, map, BRANCHES);
-            PropertiesBuilder.setPropertyIfExists(fb::setLabels, map, LABELS);
+            PropertiesBuilder.setPropertyIfExists(fb::setFile, map, FILE, String.class);
+            PropertiesBuilder.setPropertyIfExists(fb::setSources, map, SOURCES, List.class);
+            PropertiesBuilder.setPropertyIfExists(fb::setSourceDirs, map, DIRECTORIES, List.class);
+            PropertiesBuilder.setPropertyIfExists(fb::setSourceBranches, map, BRANCHES, List.class);
+            PropertiesBuilder.setPropertyIfExists(fb::setLabels, map, LABELS, List.class);
             return fb;
         }
 

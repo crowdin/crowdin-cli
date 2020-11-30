@@ -32,9 +32,9 @@ public class PseudoLocalization {
                 return null;
             }
             PseudoLocalization pl = new PseudoLocalization();
-            PropertiesBuilder.setPropertyIfExists(pl::setLengthCorrection, map, PropertiesBuilder.LENGTH_CORRECTION);
-            PropertiesBuilder.setPropertyIfExists(pl::setPrefix, map, PropertiesBuilder.PREFIX);
-            PropertiesBuilder.setPropertyIfExists(pl::setSuffix, map, PropertiesBuilder.SUFFIX);
+            PropertiesBuilder.setPropertyIfExists(pl::setLengthCorrection, map, PropertiesBuilder.LENGTH_CORRECTION, Integer.class);
+            PropertiesBuilder.setPropertyIfExists(pl::setPrefix, map, PropertiesBuilder.PREFIX, String.class);
+            PropertiesBuilder.setPropertyIfExists(pl::setSuffix, map, PropertiesBuilder.SUFFIX, String.class);
             PropertiesBuilder.setEnumPropertyIfExists(
                 v -> pl.setCharTransformation(CharTransformation.valueOf(v.toUpperCase())),
                 map, PropertiesBuilder.CHARACTER_TRANSFORMATION, "\"asian\", \"cyrillic\", \"european\", \"arabic\"");
