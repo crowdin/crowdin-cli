@@ -91,7 +91,7 @@ public class FileBean {
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setSkipTranslatedOnly,   map, SKIP_UNTRANSLATED_STRINGS);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setSkipUntranslatedFiles,     map, SKIP_UNTRANSLATED_FILES);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setExportApprovedOnly,        map, EXPORT_APPROVED_ONLY);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setLabels,                    map, LABELS);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setLabels,                    map, LABELS, List.class);
             return fileBean;
         }
 
