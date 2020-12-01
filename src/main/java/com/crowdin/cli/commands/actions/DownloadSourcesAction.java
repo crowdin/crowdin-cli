@@ -50,7 +50,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
 
     @Override
     public void act(Outputter out, PropertiesWithFiles properties, ProjectClient client) {
-        if (!properties.getPreserveHierarchy()) {
+        if (!plainView && !properties.getPreserveHierarchy()) {
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.download_sources.preserve_hierarchy_warning")));
         }
 
@@ -58,7 +58,11 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
                 this.noProgress, this.plainView, client::downloadFullProject);
 
-        Long branchId = Optional.ofNullable(branchName).flatMap(project::findBranchByName).map(Branch::getId).orElse(null);
+        Long branchId = Optional.ofNullable(this.branchName)
+            .map(br -> project.findBranchByName(br)
+                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))))
+            .map(Branch::getId)
+            .orElse(null);
         List<FileInfo> fileInfos = project.getFileInfos().stream()
             .filter(f -> Objects.equals(f.getBranchId(), branchId))
             .collect(Collectors.toList());
@@ -80,7 +84,11 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                 .map(filePath -> (Runnable) () -> {
                     Long fileId = filePaths.get(filePath).getId();
                     this.downloadFile(client, fileId, Utils.joinPaths(properties.getBasePath(), filePath));
-                    out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));
+                    if (!plainView) {
+                        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));
+                    } else {
+                        out.println(filePath);
+                    }
                 })
             ).collect(Collectors.toList());
         ConcurrencyUtil.executeAndWait(tasks, debug);
