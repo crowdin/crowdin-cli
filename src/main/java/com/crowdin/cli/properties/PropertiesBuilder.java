@@ -107,7 +107,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String SKIP_UNTRANSLATED_FILES = "skip_untranslated_files";
 
-    public static final String EXPORT_APPROVED_ONLY = "skip_approved_only";
+    public static final String EXPORT_APPROVED_ONLY = "export_only_approved";
 
     private Outputter out;
     private Map<String, Object> configFileParams;
