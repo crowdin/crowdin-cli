@@ -113,6 +113,9 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         List<File> tempDirs = new ArrayList<>();
         try {
             if (pseudo) {
+                if (!plainView) {
+                    out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive_pseudo")));
+                }
                 PseudoLocalization pl = pb.getPseudoLocalization();
                 BuildProjectTranslationRequest request = (pl != null)
                     ? RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(
@@ -125,6 +128,11 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 }
                 tempDirs.add(downloadedFiles.getLeft());
             } else {
+                if (!plainView) {
+                    out.println((languageId != null)
+                        ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId))
+                        : OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive")));
+                }
                 CrowdinTranslationCreateProjectBuildForm templateRequest = new CrowdinTranslationCreateProjectBuildForm();
                 language
                     .map(Language::getId)
