@@ -55,18 +55,8 @@ public class PropertiesWithFiles extends IdProperties {
         @Override
         public PropertiesBuilder.Messages checkProperties(PropertiesWithFiles props, CheckType checkType) {
             PropertiesBuilder.Messages messages = new PropertiesBuilder.Messages();
-            if (props.getFiles() == null) {
-                if (checkType == CheckType.STANDARD) {
-                    messages.addError(RESOURCE_BUNDLE.getString("error.config.missed_section_files"));
-                } else if (checkType == CheckType.LINT) {
-                    messages.addWarning(RESOURCE_BUNDLE.getString("warning.config.missed_section_files"));
-                }
-            } else if (props.getFiles().isEmpty()) {
-                if (checkType == CheckType.STANDARD) {
-                    messages.addError(RESOURCE_BUNDLE.getString("error.config.empty_section_file"));
-                } else if (checkType == CheckType.LINT) {
-                    messages.addWarning(RESOURCE_BUNDLE.getString("warning.config.empty_section_file"));
-                }
+            if (props.getFiles() == null || props.getFiles().isEmpty()) {
+                messages.addError(RESOURCE_BUNDLE.getString("error.config.empty_or_missed_section_files"));
             } else {
                 for (FileBean fileBean : props.getFiles()) {
                     messages.addAllErrors(FileBean.CONFIGURATOR.checkProperties(fileBean));
