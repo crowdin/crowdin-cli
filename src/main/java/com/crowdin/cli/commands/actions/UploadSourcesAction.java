@@ -1,6 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.CrowdinProjectFull;
+import com.crowdin.cli.client.ExistsResponseException;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
@@ -97,7 +98,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                 if (sources.isEmpty()) {
                     if (!plainView) {
                         errorsPresented.set(true);
-                        throw new RuntimeException(RESOURCE_BUNDLE.getString("error.no_sources"));
+                        throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.no_sources"), file.getSource()));
                     } else {
                         return;
                     }
@@ -197,6 +198,9 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 }
                                 try {
                                     client.addSource(request);
+                                } catch (ExistsResponseException e) {
+                                    errorsPresented.set(true);
+                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_already_exists"), fileFullPath));
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath), e);

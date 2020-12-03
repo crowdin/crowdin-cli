@@ -388,7 +388,7 @@ public class CrowdinProjectClientTest {
     }
 
     @Test
-    public void testAddSource() {
+    public void testAddSource() throws ResponseException {
         FileResponseObject response = new FileResponseObject() {{
                 setData(new File());
             }};

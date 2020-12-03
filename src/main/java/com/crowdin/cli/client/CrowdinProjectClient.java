@@ -141,9 +141,13 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
-    public void addSource(AddFileRequest request) {
+    public void addSource(AddFileRequest request) throws ResponseException {
+        Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
+            put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"), new RepeatException());
+            put((code, message) -> StringUtils.containsAny(message, "Name must be unique"), new ExistsResponseException());
+        }};
         executeRequestWithPossibleRetry(
-            (code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"),
+            errorHandlers,
             () -> this.client.getSourceFilesApi()
                 .addFile(this.projectId, request));
     }
