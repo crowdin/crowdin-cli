@@ -178,7 +178,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     project.getFiles(), directoryPaths, branch.map(Branch::getId),
                     placeholderUtil, serverLanguageMapping, pb.getBasePath());
 
-            Map<String, List<String>> totalOmittedFiles = new TreeMap<>();
+            Map<String, List<String>> totalOmittedFiles = null;
             List<String> totalOmittedFilesNoSources = new ArrayList<>();
 
             for (Pair<Map<String, String>, Pair<File, List<String>>> data : fileBeansWithDownloadedFiles) {
@@ -204,33 +204,38 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     this.sortOmittedFiles(result.getRight(), allProjectTranslations);
                 Map<String, List<String>> allOmittedFiles = new TreeMap<>(omittedFiles.getLeft());
                 List<String> allOmittedFilesNoSources = omittedFiles.getRight();
-                for (String sourceKey : allOmittedFiles.keySet()) {
-                    if (!totalOmittedFiles.containsKey(sourceKey)) {
+                if (totalOmittedFiles == null) {
+                    totalOmittedFiles = new TreeMap<>();
+                    for (String sourceKey : allOmittedFiles.keySet()) {
                         totalOmittedFiles.put(sourceKey, allOmittedFiles.get(sourceKey));
-                    } else {
-                        totalOmittedFiles.get(sourceKey).retainAll(allOmittedFiles.get(sourceKey));
                     }
-                }
-                for (String sourceKey : totalOmittedFiles.keySet()) {
-                    if (!allOmittedFiles.containsKey(sourceKey)) {
-                        totalOmittedFiles.put(sourceKey, new ArrayList<>());
+                } else {
+                    for (String sourceKey : allOmittedFiles.keySet()) {
+                        if (totalOmittedFiles.containsKey(sourceKey)) {
+                            totalOmittedFiles.get(sourceKey).retainAll(allOmittedFiles.get(sourceKey));
+                        }
+                    }
+                    for (String sourceKey : totalOmittedFiles.keySet()) {
+                        if (!allOmittedFiles.containsKey(sourceKey)) {
+                            totalOmittedFiles.put(sourceKey, new ArrayList<>());
+                        }
                     }
                 }
                 totalOmittedFilesNoSources.retainAll(allOmittedFilesNoSources);
             }
 
             if (!ignoreMatch && !plainView) {
+                totalOmittedFiles = totalOmittedFiles.entrySet().stream()
+                    .filter(entry -> !entry.getValue().isEmpty())
+                    .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
                 if (!totalOmittedFiles.isEmpty()) {
                     out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted")));
                     totalOmittedFiles.forEach((file, translations) -> {
-                        if (translations.isEmpty()) {
-                            return;
-                        }
                         out.println(String.format(
                             RESOURCE_BUNDLE.getString("message.item_list_with_count"), file, translations.size()));
                         if (isVerbose) {
                             translations.forEach(trans -> out.println(
-                                String.format(RESOURCE_BUNDLE.getString("message.item_list"), trans)));
+                                String.format(RESOURCE_BUNDLE.getString("message.inner_item_list"), trans)));
                         }
                     });
                 }
