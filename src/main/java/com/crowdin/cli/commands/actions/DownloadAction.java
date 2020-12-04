@@ -178,14 +178,69 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     project.getFiles(), directoryPaths, branch.map(Branch::getId),
                     placeholderUtil, serverLanguageMapping, pb.getBasePath());
 
+            Map<String, List<String>> totalOmittedFiles = new TreeMap<>();
+            List<String> totalOmittedFilesNoSources = new ArrayList<>();
+
             for (Pair<Map<String, String>, Pair<File, List<String>>> data : fileBeansWithDownloadedFiles) {
                 Map<String, String> filesWithMapping = data.getKey();
                 File tempDir = data.getValue().getKey();
                 List<String> downloadedFiles = data.getValue().getValue();
 
-                this.unpackFiles(
-                    downloadedFiles, filesWithMapping, allProjectTranslations,
-                    pb.getBasePath(), tempDir.getAbsolutePath() + Utils.PATH_SEPARATOR);
+                Pair<Map<File, File>, List<String>> result =
+                    sortFiles(downloadedFiles, filesWithMapping, pb.getBasePath(), tempDir.getAbsolutePath() + Utils.PATH_SEPARATOR);
+                new TreeMap<>(result.getLeft()).forEach((fromFile, toFile) -> { //files to extract
+                    files.copyFile(fromFile, toFile);
+                    if (!plainView) {
+                        out.println(OK.withIcon(
+                            String.format(
+                                RESOURCE_BUNDLE.getString("message.extracted_file"),
+                                StringUtils.removeStart(toFile.getAbsolutePath(), pb.getBasePath()))));
+                    } else {
+                        out.println(StringUtils.removeStart(toFile.getAbsolutePath(), pb.getBasePath()));
+                    }
+                });
+
+                Pair<Map<String, List<String>>, List<String>> omittedFiles =
+                    this.sortOmittedFiles(result.getRight(), allProjectTranslations);
+                Map<String, List<String>> allOmittedFiles = new TreeMap<>(omittedFiles.getLeft());
+                List<String> allOmittedFilesNoSources = omittedFiles.getRight();
+                for (String sourceKey : allOmittedFiles.keySet()) {
+                    if (!totalOmittedFiles.containsKey(sourceKey)) {
+                        totalOmittedFiles.put(sourceKey, allOmittedFiles.get(sourceKey));
+                    } else {
+                        totalOmittedFiles.get(sourceKey).retainAll(allOmittedFiles.get(sourceKey));
+                    }
+                }
+                for (String sourceKey : totalOmittedFiles.keySet()) {
+                    if (!allOmittedFiles.containsKey(sourceKey)) {
+                        totalOmittedFiles.put(sourceKey, new ArrayList<>());
+                    }
+                }
+                totalOmittedFilesNoSources.retainAll(allOmittedFilesNoSources);
+            }
+
+            if (!ignoreMatch && !plainView) {
+                if (!totalOmittedFiles.isEmpty()) {
+                    out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted")));
+                    totalOmittedFiles.forEach((file, translations) -> {
+                        if (translations.isEmpty()) {
+                            return;
+                        }
+                        out.println(String.format(
+                            RESOURCE_BUNDLE.getString("message.item_list_with_count"), file, translations.size()));
+                        if (isVerbose) {
+                            translations.forEach(trans -> out.println(
+                                String.format(RESOURCE_BUNDLE.getString("message.item_list"), trans)));
+                        }
+                    });
+                }
+                if (!totalOmittedFilesNoSources.isEmpty()) {
+                    out.println(
+                        WARNING.withIcon(
+                            RESOURCE_BUNDLE.getString("message.downloaded_files_omitted_without_sources")));
+                    totalOmittedFilesNoSources.forEach(file ->
+                        out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), file)));
+                }
             }
         } finally {
             try {
@@ -297,52 +352,6 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             }
         }
         return new ImmutablePair<>(allOmittedFiles, allOmittedFilesNoSources);
-    }
-
-    private void unpackFiles(
-        List<String> downloadedFilesProc,
-        Map<String, String> filesWithMapping,
-        Map<String, List<String>> allProjectTranslations,
-        String basePath,
-        String baseTempDirPath
-    ) {
-        Pair<Map<File, File>, List<String>> result =
-            sortFiles(downloadedFilesProc, filesWithMapping, basePath, baseTempDirPath);
-        new TreeMap<>(result.getLeft()).forEach((fromFile, toFile) -> { //files to extract
-            files.copyFile(fromFile, toFile);
-            if (!plainView) {
-                out.println(OK.withIcon(
-                    String.format(
-                        RESOURCE_BUNDLE.getString("message.extracted_file"),
-                        StringUtils.removeStart(toFile.getAbsolutePath(), basePath))));
-            } else {
-                out.println(StringUtils.removeStart(toFile.getAbsolutePath(), basePath));
-            }
-        });
-        if (!ignoreMatch && !plainView && !result.getRight().isEmpty()) {
-            Pair<Map<String, List<String>>, List<String>> omittedFiles =
-                this.sortOmittedFiles(result.getRight(), allProjectTranslations);
-            Map<String, List<String>> allOmittedFiles = new TreeMap<>(omittedFiles.getLeft());
-            List<String> allOmittedFilesNoSources = omittedFiles.getRight();
-            if (!allOmittedFiles.isEmpty()) {
-                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted")));
-                allOmittedFiles.forEach((file, translations) -> {
-                    out.println(String.format(
-                        RESOURCE_BUNDLE.getString("message.item_list_with_count"), file, translations.size()));
-                    if (isVerbose) {
-                        translations.forEach(trans -> out.println(
-                                String.format(RESOURCE_BUNDLE.getString("message.item_list"), trans)));
-                    }
-                });
-            }
-            if (!allOmittedFilesNoSources.isEmpty()) {
-                out.println(
-                    WARNING.withIcon(
-                        RESOURCE_BUNDLE.getString("message.downloaded_files_omitted_without_sources")));
-                allOmittedFilesNoSources.forEach(file ->
-                    out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), file)));
-            }
-        }
     }
 
     private Map<String, String> doTranslationMapping(
