@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/crowdin/crowdin-cli.git"
   },
-  "version": "3.4.1",
+  "version": "3.5.0",
   "jdeploy": {
     "jar": "dist/crowdin-cli.jar"
   },
