@@ -23,6 +23,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -72,6 +73,8 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
         PlaceholderUtil placeholderUtil =
             new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), properties.getBasePath());
 
+        AtomicBoolean isAnyFileDownloaded = new AtomicBoolean(false);
+
         List<Runnable> tasks = properties
             .getFiles()
             .stream()
@@ -84,6 +87,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                 .map(filePath -> (Runnable) () -> {
                     Long fileId = filePaths.get(filePath).getId();
                     this.downloadFile(client, fileId, Utils.joinPaths(properties.getBasePath(), filePath));
+                    isAnyFileDownloaded.set(true);
                     if (!plainView) {
                         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));
                     } else {
@@ -92,6 +96,10 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                 })
             ).collect(Collectors.toList());
         ConcurrencyUtil.executeAndWait(tasks, debug);
+
+        if (!isAnyFileDownloaded.get()) {
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("error.no_sources")));
+        }
     }
 
     private void downloadFile(ProjectClient client, Long fileId, String filePath) {
