@@ -105,14 +105,11 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
         LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
-        List<Language> forLanguages = language
-            .map(Collections::singletonList)
-            .orElse(project.getProjectLanguages(true));
-
         Map<Pair<File, List<String>>, List<Map<String, String>>> fileBeansWithDownloadedFiles = new TreeMap<>();
         List<File> tempDirs = new ArrayList<>();
         try {
             if (pseudo) {
+                List<Language> forLanguages = project.getSupportedLanguages();
                 if (!plainView) {
                     out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive_pseudo")));
                 }
@@ -129,6 +126,9 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 }
                 tempDirs.add(downloadedFiles.getLeft());
             } else {
+                List<Language> forLanguages = language
+                    .map(Collections::singletonList)
+                    .orElse(project.getProjectLanguages(true));
                 if (!plainView) {
                     out.println((languageId != null)
                         ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), languageId))
@@ -192,7 +192,6 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             Map<String, List<String>> totalOmittedFiles = null;
             List<String> totalOmittedFilesNoSources = new ArrayList<>();
 
-//            for (Pair<Map<String, String>, Pair<File, List<String>>> data : fileBeansWithDownloadedFiles) {
             for (Pair<File, List<String>> key : fileBeansWithDownloadedFilesNoRepetitions.keySet()) {
                 List<Pair<String, String>> filesWithMapping = fileBeansWithDownloadedFilesNoRepetitions.get(key);
                 File tempDir = key.getKey();
@@ -337,12 +336,13 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         String baseTempDir
     ) {
         Map<File, File> fileMapping = filesWithMapping.stream()
+            .filter(pair -> downloadedFiles.contains(pair.getLeft()))
             .collect(Collectors.toMap(
                 pair -> new File(Utils.joinPaths(baseTempDir, pair.getLeft())),
                 pair -> new File(Utils.joinPaths(basePath, pair.getRight()))
             ));
         List<String> filesWithMappingFrom = filesWithMapping.stream()
-            .map(Pair::getRight)
+            .map(Pair::getLeft)
             .collect(Collectors.toList());
         List<String> omittedFiles = downloadedFiles
             .stream()
