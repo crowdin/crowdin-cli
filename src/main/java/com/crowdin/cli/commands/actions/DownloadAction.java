@@ -109,7 +109,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             .map(Collections::singletonList)
             .orElse(project.getProjectLanguages(true));
 
-        List<Pair<Map<String, String>, Pair<File, List<String>>>> fileBeansWithDownloadedFiles = new ArrayList<>();
+        Map<Pair<File, List<String>>, List<Map<String, String>>> fileBeansWithDownloadedFiles = new TreeMap<>();
         List<File> tempDirs = new ArrayList<>();
         try {
             if (pseudo) {
@@ -124,7 +124,8 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 Pair<File, List<String>> downloadedFiles = this.download(request, client, pb.getBasePath());
                 for (FileBean fb : pb.getFiles()) {
                     Map<String, String> filesWithMapping = this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil);
-                    fileBeansWithDownloadedFiles.add(Pair.of(filesWithMapping, downloadedFiles));
+                    fileBeansWithDownloadedFiles.putIfAbsent(downloadedFiles, new ArrayList<>());
+                    fileBeansWithDownloadedFiles.get(downloadedFiles).add(filesWithMapping);
                 }
                 tempDirs.add(downloadedFiles.getLeft());
             } else {
@@ -163,11 +164,21 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
                                 Map<String, String> filesWithMapping =
                                     this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil);
-                                fileBeansWithDownloadedFiles.add(Pair.of(filesWithMapping, downloadedFiles));
+                                fileBeansWithDownloadedFiles.putIfAbsent(downloadedFiles, new ArrayList<>());
+                                fileBeansWithDownloadedFiles.get(downloadedFiles).add(filesWithMapping);
                             }
                         }
                         tempDirs.add(downloadedFiles.getLeft());
                     });
+            }
+
+            Map<Pair<File, List<String>>, List<Pair<String, String>>> fileBeansWithDownloadedFilesNoRepetitions = new TreeMap<>();
+            for (Pair<File, List<String>> key : fileBeansWithDownloadedFiles.keySet()) {
+                fileBeansWithDownloadedFilesNoRepetitions.put(key, fileBeansWithDownloadedFiles.get(key).stream()
+                    .flatMap(map -> map.entrySet().stream())
+                    .map(entry -> Pair.of(entry.getKey(), entry.getValue()))
+                    .distinct()
+                    .collect(Collectors.toList()));
             }
 
             Map<Long, String> directoryPaths = (branch.isPresent())
@@ -181,10 +192,11 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             Map<String, List<String>> totalOmittedFiles = null;
             List<String> totalOmittedFilesNoSources = new ArrayList<>();
 
-            for (Pair<Map<String, String>, Pair<File, List<String>>> data : fileBeansWithDownloadedFiles) {
-                Map<String, String> filesWithMapping = data.getKey();
-                File tempDir = data.getValue().getKey();
-                List<String> downloadedFiles = data.getValue().getValue();
+//            for (Pair<Map<String, String>, Pair<File, List<String>>> data : fileBeansWithDownloadedFiles) {
+            for (Pair<File, List<String>> key : fileBeansWithDownloadedFilesNoRepetitions.keySet()) {
+                List<Pair<String, String>> filesWithMapping = fileBeansWithDownloadedFilesNoRepetitions.get(key);
+                File tempDir = key.getKey();
+                List<String> downloadedFiles = key.getValue();
 
                 Pair<Map<File, File>, List<String>> result =
                     sortFiles(downloadedFiles, filesWithMapping, pb.getBasePath(), tempDir.getAbsolutePath() + Utils.PATH_SEPARATOR);
@@ -320,19 +332,21 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private Pair<Map<File, File>, List<String>> sortFiles(
         List<String> downloadedFiles,
-        Map<String, String> filesWithMapping,
+        List<Pair<String, String>> filesWithMapping,
         String basePath,
         String baseTempDir
     ) {
-        Map<File, File> fileMapping = downloadedFiles
-            .stream()
-            .filter(filesWithMapping::containsKey)
+        Map<File, File> fileMapping = filesWithMapping.stream()
             .collect(Collectors.toMap(
-                downloadedFile -> new File(baseTempDir + downloadedFile),
-                downloadedFile -> new File(basePath + filesWithMapping.get(downloadedFile))));
+                pair -> new File(Utils.joinPaths(baseTempDir, pair.getLeft())),
+                pair -> new File(Utils.joinPaths(basePath, pair.getRight()))
+            ));
+        List<String> filesWithMappingFrom = filesWithMapping.stream()
+            .map(Pair::getRight)
+            .collect(Collectors.toList());
         List<String> omittedFiles = downloadedFiles
             .stream()
-            .filter(downloadedFile -> !filesWithMapping.containsKey(downloadedFile))
+            .filter(downloadedFile -> !filesWithMappingFrom.contains(downloadedFile))
             .collect(Collectors.toList());
         return new ImmutablePair<>(fileMapping, omittedFiles);
     }
