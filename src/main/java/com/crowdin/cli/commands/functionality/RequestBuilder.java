@@ -120,6 +120,17 @@ public class RequestBuilder {
         return request;
     }
 
+    public static ExportProjectTranslationRequest exportProjectTranslation(
+        String format, Boolean skipUntranslatedStrings, Boolean skipUntranslatedFiles, Integer exportWithMinApprovalsCount
+    ) {
+        ExportProjectTranslationRequest request = new ExportProjectTranslationRequest();
+        request.setFormat(format);
+        request.setSkipUntranslatedStrings(skipUntranslatedStrings);
+        request.setSkipUntranslatedFiles(skipUntranslatedFiles);
+        request.setExportWithMinApprovalsCount(exportWithMinApprovalsCount);
+        return request;
+    }
+
     public static ExportProjectTranslationRequest exportProjectTranslation(ExportProjectTranslationRequest request) {
         ExportProjectTranslationRequest copy = new ExportProjectTranslationRequest();
         copy.setTargetLanguageId(request.getTargetLanguageId());
