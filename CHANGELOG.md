@@ -1,6 +1,23 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.5.0]
+
+### Added
+
+- `crowdin download sources` command ([#327](https://github.com/crowdin/crowdin-cli/pull/327))
+- Labels support for `crowdin upload sources` command ([#327](https://github.com/crowdin/crowdin-cli/pull/327))
+- Ability to configure export options for each file group ([#327](https://github.com/crowdin/crowdin-cli/pull/327))
+- Using 'identifier' property in `crowdin string` commands ([#327](https://github.com/crowdin/crowdin-cli/pull/327))
+
+### Updated
+
+- Delete 'language_mapping' field from default configuration file ([#327](https://github.com/crowdin/crowdin-cli/pull/327))
+
+### Fixed
+
+- Fix messages for 'lint' command ([#327](https://github.com/crowdin/crowdin-cli/pull/327))
+
 ## [3.4.1] - 2020-11-16
 
 ### Updated
