@@ -21,7 +21,7 @@ public class PropertiesBuilders {
         return builder.build();
     }
 
-    public PropertiesWithTargets buildPropertiesWithTargets(Outputter out, File configFile, File identityFile, ProjectParams params) {
+    public PropertiesWithTargets buildPropertiesWithTargets(Outputter out, File configFile, File identityFile, ParamsWithTargets params) {
         PropertiesWithTargetsBuilder builder = new PropertiesWithTargetsBuilder(out);
         if (configFile != null) {
             builder.addConfigParams(FileUtils.readYamlFile(configFile));

@@ -20,7 +20,7 @@ class StringDeleteSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--text"}, paramLabel = "...", hidden = true)
     protected List<String> texts;
 
-    @CommandLine.Option(names = {"--identifier"}, paramLabel = "...", hidden = true)
+    @CommandLine.Option(names = {"--identifier"}, paramLabel = "...")
     protected List<String> identifiers;
 
     @Override

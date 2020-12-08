@@ -6,11 +6,15 @@ import com.crowdin.client.glossaries.model.AddGlossaryRequest;
 import com.crowdin.client.glossaries.model.ExportGlossaryRequest;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.glossaries.model.ImportGlossaryRequest;
+import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
+import com.crowdin.client.translations.model.CharTransformation;
+import com.crowdin.client.translations.model.CrowdinTranslationCraeteProjectPseudoBuildForm;
+import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
 import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 
@@ -128,6 +132,37 @@ public class RequestBuilder {
         copy.setSkipUntranslatedFiles(request.getSkipUntranslatedFiles());
         copy.setExportApprovedOnly(request.getExportApprovedOnly());
         return copy;
+    }
+
+    public static CrowdinTranslationCraeteProjectPseudoBuildForm crowdinTranslationCreateProjectPseudoBuildForm(
+        Boolean pseudo, Integer lengthCorrection, String prefix, String suffix, CharTransformation charTransformation
+    ) {
+        CrowdinTranslationCraeteProjectPseudoBuildForm request = new CrowdinTranslationCraeteProjectPseudoBuildForm();
+        request.setPseudo(pseudo);
+        request.setLengthTransformation(lengthCorrection);
+        request.setPrefix(prefix);
+        request.setSuffix(suffix);
+        request.setCharTransformation(charTransformation);
+        return request;
+    }
+
+    public static CrowdinTranslationCreateProjectBuildForm crowdinTranslationCreateProjectBuildForm(
+        CrowdinTranslationCreateProjectBuildForm request
+    ) {
+        CrowdinTranslationCreateProjectBuildForm requestCopy = new CrowdinTranslationCreateProjectBuildForm();
+        requestCopy.setBranchId(request.getBranchId());
+        requestCopy.setTargetLanguageIds(request.getTargetLanguageIds());
+        requestCopy.setSkipUntranslatedStrings(request.getSkipUntranslatedStrings());
+        requestCopy.setSkipUntranslatedFiles(request.getSkipUntranslatedFiles());
+        requestCopy.setExportApprovedOnly(request.getExportApprovedOnly());
+        requestCopy.setExportWithMinApprovalsCount(request.getExportWithMinApprovalsCount());
+        return requestCopy;
+    }
+
+    public static AddLabelRequest addLabel(String title) {
+        AddLabelRequest request = new AddLabelRequest();
+        request.setTitle(title);
+        return request;
     }
 
 }

@@ -3,8 +3,11 @@ package com.crowdin.cli.commands.picocli;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
+import com.crowdin.cli.properties.ParamsWithFiles;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import picocli.CommandLine;
+
+import java.util.List;
 
 class UploadSourcesCommand extends ActCommandWithFiles {
 
@@ -20,6 +23,9 @@ class UploadSourcesCommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
     protected boolean treeView;
 
+    @CommandLine.Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...")
+    protected List<String> labels;
+
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
@@ -33,5 +39,10 @@ class UploadSourcesCommand extends ActCommandWithFiles {
     @Override
     protected final boolean isAnsi() {
         return super.isAnsi() && !plainView;
+    }
+
+    @Override
+    protected void updateParams(ParamsWithFiles params) {
+        params.setLabels(labels);
     }
 }

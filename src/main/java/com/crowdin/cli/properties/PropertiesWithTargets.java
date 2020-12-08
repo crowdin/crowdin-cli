@@ -42,18 +42,8 @@ public class PropertiesWithTargets extends IdProperties {
         @Override
         public PropertiesBuilder.Messages checkProperties(PropertiesWithTargets props, CheckType checkType) {
             PropertiesBuilder.Messages messages = new PropertiesBuilder.Messages();
-            if (props.getTargets() == null) {
-                if (checkType == CheckType.STANDARD) {
-                    messages.addError(RESOURCE_BUNDLE.getString("error.config.missed_section_targets"));
-                } else if (checkType == CheckType.LINT) {
-                    messages.addWarning(RESOURCE_BUNDLE.getString("warning.config.missed_section_targets"));
-                }
-            } else if (props.getTargets().isEmpty()) {
-                if (checkType == CheckType.STANDARD) {
-                    messages.addError(RESOURCE_BUNDLE.getString("error.config.empty_section_target"));
-                } else if (checkType == CheckType.LINT) {
-                    messages.addWarning(RESOURCE_BUNDLE.getString("warning.config.empty_section_target"));
-                }
+            if (props.getTargets() == null || props.getTargets().isEmpty()) {
+                messages.addError(RESOURCE_BUNDLE.getString("error.config.empty_or_missed_section_targets"));
             } else {
                 for (TargetBean tb : props.getTargets())  {
                     messages.addAllErrors(TargetBean.CONFIGURATOR.checkProperties(tb));

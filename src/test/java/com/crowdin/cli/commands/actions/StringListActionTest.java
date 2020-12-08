@@ -49,6 +49,7 @@ public class StringListActionTest {
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
+        verify(client).listLabels();
         if (file != null) {
             verify(client).listSourceString(101L, null, filter);
         } else {
@@ -96,6 +97,7 @@ public class StringListActionTest {
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
+        verify(client).listLabels();
         verifyNoMoreInteractions(client);
     }
 }

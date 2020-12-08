@@ -7,6 +7,7 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
+import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcestrings.model.SourceString;
 import org.apache.commons.lang3.StringUtils;
@@ -40,6 +41,9 @@ class StringListAction implements NewAction<PropertiesWithFiles, ProjectClient> 
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, client::downloadFullProject);
 
+        Map<Long, String> labels = client.listLabels().stream()
+            .collect(Collectors.toMap(Label::getId, Label::getTitle));
+
         Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
         Map<Long, String> reversePaths = paths.entrySet()
             .stream()
@@ -66,8 +70,14 @@ class StringListAction implements NewAction<PropertiesWithFiles, ProjectClient> 
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.source_string_list_not_found")));
         }
         sourceStrings.forEach(ss -> {
-            out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getText()));
+            String labelsString = (ss.getLabelIds() != null)
+                ? ss.getLabelIds().stream().map(labels::get).map(s -> String.format("[@|cyan %s|@]", s)).collect(Collectors.joining(" "))
+                : "";
+            out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getText(), labelsString));
             if (isVerbose) {
+                if (ss.getIdentifier() != null) {
+                    out.println(String.format("\t- @|bold identifier|@: '%s'", ss.getIdentifier()));
+                }
                 if (ss.getContext() != null) {
                     out.println(String.format(
                         RESOURCE_BUNDLE.getString("message.source_string_list_context"), ss.getContext().trim().replaceAll("\n", "\n\t\t")));

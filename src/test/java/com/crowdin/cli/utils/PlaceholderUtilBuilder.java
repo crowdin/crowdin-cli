@@ -8,7 +8,7 @@ import java.util.List;
 
 public enum PlaceholderUtilBuilder {
     STANDART(
-            new LanguageBuilder[] { LanguageBuilder.DEU, LanguageBuilder.ENG, LanguageBuilder.ENG, LanguageBuilder.ENG },
+            new LanguageBuilder[] { LanguageBuilder.DEU, LanguageBuilder.ENG, LanguageBuilder.RUS, LanguageBuilder.UKR },
             new LanguageBuilder[] { LanguageBuilder.UKR, LanguageBuilder.ENG });
 
     private List<Language> supportedLanguages = new ArrayList<>();

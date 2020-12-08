@@ -113,15 +113,6 @@ files: [
   #
 
   #
-  # Often software projects have custom names for the directories where translations are placed. crowdin-cli allows you to map your own languages to be understandable by Crowdin.
-  #
-  #"languages_mapping" : {
-  #  "two_letters_code" : {
-  #    "crowdin_language_code" : "local_name"
-  #   }
-  #},
-
-  #
   # Does the first line contain header?
   # e.g. true or false
   #

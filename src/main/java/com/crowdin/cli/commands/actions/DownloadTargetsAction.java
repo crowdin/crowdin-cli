@@ -43,24 +43,18 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
     private boolean noProgress;
     private List<String> langIds;
     private boolean isVerbose;
-    private Boolean skipTranslatedOnly;
-    private Boolean skipUntranslatedFiles;
-    private Boolean exportApprovedOnly;
     private boolean plainView;
     private boolean debug;
 
     public DownloadTargetsAction(
-        @NonNull List<String> targetNames, FilesInterface files, boolean noProgress, List<String> langIds, boolean isVerbose,
-        Boolean skipTranslatedOnly, Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView, boolean debug
+        @NonNull List<String> targetNames, FilesInterface files, boolean noProgress,
+        List<String> langIds, boolean isVerbose, boolean plainView, boolean debug
     ) {
         this.targetNames = targetNames;
         this.files = files;
         this.noProgress = noProgress;
         this.langIds = langIds;
         this.isVerbose = isVerbose;
-        this.skipTranslatedOnly = skipTranslatedOnly;
-        this.skipUntranslatedFiles = skipUntranslatedFiles;
-        this.exportApprovedOnly = exportApprovedOnly;
         this.plainView = plainView;
         this.debug = debug;
     }
@@ -129,14 +123,15 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                     List<String> errors = new ArrayList<>();
 
                     if (!FILE_FORMAT_MAPPER.containsKey(FilenameUtils.getExtension(fb.getFile()))) {
-                        errors.add(String.format("Unexpected error: " + RESOURCE_BUNDLE.getString("error.crowdin_not_support_file_format"), FilenameUtils.getExtension(fb.getFile())));
+                        errors.add(String.format("Unexpected error: " + RESOURCE_BUNDLE.getString("error.crowdin_not_support_file_format"),
+                            FilenameUtils.getExtension(fb.getFile())));
                     }
                     String exportFileFormat = FILE_FORMAT_MAPPER.get(FilenameUtils.getExtension(fb.getFile()));
 
-                    Boolean exportWithMinApprovalsCount = exportApprovedOnly;
+                    Boolean exportWithMinApprovalsCount = fb.getExportApprovedOnly();
                     ExportProjectTranslationRequest templateRequest
                         = RequestBuilder.exportProjectTranslation(
-                            exportFileFormat, skipTranslatedOnly, skipUntranslatedFiles, exportWithMinApprovalsCount);
+                            exportFileFormat, fb.getSkipTranslatedOnly(), fb.getSkipUntranslatedFiles(), exportWithMinApprovalsCount);
                     if (fb.getSources() != null && !fb.getSources().isEmpty()) {
                         List<Long> sourceIds = new ArrayList<>();
                         for (String source : fb.getSources()) {
@@ -196,7 +191,8 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                         String listOfErrors = errors.stream()
                             .map(er -> String.format("\t- %s", er))
                             .collect(Collectors.joining("\n"));
-                        throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.target_has_list_of_errors") + "\n%s", tb.getName(), listOfErrors));
+                        throw new RuntimeException(
+                            String.format(RESOURCE_BUNDLE.getString("error.target_has_list_of_errors") + "\n%s", tb.getName(), listOfErrors));
                     } else {
                         return builtRequests.stream();
                     }

@@ -15,11 +15,15 @@ import static com.crowdin.cli.properties.PropertiesBuilder.CONTENT_SEGMENTATION;
 import static com.crowdin.cli.properties.PropertiesBuilder.DEST;
 import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_QUOTES;
 import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_SPECIAL_CHARACTERS;
+import static com.crowdin.cli.properties.PropertiesBuilder.EXPORT_APPROVED_ONLY;
 import static com.crowdin.cli.properties.PropertiesBuilder.FIRST_LINE_CONTAINS_HEADER;
 import static com.crowdin.cli.properties.PropertiesBuilder.IGNORE;
+import static com.crowdin.cli.properties.PropertiesBuilder.LABELS;
 import static com.crowdin.cli.properties.PropertiesBuilder.LANGUAGES_MAPPING;
 import static com.crowdin.cli.properties.PropertiesBuilder.MULTILINGUAL_SPREADSHEET;
 import static com.crowdin.cli.properties.PropertiesBuilder.SCHEME;
+import static com.crowdin.cli.properties.PropertiesBuilder.SKIP_UNTRANSLATED_FILES;
+import static com.crowdin.cli.properties.PropertiesBuilder.SKIP_UNTRANSLATED_STRINGS;
 import static com.crowdin.cli.properties.PropertiesBuilder.SOURCE;
 import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATABLE_ELEMENTS;
 import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATE_ATTRIBUTES;
@@ -53,6 +57,10 @@ public class FileBean {
     private Integer escapeQuotes;
     private Integer escapeSpecialCharacters;
     private Map<String, String> translationReplace;
+    private Boolean skipTranslatedOnly;
+    private Boolean skipUntranslatedFiles;
+    private Boolean exportApprovedOnly;
+    private List<String> labels;
 
     static class FileBeanConfigurator implements BeanConfigurator<FileBean> {
 
@@ -80,6 +88,10 @@ public class FileBean {
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setTranslateContent,          map, TRANSLATE_CONTENT);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setContentSegmentation,       map, CONTENT_SEGMENTATION);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setMultilingualSpreadsheet,   map, MULTILINGUAL_SPREADSHEET);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setSkipTranslatedOnly,   map, SKIP_UNTRANSLATED_STRINGS);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setSkipUntranslatedFiles,     map, SKIP_UNTRANSLATED_FILES);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setExportApprovedOnly,        map, EXPORT_APPROVED_ONLY);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setLabels,                    map, LABELS, List.class);
             return fileBean;
         }
 
@@ -166,6 +178,10 @@ public class FileBean {
 
             if (StringUtils.isNotEmpty(bean.getDest()) && SourcesUtils.containsPattern(bean.getSource())) {
                 errors.add(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
+            }
+            if (bean.getSkipTranslatedOnly() != null && bean.getSkipUntranslatedFiles() != null
+                && bean.getSkipTranslatedOnly() && bean.getSkipUntranslatedFiles()) {
+                errors.add(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
             }
             return errors;
         }

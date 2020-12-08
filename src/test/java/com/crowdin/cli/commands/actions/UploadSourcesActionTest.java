@@ -66,6 +66,7 @@ public class UploadSourcesActionTest {
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
+        verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
                 setName("first.po");
@@ -114,6 +115,7 @@ public class UploadSourcesActionTest {
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
+        verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         verify(client).addDirectory(eq(addDirectoryRequest));
         verify(client).uploadStorage(eq("second.po"), any());
@@ -189,6 +191,7 @@ public class UploadSourcesActionTest {
 
         verify(client).downloadFullProject();
         verify(client).addBranch(addBranchRequest);
+        verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
                 setName("first.po");
@@ -226,6 +229,7 @@ public class UploadSourcesActionTest {
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
+        verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
                 setName("first.po");
@@ -262,6 +266,7 @@ public class UploadSourcesActionTest {
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
+        verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
                 setName("first.po");
@@ -300,6 +305,7 @@ public class UploadSourcesActionTest {
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
+        verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
                 setName("first.po");
@@ -337,6 +343,7 @@ public class UploadSourcesActionTest {
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
+        verify(client).listLabels();
         verify(client).uploadStorage(eq("last.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
                 setName("last.po");
@@ -377,6 +384,7 @@ public class UploadSourcesActionTest {
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
+        verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         verify(client).uploadStorage(eq("second.po"), any());
         UpdateFileRequest updateFileRequest = new UpdateFileRequest() {{
@@ -428,6 +436,7 @@ public class UploadSourcesActionTest {
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
+        verify(client).listLabels();
         verify(client).uploadStorage(eq("first.csv"), any());
         Map<String, Integer> scheme = new HashMap<>();
         scheme.put("identifier", 0);

@@ -9,7 +9,7 @@ import java.util.Map;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
-public class PropertiesWithTargetsBuilder extends PropertiesBuilder<PropertiesWithTargets, ProjectParams> {
+public class PropertiesWithTargetsBuilder extends PropertiesBuilder<PropertiesWithTargets, ParamsWithTargets> {
 
     public PropertiesWithTargetsBuilder(Outputter outputter) {
         super(outputter);
@@ -37,7 +37,7 @@ public class PropertiesWithTargetsBuilder extends PropertiesBuilder<PropertiesWi
     }
 
     @Override
-    protected Messages checkArgParams(@NonNull ProjectParams params) {
+    protected Messages checkArgParams(@NonNull ParamsWithTargets params) {
         Messages messages = new Messages();
         if (params == null) {
             return messages;
@@ -45,11 +45,15 @@ public class PropertiesWithTargetsBuilder extends PropertiesBuilder<PropertiesWi
         if (params.getBaseUrlParam() != null && !checkBaseUrl(params.getBaseUrlParam())) {
             messages.addError(RESOURCE_BUNDLE.getString("error.config.wrong_base_url"));
         }
+        if (params.getSkipTranslatedOnly() != null && params.getSkipUntranslatedFiles() != null
+            && params.getSkipTranslatedOnly() && params.getSkipUntranslatedFiles()) {
+            messages.addError(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
+        }
         return messages;
     }
 
     @Override
-    protected void populateWithArgParams(PropertiesWithTargets props, @NonNull ProjectParams params) {
+    protected void populateWithArgParams(PropertiesWithTargets props, @NonNull ParamsWithTargets params) {
         if (params.getIdParam() != null) {
             props.setProjectId(params.getIdParam());
         }
@@ -61,6 +65,19 @@ public class PropertiesWithTargetsBuilder extends PropertiesBuilder<PropertiesWi
         }
         if (params.getBaseUrlParam() != null) {
             props.setBaseUrl(params.getBaseUrlParam());
+        }
+        for (TargetBean tb : props.getTargets()) {
+            for (TargetBean.FileBean fb : tb.getFiles()) {
+                if (params.getSkipTranslatedOnly() != null) {
+                    fb.setSkipTranslatedOnly(params.getSkipTranslatedOnly());
+                }
+                if (params.getSkipUntranslatedFiles() != null) {
+                    fb.setSkipUntranslatedFiles(params.getSkipUntranslatedFiles());
+                }
+                if (params.getExportApprovedOnly() != null) {
+                    fb.setExportApprovedOnly(params.getExportApprovedOnly());
+                }
+            }
         }
     }
 

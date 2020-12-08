@@ -24,11 +24,9 @@ public class CliActions implements Actions {
     @Override
     public NewAction<PropertiesWithFiles, ProjectClient> download(
         FilesInterface files, boolean noProgress, String languageId, boolean pseudo, String branchName,
-        boolean ignoreMatch, boolean isVerbose, Boolean skipTranslatedOnly,
-        Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView
+        boolean ignoreMatch, boolean isVerbose, boolean plainView
     ) {
-        return new DownloadAction(files, noProgress, languageId, pseudo, branchName, ignoreMatch, isVerbose,
-            skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly, plainView);
+        return new DownloadAction(files, noProgress, languageId, pseudo, branchName, ignoreMatch, isVerbose, plainView);
     }
 
     @Override
@@ -158,11 +156,10 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<PropertiesWithTargets, ProjectClient> downloadTargets(
-        List<String> targetNames, FilesInterface files, boolean noProgress, List<String> langIds, boolean isVerbose,
-        Boolean skipTranslatedOnly, Boolean skipUntranslatedFiles, Boolean exportApprovedOnly, boolean plainView, boolean debug
+        List<String> targetNames, FilesInterface files, boolean noProgress,
+        List<String> langIds, boolean isVerbose, boolean plainView, boolean debug
     ) {
-        return new DownloadTargetsAction(targetNames, files, noProgress, langIds, isVerbose, skipTranslatedOnly,
-            skipUntranslatedFiles, exportApprovedOnly, plainView, debug);
+        return new DownloadTargetsAction(targetNames, files, noProgress, langIds, isVerbose, plainView, debug);
     }
 
 

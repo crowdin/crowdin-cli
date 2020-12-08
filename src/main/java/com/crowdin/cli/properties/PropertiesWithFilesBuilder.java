@@ -8,8 +8,11 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
@@ -66,6 +69,10 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
         } else if (params.getSourceParam() != null ^ params.getTranslationParam() != null) {
             messages.addError(RESOURCE_BUNDLE.getString("error.config.params_xor_source_translation"));
         }
+        if (params.getSkipTranslatedOnly() != null && params.getSkipUntranslatedFiles() != null
+            && params.getSkipTranslatedOnly() && params.getSkipUntranslatedFiles()) {
+            messages.addError(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
+        }
         return messages;
     }
 
@@ -100,6 +107,22 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
                 fb.setTranslation(params.getTranslationParam());
             }
             props.setFiles(Arrays.asList(fb));
+        }
+        for (FileBean fb : props.getFiles()) {
+            if (params.getSkipTranslatedOnly() != null) {
+                fb.setSkipTranslatedOnly(params.getSkipTranslatedOnly());
+            }
+            if (params.getSkipUntranslatedFiles() != null) {
+                fb.setSkipUntranslatedFiles(params.getSkipUntranslatedFiles());
+            }
+            if (params.getExportApprovedOnly() != null) {
+                fb.setExportApprovedOnly(params.getExportApprovedOnly());
+            }
+            if (params.getLabels() != null) {
+                Set<String> labels = (fb.getLabels() != null) ? new HashSet<>(fb.getLabels()) : new HashSet<>();
+                labels.addAll(params.getLabels());
+                fb.setLabels(new ArrayList<>(labels));
+            }
         }
     }
 

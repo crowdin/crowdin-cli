@@ -80,8 +80,17 @@ public class PropertiesBuilderChecker extends PropertiesBuilder<AllProperties, N
         }
         messages.populate(BaseProperties.CONFIGURATOR.checkProperties(props.getIdProperties(), PropertiesConfigurator.CheckType.LINT));
         messages.populate(IdProperties.CONFIGURATOR.checkProperties(props.getIdProperties(), PropertiesConfigurator.CheckType.LINT));
-        messages.populate(PropertiesWithFiles.CONFIGURATOR.checkProperties(props.getPropertiesWithFiles(), PropertiesConfigurator.CheckType.LINT));
-        messages.populate(PropertiesWithTargets.CONFIGURATOR.checkProperties(props.getPropertiesWithTargets(), PropertiesConfigurator.CheckType.LINT));
+        if (!props.getPropertiesWithTargets().getTargets().isEmpty()) {
+            messages.populate(PropertiesWithTargets.CONFIGURATOR.checkProperties(
+                props.getPropertiesWithTargets(), PropertiesConfigurator.CheckType.LINT));
+        }
+        if (!props.getPropertiesWithFiles().getFiles().isEmpty()) {
+            messages.populate(PropertiesWithFiles.CONFIGURATOR.checkProperties(
+                props.getPropertiesWithFiles(), PropertiesConfigurator.CheckType.LINT));
+        }
+        if (props.getPropertiesWithTargets().getTargets().isEmpty() && props.getPropertiesWithFiles().getFiles().isEmpty()) {
+            messages.addError(RESOURCE_BUNDLE.getString("error.config.empty_or_missed_section_files"));
+        }
         return messages;
     }
 }

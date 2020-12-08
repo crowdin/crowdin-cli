@@ -6,11 +6,13 @@ import net.lingala.zip4j.core.ZipFile;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class FsFiles implements FilesInterface {
 
@@ -21,18 +23,13 @@ public class FsFiles implements FilesInterface {
 
     @Override
     public void copyFile(File fromFile, File toFile) {
-        if (!toFile.getParentFile().exists()) {
-            boolean isCreated = toFile.getParentFile().mkdirs();
-            if (!isCreated) {
-                throw new RuntimeException(String.format("Couldn't create path '%s'", toFile.getParentFile()));
+        try {
+            if (toFile.toPath().getParent() != null) {
+                Files.createDirectories(toFile.toPath().getParent());
             }
-        }
-        if (!fromFile.renameTo(toFile)) {
-            if (toFile.delete()) {
-                if (!fromFile.renameTo(toFile)) {
-                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.replacing_file"), toFile.getAbsolutePath()));
-                }
-            }
+            java.nio.file.Files.copy(fromFile.toPath(), toFile.toPath(), REPLACE_EXISTING);
+        } catch (IOException e) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.replacing_file"), toFile.getAbsolutePath()), e);
         }
     }
 
