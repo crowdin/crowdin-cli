@@ -10,7 +10,9 @@ import com.crowdin.client.glossaries.model.Term;
 import java.util.List;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 class GlossaryListAction implements NewAction<BaseProperties, ClientGlossary> {
 
@@ -29,11 +31,15 @@ class GlossaryListAction implements NewAction<BaseProperties, ClientGlossary> {
             if (!plainView) {
                 out.println(OK.withIcon(
                     String.format(RESOURCE_BUNDLE.getString("message.glossary.list"), glossary.getName(), glossary.getId(), glossary.getTerms())));
-                if (isVerbose) {
-                    List<Term> terms = client.listTerms(glossary.getId());
-                    for (Term term : terms) {
-                        out.println(String.format(
-                            RESOURCE_BUNDLE.getString("message.glossary.list_term"), term.getId(), term.getText(), term.getDescription()));
+                if (isVerbose && (glossary.getTerms() == null || glossary.getTerms() > 0)) {
+                    try {
+                        List<Term> terms = client.listTerms(glossary.getId());
+                        for (Term term : terms) {
+                            out.println(String.format(
+                                RESOURCE_BUNDLE.getString("message.glossary.list_term"), term.getId(), term.getText(), term.getDescription()));
+                        }
+                    } catch (Exception e) {
+                        out.println(WARNING.withIcon(e.getMessage()));
                     }
                 }
             } else {
