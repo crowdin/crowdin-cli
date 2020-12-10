@@ -107,7 +107,7 @@ public class FileHelper {
             } else {
                 matchers.add(new FileMatcher(pattern, basePath));
                 if (pattern.contains("**")) {
-                    matchers.add(new FileMatcher(pattern.replace(Utils.PATH_SEPARATOR, ""), basePath));
+                    matchers.add(new FileMatcher(pattern.replace("**" + Utils.PATH_SEPARATOR, ""), basePath));
                 }
             }
         }
