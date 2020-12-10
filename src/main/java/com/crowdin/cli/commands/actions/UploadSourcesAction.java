@@ -18,7 +18,9 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
+import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.Label;
+import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
@@ -40,6 +42,7 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -70,6 +73,17 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, this.plainView, client::downloadFullProject);
 
+        boolean containsExcludedLanguages = pb.getFiles().stream()
+            .map(FileBean::getExcludedTargetLanguages).filter(Objects::nonNull).anyMatch(l -> !l.isEmpty());
+        if (!project.isManagerAccess() && containsExcludedLanguages) {
+            if (!plainView) {
+                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access_for_excluded_languages")));
+                return;
+            } else {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access_for_excluded_languages"));
+            }
+        }
+
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
 
         Branch branchId = (branchName != null) ? this.getOrCreateBranch(out, branchName, client, project) : null;
@@ -92,6 +106,15 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
         AtomicBoolean errorsPresented = new AtomicBoolean(false);
         List<Runnable> tasks = pb.getFiles().stream()
             .map(file -> (Runnable) () -> {
+
+                try {
+                    this.checkExcludedTargetLanguages(file.getExcludedTargetLanguages(),
+                        project.getSupportedLanguages(), project.getProjectLanguages(false));
+                } catch (Exception e) {
+                    errorsPresented.set(true);
+                    throw e;
+                }
+
                 List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
                     .map(File::getAbsolutePath)
                     .collect(Collectors.toList());
@@ -150,6 +173,13 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
                                 try {
                                     client.updateSource(sourceId, request);
+                                    if (file.getExcludedTargetLanguages() != null && !file.getExcludedTargetLanguages().isEmpty()) {
+                                        List<String> projectFileExcludedTargetLanguages = ((com.crowdin.client.sourcefiles.model.File) projectFile).getExcludedTargetLanguages();
+                                        if (!file.getExcludedTargetLanguages().equals(projectFileExcludedTargetLanguages)) {
+                                            List<PatchRequest> editRequest = RequestBuilder.updateExcludedTargetLanguages(file.getExcludedTargetLanguages());
+                                            client.editSource(sourceId, editRequest);
+                                        }
+                                    }
                                     if (!plainView) {
                                         out.println(
                                             OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
@@ -158,7 +188,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     }
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
-                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath), e);
+                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
                                 }
                             };
                         } else if (projectFile == null) {
@@ -166,6 +196,9 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             request.setName(fileName);
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
                             request.setImportOptions(buildImportOptions(sourceFile, file));
+                            if (file.getExcludedTargetLanguages() != null && !file.getExcludedTargetLanguages().isEmpty()) {
+                                request.setExcludedTargetLanguages(file.getExcludedTargetLanguages());
+                            }
                             if (file.getType() != null) {
                                 request.setType(file.getType());
                             }
@@ -285,6 +318,31 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             }
             project.addBranchToLocalList(newBranch);
             return newBranch;
+        }
+    }
+
+    private void checkExcludedTargetLanguages(List<String> excludedTargetLanguages, List<Language> supportedLanguages, List<Language> projectLanguages) {
+        if (excludedTargetLanguages != null && !excludedTargetLanguages.isEmpty()) {
+            List<String> supportedLanguageIds = supportedLanguages.stream()
+                .map(Language::getId)
+                .collect(Collectors.toList());
+            List<String> projectLanguageIds = projectLanguages.stream()
+                .map(Language::getId)
+                .collect(Collectors.toList());
+            String notSupportedLangs = excludedTargetLanguages.stream()
+                .filter(lang -> !supportedLanguageIds.contains(lang))
+                .map(lang -> "'" + lang + "'")
+                .collect(Collectors.joining(", "));
+            if (notSupportedLangs.length() > 0) {
+                throw new RuntimeException(String.format("Crowdin doesn't support %s language code(s)", notSupportedLangs));
+            }
+            String notInProjectLangs = excludedTargetLanguages.stream()
+                .filter(lang -> !projectLanguageIds.contains(lang))
+                .map(lang -> "'" + lang + "'")
+                .collect(Collectors.joining(", "));
+            if (notInProjectLangs.length() > 0) {
+                throw new RuntimeException(String.format("Project doesn't have %s language(s)", notInProjectLangs));
+            }
         }
     }
 }

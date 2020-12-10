@@ -15,6 +15,7 @@ import static com.crowdin.cli.properties.PropertiesBuilder.CONTENT_SEGMENTATION;
 import static com.crowdin.cli.properties.PropertiesBuilder.DEST;
 import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_QUOTES;
 import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_SPECIAL_CHARACTERS;
+import static com.crowdin.cli.properties.PropertiesBuilder.EXCLUDED_TARGET_LANGUAGES;
 import static com.crowdin.cli.properties.PropertiesBuilder.EXPORT_APPROVED_ONLY;
 import static com.crowdin.cli.properties.PropertiesBuilder.FIRST_LINE_CONTAINS_HEADER;
 import static com.crowdin.cli.properties.PropertiesBuilder.IGNORE;
@@ -61,6 +62,7 @@ public class FileBean {
     private Boolean skipUntranslatedFiles;
     private Boolean exportApprovedOnly;
     private List<String> labels;
+    private List<String> excludedTargetLanguages;
 
     static class FileBeanConfigurator implements BeanConfigurator<FileBean> {
 
@@ -92,6 +94,7 @@ public class FileBean {
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setSkipUntranslatedFiles,     map, SKIP_UNTRANSLATED_FILES);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setExportApprovedOnly,        map, EXPORT_APPROVED_ONLY);
             PropertiesBuilder.setPropertyIfExists(fileBean::setLabels,                    map, LABELS, List.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setExcludedTargetLanguages,   map, EXCLUDED_TARGET_LANGUAGES, List.class);
             return fileBean;
         }
 

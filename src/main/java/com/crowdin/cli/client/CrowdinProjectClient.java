@@ -153,6 +153,12 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public void editSource(Long fileId, List<PatchRequest> request) {
+        executeRequest(() -> this.client.getSourceFilesApi()
+            .editFile(this.projectId, fileId, request));
+    }
+
+    @Override
     public void uploadTranslations(String languageId, UploadTranslationsRequest request) {
         executeRequestWithPossibleRetry(
             (code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"),

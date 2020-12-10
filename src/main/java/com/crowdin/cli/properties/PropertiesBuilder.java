@@ -109,6 +109,8 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String EXPORT_APPROVED_ONLY = "export_only_approved";
 
+    public static final String EXCLUDED_TARGET_LANGUAGES = "excluded_target_languages";
+
     private Outputter out;
     private Map<String, Object> configFileParams;
     private Map<String, Object> identityFileParams;
