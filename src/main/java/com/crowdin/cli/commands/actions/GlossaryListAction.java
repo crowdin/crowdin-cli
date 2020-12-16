@@ -39,7 +39,7 @@ class GlossaryListAction implements NewAction<BaseProperties, ClientGlossary> {
                                 RESOURCE_BUNDLE.getString("message.glossary.list_term"), term.getId(), term.getText(), term.getDescription()));
                         }
                     } catch (Exception e) {
-                        out.println(WARNING.withIcon(e.getMessage()));
+                        out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("error.glossary.no_permission")));
                     }
                 }
             } else {

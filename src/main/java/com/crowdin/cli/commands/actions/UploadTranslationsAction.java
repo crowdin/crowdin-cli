@@ -98,7 +98,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
 
             if (fileSourcesWithoutIgnores.isEmpty()) {
                 if (!plainView) {
-                    out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("error.no_sources")));
+                    out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("error.no_sources"), file.getSource())));
                 }
                 continue;
             }

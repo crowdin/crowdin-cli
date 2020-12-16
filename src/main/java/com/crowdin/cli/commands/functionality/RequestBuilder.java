@@ -144,6 +144,7 @@ public class RequestBuilder {
         copy.setSkipUntranslatedStrings(request.getSkipUntranslatedStrings());
         copy.setSkipUntranslatedFiles(request.getSkipUntranslatedFiles());
         copy.setExportApprovedOnly(request.getExportApprovedOnly());
+        copy.setExportWithMinApprovalsCount(request.getExportWithMinApprovalsCount());
         return copy;
     }
 
