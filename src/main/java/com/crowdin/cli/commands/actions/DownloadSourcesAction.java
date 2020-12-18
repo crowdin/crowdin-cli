@@ -25,6 +25,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
@@ -78,28 +79,34 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
         List<Runnable> tasks = properties
             .getFiles()
             .stream()
-            .flatMap(fileBean -> SourcesUtils
-                .filterProjectFiles(
-                    new ArrayList<>(filePaths.keySet()), fileBean.getSource(),
-                    fileBean.getIgnore(), properties.getPreserveHierarchy(), placeholderUtil)
-                .stream()
-                .sorted()
-                .map(filePath -> (Runnable) () -> {
-                    Long fileId = filePaths.get(filePath).getId();
-                    this.downloadFile(client, fileId, Utils.joinPaths(properties.getBasePath(), filePath));
-                    isAnyFileDownloaded.set(true);
-                    if (!plainView) {
-                        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));
-                    } else {
-                        out.println(filePath);
-                    }
-                })
+            .flatMap(fileBean -> {
+                List<String> foundSources = SourcesUtils
+                    .filterProjectFiles(
+                        new ArrayList<>(filePaths.keySet()), fileBean.getSource(),
+                        fileBean.getIgnore(), properties.getPreserveHierarchy(), placeholderUtil);
+                if (foundSources.isEmpty()) {
+                    return Stream.of((Runnable) () -> {
+                        if (!plainView) {
+                            out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.no_sources"), fileBean.getSource())));
+                        }
+                    });
+                }
+                return foundSources
+                    .stream()
+                    .sorted()
+                    .map(filePath -> (Runnable) () -> {
+                        Long fileId = filePaths.get(filePath).getId();
+                        this.downloadFile(client, fileId, Utils.joinPaths(properties.getBasePath(), filePath));
+                        isAnyFileDownloaded.set(true);
+                        if (!plainView) {
+                            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));
+                        } else {
+                            out.println(filePath);
+                        }
+                    });
+                }
             ).collect(Collectors.toList());
         ConcurrencyUtil.executeAndWait(tasks, debug);
-
-        if (!isAnyFileDownloaded.get()) {
-            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("error.no_sources")));
-        }
     }
 
     private void downloadFile(ProjectClient client, Long fileId, String filePath) {
