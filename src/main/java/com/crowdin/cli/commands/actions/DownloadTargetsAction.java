@@ -7,6 +7,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.TargetBean;
@@ -61,6 +62,8 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
 
     @Override
     public void act(Outputter out, PropertiesWithTargets pb, ProjectClient client) {
+        boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
+
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
                 this.noProgress, this.plainView, client::downloadFullProject);
@@ -128,10 +131,12 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                     }
                     String exportFileFormat = FILE_FORMAT_MAPPER.get(FilenameUtils.getExtension(fb.getFile()));
 
-                    Boolean exportWithMinApprovalsCount = fb.getExportApprovedOnly();
-                    ExportProjectTranslationRequest templateRequest
-                        = RequestBuilder.exportProjectTranslation(
-                            exportFileFormat, fb.getSkipTranslatedOnly(), fb.getSkipUntranslatedFiles(), exportWithMinApprovalsCount);
+                    Integer exportWithMinApprovalsCount = (fb.getExportApprovedOnly() != null && fb.getExportApprovedOnly()) ? 1 : null;
+                    ExportProjectTranslationRequest templateRequest = (isOrganization)
+                        ? RequestBuilder.exportProjectTranslation(
+                            exportFileFormat, fb.getSkipTranslatedOnly(), fb.getSkipUntranslatedFiles(), exportWithMinApprovalsCount)
+                        : RequestBuilder.exportProjectTranslation(
+                            exportFileFormat, fb.getSkipTranslatedOnly(), fb.getSkipUntranslatedFiles(), fb.getExportApprovedOnly());
                     if (fb.getSources() != null && !fb.getSources().isEmpty()) {
                         List<Long> sourceIds = new ArrayList<>();
                         for (String source : fb.getSources()) {

@@ -1,6 +1,6 @@
 package com.crowdin.cli.client;
 
-class RepeatException extends Exception {
+class RepeatException extends ResponseException {
 
     public RepeatException() {
         super();

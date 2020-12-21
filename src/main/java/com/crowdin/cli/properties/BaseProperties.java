@@ -18,6 +18,7 @@ import static com.crowdin.cli.properties.PropertiesBuilder.BASE_PATH;
 import static com.crowdin.cli.properties.PropertiesBuilder.BASE_PATH_ENV;
 import static com.crowdin.cli.properties.PropertiesBuilder.BASE_URL;
 import static com.crowdin.cli.properties.PropertiesBuilder.BASE_URL_ENV;
+import static com.crowdin.cli.properties.PropertiesBuilder.SETTINGS;
 import static com.crowdin.cli.properties.PropertiesBuilder.checkBasePathExists;
 import static com.crowdin.cli.properties.PropertiesBuilder.checkBasePathIsDir;
 import static com.crowdin.cli.properties.PropertiesBuilder.checkBaseUrl;
@@ -30,6 +31,7 @@ public class BaseProperties implements Properties {
     private String apiToken;
     private String basePath;
     private String baseUrl;
+    private SettingsBean settings;
 
     static class BasePropertiesConfigurator implements PropertiesConfigurator<BaseProperties> {
 
@@ -42,6 +44,7 @@ public class BaseProperties implements Properties {
             PropertiesBuilder.setEnvOrPropertyIfExists(props::setApiToken, map, API_TOKEN_ENV, API_TOKEN);
             PropertiesBuilder.setEnvOrPropertyIfExists(props::setBasePath, map, BASE_PATH_ENV, BASE_PATH);
             PropertiesBuilder.setEnvOrPropertyIfExists(props::setBaseUrl, map, BASE_URL_ENV, BASE_URL);
+            props.setSettings(SettingsBean.CONFIGURATOR.buildFromMap(PropertiesBuilder.getMap(map, SETTINGS)));
         }
 
         @Override
@@ -69,6 +72,10 @@ public class BaseProperties implements Properties {
             } else {
                 props.setBaseUrl(Utils.getBaseUrl());
             }
+            if (props.getSettings() == null) {
+                props.setSettings(new SettingsBean());
+            }
+            SettingsBean.CONFIGURATOR.populateWithDefaultValues(props.getSettings());
         }
 
         @Override
@@ -93,6 +100,7 @@ public class BaseProperties implements Properties {
             } else {
                 messages.addError(RESOURCE_BUNDLE.getString("error.config.base_path_empty"));
             }
+            messages.addAllErrors(SettingsBean.CONFIGURATOR.checkProperties(props.settings));
             return messages;
         }
     }

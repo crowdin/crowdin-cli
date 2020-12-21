@@ -4,10 +4,12 @@ import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static com.crowdin.cli.BaseCli.IGNORE_HIDDEN_FILES_PATTERN;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.properties.PropertiesBuilder.FILES;
 import static com.crowdin.cli.properties.PropertiesBuilder.PRESERVE_HIERARCHY;
@@ -42,6 +44,13 @@ public class PropertiesWithFiles extends IdProperties {
         @Override
         public void populateWithDefaultValues(PropertiesWithFiles props) {
             props.setPreserveHierarchy(props.getPreserveHierarchy() != null ? props.getPreserveHierarchy() : Boolean.FALSE);
+            if (props.getSettings().getIgnoreHiddenFiles() && props.getFiles() != null) {
+                for (FileBean fb : props.getFiles()) {
+                    List<String> ignores = (fb.getIgnore() != null) ? fb.getIgnore() : new ArrayList<>();
+                    ignores.add(IGNORE_HIDDEN_FILES_PATTERN);
+                    fb.setIgnore(ignores);
+                }
+            }
             if (props.getFiles() != null) {
                 for (FileBean file : props.getFiles()) {
                     FileBean.CONFIGURATOR.populateWithDefaultValues(file);

@@ -123,6 +123,16 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
                 labels.addAll(params.getLabels());
                 fb.setLabels(new ArrayList<>(labels));
             }
+            if (params.getExcludedTargetLanguages() != null && !params.getExcludedTargetLanguages().isEmpty()) {
+                if (fb.getExcludedTargetLanguages() == null) {
+                    fb.setExcludedTargetLanguages(new ArrayList<>());
+                }
+                for (String lang : params.getExcludedTargetLanguages()) {
+                    if (!fb.getExcludedTargetLanguages().contains(lang)) {
+                        fb.getExcludedTargetLanguages().add(lang);
+                    }
+                }
+            }
         }
     }
 

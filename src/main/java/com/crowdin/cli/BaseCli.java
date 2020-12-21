@@ -51,4 +51,6 @@ public class BaseCli {
     public static final String HTTP_PROXY_PORT_ENV = "HTTP_PROXY_PORT";
     public static final String HTTP_PROXY_USER_ENV = "HTTP_PROXY_USER";
     public static final String HTTP_PROXY_PASSWORD_ENV = "HTTP_PROXY_PASSWORD";
+
+    public static final String IGNORE_HIDDEN_FILES_PATTERN = "**/.*";
 }

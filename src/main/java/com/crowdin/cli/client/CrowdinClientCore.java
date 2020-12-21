@@ -83,6 +83,19 @@ abstract class CrowdinClientCore {
         }
     }
 
+    protected static <T> T executeRequestWithPossibleRetry(Map<BiPredicate<String, String>, ResponseException> errorHandlers, Supplier<T> request) throws ResponseException {
+        try {
+            return executeRequest(errorHandlers, request);
+        } catch (RepeatException e) {
+            try {
+                Thread.sleep(millisToRetry);
+            } catch (InterruptedException ie) {
+//                    ignore
+            }
+            return executeRequest(request);
+        }
+    }
+
     protected static <T> T executeRequest(Supplier<T> r) {
         return executeRequest(new HashMap<BiPredicate<String, String>, RuntimeException>(), r);
     }

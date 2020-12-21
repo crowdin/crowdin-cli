@@ -26,6 +26,9 @@ class UploadSourcesCommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...")
     protected List<String> labels;
 
+    @CommandLine.Option(names = {"--excluded-language"}, descriptionKey = "params.excluded-languages", paramLabel = "...")
+    protected List<String> excludedLanguages;
+
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
@@ -44,5 +47,6 @@ class UploadSourcesCommand extends ActCommandWithFiles {
     @Override
     protected void updateParams(ParamsWithFiles params) {
         params.setLabels(labels);
+        params.setExcludedTargetLanguages(excludedLanguages);
     }
 }

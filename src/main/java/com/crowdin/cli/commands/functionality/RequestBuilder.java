@@ -18,6 +18,8 @@ import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuil
 import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 public class RequestBuilder {
@@ -120,6 +122,17 @@ public class RequestBuilder {
         return request;
     }
 
+    public static ExportProjectTranslationRequest exportProjectTranslation(
+        String format, Boolean skipUntranslatedStrings, Boolean skipUntranslatedFiles, Integer exportWithMinApprovalsCount
+    ) {
+        ExportProjectTranslationRequest request = new ExportProjectTranslationRequest();
+        request.setFormat(format);
+        request.setSkipUntranslatedStrings(skipUntranslatedStrings);
+        request.setSkipUntranslatedFiles(skipUntranslatedFiles);
+        request.setExportWithMinApprovalsCount(exportWithMinApprovalsCount);
+        return request;
+    }
+
     public static ExportProjectTranslationRequest exportProjectTranslation(ExportProjectTranslationRequest request) {
         ExportProjectTranslationRequest copy = new ExportProjectTranslationRequest();
         copy.setTargetLanguageId(request.getTargetLanguageId());
@@ -131,6 +144,7 @@ public class RequestBuilder {
         copy.setSkipUntranslatedStrings(request.getSkipUntranslatedStrings());
         copy.setSkipUntranslatedFiles(request.getSkipUntranslatedFiles());
         copy.setExportApprovedOnly(request.getExportApprovedOnly());
+        copy.setExportWithMinApprovalsCount(request.getExportWithMinApprovalsCount());
         return copy;
     }
 
@@ -162,6 +176,16 @@ public class RequestBuilder {
     public static AddLabelRequest addLabel(String title) {
         AddLabelRequest request = new AddLabelRequest();
         request.setTitle(title);
+        return request;
+    }
+
+    public static List<PatchRequest> updateExcludedTargetLanguages(List<String> excludedTargetLanguages) {
+        List<PatchRequest> request = new ArrayList<>();
+        PatchRequest patchRequest = new PatchRequest();
+        patchRequest.setPath("/excludedTargetLanguages");
+        patchRequest.setOp(PatchOperation.REPLACE);
+        patchRequest.setValue(excludedTargetLanguages);
+        request.add(patchRequest);
         return request;
     }
 

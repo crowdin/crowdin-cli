@@ -109,6 +109,12 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String EXPORT_APPROVED_ONLY = "export_only_approved";
 
+    public static final String EXCLUDED_TARGET_LANGUAGES = "excluded_target_languages";
+
+    public static final String SETTINGS = "settings";
+
+    public static final String IGNORE_HIDDEN_FILES = "ignore_hidden_files";
+
     private Outputter out;
     private Map<String, Object> configFileParams;
     private Map<String, Object> identityFileParams;
@@ -214,8 +220,8 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
     static void setBooleanPropertyIfExists(Consumer<Boolean> setter, Map<String, Object> properties, String key) {
         Boolean param = properties.containsKey(key)
             ? properties.get(key).toString().equals("1")
-            ? Boolean.TRUE
-            : Boolean.valueOf(properties.get(key).toString())
+                ? Boolean.TRUE
+                : Boolean.valueOf(properties.get(key).toString())
             : null;
         if (param != null) {
             setter.accept(param);

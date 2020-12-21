@@ -22,6 +22,8 @@ public class ParamsWithFiles extends ProjectParams {
 
     private List<String> labels;
 
+    private List<String> excludedTargetLanguages;
+
     public void setExportOptions(Boolean skipTranslatedOnly, Boolean skipUntranslatedFiles, Boolean exportApprovedOnly) {
         this.skipTranslatedOnly = skipTranslatedOnly;
         this.skipUntranslatedFiles = skipUntranslatedFiles;
