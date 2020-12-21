@@ -1,6 +1,19 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.5.1]
+
+### Added
+
+- Ability to exclude target languages for source files ([#331](https://github.com/crowdin/crowdin-cli/pull/331))
+- Ability to ignore hidden files during sources upload ([#331](https://github.com/crowdin/crowdin-cli/pull/331))
+
+### Fixed
+
+- Fix 'glossary list --verbose' for non-managers ([#331](https://github.com/crowdin/crowdin-cli/pull/331))
+- Fix 'download targets' for enterprise ([#331](https://github.com/crowdin/crowdin-cli/pull/331))
+- Fix one message and add handler to 'add source' request ([#331](https://github.com/crowdin/crowdin-cli/pull/331))
+
 ## [3.5.0]
 
 ### Added
