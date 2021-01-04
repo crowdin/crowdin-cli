@@ -188,7 +188,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                     for (String langId : specifiedLangs) {
                         ExportProjectTranslationRequest request = RequestBuilder.exportProjectTranslation(templateRequest);
                         request.setTargetLanguageId(langId);
-                        String targetFileLang = placeholderUtil.replaceLanguageDependentPlaceholders(fb.getFile(), projectLanguages.get(langId));
+                        String targetFileLang = placeholderUtil.replaceLanguageDependentPlaceholders(fb.getFile(), project.getLanguageMapping(), projectLanguages.get(langId));
                         builtRequests.add(Pair.of(targetFileLang, request));
                     }
 
