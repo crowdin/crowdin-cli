@@ -21,7 +21,7 @@ public interface Actions {
 
     NewAction<PropertiesWithFiles, ProjectClient> download(
         FilesInterface files, boolean noProgress, String languageId, boolean pseudo, String branchName,
-        boolean ignoreMatch, boolean isVerbose, boolean plainView
+        boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean userServerSources
     );
 
     NewAction<NoProperties, NoClient> generate(FilesInterface files, Path destinationPath, boolean skipGenerateDescription);

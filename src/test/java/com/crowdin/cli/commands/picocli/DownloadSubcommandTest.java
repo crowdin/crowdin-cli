@@ -12,7 +12,7 @@ public class DownloadSubcommandTest extends PicocliTestUtils {
     public void testDownload() {
         this.execute(CommandNames.DOWNLOAD, "--debug");
         verify(actionsMock)
-            .download(any(), anyBoolean(), any(), anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean());
+            .download(any(), anyBoolean(), any(), anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 

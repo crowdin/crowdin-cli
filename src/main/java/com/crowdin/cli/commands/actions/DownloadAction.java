@@ -19,6 +19,7 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.Branch;
+import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
 import com.crowdin.client.translations.model.ProjectBuild;
@@ -56,12 +57,13 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     private boolean ignoreMatch;
     private boolean isVerbose;
     private boolean plainView;
+    private boolean useServerSources;
 
     private Outputter out;
 
     public DownloadAction(
             FilesInterface files, boolean noProgress, String languageId, boolean pseudo, String branchName,
-            boolean ignoreMatch, boolean isVerbose, boolean plainView
+            boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean useServerSources
     ) {
         this.files = files;
         this.noProgress = noProgress || plainView;
@@ -71,6 +73,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         this.ignoreMatch = ignoreMatch;
         this.isVerbose = isVerbose;
         this.plainView = plainView;
+        this.useServerSources = useServerSources;
     }
 
     @Override
@@ -91,6 +94,10 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             }
         }
 
+        if (useServerSources && !pb.getPreserveHierarchy() && !plainView) {
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.download_translations.preserve_hierarchy_warning")));
+        }
+
         PlaceholderUtil placeholderUtil =
             new PlaceholderUtil(
                 project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
@@ -102,6 +109,8 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         Optional<Branch> branch = Optional.ofNullable(this.branchName)
             .map(br -> project.findBranchByName(br)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))));
+
+        Map<String, FileInfo> serverSources = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFiles());
 
         LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
@@ -120,7 +129,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(true, null, null, null, null);
                 Pair<File, List<String>> downloadedFiles = this.download(request, client, pb.getBasePath());
                 for (FileBean fb : pb.getFiles()) {
-                    Map<String, String> filesWithMapping = this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil);
+                    Map<String, String> filesWithMapping = this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil, new ArrayList<>(serverSources.keySet()), pb.getPreserveHierarchy());
                     fileBeansWithDownloadedFiles.putIfAbsent(downloadedFiles, new ArrayList<>());
                     fileBeansWithDownloadedFiles.get(downloadedFiles).add(filesWithMapping);
                 }
@@ -163,7 +172,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                                 && fb.getExportApprovedOnly() == downloadConfiguration.getRight()) {
 
                                 Map<String, String> filesWithMapping =
-                                    this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil);
+                                    this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil, new ArrayList<>(serverSources.keySet()), pb.getPreserveHierarchy());
                                 fileBeansWithDownloadedFiles.putIfAbsent(downloadedFiles, new ArrayList<>());
                                 fileBeansWithDownloadedFiles.get(downloadedFiles).add(filesWithMapping);
                             }
@@ -297,12 +306,20 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     }
 
     private Map<String, String> getFiles(
-        FileBean fb, String basePath, LanguageMapping serverLanguageMapping, List<Language> forLanguages, PlaceholderUtil placeholderUtil
+        FileBean fb, String basePath, LanguageMapping serverLanguageMapping, List<Language> forLanguages, PlaceholderUtil placeholderUtil, List<String> allServerSources, boolean preserveHierarchy
     ) {
         List<String> sources =
             SourcesUtils.getFiles(basePath, fb.getSource(), fb.getIgnore(), placeholderUtil)
                 .map(File::getAbsolutePath)
                 .collect(Collectors.toList());
+        if (useServerSources) {
+            List<String> serverSources = SourcesUtils.filterProjectFiles(allServerSources, fb.getSource(), fb.getIgnore(), preserveHierarchy, placeholderUtil)
+                .stream()
+                .map(s -> Utils.joinPaths(basePath, s))
+                .filter(s -> !sources.contains(s))
+                .collect(Collectors.toList());
+            sources.addAll(serverSources);
+        }
         LanguageMapping localLanguageMapping = LanguageMapping.fromConfigFileLanguageMapping(fb.getLanguagesMapping());
         LanguageMapping languageMapping = LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
         Map<String, String> translationReplace =
