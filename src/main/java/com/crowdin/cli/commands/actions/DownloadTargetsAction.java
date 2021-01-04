@@ -21,6 +21,7 @@ import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
 import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
@@ -29,6 +30,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -46,10 +48,11 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
     private boolean isVerbose;
     private boolean plainView;
     private boolean debug;
+    private String branchName;
 
     public DownloadTargetsAction(
         @NonNull List<String> targetNames, FilesInterface files, boolean noProgress,
-        List<String> langIds, boolean isVerbose, boolean plainView, boolean debug
+        List<String> langIds, boolean isVerbose, boolean plainView, boolean debug, String branchName
     ) {
         this.targetNames = targetNames;
         this.files = files;
@@ -58,6 +61,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
         this.isVerbose = isVerbose;
         this.plainView = plainView;
         this.debug = debug;
+        this.branchName = branchName;
     }
 
     @Override
@@ -72,12 +76,27 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
             new PlaceholderUtil(
                 project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
-        Map<String, Long> projectFiles = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos())
-            .entrySet().stream()
+        if (StringUtils.isNotEmpty(branchName) && !project.findBranchByName(branchName).isPresent()) {
+            out.println(RESOURCE_BUNDLE.getString("error.not_found_branch"));
+        }
+        Optional<Long> branchId = project.findBranchByName(branchName).map(Branch::getId);
+
+        Map<String, Long> projectFiles = (branchId.isPresent()
+            ? ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFileInfos())
+                .entrySet().stream()
+                .filter(entry -> branchId.get().equals(entry.getValue().getBranchId()))
+            : ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos())
+                .entrySet().stream())
             .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getId()));
-        Map<String, Long> projectDirs = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
-            .entrySet().stream()
+
+        Map<String, Long> projectDirs = (branchId.isPresent()
+            ? ProjectFilesUtils.buildDirectoryPaths(project.getDirectories())
+                .entrySet().stream()
+                .filter(entry -> branchId.get().equals(project.getDirectories().get(entry.getKey()).getBranchId()))
+            : ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
+                .entrySet().stream())
             .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+
         Map<String, Long> projectBranches = project.getBranches()
             .values().stream()
             .collect(Collectors.toMap(Branch::getName, Branch::getId));

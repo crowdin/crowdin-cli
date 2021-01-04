@@ -157,9 +157,9 @@ public class CliActions implements Actions {
     @Override
     public NewAction<PropertiesWithTargets, ProjectClient> downloadTargets(
         List<String> targetNames, FilesInterface files, boolean noProgress,
-        List<String> langIds, boolean isVerbose, boolean plainView, boolean debug
+        List<String> langIds, boolean isVerbose, boolean plainView, boolean debug, String branchName
     ) {
-        return new DownloadTargetsAction(targetNames, files, noProgress, langIds, isVerbose, plainView, debug);
+        return new DownloadTargetsAction(targetNames, files, noProgress, langIds, isVerbose, plainView, debug, branchName);
     }
 
 

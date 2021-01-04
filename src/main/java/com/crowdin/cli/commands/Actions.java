@@ -78,7 +78,7 @@ public interface Actions {
 
     NewAction<PropertiesWithTargets, ProjectClient> downloadTargets(
         List<String> targetNames, FilesInterface files, boolean noProgress,
-        List<String> langIds, boolean isVerbose, boolean plainView, boolean debug);
+        List<String> langIds, boolean isVerbose, boolean plainView, boolean debug, String branchName);
 
     NewAction<NoProperties, NoClient> checkNewVersion();
 

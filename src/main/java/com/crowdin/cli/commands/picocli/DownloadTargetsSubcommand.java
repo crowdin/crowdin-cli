@@ -9,7 +9,6 @@ import com.crowdin.cli.properties.ParamsWithTargets;
 import com.crowdin.cli.properties.PropertiesWithTargets;
 import picocli.CommandLine;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
@@ -33,10 +32,13 @@ public class DownloadTargetsSubcommand extends ActCommandWithTargets {
     @CommandLine.Option(names = {"--export-only-approved"}, descriptionKey = "params.exportOnlyApproved")
     protected Boolean exportApprovedOnly;
 
+    @CommandLine.Option(names = {"--branch", "-b"}, paramLabel = "...", descriptionKey = "branch")
+    protected String branchName;
+
     @Override
     protected NewAction<PropertiesWithTargets, ProjectClient> getAction(Actions actions) {
         return actions.downloadTargets(
-            targetNames, new FsFiles(), noProgress, langIds, isVerbose, plainView, debug);
+            targetNames, new FsFiles(), noProgress, langIds, isVerbose, plainView, debug, branchName);
     }
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
