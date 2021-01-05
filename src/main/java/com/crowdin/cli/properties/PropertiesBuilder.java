@@ -1,6 +1,7 @@
 package com.crowdin.cli.properties;
 
 import com.crowdin.cli.commands.Outputter;
+import io.github.cdimascio.dotenv.Dotenv;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,6 +25,8 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
  * @param <P> Parameters from command line
  */
 public abstract class PropertiesBuilder<T extends Properties, P extends Params> {
+
+    private static final Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
 
     public static final String PROJECT_ID = "project_id";
 
@@ -208,7 +211,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     static void setEnvOrPropertyIfExists(Consumer<String> setter, Map<String, Object> properties, String envKey, String key) {
         String param = properties.containsKey(envKey)
-            ? System.getenv(properties.get(envKey).toString())
+            ? dotenv.get(properties.get(envKey).toString())
             : (properties.containsKey(key))
             ? (properties.get(key) != null) ? properties.get(key).toString() : null
             : null;
