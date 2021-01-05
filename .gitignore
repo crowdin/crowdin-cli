@@ -8,3 +8,4 @@ crowdin.yml
 /testing
 dist
 jdeploy-bundle
+node_modules
