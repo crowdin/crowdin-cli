@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.client.WrongLanguageException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
@@ -177,7 +178,13 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                     }
                     try {
                         for (Language lang : langs) {
-                            client.uploadTranslations(lang.getId(), request);
+                            try {
+                                client.uploadTranslations(lang.getId(), request);
+                            } catch (WrongLanguageException e) {
+                                out.println(WARNING.withIcon(String.format(
+                                    RESOURCE_BUNDLE.getString("message.warning.file_not_uploaded_cause_of_language"),
+                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()), lang.getName())));
+                            }
                         }
                     } catch (Exception e) {
                         containsErrors.set(true);

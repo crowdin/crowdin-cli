@@ -104,6 +104,13 @@ abstract class CrowdinClientCore {
         try {
             return r.get();
         } catch (HttpBadRequestException e) {
+            for (HttpBadRequestException.ErrorHolder eh : e.getErrors()) {
+                for (HttpBadRequestException.Error error : eh.getError().errors) {
+                    String code = (error.code != null) ? error.code : "<empty_code>";
+                    String message = (error.message != null) ? error.message : "<empty_message>";
+                    searchErrorHandler(errorHandlers, error.getCode(), error.getMessage());
+                }
+            }
             String errorMessage = "Wrong parameters: \n" + e.getErrors()
                 .stream()
                 .flatMap(holder -> holder.getError().getErrors()
@@ -114,19 +121,23 @@ abstract class CrowdinClientCore {
         } catch (HttpException e) {
             String code = (e.getError().code != null) ? e.getError().code : "<empty_code>";
             String message = (e.getError().message != null) ? e.getError().message : "<empty_message>";
-            for (Map.Entry<BiPredicate<String, String>, R> errorHandler : errorHandlers.entrySet()) {
-                if (errorHandler.getKey().test(code, message)) {
-                    throw errorHandler.getValue();
-                }
-            }
-            for (Map.Entry<BiPredicate<String, String>, RuntimeException> errorHandler : standardErrorHandlers.entrySet()) {
-                if (errorHandler.getKey().test(code, message)) {
-                    throw errorHandler.getValue();
-                }
-            }
+            searchErrorHandler(errorHandlers, code, message);
             throw new RuntimeException(String.format("Error from server: <Code: %s, Message: %s>", code, message));
         } catch (Exception e) {
             throw e;
+        }
+    }
+
+    private static <T, R extends Exception> void searchErrorHandler(Map<BiPredicate<String, String>, R> errorHandlers, String code, String message) throws R {
+        for (Map.Entry<BiPredicate<String, String>, R> errorHandler : errorHandlers.entrySet()) {
+            if (errorHandler.getKey().test(code, message)) {
+                throw errorHandler.getValue();
+            }
+        }
+        for (Map.Entry<BiPredicate<String, String>, RuntimeException> errorHandler : standardErrorHandlers.entrySet()) {
+            if (errorHandler.getKey().test(code, message)) {
+                throw errorHandler.getValue();
+            }
         }
     }
 

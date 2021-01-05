@@ -41,7 +41,7 @@ public interface ProjectClient extends Client {
 
     void editSource(Long fileId, List<PatchRequest> request);
 
-    void uploadTranslations(String languageId, UploadTranslationsRequest request);
+    void uploadTranslations(String languageId, UploadTranslationsRequest request) throws ResponseException;
 
     ProjectBuild startBuildingTranslation(BuildProjectTranslationRequest request);
 

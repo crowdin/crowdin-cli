@@ -159,9 +159,15 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
-    public void uploadTranslations(String languageId, UploadTranslationsRequest request) {
+    public void uploadTranslations(String languageId, UploadTranslationsRequest request) throws ResponseException {
+        Map<BiPredicate<String, String>, ResponseException> errorhandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
+            put((code, message) -> code.equals("0") && message.equals("File is not allowed for language"),
+                new WrongLanguageException());
+            put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"),
+                new RepeatException());
+        }};
         executeRequestWithPossibleRetry(
-            (code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"),
+            errorhandlers,
             () -> this.client.getTranslationsApi()
                 .uploadTranslations(this.projectId, languageId, request));
     }
