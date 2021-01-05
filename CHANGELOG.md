@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.5.2]
+
+### Added
+
+- `.env` support ([#337](https://github.com/crowdin/crowdin-cli/pull/337))
+
 ## [3.5.1]
 
 ### Added
