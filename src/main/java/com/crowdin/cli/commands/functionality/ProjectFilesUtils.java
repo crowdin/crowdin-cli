@@ -20,20 +20,20 @@ import java.util.stream.Stream;
 
 public class ProjectFilesUtils {
 
-    public static Map<String, FileInfo> buildFilePaths(
-        Map<Long, Directory> directories, Map<Long, Branch> branchNames, List<? extends FileInfo> files
+    public static <T extends FileInfo> Map<String, T> buildFilePaths(
+        Map<Long, Directory> directories, Map<Long, Branch> branchNames, List<T> files
     ) {
         Map<Long, String> directoryPaths = buildDirectoryPaths(directories, branchNames);
-        Map<String, FileInfo> filePathsToId = new HashMap<>();
+        Map<String, T> filePathsToId = new HashMap<>();
         files.forEach(fe -> filePathsToId.put(getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName(), fe));
         return filePathsToId;
     }
 
-    public static Map<String, FileInfo> buildFilePaths(
-        Map<Long, Directory> directories, List<? extends FileInfo> files
+    public static <T extends FileInfo> Map<String, T> buildFilePaths(
+        Map<Long, Directory> directories, List<T> files
     ) {
         Map<Long, String> directoryPaths = buildDirectoryPaths(directories);
-        Map<String, FileInfo> filePathsToId = new HashMap<>();
+        Map<String, T> filePathsToId = new HashMap<>();
         files.forEach(fe -> filePathsToId.put(Optional.ofNullable(fe.getDirectoryId()).map(directoryPaths::get).orElse("") + fe.getName(), fe));
         return filePathsToId;
     }

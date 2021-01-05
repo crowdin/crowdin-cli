@@ -46,6 +46,10 @@ public class CrowdinProjectInfo {
         this.languageMapping = languageMapping;
     }
 
+    /**
+     * Should be checked with isManagerAccess
+     * @return language mapping
+     */
     public LanguageMapping getLanguageMapping() {
         return this.languageMapping;
     }

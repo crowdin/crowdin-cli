@@ -110,7 +110,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             .map(br -> project.findBranchByName(br)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))));
 
-        Map<String, FileInfo> serverSources = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFiles());
+        Map<String, com.crowdin.client.sourcefiles.model.File> serverSources = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFiles());
 
         LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
