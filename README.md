@@ -23,18 +23,16 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 
 ## Table of Contents
 
-* [What's new](#whats-new)
+* [Features](#features)
 * [Installation](#installation)
-* [Running the App](#running-the-app)
+* [Running](#running)
 * [Configuration](#configuration)
 * [Usage](#usage)
   * [General Commands](#general-commands)
   * [Uploading Resources](#uploading-resources)
   * [Downloading Translations](#downloading-translations)
   * [Versions Management](#versions-management)
-  * [Source strings management](#source-strings-management)
-  * [Translation and proofreading progress](#translation-and-proofreading-progress)
-  * [Advanced features](#advanced-features)
+  * [Advanced Usage](#advanced-usage)
 * [Seeking Assistance](#seeking-assistance)
 * [Contributing](#contributing)
 * [Authors](#authors)
@@ -44,39 +42,21 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 
 [<p align="center"><img src="https://raw.githubusercontent.com/crowdin/crowdin-cli/docs/cli.png" data-canonical-src="https://raw.githubusercontent.com/crowdin/crowdin-cli/docs/cli.png" width="100%" height="auto" align="center"/></p>](https://crowdin.com)
 
-## What's New
+## Features
 
-CLI v3 has a lot of updates and improvements:
-
-- Available for Crowdin Enterprise
-- Multithreading for source and translation files upload
-- UX improvements: process indicators, loading states, emojis
 - Interactive generation of a configuration file
+- Upload source files and existing translations to a Crowdin project
+- Download latest translations from Crowdin to the specified place
+- Show translation and proofreading progress for a project
+- Manage source strings in a Crowdin project
+- Manage glossaries and translation memories
+- Show a list of source files and branches in the current project
+- List information about the source files or translations that match the wild-card pattern contained in the current project
+- Multithreading for source and translation files upload
 - Bash/Zsh command completion
-- Improved help screen for commands
-- Improved configuration file validation
-- More import options for `upload` command
-- More export options for `download` command
-- Based on the new RESTful Crowdin API v2
-
-<details>
-<summary><b>More</b></summary>
-
- - Memory and CPU optimization
- - Translations download progress
- - HTTP Proxy support including authorization
- - Support Language Mapping configured on Crowdin
- - `content_segmentation` option support for xml, html, md, fm_md, fm_html, flsnp, docx, idml, dita
- - `escape_special_characters` option support for properties file
- - `--dryrun` option for translations upload
- - `ignore` pattern improvements
- - Added notification about new version
- - Added `init` alias to `generate` command
- - Bug fixes and other improvements
- - Complete list of changes: [CHANGELOG.md](https://github.com/crowdin/crowdin-cli/blob/cli3/CHANGELOG.md)
-
- **Note**: for CLI v2 see the [branch](https://github.com/crowdin/crowdin-cli/tree/master).
- </details>
+- Process indicators, loading states, emojis
+- HTTP Proxy support including authorization
+- To explore more features, visit the [Wiki](https://github.com/crowdin/crowdin-cli/wiki), [KB article](https://support.crowdin.com/cli-tool/) and [Configuration File article](https://support.crowdin.com/configuration-file/).
 
 ## Installation
 
@@ -192,7 +172,7 @@ sudo rpm -U crowdin3.rpm
 <details>
 <summary><b>Arch Linux</b></summary>
 
-Visit the Crowdin CLI [package page](https://aur.archlinux.org/packages/crowdin-cli/) on Arch Linux user  repository.
+Visit the Crowdin CLI [package page](https://aur.archlinux.org/packages/crowdin-cli/) on Arch Linux user repository.
 
 </details>
 
@@ -200,6 +180,13 @@ Visit the Crowdin CLI [package page](https://aur.archlinux.org/packages/crowdin-
 <summary><b>NPM</b></summary>
 
 `npm i -g @crowdin/cli`
+
+</details>
+
+<details>
+<summary><b>Docker</b></summary>
+
+`docker pull crowdin/cli`
 
 </details>
 
@@ -229,7 +216,7 @@ Crowdin CLI can be installed as a stand-alone Java application.
 
 </details>
 
-## Running the App
+## Running
 
 Use the following method to run the app:
 
@@ -273,13 +260,13 @@ Sample configuration file:
 
 "files": [
   {
-    "source" : "/t1/**/*",
+    "source" : "/resources/**/*",
     "translation" : "/%two_letters_code%/%original_file_name%"
   }
 ]
 ```
 
-For more information how to configure Crowdin CLI, check <a href="https://support.crowdin.com/configuration-file/" target="_blank">Configuration File</a> article.
+:memo: For more information how to configure Crowdin CLI, check <a href="https://support.crowdin.com/configuration-file/" target="_blank">Configuration File</a> article.
 
 ## Usage
 
@@ -402,50 +389,7 @@ To download translations from the specified version branch:
 crowdin download -b {branch_name}
 ```
 
-## Source strings management
-
-There is a possibility to manage (add, edit, delete) source strings for the following file types: CSV, RESX, JSON, Android XML, MACOSX, STRINGS, PROPERTIES.
-
-|Command                   | Description                     |
-|--------------------------|---------------------------------|
-| `crowdin string list`    | Show a list of source strings in the current project. <br>You can use the `--verbose` option to see more information |
-| `crowdin string add`     | Create a new source string. <br>Use `-h` option to see all possible command options |
-| `crowdin string delete`  | Delete source string |
-| `crowdin string edit`    | Edit existing source string |
-
-## Translation and proofreading progress
-
-To show translation and proofreading progress for a project use the following commands:
-
-|Command                         | Description                     |
-|--------------------------------|---------------------------------|
-| `crowdin status`               | Show translation and proofreading progress for a project |
-| `crowdin status translation`   | Show only translation progress for a project |
-| `crowdin status proofreading`  | Show only proofreading progress for a project |
-
-Also, you can use the `--verbose` option to see more information.
-
-## Glossary management
-
-There is a possibility to upload/download glossaries.
-
-| Command                     | Description                        |
-|-----------------------------|------------------------------------|
-| `crowdin glossary list`     | Show a list of glossaries. <br>Use `--verbose` to show term lists for glossaries |
-| `crowdin glossary upload`   | Upload glossary from a file (in TBX, CSV, or XLS/XLSX file format) <br>either to the specified glossary or to a new one |
-| `crowdin glossary download` | Download glossary to a file (in TBX, CSV, or XLS/XLSX file format) <br>from the specified glossary |
-
-## Translation Memory management
-
-To manage translation memories use the following commands:
-
-| Command                 | Description                            |
-|-------------------------|----------------------------------------|
-| `crowdin tm list`       | Show a list of translation memories    |
-| `crowdin tm upload`     | Upload translation memory from a file <br>(in TMX, CSV, or XLS/XLSX file format) <br>either to the specified translation memory or to a new one |
-| `crowdin tm download`   | Download translation memory to a file <br>(in TMX, CSV, or XLS/XLSX file format) <br>from the specified translation memory |
-
-## Advanced features
+## Advanced Usage
 
 Visit the [Crowdin CLI Wiki](https://github.com/crowdin/crowdin-cli/wiki) to read more about CLI advanced features (like pseudo-localization, translations downloading to the specified file, etc.)
 
@@ -453,7 +397,7 @@ Visit the [Crowdin CLI Wiki](https://github.com/crowdin/crowdin-cli/wiki) to rea
 
 If you find any problems or would like to suggest a feature, please read the [How can I contribute](/CONTRIBUTING.md#how-can-i-contribute) section in our contributing guidelines.
 
-Need help working with Crowdin CLI or have any questions? [Contact](https://crowdin.com/contacts) Customer Success Service.
+Need help working with Crowdin CLI or have any questions? [Contact Customer Success Service](https://crowdin.com/contacts).
 
 ## Contributing
 
