@@ -77,16 +77,15 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                 project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
         if (StringUtils.isNotEmpty(branchName) && !project.findBranchByName(branchName).isPresent()) {
-            out.println(RESOURCE_BUNDLE.getString("error.not_found_branch"));
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"));
         }
         Optional<Long> branchId = project.findBranchByName(branchName).map(Branch::getId);
 
         Map<String, Long> projectFiles = (branchId.isPresent()
-            ? ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFileInfos())
-                .entrySet().stream()
-                .filter(entry -> branchId.get().equals(entry.getValue().getBranchId()))
-            : ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos())
-                .entrySet().stream())
+            ? ProjectFilesUtils
+                .buildFilePaths(project.getDirectories(), ProjectFilesUtils.filterFilesByBranch(project.getFileInfos(), branchId.get()))
+            : ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos()))
+            .entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getId()));
 
         Map<String, Long> projectDirs = (branchId.isPresent()

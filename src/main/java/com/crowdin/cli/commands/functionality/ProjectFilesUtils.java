@@ -14,6 +14,7 @@ import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -94,6 +95,12 @@ public class ProjectFilesUtils {
 
     public static String buildBranchPath(Long branchId, Map<Long, Branch> branchNames) {
         return ((branchId != null) ? branchNames.get(branchId).getName() + Utils.PATH_SEPARATOR : "");
+    }
+
+    public static <T extends FileInfo> List<T> filterFilesByBranch(List<T> files, Long branchId) {
+        return files.stream()
+            .filter(f -> Objects.equals(branchId, f.getBranchId()))
+            .collect(Collectors.toList());
     }
 
     private static Optional<Long> getParentId(FileInfo fe) {

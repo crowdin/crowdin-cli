@@ -56,7 +56,7 @@ class DownloadSubcommand extends ActCommandWithFiles {
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
-            ? actions.listTranslations(noProgress, treeView, false, plainView)
+            ? actions.listTranslations(noProgress, treeView, false, plainView, all, true)
             : actions.download(new FsFiles(), noProgress, languageId, pseudo, branchName, ignoreMatch, isVerbose, plainView, all);
     }
 

@@ -16,7 +16,7 @@ class ListTranslationsSubcommand extends ActCommandWithFiles {
 
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
-        return actions.listTranslations(this.noProgress, this.treeView, false, this.plainView);
+        return actions.listTranslations(this.noProgress, this.treeView, false, this.plainView, false, true);
     }
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")

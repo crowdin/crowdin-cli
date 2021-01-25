@@ -22,12 +22,16 @@ class ListTranslationsAction implements NewAction<PropertiesWithFiles, ProjectCl
     private boolean treeView;
     private boolean isLocal;
     private boolean plainView;
+    private boolean useServerSources;
+    private boolean withInContextLang;
 
-    public ListTranslationsAction(boolean noProgress, boolean treeView, boolean isLocal, boolean plainView) {
+    public ListTranslationsAction(boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang) {
         this.noProgress = noProgress;
         this.treeView = treeView;
         this.isLocal = isLocal;
         this.plainView = plainView;
+        this.useServerSources = useServerSources;
+        this.withInContextLang = withInContextLang;
     }
 
     @Override
@@ -49,7 +53,7 @@ class ListTranslationsAction implements NewAction<PropertiesWithFiles, ProjectCl
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(
             project.getSupportedLanguages(), project.getProjectLanguages(!isLocal), pb.getBasePath());
 
-        (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, project.getProjectLanguages(false), false, files))
+        (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, project.getProjectLanguages(withInContextLang), false, files, useServerSources))
             .run(out, treeView, plainView);
     }
 }

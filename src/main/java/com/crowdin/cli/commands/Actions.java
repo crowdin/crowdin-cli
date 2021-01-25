@@ -35,7 +35,7 @@ public interface Actions {
         boolean noProgress, boolean treeView, boolean plainView);
 
     NewAction<PropertiesWithFiles, ProjectClient> listTranslations(
-        boolean noProgress, boolean treeView, boolean isLocal, boolean plainView);
+        boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang);
 
     NewAction<PropertiesWithFiles, ProjectClient> status(
         boolean noProgress, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved);
