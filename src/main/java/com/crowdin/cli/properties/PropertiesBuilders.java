@@ -9,7 +9,7 @@ public class PropertiesBuilders {
 
     public PropertiesWithFiles buildPropertiesWithFiles(Outputter out, File configFile, File identityFile, ParamsWithFiles params) {
         PropertiesWithFilesBuilder builder = new PropertiesWithFilesBuilder(out);
-        if (!((configFile == null || !configFile.exists()) && params != null)) {
+        if (fileExists(configFile) || params.isEmpty()) {
             builder.addConfigParams(FileUtils.readYamlFile(configFile));
         }
         if (identityFile != null) {
@@ -19,6 +19,10 @@ public class PropertiesBuilders {
             builder.addParams(params);
         }
         return builder.build();
+    }
+
+    private boolean fileExists(File file) {
+        return file != null && file.exists();
     }
 
     public PropertiesWithTargets buildPropertiesWithTargets(Outputter out, File configFile, File identityFile, ParamsWithTargets params) {
