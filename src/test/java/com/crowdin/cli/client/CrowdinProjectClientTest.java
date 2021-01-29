@@ -405,7 +405,7 @@ public class CrowdinProjectClientTest {
     }
 
     @Test
-    public void testUploadTranslations() {
+    public void testUploadTranslations() throws ResponseException {
         UploadTranslationsResponseObject response = new UploadTranslationsResponseObject() {{
                 setData(new UploadTranslationsResponse());
             }};
@@ -420,7 +420,7 @@ public class CrowdinProjectClientTest {
     }
 
     @Test
-    public void testUploadTranslationsWithRepeat() {
+    public void testUploadTranslationsWithRepeat() throws ResponseException {
         UploadTranslationsResponseObject response = new UploadTranslationsResponseObject() {{
                 setData(new UploadTranslationsResponse());
             }};

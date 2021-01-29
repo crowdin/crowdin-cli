@@ -58,7 +58,7 @@ public class PicocliTestUtils {
         actionsMock = mock(Actions.class);
         actionMock = mock(NewAction.class);
 
-        when(actionsMock.download(any(), anyBoolean(), any(), anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
+        when(actionsMock.download(any(), anyBoolean(), any(), anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.generate(any(), any(), anyBoolean()))
             .thenReturn(actionMock);
@@ -68,7 +68,7 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.listSources(anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.listTranslations(anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
+        when(actionsMock.listTranslations(anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.status(anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);

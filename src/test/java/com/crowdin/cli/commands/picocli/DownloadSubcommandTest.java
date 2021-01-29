@@ -12,7 +12,7 @@ public class DownloadSubcommandTest extends PicocliTestUtils {
     public void testDownload() {
         this.execute(CommandNames.DOWNLOAD, "--debug");
         verify(actionsMock)
-            .download(any(), anyBoolean(), any(), anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean());
+            .download(any(), anyBoolean(), any(), anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 
@@ -20,7 +20,7 @@ public class DownloadSubcommandTest extends PicocliTestUtils {
     public void testDownloadDryrun() {
         this.execute(CommandNames.DOWNLOAD, "--dryrun");
         verify(actionsMock)
-            .listTranslations(anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
+            .listTranslations(anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 }

@@ -143,6 +143,8 @@ public class SourcesUtils {
             .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN);
         node = node
             .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE);
+        node = node
+            .replace(".+/", "(.+/)?");
         node = "^" + node + "$";
         return node;
     }

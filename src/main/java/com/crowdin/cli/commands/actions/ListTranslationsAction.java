@@ -1,15 +1,17 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.CrowdinProject;
+import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.DryrunTranslations;
+import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
+import com.crowdin.client.sourcefiles.model.File;
 
-import java.util.Optional;
+import java.util.Map;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
@@ -20,18 +22,22 @@ class ListTranslationsAction implements NewAction<PropertiesWithFiles, ProjectCl
     private boolean treeView;
     private boolean isLocal;
     private boolean plainView;
+    private boolean useServerSources;
+    private boolean withInContextLang;
 
-    public ListTranslationsAction(boolean noProgress, boolean treeView, boolean isLocal, boolean plainView) {
+    public ListTranslationsAction(boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang) {
         this.noProgress = noProgress;
         this.treeView = treeView;
         this.isLocal = isLocal;
         this.plainView = plainView;
+        this.useServerSources = useServerSources;
+        this.withInContextLang = withInContextLang;
     }
 
     @Override
     public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
-        CrowdinProject project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, this.plainView, client::downloadProjectWithLanguages);
+        CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+            this.noProgress, this.plainView, client::downloadFullProject);
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
@@ -42,10 +48,12 @@ class ListTranslationsAction implements NewAction<PropertiesWithFiles, ProjectCl
             }
         }
 
+        Map<String, File> files = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
+
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(
             project.getSupportedLanguages(), project.getProjectLanguages(!isLocal), pb.getBasePath());
 
-        (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, Optional.empty(), false))
+        (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, project.getProjectLanguages(withInContextLang), false, files, useServerSources))
             .run(out, treeView, plainView);
     }
 }

@@ -14,26 +14,27 @@ import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 public class ProjectFilesUtils {
 
-    public static Map<String, FileInfo> buildFilePaths(
-        Map<Long, Directory> directories, Map<Long, Branch> branchNames, List<? extends FileInfo> files
+    public static <T extends FileInfo> Map<String, T> buildFilePaths(
+        Map<Long, Directory> directories, Map<Long, Branch> branchNames, List<T> files
     ) {
         Map<Long, String> directoryPaths = buildDirectoryPaths(directories, branchNames);
-        Map<String, FileInfo> filePathsToId = new HashMap<>();
+        Map<String, T> filePathsToId = new HashMap<>();
         files.forEach(fe -> filePathsToId.put(getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName(), fe));
         return filePathsToId;
     }
 
-    public static Map<String, FileInfo> buildFilePaths(
-        Map<Long, Directory> directories, List<? extends FileInfo> files
+    public static <T extends FileInfo> Map<String, T> buildFilePaths(
+        Map<Long, Directory> directories, List<T> files
     ) {
         Map<Long, String> directoryPaths = buildDirectoryPaths(directories);
-        Map<String, FileInfo> filePathsToId = new HashMap<>();
+        Map<String, T> filePathsToId = new HashMap<>();
         files.forEach(fe -> filePathsToId.put(Optional.ofNullable(fe.getDirectoryId()).map(directoryPaths::get).orElse("") + fe.getName(), fe));
         return filePathsToId;
     }
@@ -94,6 +95,12 @@ public class ProjectFilesUtils {
 
     public static String buildBranchPath(Long branchId, Map<Long, Branch> branchNames) {
         return ((branchId != null) ? branchNames.get(branchId).getName() + Utils.PATH_SEPARATOR : "");
+    }
+
+    public static <T extends FileInfo> List<T> filterFilesByBranch(List<T> files, Long branchId) {
+        return files.stream()
+            .filter(f -> Objects.equals(branchId, f.getBranchId()))
+            .collect(Collectors.toList());
     }
 
     private static Optional<Long> getParentId(FileInfo fe) {

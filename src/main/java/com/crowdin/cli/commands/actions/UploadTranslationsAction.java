@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.client.WrongLanguageException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
@@ -17,6 +18,7 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -78,7 +80,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
 
         LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
-        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
+        Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
 
         List<Language> languages = (languageId != null)
             ? project.findLanguageById(languageId, true)
@@ -177,7 +179,13 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                     }
                     try {
                         for (Language lang : langs) {
-                            client.uploadTranslations(lang.getId(), request);
+                            try {
+                                client.uploadTranslations(lang.getId(), request);
+                            } catch (WrongLanguageException e) {
+                                out.println(WARNING.withIcon(String.format(
+                                    RESOURCE_BUNDLE.getString("message.warning.file_not_uploaded_cause_of_language"),
+                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()), lang.getName())));
+                            }
                         }
                     } catch (Exception e) {
                         containsErrors.set(true);
