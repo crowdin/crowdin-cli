@@ -1,6 +1,24 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.5.3]
+
+### Added
+
+- Add '--all' option to download translations without local sources ([#338](https://github.com/crowdin/crowdin-cli/pull/338))
+- Add '--branch' option for 'download targets' ([#338](https://github.com/crowdin/crowdin-cli/pull/338))
+
+### Updated
+
+- Refactor error handlers and add error handler for 'upload translations' ([#338](https://github.com/crowdin/crowdin-cli/pull/338))
+- Upgrade picocli version ([#338](https://github.com/crowdin/crowdin-cli/pull/338))
+
+### Fixed
+
+- Fix Language Mapping for 'download targets' ([#338](https://github.com/crowdin/crowdin-cli/pull/338))
+- Fix verbose message for 'glossary list' ([#338](https://github.com/crowdin/crowdin-cli/pull/338))
+- Fix 'list translations' - add accounting for excluded languages ([#338](https://github.com/crowdin/crowdin-cli/pull/338))
+
 ## [3.5.2]
 
 ### Added
