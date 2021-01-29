@@ -35,7 +35,7 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
   * [Advanced Usage](#advanced-usage)
 * [Seeking Assistance](#seeking-assistance)
 * [Contributing](#contributing)
-* [Authors](#authors)
+* [Contributors](#contributors-)
 * [License](#license)
 
 ---
@@ -403,11 +403,34 @@ Need help working with Crowdin CLI or have any questions? [Contact Customer Succ
 
 If you want to contribute please read the [Contributing](/CONTRIBUTING.md) guidelines.
 
-## Authors
+## Contributors ✨
 
-* Ihor Popyk (ihor.popyk@crowdin.com)
-* Yaroslav Medentsii (medentsiy.y@gmail.com)
-* Daniil Barabash (dbarabash42@gmail.com)
+<!-- ALL-CONTRIBUTORS-LIST:START - Do not remove or modify this section -->
+<!-- prettier-ignore-start -->
+<!-- markdownlint-disable -->
+<table>
+  <tr>
+    <td align="center"><a href="https://github.com/frombetelgeuse"><img src="https://avatars.githubusercontent.com/u/16529454?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Barabash</b></sub></a><br /><a href="https://github.com/crowdin/crowdin-cli/commits?author=frombetelgeuse" title="Code">💻</a> <a href="https://github.com/crowdin/crowdin-cli/commits?author=frombetelgeuse" title="Tests">⚠️</a> <a href="https://github.com/crowdin/crowdin-cli/pulls?q=is%3Apr+reviewed-by%3Afrombetelgeuse" title="Reviewed Pull Requests">👀</a></td>
+    <td align="center"><a href="https://github.com/andrii-bodnar"><img src="https://avatars.githubusercontent.com/u/29282228?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Andrii Bodnar</b></sub></a><br /><a href="#maintenance-andrii-bodnar" title="Maintenance">🚧</a> <a href="#projectManagement-andrii-bodnar" title="Project Management">📆</a> <a href="#infra-andrii-bodnar" title="Infrastructure (Hosting, Build-Tools, etc)">🚇</a></td>
+    <td align="center"><a href="https://github.com/ihorpopyk"><img src="https://avatars.githubusercontent.com/u/15789944?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Ihor Popyk</b></sub></a><br /><a href="https://github.com/crowdin/crowdin-cli/commits?author=ihorpopyk" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/MrAndersonn"><img src="https://avatars.githubusercontent.com/u/5548419?v=4?s=100" width="100px;" alt=""/><br /><sub><b>MrAndersonn</b></sub></a><br /><a href="https://github.com/crowdin/crowdin-cli/commits?author=MrAndersonn" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/yevheniyJ"><img src="https://avatars.githubusercontent.com/u/16465671?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Yevheniy Oliynyk</b></sub></a><br /><a href="https://github.com/crowdin/crowdin-cli/commits?author=yevheniyJ" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/dmytro-protsyk"><img src="https://avatars.githubusercontent.com/u/16881205?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Dmytro Protsyk</b></sub></a><br /><a href="#maintenance-dmytro-protsyk" title="Maintenance">🚧</a></td>
+    <td align="center"><a href="https://github.com/hakanai"><img src="https://avatars.githubusercontent.com/u/43236?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Hakanai</b></sub></a><br /><a href="https://github.com/crowdin/crowdin-cli/commits?author=hakanai" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://github.com/cmrd-senya"><img src="https://avatars.githubusercontent.com/u/10187586?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Senya</b></sub></a><br /><a href="#platform-cmrd-senya" title="Packaging/porting to new platform">📦</a></td>
+    <td align="center"><a href="https://github.com/vasyl-khomko"><img src="https://avatars.githubusercontent.com/u/9516865?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Vasyl Khomko</b></sub></a><br /><a href="https://github.com/crowdin/crowdin-cli/commits?author=vasyl-khomko" title="Tests">⚠️</a></td>
+    <td align="center"><a href="https://github.com/Myself5"><img src="https://avatars.githubusercontent.com/u/6061713?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Christian Oder</b></sub></a><br /><a href="https://github.com/crowdin/crowdin-cli/commits?author=Myself5" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/rohalskyy"><img src="https://avatars.githubusercontent.com/u/20131160?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Mykhailo Rohalskyy</b></sub></a><br /><a href="https://github.com/crowdin/crowdin-cli/commits?author=rohalskyy" title="Documentation">📖</a></td>
+    <td align="center"><a href="https://github.com/nazar-1"><img src="https://avatars.githubusercontent.com/u/52151259?v=4?s=100" width="100px;" alt=""/><br /><sub><b>nazar-1</b></sub></a><br /><a href="https://github.com/crowdin/crowdin-cli/commits?author=nazar-1" title="Code">💻</a></td>
+  </tr>
+</table>
+
+<!-- markdownlint-restore -->
+<!-- prettier-ignore-end -->
+
+<!-- ALL-CONTRIBUTORS-LIST:END -->
 
 ## License
 <pre>
