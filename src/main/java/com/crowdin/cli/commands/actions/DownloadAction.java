@@ -19,7 +19,6 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.Branch;
-import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
 import com.crowdin.client.translations.model.ProjectBuild;
@@ -324,9 +323,17 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         LanguageMapping languageMapping = LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
         Map<String, String> translationReplace =
             fb.getTranslationReplace() != null ? fb.getTranslationReplace() : new HashMap<>();
+        String projectTranslation = (fb.getDest() != null) ? replaceFileName(fb.getTranslation(), Utils.noSepAtStart(fb.getDest())) : fb.getTranslation();
+
         return this.doTranslationMapping(
-            forLanguages, fb.getTranslation(), serverLanguageMapping, languageMapping,
+            forLanguages, projectTranslation, fb.getTranslation(), serverLanguageMapping, languageMapping,
             translationReplace, sources, fb.getSource(), basePath, placeholderUtil);
+    }
+
+    private String replaceFileName(String filePath, String newName) {
+        String[] filePathParts = filePath.split("[\\\\/]+");
+        filePathParts[filePathParts.length-1] = newName;
+        return String.join(Utils.PATH_SEPARATOR, filePathParts);
     }
 
     private ProjectBuild buildTranslation(ProjectClient client, BuildProjectTranslationRequest request) {
@@ -392,6 +399,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private Map<String, String> doTranslationMapping(
         List<Language> languages,
+        String projectTranslation,
         String translation,
         LanguageMapping projLanguageMapping,
         LanguageMapping languageMapping,
@@ -408,8 +416,11 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             if (!StringUtils.startsWith(translation, Utils.PATH_SEPARATOR)) {
                 translation = Utils.PATH_SEPARATOR + translation;
             }
+            if (!StringUtils.startsWith(projectTranslation, Utils.PATH_SEPARATOR)) {
+                projectTranslation = Utils.PATH_SEPARATOR + projectTranslation;
+            }
             String translationProject1 =
-                placeholderUtil.replaceLanguageDependentPlaceholders(translation, projLanguageMapping, language);
+                placeholderUtil.replaceLanguageDependentPlaceholders(projectTranslation, projLanguageMapping, language);
             String translationFile1 =
                 placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
 

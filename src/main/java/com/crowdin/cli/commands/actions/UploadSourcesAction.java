@@ -265,12 +265,12 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
     }
 
     private ImportOptions buildImportOptions(java.io.File sourceFile, FileBean fileBean) {
-        if (FilenameUtils.isExtension(sourceFile.getName(), "csv")) {
+        if (isSpreadsheet(sourceFile, fileBean)) {
             SpreadsheetFileImportOptions importOptions = new SpreadsheetFileImportOptions();
             importOptions.setFirstLineContainsHeader(fileBean.getFirstLineContainsHeader());
             importOptions.setScheme(PropertiesBeanUtils.getSchemeObject(fileBean.getScheme()));
             return importOptions;
-        } else if (FilenameUtils.isExtension(sourceFile.getName(), "xml")) {
+        } else if (isXml(sourceFile)) {
             XmlFileImportOptions importOptions = new XmlFileImportOptions();
             importOptions.setTranslateContent(fileBean.getTranslateContent());
             importOptions.setTranslateAttributes(fileBean.getTranslateAttributes());
@@ -282,6 +282,16 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             importOptions.setContentSegmentation(fileBean.getContentSegmentation());
             return importOptions;
         }
+    }
+
+    private boolean isSpreadsheet(java.io.File file, FileBean fileBean) {
+        return (fileBean.getDest() != null)
+            ? FilenameUtils.isExtension(fileBean.getDest(), "csv")
+            : FilenameUtils.isExtension(file.getName(), "csv");
+    }
+
+    private boolean isXml(java.io.File file) {
+        return FilenameUtils.isExtension(file.getName(), "xml");
     }
 
     private ExportOptions buildExportOptions(java.io.File sourceFile, FileBean fileBean, String basePath) {
