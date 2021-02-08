@@ -14,20 +14,20 @@ import java.util.stream.Collectors;
 
 public class PlaceholderUtil {
 
-    protected static final String PLACEHOLDER_ANDROID_CODE = "%android_code%";
-    protected static final String PLACEHOLDER_LANGUAGE = "%language%";
-    protected static final String PLACEHOLDER_LOCALE = "%locale%";
-    protected static final String PLACEHOLDER_LOCALE_WITH_UNDERSCORE = "%locale_with_underscore%";
-    protected static final String PLACEHOLDER_THREE_LETTERS_CODE = "%three_letters_code%";
-    protected static final String PLACEHOLDER_TWO_LETTERS_CODE = "%two_letters_code%";
-    protected static final String PLACEHOLDER_OSX_CODE = "%osx_code%";
-    protected static final String PLACEHOLDER_OSX_LOCALE = "%osx_locale%";
-    protected static final String PLACEHOLDER_LANGUAGE_ID = "%language_id%";
+    public static final String PLACEHOLDER_ANDROID_CODE = "%android_code%";
+    public static final String PLACEHOLDER_LANGUAGE = "%language%";
+    public static final String PLACEHOLDER_LOCALE = "%locale%";
+    public static final String PLACEHOLDER_LOCALE_WITH_UNDERSCORE = "%locale_with_underscore%";
+    public static final String PLACEHOLDER_THREE_LETTERS_CODE = "%three_letters_code%";
+    public static final String PLACEHOLDER_TWO_LETTERS_CODE = "%two_letters_code%";
+    public static final String PLACEHOLDER_OSX_CODE = "%osx_code%";
+    public static final String PLACEHOLDER_OSX_LOCALE = "%osx_locale%";
+    public static final String PLACEHOLDER_LANGUAGE_ID = "%language_id%";
 
-    protected static final String PLACEHOLDER_FILE_EXTENTION = "%file_extension%";
-    protected static final String PLACEHOLDER_FILE_NAME = "%file_name%";
-    protected static final String PLACEHOLDER_ORIGINAL_FILE_NAME = "%original_file_name%";
-    protected static final String PLACEHOLDER_ORIGINAL_PATH = "%original_path%";
+    public static final String PLACEHOLDER_FILE_EXTENTION = "%file_extension%";
+    public static final String PLACEHOLDER_FILE_NAME = "%file_name%";
+    public static final String PLACEHOLDER_ORIGINAL_FILE_NAME = "%original_file_name%";
+    public static final String PLACEHOLDER_ORIGINAL_PATH = "%original_path%";
 
     private static final String DOUBLED_ASTERISK = "**";
     private static final String REGEX = "regex";

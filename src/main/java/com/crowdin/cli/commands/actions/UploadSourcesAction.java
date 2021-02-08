@@ -132,7 +132,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                     .map(source -> {
                         final File sourceFile = new File(source);
                         final String filePath = (file.getDest() != null)
-                                ? StringUtils.removePattern(file.getDest(), "^[\\\\/]")
+                                ? PropertiesBeanUtils.prepareDest(file.getDest(), source)
                                 : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
                         final String fileFullPath = (branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + filePath;
                         final String fileName = fileFullPath.substring(fileFullPath.lastIndexOf(Utils.PATH_SEPARATOR) + 1);

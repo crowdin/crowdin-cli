@@ -179,7 +179,7 @@ public class FileBean {
                 errors.add(RESOURCE_BUNDLE.getString("error.config.escape_special_characters"));
             }
 
-            if (StringUtils.isNotEmpty(bean.getDest()) && SourcesUtils.containsPattern(bean.getSource())) {
+            if (StringUtils.isNotEmpty(bean.getDest()) && !bean.getDest().contains(PlaceholderUtil.PLACEHOLDER_FILE_NAME) && SourcesUtils.containsPattern(bean.getSource())) {
                 errors.add(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
             }
             if (bean.getSkipTranslatedOnly() != null && bean.getSkipUntranslatedFiles() != null
