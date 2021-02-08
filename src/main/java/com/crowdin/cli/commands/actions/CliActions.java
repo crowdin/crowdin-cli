@@ -105,9 +105,9 @@ public class CliActions implements Actions {
     @Override
     public NewAction<PropertiesWithFiles, ProjectClient> uploadTranslations(
         boolean noProgress, String languageId, String branchName, boolean importEqSuggestions,
-        boolean autoApproveImported, boolean debug, boolean plainView
+        boolean autoApproveImported, boolean translateHidden, boolean debug, boolean plainView
     ) {
-        return new UploadTranslationsAction(noProgress, languageId, branchName, importEqSuggestions, autoApproveImported, debug, plainView);
+        return new UploadTranslationsAction(noProgress, languageId, branchName, importEqSuggestions, autoApproveImported, translateHidden, debug, plainView);
     }
 
     @Override
