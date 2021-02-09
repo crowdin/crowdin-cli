@@ -164,7 +164,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
                             return (Runnable) () -> {
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
-                                    request.setStorageId(client.uploadStorage(fileName, fileStream));
+                                    request.setStorageId(client.uploadStorage(source.substring(source.lastIndexOf(Utils.PATH_SEPARATOR) + 1), fileStream));
                                 } catch (IOException e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(
@@ -223,7 +223,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 }
 
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
-                                    request.setStorageId(client.uploadStorage(fileName, fileStream));
+                                    request.setStorageId(client.uploadStorage(source.substring(source.lastIndexOf(Utils.PATH_SEPARATOR) + 1), fileStream));
                                 } catch (IOException e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(
