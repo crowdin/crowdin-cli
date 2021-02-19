@@ -318,7 +318,9 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
         }
         Optional<Branch> branchOpt = project.findBranchByName(branchName);
         if (branchOpt.isPresent()) {
-            out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch_already_exists"), branchName)));
+            if (!plainView) {
+                out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch_already_exists"), branchName)));
+            }
             return branchOpt.get();
         } else {
             AddBranchRequest request = new AddBranchRequest();
