@@ -19,7 +19,6 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.Branch;
-import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
 import com.crowdin.client.translations.model.ProjectBuild;
@@ -324,9 +323,16 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         LanguageMapping languageMapping = LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
         Map<String, String> translationReplace =
             fb.getTranslationReplace() != null ? fb.getTranslationReplace() : new HashMap<>();
+
         return this.doTranslationMapping(
-            forLanguages, fb.getTranslation(), serverLanguageMapping, languageMapping,
+            forLanguages, fb.getDest(), fb.getTranslation(), serverLanguageMapping, languageMapping,
             translationReplace, sources, fb.getSource(), basePath, placeholderUtil);
+    }
+
+    private String replaceFileName(String filePath, String newName) {
+        String[] filePathParts = filePath.split("[\\\\/]+");
+        filePathParts[filePathParts.length-1] = newName;
+        return String.join(Utils.PATH_SEPARATOR, filePathParts);
     }
 
     private ProjectBuild buildTranslation(ProjectClient client, BuildProjectTranslationRequest request) {
@@ -392,6 +398,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private Map<String, String> doTranslationMapping(
         List<Language> languages,
+        String dest,
         String translation,
         LanguageMapping projLanguageMapping,
         LanguageMapping languageMapping,
@@ -405,24 +412,24 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
         for (Language language : languages) {
 
-            if (!StringUtils.startsWith(translation, Utils.PATH_SEPARATOR)) {
-                translation = Utils.PATH_SEPARATOR + translation;
-            }
-            String translationProject1 =
-                placeholderUtil.replaceLanguageDependentPlaceholders(translation, projLanguageMapping, language);
-            String translationFile1 =
-                placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
+            translation = Utils.sepAtStart(translation);
+
+            String translationProject1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, projLanguageMapping, language);
+            String translationFile1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
 
             for (String projectFile : sources) {
                 String file = StringUtils.removeStart(projectFile, basePath);
+
                 String translationProject2 = TranslationsUtils.replaceDoubleAsterisk(source, translationProject1, file);
                 String translationFile2 = TranslationsUtils.replaceDoubleAsterisk(source, translationFile1, file);
 
-                translationProject2 =
-                    placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(projectFile));
-                translationFile2 =
-                    placeholderUtil.replaceFileDependentPlaceholders(translationFile2, new File(projectFile));
+                translationProject2 = (dest == null)
+                    ? placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(projectFile))
+                    : placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(PropertiesBeanUtils.prepareDest(dest, projectFile)));
+                translationFile2 = placeholderUtil.replaceFileDependentPlaceholders(translationFile2, new File(projectFile));
+
                 translationFile2 = PropertiesBeanUtils.useTranslationReplace(translationFile2, translationReplace);
+
                 mapping.put(translationProject2, translationFile2);
             }
         }

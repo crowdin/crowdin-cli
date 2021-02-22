@@ -18,6 +18,9 @@ class UploadTranslationsSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--import-eq-suggestions"}, negatable = true)
     protected boolean importEqSuggestions;
 
+    @CommandLine.Option(names = {"--translate-hidden"}, negatable = true)
+    protected boolean translateHidden;
+
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
 
@@ -34,7 +37,7 @@ class UploadTranslationsSubcommand extends ActCommandWithFiles {
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
             ? actions.listTranslations(noProgress, treeView, true, plainView, false, false)
-            : actions.uploadTranslations(noProgress, languageId, branch, importEqSuggestions, autoApproveImported, debug, plainView);
+            : actions.uploadTranslations(noProgress, languageId, branch, importEqSuggestions, autoApproveImported, translateHidden, debug, plainView);
     }
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")

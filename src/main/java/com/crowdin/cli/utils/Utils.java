@@ -90,6 +90,10 @@ public class Utils {
         return path.replaceAll("^[\\\\/]+", "");
     }
 
+    public static String sepAtStart(String path) {
+        return Utils.PATH_SEPARATOR + noSepAtStart(path);
+    }
+
     public static String regexPath(String path) {
         return path.replaceAll("\\\\", "\\\\\\\\");
     }

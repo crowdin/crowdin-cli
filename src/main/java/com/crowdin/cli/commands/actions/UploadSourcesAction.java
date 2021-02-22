@@ -132,7 +132,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                     .map(source -> {
                         final File sourceFile = new File(source);
                         final String filePath = (file.getDest() != null)
-                                ? StringUtils.removePattern(file.getDest(), "^[\\\\/]")
+                                ? PropertiesBeanUtils.prepareDest(file.getDest(), source)
                                 : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
                         final String fileFullPath = (branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + filePath;
                         final String fileName = fileFullPath.substring(fileFullPath.lastIndexOf(Utils.PATH_SEPARATOR) + 1);
@@ -164,7 +164,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
                             return (Runnable) () -> {
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
-                                    request.setStorageId(client.uploadStorage(fileName, fileStream));
+                                    request.setStorageId(client.uploadStorage(source.substring(source.lastIndexOf(Utils.PATH_SEPARATOR) + 1), fileStream));
                                 } catch (IOException e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(
@@ -223,7 +223,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 }
 
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
-                                    request.setStorageId(client.uploadStorage(fileName, fileStream));
+                                    request.setStorageId(client.uploadStorage(source.substring(source.lastIndexOf(Utils.PATH_SEPARATOR) + 1), fileStream));
                                 } catch (IOException e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(
@@ -265,12 +265,12 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
     }
 
     private ImportOptions buildImportOptions(java.io.File sourceFile, FileBean fileBean) {
-        if (FilenameUtils.isExtension(sourceFile.getName(), "csv")) {
+        if (isSpreadsheet(sourceFile, fileBean)) {
             SpreadsheetFileImportOptions importOptions = new SpreadsheetFileImportOptions();
             importOptions.setFirstLineContainsHeader(fileBean.getFirstLineContainsHeader());
             importOptions.setScheme(PropertiesBeanUtils.getSchemeObject(fileBean.getScheme()));
             return importOptions;
-        } else if (FilenameUtils.isExtension(sourceFile.getName(), "xml")) {
+        } else if (isXml(sourceFile)) {
             XmlFileImportOptions importOptions = new XmlFileImportOptions();
             importOptions.setTranslateContent(fileBean.getTranslateContent());
             importOptions.setTranslateAttributes(fileBean.getTranslateAttributes());
@@ -282,6 +282,16 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             importOptions.setContentSegmentation(fileBean.getContentSegmentation());
             return importOptions;
         }
+    }
+
+    private boolean isSpreadsheet(java.io.File file, FileBean fileBean) {
+        return (fileBean.getDest() != null)
+            ? FilenameUtils.isExtension(fileBean.getDest(), "csv")
+            : FilenameUtils.isExtension(file.getName(), "csv");
+    }
+
+    private boolean isXml(java.io.File file) {
+        return FilenameUtils.isExtension(file.getName(), "xml");
     }
 
     private ExportOptions buildExportOptions(java.io.File sourceFile, FileBean fileBean, String basePath) {
@@ -308,6 +318,9 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
         }
         Optional<Branch> branchOpt = project.findBranchByName(branchName);
         if (branchOpt.isPresent()) {
+            if (!plainView) {
+                out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch_already_exists"), branchName)));
+            }
             return branchOpt.get();
         } else {
             AddBranchRequest request = new AddBranchRequest();

@@ -57,7 +57,7 @@ public interface Actions {
 
     NewAction<PropertiesWithFiles, ProjectClient> uploadTranslations(
         boolean noProgress, String languageId, String branchName, boolean importEqSuggestions,
-        boolean autoApproveImported, boolean debug, boolean plainView);
+        boolean autoApproveImported, boolean translateHidden, boolean debug, boolean plainView);
 
     NewAction<BaseProperties, ClientGlossary> glossaryList(boolean plainView, boolean isVerbose);
 

@@ -1,7 +1,9 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.sourcefiles.model.UpdateOption;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -74,5 +76,9 @@ public class PropertiesBeanUtils {
 
     public static boolean isCrowdinUrl(String string) {
         return string.matches("(https?:?/?/?)?.*\\.crowdin\\.com.*");
+    }
+
+    public static String prepareDest(String dest, String sourceFile) {
+        return Utils.noSepAtStart(dest).replaceAll(PlaceholderUtil.PLACEHOLDER_FILE_NAME, FilenameUtils.getBaseName(sourceFile));
     }
 }

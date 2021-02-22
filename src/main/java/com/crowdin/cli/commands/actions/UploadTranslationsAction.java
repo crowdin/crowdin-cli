@@ -19,8 +19,8 @@ import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.File;
-import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -46,18 +46,20 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
     private String branchName;
     private boolean importEqSuggestions;
     private boolean autoApproveImported;
+    private boolean translateHidden;
     private boolean debug;
     private boolean plainView;
 
     public UploadTranslationsAction(
         boolean noProgress, String languageId, String branchName, boolean importEqSuggestions,
-        boolean autoApproveImported, boolean debug, boolean plainView
+        boolean autoApproveImported, boolean translateHidden, boolean debug, boolean plainView
     ) {
         this.noProgress = noProgress || plainView;
         this.languageId = languageId;
         this.branchName = branchName;
         this.importEqSuggestions = importEqSuggestions;
         this.autoApproveImported = autoApproveImported;
+        this.translateHidden = translateHidden;
         this.debug = debug;
         this.plainView = plainView;
     }
@@ -110,7 +112,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
             AtomicBoolean containsErrors = new AtomicBoolean(false);
             fileSourcesWithoutIgnores.forEach(source -> {
                 String filePath = branchPath + (StringUtils.isNotEmpty(file.getDest())
-                    ? StringUtils.removeStart(file.getDest(), Utils.PATH_SEPARATOR)
+                    ? PropertiesBeanUtils.prepareDest(file.getDest(), source)
                     : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
 
                 if (!paths.containsKey(filePath)) {
@@ -138,7 +140,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         }
                         return;
                     }
-                    UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported);
+                    UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported, translateHidden);
                     preparedRequests.put(transFile, Pair.of(languages, request));
                 } else {
                     for (Language language : languages) {
@@ -158,7 +160,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                             }
                             continue;
                         }
-                        UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported);
+                        UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported, translateHidden);
                         preparedRequests.put(transFile, Pair.of(Collections.singletonList(language), request));
                     }
                 }

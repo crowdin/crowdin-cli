@@ -1,11 +1,7 @@
 package com.crowdin.cli.commands.functionality;
 
-import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
-
-import java.util.HashMap;
-import java.util.Map;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
@@ -31,7 +27,7 @@ public class TranslationsUtils {
                     String[] sourceNodesTmp = sourceNodes[i].split(Utils.PATH_SEPARATOR_REGEX);
                     for (String sourceNode : sourceNodesTmp) {
                         String s = Utils.PATH_SEPARATOR + sourceNode + Utils.PATH_SEPARATOR;
-                        s = s.replaceAll(Utils.PATH_SEPARATOR + "+", Utils.PATH_SEPARATOR);
+                        s = Utils.regexPath(s);
                         if (sourceFile.contains(s)) {
                             sourceFile = sourceFile.replaceFirst(s, Utils.PATH_SEPARATOR);
                         } else if (StringUtils.indexOfAny(s, new String[]{"*", "?", "[", "]", "."}) >= 0) {

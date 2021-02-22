@@ -33,4 +33,8 @@ public class ParamsWithFiles extends ProjectParams {
     public void setLabels(List<String> labels) {
         this.labels = labels;
     }
+
+    public boolean isEmpty() {
+        return sourceParam == null && translationParam == null;
+    }
 }

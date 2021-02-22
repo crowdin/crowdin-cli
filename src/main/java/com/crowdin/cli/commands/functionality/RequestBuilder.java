@@ -35,11 +35,12 @@ public class RequestBuilder {
         return request;
     }
 
-    public static UploadTranslationsRequest uploadTranslations(Long fileId, boolean importEqSuggestions, boolean autoApproveImported) {
+    public static UploadTranslationsRequest uploadTranslations(Long fileId, boolean importEqSuggestions, boolean autoApproveImported, boolean translateHidden) {
         UploadTranslationsRequest request = new UploadTranslationsRequest();
         request.setFileId(fileId);
         request.setImportEqSuggestions(importEqSuggestions);
         request.setAutoApproveImported(autoApproveImported);
+        request.setTranslateHidden(translateHidden);
         return request;
     }
 

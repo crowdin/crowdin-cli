@@ -336,7 +336,7 @@ public class UploadSourcesActionTest {
         ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
-        when(client.uploadStorage(eq("last.po"), any()))
+        when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
@@ -344,7 +344,7 @@ public class UploadSourcesActionTest {
 
         verify(client).downloadFullProject();
         verify(client).listLabels();
-        verify(client).uploadStorage(eq("last.po"), any());
+        verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
                 setName("last.po");
                 setStorageId(1L);
