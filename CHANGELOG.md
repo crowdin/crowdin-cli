@@ -1,6 +1,24 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.5.4]
+
+### Added
+
+- Add '--[no-]translate-hidden' parameter to 'upload translations' command ([#344](https://github.com/crowdin/crowdin-cli/pull/344))
+- Add '%file_name%' placeholder for 'dest' parameter ([#344](https://github.com/crowdin/crowdin-cli/pull/344))
+- Add support for downloading file groups with 'dest' parameter ([#344](https://github.com/crowdin/crowdin-cli/pull/344))
+- Add 'branch exists' message to 'upload' command ([#344](https://github.com/crowdin/crowdin-cli/pull/344))
+
+### Updated
+
+- Upload file as spreadsheet if 'dest' parameter has .csv extension ([#344](https://github.com/crowdin/crowdin-cli/pull/344))
+
+### Fixed
+
+- Fix config file missing message ([#344](https://github.com/crowdin/crowdin-cli/pull/344))
+- Fix upload sources for Windows ([#344](https://github.com/crowdin/crowdin-cli/pull/344))
+
 ## [3.5.3]
 
 ### Added
