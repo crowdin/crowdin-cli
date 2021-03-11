@@ -53,6 +53,10 @@ public class FileHelper {
 
     private static final String ESCAPE_ASTERISK_PLACEHOLDER = "{ESCAPE_ASTERISK}";
 
+    private static final String PLUS = "+";
+
+    private static final String ESCAPE_PLUS = "\\+";
+
     private final String basePath;
 
     public FileHelper(String basePath) {
@@ -127,6 +131,8 @@ public class FileHelper {
             .replace(ESCAPE_QUESTION, ESCAPE_QUESTION_PLACEHOLDER)
             .replace(QUESTION_MARK, DOT)
             .replace(ESCAPE_QUESTION_PLACEHOLDER, ESCAPE_QUESTION);
+        node = node
+            .replace(PLUS, ESCAPE_PLUS);
         node = node
             .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
             .replace(ASTERISK, DOT_PLUS)

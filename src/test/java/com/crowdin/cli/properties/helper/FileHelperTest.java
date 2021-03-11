@@ -41,6 +41,8 @@ public class FileHelperTest {
     private static String f2 =     Utils.normalizePath("f2/");
     private static String f21 =    Utils.normalizePath("f2/in1/");
 
+    private static String fintlicu = Utils.normalizePath("f+intl-icu.en.yaml");
+
     private static String projectRoot = Utils.normalizePath("");
 
     private static List<String> allFiles = Arrays.asList(a, ax, f1a, f1ax, f11a, f11ax, f2a, f2ax, f21a, f21ax);
@@ -111,7 +113,8 @@ public class FileHelperTest {
             arguments(allFiles, Utils.normalizePath("?.*"), Arrays.asList(a, ax)),
             arguments(allFiles, Utils.normalizePath("*"), Arrays.asList(a, ax, f1, f2)),
             arguments(allFiles, Utils.normalizePath("f3/**/*"), Collections.EMPTY_LIST),
-            arguments(allFiles, Utils.normalizePath("/f1/**"), Arrays.asList(f1, f11))
+            arguments(allFiles, Utils.normalizePath("/f1/**"), Arrays.asList(f1, f11)),
+            arguments(Collections.singletonList(fintlicu), fintlicu, Arrays.asList(fintlicu))
         );
     }
 
