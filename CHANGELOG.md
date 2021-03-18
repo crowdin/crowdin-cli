@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.5.5]
+
+### Fixed
+
+- Fix for searching files with a plus symbol in a name ([#350](https://github.com/crowdin/crowdin-cli/pull/350))
+
 ## [3.5.4]
 
 ### Added
