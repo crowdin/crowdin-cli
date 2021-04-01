@@ -236,7 +236,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_already_exists"), fileFullPath));
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
-                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath), e);
+                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
                                 }
                                 if (!plainView) {
                                     out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));

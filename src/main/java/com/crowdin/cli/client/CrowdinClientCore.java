@@ -108,7 +108,7 @@ abstract class CrowdinClientCore {
                 for (HttpBadRequestException.Error error : eh.getError().errors) {
                     String code = (error.code != null) ? error.code : "<empty_code>";
                     String message = (error.message != null) ? error.message : "<empty_message>";
-                    searchErrorHandler(errorHandlers, error.getCode(), error.getMessage());
+                    searchErrorHandler(errorHandlers, code, message);
                 }
             }
             String errorMessage = "Wrong parameters: \n" + e.getErrors()
