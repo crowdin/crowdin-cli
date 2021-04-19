@@ -45,4 +45,6 @@ public final class CommandNames {
     public static final String ALIAS_UPLOAD = "push";
     public static final String UPLOAD_SOURCES = "sources";
     public static final String UPLOAD_TRANSLATIONS = "translations";
+
+    public static final String PRE_TRANSLATE = "pre-translate";
 }

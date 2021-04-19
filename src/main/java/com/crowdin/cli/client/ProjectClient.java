@@ -11,8 +11,10 @@ import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
+import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
+import com.crowdin.client.translations.model.PreTranslationStatus;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
@@ -66,4 +68,8 @@ public interface ProjectClient extends Client {
     Label addLabel(AddLabelRequest request);
 
     URL downloadFile(Long fileId);
+
+    PreTranslationStatus startPreTranslation(ApplyPreTranslationRequest request);
+
+    PreTranslationStatus checkPreTranslation(String preTranslationId);
 }

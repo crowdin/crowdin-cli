@@ -11,6 +11,8 @@ import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
+import com.crowdin.client.translations.model.AutoApproveOption;
+import com.crowdin.client.translations.model.Method;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -82,5 +84,8 @@ public interface Actions {
 
     NewAction<NoProperties, NoClient> checkNewVersion();
 
+    NewAction<PropertiesWithFiles, ProjectClient> preTranslate(
+        List<String> languageIds, Method method, Long engineId, String branchName, AutoApproveOption autoApproveOption, Boolean duplicateTranslations,
+        Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress, boolean debug, boolean verbose, boolean plainView);
 
 }

@@ -51,7 +51,8 @@ public class PicocliRunner {
         CommandLine.IExecutionExceptionHandler executionExceptionHandler = buildExecutionExceptionHandler();
         this.commandLine = new CommandLine(rootCommand)
             .setExecutionExceptionHandler(executionExceptionHandler)
-            .setColorScheme(colorScheme);
+            .setColorScheme(colorScheme)
+            .setCaseInsensitiveEnumValuesAllowed(true);
         HelpCommand.setOptions(commandLine, System.out, colorScheme);
     }
 
