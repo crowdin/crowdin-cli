@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.actions;
 
+import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.ClientGlossary;
 import com.crowdin.cli.client.ClientTm;
 import com.crowdin.cli.client.NoClient;
@@ -60,6 +61,11 @@ public class CliActions implements Actions {
         boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang
     ) {
         return new ListTranslationsAction(noProgress, treeView, isLocal, plainView, useServerSources, withInContextLang);
+    }
+
+    @Override
+    public NewAction<PropertiesWithFiles, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean noProgress, boolean plainView) {
+        return new ListLanguagesAction(code, noProgress, plainView);
     }
 
     @Override

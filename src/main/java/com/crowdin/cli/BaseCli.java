@@ -53,4 +53,8 @@ public class BaseCli {
     public static final String HTTP_PROXY_PASSWORD_ENV = "HTTP_PROXY_PASSWORD";
 
     public static final String IGNORE_HIDDEN_FILES_PATTERN = "**/.*";
+
+    public enum LanguageCode {
+        two_letters_code, three_letters_code, locale, android_code, osx_code, osx_locale
+    }
 }

@@ -20,6 +20,7 @@ public final class CommandNames {
     public static final String LIST_PROJECT = "project";
     public static final String LIST_SOURCES = "sources";
     public static final String LIST_TRANSLATIONS = "translations";
+    public static final String LIST_LANGUAGES = "languages";
 
     public static final String STATUS = "status";
     public static final String STATUS_TRANSLATION = "translation";
