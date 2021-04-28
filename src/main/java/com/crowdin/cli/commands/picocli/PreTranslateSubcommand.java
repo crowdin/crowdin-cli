@@ -14,6 +14,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
+
 @CommandLine.Command(
     name = CommandNames.PRE_TRANSLATE,
     sortOptions = false
@@ -79,7 +81,10 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
         if ((Method.MT == method) && translateWithPerfectMatchOnly != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.pre_tranlsate.translate_with_perfect_match_only"));
         }
-
+        if (Method.MT == method && autoApproveOption != null) {
+            System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.auto_approve_option_with_mt")));
+            autoApproveOption = null;
+        }
         if (autoApproveOption != null && !autoApproveOptionWrapper.containsKey(autoApproveOption)) {
             errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.auto_approve_option"));
         }
