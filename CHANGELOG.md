@@ -1,6 +1,18 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.6.0]
+
+### Added
+
+- 'crowdin pre-translate' command ([#354](https://github.com/crowdin/crowdin-cli/pull/354))
+- 'crowdin list languages' command ([#354](https://github.com/crowdin/crowdin-cli/pull/354))
+- '--dest' parameter support as a command config option ([#354](https://github.com/crowdin/crowdin-cli/pull/354))
+
+### Fixed
+
+- Fix error type selection for invalid CSV scheme ([#354](https://github.com/crowdin/crowdin-cli/pull/354))
+
 ## [3.5.5]
 
 ### Fixed
