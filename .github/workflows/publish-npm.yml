@@ -14,6 +14,9 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 1.8
+      - uses: eskatos/gradle-command-action@v1
+        with:
+         gradle-version: 6.5.1
       - run: gradle shadowJar
       - run: mkdir dist
       - run: mv build/libs/crowdin-cli-*.jar dist/crowdin-cli.jar
