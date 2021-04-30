@@ -24,6 +24,17 @@ public class PlaceholderUtil {
     public static final String PLACEHOLDER_OSX_LOCALE = "%osx_locale%";
     public static final String PLACEHOLDER_LANGUAGE_ID = "%language_id%";
 
+    public static final String PLACEHOLDER_NAME_ANDROID_CODE = "android_code";
+    public static final String PLACEHOLDER_NAME_LANGUAGE = "language";
+    public static final String PLACEHOLDER_NAME_LANGUAGE_2 = "name";
+    public static final String PLACEHOLDER_NAME_LOCALE = "locale";
+    public static final String PLACEHOLDER_NAME_LOCALE_WITH_UNDERSCORE = "locale_with_underscore";
+    public static final String PLACEHOLDER_NAME_THREE_LETTERS_CODE = "three_letters_code";
+    public static final String PLACEHOLDER_NAME_TWO_LETTERS_CODE = "two_letters_code";
+    public static final String PLACEHOLDER_NAME_OSX_CODE = "osx_code";
+    public static final String PLACEHOLDER_NAME_OSX_LOCALE = "osx_locale";
+    public static final String PLACEHOLDER_NAME_LANGUAGE_ID = "language_id";
+
     public static final String PLACEHOLDER_FILE_EXTENTION = "%file_extension%";
     public static final String PLACEHOLDER_FILE_NAME = "%file_name%";
     public static final String PLACEHOLDER_ORIGINAL_FILE_NAME = "%original_file_name%";
@@ -89,16 +100,19 @@ public class PlaceholderUtil {
         if (toFormat == null || lang == null) {
             throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");
         }
-        return toFormat
-                .replace(PLACEHOLDER_LANGUAGE_ID, lang.getId())
-                .replace(PLACEHOLDER_LANGUAGE, lang.getName())
-                .replace(PLACEHOLDER_LOCALE, lang.getLocale())
-                .replace(PLACEHOLDER_LOCALE_WITH_UNDERSCORE, lang.getLocale().replace("-", "_"))
-                .replace(PLACEHOLDER_TWO_LETTERS_CODE, lang.getTwoLettersCode())
-                .replace(PLACEHOLDER_THREE_LETTERS_CODE, lang.getThreeLettersCode())
-                .replace(PLACEHOLDER_ANDROID_CODE, lang.getAndroidCode())
-                .replace(PLACEHOLDER_OSX_LOCALE, lang.getOsxLocale())
-                .replace(PLACEHOLDER_OSX_CODE, lang.getOsxCode());
+        toFormat = toFormat.contains(PLACEHOLDER_LANGUAGE_ID) ? toFormat.replace(PLACEHOLDER_LANGUAGE_ID, lang.getId()) : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_LANGUAGE) ? toFormat.replace(PLACEHOLDER_LANGUAGE, lang.getName()) : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_LOCALE) ? toFormat.replace(PLACEHOLDER_LOCALE, lang.getLocale()) : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_LOCALE_WITH_UNDERSCORE)
+            ? toFormat.replace(PLACEHOLDER_LOCALE_WITH_UNDERSCORE, lang.getLocale().replace("-", "_")) : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_TWO_LETTERS_CODE)
+            ? toFormat.replace(PLACEHOLDER_TWO_LETTERS_CODE, lang.getTwoLettersCode()) : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_THREE_LETTERS_CODE)
+            ? toFormat.replace(PLACEHOLDER_THREE_LETTERS_CODE, lang.getThreeLettersCode()) : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_ANDROID_CODE) ? toFormat.replace(PLACEHOLDER_ANDROID_CODE, lang.getAndroidCode()) : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_OSX_LOCALE) ? toFormat.replace(PLACEHOLDER_OSX_LOCALE, lang.getOsxLocale()) : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_OSX_CODE) ? toFormat.replace(PLACEHOLDER_OSX_CODE, lang.getOsxCode()) : toFormat;
+        return toFormat;
     }
 
     public List<String> replaceLanguageDependentPlaceholders(String toFormat, LanguageMapping languageMapping) {
@@ -112,26 +126,39 @@ public class PlaceholderUtil {
         if (toFormat == null || lang == null || langMapping == null) {
             throw new NullPointerException("null args in replaceLanguageDependentPlaceholders()");
         }
-        return toFormat
-            .replaceAll(PLACEHOLDER_LANGUAGE_ID, langMapping.getValueOrDefault(lang.getId(),
-                PLACEHOLDER_LANGUAGE_ID.replaceAll("%", ""), lang.getId()))
-            .replaceAll(PLACEHOLDER_LANGUAGE, langMapping.getValueOrDefault(lang.getId(),
-                PLACEHOLDER_LANGUAGE.replaceAll("%", ""), langMapping.getValueOrDefault(
-                    lang.getId(), "name", lang.getName())))
-            .replaceAll(PLACEHOLDER_LOCALE, langMapping.getValueOrDefault(lang.getId(),
-                PLACEHOLDER_LOCALE.replaceAll("%", ""), lang.getLocale()))
-            .replaceAll(PLACEHOLDER_LOCALE_WITH_UNDERSCORE, langMapping.getValueOrDefault(lang.getId(),
-                PLACEHOLDER_LOCALE_WITH_UNDERSCORE.replaceAll("%", ""), lang.getLocale().replace("-", "_")))
-            .replaceAll(PLACEHOLDER_TWO_LETTERS_CODE, langMapping.getValueOrDefault(lang.getId(),
-                PLACEHOLDER_TWO_LETTERS_CODE.replaceAll("%", ""), lang.getTwoLettersCode()))
-            .replaceAll(PLACEHOLDER_THREE_LETTERS_CODE, langMapping.getValueOrDefault(lang.getId(),
-                PLACEHOLDER_THREE_LETTERS_CODE.replaceAll("%", ""), lang.getThreeLettersCode()))
-            .replaceAll(PLACEHOLDER_ANDROID_CODE, langMapping.getValueOrDefault(lang.getId(),
-                PLACEHOLDER_ANDROID_CODE.replaceAll("%", ""), lang.getAndroidCode()))
-            .replaceAll(PLACEHOLDER_OSX_LOCALE, langMapping.getValueOrDefault(lang.getId(),
-                PLACEHOLDER_OSX_LOCALE.replaceAll("%", ""), lang.getOsxLocale()))
-            .replaceAll(PLACEHOLDER_OSX_CODE, langMapping.getValueOrDefault(lang.getId(),
-                PLACEHOLDER_OSX_CODE.replaceAll("%", ""), lang.getOsxCode()));
+        toFormat = toFormat.contains(PLACEHOLDER_LANGUAGE_ID)
+            ? toFormat.replace(PLACEHOLDER_LANGUAGE_ID, langMapping.getValueOrDefault(lang.getId(), PLACEHOLDER_NAME_LANGUAGE_ID, lang.getId()))
+            : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_LANGUAGE)
+            ? toFormat.replace(PLACEHOLDER_LANGUAGE,
+            langMapping.getValueOrDefault(lang.getId(), PLACEHOLDER_NAME_LANGUAGE,
+                langMapping.getValueOrDefault(lang.getId(), PLACEHOLDER_NAME_LANGUAGE_2, lang.getName())))
+            : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_LOCALE)
+            ? toFormat.replace(PLACEHOLDER_LOCALE, langMapping.getValueOrDefault(lang.getId(), PLACEHOLDER_NAME_LOCALE, lang.getLocale()))
+            : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_LOCALE_WITH_UNDERSCORE)
+            ? toFormat.replace(PLACEHOLDER_LOCALE_WITH_UNDERSCORE,
+            langMapping.getValueOrDefault(lang.getId(), PLACEHOLDER_NAME_LOCALE_WITH_UNDERSCORE, lang.getLocale().replace("-", "_")))
+            : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_TWO_LETTERS_CODE)
+            ? toFormat.replace(PLACEHOLDER_TWO_LETTERS_CODE,
+            langMapping.getValueOrDefault(lang.getId(), PLACEHOLDER_NAME_TWO_LETTERS_CODE, lang.getTwoLettersCode()))
+            : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_THREE_LETTERS_CODE)
+            ? toFormat.replace(PLACEHOLDER_THREE_LETTERS_CODE,
+            langMapping.getValueOrDefault(lang.getId(), PLACEHOLDER_NAME_THREE_LETTERS_CODE, lang.getThreeLettersCode()))
+            : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_ANDROID_CODE)
+            ? toFormat.replace(PLACEHOLDER_ANDROID_CODE, langMapping.getValueOrDefault(lang.getId(), PLACEHOLDER_NAME_ANDROID_CODE, lang.getAndroidCode()))
+            : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_OSX_LOCALE)
+            ? toFormat.replace(PLACEHOLDER_OSX_LOCALE, langMapping.getValueOrDefault(lang.getId(), PLACEHOLDER_NAME_OSX_LOCALE, lang.getOsxLocale()))
+            : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_OSX_CODE)
+            ? toFormat.replace(PLACEHOLDER_OSX_CODE, langMapping.getValueOrDefault(lang.getId(), PLACEHOLDER_NAME_OSX_CODE, lang.getOsxCode()))
+            : toFormat;
+        return toFormat;
     }
 
     public String replaceFileDependentPlaceholders(String toFormat, File file) {
@@ -143,18 +170,21 @@ public class PlaceholderUtil {
         String fileExt = FilenameUtils.getExtension(fileName);
         String tempBasePath = basePath;
         String fileParent = StringUtils.removeStart((file.getParent() != null ? file.getParent() + Utils.PATH_SEPARATOR : ""), tempBasePath);
-        toFormat = toFormat
-                .replace(PLACEHOLDER_ORIGINAL_FILE_NAME, fileName)
-                .replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt)
-                .replace(PLACEHOLDER_FILE_EXTENTION, fileExt)
-                .replace(PLACEHOLDER_ORIGINAL_PATH, fileParent);
-        String doubleAsterisks =
-            Utils.PATH_SEPARATOR
-                + StringUtils.removeStart(fileParent,
+
+        toFormat = toFormat.contains(PLACEHOLDER_ORIGINAL_FILE_NAME) ? toFormat.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, fileName) : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_FILE_NAME) ? toFormat.replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt) : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_FILE_EXTENTION) ? toFormat.replace(PLACEHOLDER_FILE_EXTENTION, fileExt) : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_ORIGINAL_PATH) ? toFormat.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent) : toFormat;
+
+        if (toFormat.contains(Utils.PATH_SEPARATOR + "**")) {
+            String doubleAsterisks =
+                Utils.PATH_SEPARATOR
+                    + StringUtils.removeStart(fileParent,
                     StringUtils.removeStart(StringUtils.substringBefore(toFormat, Utils.PATH_SEPARATOR + "**"), Utils.PATH_SEPARATOR));
-        toFormat = toFormat
-                .replace(Utils.PATH_SEPARATOR + "**", doubleAsterisks)
-                .replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
+            toFormat = toFormat.replace(Utils.PATH_SEPARATOR + "**", doubleAsterisks);
+        }
+
+        toFormat = toFormat.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
         return StringUtils.removeStart(toFormat, Utils.PATH_SEPARATOR);
     }
 

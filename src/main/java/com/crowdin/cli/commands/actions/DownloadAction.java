@@ -33,12 +33,16 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 import java.util.TreeMap;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -180,13 +184,9 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     });
             }
 
-            Map<Pair<File, List<String>>, List<Pair<String, String>>> fileBeansWithDownloadedFilesNoRepetitions = new TreeMap<>();
+            Map<Pair<File, List<String>>, Set<Pair<String, String>>> fileBeansWithDownloadedFilesNoRepetitions = new TreeMap<>();
             for (Pair<File, List<String>> key : fileBeansWithDownloadedFiles.keySet()) {
-                fileBeansWithDownloadedFilesNoRepetitions.put(key, fileBeansWithDownloadedFiles.get(key).stream()
-                    .flatMap(map -> map.entrySet().stream())
-                    .map(entry -> Pair.of(entry.getKey(), entry.getValue()))
-                    .distinct()
-                    .collect(Collectors.toList()));
+                fileBeansWithDownloadedFilesNoRepetitions.put(key, this.flattenInnerMap(fileBeansWithDownloadedFiles.get(key)));
             }
 
             Map<Long, String> directoryPaths = (branch.isPresent())
@@ -201,7 +201,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             List<String> totalOmittedFilesNoSources = new ArrayList<>();
 
             for (Pair<File, List<String>> key : fileBeansWithDownloadedFilesNoRepetitions.keySet()) {
-                List<Pair<String, String>> filesWithMapping = fileBeansWithDownloadedFilesNoRepetitions.get(key);
+                Set<Pair<String, String>> filesWithMapping = fileBeansWithDownloadedFilesNoRepetitions.get(key);
                 File tempDir = key.getKey();
                 List<String> downloadedFiles = key.getValue();
 
@@ -290,7 +290,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
         this.downloadTranslations(client, projectBuild.getId(), downloadedZipArchivePath);
 
-        List<String> downloadedFilesProc = files.extractZipArchive(downloadedZipArchive, baseTempDir)
+        List<String> downloadedFilesProc = this.extractArchive(downloadedZipArchive, baseTempDir)
             .stream()
             .map(f -> StringUtils
                 .removeStart(f.getAbsolutePath(), baseTempDir.getAbsolutePath() + Utils.PATH_SEPARATOR))
@@ -354,19 +354,20 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private Pair<Map<File, File>, List<String>> sortFiles(
         List<String> downloadedFiles,
-        List<Pair<String, String>> filesWithMapping,
+        Set<Pair<String, String>> filesWithMapping,
         String basePath,
         String baseTempDir
     ) {
+        Set<String> downloadedFilesSet = new HashSet<>(downloadedFiles);
         Map<File, File> fileMapping = filesWithMapping.stream()
-            .filter(pair -> downloadedFiles.contains(pair.getLeft()))
+            .filter(pair -> downloadedFilesSet.contains(pair.getLeft()))
             .collect(Collectors.toMap(
                 pair -> new File(Utils.joinPaths(baseTempDir, pair.getLeft())),
                 pair -> new File(Utils.joinPaths(basePath, pair.getRight()))
             ));
-        List<String> filesWithMappingFrom = filesWithMapping.stream()
+        Set<String> filesWithMappingFrom = filesWithMapping.stream()
             .map(Pair::getLeft)
-            .collect(Collectors.toList());
+            .collect(Collectors.toSet());
         List<String> omittedFiles = downloadedFiles
             .stream()
             .filter(downloadedFile -> !filesWithMappingFrom.contains(downloadedFile))
@@ -437,13 +438,29 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     }
 
     private void downloadTranslations(ProjectClient client, Long buildId, String archivePath) {
-        URL url = ConsoleSpinner
-            .execute(out, "message.spinner.downloading_translation", "error.downloading_file",
-                this.noProgress, this.plainView, () -> client.downloadBuild(buildId));
-        try (InputStream data = url.openStream()) {
-            files.writeToFile(archivePath, data);
-        } catch (IOException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.write_file"), archivePath), e);
+        ConsoleSpinner.execute(out, "message.spinner.downloading_translation", "error.downloading_file", this.noProgress, this.plainView, () -> {
+            URL url = client.downloadBuild(buildId);
+            try (InputStream data = url.openStream()) {
+                files.writeToFile(archivePath, data);
+            } catch (IOException e) {
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.write_file"), archivePath), e);
+            }
+            return url;
+        });
+    }
+
+    private List<File> extractArchive(File zipArchive, File dir) {
+        return ConsoleSpinner.execute(out, "message.spinner.extracting_archive", "error.extracting_files", this.noProgress, this.plainView,
+            () -> files.extractZipArchive(zipArchive, dir));
+    }
+
+    private Set<Pair<String, String>> flattenInnerMap(Collection<Map<String, String>> toFlatten) {
+        Set<Pair<String, String>> result = new TreeSet<>();
+        for (Map<String, String> map : toFlatten) {
+            for (String key : map.keySet()) {
+                result.add(Pair.of(key, map.get(key)));
+            }
         }
+        return result;
     }
 }
