@@ -13,8 +13,10 @@ import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
 import com.crowdin.client.storage.model.Storage;
+import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
+import com.crowdin.client.translations.model.PreTranslationStatus;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
@@ -144,7 +146,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     public void addSource(AddFileRequest request) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
             put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"), new RepeatException());
-            put((code, message) -> StringUtils.containsAny(message, "Name must be unique"), new ExistsResponseException());
+            put((code, message) -> StringUtils.contains(message, "Name must be unique"), new ExistsResponseException());
         }};
         executeRequestWithPossibleRetry(
             errorHandlers,
@@ -247,5 +249,19 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return url(executeRequest(() -> this.client.getSourceFilesApi()
             .downloadFile(this.projectId, fileId)
             .getData()));
+    }
+
+    @Override
+    public PreTranslationStatus startPreTranslation(ApplyPreTranslationRequest request) {
+        return executeRequest(() ->this.client.getTranslationsApi()
+            .applyPreTranslation(this.projectId, request)
+            .getData());
+    }
+
+    @Override
+    public PreTranslationStatus checkPreTranslation(String preTranslationId) {
+        return executeRequest(() -> this.client.getTranslationsApi()
+            .preTranslationStatus(this.projectId, preTranslationId)
+            .getData());
     }
 }

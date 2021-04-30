@@ -16,6 +16,9 @@ public class ParamsWithFiles extends ProjectParams {
     @CommandLine.Option(names = {"-t", "--translation"}, paramLabel = "...", descriptionKey = "params.translation")
     private String translationParam;
 
+    @CommandLine.Option(names = {"--dest"}, paramLabel = "...", descriptionKey = "params.dest")
+    private String destParam;
+
     private Boolean skipTranslatedOnly;
     private Boolean skipUntranslatedFiles;
     private Boolean exportApprovedOnly;

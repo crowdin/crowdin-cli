@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands;
 
+import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.ClientGlossary;
 import com.crowdin.cli.client.ClientTm;
 import com.crowdin.cli.client.NoClient;
@@ -11,6 +12,8 @@ import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
+import com.crowdin.client.translations.model.AutoApproveOption;
+import com.crowdin.client.translations.model.Method;
 
 import java.io.File;
 import java.nio.file.Path;
@@ -36,6 +39,8 @@ public interface Actions {
 
     NewAction<PropertiesWithFiles, ProjectClient> listTranslations(
         boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang);
+
+    NewAction<PropertiesWithFiles, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean noProgress, boolean plainView);
 
     NewAction<PropertiesWithFiles, ProjectClient> status(
         boolean noProgress, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved);
@@ -82,5 +87,8 @@ public interface Actions {
 
     NewAction<NoProperties, NoClient> checkNewVersion();
 
+    NewAction<PropertiesWithFiles, ProjectClient> preTranslate(
+        List<String> languageIds, Method method, Long engineId, String branchName, AutoApproveOption autoApproveOption, Boolean duplicateTranslations,
+        Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress, boolean debug, boolean verbose, boolean plainView);
 
 }

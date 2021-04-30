@@ -20,6 +20,7 @@ public final class CommandNames {
     public static final String LIST_PROJECT = "project";
     public static final String LIST_SOURCES = "sources";
     public static final String LIST_TRANSLATIONS = "translations";
+    public static final String LIST_LANGUAGES = "languages";
 
     public static final String STATUS = "status";
     public static final String STATUS_TRANSLATION = "translation";
@@ -45,4 +46,6 @@ public final class CommandNames {
     public static final String ALIAS_UPLOAD = "push";
     public static final String UPLOAD_SOURCES = "sources";
     public static final String UPLOAD_TRANSLATIONS = "translations";
+
+    public static final String PRE_TRANSLATE = "pre-translate";
 }

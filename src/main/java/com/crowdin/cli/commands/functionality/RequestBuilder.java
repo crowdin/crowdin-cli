@@ -12,10 +12,13 @@ import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
+import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
+import com.crowdin.client.translations.model.AutoApproveOption;
 import com.crowdin.client.translations.model.CharTransformation;
 import com.crowdin.client.translations.model.CrowdinTranslationCraeteProjectPseudoBuildForm;
 import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
 import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
+import com.crowdin.client.translations.model.Method;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 
 import java.util.ArrayList;
@@ -187,6 +190,22 @@ public class RequestBuilder {
         patchRequest.setOp(PatchOperation.REPLACE);
         patchRequest.setValue(excludedTargetLanguages);
         request.add(patchRequest);
+        return request;
+    }
+
+    public static ApplyPreTranslationRequest applyPreTranslation(
+        List<String> languageIds, List<Long> fileIds, Method method, Long engineId, AutoApproveOption autoApproveOption,
+        Boolean duplicateTranslations, Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly
+    ) {
+        ApplyPreTranslationRequest request = new ApplyPreTranslationRequest();
+        request.setLanguageIds(languageIds);
+        request.setFileIds(fileIds);
+        request.setMethod(method);
+        request.setEngineId(engineId);
+        request.setAutoApproveOption(autoApproveOption);
+        request.setDuplicateTranslations(duplicateTranslations);
+        request.setTranslateUntranslatedOnly(translateUntranslatedOnly);
+        request.setTranslateWithPerfectMatchOnly(translateWithPerfectMatchOnly);
         return request;
     }
 

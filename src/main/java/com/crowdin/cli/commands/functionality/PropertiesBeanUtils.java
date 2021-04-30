@@ -25,7 +25,7 @@ public class PropertiesBeanUtils {
         String[] schemePart = fileScheme.split(",");
         Map<String, Integer> scheme = new HashMap<>();
         for (int i = 0; i < schemePart.length; i++) {
-            scheme.put(schemePart[i], i);
+            scheme.put(StringUtils.trim(schemePart[i]), i);
         }
         return scheme;
     }
