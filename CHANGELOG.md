@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.6.1]
+
+### Updated
+
+- 'crowdin download' command improvements ([#358](https://github.com/crowdin/crowdin-cli/pull/358))
+- AUR package: remove gradle dependency usage ([#359](https://github.com/crowdin/crowdin-cli/pull/359))
+
 ## [3.6.0]
 
 ### Added
