@@ -127,8 +127,8 @@ public class PropertiesBeanUtilsTest {
 
     private static Stream<Arguments> testGetOrganizationForTestUrls() {
         return Stream.of(
-            arguments("http://vasyl.dev.crowdin.com", null),
-            arguments("http://myorg.vasyl.dev.crowdin.com", "myorg"),
+            arguments("https://organizzzation.daanya.crowdin.dev", "organizzzation"),
+            arguments("https://daanya.crowdin.dev", null),
             arguments("https://98011165-2619304c.test.crowdin.com", null),
             arguments("https://myorg.e-test.crowdin.com", "myorg")
         );

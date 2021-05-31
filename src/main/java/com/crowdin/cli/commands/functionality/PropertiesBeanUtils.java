@@ -60,16 +60,17 @@ public class PropertiesBeanUtils {
     public static String getOrganization(String baseUrl) {
         String organization = baseUrl
             .replaceAll("^https?:?/?/?", "")
+            .replaceAll("(\\.?[^.]+)?\\.?crowdin.dev(/api/v2)?/?$", "")
             .replaceAll("\\.?crowdin.com(/api/v2)?/?$", "")
             .replaceAll("\\.?api", "")
-            .replaceAll("\\.?[^.]+\\.dev$", "")
             .replaceAll(".+\\.test$", "")
             .replaceAll("\\.e-test$", "");
         return (StringUtils.isEmpty(organization)) ? null : organization;
     }
 
     public static boolean isUrlForTesting(String baseUrl) {
-        return baseUrl.matches("^http://.+\\.dev\\.crowdin\\.com(/api/v2)?$")
+        return baseUrl.matches("^https://[^.]+\\.crowdin\\.dev(/api/v2)?$")
+            || baseUrl.matches("^https://[^.]+\\.[^.]+\\.crowdin\\.dev(/api/v2)?$")
             || baseUrl.matches("^https://.+\\.test\\.crowdin\\.com(/api/v2)?$")
             || baseUrl.matches("^https://.+\\.e-test\\.crowdin\\.com(/api/v2)?$");
     }
