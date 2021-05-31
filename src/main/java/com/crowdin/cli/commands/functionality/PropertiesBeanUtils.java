@@ -3,9 +3,9 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.sourcefiles.model.UpdateOption;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -78,7 +78,15 @@ public class PropertiesBeanUtils {
         return string.matches("(https?:?/?/?)?.*\\.crowdin\\.com.*");
     }
 
-    public static String prepareDest(String dest, String sourceFile) {
-        return Utils.noSepAtStart(dest).replaceAll(PlaceholderUtil.PLACEHOLDER_FILE_NAME, FilenameUtils.getBaseName(sourceFile));
+    /**
+     * Builds source file destination from 'dest' parameter
+     * @param dest 'dest' parameter
+     * @param sourceFile relative path to file. Mostly done by StringUtils.removeStart(sourceFile, pb.getBasePath())
+     * @param placeholderUtil placeholderUtil
+     * @return built source file destination
+     */
+    public static String prepareDest(String dest, String sourceFile, PlaceholderUtil placeholderUtil) {
+        String dest2 = TranslationsUtils.replaceDoubleAsterisk(dest, dest, sourceFile);
+        return placeholderUtil.replaceFileDependentPlaceholders(Utils.noSepAtStart(dest2), new File(sourceFile));
     }
 }

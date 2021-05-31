@@ -426,7 +426,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
                 translationProject2 = (dest == null)
                     ? placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(projectFile))
-                    : placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(PropertiesBeanUtils.prepareDest(dest, projectFile)));
+                    : placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(PropertiesBeanUtils.prepareDest(dest, file, placeholderUtil)));
                 translationFile2 = placeholderUtil.replaceFileDependentPlaceholders(translationFile2, new File(projectFile));
 
                 translationFile2 = PropertiesBeanUtils.useTranslationReplace(translationFile2, translationReplace);

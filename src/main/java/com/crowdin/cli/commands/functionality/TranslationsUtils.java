@@ -7,6 +7,13 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 public class TranslationsUtils {
 
+    /**
+     * Replaces double asterisks in pattern. Mostly used with PlaceholderUtils.replaceFileDependentPlaceholders()
+     * @param sourcePattern 'source' parameter
+     * @param translationPattern 'translation' parameter
+     * @param sourceFile relative path to file. Mostly done by StringUtils.removeStart(sourceFile, pb.getBasePath())
+     * @return pattern with replaced double asterisks
+     */
     public static String replaceDoubleAsterisk(String sourcePattern, String translationPattern, String sourceFile) {
         if (StringUtils.isAnyEmpty(translationPattern, sourceFile)) {
             throw new RuntimeException("No sources and/or translations");

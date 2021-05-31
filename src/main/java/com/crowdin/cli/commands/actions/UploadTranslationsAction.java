@@ -112,7 +112,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
             AtomicBoolean containsErrors = new AtomicBoolean(false);
             fileSourcesWithoutIgnores.forEach(source -> {
                 String filePath = branchPath + (StringUtils.isNotEmpty(file.getDest())
-                    ? PropertiesBeanUtils.prepareDest(file.getDest(), source)
+                    ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil)
                     : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
 
                 if (!paths.containsKey(filePath)) {
