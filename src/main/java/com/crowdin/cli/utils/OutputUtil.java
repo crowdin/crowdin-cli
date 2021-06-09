@@ -13,7 +13,7 @@ public class OutputUtil {
         fancyErr(e, new PrintWriter(new OutputStreamWriter(out, StandardCharsets.UTF_8)), debug);
     }
 
-    public static void fancyErr(Throwable e, PrintWriter out, boolean debug) {
+    public synchronized static void fancyErr(Throwable e, PrintWriter out, boolean debug) {
         if (debug) {
             e.printStackTrace();
         } else {
