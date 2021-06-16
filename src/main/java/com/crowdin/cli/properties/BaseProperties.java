@@ -1,5 +1,6 @@
 package com.crowdin.cli.properties;
 
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.utils.Utils;
 import lombok.Data;
 import lombok.NonNull;
@@ -21,7 +22,6 @@ import static com.crowdin.cli.properties.PropertiesBuilder.BASE_URL_ENV;
 import static com.crowdin.cli.properties.PropertiesBuilder.SETTINGS;
 import static com.crowdin.cli.properties.PropertiesBuilder.checkBasePathExists;
 import static com.crowdin.cli.properties.PropertiesBuilder.checkBasePathIsDir;
-import static com.crowdin.cli.properties.PropertiesBuilder.checkBaseUrl;
 
 @Data
 public class BaseProperties implements Properties {
@@ -87,7 +87,7 @@ public class BaseProperties implements Properties {
             }
             if (StringUtils.isEmpty(props.getBaseUrl())) {
                 messages.addError(RESOURCE_BUNDLE.getString("error.config.missed_base_url"));
-            } else if (!checkBaseUrl(props.getBaseUrl())) {
+            } else if (!PropertiesBeanUtils.isUrlValid(props.getBaseUrl())) {
                 messages.addError(RESOURCE_BUNDLE.getString("error.config.wrong_base_url"));
             }
 

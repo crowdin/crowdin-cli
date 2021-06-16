@@ -75,8 +75,13 @@ public class PropertiesBeanUtils {
             || baseUrl.matches("^https://.+\\.e-test\\.crowdin\\.com(/api/v2)?$");
     }
 
-    public static boolean isCrowdinUrl(String string) {
-        return string.matches("(https?:?/?/?)?.*\\.crowdin\\.com.*");
+    private static boolean isUrlOfficial(String baseUrl) {
+        return baseUrl.matches("^https://[^.]+\\.(api\\.)?crowdin.com(/api/v2)?$")
+            || baseUrl.matches("^https://(api\\.)?crowdin.com(/api/v2)?");
+    }
+
+    public static boolean isUrlValid(String baseUrl) {
+        return isUrlForTesting(baseUrl) || isUrlOfficial(baseUrl);
     }
 
     /**

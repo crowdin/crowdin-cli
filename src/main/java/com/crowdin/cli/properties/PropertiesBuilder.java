@@ -298,10 +298,6 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
         }
     }
 
-    protected static boolean checkBaseUrl(String baseUrl) {
-        return baseUrl == null || baseUrl.matches("^(https://(.+\\.)?|http://(.+\\.)?.+\\.dev\\.)crowdin\\.com(/api/v2)?$");
-    }
-
     protected static boolean checkBasePathExists(String basePath) {
         return Files.exists(Paths.get(basePath));
     }
