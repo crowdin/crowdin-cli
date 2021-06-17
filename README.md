@@ -181,14 +181,18 @@ Visit the Crowdin CLI [package page](https://aur.archlinux.org/packages/crowdin-
 <details>
 <summary><b>NPM</b></summary>
 
-`npm i -g @crowdin/cli`
+```console
+npm i -g @crowdin/cli
+```
 
 </details>
 
 <details>
 <summary><b>Docker</b></summary>
 
-`docker pull crowdin/cli`
+```console
+docker pull crowdin/cli
+```
 
 </details>
 
