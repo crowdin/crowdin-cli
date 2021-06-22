@@ -108,7 +108,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                 String commonPath = (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
                 return sources.stream()
                     .map(source -> (file.getDest() != null)
-                        ? PropertiesBeanUtils.prepareDest(file.getDest(), source) : StringUtils.removeStart(source, pb.getBasePath() + commonPath))
+                        ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil) : StringUtils.removeStart(source, pb.getBasePath() + commonPath))
                     .map(source -> (branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + source);
             })
             .distinct()

@@ -3,9 +3,9 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.sourcefiles.model.UpdateOption;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
@@ -60,25 +60,39 @@ public class PropertiesBeanUtils {
     public static String getOrganization(String baseUrl) {
         String organization = baseUrl
             .replaceAll("^https?:?/?/?", "")
+            .replaceAll("(\\.?[^.]+)?\\.?crowdin.dev(/api/v2)?/?$", "")
             .replaceAll("\\.?crowdin.com(/api/v2)?/?$", "")
             .replaceAll("\\.?api", "")
-            .replaceAll("\\.?[^.]+\\.dev$", "")
             .replaceAll(".+\\.test$", "")
             .replaceAll("\\.e-test$", "");
         return (StringUtils.isEmpty(organization)) ? null : organization;
     }
 
     public static boolean isUrlForTesting(String baseUrl) {
-        return baseUrl.matches("^http://.+\\.dev\\.crowdin\\.com(/api/v2)?$")
+        return baseUrl.matches("^https://[^.]+\\.crowdin\\.dev(/api/v2)?$")
+            || baseUrl.matches("^https://[^.]+\\.[^.]+\\.crowdin\\.dev(/api/v2)?$")
             || baseUrl.matches("^https://.+\\.test\\.crowdin\\.com(/api/v2)?$")
             || baseUrl.matches("^https://.+\\.e-test\\.crowdin\\.com(/api/v2)?$");
     }
 
-    public static boolean isCrowdinUrl(String string) {
-        return string.matches("(https?:?/?/?)?.*\\.crowdin\\.com.*");
+    private static boolean isUrlOfficial(String baseUrl) {
+        return baseUrl.matches("^https://[^.]+\\.(api\\.)?crowdin.com(/api/v2)?$")
+            || baseUrl.matches("^https://(api\\.)?crowdin.com(/api/v2)?");
     }
 
-    public static String prepareDest(String dest, String sourceFile) {
-        return Utils.noSepAtStart(dest).replaceAll(PlaceholderUtil.PLACEHOLDER_FILE_NAME, FilenameUtils.getBaseName(sourceFile));
+    public static boolean isUrlValid(String baseUrl) {
+        return isUrlForTesting(baseUrl) || isUrlOfficial(baseUrl);
+    }
+
+    /**
+     * Builds source file destination from 'dest' parameter
+     * @param dest 'dest' parameter
+     * @param sourceFile relative path to file. Mostly done by StringUtils.removeStart(sourceFile, pb.getBasePath())
+     * @param placeholderUtil placeholderUtil
+     * @return built source file destination
+     */
+    public static String prepareDest(String dest, String sourceFile, PlaceholderUtil placeholderUtil) {
+        String dest2 = TranslationsUtils.replaceDoubleAsterisk(dest, dest, sourceFile);
+        return placeholderUtil.replaceFileDependentPlaceholders(Utils.noSepAtStart(dest2), new File(sourceFile));
     }
 }

@@ -26,7 +26,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
  */
 public abstract class PropertiesBuilder<T extends Properties, P extends Params> {
 
-    private static final Dotenv dotenv = Dotenv.configure().ignoreIfMissing().load();
+    private static Dotenv dotenv;
 
     public static final String PROJECT_ID = "project_id";
 
@@ -211,13 +211,28 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     static void setEnvOrPropertyIfExists(Consumer<String> setter, Map<String, Object> properties, String envKey, String key) {
         String param = properties.containsKey(envKey)
-            ? dotenv.get(properties.get(envKey).toString())
+            ? getDotenv().get(properties.get(envKey).toString())
             : (properties.containsKey(key))
             ? (properties.get(key) != null) ? properties.get(key).toString() : null
             : null;
         if (param != null) {
             setter.accept(param);
         }
+    }
+
+    private static Dotenv getDotenv() {
+        if (dotenv == null) {
+            try {
+                dotenv = Dotenv.configure().ignoreIfMissing().load();
+            } catch (IllegalStateException e) {
+                if (e.getMessage() != null && e.getMessage().contains("Duplicate key")) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.duplicate_environment_variable"));
+                } else {
+                    throw e;
+                }
+            }
+        }
+        return dotenv;
     }
 
     static void setBooleanPropertyIfExists(Consumer<Boolean> setter, Map<String, Object> properties, String key) {
@@ -281,10 +296,6 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
         } catch (IllegalArgumentException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.config.enum_wrong_value"), key, acceptableValuesEnum));
         }
-    }
-
-    protected static boolean checkBaseUrl(String baseUrl) {
-        return baseUrl == null || baseUrl.matches("^(https://(.+\\.)?|http://(.+\\.)?.+\\.dev\\.)crowdin\\.com(/api/v2)?$");
     }
 
     protected static boolean checkBasePathExists(String basePath) {

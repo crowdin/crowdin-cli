@@ -40,7 +40,8 @@ public class PlaceholderUtil {
     public static final String PLACEHOLDER_ORIGINAL_FILE_NAME = "%original_file_name%";
     public static final String PLACEHOLDER_ORIGINAL_PATH = "%original_path%";
 
-    private static final String DOUBLED_ASTERISK = "**";
+    public static final String DOUBLED_ASTERISK = "**";
+
     private static final String REGEX = "regex";
     private static final String ASTERISK = "*";
     private static final String QUESTION_MARK = "?";
@@ -161,6 +162,12 @@ public class PlaceholderUtil {
         return toFormat;
     }
 
+    /**
+     * Builds destination file path from pattern. Mostly used with TranslationsUtils.replaceDoubleAsterisks()
+     * @param toFormat pattern to change
+     * @param file file
+     * @return built destination file path
+     */
     public String replaceFileDependentPlaceholders(String toFormat, File file) {
         if (toFormat == null || file == null) {
             throw new NullPointerException("null args in replaceFileDependentPlaceholders()");

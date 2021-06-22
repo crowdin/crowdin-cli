@@ -179,7 +179,7 @@ public class FileBean {
                 errors.add(RESOURCE_BUNDLE.getString("error.config.escape_special_characters"));
             }
 
-            if (StringUtils.isNotEmpty(bean.getDest()) && !bean.getDest().contains(PlaceholderUtil.PLACEHOLDER_FILE_NAME) && SourcesUtils.containsPattern(bean.getSource())) {
+            if (StringUtils.isNotEmpty(bean.getDest()) && !checkDest(bean.getDest(), bean.getSource())) {
                 errors.add(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
             }
             if (bean.getSkipTranslatedOnly() != null && bean.getSkipUntranslatedFiles() != null
@@ -189,4 +189,15 @@ public class FileBean {
             return errors;
         }
     }
+
+    private static boolean checkDest(String dest, String source) {
+        boolean destContainsPlaceholders = dest.contains(PlaceholderUtil.PLACEHOLDER_FILE_NAME)
+            || dest.contains(PlaceholderUtil.PLACEHOLDER_ORIGINAL_FILE_NAME)
+            || dest.contains(PlaceholderUtil.PLACEHOLDER_ORIGINAL_PATH)
+            || dest.contains(PlaceholderUtil.PLACEHOLDER_FILE_EXTENTION)
+            || dest.contains(PlaceholderUtil.DOUBLED_ASTERISK);
+        boolean sourceContainsPlaceholders = PlaceholderUtil.containsFilePlaceholders(source) || SourcesUtils.containsPattern(source);
+        return !sourceContainsPlaceholders || destContainsPlaceholders;
+    }
+
 }

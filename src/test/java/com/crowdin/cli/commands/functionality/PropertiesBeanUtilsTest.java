@@ -14,6 +14,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class PropertiesBeanUtilsTest {
@@ -127,10 +128,29 @@ public class PropertiesBeanUtilsTest {
 
     private static Stream<Arguments> testGetOrganizationForTestUrls() {
         return Stream.of(
-            arguments("http://vasyl.dev.crowdin.com", null),
-            arguments("http://myorg.vasyl.dev.crowdin.com", "myorg"),
+            arguments("https://organizzzation.daanya.crowdin.dev", "organizzzation"),
+            arguments("https://daanya.crowdin.dev", null),
             arguments("https://98011165-2619304c.test.crowdin.com", null),
             arguments("https://myorg.e-test.crowdin.com", "myorg")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testIsUrlValid(String baseUrl) {
+        assertTrue(PropertiesBeanUtils.isUrlValid(baseUrl));
+    }
+
+    private static Stream<Arguments> testIsUrlValid() {
+        return Stream.of(
+            arguments("https://Daanya.crowdin.com"),
+            arguments("https://Daanya.api.crowdin.com"),
+            arguments("https://crowdin.com"),
+            arguments("https://api.crowdin.com"),
+            arguments("https://organizzzation.daanya.crowdin.dev"),
+            arguments("https://daanya.crowdin.dev"),
+            arguments("https://98011165-2619304c.test.crowdin.com"),
+            arguments("https://myorg.e-test.crowdin.com")
         );
     }
 }

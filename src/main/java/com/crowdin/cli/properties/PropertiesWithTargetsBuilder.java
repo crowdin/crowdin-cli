@@ -1,6 +1,7 @@
 package com.crowdin.cli.properties;
 
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import lombok.NonNull;
 
 import java.util.ArrayList;
@@ -42,7 +43,7 @@ public class PropertiesWithTargetsBuilder extends PropertiesBuilder<PropertiesWi
         if (params == null) {
             return messages;
         }
-        if (params.getBaseUrlParam() != null && !checkBaseUrl(params.getBaseUrlParam())) {
+        if (params.getBaseUrlParam() != null && !PropertiesBeanUtils.isUrlValid(params.getBaseUrlParam())) {
             messages.addError(RESOURCE_BUNDLE.getString("error.config.wrong_base_url"));
         }
         if (params.getSkipTranslatedOnly() != null && params.getSkipUntranslatedFiles() != null
