@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.6.2]
+
+### Added
+
+- Add lazy initialization for dotenv code and error handling for duplicate environment variables ([#363](https://github.com/crowdin/crowdin-cli/pull/363))
+
+### Updated
+
+- Improve 'dest' parameter - add new placeholders ([#363](https://github.com/crowdin/crowdin-cli/pull/363))
+
 ## [3.6.1]
 
 ### Updated
