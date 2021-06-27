@@ -1,7 +1,7 @@
 package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.utils.file.FileUtils;
-import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.ZipFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -38,7 +38,7 @@ public class FsFiles implements FilesInterface {
         ZipFile zipFile;
         try {
             zipFile = new ZipFile(zipArchive);
-        } catch (net.lingala.zip4j.exception.ZipException e) {
+        } catch (IllegalArgumentException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.archive_not_exist"), zipArchive.getAbsolutePath()));
         }
         if (!dir.exists()) {
