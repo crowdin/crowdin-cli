@@ -14,7 +14,7 @@ class UploadSourcesCommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
 
-    @CommandLine.Option(names = {"--delete-obsolete"})
+    @CommandLine.Option(names = {"--delete-obsolete"}, descriptionKey = "crowdin.upload.sources.delete-obsolete")
     protected boolean deleteObsolete;
 
     @CommandLine.Option(names = {"--no-auto-update"}, negatable = true)
