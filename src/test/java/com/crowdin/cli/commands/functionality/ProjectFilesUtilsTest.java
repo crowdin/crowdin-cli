@@ -1,14 +1,22 @@
 package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.client.models.FileBuilder;
-import com.crowdin.client.sourcefiles.model.ExportOptions;
 import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcefiles.model.GeneralFileExportOptions;
 import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Stream;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ProjectFilesUtilsTest {
 
@@ -41,4 +49,29 @@ public class ProjectFilesUtilsTest {
 
 
     }
+
+    @ParameterizedTest
+    @MethodSource
+    public void isProjectFileSatisfiesThePatternsTest(String projectFilePath, String sourcePattern, List<String> ignorePattern, boolean preserveHierarchy, boolean expected) {
+        assertEquals(expected, ProjectFilesUtils.isProjectFilePathSatisfiesPatterns(sourcePattern, ignorePattern, preserveHierarchy).test(projectFilePath));
+    }
+
+    private static Stream<Arguments> isProjectFileSatisfiesThePatternsTest() {
+        return Stream.of(
+            arguments("path/to/file.csv", "/path/to/file.csv", null, true, true),
+            arguments("path/to/file.csv", "/path/to/file.csv", null, false, true),
+            arguments("path/to/file.csv", "/**/to/file.csv", null, true, true),
+            arguments("path/to/file.csv", "/**/%file_name%.csv", Arrays.asList("/path/to/file.csv"), true, false),
+            arguments("path/to/file.csv", "/**/%file_name%.csv", Arrays.asList("/**/to/file.csv"), true, false),
+            arguments("file.csv", "/path/to/file.csv", null, true, false),
+            arguments("file.csv", "/path/to/file.csv", null, false, true),
+            arguments("one/path/to/file.csv", "/two/**/to/file.csv", null, true, false),
+            arguments("one/path/to/file.csv", "/two/**/to/file.csv", null, false, true),
+            arguments("one/path/to/file.csv", "/**/to/file.csv", Arrays.asList("/two/**/to/file.csv"), true, true),
+            arguments("one/path/to/file.csv", "/**/to/file.csv", Arrays.asList("/two/**/to/file.csv"), false, false),
+            arguments("one/path/to/file.csv", "/**/to/file.csv", Arrays.asList("/one/**/to/file.csv"), true, false),
+            arguments("one/path/to/file.csv", "/**/to/file.csv", Arrays.asList("/one/**/to/file.csv"), false, false)
+        );
+    }
+
 }

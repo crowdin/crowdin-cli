@@ -12,7 +12,7 @@ public class UploadSourcesCommandTest extends PicocliTestUtils {
     public void testUploadSources() {
         this.execute(CommandNames.UPLOAD);
         verify(actionsMock)
-            .uploadSources(any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
+            .uploadSources(any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 

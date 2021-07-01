@@ -80,7 +80,7 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.stringList(anyBoolean(), anyBoolean(), any(), any()))
             .thenReturn(actionMock);
-        when(actionsMock.uploadSources(any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
+        when(actionsMock.uploadSources(any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.uploadTranslations(anyBoolean(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);

@@ -58,7 +58,7 @@ public interface Actions {
         boolean noProgress, boolean isVerbose, String file, String filter);
 
     NewAction<PropertiesWithFiles, ProjectClient> uploadSources(
-        String branchName, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView);
+        String branchName, boolean deleteObsolete, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView);
 
     NewAction<PropertiesWithFiles, ProjectClient> uploadTranslations(
         boolean noProgress, String languageId, String branchName, boolean importEqSuggestions,

@@ -37,11 +37,15 @@ public interface ProjectClient extends Client {
 
     Directory addDirectory(AddDirectoryRequest request) throws ResponseException;
 
+    void deleteDirectory(Long directoryId);
+
     void updateSource(Long sourceId, UpdateFileRequest request);
 
     void addSource(AddFileRequest request) throws ResponseException;
 
     void editSource(Long fileId, List<PatchRequest> request);
+
+    void deleteSource(Long fileId);
 
     void uploadTranslations(String languageId, UploadTranslationsRequest request) throws ResponseException;
 

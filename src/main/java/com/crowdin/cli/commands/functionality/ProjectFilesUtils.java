@@ -10,12 +10,16 @@ import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcefiles.model.GeneralFileExportOptions;
 import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
+import lombok.NonNull;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -119,5 +123,61 @@ public class ProjectFilesUtils {
         } else {
             return null;
         }
+    }
+
+    public static Predicate<String> isProjectFilePathSatisfiesPatterns(@NonNull String sourcePattern, List<String> ignorePatterns, boolean preserveHierarchy) {
+        Predicate<String> sourcePatternPred;
+        Predicate<String> ignorePatternPred;
+
+        if (preserveHierarchy) {
+            sourcePatternPred = Pattern.compile("^" + PlaceholderUtil.formatSourcePatternForRegex(Utils.noSepAtStart(sourcePattern)) + "$").asPredicate();
+        } else {
+            List<String> sourcePatternSplits = Arrays.stream(Utils.splitPath(Utils.noSepAtStart(sourcePattern)))
+                .map(PlaceholderUtil::formatSourcePatternForRegex)
+                .collect(Collectors.toList());
+
+            StringBuilder sourcePatternRegex = new StringBuilder();
+            for (int i = 0; i < sourcePatternSplits.size()-1; i++) {
+                sourcePatternRegex.insert(0, "(")
+                    .append(sourcePatternSplits.get(i)).append(Utils.PATH_SEPARATOR_REGEX).append(")?");
+            }
+            sourcePatternRegex.insert(0, "^")
+                .append(sourcePatternSplits.get(sourcePatternSplits.size()-1)).append("$");
+
+            sourcePatternPred = Pattern.compile(sourcePatternRegex.toString()).asPredicate();
+        }
+
+        if (ignorePatterns != null && !ignorePatterns.isEmpty()) {
+            if (preserveHierarchy) {
+                ignorePatternPred = ignorePatterns.stream()
+                    .map(Utils::noSepAtStart)
+                    .map(ignorePattern -> "^" + PlaceholderUtil.formatSourcePatternForRegex(ignorePattern) + "$")
+                    .map(Pattern::compile)
+                    .map(Pattern::asPredicate)
+                    .reduce((s) -> false, Predicate::or);
+            } else {
+                ignorePatternPred = ignorePatterns.stream()
+                    .map(Utils::noSepAtStart)
+                    .map(ignorePattern -> {
+                        List<String> ignorePatternSplits = Arrays.stream(Utils.splitPath(ignorePattern))
+                            .map(PlaceholderUtil::formatSourcePatternForRegex)
+                            .collect(Collectors.toList());
+                        StringBuilder ignorePatternRegex = new StringBuilder();
+                        for (int i = 0; i < ignorePatternSplits.size()-1; i++) {
+                            ignorePatternRegex.insert(0, "(")
+                                .append(ignorePatternSplits.get(i)).append(Utils.PATH_SEPARATOR_REGEX).append(")?");
+                        }
+                        ignorePatternRegex.insert(0, "^")
+                            .append(ignorePatternSplits.get(ignorePatternSplits.size()-1)).append("$");
+                        return ignorePatternRegex.toString();
+                    })
+                    .map(Pattern::compile)
+                    .map(Pattern::asPredicate)
+                    .reduce((s) -> false, Predicate::or);
+            }
+        } else {
+            ignorePatternPred = (projectFilePath) -> false;
+        }
+        return (projectFilePath) -> !ignorePatternPred.test(projectFilePath) && sourcePatternPred.test(projectFilePath);
     }
 }

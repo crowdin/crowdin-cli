@@ -5,6 +5,7 @@ import com.crowdin.cli.client.ExistsResponseException;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.actions.subactions.DeleteObsoleteProjectFilesSubAction;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.ProjectUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
@@ -55,13 +56,15 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private String branchName;
+    private boolean deleteObsolete;
     private boolean noProgress;
     private boolean autoUpdate;
     private boolean debug;
     private boolean plainView;
 
-    public UploadSourcesAction(String branchName, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView) {
+    public UploadSourcesAction(String branchName, boolean deleteObsolete, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView) {
         this.branchName = branchName;
+        this.deleteObsolete = deleteObsolete;
         this.noProgress = noProgress || plainView;
         this.autoUpdate = autoUpdate;
         this.debug = debug;
@@ -75,22 +78,31 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
         boolean containsExcludedLanguages = pb.getFiles().stream()
             .map(FileBean::getExcludedTargetLanguages).filter(Objects::nonNull).anyMatch(l -> !l.isEmpty());
-        if (!project.isManagerAccess() && containsExcludedLanguages) {
+        if (!project.isManagerAccess() && (containsExcludedLanguages || deleteObsolete)) {
             if (!plainView) {
-                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access_for_excluded_languages")));
+                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access_in_upload_sources")));
                 return;
             } else {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access_for_excluded_languages"));
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access_in_upload_sources"));
             }
         }
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
 
-        Branch branchId = (branchName != null) ? this.getOrCreateBranch(out, branchName, client, project) : null;
+        Branch branch = (branchName != null) ? this.getOrCreateBranch(out, branchName, client, project) : null;
+        Long branchId = (branch != null) ? branch.getId() : null;
 
         Map<String, Long> directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
                 .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
         Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
+
+        DeleteObsoleteProjectFilesSubAction deleteObsoleteProjectFilesSubAction = new DeleteObsoleteProjectFilesSubAction(out, client);
+        if (deleteObsolete) {
+            Map<String, Long> directories = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(branchId))
+                .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+            Map<String, com.crowdin.client.sourcefiles.model.File> projectFiles = ProjectFilesUtils.buildFilePaths(project.getDirectories(branchId), project.getFiles(branchId));
+            deleteObsoleteProjectFilesSubAction.setData(projectFiles, directories, pb.getPreserveHierarchy(), this.plainView);
+        }
 
         List<String> uploadedSources = new ArrayList<>();
 
@@ -128,6 +140,17 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                 }
                 String commonPath =
                     (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
+                if (deleteObsolete) {
+                    List<String> filesToUpdate = sources.stream().map(source -> (file.getDest() != null)
+                            ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil)
+                            : StringUtils.removeStart(source, pb.getBasePath() + commonPath))
+                        .collect(Collectors.toList());
+                    if (file.getDest() != null) {
+                        deleteObsoleteProjectFilesSubAction.act(file.getDest(), file.getTranslation(), filesToUpdate);
+                    } else {
+                        deleteObsoleteProjectFilesSubAction.act(file.getSource(), file.getIgnore(), file.getTranslation(), filesToUpdate);
+                    }
+                }
                 List<Runnable> taskss = sources.stream()
                     .map(source -> {
                         final File sourceFile = new File(source);
@@ -210,7 +233,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             return (Runnable) () -> {
                                 Long directoryId = null;
                                 try {
-                                    directoryId = ProjectUtils.createPath(out, client, directoryPaths, filePath, branchId, plainView);
+                                    directoryId = ProjectUtils.createPath(out, client, directoryPaths, filePath, branch, plainView);
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.creating_directories"), e);
@@ -218,8 +241,8 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
                                 if (directoryId != null) {
                                     request.setDirectoryId(directoryId);
-                                } else if (branchId != null) {
-                                    request.setBranchId(branchId.getId());
+                                } else if (branch != null) {
+                                    request.setBranchId(branch.getId());
                                 }
 
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {

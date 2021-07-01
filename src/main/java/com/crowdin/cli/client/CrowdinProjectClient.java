@@ -135,6 +135,15 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public void deleteDirectory(Long directoryId) {
+        executeRequest(() -> {
+            this.client.getSourceFilesApi()
+                .deleteDirectory(this.projectId, directoryId);
+            return null;
+        });
+    }
+
+    @Override
     public void updateSource(Long sourceId, UpdateFileRequest request) {
         executeRequestWithPossibleRetry(
             (code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"),
@@ -158,6 +167,15 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     public void editSource(Long fileId, List<PatchRequest> request) {
         executeRequest(() -> this.client.getSourceFilesApi()
             .editFile(this.projectId, fileId, request));
+    }
+
+    @Override
+    public void deleteSource(Long fileId) {
+        executeRequest(() -> {
+            this.client.getSourceFilesApi()
+                .deleteFile(this.projectId, fileId);
+            return null;
+        });
     }
 
     @Override
