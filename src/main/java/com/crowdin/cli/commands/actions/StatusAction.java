@@ -6,22 +6,26 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
+import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 class StatusAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private boolean noProgress;
+    private String branchName;
     private String languageId;
     private boolean isVerbose;
     private boolean showTranslated;
     private boolean showApproved;
 
-    public StatusAction(boolean noProgress, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved) {
+    public StatusAction(boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved) {
         this.noProgress = noProgress;
+        this.branchName = branchName;
         this.languageId = languageId;
         this.isVerbose = isVerbose;
         this.showTranslated = showTranslated;
@@ -37,8 +41,24 @@ class StatusAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             project.findLanguageById(languageId, true)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)));
         }
+        List<Branch> branches = client.listBranches();
+        Long branchId = (branchName == null) ? null : branches.stream()
+            .filter(branch -> branchName.equals(branch.getName()))
+            .findFirst()
+            .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
+            .getId();
 
-        List<LanguageProgress> progresses = client.getProjectProgress(languageId);
+        List<LanguageProgress> progresses;
+        if (branchId == null) {
+            progresses = client.getProjectProgress(languageId);
+        } else {
+            progresses = client.getBranchProgress(branchId);
+            if (languageId != null) {
+                progresses = progresses.stream()
+                    .filter(langProgress -> languageId.equals(langProgress.getLanguageId()))
+                    .collect(Collectors.toList());
+            }
+        }
 
         if (isVerbose) {
             progresses.forEach(pr -> {

@@ -15,8 +15,11 @@ class StatusProofreadingSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...")
     protected String languageId;
 
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
+    protected String branchName;
+
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
-        return actions.status(noProgress, languageId, isVerbose, false, true);
+        return actions.status(noProgress, branchName, languageId, isVerbose, false, true);
     }
 }

@@ -33,6 +33,8 @@ public interface ProjectClient extends Client {
 
     Branch addBranch(AddBranchRequest request);
 
+    List<Branch> listBranches();
+
     Long uploadStorage(String fileName, InputStream content);
 
     Directory addDirectory(AddDirectoryRequest request) throws ResponseException;
@@ -56,6 +58,8 @@ public interface ProjectClient extends Client {
     URL downloadBuild(Long buildId);
 
     List<LanguageProgress> getProjectProgress(String languageId);
+
+    List<LanguageProgress> getBranchProgress(Long branchId);
 
     SourceString addSourceString(AddSourceStringRequest request);
 

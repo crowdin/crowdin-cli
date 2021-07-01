@@ -43,7 +43,7 @@ public interface Actions {
     NewAction<PropertiesWithFiles, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean noProgress, boolean plainView);
 
     NewAction<PropertiesWithFiles, ProjectClient> status(
-        boolean noProgress, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved);
+        boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved);
 
     NewAction<PropertiesWithFiles, ProjectClient> stringAdd(
         boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, Boolean hidden);

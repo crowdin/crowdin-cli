@@ -68,8 +68,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             .listFiles(this.projectId, null, null, null, limit, offset)));
         project.setDirectories(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
             .listDirectories(this.projectId, null, null, null, limit, offset)));
-        project.setBranches(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
-            .listBranches(this.projectId, null, limit, offset)));
+        project.setBranches(this.listBranches());
     }
 
     private void populateProjectWithLangs(CrowdinProject project) {
@@ -107,10 +106,22 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public List<LanguageProgress> getBranchProgress(Long branchId) {
+        return executeRequestFullList((limit, offset) -> this.client.getTranslationStatusApi()
+            .getBranchProgress(this.projectId, branchId, limit, offset));
+    }
+
+    @Override
     public Branch addBranch(AddBranchRequest request) {
         return executeRequest(() -> this.client.getSourceFilesApi()
             .addBranch(this.projectId, request)
             .getData());
+    }
+
+    @Override
+    public List<Branch> listBranches() {
+        return executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
+            .listBranches(this.projectId, null, limit, offset));
     }
 
     @Override
