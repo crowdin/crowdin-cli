@@ -95,7 +95,8 @@ public class DeleteObsoleteProjectFilesSubAction {
     }
 
     private boolean checkExportPattern(String exportPattern, File file) {
-        return exportPattern.equals(Utils.normalizePath(ProjectFilesUtils.getExportPattern(file.getExportOptions())));
+        String fileExportPattern = ProjectFilesUtils.getExportPattern(file.getExportOptions());
+        return exportPattern.equals(fileExportPattern != null ? Utils.normalizePath(fileExportPattern) : null);
     }
 
     private Map<String, Long> findObsoleteDirectories(List<String> filesToUpload, Map<String, File> obsoleteDeletedProjectFiles) {

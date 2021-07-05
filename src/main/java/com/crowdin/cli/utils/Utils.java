@@ -16,6 +16,10 @@ import static com.crowdin.cli.BaseCli.HTTP_PROXY_PASSWORD_ENV;
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_PORT_ENV;
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_USER_ENV;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.PlaceholderUtil.ESCAPE_ROUND_BRACKET_CLOSE;
+import static com.crowdin.cli.utils.PlaceholderUtil.ESCAPE_ROUND_BRACKET_OPEN;
+import static com.crowdin.cli.utils.PlaceholderUtil.ROUND_BRACKET_CLOSE;
+import static com.crowdin.cli.utils.PlaceholderUtil.ROUND_BRACKET_OPEN;
 
 
 public class Utils {
@@ -101,7 +105,9 @@ public class Utils {
     }
 
     public static String regexPath(String path) {
-        return path.replaceAll("\\\\", "\\\\\\\\");
+        return path.replaceAll("\\\\", "\\\\\\\\")
+            .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
+            .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE);
     }
 
     public static String joinPaths(String... pathes) {

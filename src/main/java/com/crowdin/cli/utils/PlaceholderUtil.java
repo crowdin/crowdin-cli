@@ -49,10 +49,10 @@ public class PlaceholderUtil {
     private static final String DOT_PLUS = ".+";
     private static final String SET_OPEN_BRECKET = "[";
     private static final String SET_CLOSE_BRECKET = "]";
-    private static final String ROUND_BRACKET_OPEN = "(";
-    private static final String ROUND_BRACKET_CLOSE = ")";
-    private static final String ESCAPE_ROUND_BRACKET_OPEN = "\\(";
-    private static final String ESCAPE_ROUND_BRACKET_CLOSE = "\\)";
+    public static final String ROUND_BRACKET_OPEN = "(";
+    public static final String ROUND_BRACKET_CLOSE = ")";
+    public static final String ESCAPE_ROUND_BRACKET_OPEN = "\\(";
+    public static final String ESCAPE_ROUND_BRACKET_CLOSE = "\\)";
     private static final String ESCAPE_DOT = "\\.";
     private static final String ESCAPE_DOT_PLACEHOLDER = "{ESCAPE_DOT}";
     private static final String ESCAPE_QUESTION = "\\?";
