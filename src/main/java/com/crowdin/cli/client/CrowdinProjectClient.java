@@ -65,7 +65,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
 
     private void populateProjectWithStructure(CrowdinProjectFull project) {
         project.setFiles(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
-            .listFiles(this.projectId, null, null, null, limit, offset)));
+            .listFiles(this.projectId, null, null, null, null, limit, offset)));
         project.setDirectories(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
             .listDirectories(this.projectId, null, null, null, limit, offset)));
         project.setBranches(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
@@ -205,7 +205,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     @Override
     public List<SourceString> listSourceString(Long fileId, String labelIds, String filter) {
         return executeRequestFullList((limit, offset) -> this.client.getSourceStringsApi()
-            .listSourceStrings(this.projectId, fileId, null, labelIds, filter, null, limit, offset));
+            .listSourceStrings(this.projectId, fileId, null, labelIds, null, filter, null, limit, offset));
     }
 
     @Override
