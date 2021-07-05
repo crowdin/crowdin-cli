@@ -1,6 +1,13 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.6.3]
+
+### Updated
+
+- Update subdependencies and code for Gradle 7.1 ([#371](https://github.com/crowdin/crowdin-cli/pull/371))
+- Update Crowdin API client to 1.3.9 ([#375](https://github.com/crowdin/crowdin-cli/pull/375))
+
 ## [3.6.2]
 
 ### Added
