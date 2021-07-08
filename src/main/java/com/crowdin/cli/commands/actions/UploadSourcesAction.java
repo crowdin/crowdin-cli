@@ -286,8 +286,8 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
     private boolean isSpreadsheet(java.io.File file, FileBean fileBean) {
         return (fileBean.getDest() != null)
-            ? FilenameUtils.isExtension(fileBean.getDest(), "csv")
-            : FilenameUtils.isExtension(file.getName(), "csv");
+            ? FilenameUtils.isExtension(fileBean.getDest(), "csv", "xls", "xlsx")
+            : FilenameUtils.isExtension(file.getName(), "csv", "xls", "xlsx");
     }
 
     private boolean isXml(java.io.File file) {
