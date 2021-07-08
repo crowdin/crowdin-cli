@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.6.4]
+
+### Updated
+
+- Update Crowdin API client to 1.3.10 ([#380](https://github.com/crowdin/crowdin-cli/pull/380))
+
 ## [3.6.3]
 
 ### Updated
