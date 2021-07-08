@@ -19,6 +19,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.crowdin.cli.utils.PlaceholderUtil.PLACEHOLDER_LANGUAGE_ID;
+
 public class ProjectFilesUtils {
 
     public static <T extends FileInfo> Map<String, T> buildFilePaths(
@@ -67,15 +69,22 @@ public class ProjectFilesUtils {
                 continue;
             }
             String path = getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName();
-            Stream<String> translations = isMultilingualFile(fe)
-                ? Stream.concat(
+            Stream<String> translations;
+            if (isMultilingualFile(fe)) {
+                translations = Stream.concat(
                     Stream.of(Utils.normalizePath(fe.getName())),
                     placeholderUtil.replaceLanguageDependentPlaceholders(
-                        Utils.normalizePath("%language_id%/" + fe.getName()), languageMapping).stream())
-                : placeholderUtil.replaceLanguageDependentPlaceholders(Utils.normalizePath(getExportPattern(fe.getExportOptions())), languageMapping)
+                        Utils.joinPaths(PLACEHOLDER_LANGUAGE_ID, fe.getName()), languageMapping).stream());
+            } else {
+                String exportPattern = Utils.normalizePath(getExportPattern(fe.getExportOptions()));
+                if (!PlaceholderUtil.containsLangPlaceholders(exportPattern)) {
+                    exportPattern = Utils.joinPaths(PLACEHOLDER_LANGUAGE_ID, exportPattern);
+                }
+                String fileDependentPlaceholdersReplaced = placeholderUtil.replaceFileDependentPlaceholders(exportPattern, new java.io.File(basePath + path));
+                translations = placeholderUtil.replaceLanguageDependentPlaceholders(fileDependentPlaceholdersReplaced, languageMapping)
                     .stream()
-                    .map(tr -> placeholderUtil.replaceFileDependentPlaceholders(tr, new java.io.File(basePath + path)))
                     .map(translation -> ((fe.getBranchId() != null) ? directoryPaths.getOrDefault(fe.getBranchId(), "") : "") + translation);
+            }
             allProjectTranslations.put(path, translations.collect(Collectors.toList()));
         }
         return allProjectTranslations;
