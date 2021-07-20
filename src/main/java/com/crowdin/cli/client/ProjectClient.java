@@ -33,15 +33,21 @@ public interface ProjectClient extends Client {
 
     Branch addBranch(AddBranchRequest request);
 
+    List<Branch> listBranches();
+
     Long uploadStorage(String fileName, InputStream content);
 
     Directory addDirectory(AddDirectoryRequest request) throws ResponseException;
+
+    void deleteDirectory(Long directoryId);
 
     void updateSource(Long sourceId, UpdateFileRequest request);
 
     void addSource(AddFileRequest request) throws ResponseException;
 
     void editSource(Long fileId, List<PatchRequest> request);
+
+    void deleteSource(Long fileId);
 
     void uploadTranslations(String languageId, UploadTranslationsRequest request) throws ResponseException;
 
@@ -52,6 +58,8 @@ public interface ProjectClient extends Client {
     URL downloadBuild(Long buildId);
 
     List<LanguageProgress> getProjectProgress(String languageId);
+
+    List<LanguageProgress> getBranchProgress(Long branchId);
 
     SourceString addSourceString(AddSourceStringRequest request);
 

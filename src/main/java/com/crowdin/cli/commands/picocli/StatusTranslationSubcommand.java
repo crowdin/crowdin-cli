@@ -15,8 +15,11 @@ class StatusTranslationSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...")
     protected String languageId;
 
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
+    protected String branchName;
+
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
-        return actions.status(noProgress, languageId, isVerbose, true, false);
+        return actions.status(noProgress, branchName, languageId, isVerbose, true, false);
     }
 }

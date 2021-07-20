@@ -2,6 +2,7 @@ package com.crowdin.cli.client.models;
 
 import com.crowdin.client.core.model.Priority;
 import com.crowdin.client.sourcefiles.model.File;
+import com.crowdin.client.sourcefiles.model.GeneralFileExportOptions;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -41,6 +42,13 @@ public class FileBuilder {
         file.setId(id);
         file.setDirectoryId(directoryId);
         file.setBranchId(branchId);
+        return this;
+    }
+
+    public FileBuilder setExportPattern(String exportPattern) {
+        GeneralFileExportOptions exportOptions = new GeneralFileExportOptions();
+        exportOptions.setExportPattern(exportPattern);
+        file.setExportOptions(exportOptions);
         return this;
     }
 

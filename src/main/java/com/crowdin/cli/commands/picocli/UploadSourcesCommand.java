@@ -14,6 +14,9 @@ class UploadSourcesCommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branch;
 
+    @CommandLine.Option(names = {"--delete-obsolete"}, descriptionKey = "crowdin.upload.sources.delete-obsolete")
+    protected boolean deleteObsolete;
+
     @CommandLine.Option(names = {"--no-auto-update"}, negatable = true)
     protected boolean autoUpdate = true;
 
@@ -33,7 +36,7 @@ class UploadSourcesCommand extends ActCommandWithFiles {
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
             ? actions.listSources(this.noProgress, this.treeView, plainView)
-            : actions.uploadSources(this.branch, this.noProgress, this.autoUpdate, debug, plainView);
+            : actions.uploadSources(this.branch, this.deleteObsolete, this.noProgress, this.autoUpdate, debug, plainView);
     }
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")

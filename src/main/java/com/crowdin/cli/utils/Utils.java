@@ -7,17 +7,19 @@ import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
 import java.nio.file.FileSystems;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_HOST_ENV;
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_PASSWORD_ENV;
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_PORT_ENV;
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_USER_ENV;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.PlaceholderUtil.ESCAPE_ROUND_BRACKET_CLOSE;
+import static com.crowdin.cli.utils.PlaceholderUtil.ESCAPE_ROUND_BRACKET_OPEN;
+import static com.crowdin.cli.utils.PlaceholderUtil.ROUND_BRACKET_CLOSE;
+import static com.crowdin.cli.utils.PlaceholderUtil.ROUND_BRACKET_OPEN;
 
 
 public class Utils {
@@ -94,12 +96,39 @@ public class Utils {
         return Utils.PATH_SEPARATOR + noSepAtStart(path);
     }
 
+    public static String noSepAtEnd(String path) {
+        return path.replaceAll("[\\\\/]+$", "");
+    }
+
+    public static String sepAtEnd(String path) {
+        return noSepAtEnd(path) + Utils.PATH_SEPARATOR;
+    }
+
     public static String regexPath(String path) {
-        return path.replaceAll("\\\\", "\\\\\\\\");
+        return path.replaceAll("\\\\", "\\\\\\\\")
+            .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
+            .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE);
     }
 
     public static String joinPaths(String... pathes) {
         return String.join(Utils.PATH_SEPARATOR, pathes).replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
+    }
+
+    public static String[] splitPath(String path) {
+        return path.split("[\\\\/]+");
+    }
+
+    /**
+     * return parent directory with slash on end, or "/" if root
+     * @param path
+     * @return
+     */
+    public static String getParentDirectory(String path) {
+        path = noSepAtEnd(path);
+        if (!path.contains(Utils.PATH_SEPARATOR)) {
+            return Utils.PATH_SEPARATOR;
+        }
+        return path.substring(0, path.lastIndexOf(Utils.PATH_SEPARATOR)+1);
     }
 
     public static Optional<Pair<String, Integer>> proxyHost() {

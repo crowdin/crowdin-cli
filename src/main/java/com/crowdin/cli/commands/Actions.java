@@ -43,7 +43,7 @@ public interface Actions {
     NewAction<PropertiesWithFiles, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean noProgress, boolean plainView);
 
     NewAction<PropertiesWithFiles, ProjectClient> status(
-        boolean noProgress, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved);
+        boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved);
 
     NewAction<PropertiesWithFiles, ProjectClient> stringAdd(
         boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, Boolean hidden);
@@ -58,7 +58,7 @@ public interface Actions {
         boolean noProgress, boolean isVerbose, String file, String filter);
 
     NewAction<PropertiesWithFiles, ProjectClient> uploadSources(
-        String branchName, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView);
+        String branchName, boolean deleteObsolete, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView);
 
     NewAction<PropertiesWithFiles, ProjectClient> uploadTranslations(
         boolean noProgress, String languageId, String branchName, boolean importEqSuggestions,

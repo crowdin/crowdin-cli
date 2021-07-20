@@ -70,9 +70,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<PropertiesWithFiles, ProjectClient> status(
-        boolean noProgress, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved
+        boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved
     ) {
-        return new StatusAction(noProgress, languageId, isVerbose, showTranslated, showApproved);
+        return new StatusAction(noProgress, branchName, languageId, isVerbose, showTranslated, showApproved);
     }
 
     @Override
@@ -105,9 +105,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<PropertiesWithFiles, ProjectClient> uploadSources(
-        String branchName, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView
+        String branchName, boolean deleteObsolete, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView
     ) {
-        return new UploadSourcesAction(branchName, noProgress, autoUpdate, debug, plainView);
+        return new UploadSourcesAction(branchName, deleteObsolete, noProgress, autoUpdate, debug, plainView);
     }
 
     @Override

@@ -49,16 +49,18 @@ public class PlaceholderUtil {
     private static final String DOT_PLUS = ".+";
     private static final String SET_OPEN_BRECKET = "[";
     private static final String SET_CLOSE_BRECKET = "]";
-    private static final String ROUND_BRACKET_OPEN = "(";
-    private static final String ROUND_BRACKET_CLOSE = ")";
-    private static final String ESCAPE_ROUND_BRACKET_OPEN = "\\(";
-    private static final String ESCAPE_ROUND_BRACKET_CLOSE = "\\)";
+    public static final String ROUND_BRACKET_OPEN = "(";
+    public static final String ROUND_BRACKET_CLOSE = ")";
+    public static final String ESCAPE_ROUND_BRACKET_OPEN = "\\(";
+    public static final String ESCAPE_ROUND_BRACKET_CLOSE = "\\)";
     private static final String ESCAPE_DOT = "\\.";
     private static final String ESCAPE_DOT_PLACEHOLDER = "{ESCAPE_DOT}";
     private static final String ESCAPE_QUESTION = "\\?";
     private static final String ESCAPE_QUESTION_PLACEHOLDER = "{ESCAPE_QUESTION_MARK}";
     private static final String ESCAPE_ASTERISK = "\\*";
     private static final String ESCAPE_ASTERISK_PLACEHOLDER = "{ESCAPE_ASTERISK}";
+    private static final String ESCAPE_ASTERISK_REPLACEMENT_FROM = ".+" + Utils.PATH_SEPARATOR;
+    private static final String ESCAPE_ASTERISK_REPLACEMENT_TO = "(.+" + Utils.PATH_SEPARATOR_REGEX + ")?";
 
     private List<Language> supportedLangs;
     private List<Language> projectLangs;
@@ -208,31 +210,7 @@ public class PlaceholderUtil {
         String langOsxLocales = langs.stream().map(Language::getOsxLocale).collect(Collectors.joining("|", "(", ")"));
         String langOsxCodes = langs.stream().map(Language::getOsxCode).collect(Collectors.joining("|", "(", ")"));
         return toFormat.stream()
-            .map(s -> s
-                .replace(ESCAPE_DOT, ESCAPE_DOT_PLACEHOLDER)
-                .replace(DOT, ESCAPE_DOT)
-                .replace(ESCAPE_DOT_PLACEHOLDER, ESCAPE_DOT)
-
-                .replace(ESCAPE_QUESTION, ESCAPE_QUESTION_PLACEHOLDER)
-                .replace(QUESTION_MARK, "[^/]")
-                .replace(ESCAPE_QUESTION_PLACEHOLDER, ESCAPE_QUESTION)
-
-                .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
-                .replace("**", ".+")
-                .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
-
-                .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
-                .replace(ASTERISK, "[^/]+")
-                .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
-
-                .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
-
-                .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE))
-            .map(s -> s
-                .replace(PLACEHOLDER_FILE_EXTENTION, "[^/]+")
-                .replace(PLACEHOLDER_FILE_NAME, "[^/]+")
-                .replace(PLACEHOLDER_ORIGINAL_FILE_NAME, "[^/]+")
-                .replace(PLACEHOLDER_ORIGINAL_PATH, ".+"))
+            .map(PlaceholderUtil::formatSourcePatternForRegex)
             .map(s -> s
                 .replace(PLACEHOLDER_LANGUAGE_ID, langIds)
                 .replace(PLACEHOLDER_LANGUAGE, langNames)
@@ -245,6 +223,36 @@ public class PlaceholderUtil {
                 .replace(PLACEHOLDER_OSX_CODE, langOsxCodes))
             .map(s -> "^" + s + "$")
             .collect(Collectors.toList());
+    }
+
+    public static String formatSourcePatternForRegex(String toFormat) {
+        toFormat = toFormat
+            .replace(ESCAPE_DOT, ESCAPE_DOT_PLACEHOLDER)
+            .replace(DOT, ESCAPE_DOT)
+            .replace(ESCAPE_DOT_PLACEHOLDER, ESCAPE_DOT)
+
+            .replace(ESCAPE_QUESTION, ESCAPE_QUESTION_PLACEHOLDER)
+            .replace(QUESTION_MARK, "[^/]")
+            .replace(ESCAPE_QUESTION_PLACEHOLDER, ESCAPE_QUESTION)
+
+            .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
+            .replace("**", ".+")
+            .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
+
+            .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
+            .replace(ASTERISK, "[^/]+")
+            .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
+
+            .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
+
+            .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE)
+
+            .replace(ESCAPE_ASTERISK_REPLACEMENT_FROM, ESCAPE_ASTERISK_REPLACEMENT_TO);
+        return toFormat
+            .replace(PLACEHOLDER_FILE_EXTENTION, "[^/]+")
+            .replace(PLACEHOLDER_FILE_NAME, "[^/]+")
+            .replace(PLACEHOLDER_ORIGINAL_FILE_NAME, "[^/]+")
+            .replace(PLACEHOLDER_ORIGINAL_PATH, ".+");
     }
 
     public static boolean containsFilePlaceholders(String pattern) {

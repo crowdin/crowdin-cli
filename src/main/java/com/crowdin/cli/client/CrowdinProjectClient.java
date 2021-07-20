@@ -68,8 +68,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             .listFiles(this.projectId, null, null, null, null, limit, offset)));
         project.setDirectories(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
             .listDirectories(this.projectId, null, null, null, limit, offset)));
-        project.setBranches(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
-            .listBranches(this.projectId, null, limit, offset)));
+        project.setBranches(this.listBranches());
     }
 
     private void populateProjectWithLangs(CrowdinProject project) {
@@ -107,10 +106,22 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public List<LanguageProgress> getBranchProgress(Long branchId) {
+        return executeRequestFullList((limit, offset) -> this.client.getTranslationStatusApi()
+            .getBranchProgress(this.projectId, branchId, limit, offset));
+    }
+
+    @Override
     public Branch addBranch(AddBranchRequest request) {
         return executeRequest(() -> this.client.getSourceFilesApi()
             .addBranch(this.projectId, request)
             .getData());
+    }
+
+    @Override
+    public List<Branch> listBranches() {
+        return executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
+            .listBranches(this.projectId, null, limit, offset));
     }
 
     @Override
@@ -132,6 +143,15 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return executeRequest(errorHandlers, () -> this.client.getSourceFilesApi()
             .addDirectory(this.projectId, request)
             .getData());
+    }
+
+    @Override
+    public void deleteDirectory(Long directoryId) {
+        executeRequest(() -> {
+            this.client.getSourceFilesApi()
+                .deleteDirectory(this.projectId, directoryId);
+            return null;
+        });
     }
 
     @Override
@@ -158,6 +178,15 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     public void editSource(Long fileId, List<PatchRequest> request) {
         executeRequest(() -> this.client.getSourceFilesApi()
             .editFile(this.projectId, fileId, request));
+    }
+
+    @Override
+    public void deleteSource(Long fileId) {
+        executeRequest(() -> {
+            this.client.getSourceFilesApi()
+                .deleteFile(this.projectId, fileId);
+            return null;
+        });
     }
 
     @Override
