@@ -32,6 +32,9 @@ class StringAddSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--file"}, paramLabel = "...")
     protected List<String> files;
 
+    @CommandLine.Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...")
+    protected List<String> labelNames;
+
     @CommandLine.Option(names = {"--hidden"})
     protected Boolean isHidden;
 
@@ -52,6 +55,6 @@ class StringAddSubcommand extends ActCommandWithFiles {
 
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
-        return actions.stringAdd(noProgress, text, identifier, maxLength, context, files, isHidden);
+        return actions.stringAdd(noProgress, text, identifier, maxLength, context, files, labelNames, isHidden);
     }
 }

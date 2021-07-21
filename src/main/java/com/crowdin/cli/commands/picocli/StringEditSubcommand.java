@@ -29,6 +29,9 @@ class StringEditSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--max-length"}, paramLabel = "...")
     protected Integer newMaxLength;
 
+    @CommandLine.Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...")
+    protected List<String> labelNames;
+
     @CommandLine.Option(names = {"--hidden"}, negatable = true)
     protected Boolean newIsHidden;
 
@@ -40,7 +43,7 @@ class StringEditSubcommand extends ActCommandWithFiles {
         } else if (id != null && identifier != null) {
             errors.add("You can't use both identifiers");
         }
-        if (newText == null && newContext == null && newMaxLength == null && newIsHidden == null) {
+        if (newText == null && newContext == null && newMaxLength == null && newIsHidden == null && (labelNames == null || labelNames.isEmpty())) {
             errors.add(RESOURCE_BUNDLE.getString("error.source_string_no_edit"));
         }
         return errors;
@@ -48,7 +51,7 @@ class StringEditSubcommand extends ActCommandWithFiles {
 
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
-        return actions.stringEdit(noProgress, id, identifier, newText, newContext, newMaxLength, newIsHidden);
+        return actions.stringEdit(noProgress, id, identifier, newText, newContext, newMaxLength, labelNames, newIsHidden);
     }
 
 
