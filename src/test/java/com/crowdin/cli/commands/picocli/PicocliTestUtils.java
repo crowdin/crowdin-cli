@@ -66,7 +66,7 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.listProject(anyBoolean(), any(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.listSources(anyBoolean(), anyBoolean(), anyBoolean()))
+        when(actionsMock.listSources(anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.listTranslations(anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);

@@ -51,9 +51,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<PropertiesWithFiles, ProjectClient> listSources(
-        boolean noProgress, boolean treeView, boolean plainView
+        boolean deleteObsolete, String branchName, boolean noProgress, boolean treeView, boolean plainView
     ) {
-        return new ListSourcesAction(noProgress, treeView, plainView);
+        return new ListSourcesAction(deleteObsolete, branchName, noProgress, treeView, plainView);
     }
 
     @Override

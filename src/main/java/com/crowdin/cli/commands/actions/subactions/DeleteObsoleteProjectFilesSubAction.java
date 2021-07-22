@@ -2,16 +2,13 @@ package com.crowdin.cli.commands.actions.subactions;
 
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
+import com.crowdin.cli.commands.functionality.ObsoleteSourcesUtils;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.sourcefiles.model.File;
 import lombok.NonNull;
 
 import java.util.List;
 import java.util.Map;
-import java.util.function.Function;
-import java.util.function.Predicate;
-import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -60,8 +57,8 @@ public class DeleteObsoleteProjectFilesSubAction {
         if (this.projectFiles == null || directoryIds == null || preserveHierarchy == null) {
             throw new IllegalStateException("Unexpected error: DeleteObsoleteProjectFilesSubAction is not properly set");
         }
-        Map<String, File> obsoleteProjectFiles = this.findObsoleteFiles(filesToUpload, sourcePattern, exportPattern, ignorePatterns);
-        Map<String, Long> obsoleteDirs = this.findObsoleteDirectories(filesToUpload, obsoleteProjectFiles);
+        Map<String, File> obsoleteProjectFiles = ObsoleteSourcesUtils.findObsoleteProjectFiles(this.projectFiles, this.preserveHierarchy, filesToUpload, sourcePattern, exportPattern, ignorePatterns);
+        Map<String, Long> obsoleteDirs = ObsoleteSourcesUtils.findObsoleteProjectDirectories(this.projectFiles, this.directoryIds, filesToUpload, obsoleteProjectFiles);
 
         for (String obsoleteProjectFilePath : obsoleteProjectFiles.keySet()) {
             client.deleteSource(obsoleteProjectFiles.get(obsoleteProjectFilePath).getId());
@@ -83,57 +80,5 @@ public class DeleteObsoleteProjectFilesSubAction {
         if (obsoleteDirs.isEmpty() && !plainView) {
             out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.delete_obsolete.no_obsolete_directories_found")));
         }
-    }
-
-    private Map<String, File> findObsoleteFiles(List<String> filesToUpload, String pattern, String exportPattern, List<String> ignorePattern) {
-        Predicate<String> patternCheck =
-            ProjectFilesUtils.isProjectFilePathSatisfiesPatterns(pattern, ignorePattern, this.preserveHierarchy);
-        return projectFiles.entrySet().stream()
-            .filter(entry -> patternCheck.test(entry.getKey()) && this.checkExportPattern(exportPattern, entry.getValue()))
-            .filter(entry -> isFileDontHaveUpdate(filesToUpload, entry.getKey()))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-    }
-
-    private boolean checkExportPattern(String exportPattern, File file) {
-        String fileExportPattern = ProjectFilesUtils.getExportPattern(file.getExportOptions());
-        return exportPattern.equals(fileExportPattern != null ? Utils.normalizePath(fileExportPattern) : null);
-    }
-
-    private Map<String, Long> findObsoleteDirectories(List<String> filesToUpload, Map<String, File> obsoleteDeletedProjectFiles) {
-        List<String> upToDateDirs = filesToUpload.stream()
-            .map(Utils::getParentDirectory)
-            .collect(Collectors.toList());
-        upToDateDirs.addAll(projectFiles.keySet().stream()
-            .filter(projectFile -> !obsoleteDeletedProjectFiles.containsKey(projectFile))
-            .map(Utils::getParentDirectory)
-            .collect(Collectors.toSet()));
-        for (int i = 0; i < upToDateDirs.size(); i++) {
-            String parentDir = Utils.getParentDirectory(upToDateDirs.get(i));
-            if (!upToDateDirs.contains(parentDir)) {
-                upToDateDirs.add(parentDir);
-            }
-        }
-
-        List<String> obsoleteDirs = obsoleteDeletedProjectFiles.keySet().stream()
-            .map(Utils::getParentDirectory)
-            .distinct()
-            .collect(Collectors.toList());
-        for (int i = 0; i < obsoleteDirs.size(); i++) {
-            String parentDir = Utils.getParentDirectory(obsoleteDirs.get(i));
-            if (!obsoleteDirs.contains(parentDir)) {
-                obsoleteDirs.add(parentDir);
-            }
-        }
-        obsoleteDirs.remove(Utils.PATH_SEPARATOR);
-
-        return obsoleteDirs.stream()
-            .filter(dir -> !upToDateDirs.contains(dir))
-            .collect(Collectors.toMap(Function.identity(), directoryIds::get));
-    }
-
-    private boolean isFileDontHaveUpdate(List<String> filesToUpload, String filePath) {
-        filePath = (preserveHierarchy) ? filePath : Utils.joinPaths(".*", Utils.sepAtStart(filePath));
-        return filesToUpload.stream()
-            .noneMatch(Pattern.compile("^" + Utils.regexPath(filePath) + "$").asPredicate());
     }
 }

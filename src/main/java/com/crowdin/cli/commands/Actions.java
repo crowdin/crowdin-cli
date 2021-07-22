@@ -35,7 +35,7 @@ public interface Actions {
         boolean noProgress, String branchName, boolean treeView, boolean plainView);
 
     NewAction<PropertiesWithFiles, ProjectClient> listSources(
-        boolean noProgress, boolean treeView, boolean plainView);
+        boolean deleteObsolete, String branchName, boolean noProgress, boolean treeView, boolean plainView);
 
     NewAction<PropertiesWithFiles, ProjectClient> listTranslations(
         boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang);

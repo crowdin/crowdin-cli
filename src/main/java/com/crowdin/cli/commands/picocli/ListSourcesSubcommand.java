@@ -19,7 +19,7 @@ class ListSourcesSubcommand extends ActCommandWithFiles {
 
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
-        return actions.listSources(this.noProgress, this.treeView, this.plainView);
+        return actions.listSources(false, null, this.noProgress, this.treeView, this.plainView);
     }
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")

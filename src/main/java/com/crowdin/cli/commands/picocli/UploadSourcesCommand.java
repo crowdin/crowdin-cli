@@ -35,7 +35,7 @@ class UploadSourcesCommand extends ActCommandWithFiles {
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
-            ? actions.listSources(this.noProgress, this.treeView, plainView)
+            ? actions.listSources(this.deleteObsolete, this.branch, this.noProgress, this.treeView, plainView)
             : actions.uploadSources(this.branch, this.deleteObsolete, this.noProgress, this.autoUpdate, debug, plainView);
     }
 
