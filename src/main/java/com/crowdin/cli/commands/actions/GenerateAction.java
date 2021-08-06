@@ -94,7 +94,7 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
             String token;
             try {
                 ConsoleSpinner.start(out, "Waiting for authorization to complete (Press <Ctrl>+C to exit)", false);
-                token = OAuthUtil.getToken(OAUTH_CLIENT_ID);
+                token = OAuthUtil.getToken(out, OAUTH_CLIENT_ID);
                 ConsoleSpinner.stop(OK, "Authorization finished successfully");
             } catch (Exception e) {
                 ConsoleSpinner.stop(ERROR, e.getMessage());

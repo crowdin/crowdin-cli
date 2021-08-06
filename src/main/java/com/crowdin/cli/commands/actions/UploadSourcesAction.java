@@ -188,7 +188,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             return (Runnable) () -> {
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
                                     request.setStorageId(client.uploadStorage(source.substring(source.lastIndexOf(Utils.PATH_SEPARATOR) + 1), fileStream));
-                                } catch (IOException e) {
+                                } catch (Exception e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(
                                         String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
