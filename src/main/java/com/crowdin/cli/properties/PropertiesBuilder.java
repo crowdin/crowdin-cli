@@ -114,6 +114,8 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String EXCLUDED_TARGET_LANGUAGES = "excluded_target_languages";
 
+    public static final String CUSTOM_SEGMENTATION = "custom_segmentation";
+
     public static final String SETTINGS = "settings";
 
     public static final String IGNORE_HIDDEN_FILES = "ignore_hidden_files";
