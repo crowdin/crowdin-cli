@@ -27,7 +27,7 @@ import java.util.Map;
 
 public class RequestBuilder {
 
-    public static AddSourceStringRequest addString(String text, String identifier, Integer maxLength, String context, Long fileId, Boolean hidden) {
+    public static AddSourceStringRequest addString(String text, String identifier, Integer maxLength, String context, Long fileId, Boolean hidden, List<Long> labelIds) {
         AddSourceStringRequest request = new AddSourceStringRequest();
         request.setText(text);
         request.setIdentifier(identifier);
@@ -35,6 +35,7 @@ public class RequestBuilder {
         request.setContext(context);
         request.setFileId(fileId);
         request.setIsHidden(hidden);
+        request.setLabelIds(labelIds);
         return request;
     }
 

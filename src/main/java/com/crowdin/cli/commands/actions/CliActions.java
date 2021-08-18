@@ -77,9 +77,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<PropertiesWithFiles, ProjectClient> stringAdd(
-        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, Boolean hidden
+        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, Boolean hidden
     ) {
-        return new StringAddAction(noProgress, text, identifier, maxLength, context, files, hidden);
+        return new StringAddAction(noProgress, text, identifier, maxLength, context, files, labelNames, hidden);
     }
 
     @Override
@@ -91,9 +91,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<PropertiesWithFiles, ProjectClient> stringEdit(
-        boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, Boolean isHidden
+        boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden
     ) {
-        return new StringEditAction(noProgress, id, identifier, newText, newContext, newMaxLength, isHidden);
+        return new StringEditAction(noProgress, id, identifier, newText, newContext, newMaxLength, labelNames, isHidden);
     }
 
     @Override

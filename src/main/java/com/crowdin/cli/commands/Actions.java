@@ -46,13 +46,13 @@ public interface Actions {
         boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved);
 
     NewAction<PropertiesWithFiles, ProjectClient> stringAdd(
-        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, Boolean hidden);
+        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, Boolean hidden);
 
     NewAction<PropertiesWithFiles, ProjectClient> stringDelete(
         boolean noProgress, List<Long> ids, List<String> texts, List<String> identifiers);
 
     NewAction<PropertiesWithFiles, ProjectClient> stringEdit(
-        boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, Boolean isHidden);
+        boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden);
 
     NewAction<PropertiesWithFiles, ProjectClient> stringList(
         boolean noProgress, boolean isVerbose, String file, String filter);
