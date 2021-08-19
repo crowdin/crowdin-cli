@@ -130,14 +130,6 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                 List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
                     .map(File::getAbsolutePath)
                     .collect(Collectors.toList());
-                if (sources.isEmpty()) {
-                    if (!plainView) {
-                        errorsPresented.set(true);
-                        throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.no_sources"), file.getSource()));
-                    } else {
-                        return;
-                    }
-                }
                 String commonPath =
                     (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
                 if (deleteObsolete) {
@@ -149,6 +141,14 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                         deleteObsoleteProjectFilesSubAction.act(file.getDest(), file.getTranslation(), filesToUpdate);
                     } else {
                         deleteObsoleteProjectFilesSubAction.act(file.getSource(), file.getIgnore(), file.getTranslation(), filesToUpdate);
+                    }
+                }
+                if (sources.isEmpty()) {
+                    if (!plainView) {
+                        errorsPresented.set(true);
+                        throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.no_sources"), file.getSource()));
+                    } else {
+                        return;
                     }
                 }
                 List<Runnable> taskss = sources.stream()
