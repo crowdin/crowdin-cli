@@ -20,7 +20,7 @@ public class UploadSourcesCommandTest extends PicocliTestUtils {
     public void testUploadSourcesDryrun() {
         this.execute(CommandNames.UPLOAD, "--dryrun");
         verify(actionsMock)
-            .listSources(anyBoolean(), anyBoolean(), anyBoolean());
+            .listSources(anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 }

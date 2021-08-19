@@ -34,7 +34,7 @@ public class CliActionsTest {
 
     @Test
     public void testListSources() {
-        assertNotNull(actions.listSources(false, false, false));
+        assertNotNull(actions.listSources(false, null, false, false, false));
     }
 
     @Test

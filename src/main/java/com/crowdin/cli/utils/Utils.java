@@ -40,6 +40,8 @@ public class Utils {
      */
     public static final String PATH_SEPARATOR_REGEX = "\\".equals(PATH_SEPARATOR) ? "\\\\" : PATH_SEPARATOR;
 
+    public static final String PRESERVE_HIERARCHY_REGEX_PART = "(.*" + Utils.PATH_SEPARATOR_REGEX + ")?";
+
     private static final ResourceBundle CROWDIN_PROPERTIES = ResourceBundle.getBundle("crowdin");
 
     public static String getAppName() {
