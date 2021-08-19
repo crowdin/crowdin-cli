@@ -117,8 +117,8 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
         LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
-        Map<Pair<File, List<String>>, List<Map<String, String>>> fileBeansWithDownloadedFiles = new TreeMap<>();
-        List<File> tempDirs = new ArrayList<>();
+        Map<File, List<Map<String, String>>> fileBeansWithDownloadedFiles = new TreeMap<>();
+        Map<File, List<String>> tempDirs = new HashMap<>();
         try {
             if (pseudo) {
                 List<Language> forLanguages = project.getSupportedLanguages();
@@ -133,10 +133,10 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 Pair<File, List<String>> downloadedFiles = this.download(request, client, pb.getBasePath());
                 for (FileBean fb : pb.getFiles()) {
                     Map<String, String> filesWithMapping = this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil, new ArrayList<>(serverSources.keySet()), pb.getPreserveHierarchy());
-                    fileBeansWithDownloadedFiles.putIfAbsent(downloadedFiles, new ArrayList<>());
-                    fileBeansWithDownloadedFiles.get(downloadedFiles).add(filesWithMapping);
+                    fileBeansWithDownloadedFiles.putIfAbsent(downloadedFiles.getLeft(), new ArrayList<>());
+                    fileBeansWithDownloadedFiles.get(downloadedFiles.getLeft()).add(filesWithMapping);
                 }
-                tempDirs.add(downloadedFiles.getLeft());
+                tempDirs.put(downloadedFiles.getLeft(), downloadedFiles.getRight());
             } else {
                 List<Language> forLanguages = language
                     .map(Collections::singletonList)
@@ -176,17 +176,17 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
                                 Map<String, String> filesWithMapping =
                                     this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil, new ArrayList<>(serverSources.keySet()), pb.getPreserveHierarchy());
-                                fileBeansWithDownloadedFiles.putIfAbsent(downloadedFiles, new ArrayList<>());
-                                fileBeansWithDownloadedFiles.get(downloadedFiles).add(filesWithMapping);
+                                fileBeansWithDownloadedFiles.putIfAbsent(downloadedFiles.getLeft(), new ArrayList<>());
+                                fileBeansWithDownloadedFiles.get(downloadedFiles.getLeft()).add(filesWithMapping);
                             }
                         }
-                        tempDirs.add(downloadedFiles.getLeft());
+                        tempDirs.put(downloadedFiles.getLeft(), downloadedFiles.getRight());
                     });
             }
 
-            Map<Pair<File, List<String>>, Set<Pair<String, String>>> fileBeansWithDownloadedFilesNoRepetitions = new TreeMap<>();
-            for (Pair<File, List<String>> key : fileBeansWithDownloadedFiles.keySet()) {
-                fileBeansWithDownloadedFilesNoRepetitions.put(key, this.flattenInnerMap(fileBeansWithDownloadedFiles.get(key)));
+            Map<File, Set<Pair<String, String>>> fileBeansWithDownloadedFilesNoRepetitions = new TreeMap<>();
+            for (File tempDir : fileBeansWithDownloadedFiles.keySet()) {
+                fileBeansWithDownloadedFilesNoRepetitions.put(tempDir, this.flattenInnerMap(fileBeansWithDownloadedFiles.get(tempDir)));
             }
 
             Map<Long, String> directoryPaths = (branch.isPresent())
@@ -198,12 +198,11 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     placeholderUtil, serverLanguageMapping, pb.getBasePath());
 
             Map<String, List<String>> totalOmittedFiles = null;
-            List<String> totalOmittedFilesNoSources = new ArrayList<>();
+            List<List<String>> omittedFilesNoSources = new ArrayList<>();
 
-            for (Pair<File, List<String>> key : fileBeansWithDownloadedFilesNoRepetitions.keySet()) {
-                Set<Pair<String, String>> filesWithMapping = fileBeansWithDownloadedFilesNoRepetitions.get(key);
-                File tempDir = key.getKey();
-                List<String> downloadedFiles = key.getValue();
+            for (File tempDir : fileBeansWithDownloadedFilesNoRepetitions.keySet()) {
+                Set<Pair<String, String>> filesWithMapping = fileBeansWithDownloadedFilesNoRepetitions.get(tempDir);
+                List<String> downloadedFiles = tempDirs.get(tempDir);
 
                 Pair<Map<File, File>, List<String>> result =
                     sortFiles(downloadedFiles, filesWithMapping, pb.getBasePath(), tempDir.getAbsolutePath() + Utils.PATH_SEPARATOR);
@@ -240,7 +239,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                         }
                     }
                 }
-                totalOmittedFilesNoSources.retainAll(allOmittedFilesNoSources);
+                omittedFilesNoSources.add(allOmittedFilesNoSources);
             }
 
             if (!ignoreMatch && !plainView) {
@@ -258,6 +257,11 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                         }
                     });
                 }
+
+                List<String> totalOmittedFilesNoSources = omittedFilesNoSources.isEmpty() ? new ArrayList<>() : omittedFilesNoSources.get(0);
+                for (List<String> eachOmittedFilesNoSources : omittedFilesNoSources) {
+                    totalOmittedFilesNoSources.retainAll(eachOmittedFilesNoSources);
+                }
                 if (!totalOmittedFilesNoSources.isEmpty()) {
                     out.println(
                         WARNING.withIcon(
@@ -268,7 +272,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             }
         } finally {
             try {
-                for (File tempDir : tempDirs) {
+                for (File tempDir : tempDirs.keySet()) {
                     files.deleteDirectory(tempDir);
                 }
             } catch (IOException e) {
@@ -277,6 +281,13 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         }
     }
 
+    /**
+     * Download archive, extract it and return information about that temporary directory
+     * @param request request body to download archive
+     * @param client api to Crowdin
+     * @param basePath base path
+     * @return pair of temporary directory and list of files in it(relative paths to that directory)
+     */
     private Pair<File, List<String>> download(BuildProjectTranslationRequest request, ProjectClient client, String basePath) {
         ProjectBuild projectBuild = buildTranslation(client, request);
         String randomHash = RandomStringUtils.random(11, false, true);
