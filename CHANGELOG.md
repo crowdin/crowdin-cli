@@ -1,6 +1,19 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.6.5]
+
+### Added
+
+- Add '--branch' option for 'status' commands ([#374](https://github.com/crowdin/crowdin-cli/pull/374))
+- Add '--delete-obsolete' option to 'upload sources' command ([#374](https://github.com/crowdin/crowdin-cli/pull/374))
+- Add '--label' option to 'string add' and 'string edit' commands ([#384](https://github.com/crowdin/crowdin-cli/pull/384))
+
+### Fixed
+
+- Fix uploading XLSX files ([#377](https://github.com/crowdin/crowdin-cli/pull/377))
+- Fix not showing all omitted files and improve building export patterns ([#378](https://github.com/crowdin/crowdin-cli/pull/378))
+
 ## [3.6.4]
 
 ### Updated
