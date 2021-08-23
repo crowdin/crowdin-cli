@@ -2,11 +2,13 @@ package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.client.core.model.PatchOperation;
 import com.crowdin.client.core.model.PatchRequest;
+import com.crowdin.client.core.model.Priority;
 import com.crowdin.client.glossaries.model.AddGlossaryRequest;
 import com.crowdin.client.glossaries.model.ExportGlossaryRequest;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.glossaries.model.ImportGlossaryRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
+import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
@@ -207,6 +209,15 @@ public class RequestBuilder {
         request.setDuplicateTranslations(duplicateTranslations);
         request.setTranslateUntranslatedOnly(translateUntranslatedOnly);
         request.setTranslateWithPerfectMatchOnly(translateWithPerfectMatchOnly);
+        return request;
+    }
+
+    public static AddBranchRequest addBranch(String name, String title, String exportPattern, Priority priority) {
+        AddBranchRequest request = new AddBranchRequest();
+        request.setName(name);
+        request.setTitle(title);
+        request.setExportPattern(exportPattern);
+        request.setPriority(priority);
         return request;
     }
 

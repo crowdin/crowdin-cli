@@ -32,6 +32,10 @@ public final class CommandNames {
     public static final String STRING_EDIT = "edit";
     public static final String STRING_LIST = "list";
 
+    public static final String BRANCH = "branch";
+    public static final String BRANCH_ADD = "add";
+    public static final String BRANCH_DELETE = "delete";
+
     public static final String GLOSSARY = "glossary";
     public static final String GLOSSARY_LIST = "list";
     public static final String GLOSSARY_UPLOAD = "upload";

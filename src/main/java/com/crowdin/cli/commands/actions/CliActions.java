@@ -12,6 +12,7 @@ import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.client.core.model.Priority;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import com.crowdin.client.translations.model.AutoApproveOption;
@@ -179,4 +180,13 @@ public class CliActions implements Actions {
             translateUntranslatedOnly, translateWithPerfectMatchOnly, noProgress, debug, verbose, plainView);
     }
 
+    @Override
+    public NewAction<PropertiesWithFiles, ProjectClient> branchAdd(String name, String title, String exportPattern, Priority priority) {
+        return new BranchAddAction(name, title, exportPattern, priority);
+    }
+
+    @Override
+    public NewAction<PropertiesWithFiles, ProjectClient> branchDelete(String name) {
+        return new BranchDeleteAction(name);
+    }
 }
