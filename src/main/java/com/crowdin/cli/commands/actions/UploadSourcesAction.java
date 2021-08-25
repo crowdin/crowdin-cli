@@ -282,6 +282,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             })
             .collect(Collectors.toList());
         ConcurrencyUtil.executeAndWaitSingleThread(tasks, debug);
+        deleteObsoleteProjectFilesSubAction.postAct();
         if (errorsPresented.get()) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.errors_presented"));
         }

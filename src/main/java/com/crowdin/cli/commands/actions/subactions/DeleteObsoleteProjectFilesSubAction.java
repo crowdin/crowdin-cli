@@ -27,6 +27,9 @@ public class DeleteObsoleteProjectFilesSubAction {
     private Boolean preserveHierarchy;
     private boolean plainView;
 
+    private boolean isAnyFileDeleted = false;
+    private boolean isAnyDirectoryDeleted = false;
+
     public DeleteObsoleteProjectFilesSubAction(@NonNull Outputter out, @NonNull ProjectClient client) {
         this.out = out;
         this.client = client;
@@ -66,9 +69,7 @@ public class DeleteObsoleteProjectFilesSubAction {
             if (!plainView) {
                 out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.delete_obsolete.obsolete_file_delete"), obsoleteProjectFilePath)));
             }
-        }
-        if (obsoleteProjectFiles.isEmpty() && !plainView) {
-            out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.delete_obsolete.obsolete_directory_delete")));
+            isAnyFileDeleted = true;
         }
         for (String obsoleteDirPath : obsoleteDirs.keySet()) {
             client.deleteDirectory(obsoleteDirs.get(obsoleteDirPath));
@@ -76,9 +77,17 @@ public class DeleteObsoleteProjectFilesSubAction {
             if (!plainView) {
                 out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.delete_obsolete.no_obsolete_files_found"), obsoleteDirPath)));
             }
+            isAnyDirectoryDeleted = true;
         }
-        if (obsoleteDirs.isEmpty() && !plainView) {
+    }
+
+    public void postAct() {
+        if (!isAnyFileDeleted && !plainView) {
+            out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.delete_obsolete.obsolete_directory_delete")));
+        }
+        if (!isAnyDirectoryDeleted && !plainView) {
             out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.delete_obsolete.no_obsolete_directories_found")));
         }
     }
+
 }
