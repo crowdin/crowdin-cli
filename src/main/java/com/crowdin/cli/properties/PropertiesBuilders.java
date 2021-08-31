@@ -8,63 +8,47 @@ import java.io.File;
 public class PropertiesBuilders {
 
     public PropertiesWithFiles buildPropertiesWithFiles(Outputter out, File configFile, File identityFile, ParamsWithFiles params) {
-        PropertiesWithFilesBuilder builder = new PropertiesWithFilesBuilder(out);
-        if (fileExists(configFile) || params.isEmpty()) {
-            builder.addConfigParams(FileUtils.readYamlFile(configFile));
-        }
-        if (identityFile != null) {
-            builder.addIdentityParams(FileUtils.readYamlFile(identityFile));
-        }
-        if (params != null) {
-            builder.addParams(params);
-        }
-        return builder.build();
+        return new PropertiesWithFilesBuilder(out)
+            .addConfigParams((fileExists(configFile) || params.isEmpty()) ? FileUtils.readYamlFile(configFile) : null)
+            .addIdentityParams((identityFile != null) ? FileUtils.readYamlFile(identityFile) : null)
+            .addParams(params)
+            .build();
+    }
+
+    public PropertiesWithTargets buildPropertiesWithTargets(Outputter out, File configFile, File identityFile, ParamsWithTargets params) {
+        return new PropertiesWithTargetsBuilder(out)
+            .addConfigParams((configFile != null) ? FileUtils.readYamlFile(configFile) : null)
+            .addIdentityParams((identityFile != null) ? FileUtils.readYamlFile(identityFile) : null)
+            .addParams(params)
+            .build();
+    }
+
+    public ProjectProperties buildProjectProperties(Outputter out, File configFile, File identityFile, ProjectParams params) {
+        return new ProjectPropertiesBuilder(out)
+            .addConfigParams((fileExists(configFile)) ? FileUtils.readYamlFile(configFile) : null)
+            .addIdentityParams((identityFile != null) ? FileUtils.readYamlFile(identityFile) : null)
+            .addParams(params)
+            .build();
+    }
+
+    public BaseProperties buildBaseProperties(Outputter out, File configFile, File identityFile, BaseParams params) {
+        return new BasePropertiesBuilder(out)
+            .addConfigParams((fileExists(configFile)) ? FileUtils.readYamlFile(configFile) : null)
+            .addIdentityParams((identityFile != null) ? FileUtils.readYamlFile(identityFile) : null)
+            .addParams(params)
+            .build();
+    }
+
+    public AllProperties buildChecker(Outputter out, File configFile, File identityFile, NoParams params) {
+        return new PropertiesBuilderChecker(out)
+            .addConfigParams((fileExists(configFile)) ? FileUtils.readYamlFile(configFile) : null)
+            .addIdentityParams((identityFile != null) ? FileUtils.readYamlFile(identityFile) : null)
+            .addParams(params)
+            .build();
     }
 
     private boolean fileExists(File file) {
         return file != null && file.exists();
-    }
-
-    public PropertiesWithTargets buildPropertiesWithTargets(Outputter out, File configFile, File identityFile, ParamsWithTargets params) {
-        PropertiesWithTargetsBuilder builder = new PropertiesWithTargetsBuilder(out);
-        if (configFile != null) {
-            builder.addConfigParams(FileUtils.readYamlFile(configFile));
-        }
-        if (identityFile != null) {
-            builder.addIdentityParams(FileUtils.readYamlFile(identityFile));
-        }
-        if (params != null) {
-            builder.addParams(params);
-        }
-        return builder.build();
-    }
-
-    public BaseProperties buildBaseProperties(Outputter out, File configFile, File identityFile, BaseParams params) {
-        BasePropertiesBuilder builder = new BasePropertiesBuilder(out);
-        if (configFile != null) {
-            builder.addConfigParams(FileUtils.readYamlFile(configFile));
-        }
-        if (identityFile != null) {
-            builder.addIdentityParams(FileUtils.readYamlFile(identityFile));
-        }
-        if (params != null) {
-            builder.addParams(params);
-        }
-        return builder.build();
-    }
-
-    public AllProperties buildChecker(Outputter out, File configFile, File identityFile, NoParams params) {
-        PropertiesBuilderChecker builder = new PropertiesBuilderChecker(out);
-        if (configFile != null) {
-            builder.addConfigParams(FileUtils.readYamlFile(configFile));
-        }
-        if (identityFile != null) {
-            builder.addIdentityParams(FileUtils.readYamlFile(identityFile));
-        }
-        if (params != null) {
-            builder.addParams(params);
-        }
-        return builder.build();
     }
 
     public NoProperties buildNoProperties() {

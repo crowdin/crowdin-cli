@@ -161,7 +161,10 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
             this.populateWithArgParams(props, params);
         }
         this.populateWithDefaultValues(props);
-        this.throwErrorIfNeeded(this.checkProperties(props), RESOURCE_BUNDLE.getString("error.configuration_file_is_invalid"));
+        String errorTitle = (configFileParams == null && identityFileParams == null)
+            ? RESOURCE_BUNDLE.getString("error.configuration_is_invalid")
+            : RESOURCE_BUNDLE.getString("error.configuration_file_is_invalid");
+        this.throwErrorIfNeeded(this.checkProperties(props), errorTitle);
         return props;
     }
 

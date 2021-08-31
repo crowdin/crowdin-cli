@@ -12,30 +12,30 @@ import static com.crowdin.cli.properties.PropertiesBuilder.PROJECT_ID_ENV;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class IdProperties extends BaseProperties {
+public class ProjectProperties extends BaseProperties {
 
     static IdPropertiesConfigurator CONFIGURATOR = new IdPropertiesConfigurator();
 
     private String projectId;
 
-    static class IdPropertiesConfigurator implements PropertiesConfigurator<IdProperties> {
+    static class IdPropertiesConfigurator implements PropertiesConfigurator<ProjectProperties> {
 
         private IdPropertiesConfigurator() {
 
         }
 
         @Override
-        public void populateWithValues(IdProperties props, Map<String, Object> map) {
+        public void populateWithValues(ProjectProperties props, Map<String, Object> map) {
             PropertiesBuilder.setEnvOrPropertyIfExists(props::setProjectId, map, PROJECT_ID_ENV, PROJECT_ID);
         }
 
         @Override
-        public void populateWithDefaultValues(IdProperties props) {
+        public void populateWithDefaultValues(ProjectProperties props) {
 //            do nothing
         }
 
         @Override
-        public PropertiesBuilder.Messages checkProperties(IdProperties props, CheckType checkType) {
+        public PropertiesBuilder.Messages checkProperties(ProjectProperties props, CheckType checkType) {
             PropertiesBuilder.Messages messages = new PropertiesBuilder.Messages();
             if (StringUtils.isEmpty(props.getProjectId())) {
                 messages.addError(RESOURCE_BUNDLE.getString("error.config.missed_project_id"));

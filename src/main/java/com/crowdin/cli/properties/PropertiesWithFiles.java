@@ -17,7 +17,7 @@ import static com.crowdin.cli.properties.PropertiesBuilder.PSEUDO_LOCALIZATION;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class PropertiesWithFiles extends IdProperties {
+public class PropertiesWithFiles extends ProjectProperties {
 
     static PropertiesWithFilesConfigurator CONFIGURATOR = new PropertiesWithFilesConfigurator();
 

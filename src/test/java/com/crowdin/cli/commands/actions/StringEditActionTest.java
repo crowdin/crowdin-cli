@@ -7,6 +7,7 @@ import com.crowdin.cli.client.models.SourceStringBuilder;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
+import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.utils.Utils;
@@ -36,7 +37,7 @@ public class StringEditActionTest {
 
     private PropertiesWithFiles pb;
     private ProjectClient client = mock(ProjectClient.class);
-    private NewAction<PropertiesWithFiles, ProjectClient> action;
+    private NewAction<ProjectProperties, ProjectClient> action;
 
     @ParameterizedTest
     @MethodSource
