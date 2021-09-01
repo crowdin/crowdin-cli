@@ -92,7 +92,6 @@ public class PropertiesBeanUtils {
      * @return built source file destination
      */
     public static String prepareDest(String dest, String sourceFile, PlaceholderUtil placeholderUtil) {
-        String dest2 = TranslationsUtils.replaceDoubleAsterisk(dest, dest, sourceFile);
-        return placeholderUtil.replaceFileDependentPlaceholders(Utils.noSepAtStart(dest2), new File(sourceFile));
+        return placeholderUtil.replaceFileDependentPlaceholders(Utils.noSepAtStart(dest), new File(sourceFile));
     }
 }

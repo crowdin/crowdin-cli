@@ -1,5 +1,7 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.utils.PlaceholderUtil;
+import com.crowdin.cli.utils.PlaceholderUtilBuilder;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.sourcefiles.model.UpdateOption;
 import org.junit.jupiter.api.Test;
@@ -151,6 +153,27 @@ public class PropertiesBeanUtilsTest {
             arguments("https://daanya.crowdin.dev"),
             arguments("https://98011165-2619304c.test.crowdin.com"),
             arguments("https://myorg.e-test.crowdin.com")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testPrepareDest(String dest, String sourceFile, String expected) {
+        PlaceholderUtil placeholderUtil = PlaceholderUtilBuilder.STANDART.build("/does/not/matter");
+        String result = PropertiesBeanUtils.prepareDest(dest, sourceFile, placeholderUtil);
+        assertEquals(expected, result, String.format("dest: %s SourceFile: %s", dest, sourceFile));
+    }
+
+    private static Stream<Arguments> testPrepareDest() {
+        return Stream.of(
+            arguments(
+                Utils.normalizePath("/frontend/**/%original_file_name%"),
+                Utils.normalizePath("intl/messages/en-US.json"),
+                Utils.normalizePath("frontend/intl/messages/en-US.json")),
+            arguments(
+                Utils.normalizePath("/**/%file_name%_hmm.%file_extension%"),
+                Utils.normalizePath("en_GB/avmedia/source/framework_hmm.po"),
+                Utils.normalizePath("en_GB/avmedia/source/framework_hmm_hmm.po"))
         );
     }
 }
