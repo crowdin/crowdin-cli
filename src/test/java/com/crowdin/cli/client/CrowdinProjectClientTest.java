@@ -523,7 +523,7 @@ public class CrowdinProjectClientTest {
         when(httpClientMock.get(eq(listSourceStringUrl), any(), eq(SourceStringResponseList.class)))
             .thenReturn(response);
 
-        client.listSourceString(fileId, null, "FiLtEr");
+        client.listSourceString(fileId, null, null, "FiLtEr");
 
         verify(httpClientMock).get(eq(listSourceStringUrl), any(), eq(SourceStringResponseList.class));
         verifyNoMoreInteractions(httpClientMock);

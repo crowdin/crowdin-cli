@@ -8,6 +8,7 @@ import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.labels.model.Label;
+import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcestrings.model.SourceString;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +18,7 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -28,18 +30,26 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
     private final boolean isVerbose;
     private final String file;
     private final String filter;
+    private final String branchName;
 
-    public StringListAction(boolean noProgress, boolean isVerbose, String file, String filter) {
+    public StringListAction(boolean noProgress, boolean isVerbose, String file, String filter, String branchName) {
         this.noProgress = noProgress;
         this.isVerbose = isVerbose;
         this.file = file;
         this.filter = filter;
+        this.branchName = branchName;
     }
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, client::downloadFullProject);
+
+        Long branchId = Optional.ofNullable(this.branchName)
+            .map(br -> project.findBranchByName(br)
+                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))))
+            .map(Branch::getId)
+            .orElse(null);
 
         Map<Long, String> labels = client.listLabels().stream()
             .collect(Collectors.toMap(Label::getId, Label::getTitle));
@@ -58,10 +68,10 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
 
         List<SourceString> sourceStrings;
         if (StringUtils.isEmpty(file)) {
-            sourceStrings = client.listSourceString(null, null, encodedFilter);
+            sourceStrings = client.listSourceString(null, branchId, null, encodedFilter);
         } else {
             if (paths.containsKey(file)) {
-                sourceStrings = client.listSourceString(paths.get(file).getId(), null, encodedFilter);
+                sourceStrings = client.listSourceString(paths.get(file).getId(), branchId, null, encodedFilter);
             } else {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
             }

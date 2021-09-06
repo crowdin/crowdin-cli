@@ -41,20 +41,20 @@ public class StringListActionTest {
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 101L, null, null).build());
-        when(client.listSourceString(101L, null, filter))
+        when(client.listSourceString(101L, null, null, filter))
             .thenReturn(Arrays.asList(SourceStringBuilder.standard()
                 .setProjectId(Long.parseLong(pb.getProjectId()))
                 .setIdentifiers(701L, "7-0-1", "seven-o-one", "7.0.1", 101L).build()));
 
-        action = new StringListAction(true, true, file, filter);
+        action = new StringListAction(true, true, file, filter, null);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).listLabels();
         if (file != null) {
-            verify(client).listSourceString(101L, null, filter);
+            verify(client).listSourceString(101L, null, null, filter);
         } else {
-            verify(client).listSourceString(null, null, filter);
+            verify(client).listSourceString(null, null, null, filter);
         }
         verifyNoMoreInteractions(client);
     }
@@ -76,7 +76,7 @@ public class StringListActionTest {
         when(client.downloadFullProject())
             .thenThrow(new RuntimeException("Whoops"));
 
-        action = new StringListAction(true, true, null, null);
+        action = new StringListAction(true, true, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -94,7 +94,7 @@ public class StringListActionTest {
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 101L, null, null).build());
 
-        action = new StringListAction(true, true, "notexist.csv", null);
+        action = new StringListAction(true, true, "notexist.csv", null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();

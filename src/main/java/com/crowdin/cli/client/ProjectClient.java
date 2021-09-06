@@ -65,7 +65,7 @@ public interface ProjectClient extends Client {
 
     SourceString addSourceString(AddSourceStringRequest request);
 
-    List<SourceString> listSourceString(Long fileId, String labelIds, String filter);
+    List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter);
 
     void deleteSourceString(Long id);
 
