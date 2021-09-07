@@ -1,6 +1,26 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.7.0]
+
+### Added
+
+- Add new 'branch' subcommands ([#393](https://github.com/crowdin/crowdin-cli/pull/393))
+- Add 'custom_segmentation' field support in config ([#389](https://github.com/crowdin/crowdin-cli/pull/389))
+- Add '--branch' param for 'string list' command ([#389](https://github.com/crowdin/crowdin-cli/pull/389))
+
+### Updated
+
+- Improve '--delete-obsolete' logic ([#394](https://github.com/crowdin/crowdin-cli/pull/394))
+- Remove requirement for 'files' block for some commands ([#393](https://github.com/crowdin/crowdin-cli/pull/393))
+
+### Fixed
+
+- Fix showing New version banner with '--plain' param ([#389](https://github.com/crowdin/crowdin-cli/pull/389))
+- Fix message in authorizing via browser ([#389](https://github.com/crowdin/crowdin-cli/pull/389))
+- Fix 'dest' ([#396](https://github.com/crowdin/crowdin-cli/pull/396))
+- Fix exception handling at uploading file to storage in 'upload source' action ([#389](https://github.com/crowdin/crowdin-cli/pull/389))
+
 ## [3.6.5]
 
 ### Added
