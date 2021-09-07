@@ -9,9 +9,11 @@ import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.BaseProperties;
+import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.client.core.model.Priority;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import com.crowdin.client.translations.model.AutoApproveOption;
@@ -38,12 +40,12 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<PropertiesWithFiles, ProjectClient> listBranches(boolean noProgress, boolean plainView) {
+    public NewAction<ProjectProperties, ProjectClient> listBranches(boolean noProgress, boolean plainView) {
         return new ListBranchesAction(noProgress, plainView);
     }
 
     @Override
-    public NewAction<PropertiesWithFiles, ProjectClient> listProject(
+    public NewAction<ProjectProperties, ProjectClient> listProject(
         boolean noProgress, String branchName, boolean treeView, boolean plainView
     ) {
         return new ListProjectAction(noProgress, branchName, treeView, plainView);
@@ -64,40 +66,40 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<PropertiesWithFiles, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean noProgress, boolean plainView) {
+    public NewAction<ProjectProperties, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean noProgress, boolean plainView) {
         return new ListLanguagesAction(code, noProgress, plainView);
     }
 
     @Override
-    public NewAction<PropertiesWithFiles, ProjectClient> status(
+    public NewAction<ProjectProperties, ProjectClient> status(
         boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved
     ) {
         return new StatusAction(noProgress, branchName, languageId, isVerbose, showTranslated, showApproved);
     }
 
     @Override
-    public NewAction<PropertiesWithFiles, ProjectClient> stringAdd(
+    public NewAction<ProjectProperties, ProjectClient> stringAdd(
         boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, Boolean hidden
     ) {
         return new StringAddAction(noProgress, text, identifier, maxLength, context, files, labelNames, hidden);
     }
 
     @Override
-    public NewAction<PropertiesWithFiles, ProjectClient> stringDelete(
+    public NewAction<ProjectProperties, ProjectClient> stringDelete(
         boolean noProgress, List<Long> ids, List<String> texts, List<String> identifiers
     ) {
         return new StringDeleteAction(noProgress, ids, texts, identifiers);
     }
 
     @Override
-    public NewAction<PropertiesWithFiles, ProjectClient> stringEdit(
+    public NewAction<ProjectProperties, ProjectClient> stringEdit(
         boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden
     ) {
         return new StringEditAction(noProgress, id, identifier, newText, newContext, newMaxLength, labelNames, isHidden);
     }
 
     @Override
-    public NewAction<PropertiesWithFiles, ProjectClient> stringList(
+    public NewAction<ProjectProperties, ProjectClient> stringList(
         boolean noProgress, boolean isVerbose, String file, String filter
     ) {
         return new StringListAction(noProgress, isVerbose, file, filter);
@@ -179,4 +181,13 @@ public class CliActions implements Actions {
             translateUntranslatedOnly, translateWithPerfectMatchOnly, noProgress, debug, verbose, plainView);
     }
 
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> branchAdd(String name, String title, String exportPattern, Priority priority) {
+        return new BranchAddAction(name, title, exportPattern, priority);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> branchDelete(String name) {
+        return new BranchDeleteAction(name);
+    }
 }

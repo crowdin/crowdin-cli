@@ -6,6 +6,7 @@ import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
+import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.utils.Utils;
@@ -32,6 +33,8 @@ import static org.mockito.Mockito.verifyNoMoreInteractions;
 import static org.mockito.Mockito.when;
 
 public class StringAddActionTest {
+
+    NewAction<ProjectProperties, ProjectClient> action;
 
     @ParameterizedTest
     @MethodSource
@@ -67,7 +70,7 @@ public class StringAddActionTest {
         when(client.downloadFullProject())
             .thenReturn(projectBuilder.build());
 
-        NewAction<PropertiesWithFiles, ProjectClient> action =
+        action =
             new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, hidden);
         action.act(Outputter.getDefault(), pb, client);
 
@@ -131,7 +134,7 @@ public class StringAddActionTest {
         when(client.downloadFullProject())
             .thenReturn(projectBuilder.build());
 
-        NewAction<PropertiesWithFiles, ProjectClient> action =
+        action =
             new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, hidden);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
@@ -154,7 +157,7 @@ public class StringAddActionTest {
         when(client.downloadFullProject())
             .thenThrow(new RuntimeException("Whoops"));
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new StringAddAction(false, null, null, null, null, null, null, null);
+        action = new StringAddAction(false, null, null, null, null, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -211,7 +214,7 @@ public class StringAddActionTest {
             .thenReturn(labelsResponse);
 
 
-        NewAction<PropertiesWithFiles, ProjectClient> action =
+        action =
             new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), new ArrayList<>(labels.values()), hidden);
         action.act(Outputter.getDefault(), pb, client);
 

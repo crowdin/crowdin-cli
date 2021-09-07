@@ -4,7 +4,7 @@ import com.crowdin.cli.client.CrowdinProject;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
-class StatusAction implements NewAction<PropertiesWithFiles, ProjectClient> {
+class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private boolean noProgress;
     private String branchName;
@@ -33,7 +33,7 @@ class StatusAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     }
 
     @Override
-    public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
+    public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProject project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, client::downloadProjectWithLanguages);
 

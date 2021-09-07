@@ -7,9 +7,11 @@ import com.crowdin.cli.client.NoClient;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.BaseProperties;
+import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.client.core.model.Priority;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import com.crowdin.client.translations.model.AutoApproveOption;
@@ -29,9 +31,9 @@ public interface Actions {
 
     NewAction<NoProperties, NoClient> generate(FilesInterface files, Path destinationPath, boolean skipGenerateDescription);
 
-    NewAction<PropertiesWithFiles, ProjectClient> listBranches(boolean noProgress, boolean plainView);
+    NewAction<ProjectProperties, ProjectClient> listBranches(boolean noProgress, boolean plainView);
 
-    NewAction<PropertiesWithFiles, ProjectClient> listProject(
+    NewAction<ProjectProperties, ProjectClient> listProject(
         boolean noProgress, String branchName, boolean treeView, boolean plainView);
 
     NewAction<PropertiesWithFiles, ProjectClient> listSources(
@@ -40,21 +42,21 @@ public interface Actions {
     NewAction<PropertiesWithFiles, ProjectClient> listTranslations(
         boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang);
 
-    NewAction<PropertiesWithFiles, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean noProgress, boolean plainView);
+    NewAction<ProjectProperties, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean noProgress, boolean plainView);
 
-    NewAction<PropertiesWithFiles, ProjectClient> status(
+    NewAction<ProjectProperties, ProjectClient> status(
         boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved);
 
-    NewAction<PropertiesWithFiles, ProjectClient> stringAdd(
+    NewAction<ProjectProperties, ProjectClient> stringAdd(
         boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, Boolean hidden);
 
-    NewAction<PropertiesWithFiles, ProjectClient> stringDelete(
+    NewAction<ProjectProperties, ProjectClient> stringDelete(
         boolean noProgress, List<Long> ids, List<String> texts, List<String> identifiers);
 
-    NewAction<PropertiesWithFiles, ProjectClient> stringEdit(
+    NewAction<ProjectProperties, ProjectClient> stringEdit(
         boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden);
 
-    NewAction<PropertiesWithFiles, ProjectClient> stringList(
+    NewAction<ProjectProperties, ProjectClient> stringList(
         boolean noProgress, boolean isVerbose, String file, String filter);
 
     NewAction<PropertiesWithFiles, ProjectClient> uploadSources(
@@ -90,5 +92,9 @@ public interface Actions {
     NewAction<PropertiesWithFiles, ProjectClient> preTranslate(
         List<String> languageIds, Method method, Long engineId, String branchName, AutoApproveOption autoApproveOption, Boolean duplicateTranslations,
         Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress, boolean debug, boolean verbose, boolean plainView);
+
+    NewAction<ProjectProperties, ProjectClient> branchAdd(String name, String title, String exportPattern, Priority priority);
+
+    NewAction<ProjectProperties, ProjectClient> branchDelete(String name);
 
 }

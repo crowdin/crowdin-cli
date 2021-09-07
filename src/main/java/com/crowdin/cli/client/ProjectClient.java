@@ -33,6 +33,8 @@ public interface ProjectClient extends Client {
 
     Branch addBranch(AddBranchRequest request);
 
+    void deleteBranch(Long branchId);
+
     List<Branch> listBranches();
 
     Long uploadStorage(String fileName, InputStream content);

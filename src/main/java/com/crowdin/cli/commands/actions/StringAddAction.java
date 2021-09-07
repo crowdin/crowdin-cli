@@ -6,7 +6,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
-import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.sourcefiles.model.FileInfo;
@@ -20,7 +20,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-class StringAddAction implements NewAction<PropertiesWithFiles, ProjectClient> {
+class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private final boolean noProgress;
     private final String text;
@@ -45,7 +45,7 @@ class StringAddAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     }
 
     @Override
-    public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
+    public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, client::downloadFullProject);
 

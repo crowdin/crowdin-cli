@@ -31,7 +31,7 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
     @Override
     protected void populateWithIdentityFileParams(PropertiesWithFiles props, Map<String, Object> identityFileParams) {
         BaseProperties.CONFIGURATOR.populateWithValues(props, identityFileParams);
-        IdProperties.CONFIGURATOR.populateWithValues(props, identityFileParams);
+        ProjectProperties.CONFIGURATOR.populateWithValues(props, identityFileParams);
     }
 
     @Override
@@ -40,7 +40,7 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.empty_properties_file"));
         }
         BaseProperties.CONFIGURATOR.populateWithValues(props, configFileParams);
-        IdProperties.CONFIGURATOR.populateWithValues(props, configFileParams);
+        ProjectProperties.CONFIGURATOR.populateWithValues(props, configFileParams);
         PropertiesWithFiles.CONFIGURATOR.populateWithValues(props, configFileParams);
     }
 
@@ -152,7 +152,7 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
             return;
         }
         BaseProperties.CONFIGURATOR.populateWithDefaultValues(props);
-        IdProperties.CONFIGURATOR.populateWithDefaultValues(props);
+        ProjectProperties.CONFIGURATOR.populateWithDefaultValues(props);
         PropertiesWithFiles.CONFIGURATOR.populateWithDefaultValues(props);
     }
 
@@ -164,7 +164,7 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
             return messages;
         }
         messages.populate(BaseProperties.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
-        messages.populate(IdProperties.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
+        messages.populate(ProjectProperties.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
         messages.populate(PropertiesWithFiles.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
         return messages;
     }

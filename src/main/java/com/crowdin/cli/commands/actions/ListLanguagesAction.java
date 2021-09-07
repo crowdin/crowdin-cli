@@ -6,7 +6,7 @@ import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
 
@@ -20,7 +20,7 @@ import static com.crowdin.cli.utils.PlaceholderUtil.PLACEHOLDER_TWO_LETTERS_CODE
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-class ListLanguagesAction implements NewAction<PropertiesWithFiles, ProjectClient> {
+class ListLanguagesAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private BaseCli.LanguageCode code;
     private boolean noProgress;
@@ -33,7 +33,7 @@ class ListLanguagesAction implements NewAction<PropertiesWithFiles, ProjectClien
     }
 
     @Override
-    public void act(Outputter out, PropertiesWithFiles properties, ProjectClient client) {
+    public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         CrowdinProjectInfo project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, this.plainView, client::downloadProjectInfo);
 

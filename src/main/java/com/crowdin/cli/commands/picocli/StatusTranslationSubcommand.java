@@ -3,14 +3,14 @@ package com.crowdin.cli.commands.picocli;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
-import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.properties.ProjectProperties;
 import picocli.CommandLine;
 
 @CommandLine.Command(
     name = CommandNames.STATUS_TRANSLATION,
     sortOptions = false
 )
-class StatusTranslationSubcommand extends ActCommandWithFiles {
+class StatusTranslationSubcommand extends ActCommandProject {
 
     @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...")
     protected String languageId;
@@ -19,7 +19,7 @@ class StatusTranslationSubcommand extends ActCommandWithFiles {
     protected String branchName;
 
     @Override
-    protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
+    protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
         return actions.status(noProgress, branchName, languageId, isVerbose, true, false);
     }
 }

@@ -3,16 +3,16 @@ package com.crowdin.cli.commands.picocli;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
-import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.properties.ProjectProperties;
 import picocli.CommandLine;
 
 @CommandLine.Command(
     name = CommandNames.LIST_BRANCHES
 )
-class ListBranchesSubcommand extends ActCommandWithFiles {
+class ListBranchesSubcommand extends ActCommandProject {
 
     @Override
-    protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
+    protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
         return actions.listBranches(this.noProgress, this.plainView);
     }
 

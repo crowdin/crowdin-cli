@@ -5,6 +5,7 @@ import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
@@ -25,7 +26,7 @@ public class ListProjectActionTest {
     TempProject project;
 
     ProjectClient client = mock(ProjectClient.class);
-    NewAction<PropertiesWithFiles, ProjectClient> action;
+    NewAction<ProjectProperties, ProjectClient> action;
     PropertiesWithFiles pb;
 
     @BeforeEach

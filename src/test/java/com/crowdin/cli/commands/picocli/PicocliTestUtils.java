@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.picocli;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.properties.NewBasePropertiesUtilBuilder;
+import com.crowdin.cli.properties.NewProjectPropertiesUtilBuilder;
 import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.NewPropertiesWithTargetsUtilBuilder;
@@ -110,5 +111,7 @@ public class PicocliTestUtils {
             .thenReturn(NewPropertiesWithFilesUtilBuilder.minimalBuiltPropertiesBean().build());
         when(properitesBuildersMock.buildPropertiesWithTargets(any(), any(), any(), any()))
             .thenReturn(NewPropertiesWithTargetsUtilBuilder.minimalBuilt().build());
+        when(properitesBuildersMock.buildProjectProperties(any(), any(), any(), any()))
+            .thenReturn(NewProjectPropertiesUtilBuilder.minimalBuilt().build());
     }
 }

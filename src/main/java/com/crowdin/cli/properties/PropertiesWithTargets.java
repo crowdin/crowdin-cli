@@ -12,7 +12,7 @@ import static com.crowdin.cli.properties.PropertiesBuilder.TARGETS;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
-public class PropertiesWithTargets extends IdProperties {
+public class PropertiesWithTargets extends ProjectProperties {
 
     static PropertiesWithTargetsConfigurator CONFIGURATOR = new PropertiesWithTargetsConfigurator();
 
