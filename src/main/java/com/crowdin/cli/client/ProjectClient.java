@@ -43,7 +43,7 @@ public interface ProjectClient extends Client {
 
     void deleteDirectory(Long directoryId);
 
-    void updateSource(Long sourceId, UpdateFileRequest request);
+    void updateSource(Long sourceId, UpdateFileRequest request) throws ResponseException ;
 
     void addSource(AddFileRequest request) throws ResponseException;
 
