@@ -39,10 +39,10 @@ public class PicocliRunner {
 
     public boolean hasMatchedArg(String name) {
         CommandLine.ParseResult parseResult = commandLine.getParseResult();
-        return parseResult != null
-            && ((parseResult.hasSubcommand())
-                ? parseResult.subcommand().hasMatchedOption(name)
-                : parseResult.hasMatchedOption(name));
+        while (parseResult.hasSubcommand()) {
+            parseResult = parseResult.subcommand();
+        }
+        return parseResult.hasMatchedOption(name);
     }
 
     private void init() {

@@ -54,7 +54,7 @@ public class StringEditActionTest {
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 101L, null, null).build());
-        when(client.listSourceString(null, null, null))
+        when(client.listSourceString(null, null, null, null))
             .thenReturn(Arrays.asList(SourceStringBuilder.standard().setProjectId(42L).setIdentifiers(801L, "old", "old", "old", null).build()));
 
         if (newLabels != null) {
@@ -89,7 +89,7 @@ public class StringEditActionTest {
                     add(RequestBuilder.patch(labelIds, PatchOperation.REPLACE, "/labelIds"));
                 }
             }};
-        verify(client).listSourceString(null, null, null);
+        verify(client).listSourceString(null, null, null, null);
         verify(client).editSourceString(801L, patches);
         if (newLabels != null) {
             verify(client).listLabels();
@@ -121,13 +121,13 @@ public class StringEditActionTest {
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 101L, null, null).build());
-        when(client.listSourceString(null, null, null))
+        when(client.listSourceString(null, null, null, null))
             .thenReturn(Arrays.asList(SourceStringBuilder.standard().setProjectId(42L).setIdentifiers(801L, "old", "old", "old", null).build()));
 
         action = new StringEditAction(true, null, null, null, null, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).listSourceString(null, null, null);
+        verify(client).listSourceString(null, null, null, null);
         verifyNoMoreInteractions(client);
     }
 }

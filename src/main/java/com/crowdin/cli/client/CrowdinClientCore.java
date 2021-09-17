@@ -119,8 +119,8 @@ abstract class CrowdinClientCore {
                 .collect(Collectors.joining("\n"));
             throw new RuntimeException(errorMessage);
         } catch (HttpException e) {
-            String code = (e.getError().code != null) ? e.getError().code : "<empty_code>";
-            String message = (e.getError().message != null) ? e.getError().message : "<empty_message>";
+            String code = (e.getError() != null && e.getError().code != null) ? e.getError().code : "<empty_code>";
+            String message = (e.getError() != null && e.getError().message != null) ? e.getError().message : "<empty_message>";
             searchErrorHandler(errorHandlers, code, message);
             throw new RuntimeException(String.format("Error from server: <Code: %s, Message: %s>", code, message));
         } catch (Exception e) {

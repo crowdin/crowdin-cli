@@ -1,5 +1,6 @@
 package com.crowdin.cli.utils.http;
 
+import com.crowdin.cli.commands.Outputter;
 import lombok.Data;
 import org.apache.commons.codec.binary.Base64;
 import org.json.JSONException;
@@ -17,7 +18,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 public class OAuthUtil {
 
-    public static String getToken(String clientId) {
+    public static String getToken(Outputter out, String clientId) {
         try {
             int port = 46221;
             String redirectUri = String.format("http://localhost:%d/callback", port);
@@ -57,7 +58,7 @@ public class OAuthUtil {
             if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
                 Desktop.getDesktop().browse(new URI(builtUrl));
             } else {
-                System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.warning.browser_not_found"), builtUrl)));
+                out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.warning.browser_not_found"), builtUrl)));
             }
 
             Result result = queue.take();

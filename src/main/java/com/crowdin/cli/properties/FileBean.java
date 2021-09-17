@@ -12,6 +12,7 @@ import java.util.Map;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.properties.PropertiesBuilder.CONTENT_SEGMENTATION;
+import static com.crowdin.cli.properties.PropertiesBuilder.CUSTOM_SEGMENTATION;
 import static com.crowdin.cli.properties.PropertiesBuilder.DEST;
 import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_QUOTES;
 import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_SPECIAL_CHARACTERS;
@@ -63,6 +64,7 @@ public class FileBean {
     private Boolean exportApprovedOnly;
     private List<String> labels;
     private List<String> excludedTargetLanguages;
+    private String customSegmentation;
 
     static class FileBeanConfigurator implements BeanConfigurator<FileBean> {
 
@@ -95,6 +97,7 @@ public class FileBean {
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setExportApprovedOnly,        map, EXPORT_APPROVED_ONLY);
             PropertiesBuilder.setPropertyIfExists(fileBean::setLabels,                    map, LABELS, List.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setExcludedTargetLanguages,   map, EXCLUDED_TARGET_LANGUAGES, List.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setCustomSegmentation,        map, CUSTOM_SEGMENTATION, String.class);
             return fileBean;
         }
 
@@ -102,16 +105,15 @@ public class FileBean {
         public void populateWithDefaultValues(FileBean bean) {
             //Source
             if (bean.getSource() != null) {
-                bean.setSource(bean.getSource().replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
+                bean.setSource(Utils.normalizePath(bean.getSource()));
             }
             //Translation
             if (bean.getTranslation() != null) {
-                bean.setTranslation(bean.getTranslation().replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
-                if (!bean.getTranslation().startsWith(Utils.PATH_SEPARATOR)) {
-                    bean.setTranslation(Utils.PATH_SEPARATOR + bean.getTranslation());
-                }
+                bean.setTranslation(Utils.normalizePath(bean.getTranslation()));
                 if (!PlaceholderUtil.containsLangPlaceholders(bean.getTranslation()) && bean.getScheme() != null) {
-                    bean.setTranslation(StringUtils.removeStart(bean.getTranslation(), Utils.PATH_SEPARATOR));
+                    bean.setTranslation(Utils.noSepAtStart(bean.getTranslation()));
+                } else {
+                    bean.setTranslation(Utils.sepAtStart(bean.getTranslation()));
                 }
             }
 
@@ -143,6 +145,9 @@ public class FileBean {
             //first line contain header
             if (bean.getFirstLineContainsHeader() == null) {
                 bean.setFirstLineContainsHeader(Boolean.FALSE);
+            }
+            if (bean.getCustomSegmentation() != null) {
+                bean.setCustomSegmentation(Utils.normalizePath(bean.getCustomSegmentation()));
             }
         }
 

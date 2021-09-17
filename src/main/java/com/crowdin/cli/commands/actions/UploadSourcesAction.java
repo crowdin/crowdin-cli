@@ -151,6 +151,19 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                         return;
                     }
                 }
+                Long customSegmentationFileId = null;
+                if (file.getCustomSegmentation() != null) {
+                    File customSegmentation = new File(Utils.normalizePath(Utils.joinPaths(pb.getBasePath(), file.getCustomSegmentation())));
+                    try (InputStream customSegmentationFileStream = new FileInputStream(customSegmentation)) {
+                        customSegmentationFileId = client.uploadStorage(customSegmentation.getName(), customSegmentationFileStream);
+                    } catch (Exception e) {
+                        errorsPresented.set(true);
+                        throw new RuntimeException(
+                            String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), customSegmentation.getAbsolutePath(), e));
+                    }
+                }
+                Long srxStorageId = customSegmentationFileId;
+
                 List<Runnable> taskss = sources.stream()
                     .map(source -> {
                         final File sourceFile = new File(source);
@@ -175,7 +188,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                         if (autoUpdate && projectFile != null) {
                             final UpdateFileRequest request = new UpdateFileRequest();
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
-                            request.setImportOptions(buildImportOptions(sourceFile, file));
+                            request.setImportOptions(buildImportOptions(sourceFile, file, srxStorageId));
                             PropertiesBeanUtils.getUpdateOption(file.getUpdateOption()).ifPresent(request::setUpdateOption);
 
                             if (file.getLabels() != null) {
@@ -188,10 +201,10 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             return (Runnable) () -> {
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
                                     request.setStorageId(client.uploadStorage(source.substring(source.lastIndexOf(Utils.PATH_SEPARATOR) + 1), fileStream));
-                                } catch (IOException e) {
+                                } catch (Exception e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(
-                                        String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
+                                        String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()), e);
                                 }
 
                                 try {
@@ -218,7 +231,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             final AddFileRequest request = new AddFileRequest();
                             request.setName(fileName);
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
-                            request.setImportOptions(buildImportOptions(sourceFile, file));
+                            request.setImportOptions(buildImportOptions(sourceFile, file, srxStorageId));
                             if (file.getExcludedTargetLanguages() != null && !file.getExcludedTargetLanguages().isEmpty()) {
                                 request.setExcludedTargetLanguages(file.getExcludedTargetLanguages());
                             }
@@ -250,7 +263,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 } catch (IOException e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(
-                                        String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
+                                        String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()), e);
                                 }
                                 try {
                                     client.addSource(request);
@@ -290,7 +303,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
         }
     }
 
-    private ImportOptions buildImportOptions(java.io.File sourceFile, FileBean fileBean) {
+    private ImportOptions buildImportOptions(java.io.File sourceFile, FileBean fileBean, Long srxStorageId) {
         if (isSpreadsheet(sourceFile, fileBean)) {
             SpreadsheetFileImportOptions importOptions = new SpreadsheetFileImportOptions();
             importOptions.setFirstLineContainsHeader(fileBean.getFirstLineContainsHeader());
@@ -302,10 +315,12 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             importOptions.setTranslateAttributes(fileBean.getTranslateAttributes());
             importOptions.setContentSegmentation(fileBean.getContentSegmentation());
             importOptions.setTranslatableElements(fileBean.getTranslatableElements());
+            importOptions.setSrxStorageId(srxStorageId);
             return importOptions;
         } else {
             OtherFileImportOptions importOptions = new OtherFileImportOptions();
             importOptions.setContentSegmentation(fileBean.getContentSegmentation());
+            importOptions.setSrxStorageId(srxStorageId);
             return importOptions;
         }
     }

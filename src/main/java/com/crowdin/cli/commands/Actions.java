@@ -57,7 +57,7 @@ public interface Actions {
         boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden);
 
     NewAction<ProjectProperties, ProjectClient> stringList(
-        boolean noProgress, boolean isVerbose, String file, String filter);
+        boolean noProgress, boolean isVerbose, String file, String filter, String branchName);
 
     NewAction<PropertiesWithFiles, ProjectClient> uploadSources(
         String branchName, boolean deleteObsolete, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView);
