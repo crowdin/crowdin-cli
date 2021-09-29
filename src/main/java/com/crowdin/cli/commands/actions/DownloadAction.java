@@ -323,7 +323,8 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 .map(File::getAbsolutePath)
                 .collect(Collectors.toList());
         if (useServerSources) {
-            List<String> serverSources = SourcesUtils.filterProjectFiles(allServerSources, fb.getSource(), fb.getIgnore(), preserveHierarchy, placeholderUtil)
+            String searchPattern = fb.getDest() != null ? fb.getDest() : fb.getSource();
+            List<String> serverSources = SourcesUtils.filterProjectFiles(allServerSources, searchPattern, fb.getIgnore(), preserveHierarchy, placeholderUtil)
                 .stream()
                 .map(s -> Utils.joinPaths(basePath, s))
                 .filter(s -> !sources.contains(s))

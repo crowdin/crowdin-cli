@@ -331,6 +331,18 @@ public class SourcesUtilsTest {
         );
     }
 
+    @Test
+    public void testFilterProjectFiles_dest() {
+        List<String> filePaths = Arrays.asList("common/strings.xml");
+        String sourcePattern = "/common/%original_file_name%";
+        List<String> ignorePatterns = null;
+        String[] expected = {"common/strings.xml"};
+
+        List<String> actual = SourcesUtils.filterProjectFiles(
+            filePaths, sourcePattern, ignorePatterns, true, PlaceholderUtilBuilder.STANDART.build(""));
+        assertThat(actual, containsInAnyOrder(expected));
+    }
+
     @ParameterizedTest
     @MethodSource
     public void testContainsParameter(String sourcePattern, boolean expected) {

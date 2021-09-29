@@ -15,6 +15,7 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
@@ -80,9 +81,10 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
             .getFiles()
             .stream()
             .flatMap(fileBean -> {
+                String searchPattern = fileBean.getDest() != null ? fileBean.getDest() : fileBean.getSource();
                 List<String> foundSources = SourcesUtils
                     .filterProjectFiles(
-                        new ArrayList<>(filePaths.keySet()), fileBean.getSource(),
+                        new ArrayList<>(filePaths.keySet()), searchPattern,
                         fileBean.getIgnore(), properties.getPreserveHierarchy(), placeholderUtil);
                 if (foundSources.isEmpty()) {
                     return Stream.of((Runnable) () -> {
@@ -96,10 +98,11 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                     .sorted()
                     .map(filePath -> (Runnable) () -> {
                         Long fileId = filePaths.get(filePath).getId();
-                        this.downloadFile(client, fileId, Utils.joinPaths(properties.getBasePath(), filePath));
+                        String fileDestination = placeholderUtil.replaceFileDependentPlaceholders(fileBean.getSource(), new File(filePath));
+                        this.downloadFile(client, fileId, Utils.joinPaths(properties.getBasePath(), fileDestination));
                         isAnyFileDownloaded.set(true);
                         if (!plainView) {
-                            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));
+                            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), fileDestination)));
                         } else {
                             out.println(filePath);
                         }
