@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.cli.properties.helper.FileHelper;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
+import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -120,6 +121,28 @@ public class SourcesUtils {
             .filter(ignorePredicate)
             .map(Utils::normalizePath)
             .collect(Collectors.toList());
+    }
+
+    /**
+     * Try to replace ‘*’ with ‘source’ param and project file path.
+     * If project file path (or part of it) does not match the pattern, do nothing.
+     * @param sourcePattern should contain '*'
+     * @param projectFile
+     * @return
+     */
+    public static String replaceUnaryAsterisk(@NonNull String sourcePattern, @NonNull String projectFile) {
+        String[] parts = Utils.splitPath(sourcePattern);
+        String [] fileParts = Utils.splitPath(projectFile);
+        for (int i = 1; i <= parts.length; i++) {
+            if (parts[parts.length-i].contains("*")) {
+                if (fileParts.length >= i && Pattern.matches(parts[parts.length-i].replace("*", ".*"), fileParts[fileParts.length-i])) {
+                    parts[parts.length-i] = fileParts[fileParts.length-i];
+                } else {
+                    return sourcePattern;
+                }
+            }
+        }
+        return Utils.joinPaths(parts);
     }
 
     public static boolean containsPattern(String sourcePattern) {

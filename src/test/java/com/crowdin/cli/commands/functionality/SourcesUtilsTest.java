@@ -362,4 +362,16 @@ public class SourcesUtilsTest {
             arguments("", false)
         );
     }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testReplaceUnaryAsterisk(String sourcePattern, String projectFile, String expected) {
+        assertEquals(SourcesUtils.replaceUnaryAsterisk(sourcePattern, projectFile), expected);
+    }
+
+    public static Stream<Arguments> testReplaceUnaryAsterisk() {
+        return Stream.of(
+            arguments("/*.xml", "destination/crowdin_sample_android.xml", "/crowdin_sample_android.xml")
+        );
+    }
 }

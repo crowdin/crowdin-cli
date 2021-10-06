@@ -98,7 +98,8 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                     .sorted()
                     .map(filePath -> (Runnable) () -> {
                         Long fileId = filePaths.get(filePath).getId();
-                        String fileDestination = placeholderUtil.replaceFileDependentPlaceholders(fileBean.getSource(), new File(filePath));
+                        String fileDestination = SourcesUtils.replaceUnaryAsterisk(fileBean.getSource(), filePath);
+                        fileDestination = placeholderUtil.replaceFileDependentPlaceholders(fileDestination, new File(filePath));
                         this.downloadFile(client, fileId, Utils.joinPaths(properties.getBasePath(), fileDestination));
                         isAnyFileDownloaded.set(true);
                         if (!plainView) {
