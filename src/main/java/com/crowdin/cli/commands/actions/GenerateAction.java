@@ -118,7 +118,7 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
                         System.out.println(String.format(RESOURCE_BUNDLE.getString("message.exctracted_organization_name"), realOrganizationName));
                         values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, realOrganizationName));
                     } else {
-                        values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, organizationName));
+                        values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, PropertiesBeanUtils.getOrganization(organizationName)));
                     }
                 } else {
                     this.isEnterprise = false;
