@@ -134,12 +134,10 @@ public class SourcesUtils {
         String[] parts = Utils.splitPath(sourcePattern);
         String [] fileParts = Utils.splitPath(projectFile);
         for (int i = 1; i <= parts.length; i++) {
-            if (parts[parts.length-i].contains("*")) {
-                if (fileParts.length >= i && Pattern.matches(parts[parts.length-i].replace("*", ".*"), fileParts[fileParts.length-i])) {
-                    parts[parts.length-i] = fileParts[fileParts.length-i];
-                } else {
-                    return sourcePattern;
-                }
+            if (!parts[parts.length-i].equals("**")
+                    && fileParts.length >= i
+                    && Pattern.matches(PlaceholderUtil.formatSourcePatternForRegex(parts[parts.length-i]), fileParts[fileParts.length-i])) {
+                parts[parts.length-i] = fileParts[fileParts.length-i];
             }
         }
         return Utils.joinPaths(parts);
