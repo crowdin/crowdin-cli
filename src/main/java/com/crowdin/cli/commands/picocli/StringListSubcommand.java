@@ -25,6 +25,9 @@ class StringListSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branchName;
 
+    @CommandLine.Option(names = {"--croql"}, paramLabel = "...")
+    protected String croql;
+
     @Override
     protected List<String> checkOptions() {
         if (file != null) {
@@ -35,6 +38,6 @@ class StringListSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.stringList(noProgress, isVerbose, file, filter, branchName);
+        return actions.stringList(noProgress, isVerbose, file, filter, branchName, croql);
     }
 }

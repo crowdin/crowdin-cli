@@ -246,9 +246,9 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
-    public List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter) {
+    public List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql) {
         return executeRequestFullList((limit, offset) -> this.client.getSourceStringsApi()
-            .listSourceStrings(this.projectId, fileId, null, branchId, labelIds, null, filter, null, limit, offset));
+            .listSourceStrings(this.projectId, fileId, null, branchId, labelIds, croql, filter, null, limit, offset));
     }
 
     @Override
