@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.7.1]
+
+### Added
+- Add 'croql' parameter to 'string list' ([#401](https://github.com/crowdin/crowdin-cli/pull/401))
+
+### Fixed
+
+- Fix selecting source files with 'dest' param for 'download sources', 'dryrun translations' and 'download' commands ([#399](https://github.com/crowdin/crowdin-cli/pull/399))
+- Little fix for 'generate' command ([#400](https://github.com/crowdin/crowdin-cli/pull/400))
+
 ## [3.7.0]
 
 ### Added
