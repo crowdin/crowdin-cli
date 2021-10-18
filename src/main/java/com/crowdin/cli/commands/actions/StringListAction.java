@@ -31,13 +31,15 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
     private final String file;
     private final String filter;
     private final String branchName;
+    private final String croql;
 
-    public StringListAction(boolean noProgress, boolean isVerbose, String file, String filter, String branchName) {
+    public StringListAction(boolean noProgress, boolean isVerbose, String file, String filter, String branchName, String croql) {
         this.noProgress = noProgress;
         this.isVerbose = isVerbose;
         this.file = file;
         this.filter = filter;
         this.branchName = branchName;
+        this.croql = croql;
     }
 
     @Override
@@ -68,10 +70,10 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
 
         List<SourceString> sourceStrings;
         if (StringUtils.isEmpty(file)) {
-            sourceStrings = client.listSourceString(null, branchId, null, encodedFilter);
+            sourceStrings = client.listSourceString(null, branchId, null, encodedFilter, croql);
         } else {
             if (paths.containsKey(file)) {
-                sourceStrings = client.listSourceString(paths.get(file).getId(), branchId, null, encodedFilter);
+                sourceStrings = client.listSourceString(paths.get(file).getId(), branchId, null, encodedFilter, croql);
             } else {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
             }

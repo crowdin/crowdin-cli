@@ -45,7 +45,7 @@ class StringEditAction implements NewAction<ProjectProperties, ProjectClient> {
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
 
-        List<SourceString> sourceStrings = client.listSourceString(null, null, null, null);
+        List<SourceString> sourceStrings = client.listSourceString(null, null, null, null, null);
 
         List<Long> labelIds = (labelNames != null && !labelNames.isEmpty()) ? this.prepareLabelIds(client) : null;
 
