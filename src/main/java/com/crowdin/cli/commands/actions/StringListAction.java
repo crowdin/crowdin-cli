@@ -6,6 +6,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.properties.ProjectProperties;
+import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.sourcefiles.model.Branch;
@@ -61,19 +62,15 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
             .stream()
             .collect(Collectors.toMap((entry) -> entry.getValue().getId(), Map.Entry::getKey));
 
-        String encodedFilter;
-        try {
-            encodedFilter = (filter != null) ? URLEncoder.encode(filter, StandardCharsets.UTF_8.toString()) : null;
-        } catch (UnsupportedEncodingException e) {
-            throw new RuntimeException(e);
-        }
+        String encodedFilter = filter != null ? Utils.encodeURL(filter) : null;
+        String encodedCroql = croql != null ? Utils.encodeURL(croql) : null;
 
         List<SourceString> sourceStrings;
         if (StringUtils.isEmpty(file)) {
-            sourceStrings = client.listSourceString(null, branchId, null, encodedFilter, croql);
+            sourceStrings = client.listSourceString(null, branchId, null, encodedFilter, encodedCroql);
         } else {
             if (paths.containsKey(file)) {
-                sourceStrings = client.listSourceString(paths.get(file).getId(), branchId, null, encodedFilter, croql);
+                sourceStrings = client.listSourceString(paths.get(file).getId(), branchId, null, encodedFilter, encodedCroql);
             } else {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
             }
