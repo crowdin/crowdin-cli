@@ -1,11 +1,15 @@
 package com.crowdin.cli.utils;
 
+import lombok.NonNull;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
 import java.util.List;
 import java.util.Optional;
@@ -151,6 +155,14 @@ public class Utils {
             return Optional.of(new ImmutablePair<>(System.getenv(HTTP_PROXY_USER_ENV), System.getenv(HTTP_PROXY_PASSWORD_ENV)));
         } else {
             return Optional.empty();
+        }
+    }
+
+    public static String encodeURL(@NonNull String toEncode) {
+        try {
+            return URLEncoder.encode(toEncode, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
     }
 }
