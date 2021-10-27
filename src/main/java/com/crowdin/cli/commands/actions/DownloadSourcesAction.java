@@ -7,6 +7,7 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
+import com.crowdin.cli.commands.functionality.TranslationsUtils;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
@@ -25,6 +26,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -85,10 +88,24 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                 List<String> filePaths2;
                 if (project.isManagerAccess()) {
                     filePaths2 = new ArrayList<>();
-                    for (String filePathKey : filePaths.keySet()) {
-                        String exportPattern = ProjectFilesUtils.getExportPattern(((File) filePaths.get(filePathKey)).getExportOptions());
-                        if (exportPattern == null || fileBean.getTranslation().equals(exportPattern)) {
-                            filePaths2.add(filePathKey);
+                    if (properties.getPreserveHierarchy()) {
+                        for (String filePathKey : filePaths.keySet()) {
+                            String exportPattern = ProjectFilesUtils.getExportPattern(((File) filePaths.get(filePathKey)).getExportOptions());
+                            String translationPattern = TranslationsUtils.replaceDoubleAsterisk(fileBean.getSource(), fileBean.getTranslation(), filePathKey);
+                            if (exportPattern == null || translationPattern.equals(exportPattern)) {
+                                filePaths2.add(filePathKey);
+                            }
+                        }
+                    } else {
+                        String translationPrepared = fileBean.getTranslation()
+                            .replaceAll(Utils.PATH_SEPARATOR_REGEX + "\\*\\*", "(" + Utils.PATH_SEPARATOR_REGEX + ".+)?")
+                            .replaceAll("\\\\", "\\\\\\\\");
+                        Predicate<String> translationPred = Pattern.compile(translationPrepared).asPredicate();
+                        for (String filePathKey : filePaths.keySet()) {
+                            String exportPattern = ProjectFilesUtils.getExportPattern(((File) filePaths.get(filePathKey)).getExportOptions());
+                            if (exportPattern == null || translationPred.test(exportPattern)) {
+                                filePaths2.add(filePathKey);
+                            }
                         }
                     }
                 } else {
