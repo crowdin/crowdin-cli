@@ -331,6 +331,18 @@ public class SourcesUtilsTest {
         );
     }
 
+    @Test
+    public void testFilterProjectFiles_dest() {
+        List<String> filePaths = Arrays.asList("common/strings.xml");
+        String sourcePattern = "/common/%original_file_name%";
+        List<String> ignorePatterns = null;
+        String[] expected = {"common/strings.xml"};
+
+        List<String> actual = SourcesUtils.filterProjectFiles(
+            filePaths, sourcePattern, ignorePatterns, true, PlaceholderUtilBuilder.STANDART.build(""));
+        assertThat(actual, containsInAnyOrder(expected));
+    }
+
     @ParameterizedTest
     @MethodSource
     public void testContainsParameter(String sourcePattern, boolean expected) {
@@ -348,6 +360,18 @@ public class SourcesUtilsTest {
             arguments(Utils.normalizePath("folder/[a-z/file.txt"), false),
             arguments(Utils.normalizePath("folder/file.txt"), false),
             arguments("", false)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testReplaceUnaryAsterisk(String sourcePattern, String projectFile, String expected) {
+        assertEquals(SourcesUtils.replaceUnaryAsterisk(sourcePattern, projectFile), expected);
+    }
+
+    public static Stream<Arguments> testReplaceUnaryAsterisk() {
+        return Stream.of(
+            arguments("/*.xml", "destination/crowdin_sample_android.xml", "/crowdin_sample_android.xml")
         );
     }
 }

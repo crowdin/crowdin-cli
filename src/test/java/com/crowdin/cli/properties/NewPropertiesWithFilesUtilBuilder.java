@@ -2,7 +2,7 @@ package com.crowdin.cli.properties;
 
 import com.crowdin.cli.utils.Utils;
 
-import java.util.Arrays;
+import java.util.ArrayList;
 import java.util.List;
 
 public class NewPropertiesWithFilesUtilBuilder {
@@ -14,7 +14,6 @@ public class NewPropertiesWithFilesUtilBuilder {
 
     public static final String STANDARD_SOURCE = "*";
     public static final String STANDARD_TRANSLATIONS = Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%";
-    public static final String STANDARD_DEST = null;
 
 
     private PropertiesWithFiles pb;
@@ -25,10 +24,7 @@ public class NewPropertiesWithFilesUtilBuilder {
 
     public static NewPropertiesWithFilesUtilBuilder minimalPropertiesBean(String source, String translation) {
         NewPropertiesWithFilesUtilBuilder pbBuilder = minimalPropertiesBeanWithoutFileBean();
-        FileBean fb = new FileBean();
-        fb.setSource(source);
-        fb.setTranslation(translation);
-        pbBuilder.pb.setFiles(Arrays.asList(fb));
+        pbBuilder.addBuiltFileBean(source, translation);
         return pbBuilder;
     }
 
@@ -41,22 +37,12 @@ public class NewPropertiesWithFilesUtilBuilder {
     }
 
     public static NewPropertiesWithFilesUtilBuilder minimalBuiltPropertiesBean(String source, String translation, List<String> ignore) {
-        return minimalBuiltPropertiesBean(source, translation, ignore, STANDARD_DEST);
+        return minimalBuiltPropertiesBean(source, translation, ignore, null);
     }
 
     public static NewPropertiesWithFilesUtilBuilder minimalBuiltPropertiesBean(String source, String translation, List<String> ignore, String dest) {
         NewPropertiesWithFilesUtilBuilder pbBuilder = minimalPropertiesBeanWithoutFileBean();
-        FileBean fb = new FileBean();
-        fb.setSource(source);
-        fb.setTranslation(translation);
-        fb.setDest(dest);
-        fb.setIgnore(ignore);
-        fb.setContentSegmentation(true);
-        fb.setTranslateContent(true);
-        fb.setTranslateAttributes(false);
-        fb.setFirstLineContainsHeader(false);
-        fb.setEscapeQuotes(3);
-        pbBuilder.pb.setFiles(Arrays.asList(fb));
+        pbBuilder.addBuiltFileBean(source, translation, ignore, dest);
         return pbBuilder;
     }
 
@@ -77,8 +63,44 @@ public class NewPropertiesWithFilesUtilBuilder {
         return this;
     }
 
+    public NewPropertiesWithFilesUtilBuilder setPreserveHierarchy(Boolean preserveHierarchy) {
+        this.pb.setPreserveHierarchy(preserveHierarchy);
+        return this;
+    }
+
+    public NewPropertiesWithFilesUtilBuilder addBuiltFileBean(String source, String translation) {
+        return this.addBuiltFileBean(source, translation, null, null);
+    }
+
+    public NewPropertiesWithFilesUtilBuilder addBuiltFileBean(String source, String translation, List<String> ignore, String dest) {
+        if (pb.getFiles() == null) {
+            pb.setFiles(new ArrayList<>());
+        }
+        this.pb.getFiles().add(builtFileBean(source, translation, ignore, dest));
+        return this;
+    }
+
     public PropertiesWithFiles build() {
         return pb;
+    }
+
+    private static FileBean fileBean(String source, String translation) {
+        FileBean fb = new FileBean();
+        fb.setSource(source);
+        fb.setTranslation(translation);
+        return fb;
+    }
+
+    private static FileBean builtFileBean(String source, String translation, List<String> ignore, String dest) {
+        FileBean fb = fileBean(source, translation);
+        fb.setDest(dest);
+        fb.setIgnore(ignore);
+        fb.setContentSegmentation(true);
+        fb.setTranslateContent(true);
+        fb.setTranslateAttributes(false);
+        fb.setFirstLineContainsHeader(false);
+        fb.setEscapeQuotes(3);
+        return fb;
     }
 
     public String buildToString() {

@@ -7,12 +7,14 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
+import com.crowdin.cli.commands.functionality.TranslationsUtils;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.Branch;
+import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 
 import java.io.IOException;
@@ -24,6 +26,8 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -80,9 +84,36 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
             .getFiles()
             .stream()
             .flatMap(fileBean -> {
+                String searchPattern = fileBean.getDest() != null ? fileBean.getDest() : fileBean.getSource();
+                List<String> filePaths2;
+                if (project.isManagerAccess()) {
+                    filePaths2 = new ArrayList<>();
+                    if (properties.getPreserveHierarchy()) {
+                        for (String filePathKey : filePaths.keySet()) {
+                            String exportPattern = ProjectFilesUtils.getExportPattern(((File) filePaths.get(filePathKey)).getExportOptions());
+                            String translationPattern = TranslationsUtils.replaceDoubleAsterisk(fileBean.getSource(), fileBean.getTranslation(), filePathKey);
+                            if (exportPattern == null || translationPattern.equals(exportPattern)) {
+                                filePaths2.add(filePathKey);
+                            }
+                        }
+                    } else {
+                        String translationPrepared = fileBean.getTranslation()
+                            .replaceAll(Utils.PATH_SEPARATOR_REGEX + "\\*\\*", "(" + Utils.PATH_SEPARATOR_REGEX + ".+)?")
+                            .replaceAll("\\\\", "\\\\\\\\");
+                        Predicate<String> translationPred = Pattern.compile(translationPrepared).asPredicate();
+                        for (String filePathKey : filePaths.keySet()) {
+                            String exportPattern = ProjectFilesUtils.getExportPattern(((File) filePaths.get(filePathKey)).getExportOptions());
+                            if (exportPattern == null || translationPred.test(exportPattern)) {
+                                filePaths2.add(filePathKey);
+                            }
+                        }
+                    }
+                } else {
+                    filePaths2 = new ArrayList<>(filePaths.keySet());
+                }
                 List<String> foundSources = SourcesUtils
                     .filterProjectFiles(
-                        new ArrayList<>(filePaths.keySet()), fileBean.getSource(),
+                        filePaths2, searchPattern,
                         fileBean.getIgnore(), properties.getPreserveHierarchy(), placeholderUtil);
                 if (foundSources.isEmpty()) {
                     return Stream.of((Runnable) () -> {
@@ -96,7 +127,14 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                     .sorted()
                     .map(filePath -> (Runnable) () -> {
                         Long fileId = filePaths.get(filePath).getId();
-                        this.downloadFile(client, fileId, Utils.joinPaths(properties.getBasePath(), filePath));
+                        String fileDestination;
+                        if (fileBean.getDest() != null) {
+                            fileDestination = SourcesUtils.replaceUnaryAsterisk(fileBean.getSource(), filePath);
+                            fileDestination = placeholderUtil.replaceFileDependentPlaceholders(fileDestination, new java.io.File(filePath));
+                        } else {
+                            fileDestination = filePath;
+                        }
+                        this.downloadFile(client, fileId, Utils.joinPaths(properties.getBasePath(), fileDestination));
                         isAnyFileDownloaded.set(true);
                         if (!plainView) {
                             out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));

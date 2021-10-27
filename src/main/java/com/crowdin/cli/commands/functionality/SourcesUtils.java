@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.cli.properties.helper.FileHelper;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
+import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -60,7 +61,7 @@ public class SourcesUtils {
         Predicate<String> sourcePredicate;
         Predicate<String> ignorePredicate;
         if (preserveHierarchy) {
-            sourcePredicate = Pattern.compile("^" + translateToRegex(sourcePattern) + "$").asPredicate();
+            sourcePredicate = Pattern.compile("^" + PlaceholderUtil.formatSourcePatternForRegex(sourcePattern) + "$").asPredicate();
             ignorePredicate = placeholderUtil.formatForRegex(ignorePatterns, false).stream()
                 .map(Pattern::compile)
                 .map(Pattern::asPredicate)
@@ -68,7 +69,7 @@ public class SourcesUtils {
                 .reduce((s) -> true, Predicate::and);
         } else {
             List<Pattern> patternPaths = Arrays.stream(sourcePattern.split("/"))
-                .map(pathSplit -> Pattern.compile(translateToRegex(pathSplit)))
+                .map(pathSplit -> Pattern.compile("^" + PlaceholderUtil.formatSourcePatternForRegex(pathSplit) + "$"))
                 .collect(Collectors.toList());
             Collections.reverse(patternPaths);
             sourcePredicate = (filePath) -> {
@@ -122,31 +123,24 @@ public class SourcesUtils {
             .collect(Collectors.toList());
     }
 
-    private static String translateToRegex(String node) {
-        node = node
-            .replace(ESCAPE_DOT, ESCAPE_DOT_PLACEHOLDER)
-            .replace(DOT, ESCAPE_DOT)
-            .replace(ESCAPE_DOT_PLACEHOLDER, ESCAPE_DOT);
-        node = node
-            .replace(ESCAPE_QUESTION, ESCAPE_QUESTION_PLACEHOLDER)
-            .replace(QUESTION_MARK, "[^/]")//DOT)
-            .replace(ESCAPE_QUESTION_PLACEHOLDER, ESCAPE_QUESTION);
-        node = node
-            .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
-            .replace("**", ".+")
-            .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK);
-        node = node
-            .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
-            .replace(ASTERISK, "[^/]+")//DOT_PLUS)
-            .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK);
-        node = node
-            .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN);
-        node = node
-            .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE);
-        node = node
-            .replace(".+/", "(.+/)?");
-        node = "^" + node + "$";
-        return node;
+    /**
+     * Try to replace ‘*’ with ‘source’ param and project file path.
+     * If project file path (or part of it) does not match the pattern, do nothing.
+     * @param sourcePattern should contain '*'
+     * @param projectFile
+     * @return
+     */
+    public static String replaceUnaryAsterisk(@NonNull String sourcePattern, @NonNull String projectFile) {
+        String[] parts = Utils.splitPath(sourcePattern);
+        String [] fileParts = Utils.splitPath(projectFile);
+        for (int i = 1; i <= parts.length; i++) {
+            if (!parts[parts.length-i].equals("**")
+                    && fileParts.length >= i
+                    && Pattern.matches(PlaceholderUtil.formatSourcePatternForRegex(parts[parts.length-i]), fileParts[fileParts.length-i])) {
+                parts[parts.length-i] = fileParts[fileParts.length-i];
+            }
+        }
+        return Utils.joinPaths(parts);
     }
 
     public static boolean containsPattern(String sourcePattern) {

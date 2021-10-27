@@ -45,7 +45,8 @@ public class DryrunTranslations extends Dryrun {
                 List<java.io.File> foundSources = SourcesUtils.getFiles(pb.getBasePath(), fileBean.getSource(), fileBean.getIgnore(), placeholderUtil)
                     .collect(Collectors.toList());
                 if (useServerSources) {
-                    List<java.io.File> serverSources = SourcesUtils.filterProjectFiles(new ArrayList<>(projectSources.keySet()), fileBean.getSource(), fileBean.getIgnore(), pb.getPreserveHierarchy(), placeholderUtil)
+                    String searchPattern = fileBean.getDest() != null ? fileBean.getDest() : fileBean.getSource();
+                    List<java.io.File> serverSources = SourcesUtils.filterProjectFiles(new ArrayList<>(projectSources.keySet()), searchPattern, fileBean.getIgnore(), pb.getPreserveHierarchy(), placeholderUtil)
                         .stream()
                         .map(s -> new java.io.File(Utils.joinPaths(pb.getBasePath(), s)))
                         .filter(s -> !foundSources.contains(s))
