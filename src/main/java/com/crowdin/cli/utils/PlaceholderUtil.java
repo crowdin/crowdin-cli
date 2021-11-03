@@ -178,7 +178,7 @@ public class PlaceholderUtil {
         String fileNameWithoutExt = FilenameUtils.removeExtension(fileName);
         String fileExt = FilenameUtils.getExtension(fileName);
         String tempBasePath = basePath;
-        String fileParent = StringUtils.removeStart((file.getParent() != null ? file.getParent() + Utils.PATH_SEPARATOR : ""), tempBasePath);
+        String fileParent = Utils.noSepAtEnd(StringUtils.removeStart((file.getParent() != null ? file.getParent() + Utils.PATH_SEPARATOR : ""), tempBasePath));
 
         toFormat = toFormat.contains(PLACEHOLDER_ORIGINAL_FILE_NAME) ? toFormat.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, fileName) : toFormat;
         toFormat = toFormat.contains(PLACEHOLDER_FILE_NAME) ? toFormat.replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt) : toFormat;
