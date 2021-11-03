@@ -44,8 +44,12 @@ import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static com.crowdin.cli.BaseCli.CHECK_WAITING_TIME_FIRST;
+import static com.crowdin.cli.BaseCli.CHECK_WAITING_TIME_INCREMENT;
+import static com.crowdin.cli.BaseCli.CHECK_WAITING_TIME_MAX;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
@@ -356,6 +360,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     }
 
     private ProjectBuild buildTranslation(ProjectClient client, BuildProjectTranslationRequest request) {
+        AtomicInteger sleepTime = new AtomicInteger(CHECK_WAITING_TIME_FIRST);
         return ConsoleSpinner.execute(out, "message.spinner.fetching_project_info",
             "error.collect_project_info", this.noProgress, this.plainView, () -> {
                 ProjectBuild build = client.startBuildingTranslation(request);
@@ -364,7 +369,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     ConsoleSpinner.update(
                         String.format(RESOURCE_BUNDLE.getString("message.building_translation"),
                             Math.toIntExact(build.getProgress())));
-                    Thread.sleep(100);
+                    Thread.sleep(sleepTime.getAndUpdate(val -> val < CHECK_WAITING_TIME_MAX ? val + CHECK_WAITING_TIME_INCREMENT : CHECK_WAITING_TIME_MAX));
                     build = client.checkBuildingTranslation(build.getId());
                 }
                 ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));

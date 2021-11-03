@@ -57,4 +57,8 @@ public class BaseCli {
     public enum LanguageCode {
         two_letters_code, three_letters_code, locale, android_code, osx_code, osx_locale
     }
+
+    public static final Integer CHECK_WAITING_TIME_FIRST = 1000;
+    public static final Integer CHECK_WAITING_TIME_INCREMENT = 500;
+    public static final Integer CHECK_WAITING_TIME_MAX = 5000;
 }
