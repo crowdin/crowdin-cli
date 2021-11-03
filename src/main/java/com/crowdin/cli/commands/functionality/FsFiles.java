@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -48,10 +49,16 @@ public class FsFiles implements FilesInterface {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.creatingDirectory"));
             }
         }
+        Integer filesQnt = null;
         try {
+            filesQnt = zipFile.getFileHeaders().size();
             zipFile.extractAll(dir.getAbsolutePath());
         } catch (net.lingala.zip4j.exception.ZipException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.extract_archive"), zipArchive.getAbsolutePath()));
+            if (filesQnt != null && filesQnt.equals(1)) {
+                return new ArrayList<>();
+            } else {
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.extract_archive"), zipArchive.getAbsolutePath()));
+            }
         }
         try {
             return java.nio.file.Files.walk(dir.toPath())
