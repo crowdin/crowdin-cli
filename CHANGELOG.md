@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.7.2]
+
+### Updated
+
+- Add check if an archive is empty and add a message when there are no files to the 'download' command ([#406](https://github.com/crowdin/crowdin-cli/pull/406))
+- Improve timing for checking building translations ([#406](https://github.com/crowdin/crowdin-cli/pull/406))
+
+### Fixed
+
+- Fix '%original_path%' placeholder for downloading ([#406](https://github.com/crowdin/crowdin-cli/pull/406))
+
 ## [3.7.1]
 
 ### Added
