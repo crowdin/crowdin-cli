@@ -43,8 +43,13 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
+import static com.crowdin.cli.BaseCli.CHECK_WAITING_TIME_FIRST;
+import static com.crowdin.cli.BaseCli.CHECK_WAITING_TIME_INCREMENT;
+import static com.crowdin.cli.BaseCli.CHECK_WAITING_TIME_MAX;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
@@ -200,6 +205,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             Map<String, List<String>> totalOmittedFiles = null;
             List<List<String>> omittedFilesNoSources = new ArrayList<>();
 
+            AtomicBoolean anyFileDownloaded = new AtomicBoolean(false);
             for (File tempDir : fileBeansWithDownloadedFilesNoRepetitions.keySet()) {
                 Set<Pair<String, String>> filesWithMapping = fileBeansWithDownloadedFilesNoRepetitions.get(tempDir);
                 List<String> downloadedFiles = tempDirs.get(tempDir);
@@ -208,6 +214,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     sortFiles(downloadedFiles, filesWithMapping, pb.getBasePath(), tempDir.getAbsolutePath() + Utils.PATH_SEPARATOR);
                 new TreeMap<>(result.getLeft()).forEach((fromFile, toFile) -> { //files to extract
                     files.copyFile(fromFile, toFile);
+                    anyFileDownloaded.set(true);
                     if (!plainView) {
                         out.println(OK.withIcon(
                             String.format(
@@ -242,10 +249,15 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 omittedFilesNoSources.add(allOmittedFilesNoSources);
             }
 
+            if (!anyFileDownloaded.get()) {
+                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download")));
+            }
+
             if (!ignoreMatch && !plainView) {
                 totalOmittedFiles = totalOmittedFiles.entrySet().stream()
                     .filter(entry -> !entry.getValue().isEmpty())
                     .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
                 if (!totalOmittedFiles.isEmpty()) {
                     out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted")));
                     totalOmittedFiles.forEach((file, translations) -> {
@@ -348,6 +360,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     }
 
     private ProjectBuild buildTranslation(ProjectClient client, BuildProjectTranslationRequest request) {
+        AtomicInteger sleepTime = new AtomicInteger(CHECK_WAITING_TIME_FIRST);
         return ConsoleSpinner.execute(out, "message.spinner.fetching_project_info",
             "error.collect_project_info", this.noProgress, this.plainView, () -> {
                 ProjectBuild build = client.startBuildingTranslation(request);
@@ -356,7 +369,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     ConsoleSpinner.update(
                         String.format(RESOURCE_BUNDLE.getString("message.building_translation"),
                             Math.toIntExact(build.getProgress())));
-                    Thread.sleep(100);
+                    Thread.sleep(sleepTime.getAndUpdate(val -> val < CHECK_WAITING_TIME_MAX ? val + CHECK_WAITING_TIME_INCREMENT : CHECK_WAITING_TIME_MAX));
                     build = client.checkBuildingTranslation(build.getId());
                 }
                 ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
