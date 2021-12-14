@@ -2,7 +2,8 @@ name: publish-npm
 
 on:
   push:
-    branches: [cli3]
+    tags:
+      - '*'
 
 jobs:
   publish:
