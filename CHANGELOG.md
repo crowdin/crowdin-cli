@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.7.3]
+
+### Updated
+
+- Update log4j to 2.15.0 ([#410](https://github.com/crowdin/crowdin-cli/pull/410))
+
+### Fixed
+
+- Fix 'streamIsEmpty' error ([#409](https://github.com/crowdin/crowdin-cli/pull/409))
+
 ## [3.7.2]
 
 ### Updated
