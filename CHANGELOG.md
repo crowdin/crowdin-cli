@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.7.4]
+
+### Updated
+
+- Update log4j to 2.16.0 ([#413](https://github.com/crowdin/crowdin-cli/pull/413))
+
 ## [3.7.3]
 
 ### Updated
