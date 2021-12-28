@@ -231,16 +231,24 @@ public class PlaceholderUtil {
 
             .replace(ESCAPE_QUESTION, ESCAPE_QUESTION_PLACEHOLDER)
             .replace(QUESTION_MARK, "[^/]")
-            .replace(ESCAPE_QUESTION_PLACEHOLDER, ESCAPE_QUESTION)
+            .replace(ESCAPE_QUESTION_PLACEHOLDER, ESCAPE_QUESTION);
 
-            .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
-            .replace("**", ".+")
-            .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
+        if (Utils.isWindows()) {
+            toFormat = toFormat
+                .replace("**", ".+")
+                .replace(ASTERISK, "[^/]+");
+        } else {
+            toFormat = toFormat
+                .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
+                .replace("**", ".+")
+                .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
 
-            .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
-            .replace(ASTERISK, "[^/]+")
-            .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
+                .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
+                .replace(ASTERISK, "[^/]+")
+                .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK);
+        }
 
+        toFormat = toFormat
             .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
 
             .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE)
