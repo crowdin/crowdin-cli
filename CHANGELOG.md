@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.7.5]
+
+### Updated
+
+- Update gradle to 7.3.1 ([#414](https://github.com/crowdin/crowdin-cli/pull/414))
+
+### Fixed
+
+- Fix regex building from path on Windows ([#417](https://github.com/crowdin/crowdin-cli/pull/417))
+
 ## [3.7.4]
 
 ### Updated
