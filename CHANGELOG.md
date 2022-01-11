@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.7.6]
+
+### Updated
+
+- Update TM and Glossary uploads: '--language' is required for creating new instances ([#419](https://github.com/crowdin/crowdin-cli/pull/419))
+
 ## [3.7.5]
 
 ### Updated
