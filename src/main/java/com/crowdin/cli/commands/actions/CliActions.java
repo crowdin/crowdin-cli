@@ -127,9 +127,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<BaseProperties, ClientGlossary> glossaryUpload(
-        java.io.File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader
+        java.io.File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
     ) {
-        return new GlossaryUploadAction(file, id, name, scheme, firstLineContainsHeader);
+        return new GlossaryUploadAction(file, id, name, languageId, scheme, firstLineContainsHeader);
     }
 
     @Override
@@ -146,9 +146,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<BaseProperties, ClientTm> tmUpload(
-        File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader
+        File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
     ) {
-        return new TmUploadAction(file, id, name, scheme, firstLineContainsHeader);
+        return new TmUploadAction(file, id, name, languageId, scheme, firstLineContainsHeader);
     }
 
     @Override

@@ -69,7 +69,7 @@ public interface Actions {
     NewAction<BaseProperties, ClientGlossary> glossaryList(boolean plainView, boolean isVerbose);
 
     NewAction<BaseProperties, ClientGlossary> glossaryUpload(
-        java.io.File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
+        java.io.File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
 
     NewAction<BaseProperties, ClientGlossary> glossaryDownload(
         Long id, String name, GlossariesFormat format, boolean noProgress, File to, FilesInterface files);
@@ -77,7 +77,7 @@ public interface Actions {
     NewAction<BaseProperties, ClientTm> tmList(boolean plainView);
 
     NewAction<BaseProperties, ClientTm> tmUpload(
-        File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
+        File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
 
     NewAction<BaseProperties, ClientTm> tmDownload(
         Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,

@@ -58,15 +58,17 @@ public class RequestBuilder {
         return request;
     }
 
-    public static AddGlossaryRequest addGlossary(String name) {
+    public static AddGlossaryRequest addGlossary(String name, String languageId) {
         AddGlossaryRequest request = new AddGlossaryRequest();
         request.setName(name);
+        request.setLanguageId(languageId);
         return request;
     }
 
-    public static AddGlossaryRequest addGlossaryEnterprise(String name, Long groupId) {
+    public static AddGlossaryRequest addGlossaryEnterprise(String name, String languageId, Long groupId) {
         AddGlossaryRequest request = new AddGlossaryRequest();
         request.setName(name);
+        request.setLanguageId(languageId);
         request.setGroupId(groupId);
         return request;
     }
@@ -85,15 +87,17 @@ public class RequestBuilder {
         return request;
     }
 
-    public static AddTranslationMemoryRequest addTm(String name) {
+    public static AddTranslationMemoryRequest addTm(String name, String languageId) {
         AddTranslationMemoryRequest request = new AddTranslationMemoryRequest();
         request.setName(name);
+        request.setLanguageId(languageId);
         return request;
     }
 
-    public static AddTranslationMemoryRequest addTmEnterprise(String name, Long groupId) {
+    public static AddTranslationMemoryRequest addTmEnterprise(String name, String languageId, Long groupId) {
         AddTranslationMemoryRequest request = new AddTranslationMemoryRequest();
         request.setName(name);
+        request.setLanguageId(languageId);
         request.setGroupId(groupId);
         return request;
     }

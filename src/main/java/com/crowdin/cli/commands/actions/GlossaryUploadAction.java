@@ -9,6 +9,7 @@ import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.client.glossaries.model.AddGlossaryRequest;
 import com.crowdin.client.glossaries.model.Glossary;
 import lombok.NonNull;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.FileInputStream;
 import java.io.InputStream;
@@ -25,13 +26,15 @@ class GlossaryUploadAction implements NewAction<BaseProperties, ClientGlossary> 
     private final java.io.File file;
     private final Long id;
     private final String name;
+    private final String languageId;
     private final Map<String, Integer> scheme;
     private final Boolean firstLineContainsHeader;
 
-    public GlossaryUploadAction(@NonNull java.io.File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
+    public GlossaryUploadAction(@NonNull java.io.File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
         this.file = file;
         this.id = id;
         this.name = name;
+        this.languageId = languageId;
         this.scheme = scheme;
         this.firstLineContainsHeader = firstLineContainsHeader;
     }
@@ -48,7 +51,10 @@ class GlossaryUploadAction implements NewAction<BaseProperties, ClientGlossary> 
                 .filter(gl -> gl.getName() != null && gl.getName().equals(name))
                 .collect(Collectors.toList());
             if (foundGlossaries.isEmpty()) {
-                targetGlossary = client.addGlossary(RequestBuilder.addGlossary(name));
+                if (StringUtils.isEmpty(languageId)) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.glossary.no_language_id"));
+                }
+                targetGlossary = client.addGlossary(RequestBuilder.addGlossary(name, languageId));
             } else if (foundGlossaries.size() == 1) {
                 targetGlossary = foundGlossaries.get(0);
             } else {
@@ -56,8 +62,8 @@ class GlossaryUploadAction implements NewAction<BaseProperties, ClientGlossary> 
             }
         } else {
             AddGlossaryRequest addGlossaryRequest = (isOrganization)
-                ? RequestBuilder.addGlossaryEnterprise(String.format(DEFAULT_GLOSSARY_NAME, file.getName()), 0L)
-                : RequestBuilder.addGlossary(String.format(DEFAULT_GLOSSARY_NAME, file.getName()));
+                ? RequestBuilder.addGlossaryEnterprise(String.format(DEFAULT_GLOSSARY_NAME, file.getName()), languageId, 0L)
+                : RequestBuilder.addGlossary(String.format(DEFAULT_GLOSSARY_NAME, file.getName()), languageId);
             targetGlossary = client.addGlossary(addGlossaryRequest);
         }
         Long storageId;

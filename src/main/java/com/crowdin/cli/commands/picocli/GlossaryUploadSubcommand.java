@@ -27,6 +27,9 @@ class GlossaryUploadSubcommand extends ActCommandGlossary {
     @CommandLine.Option(names = {"--name"}, paramLabel = "...")
     private String name;
 
+    @CommandLine.Option(names = {"--language"})
+    private String languageId;
+
     @CommandLine.Option(names = {"--scheme"}, paramLabel = "...")
     private Map<String, Integer> scheme;
 
@@ -35,7 +38,7 @@ class GlossaryUploadSubcommand extends ActCommandGlossary {
 
     @Override
     protected NewAction<BaseProperties, ClientGlossary> getAction(Actions actions) {
-        return actions.glossaryUpload(file, id, name, scheme, firstLineContainsHeader);
+        return actions.glossaryUpload(file, id, name, languageId, scheme, firstLineContainsHeader);
     }
 
     @Override
@@ -57,6 +60,9 @@ class GlossaryUploadSubcommand extends ActCommandGlossary {
         }
         if (id != null && name != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.id_and_name"));
+        }
+        if (id == null && name == null && languageId == null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.glossary.no_language_id"));
         }
         return errors;
     }
