@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.7.7]
+
+### Updated
+
+- Update log4j to 2.17.1 ([#421](https://github.com/crowdin/crowdin-cli/pull/421))
+
+### Fixed
+
+- Fix installation and uninstall scripts ([#422](https://github.com/crowdin/crowdin-cli/pull/422))
+
 ## [3.7.6]
 
 ### Updated
