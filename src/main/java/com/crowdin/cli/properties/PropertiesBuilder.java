@@ -120,6 +120,8 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String IGNORE_HIDDEN_FILES = "ignore_hidden_files";
 
+    public static final String CONFIG_FILE_PATH = "config_file_path";
+
     private Outputter out;
     private Map<String, Object> configFileParams;
     private Map<String, Object> identityFileParams;
