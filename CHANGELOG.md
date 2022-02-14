@@ -1,6 +1,18 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.7.8]
+
+### Updated
+
+- Update jDeploy to 2.0.11 ([#426](https://github.com/crowdin/crowdin-cli/pull/426))
+- Bump shelljs from 0.8.4 to 0.8.5 ([#424](https://github.com/crowdin/crowdin-cli/pull/424))
+
+### Fixed
+
+- Fix relative base paths ('.', '..') ([#432](https://github.com/crowdin/crowdin-cli/pull/432))
+- Fix 'download sources' command on Windows ([#433](https://github.com/crowdin/crowdin-cli/pull/433))
+
 ## [3.7.7]
 
 ### Updated
