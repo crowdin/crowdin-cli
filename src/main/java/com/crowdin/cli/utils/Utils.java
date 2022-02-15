@@ -87,33 +87,37 @@ public class Utils {
     }
 
     public static String unixPath(String path) {
-        return path.replaceAll("[\\\\/]+", "/");
+        return (path != null) ? path.replaceAll("[\\\\/]+", "/") : null;
     }
 
     public static String normalizePath(String path) {
-        return path.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
+        return (path != null) ? path.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX) : null;
     }
 
     public static String noSepAtStart(String path) {
-        return path.replaceAll("^[\\\\/]+", "");
+        return (path != null) ? path.replaceAll("^[\\\\/]+", "") : null;
     }
 
     public static String sepAtStart(String path) {
-        return Utils.PATH_SEPARATOR + noSepAtStart(path);
+        return (path != null) ? Utils.PATH_SEPARATOR + noSepAtStart(path) : null;
     }
 
     public static String noSepAtEnd(String path) {
-        return path.replaceAll("[\\\\/]+$", "");
+        return (path != null) ? path.replaceAll("[\\\\/]+$", "") : null;
     }
 
     public static String sepAtEnd(String path) {
-        return noSepAtEnd(path) + Utils.PATH_SEPARATOR;
+        return (path != null) ? (noSepAtEnd(path) + Utils.PATH_SEPARATOR) : null;
     }
 
     public static String regexPath(String path) {
-        return path.replaceAll("\\\\", "\\\\\\\\")
-            .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
-            .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE);
+        if (path != null) {
+            return path.replaceAll("\\\\", "\\\\\\\\")
+                .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
+                .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE);
+        } else {
+            return null;
+        }
     }
 
     public static String joinPaths(String... pathes) {

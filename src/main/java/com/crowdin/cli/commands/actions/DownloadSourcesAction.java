@@ -90,7 +90,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                     filePaths2 = new ArrayList<>();
                     if (properties.getPreserveHierarchy()) {
                         for (String filePathKey : filePaths.keySet()) {
-                            String exportPattern = ProjectFilesUtils.getExportPattern(((File) filePaths.get(filePathKey)).getExportOptions());
+                            String exportPattern = Utils.normalizePath(ProjectFilesUtils.getExportPattern(((File) filePaths.get(filePathKey)).getExportOptions()));
                             String translationPattern = TranslationsUtils.replaceDoubleAsterisk(fileBean.getSource(), fileBean.getTranslation(), filePathKey);
                             if (exportPattern == null || translationPattern.equals(exportPattern)) {
                                 filePaths2.add(filePathKey);
@@ -118,7 +118,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                 if (foundSources.isEmpty()) {
                     return Stream.of((Runnable) () -> {
                         if (!plainView) {
-                            out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.no_sources"), fileBean.getSource())));
+                            out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.no_sources"), searchPattern)));
                         }
                     });
                 }
