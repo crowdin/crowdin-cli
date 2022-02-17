@@ -60,7 +60,7 @@ public class PropertiesBuilders {
     }
 
     private boolean isParamsContainBasePath(BaseParams params) {
-        return StringUtils.isNotEmpty(params.getBasePathParam());
+        return params != null && StringUtils.isNotEmpty(params.getBasePathParam());
     }
 
     private boolean fileExists(File file) {
