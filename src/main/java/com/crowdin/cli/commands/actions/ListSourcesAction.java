@@ -5,14 +5,12 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.cli.commands.functionality.DryrunObsoleteSources;
 import com.crowdin.cli.commands.functionality.DryrunSources;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.client.sourcefiles.model.Branch;
-
-import java.util.Optional;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
@@ -35,8 +33,11 @@ class ListSourcesAction implements NewAction<PropertiesWithFiles, ProjectClient>
 
     @Override
     public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
+        BranchLogic<CrowdinProjectFull> branchLogic = (branchName != null)
+            ? BranchLogic.throwIfAbsent(branchName)
+            : BranchLogic.noBranch();
         CrowdinProject project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, this.plainView, (deleteObsolete) ? client::downloadFullProject : client::downloadProjectWithLanguages);
+            this.noProgress, this.plainView, (deleteObsolete) ? () -> client.downloadFullProject(branchLogic) : client::downloadProjectWithLanguages);
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
 
         if (!project.isManagerAccess() && deleteObsolete) {
@@ -50,12 +51,7 @@ class ListSourcesAction implements NewAction<PropertiesWithFiles, ProjectClient>
 
         if (deleteObsolete) {
             CrowdinProjectFull projectFull = (CrowdinProjectFull) project;
-            Long branchId = Optional.ofNullable(branchName)
-                .map(br -> projectFull.findBranchByName(br)
-                    .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))))
-                .map(Branch::getId)
-                .orElse(null);
-            (new DryrunObsoleteSources(pb, placeholderUtil, projectFull.getDirectories(branchId), projectFull.getFiles(branchId))).run(out, treeView, plainView);
+            (new DryrunObsoleteSources(pb, placeholderUtil, projectFull.getDirectories(), projectFull.getFiles())).run(out, treeView, plainView);
         }
         (new DryrunSources(pb, placeholderUtil)).run(out, treeView, plainView);
     }

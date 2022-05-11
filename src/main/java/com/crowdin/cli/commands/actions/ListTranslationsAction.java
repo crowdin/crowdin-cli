@@ -4,6 +4,7 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.cli.commands.functionality.DryrunTranslations;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.properties.PropertiesWithFiles;
@@ -36,8 +37,9 @@ class ListTranslationsAction implements NewAction<PropertiesWithFiles, ProjectCl
 
     @Override
     public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
+        BranchLogic<CrowdinProjectFull> branchLogic = BranchLogic.noBranch();
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, this.plainView, client::downloadFullProject);
+            this.noProgress, this.plainView, () -> client.downloadFullProject(branchLogic));
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
@@ -48,7 +50,7 @@ class ListTranslationsAction implements NewAction<PropertiesWithFiles, ProjectCl
             }
         }
 
-        Map<String, File> files = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
+        Map<String, File> files = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFiles());
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(
             project.getSupportedLanguages(), project.getProjectLanguages(!isLocal), pb.getBasePath());

@@ -20,6 +20,7 @@ public class CrowdinProjectFull extends CrowdinProject {
     private List<? extends FileInfo> files;
     private List<Directory> directories;
     private List<Branch> branches;
+    private Branch currentBranch;
 
     void setFiles(List<? extends FileInfo> files) {
         this.files = files;
@@ -39,8 +40,11 @@ public class CrowdinProjectFull extends CrowdinProject {
             .collect(Collectors.toMap(Branch::getId, Function.identity()));
     }
 
-    public void addBranchToLocalList(Branch branch) {
-        this.branches.add(branch);
+    public void setCurrentBranch(Branch branch) {
+        if (!branches.contains(branch)) {
+            branches.add(branch);
+        }
+        currentBranch = branch;
     }
 
     public Optional<Branch> findBranchByName(String branchName) {
@@ -48,6 +52,10 @@ public class CrowdinProjectFull extends CrowdinProject {
             .stream()
             .filter(branch -> branch.getName().equals(branchName))
             .findFirst();
+    }
+
+    public Optional<Long> getCurrentBranchId() {
+        return Optional.ofNullable(currentBranch).map(Branch::getId);
     }
 
     public Map<Long, Directory> getDirectories() {
@@ -80,27 +88,8 @@ public class CrowdinProjectFull extends CrowdinProject {
         }
     }
 
-    public List<File> getFiles(Long branchId) {
-        List<File> result = new ArrayList<>();
-        for (File file : this.getFiles()) {
-            if (Objects.equals(file.getBranchId(), branchId)) {
-                result.add(file);
-            }
-        }
-        return result;
-    }
-
     public List<FileInfo> getFileInfos() {
         return (List<FileInfo>) files;
     }
 
-    public List<FileInfo> getFileInfos(Long branchId) {
-        List<FileInfo> result = new ArrayList<>();
-        for (FileInfo file : this.getFileInfos()) {
-            if (Objects.equals(file.getBranchId(), branchId)) {
-                result.add(file);
-            }
-        }
-        return result;
-    }
 }

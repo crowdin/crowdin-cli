@@ -14,6 +14,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -42,14 +43,14 @@ public class ListTranslationsActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                         .addFile("first.po", "gettext", 101L, null, null).build());
 
         NewAction<PropertiesWithFiles, ProjectClient> action = new ListTranslationsAction(false, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verifyNoMoreInteractions(client);
     }
 }

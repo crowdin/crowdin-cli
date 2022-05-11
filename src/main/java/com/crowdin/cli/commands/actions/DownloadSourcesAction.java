@@ -4,6 +4,7 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
@@ -13,7 +14,6 @@ import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 
@@ -23,8 +23,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -60,20 +58,14 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.download_sources.preserve_hierarchy_warning")));
         }
 
+        BranchLogic<CrowdinProjectFull> branchLogic = (branchName != null)
+            ? BranchLogic.throwIfAbsent(branchName)
+            : BranchLogic.noBranch();
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress, this.plainView, client::downloadFullProject);
+                this.noProgress, this.plainView, () -> client.downloadFullProject(branchLogic));
 
-        Long branchId = Optional.ofNullable(this.branchName)
-            .map(br -> project.findBranchByName(br)
-                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))))
-            .map(Branch::getId)
-            .orElse(null);
-        List<FileInfo> fileInfos = project.getFileInfos().stream()
-            .filter(f -> Objects.equals(f.getBranchId(), branchId))
-            .collect(Collectors.toList());
-
-        Map<String, FileInfo> filePaths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), fileInfos);
+        Map<String, FileInfo> filePaths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFileInfos());
 
         PlaceholderUtil placeholderUtil =
             new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), properties.getBasePath());

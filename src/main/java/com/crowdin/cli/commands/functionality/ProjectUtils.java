@@ -27,14 +27,13 @@ public class ProjectUtils {
             ProjectClient client,
             Map<String, Long> directoryIdMap,
             String filePath,
-            com.crowdin.client.sourcefiles.model.Branch branchId,
+            Long branchId,
             boolean plainView
     ) {
         String[] nodes = filePath.split(Utils.PATH_SEPARATOR_REGEX);
 
         Long directoryId = null;
-        String branchPath = (branchId != null) ? branchId.getName() + Utils.PATH_SEPARATOR : "";
-        StringBuilder parentPath = new StringBuilder(branchPath);
+        StringBuilder parentPath = new StringBuilder();
         for (String node : nodes) {
             if (StringUtils.isEmpty(node) || node.equals(nodes[nodes.length - 1])) {
                 continue;
@@ -47,8 +46,8 @@ public class ProjectUtils {
                 request.setName(node);
                 if (directoryId != null) {
                     request.setDirectoryId(directoryId);
-                } else if (branchId != null) {
-                    request.setBranchId(branchId.getId());
+                } else {
+                    request.setBranchId(branchId);
                 }
                 directoryId = createDirectory(out, directoryIdMap, client, request, parentPath.toString(), plainView);
             }

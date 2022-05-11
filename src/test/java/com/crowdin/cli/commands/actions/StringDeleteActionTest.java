@@ -23,6 +23,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -43,7 +44,7 @@ public class StringDeleteActionTest {
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
         pb = pbBuilder.build();
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.listSourceString(null, null, null, null, null))
             .thenReturn(strings);
@@ -52,7 +53,7 @@ public class StringDeleteActionTest {
         action = new StringDeleteAction(true, ids, texts, identifiers);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listSourceString(null, null, null, null, null);
         for (SourceString sourceString : strings) {
             verify(client).deleteSourceString(sourceString.getId());
@@ -84,7 +85,7 @@ public class StringDeleteActionTest {
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
         pb = pbBuilder.build();
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.listSourceString(null, null, null, null, null))
             .thenReturn(strings);
@@ -93,7 +94,7 @@ public class StringDeleteActionTest {
         action = new StringDeleteAction(true, ids, texts, identifiers);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listSourceString(null, null, null, null, null);
         for (SourceString sourceString : strings) {
             verify(client).deleteSourceString(sourceString.getId());
@@ -108,13 +109,13 @@ public class StringDeleteActionTest {
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
         pb = pbBuilder.build();
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenThrow(new RuntimeException("Whoops"));
 
         action = new StringDeleteAction(true, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verifyNoMoreInteractions(client);
     }
 }

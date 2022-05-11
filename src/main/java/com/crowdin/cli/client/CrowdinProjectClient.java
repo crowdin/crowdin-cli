@@ -1,5 +1,6 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
@@ -40,11 +41,20 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
-    public CrowdinProjectFull downloadFullProject() {
+    public CrowdinProjectFull downloadFullProjectAllBranches() {
         CrowdinProjectFull project = new CrowdinProjectFull();
         this.populateProjectWithInfo(project);
         this.populateProjectWithLangs(project);
-        this.populateProjectWithStructure(project);
+        this.populateProjectWithStructureAllBranches(project);
+        return project;
+    }
+
+    @Override
+    public CrowdinProjectFull downloadFullProject(BranchLogic<CrowdinProjectFull> branchLogic) {
+        CrowdinProjectFull project = new CrowdinProjectFull();
+        this.populateProjectWithInfo(project);
+        this.populateProjectWithLangs(project);
+        this.populateProjectWithStructure(project, branchLogic);
         return project;
     }
 
@@ -63,12 +73,23 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return project;
     }
 
-    private void populateProjectWithStructure(CrowdinProjectFull project) {
+    private void populateProjectWithStructureAllBranches(CrowdinProjectFull project) {
         project.setFiles(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
             .listFiles(this.projectId, null, null, null, null, limit, offset)));
         project.setDirectories(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
             .listDirectories(this.projectId, null, null, null, limit, offset)));
         project.setBranches(this.listBranches());
+    }
+
+    private void populateProjectWithStructure(CrowdinProjectFull project, BranchLogic<CrowdinProjectFull> branchLogic) {
+        project.setBranches(this.listBranches());
+        Long branchId = branchLogic.acquireBranch(project)
+            .map(Branch::getId)
+            .orElse(null);
+        project.setFiles(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
+            .listFiles(this.projectId, branchId, null, null, null, limit, offset)));
+        project.setDirectories(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
+            .listDirectories(this.projectId, branchId, null, null, limit, offset)));
     }
 
     private void populateProjectWithLangs(CrowdinProject project) {

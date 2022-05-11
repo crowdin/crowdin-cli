@@ -62,16 +62,12 @@ public class ProjectFilesUtils {
     public static Map<String, List<String>> buildAllProjectTranslations(
             List<File> projectFiles,
             Map<Long, String> directoryPaths,
-            Optional<Long> branchId,
             PlaceholderUtil placeholderUtil,
             LanguageMapping languageMapping,
             String basePath
     ) {
         Map<String, List<String>> allProjectTranslations = new HashMap<>();
         for (File fe : projectFiles) {
-            if (branchId.isPresent() && !branchId.get().equals(fe.getBranchId())) {
-                continue;
-            }
             String path = getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName();
             Stream<String> translations;
             if (isMultilingualFile(fe)) {

@@ -4,6 +4,7 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
@@ -46,8 +47,9 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
+        BranchLogic<CrowdinProjectFull> branchLogic = BranchLogic.noBranch();
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, false, client::downloadFullProject);
+            this.noProgress, false, () -> client.downloadFullProject(branchLogic));
 
         List<Long> labelIds = (labelNames != null && !labelNames.isEmpty()) ? this.prepareLabelIds(client) : null;
 
@@ -56,7 +58,7 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
             client.addSourceString(request);
             out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.source_string_uploaded")));
         } else {
-            Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
+            Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFileInfos());
             boolean containsError = false;
             for (String file : files) {
                 if (!paths.containsKey(file)) {

@@ -5,6 +5,7 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
@@ -21,7 +22,6 @@ import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
 import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
@@ -30,7 +30,6 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -68,32 +67,23 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
     public void act(Outputter out, PropertiesWithTargets pb, ProjectClient client) {
         boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
 
+        BranchLogic<CrowdinProjectFull> branchLogic = (branchName != null)
+            ? BranchLogic.throwIfAbsent(branchName)
+            : BranchLogic.noBranch();
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress, this.plainView, client::downloadFullProject);
+                this.noProgress, this.plainView, () -> client.downloadFullProject(branchLogic));
 
         PlaceholderUtil placeholderUtil =
             new PlaceholderUtil(
                 project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
-        if (StringUtils.isNotEmpty(branchName) && !project.findBranchByName(branchName).isPresent()) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"));
-        }
-        Optional<Long> branchId = project.findBranchByName(branchName).map(Branch::getId);
-
-        Map<String, Long> projectFiles = (branchId.isPresent()
-            ? ProjectFilesUtils
-                .buildFilePaths(project.getDirectories(), ProjectFilesUtils.filterFilesByBranch(project.getFileInfos(), branchId.get()))
-            : ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos()))
+        Map<String, Long> projectFiles = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFileInfos())
             .entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().getId()));
 
-        Map<String, Long> projectDirs = (branchId.isPresent()
-            ? ProjectFilesUtils.buildDirectoryPaths(project.getDirectories())
-                .entrySet().stream()
-                .filter(entry -> branchId.get().equals(project.getDirectories().get(entry.getKey()).getBranchId()))
-            : ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
-                .entrySet().stream())
+        Map<String, Long> projectDirs = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories())
+            .entrySet().stream()
             .collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
 
         Map<String, Long> projectBranches = project.getBranches()

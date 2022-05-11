@@ -4,13 +4,10 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.cli.commands.functionality.DryrunProjectFiles;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.client.sourcefiles.model.Branch;
-import org.apache.commons.lang3.StringUtils;
-
-import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 class ListProjectAction implements NewAction<ProjectProperties, ProjectClient> {
 
@@ -28,16 +25,15 @@ class ListProjectAction implements NewAction<ProjectProperties, ProjectClient> {
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
+        BranchLogic<CrowdinProjectFull> branchLogic = (branchName != null)
+            ? BranchLogic.throwIfAbsent(branchName)
+            : BranchLogic.noBranch();
+        System.out.println(1);
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress, this.plainView, client::downloadFullProject);
+                this.noProgress, this.plainView, () -> client.downloadFullProject(branchLogic));
+        System.out.println(2);
 
-        Long branchId = (StringUtils.isNotEmpty(this.branchName))
-            ? project.findBranchByName(this.branchName)
-                .map(Branch::getId)
-                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
-            : null;
-
-        (new DryrunProjectFiles(project.getFileInfos(), project.getDirectories(), project.getBranches(), branchId)).run(out, treeView, plainView);
+        (new DryrunProjectFiles(project.getFileInfos(), project.getDirectories())).run(out, treeView, plainView);
     }
 }

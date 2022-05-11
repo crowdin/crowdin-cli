@@ -63,6 +63,11 @@ public class ProjectBuilder {
         return this;
     }
 
+    public ProjectBuilder setCurrentBranch(long branchId, String branchName) {
+        project.setCurrentBranch(BranchBuilder.standard().setProjectId(project.getProjectId()).setIdentifiers(branchName, branchId).build());
+        return this;
+    }
+
     public ProjectBuilder addDirectory(String name, Long id, Long directoryId, Long branchId) {
         Directory directory = DirectoryBuilder.standard().setProjectId(project.getProjectId())
             .setIdentifiers(name, id, directoryId, branchId).build();

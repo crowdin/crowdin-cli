@@ -20,6 +20,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -38,7 +39,7 @@ public class StringListActionTest {
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
         pb = pbBuilder.build();
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 101L, null, null).build());
         when(client.listSourceString(101L, null, null, filter, null))
@@ -49,7 +50,7 @@ public class StringListActionTest {
         action = new StringListAction(true, true, file, filter, null, null);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         if (file != null) {
             verify(client).listSourceString(101L, null, null, filter, null);
@@ -73,13 +74,13 @@ public class StringListActionTest {
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
         pb = pbBuilder.build();
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenThrow(new RuntimeException("Whoops"));
 
         action = new StringListAction(true, true, null, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verifyNoMoreInteractions(client);
     }
 
@@ -90,14 +91,14 @@ public class StringListActionTest {
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
         pb = pbBuilder.build();
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 101L, null, null).build());
 
         action = new StringListAction(true, true, "notexist.csv", null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         verifyNoMoreInteractions(client);
     }

@@ -4,6 +4,7 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -32,10 +33,11 @@ class StringDeleteAction implements NewAction<ProjectProperties, ProjectClient> 
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
+        BranchLogic<CrowdinProjectFull> branchLogic = BranchLogic.noBranch();
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, false, client::downloadFullProject);
+            this.noProgress, false, () -> client.downloadFullProject(branchLogic));
 
-        Map<Long, String> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles())
+        Map<Long, String> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFiles())
             .entrySet()
             .stream()
             .collect(Collectors.toMap((entry) -> entry.getValue().getId(), Map.Entry::getKey));

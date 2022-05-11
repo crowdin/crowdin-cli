@@ -7,6 +7,12 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.DryrunBranches;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
+import com.crowdin.client.sourcefiles.model.Branch;
+import com.google.common.base.Functions;
+
+import java.util.Map;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 class ListBranchesAction implements NewAction<ProjectProperties, ProjectClient> {
 
@@ -20,10 +26,11 @@ class ListBranchesAction implements NewAction<ProjectProperties, ProjectClient> 
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
-        CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress, this.plainView, client::downloadFullProject);
+        Map<Long, Branch> branches = client.listBranches()
+            .stream()
+            .collect(Collectors.toMap(Branch::getId, Function.identity()));
 
-        new DryrunBranches(project.getBranches())
+        new DryrunBranches(branches)
             .run(out, false, plainView);
     }
 }

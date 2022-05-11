@@ -5,6 +5,7 @@ import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -14,21 +15,14 @@ public class DryrunProjectFiles extends Dryrun {
 
     private List<FileInfo> files;
     private Map<Long, Directory> directories;
-    private Map<Long, Branch> branches;
-    private Long branchId;
 
-    public DryrunProjectFiles(List<FileInfo> files, Map<Long, Directory> directories, Map<Long, Branch> branches, Long branchId) {
+    public DryrunProjectFiles(List<FileInfo> files, Map<Long, Directory> directories) {
         this.files = files;
         this.directories = directories;
-        this.branches = branches;
-        this.branchId = branchId;
     }
 
     @Override
     protected List<String> getFiles() {
-        return ProjectFilesUtils.buildFilePaths(directories, branches, files).entrySet().stream()
-            .filter(entry -> Objects.equals(entry.getValue().getBranchId(), branchId))
-            .map(Map.Entry::getKey)
-            .collect(Collectors.toList());
+        return new ArrayList<>(ProjectFilesUtils.buildFilePaths(directories, files).keySet());
     }
 }

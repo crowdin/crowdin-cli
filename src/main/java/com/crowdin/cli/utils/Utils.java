@@ -141,6 +141,10 @@ public class Utils {
         return path.substring(0, path.lastIndexOf(Utils.PATH_SEPARATOR)+1);
     }
 
+    public static String getFilename(String filePath) {
+        return filePath.substring(filePath.lastIndexOf(Utils.PATH_SEPARATOR) + 1);
+    }
+
     public static Optional<Pair<String, Integer>> proxyHost() {
         if (System.getenv(HTTP_PROXY_HOST_ENV) == null || System.getenv(HTTP_PROXY_PORT_ENV) == null) {
             return Optional.empty();

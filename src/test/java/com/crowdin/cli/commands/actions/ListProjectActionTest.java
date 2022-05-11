@@ -16,6 +16,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -45,14 +46,14 @@ public class ListProjectActionTest {
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
         pb = pbBuilder.build();
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null).build());
 
         action = new ListProjectAction(false, null, true, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verifyNoMoreInteractions(client);
     }
 
@@ -62,14 +63,13 @@ public class ListProjectActionTest {
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
         pb = pbBuilder.build();
-        when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                .addFile("first.po", "gettext", 101L, null, null).build());
+        when(client.downloadFullProject(any()))
+            .thenThrow(new RuntimeException());
 
-        action = new ListProjectAction(false, "nonexistentBranch", false, false);
+        action = new ListProjectAction(false, "nonexistentBranch", false, true);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verifyNoMoreInteractions(client);
     }
 
@@ -79,7 +79,7 @@ public class ListProjectActionTest {
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
         pb = pbBuilder.build();
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null)
                 .addBranches(1L, "existentBranch").build());
@@ -87,7 +87,7 @@ public class ListProjectActionTest {
         action = new ListProjectAction(false, "existentBranch", false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verifyNoMoreInteractions(client);
     }
 }

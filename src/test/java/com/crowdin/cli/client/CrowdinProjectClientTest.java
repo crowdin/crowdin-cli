@@ -1,6 +1,7 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.cli.client.models.HttpExceptionBuilder;
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.cli.utils.LanguageBuilder;
 import com.crowdin.client.core.http.HttpClient;
 import com.crowdin.client.core.http.impl.json.JacksonJsonTransformer;
@@ -188,7 +189,7 @@ public class CrowdinProjectClientTest {
         when(httpClientMock.get(eq(listBranchesUrl), any(), eq(BranchResponseList.class)))
             .thenReturn(branchesResponse);
 
-        CrowdinProject crowdinProject = client.downloadFullProject();
+        CrowdinProject crowdinProject = client.downloadFullProject(BranchLogic.noBranch());
         assertEquals(1, crowdinProject.getProjectLanguages(false).size());
         assertEquals(2, crowdinProject.getSupportedLanguages().size());
         assertTrue(crowdinProject.findLanguageById("ua", false).isPresent());

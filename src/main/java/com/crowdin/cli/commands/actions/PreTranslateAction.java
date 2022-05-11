@@ -6,13 +6,13 @@ import com.crowdin.cli.client.CrowdinProjectInfo;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
-import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.FileInfo;
@@ -66,8 +66,11 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
 
     @Override
     public void act(Outputter out, PropertiesWithFiles properties, ProjectClient client) {
+        BranchLogic<CrowdinProjectFull> branchLogic = (branchName != null)
+            ? BranchLogic.throwIfAbsent(branchName)
+            : BranchLogic.noBranch();
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, this.plainView, client::downloadFullProject);
+            this.noProgress, this.plainView, () -> client.downloadFullProject(branchLogic));
 
         List<String> languages = this.prepareLanguageIds(project);
         List<Long> fileIds = this.prepareFileIds(out, properties, project);
@@ -98,7 +101,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
     }
 
     private List<Long> prepareFileIds(Outputter out, PropertiesWithFiles pb, CrowdinProjectFull project) {
-        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
+        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFileInfos());
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
         List<String> sourcePaths = pb.getFiles().stream()
             .flatMap(file -> {
@@ -108,8 +111,8 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                 String commonPath = (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
                 return sources.stream()
                     .map(source -> (file.getDest() != null)
-                        ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil) : StringUtils.removeStart(source, pb.getBasePath() + commonPath))
-                    .map(source -> (branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + source);
+                        ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil)
+                        : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
             })
             .distinct()
             .collect(Collectors.toList());

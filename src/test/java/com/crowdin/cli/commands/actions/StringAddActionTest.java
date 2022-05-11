@@ -27,6 +27,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -67,14 +68,14 @@ public class StringAddActionTest {
         }
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(projectBuilder.build());
 
         action =
             new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, hidden);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         for (AddSourceStringRequest request : requests) {
             verify(client).addSourceString(request);
         }
@@ -131,14 +132,14 @@ public class StringAddActionTest {
         }
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(projectBuilder.build());
 
         action =
             new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, hidden);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         for (AddSourceStringRequest request : requests) {
             verify(client).addSourceString(request);
         }
@@ -154,13 +155,13 @@ public class StringAddActionTest {
             .setBasePath(Utils.PATH_SEPARATOR);
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenThrow(new RuntimeException("Whoops"));
 
         action = new StringAddAction(false, null, null, null, null, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verifyNoMoreInteractions(client);
     }
 
@@ -205,7 +206,7 @@ public class StringAddActionTest {
         }
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(projectBuilder.build());
         List<Label> labelsResponse = labels.entrySet().stream()
             .map(entry -> createLabel(entry.getKey(), entry.getValue()))
@@ -218,7 +219,7 @@ public class StringAddActionTest {
             new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), new ArrayList<>(labels.values()), hidden);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         for (AddSourceStringRequest request : requests) {
             verify(client).addSourceString(request);
         }

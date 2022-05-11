@@ -1,5 +1,6 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
@@ -25,7 +26,10 @@ import java.util.List;
 
 public interface ProjectClient extends Client {
 
-    CrowdinProjectFull downloadFullProject();
+    @Deprecated
+    CrowdinProjectFull downloadFullProjectAllBranches();
+
+    CrowdinProjectFull downloadFullProject(BranchLogic<CrowdinProjectFull> branchLogic);
 
     CrowdinProject downloadProjectWithLanguages();
 

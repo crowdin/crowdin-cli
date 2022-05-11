@@ -5,6 +5,7 @@ import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
@@ -18,7 +19,6 @@ import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
-import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
 import com.crowdin.client.translations.model.ProjectBuild;
@@ -89,9 +89,12 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         this.out = out;
         boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
 
+        BranchLogic<CrowdinProjectFull> branchLogic = (branchName != null)
+            ? BranchLogic.throwIfAbsent(branchName)
+            : BranchLogic.noBranch();
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress, this.plainView, client::downloadFullProject);
+                this.noProgress, this.plainView, () -> client.downloadFullProject(branchLogic));
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
@@ -114,9 +117,6 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             .map(lang -> project.findLanguageById(lang, true)
                 .orElseThrow(() -> new RuntimeException(
                     String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))));
-        Optional<Branch> branch = Optional.ofNullable(this.branchName)
-            .map(br -> project.findBranchByName(br)
-                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))));
 
         Map<String, com.crowdin.client.sourcefiles.model.File> serverSources = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFiles());
 
@@ -156,9 +156,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     .map(Language::getId)
                     .map(Collections::singletonList)
                     .ifPresent(templateRequest::setTargetLanguageIds);
-                branch
-                    .map(Branch::getId)
-                    .ifPresent(templateRequest::setBranchId);
+                project.getCurrentBranchId().ifPresent(templateRequest::setBranchId);
                 pb.getFiles().stream()
                     .map(fb -> Triple.of(fb.getSkipTranslatedOnly(), fb.getSkipUntranslatedFiles(), fb.getExportApprovedOnly()))
                     .distinct()
@@ -194,13 +192,9 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 fileBeansWithDownloadedFilesNoRepetitions.put(tempDir, this.flattenInnerMap(fileBeansWithDownloadedFiles.get(tempDir)));
             }
 
-            Map<Long, String> directoryPaths = (branch.isPresent())
-                ? ProjectFilesUtils.buildDirectoryPaths(project.getDirectories())
-                : ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches());
+            Map<Long, String> directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches());
             Map<String, List<String>> allProjectTranslations = ProjectFilesUtils
-                .buildAllProjectTranslations(
-                    project.getFiles(), directoryPaths, branch.map(Branch::getId),
-                    placeholderUtil, serverLanguageMapping, pb.getBasePath());
+                .buildAllProjectTranslations(project.getFiles(), directoryPaths, placeholderUtil, serverLanguageMapping, pb.getBasePath());
 
             Map<String, List<String>> totalOmittedFiles = null;
             List<List<String>> omittedFilesNoSources = new ArrayList<>();

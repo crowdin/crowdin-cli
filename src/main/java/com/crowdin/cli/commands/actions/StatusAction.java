@@ -4,6 +4,7 @@ import com.crowdin.cli.client.CrowdinProject;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.Branch;
@@ -34,6 +35,9 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
+        BranchLogic<ProjectClient> branchLogic = (branchName != null)
+            ? BranchLogic.throwIfAbsentWithoutFullProject(branchName)
+            : BranchLogic.noBranch();
         CrowdinProject project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, client::downloadProjectWithLanguages);
 
@@ -41,12 +45,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
             project.findLanguageById(languageId, true)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)));
         }
-        List<Branch> branches = client.listBranches();
-        Long branchId = (branchName == null) ? null : branches.stream()
-            .filter(branch -> branchName.equals(branch.getName()))
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
-            .getId();
+        Long branchId = branchLogic.acquireBranch(client).map(Branch::getId).orElse(null);
 
         List<LanguageProgress> progresses;
         if (branchId == null) {

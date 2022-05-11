@@ -4,22 +4,18 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.labels.model.Label;
-import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcestrings.model.SourceString;
 import org.apache.commons.lang3.StringUtils;
 
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -45,19 +41,18 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
+        BranchLogic<CrowdinProjectFull> branchLogic = (branchName != null)
+            ? BranchLogic.throwIfAbsent(branchName)
+            : BranchLogic.noBranch();
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, false, client::downloadFullProject);
+            this.noProgress, false, () -> client.downloadFullProject(branchLogic));
 
-        Long branchId = Optional.ofNullable(this.branchName)
-            .map(br -> project.findBranchByName(br)
-                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))))
-            .map(Branch::getId)
-            .orElse(null);
+        Long branchId = project.getCurrentBranchId().orElse(null);
 
         Map<Long, String> labels = client.listLabels().stream()
             .collect(Collectors.toMap(Label::getId, Label::getTitle));
 
-        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
+        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFileInfos());
         Map<Long, String> reversePaths = paths.entrySet()
             .stream()
             .collect(Collectors.toMap((entry) -> entry.getValue().getId(), Map.Entry::getKey));

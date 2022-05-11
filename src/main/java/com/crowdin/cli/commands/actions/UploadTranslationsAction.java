@@ -6,6 +6,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.WrongLanguageException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchLogic;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
@@ -20,7 +21,6 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -66,8 +66,11 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
 
     @Override
     public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
+        BranchLogic<CrowdinProjectFull> branchLogic = (branchName != null)
+            ? BranchLogic.throwIfAbsent(branchName)
+            : BranchLogic.noBranch();
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, this.plainView, client::downloadFullProject);
+            this.noProgress, this.plainView, () -> client.downloadFullProject(branchLogic));
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
@@ -82,7 +85,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
 
         LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
-        Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
+        Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFiles());
 
         List<Language> languages = (languageId != null)
             ? project.findLanguageById(languageId, true)
@@ -108,12 +111,11 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
             }
 
             Map<java.io.File, Pair<List<Language>, UploadTranslationsRequest>> preparedRequests = new HashMap<>();
-            String branchPath = (StringUtils.isNotEmpty(this.branchName) ? branchName + Utils.PATH_SEPARATOR : "");
             AtomicBoolean containsErrors = new AtomicBoolean(false);
             fileSourcesWithoutIgnores.forEach(source -> {
-                String filePath = branchPath + (StringUtils.isNotEmpty(file.getDest())
+                String filePath = StringUtils.isNotEmpty(file.getDest())
                     ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil)
-                    : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
+                    : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
 
                 if (!paths.containsKey(filePath)) {
                     containsErrors.set(true);

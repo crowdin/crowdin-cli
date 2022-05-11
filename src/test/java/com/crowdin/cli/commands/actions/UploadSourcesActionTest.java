@@ -57,7 +57,7 @@ public class UploadSourcesActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
@@ -65,7 +65,7 @@ public class UploadSourcesActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
@@ -95,7 +95,7 @@ public class UploadSourcesActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
@@ -114,7 +114,7 @@ public class UploadSourcesActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         verify(client).addDirectory(eq(addDirectoryRequest));
@@ -174,23 +174,17 @@ public class UploadSourcesActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+        when(client.downloadFullProject(any()))
+            .thenReturn(ProjectBuilder
+                .emptyProject(Long.parseLong(pb.getProjectId()))
+                .setCurrentBranch(201L, "newBranch").build());
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
-        Branch branch = BranchBuilder.standard().setProjectId(Long.parseLong(pb.getProjectId()))
-            .setIdentifiers("newBranch", 201L).build();
-        AddBranchRequest addBranchRequest = new AddBranchRequest() {{
-                setName("newBranch");
-            }};
-        when(client.addBranch(addBranchRequest))
-            .thenReturn(branch);
 
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("newBranch", false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
-        verify(client).addBranch(addBranchRequest);
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
@@ -219,16 +213,17 @@ public class UploadSourcesActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                .addBranches(201L, "newBranch").build());
+                .addBranches(201L, "newBranch")
+                .setCurrentBranch(201L, "newBranch").build());
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("newBranch", false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
@@ -257,7 +252,7 @@ public class UploadSourcesActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
@@ -265,7 +260,7 @@ public class UploadSourcesActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
@@ -295,7 +290,7 @@ public class UploadSourcesActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.setPreserveHierarchy(true);
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addDirectory("folder", 101L, null, null).build());
         when(client.uploadStorage(eq("first.po"), any()))
@@ -304,7 +299,7 @@ public class UploadSourcesActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
@@ -334,7 +329,7 @@ public class UploadSourcesActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setDest("last.po");
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
@@ -342,7 +337,7 @@ public class UploadSourcesActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
@@ -372,7 +367,7 @@ public class UploadSourcesActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null).build());
         when(client.uploadStorage(eq("first.po"), any()))
@@ -383,7 +378,7 @@ public class UploadSourcesActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         verify(client).uploadStorage(eq("second.po"), any());
@@ -427,7 +422,7 @@ public class UploadSourcesActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setScheme("identifier,source_phrase,context,uk,ru,fr");
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("first.csv"), any()))
                 .thenReturn(1L);
@@ -435,7 +430,7 @@ public class UploadSourcesActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.csv"), any());
         Map<String, Integer> scheme = new HashMap<>();
@@ -472,7 +467,7 @@ public class UploadSourcesActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setDest("%file_name%_file.%file_extension%");
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
@@ -480,7 +475,7 @@ public class UploadSourcesActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
@@ -510,7 +505,7 @@ public class UploadSourcesActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setDest("**/%original_file_name%");
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
@@ -525,7 +520,7 @@ public class UploadSourcesActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, true, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         verify(client).addDirectory(eq(addDirectoryRequest1));
@@ -556,7 +551,7 @@ public class UploadSourcesActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setDest("%original_path%/inner/%original_file_name%");
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
@@ -579,7 +574,7 @@ public class UploadSourcesActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         verify(client).addDirectory(eq(addDirectoryRequest1));
