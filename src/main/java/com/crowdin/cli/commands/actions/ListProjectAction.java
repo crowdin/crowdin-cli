@@ -28,11 +28,9 @@ class ListProjectAction implements NewAction<ProjectProperties, ProjectClient> {
         BranchLogic<CrowdinProjectFull> branchLogic = (branchName != null)
             ? BranchLogic.throwIfAbsent(branchName)
             : BranchLogic.noBranch();
-        System.out.println(1);
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
                 this.noProgress, this.plainView, () -> client.downloadFullProject(branchLogic));
-        System.out.println(2);
 
         (new DryrunProjectFiles(project.getFileInfos(), project.getDirectories())).run(out, treeView, plainView);
     }
