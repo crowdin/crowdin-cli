@@ -64,6 +64,8 @@ class ListLanguagesAction implements NewAction<ProjectProperties, ProjectClient>
             return language.getTwoLettersCode();
         }
         switch (code) {
+            case id:
+                return language.getId();
             case three_letters_code:
                 return langMapping.getValueOrDefault(language.getId(),
                     PLACEHOLDER_THREE_LETTERS_CODE.replaceAll("%", ""), language.getThreeLettersCode());

@@ -55,7 +55,7 @@ public class BaseCli {
     public static final String IGNORE_HIDDEN_FILES_PATTERN = "**/.*";
 
     public enum LanguageCode {
-        two_letters_code, three_letters_code, locale, android_code, osx_code, osx_locale
+        id, two_letters_code, three_letters_code, locale, android_code, osx_code, osx_locale
     }
 
     public static final Integer CHECK_WAITING_TIME_FIRST = 1000;
