@@ -9,6 +9,7 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
+import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.Directory;
 import org.apache.commons.lang3.StringUtils;
 
@@ -27,13 +28,14 @@ public class ProjectUtils {
             ProjectClient client,
             Map<String, Long> directoryIdMap,
             String filePath,
-            Long branchId,
+            Branch branch,
             boolean plainView
     ) {
         String[] nodes = filePath.split(Utils.PATH_SEPARATOR_REGEX);
 
         Long directoryId = null;
-        StringBuilder parentPath = new StringBuilder();
+        String branchPath = (branch != null) ? Utils.sepAtEnd(branch.getName()) : "";
+        StringBuilder parentPath = new StringBuilder(branchPath);
         for (String node : nodes) {
             if (StringUtils.isEmpty(node) || node.equals(nodes[nodes.length - 1])) {
                 continue;
@@ -46,8 +48,8 @@ public class ProjectUtils {
                 request.setName(node);
                 if (directoryId != null) {
                     request.setDirectoryId(directoryId);
-                } else {
-                    request.setBranchId(branchId);
+                } else if (branch != null) {
+                    request.setBranchId(branch.getId());
                 }
                 directoryId = createDirectory(out, directoryIdMap, client, request, parentPath.toString(), plainView);
             }

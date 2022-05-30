@@ -87,7 +87,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             .map(Branch::getId)
             .orElse(null);
         project.setFiles(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
-            .listFiles(this.projectId, branchId, null, null, null, limit, offset)));
+            .listFiles(this.projectId, branchId, null, null, true, limit, offset)));
         project.setDirectories(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
             .listDirectories(this.projectId, branchId, null, null, limit, offset)));
     }

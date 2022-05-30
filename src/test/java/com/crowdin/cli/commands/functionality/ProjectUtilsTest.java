@@ -38,7 +38,7 @@ public class ProjectUtilsTest {
                 put(Utils.normalizePath("folder/folder2/"), 102L);
             }};
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
-        Long branch = null;
+        Branch branch = null;
 
         long resultDirectoryId = ProjectUtils.createPath(Outputter.getDefault(), client, directoriesIdMap, filePath, branch, false);
 
@@ -51,7 +51,7 @@ public class ProjectUtilsTest {
         client = mock(ProjectClient.class);
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>();
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
-        Long branch = null;
+        Branch branch = null;
         AddDirectoryRequest request1 = new AddDirectoryRequest() {{
                 setName("folder");
             }};
@@ -81,7 +81,7 @@ public class ProjectUtilsTest {
                 put(Utils.normalizePath("folder/"), 101L);
             }};
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
-        Long branch = null;
+        Branch branch = null;
         AddDirectoryRequest request = new AddDirectoryRequest() {{
                 setName("folder2");
                 setDirectoryId(101L);
@@ -101,13 +101,13 @@ public class ProjectUtilsTest {
     public void testCreatePath_PathExists_WithBranch() {
         client = mock(ProjectClient.class);
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>() {{
-                put(Utils.normalizePath("folder/"), 101L);
-                put(Utils.normalizePath("folder/folder2/"), 102L);
+                put(Utils.normalizePath("branch/folder/"), 101L);
+                put(Utils.normalizePath("branch/folder/folder2/"), 102L);
             }};
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
         Branch branch = BranchBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers("branch", 301L).build();
 
-        long resultDirectoryId = ProjectUtils.createPath(Outputter.getDefault(), client, directoriesIdMap, filePath, branch.getId(), false);
+        long resultDirectoryId = ProjectUtils.createPath(Outputter.getDefault(), client, directoriesIdMap, filePath, branch, false);
 
         assertEquals(102L, resultDirectoryId, "Directory id is not correct");
         verifyZeroInteractions(client);
@@ -134,7 +134,7 @@ public class ProjectUtilsTest {
             .thenReturn(DirectoryBuilder.standard().setProjectId(PROJECT_ID)
                 .setIdentifiers("folder2", 102L, 101L, branch.getId()).build());
 
-        long resultDirectoryId = ProjectUtils.createPath(Outputter.getDefault(), client, directoriesIdMap, filePath, branch.getId(), false);
+        long resultDirectoryId = ProjectUtils.createPath(Outputter.getDefault(), client, directoriesIdMap, filePath, branch, false);
 
         assertEquals(102L, resultDirectoryId, "Directory id is not correct");
         verify(client).addDirectory(eq(request1));
@@ -146,7 +146,7 @@ public class ProjectUtilsTest {
     public void testCreatePath_HalfPathNotExists_WithBranch() throws ResponseException {
         client = mock(ProjectClient.class);
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>() {{
-                put(Utils.normalizePath("folder/"), 101L);
+                put(Utils.normalizePath("branch/folder/"), 101L);
             }};
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
         Branch branch = BranchBuilder.standard().setProjectId(PROJECT_ID).setIdentifiers("branch", 301L).build();
@@ -158,7 +158,7 @@ public class ProjectUtilsTest {
             .thenReturn(DirectoryBuilder.standard().setProjectId(PROJECT_ID)
                 .setIdentifiers("folder2", 102L, 101L, branch.getId()).build());
 
-        long resultDirectoryId = ProjectUtils.createPath(Outputter.getDefault(), client, directoriesIdMap, filePath, branch.getId(), false);
+        long resultDirectoryId = ProjectUtils.createPath(Outputter.getDefault(), client, directoriesIdMap, filePath, branch, false);
 
         assertEquals(102L, resultDirectoryId, "Directory id is not correct");
         verify(client).addDirectory(eq(request));
@@ -170,7 +170,7 @@ public class ProjectUtilsTest {
         client = mock(ProjectClient.class);
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>();
         String filePath = Utils.normalizePath("folder/folder2/file.txt");
-        Long branch = null;
+        Branch branch = null;
         when(client.addDirectory(any())).thenThrow(new RuntimeException("Error while creating directory"));
 
         assertThrows(RuntimeException.class,
@@ -185,7 +185,7 @@ public class ProjectUtilsTest {
         client = mock(ProjectClient.class);
         Map<String, Long> directoriesIdMap = new HashMap<String, Long>();
         String filePath = Utils.normalizePath("folder/file.txt");
-        Long branch = null;
+        Branch branch = null;
         AddDirectoryRequest request1 = new AddDirectoryRequest() {{
                 setName("folder");
             }};

@@ -58,6 +58,10 @@ public class CrowdinProjectFull extends CrowdinProject {
         return Optional.ofNullable(currentBranch).map(Branch::getId);
     }
 
+    public Optional<Branch> getCurrentBranch() {
+        return Optional.ofNullable(currentBranch);
+    }
+
     public Map<Long, Directory> getDirectories() {
         return directories
             .stream()

@@ -23,6 +23,7 @@ import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
+import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.ExportOptions;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcefiles.model.ImportOptions;
@@ -70,10 +71,11 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
     @Override
     public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
         BranchLogic<CrowdinProjectFull> branchLogic = (branchName != null)
-            ? BranchLogic.createIfAbsent(branchName, client, out, plainView)
+            ? BranchLogic.createIfAbsent(branchName, client, plainView)
             : BranchLogic.noBranch();
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, this.plainView, () -> client.downloadFullProject(branchLogic));
+        branchLogic.printResults(out);
 
         boolean containsExcludedLanguages = pb.getFiles().stream()
             .map(FileBean::getExcludedTargetLanguages).filter(Objects::nonNull).anyMatch(l -> !l.isEmpty());
@@ -88,17 +90,17 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
 
-        Long branchId = project.getCurrentBranchId().orElse(null);
+        Branch branch = project.getCurrentBranch().orElse(null);
 
-        Map<String, Long> directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories())
+        Map<String, Long> directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
                 .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFileInfos());
+        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
 
         DeleteObsoleteProjectFilesSubAction deleteObsoleteProjectFilesSubAction = new DeleteObsoleteProjectFilesSubAction(out, client);
         if (deleteObsolete) {
-            Map<String, Long> directories = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories())
+            Map<String, Long> directories = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
                 .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-            Map<String, com.crowdin.client.sourcefiles.model.File> projectFiles = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFiles());
+            Map<String, com.crowdin.client.sourcefiles.model.File> projectFiles = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
             deleteObsoleteProjectFilesSubAction.setData(projectFiles, directories, pb.getPreserveHierarchy(), this.plainView);
         }
 
@@ -168,19 +170,20 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                         final String filePath = (file.getDest() != null)
                                 ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil)
                                 : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
+                        final String fullFilePath = (branch != null ? Utils.sepAtEnd(branch.getName()) : "") + filePath;
 
                         synchronized (uploadedSources) {
-                            if (uploadedSources.contains(filePath)) {
+                            if (uploadedSources.contains(fullFilePath)) {
                                 return (plainView)
                                     ? (Runnable) () -> { } // print nothing
                                     : (Runnable) () -> out.println(WARNING.withIcon(
                                         String.format(RESOURCE_BUNDLE.getString("message.already_uploaded"),
-                                            filePath)));
+                                            fullFilePath)));
                             }
-                            uploadedSources.add(filePath);
+                            uploadedSources.add(fullFilePath);
                         }
 
-                        FileInfo projectFile = paths.get(filePath);
+                        FileInfo projectFile = paths.get(fullFilePath);
                         if (autoUpdate && projectFile != null) {
                             final UpdateFileRequest request = new UpdateFileRequest();
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
@@ -214,18 +217,18 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     }
                                     if (!plainView) {
                                         out.println(
-                                            OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath)));
+                                            OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fullFilePath)));
                                     } else {
-                                        out.println(filePath);
+                                        out.println(fullFilePath);
                                     }
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
-                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), filePath), e);
+                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fullFilePath), e);
                                 }
                             };
                         } else if (projectFile == null) {
                             final AddFileRequest request = new AddFileRequest();
-                            request.setName(Utils.getFilename(filePath));
+                            request.setName(Utils.getFilename(fullFilePath));
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
                             request.setImportOptions(buildImportOptions(sourceFile, file, srxStorageId));
                             if (file.getExcludedTargetLanguages() != null && !file.getExcludedTargetLanguages().isEmpty()) {
@@ -242,7 +245,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             return (Runnable) () -> {
                                 Long directoryId = null;
                                 try {
-                                    directoryId = ProjectUtils.createPath(out, client, directoryPaths, filePath, branchId, plainView);
+                                    directoryId = ProjectUtils.createPath(out, client, directoryPaths, filePath, branch, plainView);
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.creating_directories"), e);
@@ -250,8 +253,8 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
                                 if (directoryId != null) {
                                     request.setDirectoryId(directoryId);
-                                } else {
-                                    request.setBranchId(branchId);
+                                } else if (branch != null) {
+                                    request.setBranchId(branch.getId());
                                 }
 
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
@@ -265,22 +268,22 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     client.addSource(request);
                                 } catch (ExistsResponseException e) {
                                     errorsPresented.set(true);
-                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_already_exists"), filePath));
+                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_already_exists"), fullFilePath));
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
-                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), filePath), e);
+                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fullFilePath), e);
                                 }
                                 if (!plainView) {
-                                    out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), filePath)));
+                                    out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fullFilePath)));
                                 } else {
-                                    out.println(filePath);
+                                    out.println(fullFilePath);
                                 }
                             };
                         } else {
                             return (Runnable) () -> {
                                 if (!plainView) {
                                     out.println(SKIPPED.withIcon(String.format(
-                                        RESOURCE_BUNDLE.getString("message.uploading_file"), filePath)));
+                                        RESOURCE_BUNDLE.getString("message.uploading_file"), fullFilePath)));
                                 }
                             };
                         }

@@ -9,31 +9,48 @@ import com.crowdin.client.sourcefiles.model.Branch;
 import java.util.Optional;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
 
 public interface BranchLogic<T> {
 
     Optional<Branch> acquireBranch(T project);
 
+    default void printResults(Outputter out) {
+        // do nothing
+    }
+
     static <T> BranchLogic<T> noBranch() {
         return project -> Optional.empty();
     }
 
-    static BranchLogic<CrowdinProjectFull> createIfAbsent(String branchName, ProjectClient client, Outputter out, boolean plainView) {
-        return project -> {
-            Optional<Branch> branchOpt = project.findBranchByName(branchName);
-            if (branchOpt.isPresent()) {
-                if (!plainView) {
-                    out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch_already_exists"), branchName)));
+    static BranchLogic<CrowdinProjectFull> createIfAbsent(String branchName, ProjectClient client, boolean plainView) {
+        return new BranchLogic<CrowdinProjectFull>() {
+
+            private String status;
+
+            @Override
+            public Optional<Branch> acquireBranch(CrowdinProjectFull project) {
+                Optional<Branch> branchOpt = project.findBranchByName(branchName);
+                if (branchOpt.isPresent()) {
+                    if (!plainView) {
+                        status = SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch_already_exists"), branchName));
+                    }
+                } else {
+                    branchOpt = Optional.of(client.addBranch(RequestBuilder.addBranch(branchName, null, null, null)));
+                    if (!plainView) {
+                        status = OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branchName));
+                    }
                 }
+                project.setCurrentBranch(branchOpt.get());
                 return branchOpt;
-            } else {
-                Branch createdBranch = client.addBranch(RequestBuilder.addBranch(branchName, null, null, null));
-                if (!plainView) {
-                    out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branchName)));
+            }
+
+            @Override
+            public void printResults(Outputter out) {
+                if (status != null) {
+                    out.println(status);
                 }
-                project.setCurrentBranch(createdBranch);
-                return Optional.of(createdBranch);
             }
         };
     }
