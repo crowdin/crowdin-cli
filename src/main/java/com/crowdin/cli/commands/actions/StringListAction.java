@@ -52,7 +52,9 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         Map<Long, String> labels = client.listLabels().stream()
             .collect(Collectors.toMap(Label::getId, Label::getTitle));
 
-        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFileInfos());
+        Map<String, FileInfo> paths = (branchId != null)
+            ? ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFileInfos())
+            : ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
         Map<Long, String> reversePaths = paths.entrySet()
             .stream()
             .collect(Collectors.toMap((entry) -> entry.getValue().getId(), Map.Entry::getKey));

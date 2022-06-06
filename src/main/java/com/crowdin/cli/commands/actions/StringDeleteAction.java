@@ -37,7 +37,7 @@ class StringDeleteAction implements NewAction<ProjectProperties, ProjectClient> 
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, () -> client.downloadFullProject(branchLogic));
 
-        Map<Long, String> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFiles())
+        Map<Long, String> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles())
             .entrySet()
             .stream()
             .collect(Collectors.toMap((entry) -> entry.getValue().getId(), Map.Entry::getKey));

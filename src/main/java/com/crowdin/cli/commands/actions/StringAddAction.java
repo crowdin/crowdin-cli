@@ -58,7 +58,7 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
             client.addSourceString(request);
             out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.source_string_uploaded")));
         } else {
-            Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFileInfos());
+            Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
             boolean containsError = false;
             for (String file : files) {
                 if (!paths.containsKey(file)) {

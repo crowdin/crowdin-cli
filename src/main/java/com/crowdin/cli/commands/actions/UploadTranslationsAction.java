@@ -19,6 +19,7 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import org.apache.commons.lang3.StringUtils;
@@ -30,6 +31,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -81,11 +83,15 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
             }
         }
 
+        Optional<String> branchName = project.getCurrentBranch().map(Branch::getName);
+
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
         LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
-        Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFiles());
+        Map<String, File> paths = branchName.isPresent()
+            ? ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFiles())
+            : ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
 
         List<Language> languages = (languageId != null)
             ? project.findLanguageById(languageId, true)
@@ -112,10 +118,11 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
 
             Map<java.io.File, Pair<List<Language>, UploadTranslationsRequest>> preparedRequests = new HashMap<>();
             AtomicBoolean containsErrors = new AtomicBoolean(false);
+            String branchPart = branchName.map(Utils::sepAtEnd).orElse("");
             fileSourcesWithoutIgnores.forEach(source -> {
-                String filePath = StringUtils.isNotEmpty(file.getDest())
+                String filePath = branchPart + (StringUtils.isNotEmpty(file.getDest())
                     ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil)
-                    : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
+                    : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
 
                 if (!paths.containsKey(filePath)) {
                     containsErrors.set(true);
