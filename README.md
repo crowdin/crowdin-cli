@@ -1,6 +1,6 @@
-[<p align="center"><img src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" data-canonical-src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" width="200" height="200" align="center"/></p>](https://crowdin.com)
+[<p align="center"><img src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" data-canonical-src="https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png" width="150" height="150" align="center"/></p>](https://crowdin.com)
 
-# Crowdin CLI [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?url=https%3A%2F%2Fgithub.com%2Fcrowdin%2Fcrowdin-cli&text=Crowdin%20CLI%20is%20an%20open-source%20command-line%20tool%20that%20allows%20you%20to%20manage%20and%20synchronize%20your%20localization%20resources%20with%20your%20Crowdin%20project)
+# Crowdin CLI [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?url=https%3A%2F%2Fgithub.com%2Fcrowdin%2Fcrowdin-cli&text=Crowdin%20CLI%20is%20an%20open-source%20command-line%20tool%20that%20allows%20you%20to%20manage%20and%20synchronize%20your%20localization%20resources%20with%20your%20Crowdin%20project)&nbsp;[![GitHub Repo stars](https://img.shields.io/github/stars/crowdin/crowdin-cli?style=social&cacheSeconds=1800)](https://github.com/crowdin/crowdin-cli/stargazers)
 
 Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project. Using CLI, you can:
 
@@ -11,7 +11,11 @@ Crowdin CLI is a command line tool that allows you to manage and synchronize you
 
 This is a cross-platform and it runs in a terminal on Linux based and macOS operating systems or in Command Prompt on Windows.
 
-## Status
+<div align="center">
+
+[**`Docs`**](https://developer.crowdin.com/cli-tool/) | 
+[**`Configuration File`**](https://developer.crowdin.com/configuration-file/) | 
+[**`Wiki`**](https://github.com/crowdin/crowdin-cli/wiki)
 
 [![Build Status](https://dev.azure.com/crowdin/crowdin-cli-3/_apis/build/status/Build%20and%20Test?branchName=cli3)](https://dev.azure.com/crowdin/crowdin-cli-3/_build/latest?definitionId=22&branchName=cli3&cacheSeconds=1000)
 [![Docker Pulls](https://img.shields.io/docker/pulls/crowdin/cli?logo=docker&cacheSeconds=2000)](https://hub.docker.com/r/crowdin/cli)
@@ -23,6 +27,8 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 ![Azure DevOps tests (branch)](https://img.shields.io/azure-devops/tests/crowdin/crowdin-cli-3/22/cli3?cacheSeconds=2000)
 [![codecov](https://codecov.io/gh/crowdin/crowdin-cli/branch/cli3/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli)
 
+ </div>
+ 
 ## Table of Contents
 
 * [Features](#features)
