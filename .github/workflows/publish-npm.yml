@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: '12.x'
-      - run: sudo npm install jdeploy@2.0.11 -g
+      - run: sudo npm install jdeploy@3.2.0 -g
       - run: npm install
       - run: jdeploy install
       - run: crowdin -V

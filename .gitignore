@@ -9,3 +9,4 @@ crowdin.yml
 dist
 jdeploy-bundle
 node_modules
+.DS_Store
