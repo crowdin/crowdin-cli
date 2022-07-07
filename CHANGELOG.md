@@ -5,7 +5,6 @@ All notable changes to this project will be documented in this file.
 
 ### Updated
 
-- Improve branch logic ([#447](https://github.com/crowdin/crowdin-cli/pull/447))
 - Support language ID in list languages command ([#454](https://github.com/crowdin/crowdin-cli/pull/454))
 - Update jDeploy ([#437](https://github.com/crowdin/crowdin-cli/pull/437))
 - Dependencies update ([#442](https://github.com/crowdin/crowdin-cli/pull/442))
