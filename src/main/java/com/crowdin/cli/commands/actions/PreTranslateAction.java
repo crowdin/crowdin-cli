@@ -20,10 +20,13 @@ import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
 import com.crowdin.client.translations.model.AutoApproveOption;
 import com.crowdin.client.translations.model.Method;
 import com.crowdin.client.translations.model.PreTranslationStatus;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.graalvm.util.CollectionsUtil;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -71,6 +74,12 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
 
         List<String> languages = this.prepareLanguageIds(project);
         List<Long> fileIds = this.prepareFileIds(out, properties, project);
+
+        if(CollectionUtils.isEmpty(fileIds)) {
+            throw new RuntimeException(
+                    String.format(RESOURCE_BUNDLE.getString("error.files.is.empty")));
+        }
+
         ApplyPreTranslationRequest request = RequestBuilder.applyPreTranslation(
             languages, fileIds, method, engineId, autoApproveOption,
             duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly);
