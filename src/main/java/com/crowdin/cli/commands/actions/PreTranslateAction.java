@@ -75,7 +75,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         List<String> languages = this.prepareLanguageIds(project);
         List<Long> fileIds = this.prepareFileIds(out, properties, project);
 
-        if(CollectionUtils.isEmpty(fileIds)) {
+        if(fileIds == null || fileIds.isEmpty()){
             throw new RuntimeException(
                     String.format(RESOURCE_BUNDLE.getString("error.files.is.empty")));
         }
