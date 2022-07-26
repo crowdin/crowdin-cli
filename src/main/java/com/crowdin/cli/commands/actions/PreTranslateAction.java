@@ -71,6 +71,11 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
 
         List<String> languages = this.prepareLanguageIds(project);
         List<Long> fileIds = this.prepareFileIds(out, properties, project);
+
+        if (fileIds == null || fileIds.isEmpty()) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.no_files_found_for_pre_translate")));
+        }
+
         ApplyPreTranslationRequest request = RequestBuilder.applyPreTranslation(
             languages, fileIds, method, engineId, autoApproveOption,
             duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly);
