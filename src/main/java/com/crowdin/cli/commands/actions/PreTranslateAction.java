@@ -46,10 +46,8 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
     private boolean verbose;
     private boolean plainView;
 
-    public PreTranslateAction(
-            List<String> languageIds, Method method, Long engineId, String branchName, AutoApproveOption autoApproveOption, Boolean duplicateTranslations,
-            Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress, boolean debug, boolean verbose, boolean plainView
-    ) {
+    public PreTranslateAction(List<String> languageIds, Method method, Long engineId, String branchName, AutoApproveOption autoApproveOption, Boolean duplicateTranslations,
+                              Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress, boolean debug, boolean verbose, boolean plainView) {
         this.languageIds = languageIds;
         this.method = method;
         this.engineId = engineId;
@@ -73,8 +71,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         List<Long> fileIds = this.prepareFileIds(out, properties, project);
 
         if (fileIds == null || fileIds.isEmpty()) {
-            throw new RuntimeException(
-                    String.format(RESOURCE_BUNDLE.getString("error.no_files_found_for_pre_translate")));
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.no_files_found_for_pre_translate")));
         }
 
         ApplyPreTranslationRequest request = RequestBuilder.applyPreTranslation(
