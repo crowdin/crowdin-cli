@@ -65,7 +65,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
     @Override
     public void act(Outputter out, PropertiesWithFiles properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress, this.plainView, client::downloadFullProject);
+            this.noProgress, this.plainView, client::downloadFullProject);
 
         List<String> languages = this.prepareLanguageIds(project);
         List<Long> fileIds = this.prepareFileIds(out, properties, project);
@@ -75,26 +75,26 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         }
 
         ApplyPreTranslationRequest request = RequestBuilder.applyPreTranslation(
-                languages, fileIds, method, engineId, autoApproveOption,
-                duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly);
+            languages, fileIds, method, engineId, autoApproveOption,
+            duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly);
         this.applyPreTranslation(out, client, request);
 
     }
 
     private List<String> prepareLanguageIds(CrowdinProjectInfo projectInfo) {
         List<String> projectLanguages = projectInfo.getProjectLanguages(false).stream()
-                .map(Language::getId)
-                .collect(Collectors.toList());
+            .map(Language::getId)
+            .collect(Collectors.toList());
         if (languageIds.size() == 1 && BaseCli.ALL.equals(languageIds.get(0))) {
             return projectLanguages;
         } else {
             String wrongLanguageIds = languageIds.stream()
-                    .filter(langId -> !projectLanguages.contains(langId))
-                    .map(id -> "'" + id + "'")
-                    .collect(Collectors.joining(", "));
+                .filter(langId -> !projectLanguages.contains(langId))
+                .map(id -> "'" + id + "'")
+                .collect(Collectors.joining(", "));
             if (!wrongLanguageIds.isEmpty()) {
                 throw new RuntimeException(
-                        String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), wrongLanguageIds));
+                    String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), wrongLanguageIds));
             }
             return languageIds;
         }
@@ -104,18 +104,18 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
         List<String> sourcePaths = pb.getFiles().stream()
-                .flatMap(file -> {
-                    List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
-                            .map(File::getAbsolutePath)
-                            .collect(Collectors.toList());
-                    String commonPath = (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
-                    return sources.stream()
-                            .map(source -> (file.getDest() != null)
-                                    ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil) : StringUtils.removeStart(source, pb.getBasePath() + commonPath))
-                            .map(source -> (branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + source);
-                })
-                .distinct()
-                .collect(Collectors.toList());
+            .flatMap(file -> {
+                List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
+                    .map(File::getAbsolutePath)
+                    .collect(Collectors.toList());
+                String commonPath = (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
+                return sources.stream()
+                    .map(source -> (file.getDest() != null)
+                        ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil) : StringUtils.removeStart(source, pb.getBasePath() + commonPath))
+                    .map(source -> (branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + source);
+            })
+            .distinct()
+            .collect(Collectors.toList());
         List<String> onlyLocalSources = new ArrayList<>();
         List<String> foundSources = new ArrayList<>();
         for (String sourcePath : sourcePaths) {
@@ -134,9 +134,9 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
             }
         }
         return foundSources.stream()
-                .map(paths::get)
-                .map(FileInfo::getId)
-                .collect(Collectors.toList());
+            .map(paths::get)
+            .map(FileInfo::getId)
+            .collect(Collectors.toList());
     }
 
     private PreTranslationStatus applyPreTranslation(Outputter out, ProjectClient client, ApplyPreTranslationRequest request) {
@@ -145,8 +145,8 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
 
             while (!preTranslationStatus.getStatus().equalsIgnoreCase("finished")) {
                 ConsoleSpinner.update(
-                        String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_percents"),
-                                Math.toIntExact(preTranslationStatus.getProgress())));
+                    String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_percents"),
+                        Math.toIntExact(preTranslationStatus.getProgress())));
                 Thread.sleep(100);
                 preTranslationStatus = client.checkPreTranslation(preTranslationStatus.getIdentifier());
             }
