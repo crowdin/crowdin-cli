@@ -139,7 +139,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
             .collect(Collectors.toList());
     }
 
-    private PreTranslationStatus applyPreTranslation(Outputter out, ProjectClient client, ApplyPreTranslationRequest request) {
+    private PreTranslationStatus applyPreTranslation(Outputter out, ProjectClient client,ApplyPreTranslationRequest request) {
         return ConsoleSpinner.execute(out, "message.spinner.pre_translate", "error.spinner.pre_translate", this.noProgress, this.plainView, () -> {
             PreTranslationStatus preTranslationStatus = client.startPreTranslation(request);
 
