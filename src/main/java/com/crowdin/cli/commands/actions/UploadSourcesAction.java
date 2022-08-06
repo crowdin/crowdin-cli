@@ -308,6 +308,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             SpreadsheetFileImportOptions importOptions = new SpreadsheetFileImportOptions();
             importOptions.setFirstLineContainsHeader(fileBean.getFirstLineContainsHeader());
             importOptions.setScheme(PropertiesBeanUtils.getSchemeObject(fileBean.getScheme()));
+            importOptions.setImportTranslations(fileBean.getImportTranslation());
             return importOptions;
         } else if (isXml(sourceFile)) {
             XmlFileImportOptions importOptions = new XmlFileImportOptions();

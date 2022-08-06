@@ -11,31 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.properties.PropertiesBuilder.CONTENT_SEGMENTATION;
-import static com.crowdin.cli.properties.PropertiesBuilder.CUSTOM_SEGMENTATION;
-import static com.crowdin.cli.properties.PropertiesBuilder.DEST;
-import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_QUOTES;
-import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_SPECIAL_CHARACTERS;
-import static com.crowdin.cli.properties.PropertiesBuilder.EXCLUDED_TARGET_LANGUAGES;
-import static com.crowdin.cli.properties.PropertiesBuilder.EXPORT_APPROVED_ONLY;
-import static com.crowdin.cli.properties.PropertiesBuilder.FIRST_LINE_CONTAINS_HEADER;
-import static com.crowdin.cli.properties.PropertiesBuilder.IGNORE;
-import static com.crowdin.cli.properties.PropertiesBuilder.LABELS;
-import static com.crowdin.cli.properties.PropertiesBuilder.LANGUAGES_MAPPING;
-import static com.crowdin.cli.properties.PropertiesBuilder.MULTILINGUAL_SPREADSHEET;
-import static com.crowdin.cli.properties.PropertiesBuilder.SCHEME;
-import static com.crowdin.cli.properties.PropertiesBuilder.SKIP_UNTRANSLATED_FILES;
-import static com.crowdin.cli.properties.PropertiesBuilder.SKIP_UNTRANSLATED_STRINGS;
-import static com.crowdin.cli.properties.PropertiesBuilder.SOURCE;
-import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATABLE_ELEMENTS;
-import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATE_ATTRIBUTES;
-import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATE_CONTENT;
-import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATION;
-import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATION_REPLACE;
-import static com.crowdin.cli.properties.PropertiesBuilder.TYPE;
-import static com.crowdin.cli.properties.PropertiesBuilder.UPDATE_OPTION;
-import static com.crowdin.cli.properties.PropertiesBuilder.checkForDoubleAsterisks;
-import static com.crowdin.cli.properties.PropertiesBuilder.hasRelativePaths;
+import static com.crowdin.cli.properties.PropertiesBuilder.*;
 
 @Data
 public class FileBean {
@@ -65,6 +41,7 @@ public class FileBean {
     private List<String> labels;
     private List<String> excludedTargetLanguages;
     private String customSegmentation;
+    private Boolean importTranslation;
 
     static class FileBeanConfigurator implements BeanConfigurator<FileBean> {
 
@@ -98,6 +75,7 @@ public class FileBean {
             PropertiesBuilder.setPropertyIfExists(fileBean::setLabels,                    map, LABELS, List.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setExcludedTargetLanguages,   map, EXCLUDED_TARGET_LANGUAGES, List.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setCustomSegmentation,        map, CUSTOM_SEGMENTATION, String.class);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setImportTranslation, map, IMPORT_TRANSLATION);
             return fileBean;
         }
 
@@ -148,6 +126,10 @@ public class FileBean {
             }
             if (bean.getCustomSegmentation() != null) {
                 bean.setCustomSegmentation(Utils.normalizePath(bean.getCustomSegmentation()));
+            }
+
+            if(bean.getImportTranslation() == null) {
+                bean.setImportTranslation(Boolean.FALSE);
             }
         }
 
