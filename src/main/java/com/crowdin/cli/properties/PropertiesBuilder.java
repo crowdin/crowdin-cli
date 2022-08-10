@@ -122,6 +122,8 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String CONFIG_FILE_PATH = "config_file_path";
 
+    public static final String IMPORT_TRANSLATIONS = "import_translations";
+
     private Outputter out;
     private Map<String, Object> configFileParams;
     private Map<String, Object> identityFileParams;

@@ -34,6 +34,7 @@ import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATION;
 import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATION_REPLACE;
 import static com.crowdin.cli.properties.PropertiesBuilder.TYPE;
 import static com.crowdin.cli.properties.PropertiesBuilder.UPDATE_OPTION;
+import static com.crowdin.cli.properties.PropertiesBuilder.IMPORT_TRANSLATIONS;
 import static com.crowdin.cli.properties.PropertiesBuilder.checkForDoubleAsterisks;
 import static com.crowdin.cli.properties.PropertiesBuilder.hasRelativePaths;
 
@@ -65,6 +66,7 @@ public class FileBean {
     private List<String> labels;
     private List<String> excludedTargetLanguages;
     private String customSegmentation;
+    private Boolean importTranslations;
 
     static class FileBeanConfigurator implements BeanConfigurator<FileBean> {
 
@@ -98,6 +100,7 @@ public class FileBean {
             PropertiesBuilder.setPropertyIfExists(fileBean::setLabels,                    map, LABELS, List.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setExcludedTargetLanguages,   map, EXCLUDED_TARGET_LANGUAGES, List.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setCustomSegmentation,        map, CUSTOM_SEGMENTATION, String.class);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setImportTranslations, map, IMPORT_TRANSLATIONS);
             return fileBean;
         }
 
@@ -148,6 +151,10 @@ public class FileBean {
             }
             if (bean.getCustomSegmentation() != null) {
                 bean.setCustomSegmentation(Utils.normalizePath(bean.getCustomSegmentation()));
+            }
+
+            if (bean.getImportTranslations() == null) {
+                bean.setImportTranslations(Boolean.FALSE);
             }
         }
 

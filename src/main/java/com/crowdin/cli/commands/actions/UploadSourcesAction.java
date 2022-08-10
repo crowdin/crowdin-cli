@@ -38,7 +38,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.List;
@@ -308,6 +307,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             SpreadsheetFileImportOptions importOptions = new SpreadsheetFileImportOptions();
             importOptions.setFirstLineContainsHeader(fileBean.getFirstLineContainsHeader());
             importOptions.setScheme(PropertiesBeanUtils.getSchemeObject(fileBean.getScheme()));
+            importOptions.setImportTranslations(fileBean.getImportTranslations());
             return importOptions;
         } else if (isXml(sourceFile)) {
             XmlFileImportOptions importOptions = new XmlFileImportOptions();
