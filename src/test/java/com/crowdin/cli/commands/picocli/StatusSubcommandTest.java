@@ -13,7 +13,7 @@ public class StatusSubcommandTest extends PicocliTestUtils {
     public void testStatus() {
         this.execute(CommandNames.STATUS);
         verify(actionsMock)
-            .status(anyBoolean(), any(), any(), anyBoolean(), eq(true), eq(true));
+            .status(anyBoolean(), any(), any(), anyBoolean(), eq(true), eq(true), anyBoolean());
         this.check(true);
     }
 }

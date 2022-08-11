@@ -20,6 +20,6 @@ class StatusTranslationSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.status(noProgress, branchName, languageId, isVerbose, true, false);
+        return actions.status(noProgress, branchName, languageId, isVerbose, true, false, false);
     }
 }

@@ -24,6 +24,6 @@ class StatusSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.status(noProgress, branchName, languageId, isVerbose, true, true);
+        return actions.status(noProgress, branchName, languageId, isVerbose, true, true, false);
     }
 }

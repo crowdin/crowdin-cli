@@ -20,6 +20,6 @@ class StatusProofreadingSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.status(noProgress, branchName, languageId, isVerbose, false, true);
+        return actions.status(noProgress, branchName, languageId, isVerbose, false, true, false);
     }
 }
