@@ -72,9 +72,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<ProjectProperties, ProjectClient> status(
-        boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved
+        boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failedIfIncomplete
     ) {
-        return new StatusAction(noProgress, branchName, languageId, isVerbose, showTranslated, showApproved);
+        return new StatusAction(noProgress, branchName, languageId, isVerbose, showTranslated, showApproved, failedIfIncomplete);
     }
 
     @Override

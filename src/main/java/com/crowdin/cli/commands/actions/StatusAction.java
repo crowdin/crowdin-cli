@@ -10,6 +10,7 @@ import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
 
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -22,14 +23,16 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
     private boolean isVerbose;
     private boolean showTranslated;
     private boolean showApproved;
+    private boolean failedIfIncomplete;
 
-    public StatusAction(boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved) {
+    public StatusAction(boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failedIfIncomplete) {
         this.noProgress = noProgress;
         this.branchName = branchName;
         this.languageId = languageId;
         this.isVerbose = isVerbose;
         this.showTranslated = showTranslated;
         this.showApproved = showApproved;
+        this.failedIfIncomplete = failedIfIncomplete;
     }
 
     @Override
@@ -92,6 +95,15 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                     pr.getLanguageId(), pr.getApprovalProgress())));
             }
+            if (failedIfIncomplete) {
+                progresses.stream()
+                    .filter(p -> p.getApprovalProgress() <= 100)
+                    .forEach(throwException(RESOURCE_BUNDLE.getString("error.execution_contains_errors")));
+            }
         }
+    }
+
+    private Consumer<? super LanguageProgress> throwException(String msg) {
+        throw new RuntimeException(msg);
     }
 }
