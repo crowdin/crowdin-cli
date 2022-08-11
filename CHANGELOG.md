@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ### Added
 
-- `import_translations` option support for spreadsheed files ([#463](https://github.com/crowdin/crowdin-cli/pull/463))
+- `import_translations` option support for spreadsheet files ([#463](https://github.com/crowdin/crowdin-cli/pull/463))
 
 ### Updated
 
