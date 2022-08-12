@@ -18,8 +18,11 @@ class StatusProofreadingSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branchName;
 
+    @CommandLine.Option(names = {"-f", "--fail-if-incomplete"}, paramLabel = "...")
+    protected boolean failIfIncomplete;
+
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.status(noProgress, branchName, languageId, isVerbose, false, true, false);
+        return actions.status(noProgress, branchName, languageId, isVerbose, false, true, failIfIncomplete);
     }
 }
