@@ -1,6 +1,16 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.7.10]
+
+### Added
+
+- `import_translations` option support for spreadsheet files ([#463](https://github.com/crowdin/crowdin-cli/pull/463))
+
+### Updated
+
+- Improved error handling for the `pre-translate` command ([#461](https://github.com/crowdin/crowdin-cli/pull/461))
+
 ## [3.7.9]
 
 ### Updated
