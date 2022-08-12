@@ -18,7 +18,7 @@ class StatusTranslationSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branchName;
 
-    @CommandLine.Option(names = {"-f", "--fail-if-incomplete"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--fail-if-incomplete"}, paramLabel = "...")
     protected boolean failIfIncomplete;
 
     @Override
