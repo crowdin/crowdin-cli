@@ -23,16 +23,16 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
     private boolean isVerbose;
     private boolean showTranslated;
     private boolean showApproved;
-    private boolean failedIfIncomplete;
+    private boolean failIfIncomplete;
 
-    public StatusAction(boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failedIfIncomplete) {
+    public StatusAction(boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failIfIncomplete) {
         this.noProgress = noProgress;
         this.branchName = branchName;
         this.languageId = languageId;
         this.isVerbose = isVerbose;
         this.showTranslated = showTranslated;
         this.showApproved = showApproved;
-        this.failedIfIncomplete = failedIfIncomplete;
+        this.failIfIncomplete = failIfIncomplete;
     }
 
     @Override
@@ -95,10 +95,11 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                     pr.getLanguageId(), pr.getApprovalProgress())));
             }
-            if (failedIfIncomplete) {
+            if (failIfIncomplete) {
                 progresses.stream()
                     .filter(p -> p.getApprovalProgress() <= 100)
-                    .forEach(throwException(RESOURCE_BUNDLE.getString("error.execution_contains_errors")));
+                    .filter(p -> p.getTranslationProgress() <= 100)
+                    .forEach(throwException(RESOURCE_BUNDLE.getString("error.incorrect.project")));
             }
         }
     }
