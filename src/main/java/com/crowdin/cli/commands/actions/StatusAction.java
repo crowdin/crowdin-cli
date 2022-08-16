@@ -92,7 +92,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                     pr.getLanguageId(), pr.getTranslationProgress())));
 
-                throwExceptionIfIncomplete(languageProgressStreamSupplier.get().filter(p -> p.getTranslationProgress() <= 100));
+                throwExceptionIfIncomplete(languageProgressStreamSupplier.get().filter(p -> p.getTranslationProgress() < 100));
             }
             if (showTranslated && showApproved) {
                 out.println(RESOURCE_BUNDLE.getString("message.approval"));
@@ -101,10 +101,10 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                     pr.getLanguageId(), pr.getApprovalProgress())));
 
-                throwExceptionIfIncomplete(languageProgressStreamSupplier.get().filter(p -> p.getApprovalProgress() <= 100));
+                throwExceptionIfIncomplete(languageProgressStreamSupplier.get().filter(p -> p.getApprovalProgress() < 100));
             }
 
-            throwExceptionIfIncomplete(languageProgressStreamSupplier.get().filter(p -> p.getApprovalProgress() <= 100));
+            throwExceptionIfIncomplete(languageProgressStreamSupplier.get().filter(p -> p.getApprovalProgress() < 100));
         }
     }
 
