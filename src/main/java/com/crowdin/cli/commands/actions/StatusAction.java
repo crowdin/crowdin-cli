@@ -11,6 +11,7 @@ import com.crowdin.client.translationstatus.model.LanguageProgress;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -82,7 +83,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 }
             });
         } else {
-            Stream<LanguageProgress> languageProgressStream = progresses.stream();
+            Supplier<Stream<LanguageProgress>> languageProgressStreamSupplier = progresses::stream;
 
             if (showTranslated && showApproved) {
                 out.println(RESOURCE_BUNDLE.getString("message.translation"));
@@ -91,7 +92,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                     pr.getLanguageId(), pr.getTranslationProgress())));
 
-                throwExceptionIfIncomplete(languageProgressStream.filter(p -> p.getTranslationProgress() <= 100));
+                throwExceptionIfIncomplete(languageProgressStreamSupplier.get().filter(p -> p.getTranslationProgress() <= 100));
             }
             if (showTranslated && showApproved) {
                 out.println(RESOURCE_BUNDLE.getString("message.approval"));
@@ -100,10 +101,10 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                     pr.getLanguageId(), pr.getApprovalProgress())));
 
-                throwExceptionIfIncomplete(languageProgressStream.filter(p -> p.getApprovalProgress() <= 100));
+                throwExceptionIfIncomplete(languageProgressStreamSupplier.get().filter(p -> p.getApprovalProgress() <= 100));
             }
 
-            throwExceptionIfIncomplete(languageProgressStream.filter(p -> p.getApprovalProgress() <= 100));
+            throwExceptionIfIncomplete(languageProgressStreamSupplier.get().filter(p -> p.getApprovalProgress() <= 100));
         }
     }
 
