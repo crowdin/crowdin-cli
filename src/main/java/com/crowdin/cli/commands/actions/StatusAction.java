@@ -11,6 +11,7 @@ import com.crowdin.client.translationstatus.model.LanguageProgress;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -85,6 +86,11 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 out.println(RESOURCE_BUNDLE.getString("message.translation"));
             }
             if (showTranslated) {
+                if (failIfIncomplete) {
+                    progresses.stream()
+                        .filter(p -> p.getTranslationProgress() <= 100)
+                        .forEach(throwException(RESOURCE_BUNDLE.getString("error.project_is_incomplete")));
+                }
                 progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                     pr.getLanguageId(), pr.getTranslationProgress())));
             }
@@ -92,14 +98,18 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 out.println(RESOURCE_BUNDLE.getString("message.approval"));
             }
             if (showApproved) {
+                if (failIfIncomplete) {
+                    progresses.stream()
+                        .filter(p -> p.getApprovalProgress() <= 100)
+                        .forEach(throwException(RESOURCE_BUNDLE.getString("error.project_is_incomplete")));
+                }
                 progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                     pr.getLanguageId(), pr.getApprovalProgress())));
             }
             if (failIfIncomplete) {
                 progresses.stream()
                     .filter(p -> p.getApprovalProgress() <= 100)
-                    .filter(p -> p.getTranslationProgress() <= 100)
-                    .forEach(throwException(RESOURCE_BUNDLE.getString("error.incorrect.project")));
+                    .forEach(throwException(RESOURCE_BUNDLE.getString("error.project_is_incomplete")));
             }
         }
     }
