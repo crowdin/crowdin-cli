@@ -89,7 +89,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 out.println(RESOURCE_BUNDLE.getString("message.translation"));
             }
             if (showTranslated) {
-                throwExceptionIfIncomplete(languageProgressStream.filter(p -> p.getTranslationProgress() <= 100),failIfIncomplete);
+                throwExceptionIfIncomplete(languageProgressStream.filter(p -> p.getTranslationProgress() <= 100));
 
                 progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                     pr.getLanguageId(), pr.getTranslationProgress())));
@@ -98,13 +98,12 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 out.println(RESOURCE_BUNDLE.getString("message.approval"));
             }
             if (showApproved) {
-                throwExceptionIfIncomplete(languageProgressStream.filter(p -> p.getApprovalProgress() <= 100),failIfIncomplete);
+                throwExceptionIfIncomplete(languageProgressStream.filter(p -> p.getApprovalProgress() <= 100));
                 progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                     pr.getLanguageId(), pr.getApprovalProgress())));
             }
-            if (failIfIncomplete) {
-                throwExceptionIfIncomplete(languageProgressStream.filter(p -> p.getApprovalProgress() <= 100),failIfIncomplete);
-            }
+
+            throwExceptionIfIncomplete(languageProgressStream.filter(p -> p.getApprovalProgress() <= 100));
         }
     }
 
@@ -112,7 +111,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
         throw new RuntimeException(msg);
     }
 
-    private void throwExceptionIfIncomplete(Stream<LanguageProgress> languageProgressStream, boolean failIfIncomplete) {
+    private void throwExceptionIfIncomplete(Stream<LanguageProgress> languageProgressStream) {
         if (failIfIncomplete) {
             languageProgressStream.forEach(throwException(RESOURCE_BUNDLE.getString("error.project_is_incomplete")));
         }
