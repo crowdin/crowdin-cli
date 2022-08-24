@@ -83,7 +83,6 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 }
             });
         } else {
-            Supplier<Stream<LanguageProgress>> languageProgressStreamSupplier = progresses::stream;
 
             if (showTranslated && showApproved) {
                 out.println(RESOURCE_BUNDLE.getString("message.translation"));
