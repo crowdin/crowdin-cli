@@ -40,18 +40,18 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProject project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, false, client::downloadProjectWithLanguages);
+                this.noProgress, false, client::downloadProjectWithLanguages);
 
         if (languageId != null) {
             project.findLanguageById(languageId, true)
-                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)));
+                    .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)));
         }
         List<Branch> branches = client.listBranches();
         Long branchId = (branchName == null) ? null : branches.stream()
-            .filter(branch -> branchName.equals(branch.getName()))
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
-            .getId();
+                .filter(branch -> branchName.equals(branch.getName()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
+                .getId();
 
         List<LanguageProgress> progresses;
         if (branchId == null) {
@@ -60,26 +60,26 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
             progresses = client.getBranchProgress(branchId);
             if (languageId != null) {
                 progresses = progresses.stream()
-                    .filter(langProgress -> languageId.equals(langProgress.getLanguageId()))
-                    .collect(Collectors.toList());
+                        .filter(langProgress -> languageId.equals(langProgress.getLanguageId()))
+                        .collect(Collectors.toList());
             }
         }
 
         if (isVerbose) {
             progresses.forEach(pr -> {
                 out.println(String.format(RESOURCE_BUNDLE.getString("message.language"),
-                    project.findLanguageById(pr.getLanguageId(), true).get().getName(), pr.getLanguageId()));
+                        project.findLanguageById(pr.getLanguageId(), true).get().getName(), pr.getLanguageId()));
                 if (showTranslated) {
                     out.println(String.format(RESOURCE_BUNDLE.getString("message.translation_progress"),
-                        pr.getTranslationProgress(),
-                        pr.getWords().getTranslated(), pr.getWords().getTotal(),
-                        pr.getPhrases().getTranslated(), pr.getPhrases().getTotal()));
+                            pr.getTranslationProgress(),
+                            pr.getWords().getTranslated(), pr.getWords().getTotal(),
+                            pr.getPhrases().getTranslated(), pr.getPhrases().getTotal()));
                 }
                 if (showApproved) {
                     out.println(String.format(RESOURCE_BUNDLE.getString("message.approval_progress"),
-                        pr.getApprovalProgress(),
-                        pr.getWords().getApproved(), pr.getWords().getTotal(),
-                        pr.getPhrases().getApproved(), pr.getPhrases().getTotal()));
+                            pr.getApprovalProgress(),
+                            pr.getWords().getApproved(), pr.getWords().getTotal(),
+                            pr.getPhrases().getApproved(), pr.getPhrases().getTotal()));
                 }
             });
         } else {
@@ -90,21 +90,21 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
             }
             if (showTranslated) {
                 progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
-                    pr.getLanguageId(), pr.getTranslationProgress())));
+                        pr.getLanguageId(), pr.getTranslationProgress())));
 
-                throwExceptionIfIncomplete(languageProgressStreamSupplier.get().filter(p -> p.getTranslationProgress() < 100));
+                throwExceptionIfIncomplete(progresses.stream().filter(p -> p.getTranslationProgress() < 100).collect(Collectors.toList()));
+            } else {
+                throwExceptionIfIncomplete(languageProgressStreamSupplier.get().filter(p -> p.getApprovalProgress() < 100).collect(Collectors.toList()));
             }
             if (showTranslated && showApproved) {
                 out.println(RESOURCE_BUNDLE.getString("message.approval"));
             }
             if (showApproved) {
                 progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
-                    pr.getLanguageId(), pr.getApprovalProgress())));
+                        pr.getLanguageId(), pr.getApprovalProgress())));
 
-                throwExceptionIfIncomplete(languageProgressStreamSupplier.get().filter(p -> p.getApprovalProgress() < 100));
+                throwExceptionIfIncomplete(progresses.stream().filter(p -> p.getApprovalProgress() < 100).collect(Collectors.toList()));
             }
-
-            throwExceptionIfIncomplete(languageProgressStreamSupplier.get().filter(p -> p.getApprovalProgress() < 100));
         }
     }
 
@@ -112,8 +112,8 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
         throw new RuntimeException(msg);
     }
 
-    private void throwExceptionIfIncomplete(Stream<LanguageProgress> languageProgressStream) {
-        if (failIfIncomplete) {
+    private void throwExceptionIfIncomplete(List<LanguageProgress> languageProgressStream) {
+        if (failIfIncomplete && languageProgressStream.size() > 0) {
             languageProgressStream.forEach(throwException(RESOURCE_BUNDLE.getString("error.project_is_incomplete")));
         }
     }
