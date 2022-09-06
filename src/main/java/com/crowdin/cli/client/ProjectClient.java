@@ -7,7 +7,9 @@ import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
+import com.crowdin.client.sourcefiles.model.BuildReviewedSourceFilesRequest;
 import com.crowdin.client.sourcefiles.model.Directory;
+import com.crowdin.client.sourcefiles.model.ReviewedStringsBuild;
 import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
@@ -58,6 +60,12 @@ public interface ProjectClient extends Client {
     ProjectBuild checkBuildingTranslation(Long buildId);
 
     URL downloadBuild(Long buildId);
+
+    ReviewedStringsBuild startBuildingReviewedSources(BuildReviewedSourceFilesRequest request);
+
+    ReviewedStringsBuild checkBuildingReviewedSources(Long build);
+
+    URL downloadReviewedSourcesBuild(Long buildId);
 
     List<LanguageProgress> getProjectProgress(String languageId);
 

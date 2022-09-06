@@ -9,6 +9,7 @@ import java.util.Optional;
 public class CrowdinProjectInfo {
 
     private Long projectId;
+    private String sourceLanguageId;
     private Access accessLevel;
     private Language inContextLanguage;
     private LanguageMapping languageMapping;
@@ -24,6 +25,14 @@ public class CrowdinProjectInfo {
 
     public Long getProjectId() {
         return this.projectId;
+    }
+
+    public String getSourceLanguageId() {
+        return sourceLanguageId;
+    }
+
+    public void setSourceLanguageId(String sourceLanguageId) {
+        this.sourceLanguageId = sourceLanguageId;
     }
 
     void setAccessLevel(Access accessLevel) {
