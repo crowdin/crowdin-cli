@@ -67,7 +67,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         project.setFiles(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
             .listFiles(this.projectId, null, null, null, null, limit, offset)));
         project.setDirectories(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
-            .listDirectories(this.projectId, null, null, null, limit, offset)));
+            .listDirectories(this.projectId, null, null, null,null, limit, offset)));
         project.setBranches(this.listBranches());
     }
 

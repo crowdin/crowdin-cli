@@ -160,9 +160,10 @@ public class RequestBuilder {
     }
 
     public static CrowdinTranslationCraeteProjectPseudoBuildForm crowdinTranslationCreateProjectPseudoBuildForm(
-        Boolean pseudo, Integer lengthCorrection, String prefix, String suffix, CharTransformation charTransformation
+        Boolean pseudo, Integer lengthCorrection, String prefix, String suffix, CharTransformation charTransformation, long branchId
     ) {
         CrowdinTranslationCraeteProjectPseudoBuildForm request = new CrowdinTranslationCraeteProjectPseudoBuildForm();
+        request.setBranchId(branchId);
         request.setPseudo(pseudo);
         request.setLengthTransformation(lengthCorrection);
         request.setPrefix(prefix);
