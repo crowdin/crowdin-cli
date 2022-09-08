@@ -11,7 +11,6 @@ import com.crowdin.client.translationstatus.model.LanguageProgress;
 
 import java.util.List;
 import java.util.function.Consumer;
-import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -89,7 +88,6 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
             if (showTranslated) {
                 progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                     pr.getLanguageId(), pr.getTranslationProgress())));
-
             }
             if (showTranslated && showApproved) {
                 out.println(RESOURCE_BUNDLE.getString("message.approval"));
