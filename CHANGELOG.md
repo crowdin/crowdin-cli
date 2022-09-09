@@ -1,6 +1,14 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.8.0]
+
+### Added
+
+- Download reviewed sources command ([#471](https://github.com/crowdin/crowdin-cli/pull/471))
+- `--fail-if-incomplete` option for status commands ([#466](https://github.com/crowdin/crowdin-cli/pull/466))
+- `branch` parameter support for Pseudo-Localization download ([#472](https://github.com/crowdin/crowdin-cli/pull/472))
+
 ## [3.7.10]
 
 ### Added
