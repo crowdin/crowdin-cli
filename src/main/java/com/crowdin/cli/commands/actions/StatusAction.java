@@ -105,15 +105,20 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
     }
 
     private void throwExceptionIfIncomplete(Stream<LanguageProgress> failedLanguageProjects) {
-        if (showApproved && failIfIncomplete) {
-            failedLanguageProjects
-                .filter(p -> p.getApprovalProgress() < 100)
-                .forEach(throwException(RESOURCE_BUNDLE.getString("error.project_is_incomplete")));
+        List<LanguageProgress> collect = failedLanguageProjects.collect(Collectors.toList());
 
+        if (showApproved && failIfIncomplete) {
+            for (LanguageProgress p : collect) {
+                if (p.getApprovalProgress() < 100) {
+                    throwException(RESOURCE_BUNDLE.getString("error.project_is_incomplete"));
+                }
+            }
         } else if (showTranslated && failIfIncomplete) {
-            failedLanguageProjects
-                .filter(p -> p.getTranslationProgress() < 100)
-                .forEach(throwException(RESOURCE_BUNDLE.getString("error.project_is_incomplete")));
+            for (LanguageProgress p : collect) {
+                if (p.getTranslationProgress() < 100) {
+                    throwException(RESOURCE_BUNDLE.getString("error.project_is_incomplete"));
+                }
+            }
         }
     }
 }
