@@ -60,7 +60,7 @@ public class DownloadSourcesActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadSourcesAction(files, false, false, null, true);
+            new DownloadSourcesAction(files, false, false, null, true, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -92,7 +92,7 @@ public class DownloadSourcesActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadSourcesAction(files, false, false, null, true);
+            new DownloadSourcesAction(files, false, false, null, true, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -148,7 +148,7 @@ public class DownloadSourcesActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadSourcesAction(files, false, false, null, true);
+            new DownloadSourcesAction(files, false, false, null, true, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -214,7 +214,7 @@ public class DownloadSourcesActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadSourcesAction(files, false, false, null, true);
+            new DownloadSourcesAction(files, false, false, null, true, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();

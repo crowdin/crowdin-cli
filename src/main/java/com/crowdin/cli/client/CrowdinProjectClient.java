@@ -82,7 +82,6 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         com.crowdin.client.projectsgroups.model.Project projectModel = this.getProject();
         project.setProjectId(projectModel.getId());
         project.setSourceLanguageId(projectModel.getSourceLanguageId());
-        projectModel.getSourceLanguageId();
         project.setProjectLanguages(projectModel.getTargetLanguages());
         if (projectModel instanceof ProjectSettings) {
             project.setAccessLevel(CrowdinProjectInfo.Access.MANAGER);
