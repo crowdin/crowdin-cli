@@ -26,8 +26,11 @@ import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -273,8 +276,13 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
 
     private void deleteTempReviewedSources(String baseTemp) {
         try {
-            this.files.deleteFile(new java.io.File(baseTemp + Utils.PATH_SEPARATOR));
-            this.files.deleteDirectory(new java.io.File(baseTemp + ".zip"));
+            List<Path> files = Files.walk(new java.io.File(baseTemp + Utils.PATH_SEPARATOR).toPath())
+                    .sorted(Comparator.reverseOrder())
+                    .collect(Collectors.toList());
+            for (Path file : files) {
+                this.files.deleteFile(file.toFile());
+            }
+            this.files.deleteFile(new java.io.File(baseTemp + ".zip"));
         } catch (IOException e) {
             out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("error.deleting_archive"), baseTemp)));
         }
