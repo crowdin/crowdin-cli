@@ -27,7 +27,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -41,6 +40,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
@@ -95,8 +95,13 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
             .map(Branch::getId)
             .orElse(null);
 
+        String reviewedFilesTempDir = StringUtils.removeEnd(properties.getBasePath(), Utils.PATH_SEPARATOR) +
+                Utils.PATH_SEPARATOR +
+                "CrowdinReviewedSources_" +
+                RandomStringUtils.random(11, false, true);
+
         Map<String, java.io.File> reviewedFiles = this.reviewedOnly
-                ? this.getReviewedSourceFiles(client, properties, project)
+                ? this.getReviewedSourceFiles(reviewedFilesTempDir, client, project)
                 : Collections.emptyMap();
 
         List<FileInfo> fileInfos = project.getFileInfos().stream()
@@ -191,21 +196,18 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                 }
             ).collect(Collectors.toList());
         ConcurrencyUtil.executeAndWait(tasks, debug);
+
+        if (this.reviewedOnly) {
+            this.deleteTempReviewedSources(reviewedFilesTempDir);
+        }
     }
 
 
-    private Map<String, java.io.File> getReviewedSourceFiles(ProjectClient client, PropertiesWithFiles properties, CrowdinProjectFull project) {
+    private Map<String, java.io.File> getReviewedSourceFiles(String baseTemp, ProjectClient client, CrowdinProjectFull project) {
         BuildReviewedSourceFilesRequest request = new BuildReviewedSourceFilesRequest();
         //branch id does not work properly
 //        request.setBranchId(branchId);
         ReviewedStringsBuild build = this.buildReviewedSources(client, request);
-
-        String randomHash = RandomStringUtils.random(11, false, true);
-
-        String baseTemp = StringUtils.removeEnd(properties.getBasePath(), Utils.PATH_SEPARATOR) +
-                Utils.PATH_SEPARATOR +
-                "CrowdinReviewedSources_" +
-                randomHash;
         java.io.File baseTempDir = new java.io.File(baseTemp + Utils.PATH_SEPARATOR);
         String downloadedZipArchivePath = baseTemp + ".zip";
         java.io.File downloadedZipArchive = new java.io.File(downloadedZipArchivePath);
@@ -214,7 +216,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
 
         List<java.io.File> downloadedFiles = this.extractArchive(downloadedZipArchive, baseTempDir);
 
-        Map<String, java.io.File> downloadedReviewedFilesMap = downloadedFiles.stream()
+        return downloadedFiles.stream()
                 .collect(Collectors.toMap(
                         file -> {
                             String path = StringUtils.removeStart(
@@ -227,8 +229,6 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                         },
                         Function.identity()
                 ));
-
-        return downloadedReviewedFilesMap;
     }
 
     private void downloadFile(ProjectClient client, Long fileId, String filePath) {
@@ -269,6 +269,15 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                     return build;
                 }
         );
+    }
+
+    private void deleteTempReviewedSources(String baseTemp) {
+        try {
+            this.files.deleteFile(new java.io.File(baseTemp + Utils.PATH_SEPARATOR));
+            this.files.deleteDirectory(new java.io.File(baseTemp + ".zip"));
+        } catch (IOException e) {
+            out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("error.deleting_archive"), baseTemp)));
+        }
     }
 
     private void downloadReviewedSources(ProjectClient client, Long buildId, String archivePath) {
