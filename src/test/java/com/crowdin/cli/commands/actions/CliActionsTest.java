@@ -44,7 +44,7 @@ public class CliActionsTest {
 
     @Test
     public void testStatus() {
-        assertNotNull(actions.status(false, null, null, false, false, false));
+        assertNotNull(actions.status(false, null, null, false, false, false, false));
     }
 
     @Test

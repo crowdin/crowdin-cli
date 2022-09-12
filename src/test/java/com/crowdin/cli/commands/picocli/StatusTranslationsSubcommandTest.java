@@ -13,7 +13,7 @@ public class StatusTranslationsSubcommandTest extends PicocliTestUtils {
     public void testStatusTranslations() {
         this.execute(CommandNames.STATUS, CommandNames.STATUS_TRANSLATION);
         verify(actionsMock)
-            .status(anyBoolean(), any(), any(), anyBoolean(), eq(true), eq(false));
+            .status(anyBoolean(), any(), any(), anyBoolean(), eq(true), eq(false), eq(false));
         this.check(true);
     }
 }
