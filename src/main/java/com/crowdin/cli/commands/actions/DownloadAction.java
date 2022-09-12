@@ -5,12 +5,7 @@ import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.commands.functionality.FilesInterface;
-import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
-import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
-import com.crowdin.cli.commands.functionality.RequestBuilder;
-import com.crowdin.cli.commands.functionality.SourcesUtils;
-import com.crowdin.cli.commands.functionality.TranslationsUtils;
+import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.PseudoLocalization;
@@ -32,28 +27,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.TreeMap;
-import java.util.TreeSet;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
-import static com.crowdin.cli.BaseCli.CHECK_WAITING_TIME_FIRST;
-import static com.crowdin.cli.BaseCli.CHECK_WAITING_TIME_INCREMENT;
-import static com.crowdin.cli.BaseCli.CHECK_WAITING_TIME_MAX;
-import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
-import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
+import static com.crowdin.cli.BaseCli.*;
+import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
 class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
@@ -133,8 +113,8 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 PseudoLocalization pl = pb.getPseudoLocalization();
                 BuildProjectTranslationRequest request = (pl != null)
                     ? RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(
-                        true, pl.getLengthCorrection(), pl.getPrefix(), pl.getSuffix(), pl.getCharTransformation(), branch.get().getId())
-                    : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(true, null, null, null, null, 0);
+                    branch.get().getId(),true, pl.getLengthCorrection(), pl.getPrefix(), pl.getSuffix(), pl.getCharTransformation())
+                    : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(1L,true, null, null, null, null);
                 Pair<File, List<String>> downloadedFiles = this.download(request, client, pb.getBasePath());
                 for (FileBean fb : pb.getFiles()) {
                     Map<String, String> filesWithMapping = this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil, new ArrayList<>(serverSources.keySet()), pb.getPreserveHierarchy());

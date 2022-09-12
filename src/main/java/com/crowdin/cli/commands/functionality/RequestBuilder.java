@@ -159,8 +159,8 @@ public class RequestBuilder {
         return copy;
     }
 
-    public static CrowdinTranslationCraeteProjectPseudoBuildForm crowdinTranslationCreateProjectPseudoBuildForm(
-        Boolean pseudo, Integer lengthCorrection, String prefix, String suffix, CharTransformation charTransformation, long branchId
+    public static CrowdinTranslationCraeteProjectPseudoBuildForm crowdinTranslationCreateProjectPseudoBuildForm(long branchId,
+                                                                                                                Boolean pseudo, Integer lengthCorrection, String prefix, String suffix, CharTransformation charTransformation
     ) {
         CrowdinTranslationCraeteProjectPseudoBuildForm request = new CrowdinTranslationCraeteProjectPseudoBuildForm();
         request.setBranchId(branchId);
