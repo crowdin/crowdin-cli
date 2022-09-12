@@ -22,8 +22,11 @@ class StatusSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
     protected String branchName;
 
+    @CommandLine.Option(names = {"--fail-if-incomplete"}, paramLabel = "...")
+    protected boolean failIfIncomplete;
+
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.status(noProgress, branchName, languageId, isVerbose, true, true);
+        return actions.status(noProgress, branchName, languageId, isVerbose, true, true, failIfIncomplete);
     }
 }
