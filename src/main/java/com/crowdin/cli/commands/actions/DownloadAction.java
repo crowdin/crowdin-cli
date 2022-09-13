@@ -133,7 +133,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 PseudoLocalization pl = pb.getPseudoLocalization();
                 BuildProjectTranslationRequest request = null;
 
-                if (!branchName.isEmpty()) {
+                if (branchName != null) {
                     request = (pl != null)
                         ? RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(
                         branch.get().getId(), true, pl.getLengthCorrection(), pl.getPrefix(), pl.getSuffix(), pl.getCharTransformation())
