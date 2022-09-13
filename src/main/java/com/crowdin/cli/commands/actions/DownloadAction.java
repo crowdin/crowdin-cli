@@ -70,8 +70,8 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     private Outputter out;
 
     public DownloadAction(
-        FilesInterface files, boolean noProgress, String languageId, boolean pseudo, String branchName,
-        boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean useServerSources
+            FilesInterface files, boolean noProgress, String languageId, boolean pseudo, String branchName,
+            boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean useServerSources
     ) {
         this.files = files;
         this.noProgress = noProgress || plainView;
