@@ -131,11 +131,20 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive_pseudo")));
                 }
                 PseudoLocalization pl = pb.getPseudoLocalization();
-                BuildProjectTranslationRequest request = (pl != null)
-                    ? RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(
-                    branch.get().getId(), true, pl.getLengthCorrection(), pl.getPrefix(), pl.getSuffix(), pl.getCharTransformation())
-                    : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(1L,
-                    true, null, null, null, null);
+                BuildProjectTranslationRequest request = null;
+
+                if (!branchName.isEmpty()) {
+                    request = (pl != null)
+                        ? RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(
+                        branch.get().getId(), true, pl.getLengthCorrection(), pl.getPrefix(), pl.getSuffix(), pl.getCharTransformation())
+                        : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(1L,
+                        true, null, null, null, null);
+                } else {
+                    request = (pl != null)
+                        ? RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(
+                        true, pl.getLengthCorrection(), pl.getPrefix(), pl.getSuffix(), pl.getCharTransformation())
+                        : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(true, null, null, null, null);
+                }
                 Pair<File, List<String>> downloadedFiles = this.download(request, client, pb.getBasePath());
                 for (FileBean fb : pb.getFiles()) {
                     Map<String, String> filesWithMapping = this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil, new ArrayList<>(serverSources.keySet()), pb.getPreserveHierarchy());

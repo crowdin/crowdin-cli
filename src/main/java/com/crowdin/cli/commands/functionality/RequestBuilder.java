@@ -162,8 +162,18 @@ public class RequestBuilder {
     public static CrowdinTranslationCraeteProjectPseudoBuildForm crowdinTranslationCreateProjectPseudoBuildForm(long branchId,
         Boolean pseudo, Integer lengthCorrection, String prefix, String suffix, CharTransformation charTransformation
     ) {
-        CrowdinTranslationCraeteProjectPseudoBuildForm request = new CrowdinTranslationCraeteProjectPseudoBuildForm();
+        CrowdinTranslationCraeteProjectPseudoBuildForm request
+            = crowdinTranslationCreateProjectPseudoBuildForm(pseudo, lengthCorrection, prefix, suffix, charTransformation);
+
         request.setBranchId(branchId);
+
+        return request;
+    }
+
+    public static CrowdinTranslationCraeteProjectPseudoBuildForm crowdinTranslationCreateProjectPseudoBuildForm(
+        Boolean pseudo, Integer lengthCorrection, String prefix, String suffix, CharTransformation charTransformation
+    ) {
+        CrowdinTranslationCraeteProjectPseudoBuildForm request = new CrowdinTranslationCraeteProjectPseudoBuildForm();
         request.setPseudo(pseudo);
         request.setLengthTransformation(lengthCorrection);
         request.setPrefix(prefix);
