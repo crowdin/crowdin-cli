@@ -137,13 +137,13 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     request = (pl != null)
                         ? RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(
                         branch.get().getId(), true, pl.getLengthCorrection(), pl.getPrefix(), pl.getSuffix(), pl.getCharTransformation())
-                        : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(1L,
+                    : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(1L,
                         true, null, null, null, null);
                 } else {
                     request = (pl != null)
                         ? RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(
                         true, pl.getLengthCorrection(), pl.getPrefix(), pl.getSuffix(), pl.getCharTransformation())
-                        : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(true, null, null, null, null);
+                    : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(true, null, null, null, null);
                 }
                 Pair<File, List<String>> downloadedFiles = this.download(request, client, pb.getBasePath());
                 for (FileBean fb : pb.getFiles()) {
