@@ -131,10 +131,20 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive_pseudo")));
                 }
                 PseudoLocalization pl = pb.getPseudoLocalization();
-                BuildProjectTranslationRequest request = (pl != null)
-                    ? RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(
+                BuildProjectTranslationRequest request = null;
+
+                if (branchName != null) {
+                    request = (pl != null)
+                        ? RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(
+                        branch.get().getId(), true, pl.getLengthCorrection(), pl.getPrefix(), pl.getSuffix(), pl.getCharTransformation())
+                    : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(1L, true, null, null, null, null);
+                } else {
+                    request = (pl != null)
+                        ? RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(
                         true, pl.getLengthCorrection(), pl.getPrefix(), pl.getSuffix(), pl.getCharTransformation())
                     : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(true, null, null, null, null);
+                }
+
                 Pair<File, List<String>> downloadedFiles = this.download(request, client, pb.getBasePath());
                 for (FileBean fb : pb.getFiles()) {
                     Map<String, String> filesWithMapping = this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil, new ArrayList<>(serverSources.keySet()), pb.getPreserveHierarchy());
@@ -295,8 +305,9 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     /**
      * Download archive, extract it and return information about that temporary directory
-     * @param request request body to download archive
-     * @param client api to Crowdin
+     *
+     * @param request  request body to download archive
+     * @param client   api to Crowdin
      * @param basePath base path
      * @return pair of temporary directory and list of files in it(relative paths to that directory)
      */
@@ -355,7 +366,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private String replaceFileName(String filePath, String newName) {
         String[] filePathParts = filePath.split("[\\\\/]+");
-        filePathParts[filePathParts.length-1] = newName;
+        filePathParts[filePathParts.length - 1] = newName;
         return String.join(Utils.PATH_SEPARATOR, filePathParts);
     }
 
