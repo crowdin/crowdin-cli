@@ -361,7 +361,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private ProjectBuild buildTranslation(ProjectClient client, BuildProjectTranslationRequest request) {
         AtomicInteger sleepTime = new AtomicInteger(CHECK_WAITING_TIME_FIRST);
-        return ConsoleSpinner.execute(out, "message.spinner.fetching_project_info",
+        return ConsoleSpinner.execute(out, "message.spinner.building_translation",
             "error.collect_project_info", this.noProgress, this.plainView, () -> {
                 ProjectBuild build = client.startBuildingTranslation(request);
 

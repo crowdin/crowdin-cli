@@ -8,7 +8,9 @@ import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
+import com.crowdin.client.sourcefiles.model.BuildReviewedSourceFilesRequest;
 import com.crowdin.client.sourcefiles.model.Directory;
+import com.crowdin.client.sourcefiles.model.ReviewedStringsBuild;
 import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
@@ -79,6 +81,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     private void populateProjectWithInfo(CrowdinProjectInfo project) {
         com.crowdin.client.projectsgroups.model.Project projectModel = this.getProject();
         project.setProjectId(projectModel.getId());
+        project.setSourceLanguageId(projectModel.getSourceLanguageId());
         project.setProjectLanguages(projectModel.getTargetLanguages());
         if (projectModel instanceof ProjectSettings) {
             project.setAccessLevel(CrowdinProjectInfo.Access.MANAGER);
@@ -236,6 +239,27 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return url(executeRequest(() -> this.client.getTranslationsApi()
             .downloadProjectTranslations(this.projectId, buildId)
             .getData()));
+    }
+
+    @Override
+    public ReviewedStringsBuild startBuildingReviewedSources(BuildReviewedSourceFilesRequest request) {
+        return executeRequest(() -> this.client.getSourceFilesApi()
+                .buildReviewedSourceFiles(this.projectId, request)
+                .getData());
+    }
+
+    @Override
+    public ReviewedStringsBuild checkBuildingReviewedSources(Long buildId) {
+        return executeRequest(() -> this.client.getSourceFilesApi()
+                .checkReviewedSourceFilesBuildStatus(projectId, buildId)
+                .getData());
+    }
+
+    @Override
+    public URL downloadReviewedSourcesBuild(Long buildId) {
+        return url(executeRequest(() -> this.client.getSourceFilesApi()
+                .downloadReviewedSourceFiles(this.projectId, buildId)
+                .getData()));
     }
 
     @Override
