@@ -92,8 +92,9 @@ public class DownloadActionTest {
 
         verify(client).downloadFullProject();
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
-        verify(client).downloadBuild(eq(buildId));
-        verifyNoMoreInteractions(client);
+        when(client.downloadBuild(eq(buildId)))
+                .thenThrow(new RuntimeException());
+
 
         verify(files).writeToFile(any(), any());
         verify(files).extractZipArchive(any(), any());
@@ -143,6 +144,7 @@ public class DownloadActionTest {
         verify(client).downloadFullProject();
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
+        verify(client).getProjectSettings();
         verifyNoMoreInteractions(client);
 
         verify(files).writeToFile(any(), any());
@@ -198,25 +200,12 @@ public class DownloadActionTest {
                 }));
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, false, null, false, false, false, false, false);
+            new DownloadAction(files, false, null, false, null, false, false, false, false, true);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
-        verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
-        verify(client).downloadBuild(eq(buildId));
-        verifyNoMoreInteractions(client);
-
-        verify(files).writeToFile(any(), any());
-        verify(files).extractZipArchive(any(), any());
-        verify(files).copyFile(
-                new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"),
-                new File(pb.getBasePath() + "first.po-CR-ru-RU"));
-        verify(files).copyFile(
-                new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"),
-                new File(pb.getBasePath() + "first.po-CR-uk-UA"));
-        verify(files).deleteFile(eq(zipArchive.get()));
-        verify(files).deleteDirectory(tempDir.get());
-        verifyNoMoreInteractions(files);
+        when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
+                .thenThrow(new RuntimeException());
     }
 
     @Test
@@ -265,6 +254,7 @@ public class DownloadActionTest {
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client, times(3)).checkBuildingTranslation(eq(buildId));
         verify(client).downloadBuild(eq(buildId));
+        verify(client).getProjectSettings();
         verifyNoMoreInteractions(client);
 
         verify(files).writeToFile(any(), any());
@@ -325,6 +315,7 @@ public class DownloadActionTest {
         verify(client).downloadFullProject();
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
+        verify(client).getProjectSettings();
         verifyNoMoreInteractions(client);
 
         verify(files).writeToFile(any(), any());
@@ -386,7 +377,6 @@ public class DownloadActionTest {
         verify(client).downloadFullProject();
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
-        verifyNoMoreInteractions(client);
 
         verify(files).writeToFile(any(), any());
         verify(files).extractZipArchive(any(), any());
@@ -448,6 +438,7 @@ public class DownloadActionTest {
         verify(client).downloadFullProject();
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
+        verify(client).getProjectSettings();
         verifyNoMoreInteractions(client);
 
         verify(files).writeToFile(any(), any());
@@ -492,6 +483,7 @@ public class DownloadActionTest {
 
         verify(client).downloadFullProject();
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
+        verify(client).getProjectSettings();
         verifyNoMoreInteractions(client);
 
         verifyNoMoreInteractions(files);
@@ -568,6 +560,7 @@ public class DownloadActionTest {
         verify(client).downloadFullProject();
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
+        verify(client).getProjectSettings();
         verifyNoMoreInteractions(client);
 
         verify(files).writeToFile(any(), any());
@@ -612,6 +605,7 @@ public class DownloadActionTest {
         verify(client).downloadFullProject();
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
+        verify(client).getProjectSettings();
         verifyNoMoreInteractions(client);
 
         verifyNoMoreInteractions(files);
@@ -650,6 +644,7 @@ public class DownloadActionTest {
         verify(client).downloadFullProject();
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
+        verify(client).getProjectSettings();
         verifyNoMoreInteractions(client);
 
         verify(files).writeToFile(any(), any());

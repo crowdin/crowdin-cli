@@ -110,13 +110,12 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             }
         }
 
-        Optional<List<Language>> languagesTranslated = Optional.of(project.getProjectLanguages(true))
-                .map(languages1 -> languages1.stream()
-                        .filter(language -> client.getProjectProgress(language.getId()).stream()
-                                .anyMatch(languageProgress -> languageProgress.getTranslationProgress() != null && languageProgress.getTranslationProgress() == 100))
-                        .collect(Collectors.toList()));
-
         if (skipUntranslatedFiles) {
+            Optional<List<Language>> languagesTranslated = Optional.of(project.getProjectLanguages(true))
+                    .map(languages1 -> languages1.stream()
+                            .filter(language -> client.getProjectProgress(language.getId()).stream()
+                                    .anyMatch(languageProgress -> languageProgress.getTranslationProgress() != null && languageProgress.getTranslationProgress() == 100))
+                            .collect(Collectors.toList()));
             if (languagesTranslated.get().isEmpty()) {
                 if (!plainView) {
                     out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download")));
