@@ -29,9 +29,9 @@ public class CliActions implements Actions {
     @Override
     public NewAction<PropertiesWithFiles, ProjectClient> download(
         FilesInterface files, boolean noProgress, String languageId, boolean pseudo, String branchName,
-        boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean useServerSources
-    ) {
-        return new DownloadAction(files, noProgress, languageId, pseudo, branchName, ignoreMatch, isVerbose, plainView, useServerSources);
+        boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean useServerSources,
+        boolean skipUntranslatedFiles) {
+        return new DownloadAction(files, noProgress, languageId, pseudo, branchName, ignoreMatch, isVerbose, plainView, useServerSources, skipUntranslatedFiles);
     }
 
     @Override

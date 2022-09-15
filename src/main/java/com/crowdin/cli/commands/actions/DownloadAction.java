@@ -11,17 +11,17 @@ import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.commands.functionality.TranslationsUtils;
-import com.crowdin.cli.properties.FileBean;
-import com.crowdin.cli.properties.PropertiesWithFiles;
-import com.crowdin.cli.properties.PseudoLocalization;
+import com.crowdin.cli.properties.*;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
 import com.crowdin.client.translations.model.ProjectBuild;
+import com.crowdin.client.translationstatus.model.LanguageProgress;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
@@ -66,12 +66,13 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     private boolean isVerbose;
     private boolean plainView;
     private boolean useServerSources;
+    private boolean skipUntranslatedFiles;
 
     private Outputter out;
 
     public DownloadAction(
             FilesInterface files, boolean noProgress, String languageId, boolean pseudo, String branchName,
-            boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean useServerSources
+            boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean useServerSources, boolean skipUntranslatedFiles
     ) {
         this.files = files;
         this.noProgress = noProgress || plainView;
@@ -82,6 +83,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         this.isVerbose = isVerbose;
         this.plainView = plainView;
         this.useServerSources = useServerSources;
+        this.skipUntranslatedFiles = skipUntranslatedFiles;
     }
 
     @Override
@@ -92,13 +94,36 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
                 this.noProgress, this.plainView, client::downloadFullProject);
-
         if (!project.isManagerAccess()) {
             if (!plainView) {
                 out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
                 return;
             } else {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+            }
+        }
+
+        if (!this.skipUntranslatedFiles) {
+            ProjectSettings projectSettings = client.getProjectSettings();
+            if (projectSettings != null) {
+                skipUntranslatedFiles = projectSettings.getSkipUntranslatedFiles() != null && projectSettings.getSkipUntranslatedFiles();
+            }
+        }
+
+        Optional<List<Language>> languagesTranslated = Optional.of(project.getProjectLanguages(true))
+                .map(languages1 -> languages1.stream()
+                        .filter(language -> client.getProjectProgress(language.getId()).stream()
+                                .anyMatch(languageProgress -> languageProgress.getTranslationProgress() != null && languageProgress.getTranslationProgress() == 100))
+                        .collect(Collectors.toList()));
+
+        if (skipUntranslatedFiles) {
+            if (languagesTranslated.get().isEmpty()) {
+                if (!plainView) {
+                    out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download")));
+                    return;
+                } else {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download"));
+                }
             }
         }
 

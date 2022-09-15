@@ -55,9 +55,13 @@ class DownloadSubcommand extends ActCommandWithFiles {
 
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
-        return (dryrun)
-            ? actions.listTranslations(noProgress, treeView, false, plainView, all, true)
-            : actions.download(new FsFiles(), noProgress, languageId, pseudo, branchName, ignoreMatch, isVerbose, plainView, all);
+        if (dryrun) {
+            return actions.listTranslations(noProgress, treeView, false, plainView, all, true);
+        }
+        if (skipUntranslatedFiles == null || !skipUntranslatedFiles) {
+            return actions.download(new FsFiles(), noProgress, languageId, pseudo, branchName, ignoreMatch, isVerbose, plainView, all, false);
+        }
+        return actions.download(new FsFiles(), noProgress, languageId, pseudo, branchName, ignoreMatch, isVerbose, plainView, all, true);
     }
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")

@@ -3,6 +3,7 @@ package com.crowdin.cli.client;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
+import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
@@ -90,4 +91,6 @@ public interface ProjectClient extends Client {
     PreTranslationStatus startPreTranslation(ApplyPreTranslationRequest request);
 
     PreTranslationStatus checkPreTranslation(String preTranslationId);
+
+    ProjectSettings getProjectSettings();
 }

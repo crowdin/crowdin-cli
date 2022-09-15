@@ -331,4 +331,11 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             .preTranslationStatus(this.projectId, preTranslationId)
             .getData());
     }
+
+    @Override
+    public ProjectSettings getProjectSettings() {
+        return (ProjectSettings) executeRequest(() -> this.client.getProjectsGroupsApi()
+                .getProject(this.projectId)
+                .getData());
+    }
 }
