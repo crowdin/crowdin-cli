@@ -372,20 +372,34 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private ProjectBuild buildTranslation(ProjectClient client, BuildProjectTranslationRequest request) {
         AtomicInteger sleepTime = new AtomicInteger(CHECK_WAITING_TIME_FIRST);
-        return ConsoleSpinner.execute(out, "message.spinner.building_translation",
-            "error.collect_project_info", this.noProgress, this.plainView, () -> {
-                ProjectBuild build = client.startBuildingTranslation(request);
 
-                while (!build.getStatus().equalsIgnoreCase("finished")) {
-                    ConsoleSpinner.update(
-                        String.format(RESOURCE_BUNDLE.getString("message.building_translation"),
-                            Math.toIntExact(build.getProgress())));
-                    Thread.sleep(sleepTime.getAndUpdate(val -> val < CHECK_WAITING_TIME_MAX ? val + CHECK_WAITING_TIME_INCREMENT : CHECK_WAITING_TIME_MAX));
-                    build = client.checkBuildingTranslation(build.getId());
+        return ConsoleSpinner.execute(
+                out,
+                "message.spinner.building_translation",
+                "error.building_translation",
+                this.noProgress,
+                this.plainView,
+                () -> {
+                    ProjectBuild build = client.startBuildingTranslation(request);
+
+                    while (!build.getStatus().equalsIgnoreCase("finished")) {
+                        ConsoleSpinner.update(
+                            String.format(RESOURCE_BUNDLE.getString("message.building_translation"),
+                                Math.toIntExact(build.getProgress())));
+
+                        Thread.sleep(sleepTime.getAndUpdate(val -> val < CHECK_WAITING_TIME_MAX ? val + CHECK_WAITING_TIME_INCREMENT : CHECK_WAITING_TIME_MAX));
+
+                        build = client.checkBuildingTranslation(build.getId());
+
+                        if (build.getStatus().equalsIgnoreCase("failed")) {
+                            throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.build_has_failed"));
+                        }
+                    }
+
+                    ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
+                    return build;
                 }
-                ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
-                return build;
-            });
+            );
     }
 
     private Pair<Map<File, File>, List<String>> sortFiles(

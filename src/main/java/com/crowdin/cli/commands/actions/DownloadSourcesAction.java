@@ -265,9 +265,16 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                         ConsoleSpinner.update(
                                 String.format(RESOURCE_BUNDLE.getString("message.building_reviewed_sources"),
                                         Math.toIntExact(build.getProgress())));
+
                         Thread.sleep(100);
+
                         build = client.checkBuildingReviewedSources(build.getId());
+
+                        if (build.getStatus().equalsIgnoreCase("failed")) {
+                            throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.build_has_failed"));
+                        }
                     }
+
                     ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_reviewed_sources"), 100));
                     return build;
                 }
