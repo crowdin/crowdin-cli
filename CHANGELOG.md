@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.8.1]
+
+### Fixed
+
+- Fix infinite build progress check in case of the build was failed ([#476](https://github.com/crowdin/crowdin-cli/pull/476))
+
 ## [3.8.0]
 
 ### Added
