@@ -11,6 +11,9 @@ trigger:
   paths:
     exclude:
       - README.md
+      - CHANGELOG.md
+      - CODE_OF_CONDUCT.md
+      - CONTRIBUTING.md
 
 pool:
   vmImage: 'ubuntu-latest'
@@ -31,11 +34,13 @@ steps:
   - script: |
       ./gradlew build staticAnalysis -P staticAnalysisMarker
     displayName: 'Run static analysis'
+    condition: eq(variables['Build.Reason'], 'PullRequest')
     continueOnError: true
   - publish: |
       $(Build.SourcesDirectory)/build/reports/staticAnalysis
     artifact: 'Static Analysis Reports'
     displayName: 'Publish static analysis reports'
+    condition: eq(variables['Build.Reason'], 'PullRequest')
   - script: |
       ./gradlew build jacocoTestReport
     displayName: 'Generating code coverage report'
