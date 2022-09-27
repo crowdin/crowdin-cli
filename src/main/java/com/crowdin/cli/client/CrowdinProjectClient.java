@@ -89,6 +89,9 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             if (projectSettings.getInContext() != null && projectSettings.getInContext()) {
                 project.setInContextLanguage(projectSettings.getInContextPseudoLanguage());
             }
+            if (projectSettings.getSkipUntranslatedFiles() != null && projectSettings.getSkipUntranslatedFiles()) {
+                project.setSkipUntranslatedFiles(projectSettings.getSkipUntranslatedFiles());
+            }
             project.setLanguageMapping(LanguageMapping.fromServerLanguageMapping(projectSettings.getLanguageMapping()));
         } else {
             project.setAccessLevel(CrowdinProjectInfo.Access.TRANSLATOR);

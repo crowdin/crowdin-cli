@@ -1,8 +1,6 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.CrowdinProjectFull;
-import com.crowdin.cli.client.LanguageMapping;
-import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
@@ -284,7 +282,11 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             }
 
             if (!anyFileDownloaded.get()) {
-                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download")));
+                if (pb.getFiles().stream().allMatch(FileBean::getSkipUntranslatedFiles) || project.getSkipUntranslatedFiles()) {
+                    out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_downloaded_skip_untranslated")));
+                } else {
+                    out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download")));
+                }
             }
 
             if (!ignoreMatch && !plainView) {

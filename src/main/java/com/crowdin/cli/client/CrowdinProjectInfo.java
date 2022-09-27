@@ -14,6 +14,7 @@ public class CrowdinProjectInfo {
     private Language inContextLanguage;
     private LanguageMapping languageMapping;
     private List<Language> projectLanguages;
+    private Boolean skipUntranslatedFiles;
 
     CrowdinProjectInfo() {
 
@@ -51,6 +52,14 @@ public class CrowdinProjectInfo {
         return Optional.ofNullable(inContextLanguage);
     }
 
+    public Boolean getSkipUntranslatedFiles() {
+        return skipUntranslatedFiles;
+    }
+
+    void setSkipUntranslatedFiles(Boolean skipUntranslatedFiles) {
+        this.skipUntranslatedFiles = skipUntranslatedFiles;
+    }
+
     void setLanguageMapping(LanguageMapping languageMapping) {
         this.languageMapping = languageMapping;
     }
@@ -66,7 +75,6 @@ public class CrowdinProjectInfo {
     void setProjectLanguages(List<Language> projectLanguages) {
         this.projectLanguages = projectLanguages;
     }
-
     public List<Language> getProjectLanguages(boolean withInContextLang) {
         if (withInContextLang) {
             List<Language> projectLanguagesWithPseudo = new ArrayList<>(projectLanguages);
