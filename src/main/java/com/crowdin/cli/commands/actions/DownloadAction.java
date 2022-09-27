@@ -121,6 +121,8 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
         LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
+        AtomicBoolean skipUntranslatedFiles = new AtomicBoolean(false);
+
         Map<File, List<Map<String, String>>> fileBeansWithDownloadedFiles = new TreeMap<>();
         Map<File, List<String>> tempDirs = new HashMap<>();
         try {
@@ -172,6 +174,11 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                         CrowdinTranslationCreateProjectBuildForm buildRequest = RequestBuilder.crowdinTranslationCreateProjectBuildForm(templateRequest);
                         buildRequest.setSkipUntranslatedStrings(downloadConfiguration.getLeft().getLeft());
                         buildRequest.setSkipUntranslatedFiles(downloadConfiguration.getLeft().getRight());
+
+                        if (buildRequest.getSkipUntranslatedFiles() != null && buildRequest.getSkipUntranslatedFiles()) {
+                            skipUntranslatedFiles.set(buildRequest.getSkipUntranslatedFiles());
+                        }
+
                         if (isOrganization) {
                             if (downloadConfiguration.getRight().getLeft() != null && downloadConfiguration.getRight().getLeft()) {
                                 buildRequest.setExportWithMinApprovalsCount(1);
@@ -263,7 +270,11 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             }
 
             if (!anyFileDownloaded.get()) {
-                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download")));
+                if (project.getSkipUntranslatedFiles() || skipUntranslatedFiles.get()) {
+                    out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download_skipuntranslated")));
+                } else {
+                    out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download")));
+                }
             }
 
             if (!ignoreMatch && !plainView) {

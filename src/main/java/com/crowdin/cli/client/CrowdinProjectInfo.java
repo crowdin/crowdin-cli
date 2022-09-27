@@ -14,6 +14,7 @@ public class CrowdinProjectInfo {
     private Language inContextLanguage;
     private LanguageMapping languageMapping;
     private List<Language> projectLanguages;
+    private boolean skipUntranslatedFiles;
 
     CrowdinProjectInfo() {
 
@@ -49,6 +50,14 @@ public class CrowdinProjectInfo {
 
     protected Optional<Language> getInContextLanguage() {
         return Optional.ofNullable(inContextLanguage);
+    }
+
+    public boolean getSkipUntranslatedFiles() {
+        return skipUntranslatedFiles;
+    }
+
+    public void setSkipUntranslatedFiles(boolean skipUntranslatedFiles) {
+        this.skipUntranslatedFiles = skipUntranslatedFiles;
     }
 
     void setLanguageMapping(LanguageMapping languageMapping) {
