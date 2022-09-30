@@ -236,6 +236,7 @@ public class PlaceholderUtil {
         if (Utils.isWindows()) {
             toFormat = toFormat
                 .replace("**", ".+")
+                .replace("\\", "\\\\")
                 .replace(ASTERISK, "[^/]+");
         } else {
             toFormat = toFormat
@@ -247,7 +248,6 @@ public class PlaceholderUtil {
                 .replace(ASTERISK, "[^/]+")
                 .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK);
         }
-
         toFormat = toFormat
             .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
 
