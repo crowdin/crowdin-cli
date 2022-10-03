@@ -55,6 +55,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
     private String branchName;
     private boolean debug;
     private boolean reviewedOnly;
+    private boolean dryrun;
 
     private Outputter out;
 
@@ -64,7 +65,8 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
         boolean plainView,
         String branchName,
         boolean debug,
-        boolean reviewedOnly
+        boolean reviewedOnly,
+        boolean dryrun
     ) {
         this.files = files;
         this.noProgress = noProgress;
@@ -72,6 +74,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
         this.branchName = branchName;
         this.debug = debug;
         this.reviewedOnly = reviewedOnly;
+        this.dryrun = dryrun;
     }
 
 
@@ -172,14 +175,14 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                             fileDestination = filePath;
                         }
                         boolean downloaded = false;
-                        if (!reviewedOnly) {
+                        if (!reviewedOnly && !dryrun) {
                             Long fileId = filePaths.get(filePath).getId();
                             this.downloadFile(client, fileId, Utils.joinPaths(properties.getBasePath(), fileDestination));
                             isAnyFileDownloaded.set(true);
                             downloaded = true;
                         } else {
                             FileInfo fileInfo = filePaths.get(filePath);
-                            if (Objects.equals(fileInfo.getBranchId(), branchId) && reviewedFiles.containsKey(fileInfo.getPath())) {
+                            if (Objects.equals(fileInfo.getBranchId(), branchId) && reviewedFiles.containsKey(fileInfo.getPath()) && !dryrun) {
                                 java.io.File file = reviewedFiles.get(fileInfo.getPath());
                                 String fileTargetPath = Utils.joinPaths(properties.getBasePath(), fileDestination);
                                 this.extractFile(file, fileTargetPath);
@@ -188,7 +191,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                             }
                         }
 
-                        if (downloaded) {
+                        if (downloaded || dryrun) {
                             if (!plainView) {
                                 out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));
                             } else {
