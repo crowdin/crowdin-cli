@@ -152,7 +152,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                     Integer exportWithMinApprovalsCount = (fb.getExportApprovedOnly() != null && fb.getExportApprovedOnly()) ? 1 : null;
                     ExportProjectTranslationRequest templateRequest = (isOrganization)
                         ? RequestBuilder.exportProjectTranslation(
-                            exportFileFormat, fb.getSkipTranslatedOnly(), fb.getSkipUntranslatedFiles(), exportWithMinApprovalsCount)
+                            exportFileFormat, fb.getSkipTranslatedOnly(), fb.getSkipUntranslatedFiles(), exportWithMinApprovalsCount, fb.getExportStringsThatPassedWorkflow())
                         : RequestBuilder.exportProjectTranslation(
                             exportFileFormat, fb.getSkipTranslatedOnly(), fb.getSkipUntranslatedFiles(), fb.getExportApprovedOnly());
                     if (fb.getSources() != null && !fb.getSources().isEmpty()) {

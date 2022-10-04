@@ -112,6 +112,8 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String EXPORT_APPROVED_ONLY = "export_only_approved";
 
+    public static final String EXPORT_STRINGS_THAT_PASSED_WORKFLOW = "export_strings_that_passed_workflow";
+
     public static final String EXCLUDED_TARGET_LANGUAGES = "excluded_target_languages";
 
     public static final String CUSTOM_SEGMENTATION = "custom_segmentation";

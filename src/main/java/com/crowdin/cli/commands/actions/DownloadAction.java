@@ -170,24 +170,31 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     .map(Branch::getId)
                     .ifPresent(templateRequest::setBranchId);
                 pb.getFiles().stream()
-                    .map(fb -> Triple.of(fb.getSkipTranslatedOnly(), fb.getSkipUntranslatedFiles(), fb.getExportApprovedOnly()))
+                    .map(fb -> Pair.of(Pair.of(fb.getSkipTranslatedOnly(), fb.getSkipUntranslatedFiles()), Pair.of(fb.getExportApprovedOnly(), fb.getExportStringsThatPassedWorkflow())))
                     .distinct()
                     .forEach(downloadConfiguration -> {
                         CrowdinTranslationCreateProjectBuildForm buildRequest = RequestBuilder.crowdinTranslationCreateProjectBuildForm(templateRequest);
-                        buildRequest.setSkipUntranslatedStrings(downloadConfiguration.getLeft());
-                        buildRequest.setSkipUntranslatedFiles(downloadConfiguration.getMiddle());
+                        buildRequest.setSkipUntranslatedStrings(downloadConfiguration.getLeft().getLeft());
+                        buildRequest.setSkipUntranslatedFiles(downloadConfiguration.getLeft().getRight());
                         if (isOrganization) {
-                            if (downloadConfiguration.getRight() != null && downloadConfiguration.getRight()) {
+                            if (downloadConfiguration.getRight().getLeft() != null && downloadConfiguration.getRight().getLeft()) {
                                 buildRequest.setExportWithMinApprovalsCount(1);
                             }
+                            if (downloadConfiguration.getRight().getRight() != null && downloadConfiguration.getRight().getRight()) {
+                                buildRequest.setExportStringsThatPassedWorkflow(true);
+                            }
                         } else {
-                            buildRequest.setExportApprovedOnly(downloadConfiguration.getRight());
+                            buildRequest.setExportApprovedOnly(downloadConfiguration.getRight().getLeft());
+                            if (downloadConfiguration.getRight().getRight() != null && downloadConfiguration.getRight().getRight()) {
+                                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("error.export_strings_that_passed_workflow_not_supported")));
+                            }
                         }
                         Pair<File, List<String>> downloadedFiles = this.download(buildRequest, client, pb.getBasePath());
                         for (FileBean fb : pb.getFiles()) {
-                            if (fb.getSkipTranslatedOnly() == downloadConfiguration.getLeft()
-                                && fb.getSkipUntranslatedFiles() == downloadConfiguration.getMiddle()
-                                && fb.getExportApprovedOnly() == downloadConfiguration.getRight()) {
+                            if (fb.getSkipTranslatedOnly() == downloadConfiguration.getLeft().getLeft()
+                                && fb.getSkipUntranslatedFiles() == downloadConfiguration.getLeft().getRight()
+                                && fb.getExportApprovedOnly() == downloadConfiguration.getRight().getLeft()
+                                && fb.getExportStringsThatPassedWorkflow() == downloadConfiguration.getRight().getRight()) {
 
                                 Map<String, String> filesWithMapping =
                                     this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil, new ArrayList<>(serverSources.keySet()), pb.getPreserveHierarchy());
