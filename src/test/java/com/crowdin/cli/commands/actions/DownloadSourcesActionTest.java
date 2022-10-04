@@ -91,7 +91,7 @@ public class DownloadSourcesActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadSourcesAction(files, false, false, null, true, false,false);
+            new DownloadSourcesAction(files, false, false, null, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
