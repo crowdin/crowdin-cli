@@ -19,7 +19,6 @@ import java.net.URL;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doReturn;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -60,7 +59,7 @@ public class DownloadSourcesActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadSourcesAction(files, false, false, null, true, false);
+            new DownloadSourcesAction(files, false, false, null, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -92,7 +91,7 @@ public class DownloadSourcesActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadSourcesAction(files, false, false, null, true, false);
+            new DownloadSourcesAction(files, false, false, null, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -148,7 +147,7 @@ public class DownloadSourcesActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadSourcesAction(files, false, false, null, true, false);
+            new DownloadSourcesAction(files, false, false, null, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -214,7 +213,7 @@ public class DownloadSourcesActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadSourcesAction(files, false, false, null, true, false);
+            new DownloadSourcesAction(files, false, false, null, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -235,5 +234,31 @@ public class DownloadSourcesActionTest {
         verify(files).writeToFile(eq(Utils.joinPaths(project.getBasePath(), "/android_3.xml")), any());
         verify(files).writeToFile(eq(Utils.joinPaths(project.getBasePath(), "/android_4a.xml")), any());
         verifyNoMoreInteractions(files);
+    }
+
+    @Test
+    public void testDryRun() {
+        PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(
+                "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
+                null, "/common/%original_file_name%")
+            .setBasePath(project.getBasePath())
+            .build();
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addDirectory("common", 201L, null, null)
+            .addFile("strings.xml", "gettext", 101L, 201L, null, "/values-%two_letters_code%/%original_file_name%").build());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
+        when(client.downloadFile(eq(101L)))
+            .thenReturn(urlMock);
+
+        FilesInterface files = mock(FilesInterface.class);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+                new DownloadSourcesAction(files, false, false, null, true, false,true);
+        action.act(Outputter.getDefault(), pb, client);
+        
     }
 }
