@@ -34,6 +34,9 @@ public class PropertiesWithTargets extends ProjectProperties {
 
         @Override
         public void populateWithDefaultValues(PropertiesWithTargets props) {
+            if (props.getTargets() == null) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
+            }
             for (TargetBean tb : props.getTargets()) {
                 TargetBean.CONFIGURATOR.populateWithDefaultValues(tb);
             }
