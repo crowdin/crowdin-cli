@@ -134,13 +134,14 @@ public class RequestBuilder {
     }
 
     public static ExportProjectTranslationRequest exportProjectTranslation(
-        String format, Boolean skipUntranslatedStrings, Boolean skipUntranslatedFiles, Integer exportWithMinApprovalsCount
+        String format, Boolean skipUntranslatedStrings, Boolean skipUntranslatedFiles, Integer exportWithMinApprovalsCount, Boolean exportStringsThatPassedWorkflow
     ) {
         ExportProjectTranslationRequest request = new ExportProjectTranslationRequest();
         request.setFormat(format);
         request.setSkipUntranslatedStrings(skipUntranslatedStrings);
         request.setSkipUntranslatedFiles(skipUntranslatedFiles);
         request.setExportWithMinApprovalsCount(exportWithMinApprovalsCount);
+        request.setExportStringsThatPassedWorkflow(exportStringsThatPassedWorkflow);
         return request;
     }
 
@@ -156,6 +157,7 @@ public class RequestBuilder {
         copy.setSkipUntranslatedFiles(request.getSkipUntranslatedFiles());
         copy.setExportApprovedOnly(request.getExportApprovedOnly());
         copy.setExportWithMinApprovalsCount(request.getExportWithMinApprovalsCount());
+        copy.setExportStringsThatPassedWorkflow(request.getExportStringsThatPassedWorkflow());
         return copy;
     }
 
@@ -192,6 +194,7 @@ public class RequestBuilder {
         requestCopy.setSkipUntranslatedFiles(request.getSkipUntranslatedFiles());
         requestCopy.setExportApprovedOnly(request.getExportApprovedOnly());
         requestCopy.setExportWithMinApprovalsCount(request.getExportWithMinApprovalsCount());
+        requestCopy.setExportStringsThatPassedWorkflow(request.getExportStringsThatPassedWorkflow());
         return requestCopy;
     }
 
