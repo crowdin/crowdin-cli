@@ -90,6 +90,10 @@ public class Utils {
         return (path != null) ? path.replaceAll("[\\\\/]+", "/") : null;
     }
 
+    public static String windowsPath(String path) {
+        return (path != null) ? path.replaceAll("[\\\\/]+", "\\\\") : null;
+    }
+
     public static String normalizePath(String path) {
         return (path != null) ? path.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX) : null;
     }
