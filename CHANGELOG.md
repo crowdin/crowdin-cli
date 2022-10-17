@@ -1,6 +1,24 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.9.0]
+
+### Added
+
+- Add downloading multiple specified languages ([#493](https://github.com/crowdin/crowdin-cli/pull/493))
+- Add '--dryrun' mode to the 'download sources' command ([#485](https://github.com/crowdin/crowdin-cli/pull/485))
+- Add the `export_string_that_passed_workflow` export option support ([#487](https://github.com/crowdin/crowdin-cli/pull/487))
+- Add Unit tests for `StatusAction.java` ([#494](https://github.com/crowdin/crowdin-cli/pull/494))
+
+### Updated
+
+- Improve async progress status checking for some commands ([#478](https://github.com/crowdin/crowdin-cli/pull/478))
+- Make lint throw error with no config file ([#483](https://github.com/crowdin/crowdin-cli/pull/483))
+
+### Fixed
+
+- Fixed regex to work correctly for Windows machines ([#484](https://github.com/crowdin/crowdin-cli/pull/484))
+
 ## [3.8.1]
 
 ### Fixed
