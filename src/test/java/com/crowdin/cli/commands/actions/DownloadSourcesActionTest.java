@@ -13,6 +13,7 @@ import com.crowdin.cli.utils.Utils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mockito;
 
 import java.io.IOException;
 import java.net.URL;
@@ -260,5 +261,36 @@ public class DownloadSourcesActionTest {
                 new DownloadSourcesAction(files, false, false, null, true, false,true);
         action.act(Outputter.getDefault(), pb, client);
         
+    }
+
+    @Test
+    public void testReviewedOnly() throws IOException {
+        PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(
+                    "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
+                    null, "/common/%original_file_name%")
+            .setBasePath(project.getBasePath())
+            .build();
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                    .addDirectory("common", 201L, null, null)
+                    .addFile("strings.xml", "gettext", 101L, 201L, null, "/values-%two_letters_code%/%original_file_name%").build());
+
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
+        when(client.downloadFile(eq(101L)))
+            .thenReturn(urlMock);
+
+        FilesInterface files = mock(FilesInterface.class);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = mock(DownloadSourcesAction.class);
+            new DownloadSourcesAction(files, false, false, null, true, true, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        Mockito.doNothing().when(action).act(Outputter.getDefault(), pb, client);
+
+        Mockito.verifyNoInteractions(client);
+        Mockito.verifyNoInteractions(files);
     }
 }
