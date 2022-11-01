@@ -61,8 +61,8 @@ public class PropertiesBeanUtils {
         String organization = baseUrl
             .replaceAll("^https?:?/?/?", "")
             .replaceAll("(\\.?[^.]+)?\\.?crowdin.dev(/api/v2)?/?$", "")
+            .replaceAll("\\.?api\\.", "")
             .replaceAll("\\.?crowdin.com(/api/v2)?/?$", "")
-            .replaceAll("\\.?api", "")
             .replaceAll(".+\\.test$", "")
             .replaceAll("\\.e-test$", "");
         return (StringUtils.isEmpty(organization)) ? null : organization;

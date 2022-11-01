@@ -118,6 +118,8 @@ public class PropertiesBeanUtilsTest {
             arguments("https://Daanya.api.crowdin.com", "Daanya"),
             arguments("https://crowdin.com", null),
             arguments("https://api.crowdin.com", null),
+            arguments("https://apicustom.crowdin.com", "apicustom"),
+            arguments("https://apicustom.api.crowdin.com", "apicustom"),
             arguments("andriy.crowdin.com", "andriy")
         );
     }
