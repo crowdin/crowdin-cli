@@ -47,8 +47,8 @@ public class PlaceholderUtil {
     private static final String QUESTION_MARK = "?";
     private static final String DOT = ".";
     private static final String DOT_PLUS = ".+";
-    private static final String SET_OPEN_BRECKET = "[";
-    private static final String SET_CLOSE_BRECKET = "]";
+    private static final String SET_OPEN_BRACKET = "[";
+    private static final String SET_CLOSE_BRACKET = "]";
     public static final String ROUND_BRACKET_OPEN = "(";
     public static final String ROUND_BRACKET_CLOSE = ")";
     public static final String ESCAPE_ROUND_BRACKET_OPEN = "\\(";

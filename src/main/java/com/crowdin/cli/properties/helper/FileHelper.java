@@ -29,9 +29,9 @@ public class FileHelper {
 
     private static final String DOT_PLUS = ".+";
 
-    private static final String SET_OPEN_BRECKET = "[";
+    private static final String SET_OPEN_BRACKET = "[";
 
-    private static final String SET_CLOSE_BRECKET = "]";
+    private static final String SET_CLOSE_BRACKET = "]";
 
     private static final String ROUND_BRACKET_OPEN = "(";
 
