@@ -68,7 +68,7 @@ public class PlaceholderUtil {
 
     public PlaceholderUtil(List<Language> supportedLangs, List<com.crowdin.client.languages.model.Language> projectLangs, String basePath) {
         if (supportedLangs == null || projectLangs == null || basePath == null) {
-            throw new NullPointerException("in PlaceholderUtil.contructor");
+            throw new NullPointerException("in PlaceholderUtil.constructor");
         }
         this.supportedLangs = supportedLangs;
         this.projectLangs = projectLangs;
