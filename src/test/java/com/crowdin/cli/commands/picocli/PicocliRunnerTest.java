@@ -14,11 +14,11 @@ public class PicocliRunnerTest extends PicocliTestUtils {
     public void testHasMatchedArgs() {
         PicocliRunner picocliRunner = PicocliRunner.getInstance();
         assertFalse(picocliRunner.hasMatchedArg("plain"));
-        picocliRunner.execute(actionsMock, properitesBuildersMock, CommandNames.DOWNLOAD, "--plain");
+        picocliRunner.execute(actionsMock, propertiesBuildersMock, CommandNames.DOWNLOAD, "--plain");
         assertTrue(picocliRunner.hasMatchedArg("plain"));
-        picocliRunner.execute(actionsMock, properitesBuildersMock, CommandNames.DOWNLOAD);
+        picocliRunner.execute(actionsMock, propertiesBuildersMock, CommandNames.DOWNLOAD);
         assertFalse(picocliRunner.hasMatchedArg("plain"));
-        picocliRunner.execute(actionsMock, properitesBuildersMock, "--verbose");
+        picocliRunner.execute(actionsMock, propertiesBuildersMock, "--verbose");
         assertTrue(picocliRunner.hasMatchedArg("verbose"));
     }
 

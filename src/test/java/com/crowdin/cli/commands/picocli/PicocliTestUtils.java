@@ -23,7 +23,7 @@ public class PicocliTestUtils {
 
     protected Actions actionsMock;
     protected NewAction actionMock;
-    protected PropertiesBuilders properitesBuildersMock;
+    protected PropertiesBuilders propertiesBuildersMock;
 
     @BeforeEach
     public void beforeEach() {
@@ -32,18 +32,18 @@ public class PicocliTestUtils {
     }
 
     public void execute(String... args) {
-        int exitCode = PicocliRunner.getInstance().execute(actionsMock, properitesBuildersMock, args);
+        int exitCode = PicocliRunner.getInstance().execute(actionsMock, propertiesBuildersMock, args);
         assertEquals(0, exitCode);
     }
 
     public void executeInvalidParams(String... args) {
-        int exitCode = PicocliRunner.getInstance().execute(actionsMock, properitesBuildersMock, args);
+        int exitCode = PicocliRunner.getInstance().execute(actionsMock, propertiesBuildersMock, args);
         assertNotEquals(0, exitCode);
         verifyNoMoreInteractions(actionsMock);
     }
 
     public void executeHelp(String... args) {
-        int exitCode = PicocliRunner.getInstance().execute(actionsMock, properitesBuildersMock, args);
+        int exitCode = PicocliRunner.getInstance().execute(actionsMock, propertiesBuildersMock, args);
         assertEquals(0, exitCode);
         verifyNoMoreInteractions(actionsMock);
     }
@@ -102,16 +102,16 @@ public class PicocliTestUtils {
     }
 
     private void mockBuilders() {
-        properitesBuildersMock = mock(PropertiesBuilders.class);
-        when(properitesBuildersMock.buildBaseProperties(any(), any(), any(), any()))
+        propertiesBuildersMock = mock(PropertiesBuilders.class);
+        when(propertiesBuildersMock.buildBaseProperties(any(), any(), any(), any()))
             .thenReturn(NewBasePropertiesUtilBuilder.minimalBuilt().build());
-        when(properitesBuildersMock.buildNoProperties())
+        when(propertiesBuildersMock.buildNoProperties())
             .thenReturn(new NoProperties());
-        when(properitesBuildersMock.buildPropertiesWithFiles(any(), any(), any(), any()))
+        when(propertiesBuildersMock.buildPropertiesWithFiles(any(), any(), any(), any()))
             .thenReturn(NewPropertiesWithFilesUtilBuilder.minimalBuiltPropertiesBean().build());
-        when(properitesBuildersMock.buildPropertiesWithTargets(any(), any(), any(), any()))
+        when(propertiesBuildersMock.buildPropertiesWithTargets(any(), any(), any(), any()))
             .thenReturn(NewPropertiesWithTargetsUtilBuilder.minimalBuilt().build());
-        when(properitesBuildersMock.buildProjectProperties(any(), any(), any(), any()))
+        when(propertiesBuildersMock.buildProjectProperties(any(), any(), any(), any()))
             .thenReturn(NewProjectPropertiesUtilBuilder.minimalBuilt().build());
     }
 }
