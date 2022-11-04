@@ -35,7 +35,7 @@ public class PlaceholderUtil {
     public static final String PLACEHOLDER_NAME_OSX_LOCALE = "osx_locale";
     public static final String PLACEHOLDER_NAME_LANGUAGE_ID = "language_id";
 
-    public static final String PLACEHOLDER_FILE_EXTENTION = "%file_extension%";
+    public static final String PLACEHOLDER_FILE_EXTENSION = "%file_extension%";
     public static final String PLACEHOLDER_FILE_NAME = "%file_name%";
     public static final String PLACEHOLDER_ORIGINAL_FILE_NAME = "%original_file_name%";
     public static final String PLACEHOLDER_ORIGINAL_PATH = "%original_path%";
@@ -47,8 +47,8 @@ public class PlaceholderUtil {
     private static final String QUESTION_MARK = "?";
     private static final String DOT = ".";
     private static final String DOT_PLUS = ".+";
-    private static final String SET_OPEN_BRECKET = "[";
-    private static final String SET_CLOSE_BRECKET = "]";
+    private static final String SET_OPEN_BRACKET = "[";
+    private static final String SET_CLOSE_BRACKET = "]";
     public static final String ROUND_BRACKET_OPEN = "(";
     public static final String ROUND_BRACKET_CLOSE = ")";
     public static final String ESCAPE_ROUND_BRACKET_OPEN = "\\(";
@@ -68,7 +68,7 @@ public class PlaceholderUtil {
 
     public PlaceholderUtil(List<Language> supportedLangs, List<com.crowdin.client.languages.model.Language> projectLangs, String basePath) {
         if (supportedLangs == null || projectLangs == null || basePath == null) {
-            throw new NullPointerException("in PlaceholderUtil.contructor");
+            throw new NullPointerException("in PlaceholderUtil.constructor");
         }
         this.supportedLangs = supportedLangs;
         this.projectLangs = projectLangs;
@@ -182,7 +182,7 @@ public class PlaceholderUtil {
 
         toFormat = toFormat.contains(PLACEHOLDER_ORIGINAL_FILE_NAME) ? toFormat.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, fileName) : toFormat;
         toFormat = toFormat.contains(PLACEHOLDER_FILE_NAME) ? toFormat.replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt) : toFormat;
-        toFormat = toFormat.contains(PLACEHOLDER_FILE_EXTENTION) ? toFormat.replace(PLACEHOLDER_FILE_EXTENTION, fileExt) : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_FILE_EXTENSION) ? toFormat.replace(PLACEHOLDER_FILE_EXTENSION, fileExt) : toFormat;
         toFormat = toFormat.contains(PLACEHOLDER_ORIGINAL_PATH) ? toFormat.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent) : toFormat;
 
         if (toFormat.contains("**")) {
@@ -255,7 +255,7 @@ public class PlaceholderUtil {
 
             .replace(ESCAPE_ASTERISK_REPLACEMENT_FROM, ESCAPE_ASTERISK_REPLACEMENT_TO);
         return toFormat
-            .replace(PLACEHOLDER_FILE_EXTENTION, "[^/]+")
+            .replace(PLACEHOLDER_FILE_EXTENSION, "[^/]+")
             .replace(PLACEHOLDER_FILE_NAME, "[^/]+")
             .replace(PLACEHOLDER_ORIGINAL_FILE_NAME, "[^/]+")
             .replace(PLACEHOLDER_ORIGINAL_PATH, ".+");
@@ -263,7 +263,7 @@ public class PlaceholderUtil {
 
     public static boolean containsFilePlaceholders(String pattern) {
         return StringUtils.containsAny(pattern,
-            PLACEHOLDER_FILE_EXTENTION,
+            PLACEHOLDER_FILE_EXTENSION,
             PLACEHOLDER_FILE_NAME,
             PLACEHOLDER_ORIGINAL_FILE_NAME,
             PLACEHOLDER_ORIGINAL_PATH);

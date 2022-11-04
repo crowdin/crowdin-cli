@@ -93,7 +93,7 @@ public class StringAddActionTest {
     }
 
     @Test
-    public void testStirngAdd_throwsNotFound() {
+    public void testStringAdd_throwsNotFound() {
         String text = "first text";
         String identifier = "1.1";
         Integer maxLength = 42;
