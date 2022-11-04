@@ -94,7 +94,7 @@ public class StringListActionTest {
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 101L, null, null).build());
 
-        action = new StringListAction(true, true, "notexist.csv", null, null, null);
+        action = new StringListAction(true, true, "nonexistent.csv", null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
