@@ -35,7 +35,7 @@ public class PlaceholderUtil {
     public static final String PLACEHOLDER_NAME_OSX_LOCALE = "osx_locale";
     public static final String PLACEHOLDER_NAME_LANGUAGE_ID = "language_id";
 
-    public static final String PLACEHOLDER_FILE_EXTENTION = "%file_extension%";
+    public static final String PLACEHOLDER_FILE_EXTENSION = "%file_extension%";
     public static final String PLACEHOLDER_FILE_NAME = "%file_name%";
     public static final String PLACEHOLDER_ORIGINAL_FILE_NAME = "%original_file_name%";
     public static final String PLACEHOLDER_ORIGINAL_PATH = "%original_path%";
@@ -182,7 +182,7 @@ public class PlaceholderUtil {
 
         toFormat = toFormat.contains(PLACEHOLDER_ORIGINAL_FILE_NAME) ? toFormat.replace(PLACEHOLDER_ORIGINAL_FILE_NAME, fileName) : toFormat;
         toFormat = toFormat.contains(PLACEHOLDER_FILE_NAME) ? toFormat.replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt) : toFormat;
-        toFormat = toFormat.contains(PLACEHOLDER_FILE_EXTENTION) ? toFormat.replace(PLACEHOLDER_FILE_EXTENTION, fileExt) : toFormat;
+        toFormat = toFormat.contains(PLACEHOLDER_FILE_EXTENSION) ? toFormat.replace(PLACEHOLDER_FILE_EXTENSION, fileExt) : toFormat;
         toFormat = toFormat.contains(PLACEHOLDER_ORIGINAL_PATH) ? toFormat.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent) : toFormat;
 
         if (toFormat.contains("**")) {
@@ -255,7 +255,7 @@ public class PlaceholderUtil {
 
             .replace(ESCAPE_ASTERISK_REPLACEMENT_FROM, ESCAPE_ASTERISK_REPLACEMENT_TO);
         return toFormat
-            .replace(PLACEHOLDER_FILE_EXTENTION, "[^/]+")
+            .replace(PLACEHOLDER_FILE_EXTENSION, "[^/]+")
             .replace(PLACEHOLDER_FILE_NAME, "[^/]+")
             .replace(PLACEHOLDER_ORIGINAL_FILE_NAME, "[^/]+")
             .replace(PLACEHOLDER_ORIGINAL_PATH, ".+");
@@ -263,7 +263,7 @@ public class PlaceholderUtil {
 
     public static boolean containsFilePlaceholders(String pattern) {
         return StringUtils.containsAny(pattern,
-            PLACEHOLDER_FILE_EXTENTION,
+            PLACEHOLDER_FILE_EXTENSION,
             PLACEHOLDER_FILE_NAME,
             PLACEHOLDER_ORIGINAL_FILE_NAME,
             PLACEHOLDER_ORIGINAL_PATH);
