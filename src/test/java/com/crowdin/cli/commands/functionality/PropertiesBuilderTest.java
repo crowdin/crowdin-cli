@@ -12,7 +12,6 @@ import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -149,7 +148,7 @@ public class PropertiesBuilderTest {
             setTokenParam("token");
         }};
 
-        ProjectProperties pp = propertiesBuilders.buildProjectProperties(out,any(),any(),params );
+        ProjectProperties pp = propertiesBuilders.buildProjectProperties(out,null,null,params );
         String projectId = "123";
         pp.setProjectId(projectId);
 
