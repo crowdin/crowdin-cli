@@ -125,3 +125,21 @@ files: [
   # "scheme" : "",
  }
 ]
+
+targets: [
+  {
+    name: "android",
+    files: [
+      {
+        file: "targets/%two_letters_code%/android.xml",
+        sources: [
+          "file.xlsx"
+        ],
+        labels: [
+          "mobile",
+          "ui"
+        ]
+      }
+    ]
+  }
+]

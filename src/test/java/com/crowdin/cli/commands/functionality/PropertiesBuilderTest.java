@@ -1,10 +1,7 @@
 package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.properties.ParamsWithFiles;
-import com.crowdin.cli.properties.PropertiesWithFiles;
-import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
-import com.crowdin.cli.properties.PropertiesBuilders;
+import com.crowdin.cli.properties.*;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
 import org.junit.jupiter.api.AfterEach;
@@ -15,8 +12,14 @@ import java.io.File;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.when;
 
 public class PropertiesBuilderTest {
+    public static final String TEST_API_TOKEN = "123abc456";
+    public static final String TEST_BASE_URL = "https://crowdin.com";
+    public static final String TEST_BASE_PATH = ".";
 
     private TempProject tempProject;
 
@@ -55,7 +58,7 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void testOk_Params_WithConfigFile() {
+    public void FFtestOk_Params_WithConfigFile() {
         File configFile = new File("crowdin.yml");
         String minimalConfigFileText = NewPropertiesWithFilesUtilBuilder
             .minimalPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
@@ -94,5 +97,93 @@ public class PropertiesBuilderTest {
         PropertiesWithFiles pb = propertiesBuilders.buildPropertiesWithFiles(out, configFile, null, okParams);
 
         assertEquals(tempProject.getBasePath() + "folder2" + Utils.PATH_SEPARATOR, pb.getBasePath());
+    }
+
+    @Test
+    public void testBuildNoProperties() {
+        PropertiesBuilders pb = mock(PropertiesBuilders.class);
+        NoProperties np = mock(NoProperties.class);
+        when(pb.buildNoProperties()).thenReturn(np);
+    }
+
+
+
+    @Test
+    public void testBuildBaseProperties() {
+        SettingsBean set = new SettingsBean();
+        BaseProperties bp = new BaseProperties();
+        String bpath = ".";
+        String url = "https://crowdin.com";
+        String api = "123abc456";
+        bp.setBasePath(bpath);
+        bp.setBaseUrl(url);
+        bp.setApiToken(api);
+        bp.setSettings(set);
+
+        assertEquals(bp.getBasePath(), ".");
+        assertEquals(bp.getBaseUrl(), "https://crowdin.com");
+        assertEquals(bp.getApiToken(), "123abc456");
+        assertEquals(bp.getSettings(), set);
+
+    }
+    @Test
+    public void testBasePropertiesWithNoValues(){
+        BaseProperties bp = new BaseProperties();
+        String bpath = "";
+        String url = "";
+        String api = "";
+        bp.setBasePath(bpath);
+        bp.setBaseUrl(url);
+        bp.setApiToken(api);
+
+        assertEquals(bp.getBasePath(), "");
+        assertEquals(bp.getBaseUrl(), "");
+        assertEquals(bp.getApiToken(), "");
+
+    }
+
+    @Test
+    public void testProjectProperties(){
+        ProjectParams params = new ProjectParams(){{
+            setIdParam("123");
+            setTokenParam("token");
+        }};
+
+        ProjectProperties pp = propertiesBuilders.buildProjectProperties(out,any(),any(),params );
+        String projectId = "123";
+        pp.setProjectId(projectId);
+
+        assertEquals(pp.getProjectId(), params.getIdParam());
+        assertEquals(pp.getApiToken(), params.getTokenParam());
+
+    }
+
+    @Test
+    public void testBuildNoTargets(){
+        assertThrows(RuntimeException.class, () -> propertiesBuilders.buildPropertiesWithTargets(out, null, null, null));
+    }
+
+    @Test
+    public void testBuildNoConfigFileTargets() {
+        ParamsWithTargets okParams = new ParamsWithTargets();
+        assertThrows(NullPointerException.class, () -> propertiesBuilders.buildPropertiesWithTargets(out, null, null, okParams));
+
+    }
+    @Test
+    public void testPropertiesWithTarget(){
+        File configFile = new File("folder/crowdin.yml");
+        String minimalConfigFileText = NewPropertiesWithTargetsUtilBuilder
+                .minimalBuilt().buildToString();
+        configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
+
+        ParamsWithTargets okParams = new ParamsWithTargets();
+        okParams.setSkipTranslatedOnly(true);
+
+        System.out.println("configText = " + minimalConfigFileText);
+        PropertiesWithTargets pb = propertiesBuilders.buildPropertiesWithTargets(out, configFile, null, okParams);
+
+        assertEquals(pb.getTargets().size(), 1);
+        assertEquals(pb.getTargets().get(0).getName(), "android");
+        assertEquals(pb.getProjectId(), "666");
     }
 }
