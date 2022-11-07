@@ -59,9 +59,6 @@ public class NewPropertiesWithTargetsUtilBuilder {
                 if (tb.getName() != null) {
                     sb.append("\"name\": \"").append(tb.getName().replaceAll("\\\\", "\\\\\\\\")).append("\",\n");
                 }
-//                if (tb.getFiles() != null) {
-//                    sb.append("\"translation\": \"").append(tb.getFiles().replaceAll("\\\\", "\\\\\\\\")).append("\",\n");
-//                }
                 sb.append("},\n");
             }
             sb.append("]");

@@ -105,8 +105,6 @@ public class PropertiesBuilderTest {
         when(pb.buildNoProperties()).thenReturn(np);
     }
 
-
-
     @Test
     public void testBuildBaseProperties() {
         SettingsBean set = new SettingsBean();
@@ -123,8 +121,8 @@ public class PropertiesBuilderTest {
         assertEquals(bp.getBaseUrl(), "https://crowdin.com");
         assertEquals(bp.getApiToken(), "123abc456");
         assertEquals(bp.getSettings(), set);
-
     }
+
     @Test
     public void testBasePropertiesWithNoValues(){
         BaseProperties bp = new BaseProperties();
@@ -138,7 +136,6 @@ public class PropertiesBuilderTest {
         assertEquals(bp.getBasePath(), "");
         assertEquals(bp.getBaseUrl(), "");
         assertEquals(bp.getApiToken(), "");
-
     }
 
     @Test
@@ -154,7 +151,6 @@ public class PropertiesBuilderTest {
 
         assertEquals(pp.getProjectId(), params.getIdParam());
         assertEquals(pp.getApiToken(), params.getTokenParam());
-
     }
 
     @Test
@@ -166,11 +162,11 @@ public class PropertiesBuilderTest {
     public void testBuildNoConfigFileTargets() {
         ParamsWithTargets okParams = new ParamsWithTargets();
         assertThrows(NullPointerException.class, () -> propertiesBuilders.buildPropertiesWithTargets(out, null, null, okParams));
-
     }
+
     @Test
     public void testPropertiesWithTarget(){
-        File configFile = new File("folder/crowdin.yml");
+        File configFile = new File("folder/crowdinTest.yml");
         String minimalConfigFileText = NewPropertiesWithTargetsUtilBuilder
                 .minimalBuilt().buildToString();
         configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
