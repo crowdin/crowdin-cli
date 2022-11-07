@@ -57,7 +57,7 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void FFtestOk_Params_WithConfigFile() {
+    public void testOk_Params_WithConfigFile() {
         File configFile = new File("crowdin.yml");
         String minimalConfigFileText = NewPropertiesWithFilesUtilBuilder
             .minimalPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
@@ -124,7 +124,7 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void testBasePropertiesWithNoValues(){
+    public void testBasePropertiesWithNoValues() {
         BaseProperties bp = new BaseProperties();
         String bpath = "";
         String url = "";
@@ -139,13 +139,13 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void testProjectProperties(){
+    public void testProjectProperties() {
         ProjectParams params = new ProjectParams(){{
             setIdParam("123");
             setTokenParam("token");
         }};
 
-        ProjectProperties pp = propertiesBuilders.buildProjectProperties(out,null,null,params );
+        ProjectProperties pp = propertiesBuilders.buildProjectProperties(out, null, null, params);
         String projectId = "123";
         pp.setProjectId(projectId);
 
@@ -154,7 +154,7 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void testBuildNoTargets(){
+    public void testBuildNoTargets() {
         assertThrows(RuntimeException.class, () -> propertiesBuilders.buildPropertiesWithTargets(out, null, null, null));
     }
 
@@ -165,7 +165,7 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void testPropertiesWithTarget(){
+    public void testPropertiesWithTarget() {
         File configFile = new File("folder/crowdinTest.yml");
         String minimalConfigFileText = NewPropertiesWithTargetsUtilBuilder
                 .minimalBuilt().buildToString();
