@@ -11,7 +11,7 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 
 
-public class PropertiesWithTargetsBuilderTest {
+class PropertiesWithTargetsBuilderTest {
 
     private TempProject tempProject;
     private final Outputter out = Outputter.getDefault();
