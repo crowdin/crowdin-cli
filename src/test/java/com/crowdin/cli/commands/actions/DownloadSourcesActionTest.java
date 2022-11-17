@@ -241,6 +241,10 @@ public class DownloadSourcesActionTest {
 
     @Test
     public void testDryRun() {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream ps = System.out;
+        System.setOut(new PrintStream(outContent));
+
         PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean(
                 "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
@@ -262,7 +266,15 @@ public class DownloadSourcesActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action =
                 new DownloadSourcesAction(files, false, false, null, true, false,true);
         action.act(Outputter.getDefault(), pb, client);
-        
+
+        String outMessage1 = "✔️  Fetching project info\n";
+        String outMessage2 = "✔️  File @|bold 'common/strings.xml'|@\n";
+
+        client.downloadFullProject();
+        client.downloadFile(101L);
+
+        assertTrue(outContent.toString().contains(outMessage1));
+        assertTrue(outContent.toString().contains(outMessage2));
     }
 
     @Test
