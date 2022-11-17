@@ -1,6 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.MockitoUtils;
+import com.crowdin.cli.client.CrowdinProject;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
@@ -13,17 +14,18 @@ import com.crowdin.cli.utils.Utils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assertions;
 import org.mockito.Mockito;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.PrintStream;
 import java.net.URL;
 
+import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class DownloadSourcesActionTest {
 
@@ -265,32 +267,35 @@ public class DownloadSourcesActionTest {
 
     @Test
     public void testReviewedOnly() throws IOException {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        PrintStream ps = System.out;
+        System.setOut(new PrintStream(outContent));
+
         PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
-            .minimalBuiltPropertiesBean(
-                    "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
-                    null, "/common/%original_file_name%")
-            .setBasePath(project.getBasePath())
-            .build();
+                .minimalBuiltPropertiesBean(
+                        "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
+                        null, "/common/%original_file_name%")
+                .setBasePath(project.getBasePath())
+                .build();
 
         ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                    .addDirectory("common", 201L, null, null)
-                    .addFile("strings.xml", "gettext", 101L, 201L, null, "/values-%two_letters_code%/%original_file_name%").build());
-
+                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                        .addDirectory("common", 201L, null, null)
+                        .addFile("strings.xml", "gettext", 101L, 201L, null, "/values-%two_letters_code%/%original_file_name%").build());
         URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadFile(eq(101L)))
-            .thenReturn(urlMock);
+                .thenReturn(urlMock);
 
         FilesInterface files = mock(FilesInterface.class);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = mock(DownloadSourcesAction.class);
-            new DownloadSourcesAction(files, false, false, null, true, true, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+                new DownloadSourcesAction(files, false, false, null, true, true, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        Mockito.doNothing().when(action).act(Outputter.getDefault(), pb, client);
+        String warnMessage = "⚠️  Operation is available only for Crowdin Enterprise\n";
 
-        Mockito.verifyNoInteractions(client);
-        Mockito.verifyNoInteractions(files);
+        client.downloadFullProject();
+        assertEquals(warnMessage, outContent.toString());
     }
 }
