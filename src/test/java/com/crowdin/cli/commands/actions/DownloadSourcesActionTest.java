@@ -264,7 +264,7 @@ public class DownloadSourcesActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-                new DownloadSourcesAction(files, false, false, null, true, false,true);
+            new DownloadSourcesAction(files, false, false, null, true, false,true);
         action.act(Outputter.getDefault(), pb, client);
 
         String outMessage1 = "✔️  Fetching project info\n";
@@ -284,25 +284,25 @@ public class DownloadSourcesActionTest {
         System.setOut(new PrintStream(outContent));
 
         PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
-                .minimalBuiltPropertiesBean(
-                        "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
-                        null, "/common/%original_file_name%")
-                .setBasePath(project.getBasePath())
-                .build();
+            .minimalBuiltPropertiesBean(
+                "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
+                null, "/common/%original_file_name%")
+            .setBasePath(project.getBasePath())
+            .build();
 
         ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
-                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                        .addDirectory("common", 201L, null, null)
-                        .addFile("strings.xml", "gettext", 101L, 201L, null, "/values-%two_letters_code%/%original_file_name%").build());
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                .addDirectory("common", 201L, null, null)
+                .addFile("strings.xml", "gettext", 101L, 201L, null, "/values-%two_letters_code%/%original_file_name%").build());
         URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadFile(eq(101L)))
-                .thenReturn(urlMock);
+            .thenReturn(urlMock);
 
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-                new DownloadSourcesAction(files, false, false, null, true, true, false);
+            new DownloadSourcesAction(files, false, false, null, true, true, false);
         action.act(Outputter.getDefault(), pb, client);
 
         String warnMessage = "⚠️  Operation is available only for Crowdin Enterprise\n";
