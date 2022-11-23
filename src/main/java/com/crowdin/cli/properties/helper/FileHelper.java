@@ -29,9 +29,9 @@ public class FileHelper {
 
     private static final String DOT_PLUS = ".+";
 
-    private static final String SET_OPEN_BRECKET = "[";
+    private static final String SET_OPEN_BRACKET = "[";
 
-    private static final String SET_CLOSE_BRECKET = "]";
+    private static final String SET_CLOSE_BRACKET = "]";
 
     private static final String ROUND_BRACKET_OPEN = "(";
 
@@ -96,7 +96,7 @@ public class FileHelper {
      *
      * @param sources  the source files.
      * @param ignores the configured filters.
-     * @return the list of source files withoug the ignores.
+     * @return the list of source files without the ignores.
      */
     public List<File> filterOutIgnoredFiles(List<File> sources, List<String> ignores) {
         if (sources == null || ignores == null) {

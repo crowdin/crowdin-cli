@@ -1,6 +1,18 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.9.1]
+
+### Updated
+
+- Corrects misspellings ([#499](https://github.com/crowdin/crowdin-cli/pull/499))
+- Updating test coverage ([#500](https://github.com/crowdin/crowdin-cli/pull/500))
+- Increase test coverage ([#503](https://github.com/crowdin/crowdin-cli/pull/503))
+
+### Fixed
+
+- Fix organization domain extracting from base_url ([#498](https://github.com/crowdin/crowdin-cli/pull/498))
+
 ## [3.9.0]
 
 ### Added

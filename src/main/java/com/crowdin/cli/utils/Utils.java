@@ -124,8 +124,8 @@ public class Utils {
         }
     }
 
-    public static String joinPaths(String... pathes) {
-        return String.join(Utils.PATH_SEPARATOR, pathes).replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
+    public static String joinPaths(String... paths) {
+        return String.join(Utils.PATH_SEPARATOR, paths).replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
     }
 
     public static String[] splitPath(String path) {

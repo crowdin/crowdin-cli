@@ -83,7 +83,7 @@ public class GenerateActionTest {
     }
 
     @Test
-    public void enterpriseUrltest() throws IOException {
+    public void enterpriseUrlTest() throws IOException {
         FilesInterface files = mock(FilesInterface.class);
         doThrow(new IOException()).when(files).writeToFile(anyString(), any());
         InputStream responsesIS = setResponses(false, true, "https://undefined.crowdin.com", "apiToken", "42", ".");

@@ -28,7 +28,7 @@ class TmDownloadSubcommand extends ActCommandTm {
     private String sourceLanguageId;
 
     @CommandLine.Option(names = {"--target-language-id"}, paramLabel = "...")
-    private String targetLanguageid;
+    private String targetLanguageId;
 
     @CommandLine.Option(names = {"--format"}, paramLabel = "...")
     private TranslationMemoryFormat format;
@@ -38,7 +38,7 @@ class TmDownloadSubcommand extends ActCommandTm {
 
     @Override
     protected NewAction<BaseProperties, ClientTm> getAction(Actions actions) {
-        return actions.tmDownload(id, name, format, sourceLanguageId, targetLanguageid, noProgress, to, new FsFiles());
+        return actions.tmDownload(id, name, format, sourceLanguageId, targetLanguageId, noProgress, to, new FsFiles());
     }
 
     @Override
@@ -57,9 +57,9 @@ class TmDownloadSubcommand extends ActCommandTm {
         } else if (id == null && name == null) {
             errors.add(RESOURCE_BUNDLE.getString("error.tm.no_id_and_no_name"));
         }
-        if (sourceLanguageId != null && targetLanguageid == null) {
+        if (sourceLanguageId != null && targetLanguageId == null) {
             errors.add(RESOURCE_BUNDLE.getString("error.tm.target_language_id_is_null"));
-        } else if (sourceLanguageId == null && targetLanguageid != null) {
+        } else if (sourceLanguageId == null && targetLanguageId != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.tm.source_language_id_is_null"));
         }
         return errors;

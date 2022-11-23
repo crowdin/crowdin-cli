@@ -79,7 +79,7 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
             errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.translate_untranslated_only"));
         }
         if ((Method.MT == method) && translateWithPerfectMatchOnly != null) {
-            errors.add(RESOURCE_BUNDLE.getString("error.pre_tranlsate.translate_with_perfect_match_only"));
+            errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.translate_with_perfect_match_only"));
         }
         if (Method.MT == method && autoApproveOption != null) {
             System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.auto_approve_option_with_mt")));

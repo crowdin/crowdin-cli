@@ -209,7 +209,7 @@ public class FileBean {
         boolean destContainsPlaceholders = dest.contains(PlaceholderUtil.PLACEHOLDER_FILE_NAME)
             || dest.contains(PlaceholderUtil.PLACEHOLDER_ORIGINAL_FILE_NAME)
             || dest.contains(PlaceholderUtil.PLACEHOLDER_ORIGINAL_PATH)
-            || dest.contains(PlaceholderUtil.PLACEHOLDER_FILE_EXTENTION)
+            || dest.contains(PlaceholderUtil.PLACEHOLDER_FILE_EXTENSION)
             || dest.contains(PlaceholderUtil.DOUBLED_ASTERISK);
         boolean sourceContainsPlaceholders = PlaceholderUtil.containsFilePlaceholders(source) || SourcesUtils.containsPattern(source);
         return !sourceContainsPlaceholders || destContainsPlaceholders;
