@@ -104,6 +104,97 @@ public class PropertiesBuilderTest {
         NoProperties np = mock(NoProperties.class);
         when(pb.buildNoProperties()).thenReturn(np);
     }
+    @Test
+    public void testMockPropBuildersWithTargets(){
+        PropertiesBuilders pb = mock(PropertiesBuilders.class);
+        when(pb.buildPropertiesWithTargets(null,null,null,null)).thenThrow(NullPointerException.class);
+    }
+    @Test
+    public void testMockPropWithTargets(){
+        PropertiesWithTargets pt = mock(PropertiesWithTargets.class);
+        when(pt.getTargets().isEmpty()).thenThrow(NullPointerException.class);
+    }
+
+    @Test
+    public void testMockBasePropUrl(){
+        BaseProperties bp = mock(BaseProperties.class);
+        bp.setBaseUrl("https://crowdin.com");
+        String url = "https://crowdin.com";
+        when(bp.getBaseUrl()).thenReturn(url);
+    }
+
+    @Test
+    public void testMockBasePropPath(){
+        BaseProperties bp = mock(BaseProperties.class);
+        bp.setBasePath("./path");
+        String path = "./path";
+        when(bp.getBasePath()).thenReturn(path);
+    }
+
+    @Test
+    public void testMockBasePropApiToken(){
+        BaseProperties bp = mock(BaseProperties.class);
+        bp.setApiToken("123Token");
+        String token = "123Token";
+        when(bp.getApiToken()).thenReturn(token);
+    }
+
+    @Test
+    public void testMockProjectPropToken(){
+        ProjectProperties pp = mock(ProjectProperties.class);
+        pp.setApiToken("123Token");
+        String token = "123Token";
+        when(pp.getApiToken()).thenReturn(token);
+    }
+
+    @Test
+    public void testMockProjectPropPath(){
+        ProjectProperties pp = mock(ProjectProperties.class);
+        pp.setBasePath("./path");
+        String path = "./path";
+        when(pp.getBasePath()).thenReturn(path);
+    }
+
+    @Test
+    public void testMockProjectPropUrl(){
+        ProjectProperties pp = mock(ProjectProperties.class);
+        pp.setBaseUrl("https://crowdin.com");
+        String url = "https://crowdin.com";
+        when(pp.getBaseUrl()).thenReturn(url);
+    }
+
+    @Test
+    public void testMockPropBuilderBasePropUrl(){
+        PropertiesBuilders pb = mock(PropertiesBuilders.class);
+        File configFile = new File("folder/crowdinTest.yml");
+        String minimalConfigFileText = NewPropertiesWithTargetsUtilBuilder
+                .minimalBuilt().buildToString();
+        configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
+
+        ParamsWithTargets okParams = new ParamsWithTargets();
+        okParams.setBaseUrlParam("https://crowdin.com");
+
+        BaseProperties bp = mock(BaseProperties.class);
+        pb.buildBaseProperties(out, configFile,null, okParams);
+
+        when(bp.getBaseUrl()).thenReturn( "https://crowdin.com");
+    }
+    @Test
+    public void testMockPropBuilderBasePropIdParam(){
+        PropertiesBuilders pb = mock(PropertiesBuilders.class);
+        File configFile = new File("folder/crowdinTest.yml");
+        String minimalConfigFileText = NewPropertiesWithTargetsUtilBuilder
+                .minimalBuilt().buildToString();
+        configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
+
+        ParamsWithTargets okParams = new ParamsWithTargets();
+        okParams.setIdParam("123");
+
+        BaseProperties bp = mock(BaseProperties.class);
+        pb.buildBaseProperties(out, configFile,null, okParams);
+
+        when(bp.getApiToken()).thenReturn( "123");
+    }
 
     @Test
     public void testBuildBaseProperties() {
