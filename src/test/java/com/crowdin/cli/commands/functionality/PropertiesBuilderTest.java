@@ -183,18 +183,18 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void testMockPropBuildersWithTargets(){
+    public void testMockPropBuildersWithTargets() {
         PropertiesBuilders pb = mock(PropertiesBuilders.class);
         when(pb.buildPropertiesWithTargets(null,null,null,null)).thenThrow(NullPointerException.class);
     }
     @Test
-    public void testMockPropWithTargets(){
+    public void testMockPropWithTargets() {
         PropertiesWithTargets pt = mock(PropertiesWithTargets.class);
         when(pt.getTargets().isEmpty()).thenThrow(NullPointerException.class);
     }
 
     @Test
-    public void testMockBasePropUrl(){
+    public void testMockBasePropUrl() {
         BaseProperties bp = mock(BaseProperties.class);
         bp.setBaseUrl("https://crowdin.com");
         String url = "https://crowdin.com";
@@ -202,7 +202,7 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void testMockBasePropPath(){
+    public void testMockBasePropPath() {
         BaseProperties bp = mock(BaseProperties.class);
         bp.setBasePath("./path");
         String path = "./path";
@@ -210,7 +210,7 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void testMockBasePropApiToken(){
+    public void testMockBasePropApiToken() {
         BaseProperties bp = mock(BaseProperties.class);
         bp.setApiToken("123Token");
         String token = "123Token";
@@ -218,7 +218,7 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void testMockProjectPropToken(){
+    public void testMockProjectPropToken() {
         ProjectProperties pp = mock(ProjectProperties.class);
         pp.setApiToken("123Token");
         String token = "123Token";
@@ -226,7 +226,7 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void testMockProjectPropPath(){
+    public void testMockProjectPropPath() {
         ProjectProperties pp = mock(ProjectProperties.class);
         pp.setBasePath("./path");
         String path = "./path";
@@ -234,7 +234,7 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void testMockProjectPropUrl(){
+    public void testMockProjectPropUrl() {
         ProjectProperties pp = mock(ProjectProperties.class);
         pp.setBaseUrl("https://crowdin.com");
         String url = "https://crowdin.com";
@@ -242,7 +242,7 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void testMockPropBuilderBasePropUrl(){
+    public void testMockPropBuilderBasePropUrl() {
         PropertiesBuilders pb = mock(PropertiesBuilders.class);
         File configFile = new File("folder/crowdinTest.yml");
         String minimalConfigFileText = NewPropertiesWithTargetsUtilBuilder
@@ -257,8 +257,9 @@ public class PropertiesBuilderTest {
 
         when(bp.getBaseUrl()).thenReturn( "https://crowdin.com");
     }
+
     @Test
-    public void testMockPropBuilderBasePropIdParam(){
+    public void testMockPropBuilderBasePropIdParam() {
         PropertiesBuilders pb = mock(PropertiesBuilders.class);
         File configFile = new File("folder/crowdinTest.yml");
         String minimalConfigFileText = NewPropertiesWithTargetsUtilBuilder
