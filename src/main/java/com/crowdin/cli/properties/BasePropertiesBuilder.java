@@ -4,8 +4,6 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import lombok.NonNull;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;

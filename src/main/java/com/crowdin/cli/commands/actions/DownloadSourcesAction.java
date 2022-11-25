@@ -269,7 +269,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                                 String.format(RESOURCE_BUNDLE.getString("message.building_reviewed_sources"),
                                         Math.toIntExact(build.getProgress())));
 
-                        Thread.sleep(100);
+                        Thread.sleep(1000);
 
                         build = client.checkBuildingReviewedSources(build.getId());
 

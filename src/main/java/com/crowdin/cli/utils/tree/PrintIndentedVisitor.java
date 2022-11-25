@@ -3,7 +3,6 @@ package com.crowdin.cli.utils.tree;
 import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.utils.Utils;
 
-
 class PrintIndentedVisitor implements Visitor<String, String> {
 
     private static final String ELEM = Utils.isWindows()

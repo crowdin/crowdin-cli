@@ -4,7 +4,6 @@ import com.crowdin.cli.utils.Utils;
 
 import java.util.List;
 
-
 public class DrawTree {
 
     public static List<String> draw(List<String> l) {
@@ -24,5 +23,4 @@ public class DrawTree {
         }
         return top.accept(new PrintIndentedVisitor());
     }
-
 }

@@ -16,5 +16,4 @@ public interface FilesInterface {
     void deleteFile(File file) throws IOException;
 
     void deleteDirectory(File dir) throws IOException;
-
 }

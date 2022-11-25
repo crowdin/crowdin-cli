@@ -45,7 +45,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
     private FilesInterface files;
     private boolean noProgress;
     private List<String> langIds;
-    private boolean isVerbose;
+    private boolean isVerbose; // TODO: implement verbose
     private boolean plainView;
     private boolean debug;
     private String branchName;
@@ -122,23 +122,22 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
             .stream()
             .collect(Collectors.toMap(Language::getId, Function.identity()));
 
-        List<String> specifiedLangs;
+        List<String> specifiedLanguages;
         if ((langIds.size() == 1 && langIds.get(0).equals(BaseCli.ALL)) || langIds.isEmpty()) {
-            specifiedLangs = new ArrayList<>(projectLanguages.keySet());
+            specifiedLanguages = new ArrayList<>(projectLanguages.keySet());
         } else {
-            String unfoundLangs = langIds.stream()
+            String notFoundLanguages = langIds.stream()
                 .filter(lang -> !projectLanguages.containsKey(lang))
                 .map(lang -> "'" + lang + "'")
                 .collect(Collectors.joining(", "));
-            if (!unfoundLangs.isEmpty()) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), unfoundLangs));
+            if (!notFoundLanguages.isEmpty()) {
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), notFoundLanguages));
             } else {
-                specifiedLangs = langIds;
+                specifiedLanguages = langIds;
             }
         }
 
         for (TargetBean tb : targetBeans) {
-
             List<Runnable> tasks = tb.getFiles().stream()
                 .flatMap(fb -> {
                     List<String> errors = new ArrayList<>();
@@ -203,7 +202,7 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
                     }
 
                     List<Pair<String, ExportProjectTranslationRequest>> builtRequests = new ArrayList<>();
-                    for (String langId : specifiedLangs) {
+                    for (String langId : specifiedLanguages) {
                         ExportProjectTranslationRequest request = RequestBuilder.exportProjectTranslation(templateRequest);
                         request.setTargetLanguageId(langId);
                         String targetFileLang = placeholderUtil.replaceLanguageDependentPlaceholders(fb.getFile(), project.getLanguageMapping(), projectLanguages.get(langId));
@@ -243,5 +242,4 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_targets_to_exec")));
         }
     }
-
 }

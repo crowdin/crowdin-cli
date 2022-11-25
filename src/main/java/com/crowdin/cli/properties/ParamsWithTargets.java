@@ -2,7 +2,6 @@ package com.crowdin.cli.properties;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;
-import picocli.CommandLine;
 
 @EqualsAndHashCode(callSuper = true)
 @Data

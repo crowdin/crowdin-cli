@@ -25,7 +25,6 @@ import static com.crowdin.cli.utils.PlaceholderUtil.ESCAPE_ROUND_BRACKET_OPEN;
 import static com.crowdin.cli.utils.PlaceholderUtil.ROUND_BRACKET_CLOSE;
 import static com.crowdin.cli.utils.PlaceholderUtil.ROUND_BRACKET_OPEN;
 
-
 public class Utils {
 
     private static final String APPLICATION_BASE_URL = "application.base_url";

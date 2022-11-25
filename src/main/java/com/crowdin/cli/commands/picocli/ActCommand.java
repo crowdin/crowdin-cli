@@ -4,7 +4,6 @@ import com.crowdin.cli.client.Client;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.BaseParams;
 import com.crowdin.cli.properties.BaseProperties;
-import com.crowdin.cli.properties.Params;
 import com.crowdin.cli.properties.PropertiesBuilders;
 import picocli.CommandLine;
 

@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
 public class FileHelper {
 
     private static final String DOUBLED_ASTERISK = "**";
@@ -159,7 +158,7 @@ public class FileHelper {
                 continue;
             }
             if (DOUBLED_ASTERISK.equals(node)) {
-                result.addAll(getlistDirectory(file));
+                result.addAll(getListDirectory(file));
             } else if (file.isDirectory()) {
                 FileFilter fileFilter = new RegexFileFilter(node);
                 File[] files = file.listFiles(fileFilter);
@@ -172,18 +171,17 @@ public class FileHelper {
         return result;
     }
 
-    private List<File> getlistDirectory(File directory) {
+    private List<File> getListDirectory(File directory) {
         List<File> resultList = new ArrayList<>();
         resultList.add(directory);
         File[] fileList = directory.listFiles();
         if (fileList != null) {
             for (File file : fileList) {
                 if (Files.isDirectory(file.toPath(), LinkOption.NOFOLLOW_LINKS)) {
-                    resultList.addAll(getlistDirectory(file));
+                    resultList.addAll(getListDirectory(file));
                 }
             }
         }
         return resultList;
     }
-
 }

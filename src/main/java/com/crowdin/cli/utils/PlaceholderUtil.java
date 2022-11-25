@@ -62,16 +62,16 @@ public class PlaceholderUtil {
     private static final String ESCAPE_ASTERISK_REPLACEMENT_FROM = ".+" + Utils.PATH_SEPARATOR;
     private static final String ESCAPE_ASTERISK_REPLACEMENT_TO = "(.+" + Utils.PATH_SEPARATOR_REGEX + ")?";
 
-    private List<Language> supportedLangs;
-    private List<Language> projectLangs;
+    private List<Language> supportedLanguages;
+    private List<Language> projectLanguages;
     private String basePath;
 
-    public PlaceholderUtil(List<Language> supportedLangs, List<com.crowdin.client.languages.model.Language> projectLangs, String basePath) {
-        if (supportedLangs == null || projectLangs == null || basePath == null) {
+    public PlaceholderUtil(List<Language> supportedLanguages, List<com.crowdin.client.languages.model.Language> projectLanguages, String basePath) {
+        if (supportedLanguages == null || projectLanguages == null || basePath == null) {
             throw new NullPointerException("in PlaceholderUtil.constructor");
         }
-        this.supportedLangs = supportedLangs;
-        this.projectLangs = projectLangs;
+        this.supportedLanguages = supportedLanguages;
+        this.projectLanguages = projectLanguages;
         this.basePath = basePath;
     }
 
@@ -90,13 +90,14 @@ public class PlaceholderUtil {
         if (sources == null || toFormat == null) {
             return new HashSet<>();
         }
-        List<Language> languages = (onProjectLangs ? projectLangs : supportedLangs);
-        Set<String> result = languages.stream()
-                .map(lang -> this.replaceLanguageDependentPlaceholders(toFormat, lang))
-                .flatMap(changedToFormat -> sources.stream()
-                        .map(source -> this.replaceFileDependentPlaceholders(changedToFormat, source)))
-                .collect(Collectors.toSet());
-        return result;
+
+        List<Language> languages = (onProjectLangs ? projectLanguages : supportedLanguages);
+
+        return languages.stream()
+            .map(lang -> this.replaceLanguageDependentPlaceholders(toFormat, lang))
+            .flatMap(changedToFormat -> sources.stream()
+                    .map(source -> this.replaceFileDependentPlaceholders(changedToFormat, source)))
+            .collect(Collectors.toSet());
     }
 
     public String replaceLanguageDependentPlaceholders(String toFormat, Language lang) {
@@ -119,7 +120,7 @@ public class PlaceholderUtil {
     }
 
     public List<String> replaceLanguageDependentPlaceholders(String toFormat, LanguageMapping languageMapping) {
-        return projectLangs
+        return projectLanguages
             .stream()
             .map(lang -> replaceLanguageDependentPlaceholders(toFormat, languageMapping, lang))
             .collect(Collectors.toList());
@@ -196,7 +197,7 @@ public class PlaceholderUtil {
     }
 
     public List<String> formatForRegex(List<String> toFormat, boolean onProjectLangs) {
-        List<Language> langs = (onProjectLangs) ? this.projectLangs : this.supportedLangs;
+        List<Language> langs = (onProjectLangs) ? this.projectLanguages : this.supportedLanguages;
         String langIds = langs.stream().map(Language::getId).collect(Collectors.joining("|", "(", ")"));
         String langNames = langs.stream().map(Language::getName).collect(Collectors.joining("|", "(", ")"));
         String langLocales = langs.stream().map(Language::getLocale).collect(Collectors.joining("|", "(", ")"));
