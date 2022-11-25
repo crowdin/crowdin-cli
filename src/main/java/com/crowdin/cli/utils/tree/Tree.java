@@ -5,7 +5,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-
 class Tree<T> implements Visitable<T> {
     private final Set<Tree<T>> children = new LinkedHashSet<>();
     private Tree<T> lastChild;

@@ -19,26 +19,6 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 
 public class SourcesUtils {
-
-    private static final String DOUBLED_ASTERISK = "**";
-    private static final String REGEX = "regex";
-    private static final String ASTERISK = "*";
-    private static final String QUESTION_MARK = "?";
-    private static final String DOT = ".";
-    private static final String DOT_PLUS = ".+";
-    private static final String SET_OPEN_BRACKET = "[";
-    private static final String SET_CLOSE_BRACKET = "]";
-    private static final String ROUND_BRACKET_OPEN = "(";
-    private static final String ROUND_BRACKET_CLOSE = ")";
-    private static final String ESCAPE_ROUND_BRACKET_OPEN = "\\(";
-    private static final String ESCAPE_ROUND_BRACKET_CLOSE = "\\)";
-    private static final String ESCAPE_DOT = "\\.";
-    private static final String ESCAPE_DOT_PLACEHOLDER = "{ESCAPE_DOT}";
-    private static final String ESCAPE_QUESTION = "\\?";
-    private static final String ESCAPE_QUESTION_PLACEHOLDER = "{ESCAPE_QUESTION_MARK}";
-    private static final String ESCAPE_ASTERISK = "\\*";
-    private static final String ESCAPE_ASTERISK_PLACEHOLDER = "{ESCAPE_ASTERISK}";
-
     public static Stream<File> getFiles(String basePath, String sourcePattern, List<String> ignorePattern, PlaceholderUtil placeholderUtil) {
         if (basePath == null || sourcePattern == null || placeholderUtil == null) {
             throw new NullPointerException("null args in SourceUtils.getFiles");

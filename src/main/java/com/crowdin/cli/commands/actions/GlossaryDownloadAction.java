@@ -84,7 +84,7 @@ class GlossaryDownloadAction implements NewAction<BaseProperties, ClientGlossary
                     ConsoleSpinner.update(
                         String.format(RESOURCE_BUNDLE.getString("message.spinner.building_glossary_percents"),
                             status.getProgress()));
-                    Thread.sleep(100);
+                    Thread.sleep(1000);
 
                     status = client.checkExportingGlossary(glossaryId, status.getIdentifier());
 

@@ -8,8 +8,6 @@ import com.crowdin.cli.properties.ParamsWithFiles;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import picocli.CommandLine;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 
 @CommandLine.Command(

@@ -94,7 +94,7 @@ class TmDownloadAction implements NewAction<BaseProperties, ClientTm> {
 
                 while (!status.getStatus().equalsIgnoreCase("finished")) {
                     ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.building_tm_percents"), status.getProgress()));
-                    Thread.sleep(100);
+                    Thread.sleep(1000);
 
                     status = client.checkExportingTm(tmId, status.getIdentifier());
 

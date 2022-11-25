@@ -2,7 +2,6 @@ package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.Directory;
-import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 
 import java.util.List;

@@ -155,7 +155,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                     ConsoleSpinner.update(
                             String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_percents"),
                                     Math.toIntExact(preTranslationStatus.getProgress())));
-                    Thread.sleep(100);
+                    Thread.sleep(1000);
 
                     preTranslationStatus = client.checkPreTranslation(preTranslationStatus.getIdentifier());
 

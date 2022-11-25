@@ -1,6 +1,5 @@
 package com.crowdin.cli.utils.tree;
 
-
 import java.util.List;
 
 interface Visitable<T> {
