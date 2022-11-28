@@ -378,12 +378,6 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             translationReplace, sources, fb.getSource(), basePath, placeholderUtil);
     }
 
-    private String replaceFileName(String filePath, String newName) {
-        String[] filePathParts = filePath.split("[\\\\/]+");
-        filePathParts[filePathParts.length - 1] = newName;
-        return String.join(Utils.PATH_SEPARATOR, filePathParts);
-    }
-
     private ProjectBuild buildTranslation(ProjectClient client, BuildProjectTranslationRequest request) {
         AtomicInteger sleepTime = new AtomicInteger(CHECK_WAITING_TIME_FIRST);
 
