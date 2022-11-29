@@ -17,13 +17,15 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 [**`Configuration File`**](https://developer.crowdin.com/configuration-file/) | 
 [**`Wiki`**](https://github.com/crowdin/crowdin-cli/wiki)
 
-[![build-test](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml/badge.svg?branch=cli3)](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml)
-[![codecov](https://codecov.io/gh/crowdin/crowdin-cli/branch/cli3/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli)
 [![Docker Pulls](https://img.shields.io/docker/pulls/crowdin/cli?logo=docker&cacheSeconds=2000)](https://hub.docker.com/r/crowdin/cli)
 [![npm](https://img.shields.io/npm/dt/@crowdin/cli?logo=npm&cacheSeconds=2000)](https://www.npmjs.com/package/@crowdin/cli)
 [![homebrew downloads](https://img.shields.io/homebrew/installs/dy/crowdin?logo=homebrew)](https://formulae.brew.sh/formula/crowdin)
 [![GitHub contributors](https://img.shields.io/github/contributors/crowdin/crowdin-cli?cacheSeconds=1000)](https://github.com/crowdin/crowdin-cli/graphs/contributors)
 ![GitHub](https://img.shields.io/github/license/crowdin/crowdin-cli?cacheSeconds=50000)
+
+[![build-test](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml/badge.svg?branch=cli3)](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml)
+[![CodeQL](https://github.com/crowdin/crowdin-cli/actions/workflows/codeql-analysis.yml/badge.svg?branch=cli3)](https://github.com/crowdin/crowdin-cli/actions/workflows/codeql-analysis.yml)
+[![codecov](https://codecov.io/gh/crowdin/crowdin-cli/branch/cli3/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli)
 
  </div>
  
