@@ -8,9 +8,8 @@ import com.crowdin.cli.commands.functionality.DryrunProjectFiles;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.Branch;
-import org.apache.commons.lang3.StringUtils;
 
-import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import java.util.Optional;
 
 class ListProjectAction implements NewAction<ProjectProperties, ProjectClient> {
 
@@ -30,13 +29,9 @@ class ListProjectAction implements NewAction<ProjectProperties, ProjectClient> {
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress, this.plainView, client::downloadFullProject);
+                this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
 
-        Long branchId = (StringUtils.isNotEmpty(this.branchName))
-            ? project.findBranchByName(this.branchName)
-                .map(Branch::getId)
-                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
-            : null;
+        Long branchId = Optional.ofNullable(project.getBranch()).map(Branch::getId).orElse(null);
 
         (new DryrunProjectFiles(project.getFileInfos(), project.getDirectories(), project.getBranches(), branchId)).run(out, treeView, plainView);
     }

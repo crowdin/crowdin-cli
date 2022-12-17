@@ -51,7 +51,7 @@ public class DownloadSourcesActionTest {
             .build();
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addDirectory("common", 201L, null, null)
                 .addFile("strings.xml", "gettext", 101L, 201L, null, "/values-%two_letters_code%/%original_file_name%").build());
@@ -65,7 +65,7 @@ public class DownloadSourcesActionTest {
             new DownloadSourcesAction(files, false, false, null, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).downloadFile(eq(101L));
         verifyNoMoreInteractions(client);
 
@@ -83,7 +83,7 @@ public class DownloadSourcesActionTest {
             .build();
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addDirectory("destination", 201L, null, null)
                 .addFile("crowdin_sample_android.xml", "gettext", 101L, 201L, null, "/tests/tr-%locale%/%original_file_name%").build());
@@ -97,7 +97,7 @@ public class DownloadSourcesActionTest {
             new DownloadSourcesAction(files, false, false, null, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).downloadFile(eq(101L));
         verifyNoMoreInteractions(client);
 
@@ -117,7 +117,7 @@ public class DownloadSourcesActionTest {
             .build();
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addDirectory("folder_1", 201L, null, null)
                 .addDirectory("f1", 202L, 201L, null)
@@ -153,7 +153,7 @@ public class DownloadSourcesActionTest {
             new DownloadSourcesAction(files, false, false, null, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).downloadFile(eq(101L));
         verify(client).downloadFile(eq(102L));
         verify(client).downloadFile(eq(103L));
@@ -185,7 +185,7 @@ public class DownloadSourcesActionTest {
             .build();
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addDirectory("f1", 201L, null, null)
                 .addDirectory("folder_1", 202L, null, null)
@@ -219,7 +219,7 @@ public class DownloadSourcesActionTest {
             new DownloadSourcesAction(files, false, false, null, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).downloadFile(eq(101L));
         verify(client).downloadFile(eq(102L));
         verify(client).downloadFile(eq(103L));
@@ -253,7 +253,7 @@ public class DownloadSourcesActionTest {
             .build();
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
             .addDirectory("common", 201L, null, null)
             .addFile("strings.xml", "gettext", 101L, 201L, null, "/values-%two_letters_code%/%original_file_name%").build());
@@ -270,7 +270,7 @@ public class DownloadSourcesActionTest {
         String outMessage1 = "✔️  Fetching project info\n";
         String outMessage2 = "✔️  File @|bold 'common/strings.xml'|@\n";
 
-        client.downloadFullProject();
+        client.downloadFullProject(null);
         client.downloadFile(101L);
 
         assertTrue(outContent.toString().contains(outMessage1));
@@ -291,7 +291,7 @@ public class DownloadSourcesActionTest {
             .build();
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addDirectory("common", 201L, null, null)
                 .addFile("strings.xml", "gettext", 101L, 201L, null, "/values-%two_letters_code%/%original_file_name%").build());
@@ -307,7 +307,7 @@ public class DownloadSourcesActionTest {
 
         String warnMessage = "⚠️  Operation is available only for Crowdin Enterprise\n";
 
-        client.downloadFullProject();
+        client.downloadFullProject(null);
         assertEquals(warnMessage, outContent.toString());
     }
 }

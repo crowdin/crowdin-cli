@@ -27,7 +27,11 @@ import java.util.List;
 
 public interface ProjectClient extends Client {
 
-    CrowdinProjectFull downloadFullProject();
+    default CrowdinProjectFull downloadFullProject() {
+        return this.downloadFullProject(null);
+    }
+
+    CrowdinProjectFull downloadFullProject(String branchName);
 
     CrowdinProject downloadProjectWithLanguages();
 

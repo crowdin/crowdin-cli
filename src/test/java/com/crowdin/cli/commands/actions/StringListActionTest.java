@@ -38,7 +38,7 @@ public class StringListActionTest {
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
         pb = pbBuilder.build();
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 101L, null, null).build());
         when(client.listSourceString(101L, null, null, filter, null))
@@ -49,7 +49,7 @@ public class StringListActionTest {
         action = new StringListAction(true, true, file, filter, null, null);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).listLabels();
         if (file != null) {
             verify(client).listSourceString(101L, null, null, filter, null);
@@ -73,13 +73,13 @@ public class StringListActionTest {
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
         pb = pbBuilder.build();
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenThrow(new RuntimeException("Whoops"));
 
         action = new StringListAction(true, true, null, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verifyNoMoreInteractions(client);
     }
 
@@ -90,14 +90,14 @@ public class StringListActionTest {
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
         pb = pbBuilder.build();
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 101L, null, null).build());
 
         action = new StringListAction(true, true, "nonexistent.csv", null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).listLabels();
         verifyNoMoreInteractions(client);
     }

@@ -20,6 +20,7 @@ public class CrowdinProjectFull extends CrowdinProject {
     private List<? extends FileInfo> files;
     private List<Directory> directories;
     private List<Branch> branches;
+    private Branch branch;
 
     void setFiles(List<? extends FileInfo> files) {
         this.files = files;
@@ -37,6 +38,14 @@ public class CrowdinProjectFull extends CrowdinProject {
         return this.branches
             .stream()
             .collect(Collectors.toMap(Branch::getId, Function.identity()));
+    }
+
+    public Branch getBranch() {
+        return branch;
+    }
+
+    public void setBranch(Branch branch) {
+        this.branch = branch;
     }
 
     public void addBranchToLocalList(Branch branch) {

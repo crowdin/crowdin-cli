@@ -188,7 +188,7 @@ public class CrowdinProjectClientTest {
         when(httpClientMock.get(eq(listBranchesUrl), any(), eq(BranchResponseList.class)))
             .thenReturn(branchesResponse);
 
-        CrowdinProject crowdinProject = client.downloadFullProject();
+        CrowdinProject crowdinProject = client.downloadFullProject(null);
         assertEquals(1, crowdinProject.getProjectLanguages(false).size());
         assertEquals(2, crowdinProject.getSupportedLanguages().size());
         assertTrue(crowdinProject.findLanguageById("ua", false).isPresent());
