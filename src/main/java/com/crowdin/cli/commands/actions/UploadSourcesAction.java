@@ -1,6 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.CrowdinProjectFull;
+import com.crowdin.cli.client.EmptyFileException;
 import com.crowdin.cli.client.ExistsResponseException;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
@@ -221,6 +222,9 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     } else {
                                         out.println(fileFullPath);
                                     }
+                                } catch (EmptyFileException e){
+                                    errorsPresented.set(false);
+                                    out.println(WARNING.withIcon("!!!!!!!"));
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
@@ -259,6 +263,9 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
                                     request.setStorageId(client.uploadStorage(source.substring(source.lastIndexOf(Utils.PATH_SEPARATOR) + 1), fileStream));
+                                } catch (EmptyFileException e){
+                                    errorsPresented.set(false);
+                                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), fileFullPath)));
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(
@@ -269,6 +276,9 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 } catch (ExistsResponseException e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_already_exists"), fileFullPath));
+                                } catch (EmptyFileException e){
+                                    errorsPresented.set(false);
+                                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.empty_file_upload"), e.getMessage())));
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
