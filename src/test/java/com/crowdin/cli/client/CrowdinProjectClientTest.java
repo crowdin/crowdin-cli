@@ -329,7 +329,7 @@ public class CrowdinProjectClientTest {
     }
 
     @Test
-    public void testUploadStorage() throws IOException {
+    public void testUploadStorage() throws IOException, ResponseException {
         InputStream requestData = IOUtils.toInputStream("Something to send", "UTF-8");
         StorageResponseObject response = new StorageResponseObject() {{
                 setData(new Storage());
