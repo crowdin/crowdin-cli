@@ -6,6 +6,8 @@ import com.crowdin.cli.utils.OutputUtil;
 import com.crowdin.cli.utils.Utils;
 import picocli.CommandLine;
 
+import java.util.stream.Stream;
+
 /**
  * Facade singleton class that is used to run <a href="https://picocli.info">picocli framework</a>.
  */
@@ -43,6 +45,10 @@ public class PicocliRunner {
             parseResult = parseResult.subcommand();
         }
         return parseResult.hasMatchedOption(name);
+    }
+
+    public boolean noneMatchArgs(String... args) {
+        return Stream.of(args).noneMatch(this::hasMatchedArg);
     }
 
     private void init() {

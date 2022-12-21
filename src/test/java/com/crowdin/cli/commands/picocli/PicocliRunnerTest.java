@@ -23,6 +23,20 @@ public class PicocliRunnerTest extends PicocliTestUtils {
     }
 
     @Test
+    public void testNoneMatchedArgs() {
+        PicocliRunner picocliRunner = PicocliRunner.getInstance();
+        picocliRunner.execute(actionsMock, propertiesBuildersMock, "--version");
+        assertFalse(picocliRunner.noneMatchArgs("version"));
+        assertFalse(picocliRunner.noneMatchArgs("--version"));
+        assertFalse(picocliRunner.noneMatchArgs("-V"));
+
+        picocliRunner.execute(actionsMock, propertiesBuildersMock, "--help");
+        assertFalse(picocliRunner.noneMatchArgs("help"));
+        assertFalse(picocliRunner.noneMatchArgs("--help"));
+        assertFalse(picocliRunner.noneMatchArgs("-h"));
+    }
+
+    @Test
     public void testVersionProvider() throws Exception {
         CommandLine.IVersionProvider versionProvider = new PicocliRunner.VersionProvider();
         String[] versionMessage = versionProvider.getVersion();
