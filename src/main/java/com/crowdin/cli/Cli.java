@@ -14,7 +14,7 @@ public class Cli {
             Actions actions = new CliActions();
             PropertiesBuilders propertiesBuilders = new PropertiesBuilders();
             int exitCode = picocliRunner.execute(actions, propertiesBuilders, args);
-            if (exitCode != -1 && !picocliRunner.hasMatchedArg("plain")) {
+            if (exitCode != -1 && picocliRunner.noneMatchArgs("--help", "--version", "plain") && args.length != 0) {
                 picocliRunner.execute(actions, propertiesBuilders, CommandNames.CHECK_NEW_VERSION);
             }
 
