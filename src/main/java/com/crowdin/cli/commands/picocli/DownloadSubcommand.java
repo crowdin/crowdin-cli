@@ -45,6 +45,9 @@ class DownloadSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--skip-untranslated-files"}, descriptionKey = "params.skipUntranslatedFiles")
     protected Boolean skipUntranslatedFiles;
 
+    @CommandLine.Option(names = {"--keep-archive"}, descriptionKey = "params.keepArchive")
+    protected boolean keepArchive;
+
     @CommandLine.Option(names = {"--export-only-approved"}, descriptionKey = "params.exportOnlyApproved")
     protected Boolean exportApprovedOnly;
 
@@ -55,7 +58,7 @@ class DownloadSubcommand extends ActCommandWithFiles {
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
             ? actions.listTranslations(noProgress, treeView, false, plainView, all, true)
-            : actions.download(new FsFiles(), noProgress, languageIds, pseudo, branchName, ignoreMatch, isVerbose, plainView, all);
+            : actions.download(new FsFiles(), noProgress, languageIds, pseudo, branchName, ignoreMatch, isVerbose, plainView, all, keepArchive);
     }
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
@@ -68,6 +71,6 @@ class DownloadSubcommand extends ActCommandWithFiles {
 
     @Override
     protected void updateParams(ParamsWithFiles params) {
-        params.setExportOptions(skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly);
+        params.setExportOptions(skipTranslatedOnly, skipUntranslatedFiles, keepArchive, exportApprovedOnly);
     }
 }
