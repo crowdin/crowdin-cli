@@ -1,10 +1,7 @@
 package com.crowdin.cli.commands;
 
 import com.crowdin.cli.BaseCli;
-import com.crowdin.cli.client.ClientGlossary;
-import com.crowdin.cli.client.ClientTm;
-import com.crowdin.cli.client.NoClient;
-import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.cli.properties.ProjectProperties;
@@ -82,6 +79,10 @@ public interface Actions {
     NewAction<BaseProperties, ClientTm> tmDownload(
         Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,
         String targetLanguageId, boolean noProgress, File to, FilesInterface files);
+
+    NewAction<ProjectProperties, ClientTask> taskList(boolean plainView, boolean isVerbose, String status, Long assigneeId);
+
+    NewAction<ProjectProperties, ClientTask> taskAdd(String title, Integer type, String language, List<Long> fileId, String workflowStep, String description, boolean splitFiles, boolean skipAssignedStrings, boolean skipUntranslatedStrings, String label);
 
     NewAction<PropertiesWithTargets, ProjectClient> downloadTargets(
         List<String> targetNames, FilesInterface files, boolean noProgress,

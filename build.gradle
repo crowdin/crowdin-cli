@@ -12,7 +12,7 @@ apply plugin: 'checkstyle'
 group 'com.crowdin'
 version '3.9.1'
 
-sourceCompatibility = 1.8
+sourceCompatibility = 1.9
 
 if (!hasProperty('mainClass')) {
     ext.mainClass = 'com.crowdin.cli.Cli'
@@ -163,3 +163,4 @@ task staticAnalysis(type: GradleBuild) {
 }
 
 
+targetCompatibility = JavaVersion.VERSION_1_9

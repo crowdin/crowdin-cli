@@ -29,6 +29,11 @@ public final class Clients {
         return new CrowdinClientTm(client);
     }
 
+    public static ClientTask getClientTask(String apiToken, String baseUrl, String projectId) {
+        com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);
+        return new CrowdinClientTask(client, projectId);
+    }
+
 //    mb divide args to move token and url to constructor?
     public static ProjectClient getProjectClient(String apiToken, String baseUrl, long projectId) {
         com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);
