@@ -32,7 +32,6 @@ public class ParamsWithFiles extends ProjectParams {
     public void setExportOptions(Boolean skipTranslatedOnly, Boolean skipUntranslatedFiles, Boolean keepArchive, Boolean exportApprovedOnly) {
         this.skipTranslatedOnly = skipTranslatedOnly;
         this.skipUntranslatedFiles = skipUntranslatedFiles;
-        this.keepArchive = keepArchive;
         this.exportApprovedOnly = exportApprovedOnly;
     }
 

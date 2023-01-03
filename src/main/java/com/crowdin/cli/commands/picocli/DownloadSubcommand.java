@@ -45,11 +45,11 @@ class DownloadSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--skip-untranslated-files"}, descriptionKey = "params.skipUntranslatedFiles")
     protected Boolean skipUntranslatedFiles;
 
-    @CommandLine.Option(names = {"--keep-archive"}, descriptionKey = "params.keepArchive")
-    protected boolean keepArchive;
-
     @CommandLine.Option(names = {"--export-only-approved"}, descriptionKey = "params.exportOnlyApproved")
     protected Boolean exportApprovedOnly;
+
+    @CommandLine.Option(names = {"--keep-archive"}, descriptionKey = "params.keepArchive")
+    protected boolean keepArchive;
 
     @CommandLine.Option(names = {"--all"})
     protected boolean all;
