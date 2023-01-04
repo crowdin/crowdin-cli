@@ -8,7 +8,8 @@ public enum ExecutionStatus {
     ERROR("[ERROR] ", "\u274C "),
     WARNING("[WARNING] ", "⚠️  "),
     SKIPPED("[SKIPPED] ", "\u23ED  "),
-    EMPTY("", "");
+    EMPTY("", ""),
+    LIST_ITEM("-", "-");
 
     private String windowsIcon;
     private String unixIcon;

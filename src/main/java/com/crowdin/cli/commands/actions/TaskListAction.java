@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
 class TaskListAction implements NewAction<ProjectProperties, ClientTask> {
 
@@ -41,11 +41,12 @@ class TaskListAction implements NewAction<ProjectProperties, ClientTask> {
         }
         for (Task task : tasks) {
             String okMessage = isVerbose ? "message.task.list.verbose" : "message.task.list";
+            String deadline = task.getDeadline() == null ? "NoDueDate" : task.getDeadline().toString();
             if (!plainView) {
-                out.println(OK.withIcon(
-                        String.format(RESOURCE_BUNDLE.getString(okMessage), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), task.getDeadline())));
+                out.println(LIST_ITEM.withIcon(
+                        String.format(RESOURCE_BUNDLE.getString(okMessage), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), deadline)));
             } else {
-                out.println(String.format(RESOURCE_BUNDLE.getString(okMessage), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), task.getDeadline()));
+                out.println(String.format(RESOURCE_BUNDLE.getString(okMessage), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), deadline));
             }
         }
         if (tasks.isEmpty()) {
