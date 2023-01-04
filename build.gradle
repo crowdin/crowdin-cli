@@ -162,5 +162,3 @@ task staticAnalysis(type: GradleBuild) {
     tasks = ['checkstyleMain', 'checkstyleTest', 'spotbugsMain', 'spotbugsTest']
 }
 
-
-targetCompatibility = JavaVersion.VERSION_1_9
