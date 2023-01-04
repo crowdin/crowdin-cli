@@ -59,7 +59,8 @@ class TaskAddSubcommand extends ActCommandTask {
         List<String> errors = new ArrayList<>();
         if (Strings.isEmpty(type)) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.empty_type"));
-        } else if (!(TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) || PROOFREAD_TASK_TYPE.equalsIgnoreCase(type))) {
+        }
+        if (!(TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) || PROOFREAD_TASK_TYPE.equalsIgnoreCase(type))) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.unsupported.type"));
         }
         return errors;
