@@ -71,6 +71,6 @@ class DownloadSubcommand extends ActCommandWithFiles {
 
     @Override
     protected void updateParams(ParamsWithFiles params) {
-        params.setExportOptions(skipTranslatedOnly, skipUntranslatedFiles, keepArchive, exportApprovedOnly);
+        params.setExportOptions(skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly);
     }
 }
