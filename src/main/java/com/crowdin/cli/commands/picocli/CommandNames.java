@@ -54,8 +54,6 @@ public final class CommandNames {
     public static final String PRE_TRANSLATE = "pre-translate";
 
     public static final String TASK = "task";
-
     public static final String TASK_LIST = "list";
-
     public static final String TASK_ADD = "add";
 }
