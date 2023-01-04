@@ -45,7 +45,7 @@ class TaskListAction implements NewAction<ProjectProperties, ClientTask> {
                 out.println(OK.withIcon(
                         String.format(RESOURCE_BUNDLE.getString(okMessage), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), task.getDeadline())));
             } else {
-                out.println(task.getTitle());
+                out.println(String.format(RESOURCE_BUNDLE.getString(okMessage), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), task.getDeadline()));
             }
         }
         if (tasks.isEmpty()) {
