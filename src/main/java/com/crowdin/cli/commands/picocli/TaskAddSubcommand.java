@@ -50,7 +50,7 @@ class TaskAddSubcommand extends ActCommandTask {
 
     @Override
     protected NewAction<ProjectProperties, ClientTask> getAction(Actions actions) {
-        int intType = "translate".equalsIgnoreCase(type) ? 0 : 1;
+        int intType = TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) ? 0 : 1;
         return actions.taskAdd(title, intType, language, fileId, workflowStep, description, splitFiles, skipAssignedStrings, skipUntranslatedStrings, label);
     }
 
