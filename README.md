@@ -266,7 +266,7 @@ Sample configuration file:
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
 "base_path": "."
-"base_url": "https://api.crowdin.com" # https://{organization-name}.crowdin.com
+"base_url": "https://api.crowdin.com" # https://{organization-name}.api.crowdin.com
 
 "preserve_hierarchy": true
 
