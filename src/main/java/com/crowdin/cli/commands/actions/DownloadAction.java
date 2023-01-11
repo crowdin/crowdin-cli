@@ -64,12 +64,13 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     private boolean isVerbose;
     private boolean plainView;
     private boolean useServerSources;
+    private boolean keepArchive;
 
     private Outputter out;
 
     public DownloadAction(
             FilesInterface files, boolean noProgress, List<String> languageIds, boolean pseudo, String branchName,
-            boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean useServerSources
+            boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean useServerSources, boolean keepArchive
     ) {
         this.files = files;
         this.noProgress = noProgress || plainView;
@@ -80,6 +81,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         this.isVerbose = isVerbose;
         this.plainView = plainView;
         this.useServerSources = useServerSources;
+        this.keepArchive = keepArchive;
     }
 
     @Override
@@ -146,7 +148,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(true, null, null, null, null);
                 }
 
-                Pair<File, List<String>> downloadedFiles = this.download(request, client, pb.getBasePath());
+                Pair<File, List<String>> downloadedFiles = this.download(request, client, pb.getBasePath(), keepArchive);
                 for (FileBean fb : pb.getFiles()) {
                     Map<String, String> filesWithMapping = this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil, new ArrayList<>(serverSources.keySet()), pb.getPreserveHierarchy());
                     fileBeansWithDownloadedFiles.putIfAbsent(downloadedFiles.getLeft(), new ArrayList<>());
@@ -192,7 +194,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                                 out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("error.export_strings_that_passed_workflow_not_supported")));
                             }
                         }
-                        Pair<File, List<String>> downloadedFiles = this.download(buildRequest, client, pb.getBasePath());
+                        Pair<File, List<String>> downloadedFiles = this.download(buildRequest, client, pb.getBasePath(), keepArchive);
                         for (FileBean fb : pb.getFiles()) {
                             if (fb.getSkipTranslatedOnly() == downloadConfiguration.getLeft().getLeft()
                                 && fb.getSkipUntranslatedFiles() == downloadConfiguration.getLeft().getRight()
@@ -325,7 +327,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
      * @param basePath base path
      * @return pair of temporary directory and list of files in it(relative paths to that directory)
      */
-    private Pair<File, List<String>> download(BuildProjectTranslationRequest request, ProjectClient client, String basePath) {
+    private Pair<File, List<String>> download(BuildProjectTranslationRequest request, ProjectClient client, String basePath, Boolean keepArchive) {
         ProjectBuild projectBuild = buildTranslation(client, request);
         String randomHash = RandomStringUtils.random(11, false, true);
         File baseTempDir =
@@ -344,10 +346,14 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 .removeStart(f.getAbsolutePath(), baseTempDir.getAbsolutePath() + Utils.PATH_SEPARATOR))
             .collect(Collectors.toList());
 
-        try {
-            files.deleteFile(downloadedZipArchive);
-        } catch (IOException e) {
-            out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("error.deleting_archive"), downloadedZipArchive)));
+        if (!keepArchive) {
+            try {
+                files.deleteFile(downloadedZipArchive);
+            } catch (IOException e) {
+                out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("error.deleting_archive"), downloadedZipArchive)));
+            }
+        } else {
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.archive"), downloadedZipArchivePath)));
         }
         return Pair.of(baseTempDir, downloadedFilesProc);
     }
