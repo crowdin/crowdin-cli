@@ -8,8 +8,6 @@ import java.util.List;
 
 public interface ClientTask extends Client {
 
-    List<Task> listTask();
-
     List<Task> listTask(Status status);
 
     Task addTask(AddTaskRequest request);

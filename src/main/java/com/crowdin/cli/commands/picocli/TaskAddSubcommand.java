@@ -5,11 +5,11 @@ import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.properties.ProjectProperties;
 
+import org.apache.commons.lang3.LocaleUtils;
 import org.apache.logging.log4j.util.Strings;
 import picocli.CommandLine;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @CommandLine.Command(
         name = CommandNames.TASK_ADD
@@ -27,8 +27,8 @@ class TaskAddSubcommand extends ActCommandTask {
     @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.task.add.language")
     private String language;
 
-    @CommandLine.Option(names = {"--file-id"}, descriptionKey = "crowdin.task.add.file-id", split = ",")
-    private List<Long> fileId;
+    @CommandLine.Option(names = {"--file"}, descriptionKey = "crowdin.task.add.file-id", split = ",")
+    private List<Long> files;
 
     @CommandLine.Option(names = {"--workflow-step"}, paramLabel = "...", descriptionKey = "crowdin.task.add.workflow-step")
     private String workflowStep;
@@ -51,7 +51,7 @@ class TaskAddSubcommand extends ActCommandTask {
     @Override
     protected NewAction<ProjectProperties, ClientTask> getAction(Actions actions) {
         int intType = TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) ? 0 : 1;
-        return actions.taskAdd(title, intType, language, fileId, workflowStep, description, splitFiles, skipAssignedStrings, skipUntranslatedStrings, label);
+        return actions.taskAdd(title, intType, language, files, workflowStep, description, splitFiles, skipAssignedStrings, skipUntranslatedStrings, label);
     }
 
     @Override
@@ -62,6 +62,19 @@ class TaskAddSubcommand extends ActCommandTask {
         }
         if (!(TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) || PROOFREAD_TASK_TYPE.equalsIgnoreCase(type))) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.unsupported.type"));
+        }
+        if (Strings.isEmpty(language)) {
+            errors.add(RESOURCE_BUNDLE.getString("error.task.empty_language"));
+        }
+        try {
+            if (!LocaleUtils.isAvailableLocale(new Locale.Builder().setLanguageTag(language).build())) {
+                throw new IllformedLocaleException();
+            }
+        } catch (IllformedLocaleException e) {
+            errors.add(RESOURCE_BUNDLE.getString("error.task.illegal_language"));
+        }
+        if (files ==null || files.isEmpty()) {
+            errors.add(RESOURCE_BUNDLE.getString("error.task.empty_fileId"));
         }
         return errors;
     }

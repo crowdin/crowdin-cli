@@ -17,12 +17,6 @@ public class CrowdinClientTask extends CrowdinClientCore implements ClientTask {
     }
 
     @Override
-    public List<Task> listTask() {
-        return executeRequestFullList((limit, offset) -> this.client.getTasksApi()
-            .listTasks(Long.valueOf(projectId), limit, offset, null));
-    }
-
-    @Override
     public List<Task> listTask(Status status) {
         return executeRequestFullList((limit, offset) -> this.client.getTasksApi()
             .listTasks(Long.valueOf(projectId), limit, offset, status));
