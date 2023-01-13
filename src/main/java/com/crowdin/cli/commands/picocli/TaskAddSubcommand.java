@@ -63,14 +63,18 @@ class TaskAddSubcommand extends ActCommandTask {
         if (Strings.isNotEmpty(type) && !(TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) || PROOFREAD_TASK_TYPE.equalsIgnoreCase(type))) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.unsupported.type"));
         }
+        if(Strings.isEmpty(title)){
+            errors.add(RESOURCE_BUNDLE.getString("error.task.empty_title"));
+        }
         try {
-            if (!LocaleUtils.isAvailableLocale(new Locale.Builder().setLanguageTag(language).build())) {
+            if(Strings.isEmpty(language)){
+                errors.add(RESOURCE_BUNDLE.getString("error.task.empty_language"));
+            }
+            else if (!LocaleUtils.isAvailableLocale(new Locale.Builder().setLanguageTag(language).build())) {
                 throw new IllformedLocaleException();
             }
         } catch (IllformedLocaleException e) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.illegal_language"));
-        } catch (NullPointerException e){
-            errors.add(RESOURCE_BUNDLE.getString("error.task.empty_language"));
         }
         if (files == null || files.isEmpty()) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.empty_fileId"));

@@ -44,6 +44,8 @@ abstract class CrowdinClientCore {
                 new RuntimeException(RESOURCE_BUNDLE.getString("error.response.url_not_known")));
             put((code, message) -> code.equals("<empty_code>") && message.equals("<empty_message>"),
                 new RuntimeException("Empty error message from server"));
+            put((code, message) -> code.equals("KeyIsNotExist") && message.equals("The input was not found in the haystack"),
+                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.key_is_not_exist")));
         }};
 
     /**
