@@ -43,7 +43,7 @@ public interface ProjectClient extends Client {
 
     List<Branch> listBranches();
 
-    Long uploadStorage(String fileName, InputStream content);
+    Long uploadStorage(String fileName, InputStream content) throws ResponseException;
 
     Directory addDirectory(AddDirectoryRequest request) throws ResponseException;
 
