@@ -77,9 +77,9 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
                 .ifPresent(project::setBranch);
         Long branchId = Optional.ofNullable(project.getBranch()).map(Branch::getId).orElse(null);
         project.setFiles(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
-            .listFiles(this.projectId, branchId, null, null, null, limit, offset)));
+            .listFiles(this.projectId, branchId, null, null, true, limit, offset)));
         project.setDirectories(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
-            .listDirectories(this.projectId, branchId, null, null, null, limit, offset)));
+            .listDirectories(this.projectId, branchId, null, null, true, limit, offset)));
     }
 
     private void populateProjectWithLangs(CrowdinProject project) {
