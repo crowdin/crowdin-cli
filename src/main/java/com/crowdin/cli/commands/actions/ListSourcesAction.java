@@ -36,7 +36,7 @@ class ListSourcesAction implements NewAction<PropertiesWithFiles, ProjectClient>
     @Override
     public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
         CrowdinProject project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, this.plainView, (deleteObsolete) ? client::downloadFullProject : client::downloadProjectWithLanguages);
+            this.noProgress, this.plainView, (deleteObsolete) ? () -> client.downloadFullProject(this.branchName) : client::downloadProjectWithLanguages);
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
 
         if (!project.isManagerAccess() && deleteObsolete) {
@@ -50,9 +50,7 @@ class ListSourcesAction implements NewAction<PropertiesWithFiles, ProjectClient>
 
         if (deleteObsolete) {
             CrowdinProjectFull projectFull = (CrowdinProjectFull) project;
-            Long branchId = Optional.ofNullable(branchName)
-                .map(br -> projectFull.findBranchByName(br)
-                    .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))))
+            Long branchId = Optional.ofNullable(((CrowdinProjectFull) project).getBranch())
                 .map(Branch::getId)
                 .orElse(null);
             (new DryrunObsoleteSources(pb, placeholderUtil, projectFull.getDirectories(branchId), projectFull.getFiles(branchId))).run(out, treeView, plainView);

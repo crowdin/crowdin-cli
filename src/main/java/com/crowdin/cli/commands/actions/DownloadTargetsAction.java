@@ -21,7 +21,6 @@ import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
 import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
 import java.io.IOException;
@@ -70,16 +69,13 @@ class DownloadTargetsAction implements NewAction<PropertiesWithTargets, ProjectC
 
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress, this.plainView, client::downloadFullProject);
+                this.noProgress, this.plainView, () -> client.downloadFullProject(branchName));
 
         PlaceholderUtil placeholderUtil =
             new PlaceholderUtil(
                 project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
-        if (StringUtils.isNotEmpty(branchName) && !project.findBranchByName(branchName).isPresent()) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"));
-        }
-        Optional<Long> branchId = project.findBranchByName(branchName).map(Branch::getId);
+        Optional<Long> branchId = Optional.ofNullable(project.getBranch()).map(Branch::getId);
 
         Map<String, Long> projectFiles = (branchId.isPresent()
             ? ProjectFilesUtils

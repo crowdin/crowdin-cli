@@ -65,7 +65,7 @@ public class DownloadActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
         long buildId = 42L;
@@ -90,7 +90,7 @@ public class DownloadActionTest {
             new DownloadAction(files, false, null, false, null, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
@@ -112,7 +112,7 @@ public class DownloadActionTest {
         project.addFile("first.po");
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
@@ -140,7 +140,7 @@ public class DownloadActionTest {
             new DownloadAction(files, false, null, false, null, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
@@ -170,7 +170,7 @@ public class DownloadActionTest {
         project.addFile("first.po");
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                         .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm() {{
@@ -201,7 +201,7 @@ public class DownloadActionTest {
             new DownloadAction(files, false, null, false, null, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
@@ -229,7 +229,7 @@ public class DownloadActionTest {
         project.addFile("first.po");
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                         .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
@@ -257,7 +257,7 @@ public class DownloadActionTest {
                 new DownloadAction(files, false, null, false, null, false, false, false, false, true);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
@@ -284,7 +284,7 @@ public class DownloadActionTest {
         project.addFile("first.po");
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
@@ -316,7 +316,7 @@ public class DownloadActionTest {
             new DownloadAction(files, false, null, false, null, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client, times(3)).checkBuildingTranslation(eq(buildId));
         verify(client).downloadBuild(eq(buildId));
@@ -345,7 +345,7 @@ public class DownloadActionTest {
         project.addFile("first.po");
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%")
                 .addFile("second.po", "gettext", 102L, null, null, "/%original_file_name%-CR-%locale%")
@@ -377,7 +377,7 @@ public class DownloadActionTest {
             new DownloadAction(files, false, null, false, null, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
@@ -405,7 +405,7 @@ public class DownloadActionTest {
         project.addFile("first.po");
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%")
                 .addFile("second.po", "gettext", 102L, null, null, "/%original_file_name%-CR-%locale%")
@@ -438,7 +438,7 @@ public class DownloadActionTest {
             new DownloadAction(files, false, null, false, null, false, true, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
@@ -466,7 +466,7 @@ public class DownloadActionTest {
         project.addFile("first.po");
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%")
                 .addFile("second.po", "gettext", 102L, null, null, "/%original_file_name%-CR-%locale%")
@@ -500,7 +500,7 @@ public class DownloadActionTest {
             new DownloadAction(files, false, null, false, null, false, true, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
@@ -528,7 +528,7 @@ public class DownloadActionTest {
         project.addFile("first.po");
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
@@ -545,7 +545,7 @@ public class DownloadActionTest {
             new DownloadAction(files, false, null, false, null, false, false, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verifyNoMoreInteractions(client);
 
@@ -562,7 +562,7 @@ public class DownloadActionTest {
         project.addFile("first.po");
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenThrow(new RuntimeException());
 
         FilesInterface files = mock(FilesInterface.class);
@@ -571,7 +571,7 @@ public class DownloadActionTest {
             new DownloadAction(files, false, null, false, null, false, false, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verifyNoMoreInteractions(client);
 
         verifyNoMoreInteractions(files);
@@ -587,7 +587,7 @@ public class DownloadActionTest {
         project.addFile("first.po");
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
@@ -620,7 +620,7 @@ public class DownloadActionTest {
 //        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
@@ -648,7 +648,7 @@ public class DownloadActionTest {
         project.addFile("first.po");
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                         .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
@@ -664,7 +664,7 @@ public class DownloadActionTest {
             new DownloadAction(files, false, null, false, null, false, false, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);
@@ -682,7 +682,7 @@ public class DownloadActionTest {
         project.addFile("first.po");
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
         CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
@@ -702,7 +702,7 @@ public class DownloadActionTest {
             new DownloadAction(files, false, null, false, null, false, false, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
         verify(client).downloadBuild(eq(buildId));
         verifyNoMoreInteractions(client);

@@ -66,7 +66,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
     @Override
     public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, this.plainView, client::downloadFullProject);
+            this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
 
         if (!project.isManagerAccess()) {
             if (!plainView) {

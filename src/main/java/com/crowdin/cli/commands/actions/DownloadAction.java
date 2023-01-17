@@ -91,7 +91,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress, this.plainView, client::downloadFullProject);
+                this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
@@ -115,9 +115,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 .orElseThrow(() -> new RuntimeException(
                     String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))))
             .collect(Collectors.toList());
-        Optional<Branch> branch = Optional.ofNullable(this.branchName)
-            .map(br -> project.findBranchByName(br)
-                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))));
+        Optional<Branch> branch = Optional.ofNullable(project.getBranch());
 
         Map<String, com.crowdin.client.sourcefiles.model.File> serverSources = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFiles());
 

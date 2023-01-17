@@ -67,7 +67,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
     @Override
     public void act(Outputter out, PropertiesWithFiles properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, this.plainView, client::downloadFullProject);
+            this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
 
         List<String> languages = this.prepareLanguageIds(project);
         List<Long> fileIds = this.prepareFileIds(out, properties, project);

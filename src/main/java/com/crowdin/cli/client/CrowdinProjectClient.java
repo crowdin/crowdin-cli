@@ -29,7 +29,10 @@ import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.function.BiPredicate;
+
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
 
@@ -42,11 +45,11 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
-    public CrowdinProjectFull downloadFullProject() {
+    public CrowdinProjectFull downloadFullProject(String branchName) {
         CrowdinProjectFull project = new CrowdinProjectFull();
         this.populateProjectWithInfo(project);
         this.populateProjectWithLangs(project);
-        this.populateProjectWithStructure(project);
+        this.populateProjectWithStructure(project, branchName);
         return project;
     }
 
@@ -65,12 +68,18 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return project;
     }
 
-    private void populateProjectWithStructure(CrowdinProjectFull project) {
-        project.setFiles(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
-            .listFiles(this.projectId, null, null, null, null, limit, offset)));
-        project.setDirectories(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
-            .listDirectories(this.projectId, null, null, null, null, limit, offset)));
+    private void populateProjectWithStructure(CrowdinProjectFull project, String branchName) {
         project.setBranches(this.listBranches());
+        Optional.ofNullable(branchName)
+                .map(name -> project.findBranchByName(name)
+                        .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
+                )
+                .ifPresent(project::setBranch);
+        Long branchId = Optional.ofNullable(project.getBranch()).map(Branch::getId).orElse(null);
+        project.setFiles(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
+            .listFiles(this.projectId, branchId, null, null, true, limit, offset)));
+        project.setDirectories(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
+            .listDirectories(this.projectId, branchId, null, null, true, limit, offset)));
     }
 
     private void populateProjectWithLangs(CrowdinProject project) {
