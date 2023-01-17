@@ -16,7 +16,7 @@ public class TaskAddSubcommandTest extends PicocliTestUtils {
     public void testTaskAdd() {
         this.execute(CommandNames.TASK, CommandNames.TASK_ADD, "Test Task1", "--language", "es-ES", "--file", "12", "--type", "translate");
         verify(actionsMock)
-            .taskAdd(any(), any(),any(), any(),any(),any(), anyBoolean(), anyBoolean(), anyBoolean(), any());
+            .taskAdd(any(), any(),any(), any(),any(),any(), anyBoolean(), anyBoolean(), any());
         this.check(true);
     }
 

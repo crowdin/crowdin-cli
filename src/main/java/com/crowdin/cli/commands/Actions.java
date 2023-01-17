@@ -82,7 +82,7 @@ public interface Actions {
 
     NewAction<ProjectProperties, ClientTask> taskList(boolean plainView, boolean isVerbose, String status, Long assigneeId);
 
-    NewAction<ProjectProperties, ClientTask> taskAdd(String title, Integer type, String language, List<Long> fileId, String workflowStep, String description, boolean splitFiles, boolean skipAssignedStrings, boolean skipUntranslatedStrings, String label);
+    NewAction<ProjectProperties, ClientTask> taskAdd(String title, Integer type, String language, List<Long> fileId, Long workflowStep, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, List<Long> labels);
 
     NewAction<PropertiesWithTargets, ProjectClient> downloadTargets(
         List<String> targetNames, FilesInterface files, boolean noProgress,

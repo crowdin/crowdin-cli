@@ -3,8 +3,10 @@ package com.crowdin.cli.commands.picocli;
 import com.crowdin.cli.client.ClientTask;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.properties.ProjectProperties;
 
+import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.logging.log4j.util.Strings;
 import picocli.CommandLine;
@@ -31,13 +33,15 @@ class TaskAddSubcommand extends ActCommandTask {
     private List<Long> files;
 
     @CommandLine.Option(names = {"--workflow-step"}, paramLabel = "...", descriptionKey = "crowdin.task.add.workflow-step")
-    private String workflowStep;
+    private Long workflowStep;
 
     @CommandLine.Option(names = {"--description"}, paramLabel = "...", descriptionKey = "crowdin.task.add.description")
     private String description;
 
-    @CommandLine.Option(names = {"--split-files"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.split-files")
-    private boolean splitFiles;
+
+    //TODO: not implemented yet
+//    @CommandLine.Option(names = {"--split-files"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.split-files")
+//    private boolean splitFiles;
 
     @CommandLine.Option(names = {"--skip-assigned-strings"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-assigned-strings")
     private boolean skipAssignedStrings;
@@ -46,12 +50,12 @@ class TaskAddSubcommand extends ActCommandTask {
     private boolean skipUntranslatedStrings;
 
     @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "crowdin.task.add.label")
-    private String label;
+    private List<Long> labels;
 
     @Override
     protected NewAction<ProjectProperties, ClientTask> getAction(Actions actions) {
         int intType = TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) ? 0 : 1;
-        return actions.taskAdd(title, intType, language, files, workflowStep, description, splitFiles, skipAssignedStrings, skipUntranslatedStrings, label);
+        return actions.taskAdd(title, intType, language, files, workflowStep, description, skipAssignedStrings, skipUntranslatedStrings, labels);
     }
 
     @Override
@@ -78,6 +82,11 @@ class TaskAddSubcommand extends ActCommandTask {
         }
         if (files == null || files.isEmpty()) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.empty_fileId"));
+        }
+        if(PropertiesBeanUtils.isOrganization(Utils.getBaseUrl())){
+            if (workflowStep == null) {
+                errors.add(RESOURCE_BUNDLE.getString("error.task.empty_workflow_step"));
+            }
         }
         return errors;
     }
