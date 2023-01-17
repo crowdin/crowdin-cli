@@ -21,7 +21,7 @@ jobs:
       - uses: actions/setup-node@v3
         with:
           node-version: 14
-      - run: sudo npm install jdeploy@3.4.3 -g
+      - run: sudo npm install jdeploy@3.4.5 -g
       - run: npm install
       - run: jdeploy install
       - run: crowdin -V
