@@ -12,8 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -97,7 +96,7 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.taskList(anyBoolean(), anyBoolean(), any(), any()))
                 .thenReturn(actionMock);
-        when(actionsMock.taskAdd(any(), any(),any(), any(),any(),any(), anyBoolean(), anyBoolean(), any()))
+        when(actionsMock.taskAdd(any(), any(),any(), any(),anyLong(),any(), anyBoolean(), anyBoolean(), any()))
                 .thenReturn(actionMock);
         when(actionsMock.tmUpload(any(), any(), any(), any(), any(), any()))
             .thenReturn(actionMock);
