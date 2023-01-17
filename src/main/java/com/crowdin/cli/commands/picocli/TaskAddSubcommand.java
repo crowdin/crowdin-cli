@@ -6,6 +6,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.properties.ProjectProperties;
 
+import com.crowdin.cli.properties.PropertiesBuilders;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.LocaleUtils;
 import org.apache.logging.log4j.util.Strings;
@@ -55,21 +56,28 @@ class TaskAddSubcommand extends ActCommandTask {
 
     @Override
     protected List<String> checkOptions() {
+        String url = this.getProperties(new PropertiesBuilders(), new PicocliOutputter(System.out, isAnsi())).getBaseUrl();
+        boolean isEnterprise = PropertiesBeanUtils.isOrganization(url);
         List<String> errors = new ArrayList<>();
-        if (Strings.isEmpty(type)) {
-            errors.add(RESOURCE_BUNDLE.getString("error.task.empty_type"));
+        if (!isEnterprise) {
+            if (Strings.isEmpty(type)) {
+                errors.add(RESOURCE_BUNDLE.getString("error.task.empty_type"));
+            }
+            if (Strings.isNotEmpty(type) && !(TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) || PROOFREAD_TASK_TYPE.equalsIgnoreCase(type))) {
+                errors.add(RESOURCE_BUNDLE.getString("error.task.unsupported.type"));
+            }
+        } else {
+            if (workflowStep == null) {
+                errors.add(RESOURCE_BUNDLE.getString("error.task.empty_workflow_step"));
+            }
         }
-        if (Strings.isNotEmpty(type) && !(TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) || PROOFREAD_TASK_TYPE.equalsIgnoreCase(type))) {
-            errors.add(RESOURCE_BUNDLE.getString("error.task.unsupported.type"));
-        }
-        if(Strings.isEmpty(title)){
+        if (Strings.isEmpty(title)) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.empty_title"));
         }
         try {
-            if(Strings.isEmpty(language)){
+            if (Strings.isEmpty(language)) {
                 errors.add(RESOURCE_BUNDLE.getString("error.task.empty_language"));
-            }
-            else if (!LocaleUtils.isAvailableLocale(new Locale.Builder().setLanguageTag(language).build())) {
+            } else if (!LocaleUtils.isAvailableLocale(new Locale.Builder().setLanguageTag(language).build())) {
                 throw new IllformedLocaleException();
             }
         } catch (IllformedLocaleException e) {
@@ -77,11 +85,6 @@ class TaskAddSubcommand extends ActCommandTask {
         }
         if (files == null || files.isEmpty()) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.empty_fileId"));
-        }
-        if(PropertiesBeanUtils.isOrganization(Utils.getBaseUrl())){
-            if (workflowStep == null) {
-                errors.add(RESOURCE_BUNDLE.getString("error.task.empty_workflow_step"));
-            }
         }
         return errors;
     }
