@@ -35,9 +35,6 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
 
     private String description;
 
-    // TODO: not implemented yet
-//    private boolean splitFiles;
-
     private boolean skipAssignedStrings;
 
     private boolean skipUntranslatedStrings;
@@ -55,8 +52,6 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
             Optional.ofNullable(language).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setLanguageId(value));
             Optional.ofNullable(fileId).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setFileIds(value));
             Optional.ofNullable(description).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setDescription(value));
-            // TODO: not implemented yet
-            //Optional.ofNullable(splitFiles).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setSplitFiles(value));
             Optional.ofNullable(skipAssignedStrings).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setSkipAssignedStrings(value));
             Optional.ofNullable(labels).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setLabelIds(value));
             Optional.ofNullable(workflowStep).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setWorkflowStepId(value));
@@ -67,13 +62,10 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
             Optional.ofNullable(language).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setLanguageId(value));
             Optional.ofNullable(fileId).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setFileIds(value));
             Optional.ofNullable(description).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setDescription(value));
-            // TODO: not implemented yet
-            //Optional.ofNullable(splitFiles).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setSplitFiles(value));
             Optional.ofNullable(skipAssignedStrings).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setSkipAssignedStrings(value));
             Optional.ofNullable(skipUntranslatedStrings).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setSkipUntranslatedStrings(value));
             Optional.ofNullable(labels).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setLabelIds(value));
         }
-
 
         try {
             task = client.addTask(addTaskRequest);

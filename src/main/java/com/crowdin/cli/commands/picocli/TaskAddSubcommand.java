@@ -38,11 +38,6 @@ class TaskAddSubcommand extends ActCommandTask {
     @CommandLine.Option(names = {"--description"}, paramLabel = "...", descriptionKey = "crowdin.task.add.description")
     private String description;
 
-
-    //TODO: not implemented yet
-//    @CommandLine.Option(names = {"--split-files"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.split-files")
-//    private boolean splitFiles;
-
     @CommandLine.Option(names = {"--skip-assigned-strings"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-assigned-strings")
     private boolean skipAssignedStrings;
 
