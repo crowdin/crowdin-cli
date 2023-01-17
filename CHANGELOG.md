@@ -1,6 +1,12 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.9.3]
+
+### Fixed
+
+- Fix node-fetch issue (2) ([#527](https://github.com/crowdin/crowdin-cli/pull/527))
+
 ## [3.9.2]
 
 ### Added
