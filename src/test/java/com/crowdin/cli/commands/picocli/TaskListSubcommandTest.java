@@ -13,7 +13,7 @@ public class TaskListSubcommandTest extends PicocliTestUtils {
     public void testTaskList() {
         this.execute(CommandNames.TASK, CommandNames.TASK_LIST);
         verify(actionsMock)
-                .taskList(anyBoolean(), anyBoolean(), any(), any());
+            .taskList(anyBoolean(), anyBoolean(), any(), any());
         this.check(true);
     }
 }
