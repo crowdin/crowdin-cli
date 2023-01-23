@@ -1,10 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.BaseCli;
-import com.crowdin.cli.client.ClientGlossary;
-import com.crowdin.cli.client.ClientTm;
-import com.crowdin.cli.client.NoClient;
-import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.functionality.FilesInterface;
@@ -157,6 +154,16 @@ public class CliActions implements Actions {
         String targetLanguageId, boolean noProgress, File to, FilesInterface files
     ) {
         return new TmDownloadAction(id, name, format, sourceLanguageId, targetLanguageId, noProgress, to, files);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ClientTask> taskList(boolean plainView, boolean isVerbose, String status, Long assigneeId) {
+        return new TaskListAction(plainView, isVerbose, status, assigneeId);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ClientTask> taskAdd(String title, Integer type, String language, List<Long> fileId, Long workflowStep, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, List<Long> labels) {
+        return new TaskAddAction(title, type, language, fileId, workflowStep, description, skipAssignedStrings, skipUntranslatedStrings, labels);
     }
 
     @Override

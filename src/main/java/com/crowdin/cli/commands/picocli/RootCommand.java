@@ -14,6 +14,7 @@ import picocli.CommandLine;
         StringSubcommand.class,
         GlossarySubcommand.class,
         TmSubcommand.class,
+        TaskSubcommand.class,
         CheckVersionSubcommand.class,
         PreTranslateSubcommand.class,
         BranchSubcommand.class
