@@ -41,10 +41,10 @@ public class TaskAddSubcommandTest extends PicocliTestUtils {
 
     public static Stream<Arguments> testSubCommandCheckValidOptions() {
         return Stream.of(
-                arguments(true, "Enterprise Task 1", "translate", 10L, "es", Arrays.asList(12L)),
-                arguments(true, "Enterprise Task 2", null, 10L, "es", Arrays.asList(12L)),
-                arguments(false, "Task 1", "translate", 10L, "es", Arrays.asList(12L)),
-                arguments(false, "Task 2", "translate", null, "es", Arrays.asList(12L)));
+            arguments(true, "Enterprise Task 1", "translate", 10L, "es", Arrays.asList(12L)),
+            arguments(true, "Enterprise Task 2", null, 10L, "es", Arrays.asList(12L)),
+            arguments(false, "Task 1", "translate", 10L, "es", Arrays.asList(12L)),
+            arguments(false, "Task 2", "translate", null, "es", Arrays.asList(12L)));
     }
 
     @ParameterizedTest
