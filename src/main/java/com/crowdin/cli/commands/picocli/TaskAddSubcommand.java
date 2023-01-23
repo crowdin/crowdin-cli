@@ -27,7 +27,7 @@ class TaskAddSubcommand extends ActCommandTask {
     @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.task.add.language")
     protected String language;
 
-    @CommandLine.Option(names = {"--file"}, descriptionKey = "crowdin.task.add.file-id", split = ",")
+    @CommandLine.Option(names = {"--file"}, paramLabel = "...", descriptionKey = "crowdin.task.add.file-id")
     protected List<Long> files;
 
     @CommandLine.Option(names = {"--workflow-step"}, paramLabel = "...", descriptionKey = "crowdin.task.add.workflow-step")
