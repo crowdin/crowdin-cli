@@ -1,6 +1,31 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.9.3]
+
+### Fixed
+
+- Fix node-fetch issue (2) ([#527](https://github.com/crowdin/crowdin-cli/pull/527))
+
+## [3.9.2]
+
+### Added
+
+- Add the `--keep-archive` option for the download translations command ([#520](https://github.com/crowdin/crowdin-cli/pull/520))
+- Helper script for Windows shell environments ([#521](https://github.com/crowdin/crowdin-cli/pull/521))
+
+### Updated
+
+- More tests for better coverage ([#509](https://github.com/crowdin/crowdin-cli/pull/509))
+- Minor cleanup ([#511](https://github.com/crowdin/crowdin-cli/pull/511))
+- Use GH Actions instead of Azure Pipelines and prepare CI to run Unit tests on Windows ([#512](https://github.com/crowdin/crowdin-cli/pull/512))
+- Ignore version check for -h,-v and crowdin command w/o args ([#516](https://github.com/crowdin/crowdin-cli/pull/516))
+- Handle empty files upload ([#517](https://github.com/crowdin/crowdin-cli/pull/517))
+
+### Fixed
+
+- Fix node-fetch issue ([#524](https://github.com/crowdin/crowdin-cli/pull/524))
+
 ## [3.9.1]
 
 ### Updated

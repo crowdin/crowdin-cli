@@ -49,7 +49,7 @@ public class UploadTranslationsActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 301L, null, null).build());
         when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
@@ -58,7 +58,7 @@ public class UploadTranslationsActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
         assertDoesNotThrow(() -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
         UploadTranslationsRequest uploadTranslationRequest = new UploadTranslationsRequest() {{
                 setStorageId(1L);
@@ -81,7 +81,7 @@ public class UploadTranslationsActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 301L, null, null).build());
         when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
@@ -92,7 +92,7 @@ public class UploadTranslationsActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
         verify(client).uploadStorage(eq("first.po-CR-ru-RU"), any());
         UploadTranslationsRequest uploadTranslationRequest1 = new UploadTranslationsRequest() {{
@@ -123,13 +123,13 @@ public class UploadTranslationsActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
 
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verifyNoMoreInteractions(client);
     }
 
@@ -143,7 +143,7 @@ public class UploadTranslationsActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setScheme("identifier,source_phrase,context,uk,ru,fr");
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 301L, null, null).build());
         when(client.uploadStorage(eq("first.csv-CR"), any()))
@@ -152,7 +152,7 @@ public class UploadTranslationsActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).uploadStorage(eq("first.csv-CR"), any());
         UploadTranslationsRequest uploadTranslationRequest = new UploadTranslationsRequest() {{
                 setStorageId(1L);
@@ -175,7 +175,7 @@ public class UploadTranslationsActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("second.po", "gettext", 301L, null, null).build());
         when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
@@ -184,7 +184,7 @@ public class UploadTranslationsActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
         assertDoesNotThrow(() -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
         UploadTranslationsRequest uploadTranslationRequest = new UploadTranslationsRequest() {{
                 setStorageId(1L);

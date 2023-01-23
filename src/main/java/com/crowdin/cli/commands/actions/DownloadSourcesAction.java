@@ -93,11 +93,9 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
 
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress, this.plainView, client::downloadFullProject);
+                this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
 
-        Long branchId = Optional.ofNullable(this.branchName)
-            .map(br -> project.findBranchByName(br)
-                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch"))))
+        Long branchId = Optional.ofNullable(project.getBranch())
             .map(Branch::getId)
             .orElse(null);
 

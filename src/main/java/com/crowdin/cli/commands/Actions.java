@@ -23,7 +23,7 @@ public interface Actions {
 
     NewAction<PropertiesWithFiles, ProjectClient> download(
         FilesInterface files, boolean noProgress, List<String> languageIds, boolean pseudo, String branchName,
-        boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean userServerSources
+        boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean userServerSources, boolean keepArchive
     );
 
     NewAction<NoProperties, NoClient> generate(FilesInterface files, Path destinationPath, boolean skipGenerateDescription);

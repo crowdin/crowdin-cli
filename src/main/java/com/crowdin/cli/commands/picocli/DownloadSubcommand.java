@@ -48,6 +48,9 @@ class DownloadSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--export-only-approved"}, descriptionKey = "params.exportOnlyApproved")
     protected Boolean exportApprovedOnly;
 
+    @CommandLine.Option(names = {"--keep-archive"}, descriptionKey = "params.keepArchive")
+    protected boolean keepArchive;
+
     @CommandLine.Option(names = {"--all"})
     protected boolean all;
 
@@ -55,7 +58,7 @@ class DownloadSubcommand extends ActCommandWithFiles {
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
             ? actions.listTranslations(noProgress, treeView, false, plainView, all, true)
-            : actions.download(new FsFiles(), noProgress, languageIds, pseudo, branchName, ignoreMatch, isVerbose, plainView, all);
+            : actions.download(new FsFiles(), noProgress, languageIds, pseudo, branchName, ignoreMatch, isVerbose, plainView, all, keepArchive);
     }
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
