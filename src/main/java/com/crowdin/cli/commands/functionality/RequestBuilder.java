@@ -10,6 +10,8 @@ import com.crowdin.client.glossaries.model.ImportGlossaryRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
+import com.crowdin.client.tasks.model.CrowdinTaskCreateFormRequest;
+import com.crowdin.client.tasks.model.EnterpriseTaskCreateFormRequest;
 import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
@@ -38,6 +40,31 @@ public class RequestBuilder {
         request.setFileId(fileId);
         request.setIsHidden(hidden);
         request.setLabelIds(labelIds);
+        return request;
+    }
+
+    public static CrowdinTaskCreateFormRequest addCrowdinTask(String title, Integer type, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, List<Long> labelIds) {
+        CrowdinTaskCreateFormRequest request = new CrowdinTaskCreateFormRequest();
+        request.setTitle(title);
+        request.setType(type);
+        request.setLanguageId(languageId);
+        request.setFileIds(fileId);
+        request.setDescription(description);
+        request.setSkipAssignedStrings(skipAssignedStrings);
+        request.setSkipUntranslatedStrings(skipUntranslatedStrings);
+        request.setLabelIds(labelIds);
+        return request;
+    }
+
+    public static EnterpriseTaskCreateFormRequest addEnterpriseTask(String title, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, List<Long> labelIds, Long workflowStepId) {
+        EnterpriseTaskCreateFormRequest request = new EnterpriseTaskCreateFormRequest();
+        request.setTitle(title);
+        request.setLanguageId(languageId);
+        request.setFileIds(fileId);
+        request.setDescription(description);
+        request.setSkipAssignedStrings(skipAssignedStrings);
+        request.setLabelIds(labelIds);
+        request.setWorkflowStepId(workflowStepId);
         return request;
     }
 

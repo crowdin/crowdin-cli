@@ -6,9 +6,6 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.properties.ProjectProperties;
 
-import com.crowdin.cli.properties.PropertiesBuilders;
-import com.crowdin.cli.utils.Utils;
-import org.apache.commons.lang3.LocaleUtils;
 import org.apache.logging.log4j.util.Strings;
 import picocli.CommandLine;
 
@@ -22,31 +19,31 @@ class TaskAddSubcommand extends ActCommandTask {
     public static final String TRANSLATE_TASK_TYPE = "translate";
     public static final String PROOFREAD_TASK_TYPE = "proofread";
     @CommandLine.Parameters(descriptionKey = "crowdin.task.add.title")
-    private String title;
+    protected String title;
 
     @CommandLine.Option(names = {"--type"}, paramLabel = "...", descriptionKey = "crowdin.task.add.type")
-    private String type;
+    protected String type;
 
     @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.task.add.language")
-    private String language;
+    protected String language;
 
     @CommandLine.Option(names = {"--file"}, descriptionKey = "crowdin.task.add.file-id", split = ",")
-    private List<Long> files;
+    protected List<Long> files;
 
     @CommandLine.Option(names = {"--workflow-step"}, paramLabel = "...", descriptionKey = "crowdin.task.add.workflow-step")
-    private Long workflowStep;
+    protected Long workflowStep;
 
     @CommandLine.Option(names = {"--description"}, paramLabel = "...", descriptionKey = "crowdin.task.add.description")
-    private String description;
+    protected String description;
 
     @CommandLine.Option(names = {"--skip-assigned-strings"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-assigned-strings")
-    private boolean skipAssignedStrings;
+    protected boolean skipAssignedStrings;
 
     @CommandLine.Option(names = {"--skip-untranslated-strings"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-untranslated-strings")
-    private boolean skipUntranslatedStrings;
+    protected boolean skipUntranslatedStrings;
 
     @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "crowdin.task.add.label")
-    private List<Long> labels;
+    protected List<Long> labels;
 
     @Override
     protected NewAction<ProjectProperties, ClientTask> getAction(Actions actions) {
@@ -56,8 +53,12 @@ class TaskAddSubcommand extends ActCommandTask {
 
     @Override
     protected List<String> checkOptions() {
-        String url = this.getProperties(new PropertiesBuilders(), new PicocliOutputter(System.out, isAnsi())).getBaseUrl();
+        String url = this.getProperties(propertiesBuilders, new PicocliOutputter(System.out, isAnsi())).getBaseUrl();
         boolean isEnterprise = PropertiesBeanUtils.isOrganization(url);
+        return checkOptions(isEnterprise);
+    }
+
+    protected List<String> checkOptions(boolean isEnterprise) {
         List<String> errors = new ArrayList<>();
         if (!isEnterprise) {
             if (Strings.isEmpty(type)) {
@@ -74,14 +75,8 @@ class TaskAddSubcommand extends ActCommandTask {
         if (Strings.isEmpty(title)) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.empty_title"));
         }
-        try {
-            if (Strings.isEmpty(language)) {
-                errors.add(RESOURCE_BUNDLE.getString("error.task.empty_language"));
-            } else if (!LocaleUtils.isAvailableLocale(new Locale.Builder().setLanguageTag(language).build())) {
-                throw new IllformedLocaleException();
-            }
-        } catch (IllformedLocaleException e) {
-            errors.add(RESOURCE_BUNDLE.getString("error.task.illegal_language"));
+        if (Strings.isEmpty(language)) {
+            errors.add(RESOURCE_BUNDLE.getString("error.task.empty_language"));
         }
         if (files == null || files.isEmpty()) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.empty_fileId"));

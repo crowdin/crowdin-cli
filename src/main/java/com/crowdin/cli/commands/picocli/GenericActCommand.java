@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public abstract class GenericActCommand<P extends Properties, C extends Client> extends GenericCommand {
 
     private static Actions actions;
-    private static PropertiesBuilders propertiesBuilders;
+    protected static PropertiesBuilders propertiesBuilders;
 
     public static void init(Actions actions, PropertiesBuilders propertiesBuilders) {
         GenericActCommand.actions = actions;

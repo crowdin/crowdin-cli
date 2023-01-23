@@ -51,7 +51,7 @@ public class TaskListActionTest {
         when(clientMock.listTask(Status.TODO))
             .thenReturn(standardList);
 
-        action = new TaskListAction(false, false, Status.TODO.toString(), null);
+        action = new TaskListAction(true, false, Status.TODO.toString(), null);
         action.act(out, pb, clientMock);
 
         verify(clientMock).listTask(Status.TODO);
@@ -75,7 +75,7 @@ public class TaskListActionTest {
         when(clientMock.listTask(Status.TODO))
             .thenReturn(emptyList);
 
-        action = new TaskListAction(false, false, Status.TODO.toString(), null);
+        action = new TaskListAction(true, false, Status.TODO.toString(), null);
         action.act(out, pb, clientMock);
 
         verify(clientMock).listTask(Status.TODO);
