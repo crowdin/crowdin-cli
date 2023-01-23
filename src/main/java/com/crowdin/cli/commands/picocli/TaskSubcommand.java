@@ -5,7 +5,7 @@ import picocli.CommandLine;
 @CommandLine.Command(
     name = CommandNames.TASK,
     subcommands = {
-            TaskListSubcommand.class,
+        TaskListSubcommand.class,
         TaskAddSubcommand.class
     }
 )

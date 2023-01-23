@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
-        name = CommandNames.TASK_LIST
+    name = CommandNames.TASK_LIST
 )
 class TaskListSubcommand extends ActCommandTask {
 

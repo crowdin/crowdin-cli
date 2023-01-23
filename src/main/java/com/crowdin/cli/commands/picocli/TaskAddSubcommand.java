@@ -12,7 +12,7 @@ import picocli.CommandLine;
 import java.util.*;
 
 @CommandLine.Command(
-        name = CommandNames.TASK_ADD
+    name = CommandNames.TASK_ADD
 )
 class TaskAddSubcommand extends ActCommandTask {
 

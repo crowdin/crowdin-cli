@@ -95,9 +95,9 @@ public class PicocliTestUtils {
         when(actionsMock.tmList(anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.taskList(anyBoolean(), anyBoolean(), any(), any()))
-                .thenReturn(actionMock);
+            .thenReturn(actionMock);
         when(actionsMock.taskAdd(any(), any(),any(), any(),anyLong(),any(), anyBoolean(), anyBoolean(), any()))
-                .thenReturn(actionMock);
+            .thenReturn(actionMock);
         when(actionsMock.tmUpload(any(), any(), any(), any(), any(), any()))
             .thenReturn(actionMock);
         when(actionsMock.checkNewVersion())
