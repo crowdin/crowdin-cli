@@ -1,6 +1,17 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.10.0]
+
+### Added
+
+- feat: implement tasks management ([#522](https://github.com/crowdin/crowdin-cli/pull/522))
+
+### Updated
+
+- perf: load all project info per branch ([#515](https://github.com/crowdin/crowdin-cli/pull/515))
+- ci: more automated publishing process ([#530](https://github.com/crowdin/crowdin-cli/pull/530))
+
 ## [3.9.3]
 
 ### Fixed
