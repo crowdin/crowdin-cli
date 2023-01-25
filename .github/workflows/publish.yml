@@ -53,7 +53,7 @@ jobs:
           workflow: publish.yaml
           repo: crowdin/homebrew-crowdin
           token: ${{ secrets.GH_HOMEBREW_TOKEN }}
-          inputs: "{ 'version': '${{ github.ref_name }}' }"
+          inputs: '{ "version": "${{ github.ref_name }}" }'
 
   release-asset:
     runs-on: ubuntu-latest
