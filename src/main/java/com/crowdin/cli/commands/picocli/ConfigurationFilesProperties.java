@@ -23,7 +23,7 @@ public class ConfigurationFilesProperties {
         if (configFile == null) {
             configFile = this.getDefaultConfigFile();
         }
-        if (!configFile.exists()) {
+        else if (!configFile.exists()) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
         }
         return configFile;
