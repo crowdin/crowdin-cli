@@ -86,9 +86,11 @@ public class BaseProperties implements Properties {
         @Override
         public PropertiesBuilder.Messages checkProperties(@NonNull BaseProperties props, CheckType checkType) {
             PropertiesBuilder.Messages messages = new PropertiesBuilder.Messages();
-            String confFilePath = props.getConfigFilePath();
-            if (confFilePath == null || !(new File(confFilePath).exists())) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
+            if (props.getBasePath() == null) {
+                String confFilePath = props.getConfigFilePath();
+                if (confFilePath == null || !(new File(confFilePath).exists())) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
+                }
             }
             if (StringUtils.isEmpty(props.getApiToken())) {
                 messages.addError(RESOURCE_BUNDLE.getString("error.config.missed_api_token"));

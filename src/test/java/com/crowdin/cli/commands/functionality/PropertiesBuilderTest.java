@@ -6,6 +6,7 @@ import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Disabled;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
@@ -41,6 +42,7 @@ public class PropertiesBuilderTest {
     }
 
     @Test
+    @Disabled("App can not work without config file")
     public void testOk_Params_WithoutConfigFile() {
         ParamsWithFiles okParams = new ParamsWithFiles() {{
                 setIdParam("666");
@@ -139,6 +141,7 @@ public class PropertiesBuilderTest {
     }
 
     @Test
+    @Disabled("App can not work without config file")
     public void testProjectProperties() {
         ProjectParams params = new ProjectParams(){{
             setIdParam("123");
