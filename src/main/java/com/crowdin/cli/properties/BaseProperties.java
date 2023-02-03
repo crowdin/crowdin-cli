@@ -86,7 +86,7 @@ public class BaseProperties implements Properties {
         @Override
         public PropertiesBuilder.Messages checkProperties(@NonNull BaseProperties props, CheckType checkType) {
             PropertiesBuilder.Messages messages = new PropertiesBuilder.Messages();
-            if (props.getBasePath() == null) {
+            if (props.getApiToken() == null) {
                 String confFilePath = props.getConfigFilePath();
                 if (confFilePath == null || !(new File(confFilePath).exists())) {
                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
