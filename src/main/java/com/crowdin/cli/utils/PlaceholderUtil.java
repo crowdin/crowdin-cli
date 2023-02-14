@@ -226,10 +226,6 @@ public class PlaceholderUtil {
 
     public static String formatSourcePatternForRegex(String toFormat) {
         toFormat = toFormat
-            .replace(ESCAPE_DOT, ESCAPE_DOT_PLACEHOLDER)
-            .replace(DOT, ESCAPE_DOT)
-            .replace(ESCAPE_DOT_PLACEHOLDER, ESCAPE_DOT)
-
             .replace(ESCAPE_QUESTION, ESCAPE_QUESTION_PLACEHOLDER)
             .replace(QUESTION_MARK, "[^/]")
             .replace(ESCAPE_QUESTION_PLACEHOLDER, ESCAPE_QUESTION);
@@ -241,6 +237,9 @@ public class PlaceholderUtil {
                 .replace(ASTERISK, "[^/]+");
         } else {
             toFormat = toFormat
+                .replace(ESCAPE_DOT, ESCAPE_DOT_PLACEHOLDER)
+                .replace(DOT, ESCAPE_DOT)
+                .replace(ESCAPE_DOT_PLACEHOLDER, ESCAPE_DOT)
                 .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
                 .replace("**", ".+")
                 .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
