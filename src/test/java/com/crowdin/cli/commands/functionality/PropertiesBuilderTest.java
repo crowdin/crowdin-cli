@@ -10,6 +10,7 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
@@ -162,6 +163,22 @@ public class PropertiesBuilderTest {
     public void testBuildNoConfigFileTargets() {
         ParamsWithTargets okParams = new ParamsWithTargets();
         assertThrows(NullPointerException.class, () -> propertiesBuilders.buildPropertiesWithTargets(out, null, null, okParams));
+    }
+
+    @Test
+    public void testBuildNoConfigFileAndNoToken() {
+        ParamsWithFiles params = new ParamsWithFiles() {{
+            setBasePathParam(null);
+            setTokenParam(null);
+            setSourceParam(Utils.regexPath(Utils.normalizePath("/hello/world")));
+            setTranslationParam("/hello/%two_letters_code%/%file_name%.%file_extension%");
+        }};
+
+        Exception actualException = assertThrows(RuntimeException.class, () ->
+                propertiesBuilders.buildPropertiesWithFiles(out, null, null, params));
+
+        assertEquals(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"), actualException.getMessage());
+
     }
 
     @Test

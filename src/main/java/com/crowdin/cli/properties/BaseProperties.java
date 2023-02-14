@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
 import java.nio.file.Path;
@@ -85,7 +86,12 @@ public class BaseProperties implements Properties {
         @Override
         public PropertiesBuilder.Messages checkProperties(@NonNull BaseProperties props, CheckType checkType) {
             PropertiesBuilder.Messages messages = new PropertiesBuilder.Messages();
-
+            if (props.getApiToken() == null) {
+                String confFilePath = props.getConfigFilePath();
+                if (confFilePath == null || !(new File(confFilePath).exists())) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
+                }
+            }
             if (StringUtils.isEmpty(props.getApiToken())) {
                 messages.addError(RESOURCE_BUNDLE.getString("error.config.missed_api_token"));
             }
