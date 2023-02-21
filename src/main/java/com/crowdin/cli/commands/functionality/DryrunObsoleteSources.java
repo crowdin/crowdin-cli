@@ -47,6 +47,9 @@ public class DryrunObsoleteSources extends Dryrun {
                 .collect(Collectors.toList());
 
             String pattern = (file.getDest() != null) ? file.getDest() : file.getSource();
+            if (file.getDest() != null) {
+                pattern = PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(file.getSource(), pb.getBasePath()), placeholderUtil);
+            }
             List<String> ignorePatterns = (file.getDest() != null) ? null : file.getIgnore();
 
             Map<String, File> obsoleteFiles = ObsoleteSourcesUtils.findObsoleteProjectFiles(projectFiles, pb.getPreserveHierarchy(), filesToUpdate, pattern, file.getTranslation(), ignorePatterns);

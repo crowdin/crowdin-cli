@@ -138,7 +138,8 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             : StringUtils.removeStart(source, pb.getBasePath() + commonPath))
                         .collect(Collectors.toList());
                     if (file.getDest() != null) {
-                        deleteObsoleteProjectFilesSubAction.act(file.getDest(), file.getTranslation(), filesToUpdate);
+                        String sourcePattern = PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(file.getSource(), pb.getBasePath()), placeholderUtil);
+                        deleteObsoleteProjectFilesSubAction.act(sourcePattern, file.getTranslation(), filesToUpdate);
                     } else {
                         deleteObsoleteProjectFilesSubAction.act(file.getSource(), file.getIgnore(), file.getTranslation(), filesToUpdate);
                     }

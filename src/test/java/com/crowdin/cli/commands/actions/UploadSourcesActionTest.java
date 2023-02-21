@@ -25,6 +25,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -360,6 +361,52 @@ public class UploadSourcesActionTest {
                 );
             }};
         verify(client).addSource(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadOneSourceWithDestAndDeleteObsoleteOption_Project() throws ResponseException {
+        project.addFile(Utils.normalizePath("docs/en/index.md"), "Hello, World!");
+        String translationPattern = "/app/docs/%two_letters_code%/%original_file_name%";
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+                .minimalBuiltPropertiesBean(Utils.normalizePath("/docs/en/index.md"), translationPattern, Arrays.asList("**/.*"))
+                .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setDest("/app/%original_path%/%original_file_name%");
+        pb.setPreserveHierarchy(true);
+        pb.setProjectId("551261");
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                        .addFile("locale.yml", "yaml", 66l, 209l, null, translationPattern)
+                        .addFile("index.md", "yaml", 77l, 209l, null, translationPattern)
+                        .addDirectory("docs", 207l, 215l, null)
+                        .addDirectory("app", 215l, null, null)
+                        .addDirectory("en", 209l, 207l, null)
+                        .addDirectory("en", 225l, null, null)
+                        .build());
+        when(client.uploadStorage(eq("/docs/en/index.md"), any()))
+                .thenReturn(1L);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, true, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("index.md"), any());
+        UpdateFileRequest updateFileRequest = new UpdateFileRequest() {{
+            setStorageId(0L);
+            setImportOptions(new OtherFileImportOptions() {{
+                                 setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                             }}
+            );
+            setExportOptions(new PropertyFileExportOptions() {{
+                                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                                 setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                             }}
+            );
+        }};
+        verify(client).updateSource(eq(77l), eq(updateFileRequest));
         verifyNoMoreInteractions(client);
     }
 
