@@ -15,6 +15,7 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 
 [**`Docs`**](https://developer.crowdin.com/cli-tool/) | 
 [**`Configuration File`**](https://developer.crowdin.com/configuration-file/) | 
+[**`Getting started with CLI`**](https://www.youtube.com/watch?v=0duN4khpWjM) | 
 [**`Wiki`**](https://github.com/crowdin/crowdin-cli/wiki)
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/crowdin/cli?logo=docker&cacheSeconds=2000)](https://hub.docker.com/r/crowdin/cli)
