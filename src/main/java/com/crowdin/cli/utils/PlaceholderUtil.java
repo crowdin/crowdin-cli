@@ -187,9 +187,8 @@ public class PlaceholderUtil {
         toFormat = toFormat.contains(PLACEHOLDER_ORIGINAL_PATH) ? toFormat.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent) : toFormat;
 
         if (toFormat.contains("**")) {
-            String doubleAsterisks =
-                StringUtils.removeStart(fileParent, Utils.noSepAtEnd(Utils.noSepAtStart(StringUtils.substringBefore(toFormat, "**"))));
-            toFormat = toFormat.replace("**", doubleAsterisks);
+            String replacement = fileParent.substring(fileParent.lastIndexOf(Utils.noSepAtEnd(Utils.noSepAtStart(StringUtils.substringBefore(toFormat, "**")))));
+            toFormat = toFormat.replace(toFormat.substring(0, toFormat.indexOf("**")+2), replacement.isEmpty() ? fileParent : replacement);
         }
 
         toFormat = toFormat.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
