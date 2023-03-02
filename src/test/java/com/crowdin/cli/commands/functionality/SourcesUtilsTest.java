@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.PlaceholderUtilBuilder;
 import com.crowdin.cli.utils.Utils;
+import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -14,6 +15,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -160,6 +162,7 @@ public class SourcesUtilsTest {
         List<String> actual = SourcesUtils.filterProjectFiles(
             filePaths, sourcePattern, ignorePatterns, true, PlaceholderUtilBuilder.STANDART.build(""));
 //        assertEquals(expected.size(), actual.size());
+        expected = expected.stream().map(FilenameUtils::separatorsToSystem).collect(Collectors.toList());
         assertThat(actual, containsInAnyOrder(expected.toArray()));
     }
 
