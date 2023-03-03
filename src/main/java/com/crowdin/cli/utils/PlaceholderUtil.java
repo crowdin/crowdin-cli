@@ -188,7 +188,7 @@ public class PlaceholderUtil {
 
         if (toFormat.contains("**")) {
             String prefix = StringUtils.substringBefore(toFormat, "**");
-            prefix = prefix.length()>1 && file.getPath().contains(prefix) ? StringUtils.substringBefore(fileParent,prefix)  : "";
+            prefix = prefix.length() > 1 && file.getPath().contains(prefix) ? StringUtils.substringBefore(fileParent,prefix) : "";
             String doubleAsterisks =
                     StringUtils.removeStart(StringUtils.removeStart(fileParent, prefix), Utils.noSepAtEnd(Utils.noSepAtStart(StringUtils.substringBefore(toFormat, "**"))));
             toFormat = toFormat.replace("**", doubleAsterisks);
