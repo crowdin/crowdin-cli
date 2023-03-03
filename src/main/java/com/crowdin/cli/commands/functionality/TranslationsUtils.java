@@ -27,8 +27,9 @@ public class TranslationsUtils {
         sourcePattern = StringUtils.removeStart(sourcePattern, Utils.PATH_SEPARATOR);
         String[] sourceNodes = sourcePattern.split("\\*\\*");
         for (int i = 0; i < sourceNodes.length; i++) {
-            if (sourceFile.startsWith(sourceNodes[i])) {
-                sourceFile = sourceFile.replaceFirst(Utils.regexPath(sourceNodes[i]), "");
+            if (sourceFile.contains(sourceNodes[i])) {
+                sourceFile = StringUtils.substring(sourceFile, sourceFile.indexOf(Utils.regexPath(sourceNodes[i])), sourceFile.length()-1)
+                        .replaceFirst(Utils.regexPath(sourceNodes[i]), "");
             } else if (sourceNodes.length - 1 == i) {
                 if (sourceNodes[i].contains(Utils.PATH_SEPARATOR)) {
                     String[] sourceNodesTmp = sourceNodes[i].split(Utils.PATH_SEPARATOR_REGEX);
@@ -50,7 +51,7 @@ public class TranslationsUtils {
                 }
             }
         }
-        translationPattern = translationPattern.replace(sourceNodes[0] + "**", sourceFile);
+        translationPattern = translationPattern.replace("**", sourceFile);
         translationPattern = translationPattern.replaceAll(Utils.PATH_SEPARATOR_REGEX + "+", Utils.PATH_SEPARATOR_REGEX);
         return translationPattern;
     }

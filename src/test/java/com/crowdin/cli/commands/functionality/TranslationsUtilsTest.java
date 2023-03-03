@@ -42,6 +42,11 @@ public class TranslationsUtilsTest {
                 Utils.normalizePath("f1/android.xml"),
                 Utils.normalizePath("/%locale%/%original_file_name%")),
             arguments(
+                  Utils.normalizePath("/folder1/folder2/**/messages.properties"),
+                  Utils.normalizePath("/folder1/folder2/**/%file_name%_%two_letters_code%.properties"),
+                  Utils.normalizePath("/folder_on_crowdin/folder1/folder2/folder3/folder4/messages.properties"),
+                  Utils.normalizePath("/folder1/folder2/folder3/folder4/%file_name%_%two_letters_code%.properties")),
+            arguments(
                 Utils.normalizePath("/home/daanya/Documents/**/*.txt"),
                 Utils.normalizePath("/**/%locale%/%original_file_name%"),
                 Utils.normalizePath("/home/daanya/Documents/here/and/there/file.txt"),
