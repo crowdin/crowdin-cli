@@ -1,6 +1,15 @@
 # Changelog
 All notable changes to this project will be documented in this file.
 
+## [3.10.1]
+
+### Fixed
+
+- fix delete obsolete option ([#536](https://github.com/crowdin/crowdin-cli/pull/536))
+- fix config file checker ([#532](https://github.com/crowdin/crowdin-cli/pull/532))
+- fix download sources command ([#537](https://github.com/crowdin/crowdin-cli/pull/537))
+- ignore content segmentation option when it's null ([#539](https://github.com/crowdin/crowdin-cli/pull/539))
+
 ## [3.10.0]
 
 ### Added
