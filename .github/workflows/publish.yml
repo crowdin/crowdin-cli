@@ -50,7 +50,7 @@ jobs:
       - name: Invoke workflow in the homebrew-crowdin repo
         uses: benc-uk/workflow-dispatch@v1
         with:
-          workflow: publish.yaml
+          workflow: publish.yml
           repo: crowdin/homebrew-crowdin
           token: ${{ secrets.GH_HOMEBREW_TOKEN }}
           inputs: '{ "version": "${{ github.ref_name }}" }'
