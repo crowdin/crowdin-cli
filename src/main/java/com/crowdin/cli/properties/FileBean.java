@@ -143,7 +143,7 @@ public class FileBean {
             //Translate content
             bean.setTranslateContent(bean.getTranslateContent() != null ? bean.getTranslateContent() : Boolean.TRUE);
             //Content segmentation
-            bean.setContentSegmentation(bean.getContentSegmentation() != null ? bean.getContentSegmentation() : Boolean.TRUE);
+            bean.setContentSegmentation(bean.getContentSegmentation());
             //escape quotes
             if (bean.getEscapeQuotes() == null) {
                 bean.setEscapeQuotes(3);

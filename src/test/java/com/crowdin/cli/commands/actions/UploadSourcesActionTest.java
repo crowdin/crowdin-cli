@@ -87,6 +87,44 @@ public class UploadSourcesActionTest {
     }
 
     @Test
+    public void testUploadOneSourceWithNullContentSegmentation_EmptyProject() throws ResponseException {
+        project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+                .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+                .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setContentSegmentation(null);
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+        when(client.uploadStorage(eq("first.po"), any()))
+                .thenReturn(1L);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("first.po"), any());
+        AddFileRequest addFileRequest = new AddFileRequest() {{
+            setName("first.po");
+            setStorageId(1L);
+            setImportOptions(new OtherFileImportOptions() {{
+                                 setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                             }}
+            );
+            setExportOptions(new PropertyFileExportOptions() {{
+                                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                                 setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                             }}
+            );
+        }};
+        verify(client).addSource(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
     public void testUploadFewSourceWithDirectories_EmptyProject() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("folder/second.po"), "Hello, World!");
