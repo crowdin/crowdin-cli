@@ -62,11 +62,22 @@ Unsure where to begin contributing to Crowdin CLI? You can start by looking thro
 
 Before sending your pull requests, make sure you followed the list below:
 
-- Read this guidelines.
+- Read this guideline.
 - Read [Code of Conduct](/CODE_OF_CONDUCT.md).
 - Ensure that your code adheres to standard conventions, as used in the rest of the project.
 - Ensure that there are unit tests for your code.
 - Run unit tests.
+
+> **Note**
+> This project uses the [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/) specification for commit messages and PR titles.
+
+**Commit examples:**
+
+- chore: update dependencies
+- feat: add pagination to files list
+- fix: resolve issue with config validation
+- docs: add documentation for commands
+- refactor: extract component logic into separate module
 
 #### Philosophy of code contribution
 
