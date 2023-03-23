@@ -103,7 +103,8 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
         if (params.getBaseUrlParam() != null) {
             props.setBaseUrl(params.getBaseUrlParam());
         }
-        props.setPreserveHierarchy(params.getPreserveHierarchy() != null ? params.getPreserveHierarchy()  : false);
+        props.setPreserveHierarchy(params.getPreserveHierarchy() != null ? params.getPreserveHierarchy()
+                : props.getPreserveHierarchy());
 
         if (params.getSourceParam() != null && params.getTranslationParam() != null) {
             FileBean fb = new FileBean();
