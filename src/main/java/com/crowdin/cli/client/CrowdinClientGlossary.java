@@ -84,7 +84,7 @@ public class CrowdinClientGlossary extends CrowdinClientCore implements ClientGl
     @Override
     public List<Term> listTerms(Long glossaryId) {
         return executeRequestFullList((limit, offset) -> this.client.getGlossariesApi()
-            .listTerms(glossaryId, null, null, null, limit, offset));
+            .listTerms(glossaryId, null, null, null, null, limit, offset));
     }
 
     @Override

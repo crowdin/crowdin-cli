@@ -56,4 +56,7 @@ public final class CommandNames {
     public static final String TASK = "task";
     public static final String TASK_LIST = "list";
     public static final String TASK_ADD = "add";
+    public static final String BUNDLE = "bundle";
+    public static final String BUNDLE_LIST = "list";
+    public static final String BUNDLE_ADD = "add";
 }
