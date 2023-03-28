@@ -9,7 +9,7 @@ import com.crowdin.cli.properties.ProjectProperties;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "bundle",
+    name = CommandNames.BUNDLE,
     sortOptions = false
 )
 public class DownloadBundleSubcommand extends ActCommandBundle {

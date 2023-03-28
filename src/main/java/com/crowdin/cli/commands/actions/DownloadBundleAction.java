@@ -29,14 +29,12 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
         this.noProgress = noProgress;
     }
 
-
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientBundle client) {
         Bundle bundle = getBundle(client);
         BundleExport status = this.buildBundle(out, client, bundle.getId(), bundle);
         to = new File("bundle-" + status.getIdentifier() + ".zip");
         downloadBundle(client, bundle.getId(), status.getIdentifier());
-
         out.println(String.format(RESOURCE_BUNDLE.getString("message.bundle.download_success"), to));
     }
 
