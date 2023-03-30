@@ -30,9 +30,6 @@ class BundleAddSubcommand extends ActCommandBundle {
     @CommandLine.Option(names = {"--translation"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.translation")
     protected String translation;
 
-    @CommandLine.Option(names = {"--multilingual"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.bundle.add.multilingual")
-    protected boolean multilingual;
-
     @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.label")
     protected List<Long> labels;
 
@@ -46,7 +43,7 @@ class BundleAddSubcommand extends ActCommandBundle {
 
     @Override
     protected NewAction<ProjectProperties, ClientBundle> getAction(Actions actions) {
-        return actions.bundleAdd(name, format, source, ignore, translation, multilingual, labels, plainView);
+        return actions.bundleAdd(name, format, source, ignore, translation, labels, plainView);
     }
 
     @Override

@@ -25,14 +25,13 @@ public class BundleAddSubcommandTest extends PicocliTestUtils {
 
     @ParameterizedTest
     @MethodSource
-    public void testSubCommandCheckValidOptions(String name, String format, List<String> source, List<String> ignore, String translation, boolean multilingual, List<Long> labels) {
+    public void testSubCommandCheckValidOptions(String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels) {
         BundleAddSubcommand bundleAddSubcommand = new BundleAddSubcommand();
         bundleAddSubcommand.name = name;
         bundleAddSubcommand.format = format;
         bundleAddSubcommand.source = source;
         bundleAddSubcommand.ignore = ignore;
         bundleAddSubcommand.translation = translation;
-        bundleAddSubcommand.multilingual = multilingual;
         bundleAddSubcommand.labels = labels;
 
         List<String> errors = bundleAddSubcommand.checkOptions();
@@ -41,20 +40,19 @@ public class BundleAddSubcommandTest extends PicocliTestUtils {
 
     public static Stream<Arguments> testSubCommandCheckValidOptions() {
         return Stream.of(
-            arguments("Bundle 1", "format1", Arrays.asList("src1"), Arrays.asList("ignore1"), "translation1", true, Arrays.asList(12L)),
-            arguments("Bundle 2", "format2", Arrays.asList("src1"), null, "translation2", false, Arrays.asList()));
+            arguments("Bundle 1", "format1", Arrays.asList("src1"), Arrays.asList("ignore1"), "translation1", Arrays.asList(12L)),
+            arguments("Bundle 2", "format2", Arrays.asList("src1"), null, "translation2", Arrays.asList()));
     }
 
     @ParameterizedTest
     @MethodSource
-    public void testSubCommandCheckInvalidOptions(String name, String format, List<String> source, List<String> ignore, String translation, boolean multilingual, List<Long> labels, List<String> expErrors) {
+    public void testSubCommandCheckInvalidOptions(String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, List<String> expErrors) {
         BundleAddSubcommand bundleAddSubcommand = new BundleAddSubcommand();
         bundleAddSubcommand.name = name;
         bundleAddSubcommand.format = format;
         bundleAddSubcommand.source = source;
         bundleAddSubcommand.ignore = ignore;
         bundleAddSubcommand.translation = translation;
-        bundleAddSubcommand.multilingual = multilingual;
         bundleAddSubcommand.labels = labels;
 
         List<String> errors = bundleAddSubcommand.checkOptions();
@@ -63,10 +61,10 @@ public class BundleAddSubcommandTest extends PicocliTestUtils {
 
     public static Stream<Arguments> testSubCommandCheckInvalidOptions() {
         return Stream.of(
-                arguments("Bundle 1", "", Arrays.asList("src1"), Arrays.asList("ignore1"), "translation1", true, Arrays.asList(12L), Arrays.asList(RESOURCE_BUNDLE.getString("error.bundle.empty_format"))),
-                arguments("Bundle 2", "format2", Arrays.asList("src1"), null, "", false, Arrays.asList(), Arrays.asList(RESOURCE_BUNDLE.getString("error.bundle.empty_translation"))),
-                arguments("Bundle 3", "format3", null, null, "translation3", false, Arrays.asList(), Arrays.asList(RESOURCE_BUNDLE.getString("error.bundle.empty_source"))),
-                arguments(null, "format4", Arrays.asList("src1"), null, "translation3", false, Arrays.asList(), Arrays.asList(RESOURCE_BUNDLE.getString("error.bundle.empty_name")))
+                arguments("Bundle 1", "", Arrays.asList("src1"), Arrays.asList("ignore1"), "translation1", Arrays.asList(12L), Arrays.asList(RESOURCE_BUNDLE.getString("error.bundle.empty_format"))),
+                arguments("Bundle 2", "format2", Arrays.asList("src1"), null, "", Arrays.asList(), Arrays.asList(RESOURCE_BUNDLE.getString("error.bundle.empty_translation"))),
+                arguments("Bundle 3", "format3", null, null, "translation3", Arrays.asList(), Arrays.asList(RESOURCE_BUNDLE.getString("error.bundle.empty_source"))),
+                arguments(null, "format4", Arrays.asList("src1"), null, "translation3", Arrays.asList(), Arrays.asList(RESOURCE_BUNDLE.getString("error.bundle.empty_name")))
         );
     }
 }

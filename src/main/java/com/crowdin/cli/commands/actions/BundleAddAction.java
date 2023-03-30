@@ -26,8 +26,6 @@ class BundleAddAction implements NewAction<ProjectProperties, ClientBundle> {
 
     private String translation;
 
-    private boolean multilingual;
-
     private List<Long> labels;
 
     private boolean plainView;
@@ -42,8 +40,6 @@ class BundleAddAction implements NewAction<ProjectProperties, ClientBundle> {
         Optional.ofNullable(ignore).ifPresent(addBundleRequest::setIgnorePatterns);
         Optional.ofNullable(translation).ifPresent(addBundleRequest::setExportPattern);
 
-        //TODO: field is missed in crowdin-api-client-java
-//        Optional.ofNullable(multilingual).ifPresent(addBundleRequest::setMultilingual);
         Optional.ofNullable(labels).ifPresent(addBundleRequest::setLabelIds);
 
         try {

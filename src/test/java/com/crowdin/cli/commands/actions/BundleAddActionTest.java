@@ -29,7 +29,8 @@ public class BundleAddActionTest {
 
     @ParameterizedTest
     @MethodSource
-    public void testBundleAdd(String name, String format, List<String> source, List<String> ignore, String translation, boolean multilingual, List<Long> labels) {
+    public void testBundleAdd(String name, String format, List<String> source, List<String> ignore, String translation,
+                              List<Long> labels) {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(Utils.PATH_SEPARATOR);
@@ -53,14 +54,16 @@ public class BundleAddActionTest {
                     setIgnorePatterns(request.getIgnorePatterns());
                     setSourcePatterns(request.getSourcePatterns());
                 }});
-        action = new BundleAddAction(name, format, source, ignore, translation, multilingual, labels,  false);
+        action = new BundleAddAction(name, format, source, ignore, translation, labels, false);
         action.act(Outputter.getDefault(), pb, client);
         verify(client).addBundle(request);
         verifyNoMoreInteractions(client);
     }
 
     public static Stream<Arguments> testBundleAdd() {
-        return Stream.of(arguments("My bundle", "crowdin-resx", Arrays.asList("/master/"), Arrays.asList("/master/environments/"), "strings-%two_letters_code%.resx", true, new ArrayList<>()));
+        return Stream.of(arguments("My bundle", "crowdin-resx", Arrays.asList("/master/"),
+                                   Arrays.asList("/master/environments/"), "strings-%two_letters_code%.resx",
+                                   new ArrayList<>()));
     }
 
     @Test
@@ -82,8 +85,7 @@ public class BundleAddActionTest {
         when(client.addBundle(request))
                 .thenThrow(new RuntimeException("Whoops"));
 
-        action = new BundleAddAction("", "", null,null, null, false,
-                null, false);
+        action = new BundleAddAction("", "", null, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).addBundle(request);
