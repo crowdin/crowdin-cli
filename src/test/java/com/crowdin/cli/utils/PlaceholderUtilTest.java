@@ -136,6 +136,16 @@ public class PlaceholderUtilTest {
     }
 
     @Test
+    public void testDoubleAsteriskInWildCard() {
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(new ArrayList<>(), new ArrayList<>(), "./");
+        String source = "folder1/folder2/**/messages.properties";
+        String expected = "folder1/folder2/folder3/folder4/messages.properties";
+        File crowdinFile = new File("folder_on_crowdin/folder1/folder2/folder3/folder4/messages.properties");
+        assertEquals(expected, placeholderUtil.replaceFileDependentPlaceholders(source, crowdinFile));
+    }
+
+
+    @Test
     public void testReplaceLanguageDependentPlaceholdersLang() {
         String toFormat = "path/to/%two_letters_code%/%language%/%file_name%";
         Language language = LanguageBuilder.UKR.build();
