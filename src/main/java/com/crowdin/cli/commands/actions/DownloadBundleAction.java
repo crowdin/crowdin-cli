@@ -5,37 +5,57 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.properties.ProjectProperties;
+import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.bundles.model.Bundle;
 import com.crowdin.client.bundles.model.BundleExport;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.List;
+import java.util.UUID;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class DownloadBundleAction implements NewAction<ProjectProperties, ClientBundle> {
 
     private final Long id;
     private FilesInterface files;
     private boolean noProgress;
+
+    private boolean plainView;
     private File to;
 
-    public DownloadBundleAction(Long id, FilesInterface files, boolean noProgress) {
+    private Outputter out;
+
+    public DownloadBundleAction(Long id, FilesInterface files, boolean plainView, boolean noProgress) {
         this.id = id;
         this.files = files;
+        this.plainView = plainView;
         this.noProgress = noProgress;
     }
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientBundle client) {
+        this.out = out;
         Bundle bundle = getBundle(client);
         BundleExport status = this.buildBundle(out, client, bundle.getId(), bundle);
         to = new File("bundle-" + status.getIdentifier() + ".zip");
         downloadBundle(client, bundle.getId(), status.getIdentifier());
-        out.println(String.format(RESOURCE_BUNDLE.getString("message.bundle.download_success"), to));
+        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.bundle.download_success"), bundle.getId(), bundle.getName())));
+
+        String baseTemp = StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) +
+                Utils.PATH_SEPARATOR + "bundle-" + UUID.randomUUID();
+        java.io.File baseTempDir = new java.io.File(baseTemp + Utils.PATH_SEPARATOR);
+        List<java.io.File> downloadedFiles = extractArchive(to, baseTempDir);
+        for (File file: downloadedFiles) {
+            String filePath = Utils.noSepAtStart(StringUtils.removeStart(file.getAbsolutePath(), baseTempDir.getAbsolutePath()));
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));
+        }
     }
 
     private Bundle getBundle(ClientBundle client) {
@@ -78,5 +98,16 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
         } catch (IOException e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.write_file"), e);
         }
+    }
+
+    private List<File> extractArchive(java.io.File zipArchive, java.io.File dir) {
+        return ConsoleSpinner.execute(
+                out,
+                "message.spinner.extracting_archive",
+                "error.extracting_files",
+                this.noProgress,
+                this.plainView,
+                () -> files.extractZipArchive(zipArchive, dir)
+        );
     }
 }

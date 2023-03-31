@@ -24,10 +24,9 @@ class BundleListAction implements NewAction<ProjectProperties, ClientBundle> {
         List<Bundle> bundles = client.listBundle();
         for (Bundle bundle : bundles) {
             if (!plainView) {
-                out.println(LIST_ITEM.withIcon(
-                        String.format(RESOURCE_BUNDLE.getString("message.bundle.list"), bundle.getId(),
+                out.println(String.format(RESOURCE_BUNDLE.getString("message.bundle.list"), bundle.getId(),
                                       bundle.getName(),
-                                      bundle.getFormat(), bundle.getExportPattern())));
+                                      bundle.getFormat(), bundle.getExportPattern()));
             } else {
                 out.println(bundle.getId() + " " + bundle.getName());
             }
@@ -35,6 +34,8 @@ class BundleListAction implements NewAction<ProjectProperties, ClientBundle> {
         if (bundles.isEmpty()) {
             if (!plainView) {
                 out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.bundle.list_empty")));
+            } else {
+                out.println(RESOURCE_BUNDLE.getString("message.bundle.list_empty"));
             }
         }
     }
