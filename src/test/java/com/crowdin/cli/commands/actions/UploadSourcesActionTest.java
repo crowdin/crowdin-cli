@@ -24,8 +24,6 @@ import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.mockito.ArgumentCaptor;
-import org.mockito.Captor;
 
 import java.util.Arrays;
 import java.util.HashMap;
@@ -51,9 +49,6 @@ public class UploadSourcesActionTest {
     public void deleteProj() {
         project.delete();
     }
-
-    @Captor
-    private ArgumentCaptor<AddFileRequest> addFileRequestCaptor = ArgumentCaptor.forClass(AddFileRequest.class);
 
     @Test
     public void testUploadOneSource_EmptyProject() throws ResponseException {
@@ -87,10 +82,7 @@ public class UploadSourcesActionTest {
                     }}
                 );
             }};
-        verify(client).addSource(addFileRequestCaptor.capture());
-
-        AddFileRequest actualAddFileRequest = addFileRequestCaptor.getValue();
-
+        verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
 
