@@ -17,11 +17,14 @@ public class DownloadBundleSubcommand extends ActCommandBundle {
     @CommandLine.Parameters(descriptionKey = "crowdin.bundle.download.id")
     protected Long id;
 
-    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.bundle.usage.plain")
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
+
+    @CommandLine.Option(names = {"--keep-archive"}, descriptionKey = "params.keepArchive")
+    protected boolean keepArchive;
 
     @Override
     protected NewAction<ProjectProperties, ClientBundle> getAction(Actions actions) {
-        return new DownloadBundleAction(id, new FsFiles(), plainView, noProgress);
+        return new DownloadBundleAction(id, new FsFiles(), plainView, keepArchive, noProgress);
     }
 }

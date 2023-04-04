@@ -19,6 +19,7 @@ import java.util.List;
 import java.util.UUID;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class DownloadBundleAction implements NewAction<ProjectProperties, ClientBundle> {
@@ -26,16 +27,17 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
     private final Long id;
     private FilesInterface files;
     private boolean noProgress;
-
     private boolean plainView;
+    private boolean keepArchive;
     private File to;
 
     private Outputter out;
 
-    public DownloadBundleAction(Long id, FilesInterface files, boolean plainView, boolean noProgress) {
+    public DownloadBundleAction(Long id, FilesInterface files, boolean plainView, boolean keepArchive, boolean noProgress) {
         this.id = id;
         this.files = files;
         this.plainView = plainView;
+        this.keepArchive = keepArchive;
         this.noProgress = noProgress;
     }
 
@@ -55,6 +57,15 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
         for (File file: downloadedFiles) {
             String filePath = Utils.noSepAtStart(StringUtils.removeStart(file.getAbsolutePath(), baseTempDir.getAbsolutePath()));
             out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));
+        }
+        if (!keepArchive) {
+            try {
+                files.deleteFile(to);
+            } catch (IOException e) {
+                out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("error.deleting_archive"), to)));
+            }
+        } else {
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.archive"), to.getAbsolutePath())));
         }
     }
 
