@@ -29,6 +29,8 @@ abstract class CrowdinClientCore {
         new LinkedHashMap<BiPredicate<String, String>, RuntimeException>() {{
             put((code, message) -> code.equals("401"),
                 new RuntimeException(RESOURCE_BUNDLE.getString("error.response.401")));
+            put((code, message) -> code.equals("403") && message.contains("upgrade your subscription plan to upload more file formats"),
+                    new RuntimeException(RESOURCE_BUNDLE.getString("error.response.403_upgrade_subscription")));
             put((code, message) -> code.equals("403"),
                 new RuntimeException(RESOURCE_BUNDLE.getString("error.response.403")));
             put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Project Not Found"),
