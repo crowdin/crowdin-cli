@@ -50,8 +50,7 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
         downloadBundle(client, bundle.getId(), status.getIdentifier());
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.bundle.download_success"), bundle.getId(), bundle.getName())));
 
-        String baseTemp = StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) +
-                Utils.PATH_SEPARATOR + "bundle-" + UUID.randomUUID();
+        String baseTemp = StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR;
         java.io.File baseTempDir = new java.io.File(baseTemp + Utils.PATH_SEPARATOR);
         List<java.io.File> downloadedFiles = extractArchive(to, baseTempDir);
         for (File file: downloadedFiles) {
