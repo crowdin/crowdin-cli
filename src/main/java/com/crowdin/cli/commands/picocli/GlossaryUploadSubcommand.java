@@ -27,7 +27,7 @@ class GlossaryUploadSubcommand extends ActCommandGlossary {
     @CommandLine.Option(names = {"--name"}, paramLabel = "...")
     private String name;
 
-    @CommandLine.Option(names = {"--language"})
+    @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.glossary.upload.language-id")
     private String languageId;
 
     @CommandLine.Option(names = {"--scheme"}, paramLabel = "...")
