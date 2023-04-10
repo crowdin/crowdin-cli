@@ -13,7 +13,7 @@ public abstract class ActCommandWithTargets extends GenericActCommand<Properties
     @CommandLine.Mixin
     private ConfigurationFilesProperties properties;
 
-    @CommandLine.ArgGroup(exclusive = false, headingKey = "params.heading")
+//    @CommandLine.ArgGroup(exclusive = false, headingKey = "params.heading")
     private ParamsWithTargets params;
 
     @Override
