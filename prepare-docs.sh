@@ -47,7 +47,13 @@ sed -i.bak -e 's/\*\*--\([[:alnum:]_\-]*\)\*\*/`--\1`/g' -- *.md # **--config** 
 sed -i.bak -e 's/\*\*-\([[:alnum:]_\-]*\)\*\*/`-\1`/g' -- *.md # **-c** -> `-c`
 sed -i.bak -e 's/.xml)/)/g' -- *.md # fix links
 
-sed -i.bak -e 's/# Description$/## Description/g; s/# Synopsis$/## Synopsis/g; s/# Commands$/## Commands/g; s/# Options$/## Options/g; s/# Arguments$/## Arguments/g' -- *.md
+# Set headings level 2
+sed -i.bak -e 's/# Description$/## Description/g' -- *.md
+sed -i.bak -e 's/# Synopsis$/## Synopsis/g' -- *.md
+sed -i.bak -e 's/# Commands$/## Commands/g' -- *.md
+sed -i.bak -e 's/# Options$/## Options/g' -- *.md
+sed -i.bak -e 's/# Arguments$/## Arguments/g' -- *.md
+sed -i.bak -e 's/# Config Options/## Config Options/g' -- *.md
 
 sed -i.bak -e 's/\*\*--\[no-\]hidden\*\*/`--\[no-]hidden`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]duplicate-translations\*\*/`--[no-]duplicate-translations`/g' -- *.md
