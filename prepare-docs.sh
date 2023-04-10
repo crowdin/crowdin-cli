@@ -21,8 +21,9 @@ printf "\n[INFO] Converting adoc -> md...\n"
 cd ../mantemplates || exit
 
 # Convert adoc to xml and then xml to md
+# https://pandoc.org/MANUAL.html
 asciidoctor -b docbook5 -d article -- *.adoc
-find ./ -iname "*.xml" -type f -exec sh -c 'pandoc -f docbook -t markdown_strict "${0}" -o "../docs/commands/$(basename ${0%.xml}.md)"' {} \;
+find ./ -iname "*.xml" -type f -exec sh -c 'pandoc -f docbook -t markdown_strict --markdown-headings=atx "${0}" -o "../docs/commands/$(basename ${0%.xml}.md)"' {} \;
 
 sed -i.bak -e 's/\x1B//g' -- *.xml # remove invisible ESC character from synopsis
 rm -- *.xml

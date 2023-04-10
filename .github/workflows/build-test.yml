@@ -100,7 +100,8 @@ jobs:
       - name: Install asciidoctor and pandoc
         run: |
           sudo apt install -y asciidoctor
-          sudo apt install pandoc
+          wget https://github.com/jgm/pandoc/releases/download/3.1.2/pandoc-3.1.2-1-amd64.deb
+          sudo dpkg -i pandoc-3.1.2-1-amd64.deb
 
       - name: Generate Docs
         run: |
