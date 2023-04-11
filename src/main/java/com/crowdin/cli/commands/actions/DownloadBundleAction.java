@@ -54,17 +54,7 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
 
         String baseTemp = StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR;
         java.io.File baseTempDir = new java.io.File(baseTemp + Utils.PATH_SEPARATOR);
-        List<File> existingFiles;
-        try {
-            existingFiles = Files.walk(baseTempDir.toPath())
-                                 .filter(java.nio.file.Files::isRegularFile)
-                                 .map(Path::toFile)
-                                 .collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        List<java.io.File> downloadedFiles = extractArchive(to, baseTempDir)
-                .stream().filter(file -> !existingFiles.contains(file)).collect(Collectors.toList());
+        List<java.io.File> downloadedFiles = extractArchive(to, baseTempDir);
         for (File file: downloadedFiles) {
             String filePath = Utils.noSepAtStart(StringUtils.removeStart(file.getAbsolutePath(), baseTempDir.getAbsolutePath()));
             out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.extracted_file"), filePath)));
