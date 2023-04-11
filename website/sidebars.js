@@ -52,6 +52,7 @@ const sidebars = {
           items: [
             'commands/crowdin-download-sources',
             'commands/crowdin-download-targets',
+            'commands/crowdin-download-bundle',
           ]
         },
         {
@@ -113,6 +114,20 @@ const sidebars = {
             'commands/crowdin-string-add',
             'commands/crowdin-string-edit',
             'commands/crowdin-string-delete',
+          ]
+        },
+        {
+          type: 'category',
+          label: 'crowdin bundle',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-bundle'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-bundle-list',
+            'commands/crowdin-bundle-add',
           ]
         },
         {
