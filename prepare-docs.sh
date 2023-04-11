@@ -23,7 +23,18 @@ cd ../mantemplates || exit
 # Convert adoc to xml and then xml to md
 # https://pandoc.org/MANUAL.html
 asciidoctor -b docbook5 -d article -- *.adoc
-find ./ -iname "*.xml" -type f -exec sh -c 'pandoc -f docbook -t markdown_strict --markdown-headings=atx "${0}" -o "../docs/commands/$(basename ${0%.xml}.md)"' {} \;
+
+if [ $? -ne 0 ]; then
+    echo "[Error] asciidoctor converting failed!"
+    exit 1
+fi
+
+find ./ -iname "*.xml" -type f -exec sh -c 'pandoc -f docbook -t markdown_strict --fail-if-warnings --markdown-headings=atx "${0}" -o "../docs/commands/$(basename ${0%.xml}.md)"' {} \;
+
+if [ $? -ne 0 ]; then
+    echo "[Error] pandoc converting failed!"
+    exit 1
+fi
 
 sed -i.bak -e 's/\x1B//g' -- *.xml # remove invisible ESC character from synopsis
 rm -- *.xml
