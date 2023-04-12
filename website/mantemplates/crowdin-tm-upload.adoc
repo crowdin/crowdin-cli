@@ -1,0 +1,27 @@
+:includedir: ../generated-picocli-docs
+:command: crowdin-tm-upload
+
+== crowdin tm upload
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-synopsis]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-arguments]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-commands]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-options]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
+
+=== Notes
+
+To form the scheme for your CSV or XLS/XLSX glossary file, use the following constants:
+
+- `+{language_code}+` – Column contains translation memory elements for the specified language.
+- `+{column_number}+` – Column number.Numbering starts from 0.
+
+Where `+{language_code}+` – Language code for the specified language.See the full list of https://developer.crowdin.com/language-codes[Supported Languages].
+
+`--first-line-contains-header` – used to skip the import of the first row (header).

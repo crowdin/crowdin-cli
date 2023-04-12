@@ -38,6 +38,13 @@ public class BaseCli {
                 put("xliff", "xliff");
                 put("xml", "android");
                 put("strings", "macosx");
+                put("yml", "yaml-export");
+                put("resx", "crowdin-resx");
+                put("csv", "crowdin-csv");
+                put("properties", "crowdin-properties");
+                put("arb", "arb-export");
+                put("stringsdict", "stringsdict-export");
+                put("po", "po-export");
         }}
     );
 

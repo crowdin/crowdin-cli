@@ -5,12 +5,13 @@ plugins {
     id 'com.github.johnrengelman.shadow' version '7.0.0'
     id 'jacoco'
     id "com.github.spotbugs" version "4.7.1"
+    id 'org.asciidoctor.jvm.convert' version '3.1.0'
 }
 
 apply plugin: 'checkstyle'
 
 group 'com.crowdin'
-version '3.10.0'
+version '3.10.1'
 
 sourceCompatibility = 1.8
 
@@ -54,8 +55,6 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok:1.18.20'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
 
-    implementation 'info.picocli:picocli:4.6.1'
-
     implementation 'com.github.crowdin:crowdin-api-client-java:1.4.2'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
@@ -63,6 +62,11 @@ dependencies {
     testImplementation 'org.mockito:mockito-core:3.11.2'
 
     spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.11.0'
+}
+
+dependencies {
+    implementation "info.picocli:picocli:4.7.1"
+    annotationProcessor "info.picocli:picocli-codegen:4.7.1"
 }
 
 jar {
@@ -80,6 +84,7 @@ shadowJar {
         exclude(dependency('org.apache.httpcomponents:httpclient'))
         exclude(dependency('com.fasterxml.jackson.core:jackson-databind'))
         exclude(dependency('info.picocli:picocli'))
+        exclude(dependency('info.picocli:picocli-codegen'))
     }
 }
 
@@ -162,3 +167,11 @@ task staticAnalysis(type: GradleBuild) {
     tasks = ['checkstyleMain', 'checkstyleTest', 'spotbugsMain', 'spotbugsTest']
 }
 
+task generateManpageAsciiDoc(type: JavaExec) {
+    dependsOn(classes)
+    group = "Documentation"
+    description = "Generate AsciiDoc manpage"
+    classpath(configurations.compileClasspath, configurations.annotationProcessor, sourceSets.main.runtimeClasspath)
+    main 'picocli.codegen.docgen.manpage.ManPageGenerator'
+    args "com.crowdin.cli.commands.picocli.RootCommand", "--outdir=website/generated-picocli-docs", "-v" //, "--template-dir=website/mantemplates"
+}

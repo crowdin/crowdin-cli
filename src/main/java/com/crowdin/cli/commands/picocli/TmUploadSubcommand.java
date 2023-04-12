@@ -27,7 +27,7 @@ class TmUploadSubcommand extends ActCommandTm {
     @CommandLine.Option(names = {"--name"}, paramLabel = "...")
     private String name;
 
-    @CommandLine.Option(names = {"--language"})
+    @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.tm.upload.language-id")
     private String languageId;
 
     @CommandLine.Option(names = {"--scheme"}, paramLabel = "...")

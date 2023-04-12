@@ -10,16 +10,16 @@
     "type": "git",
     "url": "https://github.com/crowdin/crowdin-cli.git"
   },
-  "version": "3.10.0",
+  "version": "3.10.1",
   "jdeploy": {
     "jar": "dist/crowdin-cli.jar"
   },
   "dependencies": {
     "command-exists-promise": "^2.0.2",
     "node-fetch": "2.6.7",
+    "shelljs": "^0.8.4",
     "tar": "^4.4.8",
-    "yauzl": "^2.10.0",
-    "shelljs": "^0.8.4"
+    "yauzl": "^2.10.0"
   },
   "license": "MIT",
   "name": "@crowdin/cli",
@@ -35,5 +35,12 @@
     "Client",
     "Sync",
     "Localization"
-  ]
+  ],
+  "devDependencies": {
+    "@google/semantic-release-replace-plugin": "^1.2.0",
+    "@semantic-release/changelog": "^6.0.2",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "semantic-release": "^20.1.1"
+  }
 }
