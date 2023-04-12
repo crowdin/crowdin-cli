@@ -26,7 +26,7 @@ public class CrowdinClientBundleTest {
     private static final String url = "https://testme.crowdin.com/api/v2";
 
     private static final String listBundleUrl = String.format("%s/projects/%s/bundles", url, projectId);
-    private static final String addTmUrl = String.format("%s/projects/%s/bundles", url, projectId);
+    private static final String addBundleUrl = String.format("%s/projects/%s/bundles", url, projectId);
 
 
     @BeforeEach
@@ -60,12 +60,12 @@ public class CrowdinClientBundleTest {
         BundleResponseObject response = new BundleResponseObject() {{
             setData(new Bundle());
         }};
-        when(httpClientMock.post(eq(addTmUrl), any(), any(), eq(BundleResponseObject.class)))
+        when(httpClientMock.post(eq(addBundleUrl), any(), any(), eq(BundleResponseObject.class)))
                 .thenReturn(response);
 
         client.addBundle(new Bundle());
 
-        verify(httpClientMock).post(eq(addTmUrl), any(), any(), eq(BundleResponseObject.class));
+        verify(httpClientMock).post(eq(addBundleUrl), any(), any(), eq(BundleResponseObject.class));
         verifyNoMoreInteractions(httpClientMock);
     }
 
