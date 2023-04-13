@@ -24,7 +24,8 @@ public class SourcesUtils {
             throw new NullPointerException("null args in SourceUtils.getFiles");
         }
         FileHelper fileHelper = new FileHelper(basePath);
-        List<File> sources = fileHelper.getFiles(sourcePattern);
+        String relativePath = StringUtils.removeStart(sourcePattern, basePath);
+        List<File> sources = fileHelper.getFiles(relativePath);
         List<String> formattedIgnores = placeholderUtil.format(sources, ignorePattern, false);
         return fileHelper.filterOutIgnoredFiles(sources, formattedIgnores)
             .stream()

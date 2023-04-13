@@ -54,7 +54,7 @@ public class PropertiesBuilderTest {
 
         assertEquals(pb.getPreserveHierarchy(), false);
         assertEquals(pb.getFiles().size(), 1);
-        assertEquals(pb.getFiles().get(0).getSource(), "hello" + Utils.PATH_SEPARATOR + "world");
+        assertEquals(pb.getFiles().get(0).getSource(), Utils.PATH_SEPARATOR + "hello" + Utils.PATH_SEPARATOR + "world");
     }
 
     @Test
@@ -76,7 +76,7 @@ public class PropertiesBuilderTest {
 
         assertEquals(pb.getPreserveHierarchy(), false);
         assertEquals(pb.getFiles().size(), 1);
-        assertEquals(pb.getFiles().get(0).getSource(), "hello" + Utils.PATH_SEPARATOR + "world");
+        assertEquals(pb.getFiles().get(0).getSource(), Utils.PATH_SEPARATOR + "hello" + Utils.PATH_SEPARATOR + "world");
     }
 
     @Test
