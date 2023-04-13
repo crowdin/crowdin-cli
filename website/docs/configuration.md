@@ -16,7 +16,7 @@ When calling Crowdin CLI in terminal make sure you are in your project root dire
 crowdin upload sources --config /path/to/your/config/file
 ```
 
-**Sample configuration file:**
+### Sample configuration file
 
 ```yaml
 "project_id": "12"

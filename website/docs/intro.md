@@ -41,18 +41,41 @@ This is a cross-platform, and it runs in a terminal on Linux based and macOS ope
 - HTTP Proxy support including authorization
 - and more.
 
-## Running
+## Usage
 
-Use the following command to run the app:
-
-```bash
-crowdin
-```
-Alternative method:
+Here is an overview of the basics of using the CLI. Use the following command to run the CLI:
 
 ```bash
-java -jar crowdin-cli.jar
+crowdin some-command [CONFIG OPTIONS] [OPTIONS]
 ```
+
+### Options
+
+Here are the common options for all CLI commands:
+
+| <div style={{width:170 + 'px'}}>Option</div> | Description                                                |
+|----------------------------------------------|------------------------------------------------------------|
+| `-h`, `--help`                               | Show the help message and exit                             |
+| `--no-colors`                                | Disable colors and styles                                  |
+| `--no-progress`                              | Disable progress on executed command                       |
+| `-v`, `--verbose`                            | Show more information on the command execution             |
+| `-V`, `--version`                            | Print version information and exit                         |
+| `--debug`                                    | Provide additional debugging information in case of errors |
+
+### Config options
+
+Crowdin CLI config options provide an alternative way to pass options that can be configured via the [configuration file](/configuration). When config options are specified as command parameters, CLI considers them to have higher priority than the options specified in the configuration file. The config options also allow the CLI to be used without a configuration file.
+
+Here are the common config options for all CLI commands:
+
+| <div style={{width:170 + 'px'}}>Option</div> | Description                                                                                                                                                             |
+|----------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-T`, `--token`=*…*                          | Personal Access Token required for authentication                                                                                                                       |
+| `--base-url`=*…*                             | Base URL of Crowdin server for API requests execution (`https://api.crowdin.com` for crowdin.com, `https://{organization-name}.api.crowdin.com` for Crowdin Enterprise) |
+| `--base-path`=*…*                            | Path to your project directory on a local machine (default: `.`)                                                                                                        |
+| `-i`, `--project-id`=*…*                     | Numerical ID of the Crowdin project                                                                                                                                     |
+
+Some commands have their own config options.
 
 ## Requirements
 
