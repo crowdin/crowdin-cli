@@ -1,6 +1,6 @@
 # Installation
 
-### Homebrew for macOS
+## Homebrew for macOS
 
 To install the Crowdin CLI with [Homebrew](https://brew.sh/) (the package manager for macOS):
 
@@ -14,11 +14,21 @@ brew install crowdin@3
 
 [Homebrew Tap Reference](https://github.com/crowdin/homebrew-crowdin).
 
-### Windows
+## Windows
+
+### Installer
 
 Download and run [installer for Windows](https://downloads.crowdin.com/cli/v3/crowdin.exe).
 
-### Debian
+### Chocolatey
+
+```bash
+choco install crowdin-cli
+```
+
+[Chocolatey Package Reference](https://community.chocolatey.org/packages/crowdin-cli).
+
+## Debian
 
 We sign all our packages with the Crowdin Signing Key.
 
@@ -47,7 +57,7 @@ wget https://artifacts.crowdin.com/repo/deb/crowdin3.deb -O crowdin.deb
 sudo dpkg -i crowdin.deb
 ```
 
-### RPM
+## RPM
 
 We sign all our packages with the Crowdin Signing Key.
 
@@ -84,11 +94,11 @@ wget https://artifacts.crowdin.com/repo/rpm/crowdin3.rpm -O crowdin.rpm
 sudo rpm -U crowdin3.rpm
 ```
 
-### Arch Linux
+## Arch Linux
 
 Visit the [Crowdin CLI package page](https://aur.archlinux.org/packages/crowdin-cli) on Arch Linux user repository.
 
-### NPM
+## NPM
 
 ```bash
 npm i -g @crowdin/cli
@@ -96,7 +106,7 @@ npm i -g @crowdin/cli
 
 [NPM Package Reference](https://www.npmjs.com/package/@crowdin/cli).
 
-### Docker
+## Docker
 
 ```bash
 docker pull crowdin/cli
@@ -104,17 +114,17 @@ docker pull crowdin/cli
 
 [Docker Container Reference](https://hub.docker.com/r/crowdin/cli).
 
-### Standalone version
+## Standalone version
 
 Crowdin CLI can be installed as a stand-alone Java application. [Download for macOS, Linux and Windows](https://downloads.crowdin.com/cli/v3/crowdin-cli.zip)
 
-#### Installation on Linux and macOS
+### Installation on Linux and macOS
 
 - Download `crowdin-cli.zip` using the button above
 - Unpack it
 - Run `./install-crowdin-cli.sh` in the terminal with sudo rights in order to add crowdin command to your terminal
 
-#### Installation on Windows
+### Installation on Windows
 
 - Download `crowdin-cli.zip` using the button above
 - Extract it's content to the place where you want Crowdin CLI to be stored
