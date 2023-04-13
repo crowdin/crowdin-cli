@@ -8,6 +8,7 @@ One way to do this is to use Crowdin CLI with your CI tools. You can use Crowdin
 
 ## Examples
 
+- [GitLab CI/CD](https://store.crowdin.com/gitlab-ci)
 - [Jenkins](https://store.crowdin.com/jenkins)
 - [Azure Pipelines](https://store.crowdin.com/azure-pipelines)
 - [AWS CodeCommit](https://store.crowdin.com/codecommit)
@@ -39,6 +40,13 @@ jobs:
       - name: Run command
         run: crowdin -V
 ```
+
+:::tip
+
+- You can use the `--keep-archive` option with the [`crowdin download`](/commands/crowdin-download) command if you need to process the translations archive in some way (for example, upload it to the pipeline artifacts).
+- It's recommended to use the `--no-progress` flag for the CLI execution in CI/CD environment. It will keep the execution logs cleaner and more readable.
+
+:::
 
 ## Further Reading
 
