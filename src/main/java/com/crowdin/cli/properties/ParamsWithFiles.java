@@ -19,6 +19,9 @@ public class ParamsWithFiles extends ProjectParams {
     @CommandLine.Option(names = {"--dest"}, paramLabel = "...", descriptionKey = "params.dest")
     private String destParam;
 
+    @CommandLine.Option(names = {"--preserve-hierarchy"}, negatable = true, paramLabel = "...", descriptionKey = "params.preserve-hierarchy")
+    private Boolean preserveHierarchy;
+
     private Boolean skipTranslatedOnly;
     private Boolean skipUntranslatedFiles;
     private Boolean exportApprovedOnly;

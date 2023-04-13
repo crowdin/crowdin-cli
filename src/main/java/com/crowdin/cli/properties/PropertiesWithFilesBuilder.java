@@ -88,8 +88,11 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
             props.setPreserveHierarchy(false);
 
             Path root = Paths.get(System.getProperty("user.dir")).getRoot();
-            props.setBasePath((root != null) ? root.toString() : "/");
-            params.setSourceParam(StringUtils.removePattern(params.getSourceParam(), "^([a-zA-Z]:)?[\\\\/]+"));
+            String rootPath = root != null ? root.toString() : "/";
+            if(props.getBasePath() == null) {
+                props.setBasePath(rootPath);
+            }
+            params.setSourceParam(StringUtils.removePattern(params.getSourceParam(), "^\\?([a-zA-Z]:)?[\\\\/]+"));
         }
         if (params.getIdParam() != null) {
             props.setProjectId(params.getIdParam());
@@ -103,11 +106,13 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
         if (params.getBaseUrlParam() != null) {
             props.setBaseUrl(params.getBaseUrlParam());
         }
+        props.setPreserveHierarchy(params.getPreserveHierarchy() != null ? params.getPreserveHierarchy()
+                : props.getPreserveHierarchy());
+
         if (params.getSourceParam() != null && params.getTranslationParam() != null) {
-            props.setPreserveHierarchy(false);
             FileBean fb = new FileBean();
             if (params.getSourceParam() != null) {
-                fb.setSource(StringUtils.removePattern(params.getSourceParam(), "^([a-zA-Z]:)?[\\\\/]+"));
+                fb.setSource(StringUtils.removePattern(params.getSourceParam(), "^\\?([a-zA-Z]:)?[\\\\/]+"));
             }
             if (params.getTranslationParam() != null) {
                 fb.setTranslation(params.getTranslationParam());
