@@ -132,6 +132,7 @@ module.exports = {
           "package.json",
           "package-lock.json",
           "pkgbuild/PKGBUILD",
+          "chocolatey/*",
           "CHANGELOG.md"
         ],
         "message": "chore(release): version ${nextRelease.version} [skip ci]"
