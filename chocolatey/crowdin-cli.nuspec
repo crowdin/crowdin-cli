@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
+  <metadata>
+    <id>crowdin-cli</id>
+    <version>3.10.1</version>
+    <packageSourceUrl>https://github.com/crowdin/crowdin-cli/tree/cli3/chocolatey</packageSourceUrl>
+    <owners>crowdin</owners>
+    <title>Crowdin CLI (Portable)</title>
+    <authors>Crowdin</authors>
+    <projectUrl>https://github.com/crowdin/crowdin-cli</projectUrl>
+    <iconUrl>https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png</iconUrl>
+    <copyright>© Crowdin</copyright>
+    <licenseUrl>https://github.com/crowdin/crowdin-cli/blob/cli3/LICENSE</licenseUrl>
+    <requireLicenseAcceptance>true</requireLicenseAcceptance>
+    <projectSourceUrl>https://github.com/crowdin/crowdin-cli</projectSourceUrl>
+    <docsUrl>https://crowdin.github.io/crowdin-cli</docsUrl>
+    <tags>crowdin cli</tags>
+    <summary>Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project.</summary>
+    <description>Using CLI, you can:
+
+- automate the process of updating your source files in your Crowdin project
+- download translations from Crowdin and automatically save them in the correct locations
+- upload all your existing translations to Crowdin in minutes
+- integrate Crowdin with GIT, SVN, Mercurial, and other software
+- This is a cross-platform and it runs in a terminal on Linux based and macOS operating systems or in Command Prompt on Windows. </description>
+    <releaseNotes>https://github.com/crowdin/crowdin-cli/releases</releaseNotes>
+    <dependencies>
+      <dependency id="jdk8" />
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="tools\**" target="tools" />
+  </files>
+</package>
