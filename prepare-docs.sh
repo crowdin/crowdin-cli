@@ -77,6 +77,7 @@ sed -i.bak -e 's/\*\*--\[no-\]auto-update\*\*/`--[no-]auto-update`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]auto-approve-imported\*\*/`--[no-]auto-approve-imported`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]import-eq-suggestions\*\*/`--[no-]import-eq-suggestions`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]translate-hidden\*\*/`--[no-]translate-hidden`/g' -- *.md
+sed -i.bak -e 's/\*\*--\[no-\]preserve-hierarchy\*\*/`--[no-]preserve-hierarchy`/g' -- *.md
 
 rm -- *.md.bak
 
