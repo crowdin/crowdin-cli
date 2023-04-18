@@ -54,6 +54,20 @@ jobs:
           token: ${{ secrets.GH_HOMEBREW_TOKEN }}
           inputs: '{ "version": "${{ github.ref_name }}" }'
 
+  chocolatey:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Choco pack
+        uses: crazy-max/ghaction-chocolatey@v2
+        with:
+          args: pack chocolatey/crowdin-cli.nuspec
+
+      - name: Choco publish
+        uses: crazy-max/ghaction-chocolatey@v2
+        with:
+          args: push chocolatey/crowdin-cli.nuspec --api-key ${{ secrets.CHOCOLATEY_API_KEY }}
+
   release-asset:
     runs-on: ubuntu-latest
     steps:

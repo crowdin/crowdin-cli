@@ -81,6 +81,38 @@ module.exports = {
               }
             ],
             "countMatches": true
+          },
+          {
+            "files": [
+              "chocolatey/crowdin-cli.nuspec"
+            ],
+            "from": "<version>.*</version>",
+            "to": "<version>${nextRelease.version}</version>",
+            "results": [
+              {
+                "file": "chocolatey/crowdin-cli.nuspec",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
+              "chocolatey/tools/chocolateyinstall.ps1"
+            ],
+            "from": "checksum      = '.*'",
+            "to": "checksum      = '" + process.env.CHECKSUM +  "'",
+            "results": [
+              {
+                "file": "chocolatey/tools/chocolateyinstall.ps1",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
           }
         ]
       }
@@ -100,6 +132,7 @@ module.exports = {
           "package.json",
           "package-lock.json",
           "pkgbuild/PKGBUILD",
+          "chocolatey/*",
           "CHANGELOG.md"
         ],
         "message": "chore(release): version ${nextRelease.version} [skip ci]"
