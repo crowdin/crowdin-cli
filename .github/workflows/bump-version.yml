@@ -20,16 +20,9 @@ jobs:
       - name: Install dependencies
         run: npm install
 
-      - name: Download the latest zip
-        uses: carlosperate/download-file-action@v2
-        with:
-          file-url: 'https://downloads.crowdin.com/cli/v3/crowdin-cli.zip'
-
-      - name: Generate shasum
-        id: shasum
-        run: echo hash=$(shasum -a 256 crowdin-cli.zip | cut -f 1 -d " ") >> $GITHUB_OUTPUT
-
       - name: Bump version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        run: npx semantic-release --define CHECKSUM=${{ steps.shasum.outputs.hash }}
+        run: |
+          npx semantic-release
+          npx semantic-release --version
