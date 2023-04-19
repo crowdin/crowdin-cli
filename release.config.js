@@ -97,22 +97,6 @@ module.exports = {
               }
             ],
             "countMatches": true
-          },
-          {
-            "files": [
-              "chocolatey/tools/chocolateyinstall.ps1"
-            ],
-            "from": "checksum      = '.*'",
-            "to": "checksum      = '" + process.env.CHECKSUM +  "'",
-            "results": [
-              {
-                "file": "chocolatey/tools/chocolateyinstall.ps1",
-                "hasChanged": true,
-                "numMatches": 1,
-                "numReplacements": 1
-              }
-            ],
-            "countMatches": true
           }
         ]
       }
