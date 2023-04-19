@@ -51,7 +51,6 @@ const sidebars = {
           collapsed: true,
           items: [
             'commands/crowdin-download-sources',
-            'commands/crowdin-download-targets',
             'commands/crowdin-download-bundle',
           ]
         },
