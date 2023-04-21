@@ -167,6 +167,16 @@ public class CliActions implements Actions {
     }
 
     @Override
+    public NewAction<ProjectProperties, ClientBundle> bundleList(boolean plainView, boolean isVerbose) {
+        return new BundleListAction(plainView);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ClientBundle> bundleAdd(String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView) {
+        return new BundleAddAction(name, format, source, ignore, translation, labels, plainView);
+    }
+
+    @Override
     public NewAction<NoProperties, NoClient> checkNewVersion() {
         return new CheckNewVersionAction();
     }

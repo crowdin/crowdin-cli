@@ -55,7 +55,7 @@ dependencies {
     testCompileOnly 'org.projectlombok:lombok:1.18.20'
     testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
 
-    implementation 'com.github.crowdin:crowdin-api-client-java:1.4.2'
+    implementation 'com.github.crowdin:crowdin-api-client-java:1.6.2'
 
     testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
     testImplementation 'org.hamcrest:hamcrest:2.2'

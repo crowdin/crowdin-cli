@@ -16,6 +16,7 @@ import java.util.List;
     aliases = CommandNames.ALIAS_DOWNLOAD,
     subcommands = {
         DownloadTargetsSubcommand.class,
+        DownloadBundleSubcommand.class,
         DownloadSourcesSubcommand.class
     }
 )

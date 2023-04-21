@@ -84,6 +84,10 @@ public interface Actions {
 
     NewAction<ProjectProperties, ClientTask> taskAdd(String title, Integer type, String language, List<Long> fileId, Long workflowStep, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, List<Long> labels);
 
+    NewAction<ProjectProperties, ClientBundle> bundleList(boolean plainView, boolean isVerbose);
+
+    NewAction<ProjectProperties, ClientBundle> bundleAdd(String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView);
+
     NewAction<PropertiesWithTargets, ProjectClient> downloadTargets(
         List<String> targetNames, FilesInterface files, boolean noProgress,
         List<String> langIds, boolean isVerbose, boolean plainView, boolean debug, String branchName);
