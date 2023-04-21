@@ -43,8 +43,8 @@ class TaskListAction implements NewAction<ProjectProperties, ClientTask> {
             String okMessage = isVerbose ? "message.task.list.verbose" : "message.task.list";
             String deadline = task.getDeadline() == null ? "NoDueDate" : task.getDeadline().toString();
             if (!plainView) {
-                out.println(LIST_ITEM.withIcon(
-                        String.format(RESOURCE_BUNDLE.getString(okMessage), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), deadline)));
+                out.println(String.format(RESOURCE_BUNDLE.getString(okMessage), task.getId(),
+                            task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), deadline));
             } else {
                 out.println(String.format(RESOURCE_BUNDLE.getString(okMessage), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), deadline));
             }

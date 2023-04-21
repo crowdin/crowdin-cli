@@ -34,6 +34,11 @@ public final class Clients {
         return new CrowdinClientTask(client, projectId);
     }
 
+    public static ClientBundle getClientBundle(String apiToken, String baseUrl, String projectId) {
+        com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);
+        return new CrowdinClientBundle(client, projectId);
+    }
+
 //    mb divide args to move token and url to constructor?
     public static ProjectClient getProjectClient(String apiToken, String baseUrl, long projectId) {
         com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);

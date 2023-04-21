@@ -1,7 +1,7 @@
 :includedir: ../generated-picocli-docs
-:command: crowdin-download-targets
+:command: crowdin-bundle
 
-== crowdin download targets
+== crowdin bundle
 
 include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
 

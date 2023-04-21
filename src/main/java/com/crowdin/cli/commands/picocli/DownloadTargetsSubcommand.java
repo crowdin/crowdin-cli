@@ -11,9 +11,14 @@ import picocli.CommandLine;
 
 import java.util.List;
 
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
+import static java.lang.System.out;
+
+@Deprecated
 @CommandLine.Command(
     name = CommandNames.DOWNLOAD_TARGETS,
-    sortOptions = false
+    sortOptions = false,
+    hidden = true
 )
 public class DownloadTargetsSubcommand extends ActCommandWithTargets {
 
@@ -37,6 +42,7 @@ public class DownloadTargetsSubcommand extends ActCommandWithTargets {
 
     @Override
     protected NewAction<PropertiesWithTargets, ProjectClient> getAction(Actions actions) {
+        out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.target_deprecated")));
         return actions.downloadTargets(
             targetNames, new FsFiles(), noProgress, langIds, isVerbose, plainView, debug, branchName);
     }
