@@ -64,7 +64,7 @@ We sign all our packages with the Crowdin Signing Key.
 Download and install the public signing key:
 
 ```bash
-rpm --import https://artifacts.crowdin.com/repo/GPG-KEY-crowdin
+sudo rpm --import https://artifacts.crowdin.com/repo/GPG-KEY-crowdin
 ```
 
 Installing from the RPM repository
