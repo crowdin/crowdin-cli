@@ -1,6 +1,7 @@
 name: Publish
 
 on:
+  workflow_dispatch:
   release:
     types: [released]
 
@@ -109,6 +110,7 @@ jobs:
     runs-on: ubuntu-latest
     needs: assets
     steps:
+      - uses: actions/checkout@v3
       - name: Invoke workflow in the homebrew-crowdin repo
         uses: benc-uk/workflow-dispatch@v1
         with:
@@ -137,4 +139,4 @@ jobs:
       - name: Choco publish
         uses: crazy-max/ghaction-chocolatey@v2
         with:
-          args: push chocolatey/crowdin-cli.nuspec --api-key ${{ secrets.CHOCOLATEY_API_KEY }}
+          args: push --api-key ${{ secrets.CHOCOLATEY_API_KEY }}
