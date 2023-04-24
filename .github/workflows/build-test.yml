@@ -65,7 +65,7 @@ jobs:
 
       - name: Test Report
         uses: dorny/test-reporter@v1
-        if: success() || failure()
+        if: ${{ (success() || failure()) && github.ref == 'refs/heads/cli3' }}
         with:
           name: Test results ${{ matrix.os }}
           path: build/test-results/test/*.xml
