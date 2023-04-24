@@ -135,15 +135,25 @@ public class PlaceholderUtilTest {
         assertEquals(expected, result);
     }
 
-    @Test
-    public void testDoubleAsteriskInWildCard() {
+    @ParameterizedTest
+    @MethodSource
+    public void testDoubleAsteriskInWildCard(String source, File crowdinFile, String expected) {
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(new ArrayList<>(), new ArrayList<>(), "./");
-        String source = "folder1/folder2/**/messages.properties";
-        String expected = "folder1/folder2/folder3/folder4/messages.properties";
-        File crowdinFile = new File("folder_on_crowdin/folder1/folder2/folder3/folder4/messages.properties");
         assertEquals(expected, placeholderUtil.replaceFileDependentPlaceholders(source, crowdinFile));
     }
 
+    static Stream<Arguments> testDoubleAsteriskInWildCard() {
+        return Stream.of(
+                arguments("folder1/folder2/**/messages.properties",
+                    new File("folder_on_crowdin/folder1/folder2/folder3/folder4/messages.properties"),
+                    "folder1/folder2/folder3/folder4/messages.properties"
+                ),
+                arguments("folder/**/*.xml",
+                    new File("files/folder/sub/1.xml"),
+                    "folder/sub/*.xml"
+                )
+        );
+    }
 
     @Test
     public void testReplaceLanguageDependentPlaceholdersLang() {
