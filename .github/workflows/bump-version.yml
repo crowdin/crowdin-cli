@@ -22,7 +22,7 @@ jobs:
 
       - name: Bump version
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.RELEASE_GH_TOKEN }}
         run: |
           npx semantic-release
           npx semantic-release --version
