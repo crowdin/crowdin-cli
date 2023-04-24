@@ -120,13 +120,13 @@ Crowdin CLI can be installed as a stand-alone Java application. [Download for ma
 
 ### Installation on Linux and macOS
 
-- Download `crowdin-cli.zip` using the button above
+- Download `crowdin-cli.zip` using the link above
 - Unpack it
 - Run `./install-crowdin-cli.sh` in the terminal with sudo rights in order to add crowdin command to your terminal
 
 ### Installation on Windows
 
-- Download `crowdin-cli.zip` using the button above
+- Download `crowdin-cli.zip` using the link above
 - Extract it's content to the place where you want Crowdin CLI to be stored
 - Open Command Prompt as an Administrator
   - Click Start
