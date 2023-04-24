@@ -116,6 +116,7 @@ jobs:
         with:
           workflow: publish.yml
           repo: crowdin/homebrew-crowdin
+          ref: ${{ github.event.ref }}
           token: ${{ secrets.GH_HOMEBREW_TOKEN }}
           inputs: '{ "version": "${{ github.ref_name }}" }'
 
