@@ -22,7 +22,7 @@ module.exports = {
             "files": [
               "build.gradle"
             ],
-            "from": "version '3..*'",
+            "from": "version '${lastRelease.version}'",
             "to": "version '${nextRelease.version}'",
             "results": [
               {
