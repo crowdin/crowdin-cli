@@ -1,5 +1,22 @@
 # Changelog
 
+# [3.11.0](https://github.com/crowdin/crowdin-cli/compare/3.10.1...3.11.0) (2023-04-24)
+
+
+### Bug Fixes
+
+* download sources with double asterisk ([#538](https://github.com/crowdin/crowdin-cli/issues/538)) ([88ae567](https://github.com/crowdin/crowdin-cli/commit/88ae5673ad6589abca849fcfa0559f242c532cc8))
+* handle upgrade subscription message ([#548](https://github.com/crowdin/crowdin-cli/issues/548)) ([59d0a84](https://github.com/crowdin/crowdin-cli/commit/59d0a841efa6d5447330e4f4b40efee308656238))
+* ignore option with double asterisk ([#568](https://github.com/crowdin/crowdin-cli/issues/568)) ([276d106](https://github.com/crowdin/crowdin-cli/commit/276d10677cfb10f84602f740d569a3217ddd12f0))
+* incorrect translation pattern on upload (windows) ([#544](https://github.com/crowdin/crowdin-cli/issues/544)) ([136ae16](https://github.com/crowdin/crowdin-cli/commit/136ae163f9f2a7e79e32d3e87af9b9b374c7123e))
+
+
+### Features
+
+* add bundle command support into cli ([#549](https://github.com/crowdin/crowdin-cli/issues/549)) ([d0f0be3](https://github.com/crowdin/crowdin-cli/commit/d0f0be3fbc22f6c658eee0ab97dbaea26390e4a5))
+* add more file formats support for the 'targets' command ([#545](https://github.com/crowdin/crowdin-cli/issues/545)) ([6b2f6d5](https://github.com/crowdin/crowdin-cli/commit/6b2f6d5232090f84216a1c59a786dc6f65453e99))
+* no preserve hierarchy for upload ([#541](https://github.com/crowdin/crowdin-cli/issues/541)) ([4a849a3](https://github.com/crowdin/crowdin-cli/commit/4a849a36c3e1b9dcb60db14bbb03a2e9e2978d01))
+
 ## [3.10.1]
 
 ### Fixed

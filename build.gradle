@@ -11,7 +11,7 @@ plugins {
 apply plugin: 'checkstyle'
 
 group 'com.crowdin'
-version '3.10.1'
+version '3.11.0'
 
 sourceCompatibility = 1.8
 
