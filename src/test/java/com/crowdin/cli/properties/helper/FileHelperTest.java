@@ -79,6 +79,17 @@ public class FileHelperTest {
     }
 
     @Test
+    public void testFilterSourcesWithSpecialSymbols() {
+        List<File> sources = new ArrayList<>();
+        sources.add(new File("/files/folder/sub/1.xml"));
+        sources.add(new File("/files/{{cookiecutter.module_name}}"));
+        sources.add(new File("/files/{{cookiecutter.module_name}}/1.xml"));
+        FileHelper fileHelper = new FileHelper(project.getBasePath());
+        List<File> actualResult = fileHelper.filterOutIgnoredFiles(sources, Arrays.asList(".*"));
+        assertEquals(sources, actualResult);
+    }
+
+    @Test
     public void testGetFiles_WrongBasePath() {
         FileHelper fileHelper = new FileHelper(project.getBasePath() + "non_existent_folder");
         List<File> result = fileHelper.getFiles(Utils.normalizePath("**/*"));
