@@ -14,13 +14,12 @@ import com.crowdin.cli.utils.Utils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Assertions;
-import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -112,6 +111,8 @@ public class DownloadSourcesActionTest {
             .addBuiltFileBean("/folder_2/android_1.xml", "/%locale%/folder_2/%file_name%.xml")
             .addBuiltFileBean("/folder_2/android_[2-3].xml", "/%locale%/folder_2/%file_name%.xml")
             .addBuiltFileBean("/folder_2/android_4?.xml", "/%locale%/folder_2/%file_name%.xml")
+            .addBuiltFileBean("folder1/folder2/**/messages.json", "/folder1/folder2/**/%file_name%_%two_letters_code%.json", new ArrayList<>(), "/folder_on_crowdin/%original_path%/%file_name%.json")
+            .addBuiltFileBean("folder1/folder2/**/plugins.json", "/folder1/folder2/**/%file_name%_%two_letters_code%.json", new ArrayList<>(), "/folder_on_crowdin/%original_path%/%file_name%.json")
             .setBasePath(project.getBasePath())
             .setPreserveHierarchy(true)
             .build();
@@ -123,6 +124,10 @@ public class DownloadSourcesActionTest {
                 .addDirectory("f1", 202L, 201L, null)
                 .addDirectory("folder_1", 203L, 201L, null)
                 .addDirectory("folder_2", 204L, null, null)
+                .addDirectory("folder_on_crowdin", 205L, null, null)
+                .addDirectory("folder1", 206L, 205L, null)
+                .addDirectory("folder2", 207L, 206L, null)
+                .addDirectory("nested", 208L, 207L, null)
                 .addFile("android.xml", "gettext", 101L, 202L, null, "/%locale%/folder_1/f1/%file_name%.xml")
                 .addFile("android.xml", "gettext", 102L, 203L, null, "/%locale%/folder_1/folder_1/%file_name%.xml")
                 .addFile("android.xml", "gettext", 103L, 201L, null, "/%locale%/folder_1/%file_name%.xml")
@@ -130,6 +135,8 @@ public class DownloadSourcesActionTest {
                 .addFile("android_2.xml", "gettext", 105L, 204L, null, "/%locale%/folder_2/%file_name%.xml")
                 .addFile("android_3.xml", "gettext", 106L, 204L, null, "/%locale%/folder_2/%file_name%.xml")
                 .addFile("android_4a.xml", "gettext", 107L, 204L, null, "/%locale%/folder_2/%file_name%.xml")
+                .addFile("messages.json", "json", 108L, 208L, null, "/folder1/folder2/nested/%file_name%_%two_letters_code%.json")
+                .addFile("plugins.json", "json", 109L, 208L, null, "/folder1/folder2/nested/%file_name%_%two_letters_code%.json")
                 .build());
         URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadFile(eq(101L)))
@@ -146,6 +153,10 @@ public class DownloadSourcesActionTest {
             .thenReturn(urlMock);
         when(client.downloadFile(eq(107L)))
             .thenReturn(urlMock);
+        when(client.downloadFile(eq(108L)))
+            .thenReturn(urlMock);
+        when(client.downloadFile(eq(109L)))
+            .thenReturn(urlMock);
 
         FilesInterface files = mock(FilesInterface.class);
 
@@ -161,6 +172,8 @@ public class DownloadSourcesActionTest {
         verify(client).downloadFile(eq(105L));
         verify(client).downloadFile(eq(106L));
         verify(client).downloadFile(eq(107L));
+        verify(client).downloadFile(eq(108L));
+        verify(client).downloadFile(eq(109L));
         verifyNoMoreInteractions(client);
 
         verify(files).writeToFile(eq(Utils.joinPaths(project.getBasePath(), "/folder_1/android.xml")), any());
@@ -170,6 +183,8 @@ public class DownloadSourcesActionTest {
         verify(files).writeToFile(eq(Utils.joinPaths(project.getBasePath(), "/folder_2/android_2.xml")), any());
         verify(files).writeToFile(eq(Utils.joinPaths(project.getBasePath(), "/folder_2/android_3.xml")), any());
         verify(files).writeToFile(eq(Utils.joinPaths(project.getBasePath(), "/folder_2/android_4a.xml")), any());
+        verify(files).writeToFile(eq(Utils.joinPaths(project.getBasePath(), "/folder1/folder2/nested/messages.json")), any());
+        verify(files).writeToFile(eq(Utils.joinPaths(project.getBasePath(), "/folder1/folder2/nested/plugins.json")), any());
         verifyNoMoreInteractions(files);
     }
 
