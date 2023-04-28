@@ -72,9 +72,11 @@ jobs:
           reporter: java-junit
 
       - name: Generate code coverage report
+        if: matrix.os == 'ubuntu-latest'
         run: ./gradlew build jacocoTestReport
 
       - name: Upload coverage to Codecov
+        if: matrix.os == 'ubuntu-latest'
         uses: codecov/codecov-action@v3
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
