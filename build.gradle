@@ -1,11 +1,12 @@
 import com.github.spotbugs.snom.SpotBugsReport
+import static de.fayard.refreshVersions.core.Versions.versionFor
 
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow' version '7.0.0'
+    id 'com.github.johnrengelman.shadow'
     id 'jacoco'
-    id "com.github.spotbugs" version "4.7.1"
-    id 'org.asciidoctor.jvm.convert' version '3.1.0'
+    id 'com.github.spotbugs'
+    id 'org.asciidoctor.jvm.convert'
 }
 
 apply plugin: 'checkstyle'
@@ -30,43 +31,43 @@ repositories {
 }
 
 dependencies {
-    implementation 'org.json:json:20210307'
-    implementation 'commons-cli:commons-cli:1.4'
-    implementation 'org.apache.logging.log4j:log4j-api:2.17.1'
-    implementation 'org.apache.logging.log4j:log4j-core:2.17.1'
-    implementation 'org.yaml:snakeyaml:1.29'
-    implementation 'commons-io:commons-io:2.10.0'
+    implementation 'org.json:json:_'
+    implementation 'commons-cli:commons-cli:_'
+    implementation 'org.apache.logging.log4j:log4j-api:_'
+    implementation 'org.apache.logging.log4j:log4j-core:_'
+    implementation 'org.yaml:snakeyaml:_'
+    implementation 'commons-io:commons-io:_'
 
-    implementation 'org.glassfish.jersey.core:jersey-client:3.0.2'
-    implementation 'org.glassfish.jersey.inject:jersey-hk2:3.0.2'
-    implementation 'org.glassfish.jersey.media:jersey-media-multipart:3.0.2'
-    implementation 'javax.activation:activation:1.1.1'
+    implementation 'org.glassfish.jersey.core:jersey-client:_'
+    implementation 'org.glassfish.jersey.inject:jersey-hk2:_'
+    implementation 'org.glassfish.jersey.media:jersey-media-multipart:_'
+    implementation 'javax.activation:activation:_'
 
-    implementation 'org.apache.commons:commons-lang3:3.12.0'
-    implementation 'net.lingala.zip4j:zip4j:2.8.0'
-    implementation 'net.ricecode:string-similarity:1.0.0'
-    implementation 'com.github.fge:json-patch:1.9'
-    implementation 'io.github.cdimascio:dotenv-java:2.2.0'
+    implementation 'org.apache.commons:commons-lang3:_'
+    implementation 'net.lingala.zip4j:zip4j:_'
+    implementation 'net.ricecode:string-similarity:_'
+    implementation 'com.github.fge:json-patch:_'
+    implementation 'io.github.cdimascio:dotenv-java:_'
 
-    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+    implementation 'org.apache.httpcomponents:httpclient:_'
 
-    compileOnly 'org.projectlombok:lombok:1.18.20'
-    annotationProcessor 'org.projectlombok:lombok:1.18.20'
-    testCompileOnly 'org.projectlombok:lombok:1.18.20'
-    testAnnotationProcessor 'org.projectlombok:lombok:1.18.20'
+    compileOnly 'org.projectlombok:lombok:_'
+    annotationProcessor 'org.projectlombok:lombok:_'
+    testCompileOnly 'org.projectlombok:lombok:_'
+    testAnnotationProcessor 'org.projectlombok:lombok:_'
 
-    implementation 'com.github.crowdin:crowdin-api-client-java:1.6.2'
+    implementation 'com.github.crowdin:crowdin-api-client-java:_'
 
-    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.2'
-    testImplementation 'org.hamcrest:hamcrest:2.2'
-    testImplementation 'org.mockito:mockito-core:3.11.2'
+    testImplementation Testing.junit.jupiter
+    testImplementation Testing.hamcrest
+    testImplementation Testing.mockito.core
 
-    spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:1.11.0'
+    spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:_'
 }
 
 dependencies {
-    implementation "info.picocli:picocli:4.7.1"
-    annotationProcessor "info.picocli:picocli-codegen:4.7.1"
+    implementation "info.picocli:picocli:_"
+    annotationProcessor "info.picocli:picocli-codegen:_"
 }
 
 jar {
@@ -93,7 +94,7 @@ test {
 }
 
 jacoco {
-    toolVersion = "0.8.7"
+    toolVersion = versionFor(project, "version.jacoco")
     reportsDirectory = file("$buildDir/reports")
 }
 
