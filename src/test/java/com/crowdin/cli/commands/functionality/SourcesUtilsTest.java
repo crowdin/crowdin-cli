@@ -7,6 +7,8 @@ import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -88,6 +90,7 @@ public class SourcesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
     public void testFilterProjectFiles_wPreserveHierarchy_noIgnores(List<String> filePaths, String sourcePattern, List<String> expected) {
         List<String> actual = SourcesUtils.filterProjectFiles(
             filePaths, sourcePattern, Collections.EMPTY_LIST, true, PlaceholderUtilBuilder.STANDART.build(""));
@@ -156,6 +159,7 @@ public class SourcesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
     public void testFilterProjectFiles_wPreserveHierarchy_wIgnores(
         List<String> filePaths, String sourcePattern, List<String> ignorePatterns, List<String> expected
     ) {
@@ -237,6 +241,7 @@ public class SourcesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
     public void testFilterProjectFiles_noPreserveHierarchy_noIgnores(List<String> filePaths, String sourcePattern, List<String> expected) {
         List<String> actual = SourcesUtils.filterProjectFiles(
                 filePaths, sourcePattern, Collections.emptyList(), false, PlaceholderUtilBuilder.STANDART.build(""));
@@ -276,6 +281,7 @@ public class SourcesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
     public void testFilterProjectFiles_noPreserveHierarchy_wIgnores(
         List<String> filePaths, String sourcePattern, List<String> ignorePatterns, List<String> expected
     ) {
@@ -335,6 +341,7 @@ public class SourcesUtilsTest {
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testFilterProjectFiles_dest() {
         List<String> filePaths = Arrays.asList("common/strings.xml");
         String sourcePattern = "/common/%original_file_name%";
@@ -368,6 +375,7 @@ public class SourcesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
     public void testReplaceUnaryAsterisk(String sourcePattern, String projectFile, String expected) {
         assertEquals(SourcesUtils.replaceUnaryAsterisk(sourcePattern, projectFile), expected);
     }

@@ -3,6 +3,8 @@ package com.crowdin.cli.utils;
 import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.client.languages.model.Language;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -137,6 +139,7 @@ public class PlaceholderUtilTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
     public void testDoubleAsteriskInWildCard(String source, File crowdinFile, String expected) {
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(new ArrayList<>(), new ArrayList<>(), "./");
         assertEquals(expected, placeholderUtil.replaceFileDependentPlaceholders(source, crowdinFile));

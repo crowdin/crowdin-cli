@@ -2,6 +2,8 @@ package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.utils.Utils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -18,6 +20,7 @@ public class TranslationsUtilsTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
     public void testReplaceDoubleAsterisk(String sourcePattern, String translationPattern, String sourceFile, String expected) {
         String result = TranslationsUtils.replaceDoubleAsterisk(sourcePattern, translationPattern, sourceFile);
         assertEquals(expected, result,

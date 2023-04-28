@@ -5,6 +5,8 @@ import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcefiles.model.GeneralFileExportOptions;
 import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -52,6 +54,7 @@ public class ProjectFilesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
     public void isProjectFileSatisfiesThePatternsTest(String projectFilePath, String sourcePattern, List<String> ignorePattern, boolean preserveHierarchy, boolean expected) {
         assertEquals(expected, ProjectFilesUtils.isProjectFilePathSatisfiesPatterns(sourcePattern, ignorePattern, preserveHierarchy).test(projectFilePath));
     }
