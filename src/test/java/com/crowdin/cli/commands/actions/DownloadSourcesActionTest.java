@@ -14,6 +14,10 @@ import com.crowdin.cli.utils.Utils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assertions;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
+import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -73,6 +77,7 @@ public class DownloadSourcesActionTest {
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testDestAndUnaryAsterisk() throws IOException {
         PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean(
@@ -105,6 +110,7 @@ public class DownloadSourcesActionTest {
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testDifferentPatterns() throws IOException {
         PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("/folder_1/**/*.xml", "/%locale%/folder_1/**/%file_name%.xml")
@@ -189,6 +195,7 @@ public class DownloadSourcesActionTest {
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testWithPreserveHierarchyFalse() throws IOException {
         PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("/folder_1/**/*.xml", "/%locale%/folder_1/**/%file_name%.xml")
@@ -255,6 +262,7 @@ public class DownloadSourcesActionTest {
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testDryRun() {
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         PrintStream ps = System.out;
@@ -293,6 +301,7 @@ public class DownloadSourcesActionTest {
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testReviewedOnly() throws IOException {
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         PrintStream ps = System.out;

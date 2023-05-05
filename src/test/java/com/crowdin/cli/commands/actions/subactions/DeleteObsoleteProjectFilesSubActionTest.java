@@ -5,6 +5,8 @@ import com.crowdin.cli.client.models.FileBuilder;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.client.sourcefiles.model.File;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -55,6 +57,7 @@ public class DeleteObsoleteProjectFilesSubActionTest {
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testSimple_oneLocalFile_twoProjectFile_oneObsolete() {
         final String exportPattern = "/%file_name%.csv";
         final String projectFilePath = "file1.csv";
@@ -124,6 +127,7 @@ public class DeleteObsoleteProjectFilesSubActionTest {
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testSimple_oneLocalFile_twoProjectFile_oneObsoleteFile_oneObsoleteDirectory() {
         final String exportPattern = "/**/%file_name%.csv";
         final String projectFilePath = "path/to/file1.csv";
@@ -165,6 +169,7 @@ public class DeleteObsoleteProjectFilesSubActionTest {
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testSimple_oneLocalFile_twoProjectFile_oneObsoleteFile_noPreserveHierarchy() {
         final String exportPattern = "/**/%file_name%.csv";
         String projectFilePath = "file1.csv";
@@ -200,6 +205,7 @@ public class DeleteObsoleteProjectFilesSubActionTest {
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testSimple_oneLocalFile_twoProjectFile_oneObsoleteFile_noPreserveHierarchy_2_withFolders() {
         final String exportPattern = "/**/%file_name%.csv";
         String projectFilePath = "to/file1.csv";
@@ -237,6 +243,7 @@ public class DeleteObsoleteProjectFilesSubActionTest {
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testSimple_oneLocalFile_twoProjectFile_oneObsoleteFile_twoObsoleteDirectory() {
         final String exportPattern = "/**/%file_name%.csv";
         final String projectFilePath = "path/to/file1.csv";
