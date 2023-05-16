@@ -43,7 +43,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
 
         if (languageId != null) {
             project.findLanguageById(languageId, true)
-                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)));
+                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)));
         }
         List<Branch> branches = client.listBranches();
         Long branchId = (branchName == null) ? null : branches.stream()
