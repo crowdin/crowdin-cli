@@ -135,6 +135,16 @@ Crowdin CLI can be installed as a stand-alone Java application. [Download for ma
 - Run `setup-crowdin.bat` script in order to add crowdin command to the Command Prompt
 - Restart your Command Prompt
 
+## Nix package manager
+
+```bash
+nix-shell -p crowdin-cli
+```
+
+A nix-shell will temporarily modify your `$PATH` environment variable. This can be used to try a piece of software before deciding to permanently install it.
+
+[Nix package reference](https://search.nixos.org/packages?show=crowdin-cli).
+
 ## Further Reading
 
 - [Commands](/commands/crowdin)
