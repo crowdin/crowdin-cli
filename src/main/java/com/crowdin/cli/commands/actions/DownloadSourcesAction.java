@@ -139,9 +139,9 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                             }
                         }
                     } else {
-                        String translationPrepared = Pattern.quote(fileBean.getTranslation()
+                        String translationPrepared = fileBean.getTranslation()
                             .replaceAll(Utils.PATH_SEPARATOR_REGEX + "\\*\\*", "(" + Utils.PATH_SEPARATOR_REGEX + ".+)?")
-                            .replaceAll("\\\\", "\\\\\\\\"));
+                            .replaceAll("\\\\", "\\\\\\\\");
                         Predicate<String> translationPred = Pattern.compile(translationPrepared).asPredicate();
                         for (String filePathKey : filePaths.keySet()) {
                             String exportPattern = ProjectFilesUtils.getExportPattern(((File) filePaths.get(filePathKey)).getExportOptions());

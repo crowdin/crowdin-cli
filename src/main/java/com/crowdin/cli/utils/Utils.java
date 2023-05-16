@@ -150,7 +150,7 @@ public class Utils {
         }
         Integer port;
         try {
-            port = new Integer(System.getenv(HTTP_PROXY_PORT_ENV));
+            port = Integer.valueOf(System.getenv(HTTP_PROXY_PORT_ENV));
         } catch (NumberFormatException e) {
             return Optional.empty();
         }
