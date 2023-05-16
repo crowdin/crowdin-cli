@@ -304,7 +304,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             deleteObsoleteProjectFilesSubAction.postAct();
         }
         if (errorsPresented.get()) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.errors_presented"));
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.execution_contains_errors"));
         }
     }
 

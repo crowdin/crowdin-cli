@@ -86,7 +86,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
         List<Language> languages = (languageId != null)
             ? project.findLanguageById(languageId, true)
                 .map(Collections::singletonList)
-                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)))
+                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)))
             : project.getProjectLanguages(false);
 
         for (FileBean file : pb.getFiles()) {
