@@ -1,5 +1,13 @@
 # Changelog
 
+## [3.11.1](https://github.com/crowdin/crowdin-cli/compare/3.11.0...3.11.1) (2023-05-16)
+
+
+### Bug Fixes
+
+* download multiple sources with the same destination ([#574](https://github.com/crowdin/crowdin-cli/issues/574)) ([6f68e2a](https://github.com/crowdin/crowdin-cli/commit/6f68e2ad8b24f385db20ba7d0175576751bc6f15))
+* support double curly braces ([#572](https://github.com/crowdin/crowdin-cli/issues/572)) ([e3c20eb](https://github.com/crowdin/crowdin-cli/commit/e3c20eb27e7c33cf11c2a2c2821483c0a5acc9d3))
+
 # [3.11.0](https://github.com/crowdin/crowdin-cli/compare/3.10.1...3.11.0) (2023-04-24)
 
 
