@@ -14,12 +14,15 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.crowdin.cli.utils.AssertUtils.assertPathsEqualIgnoringSeparator;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -94,6 +97,11 @@ public class SourcesUtilsTest {
     public void testFilterProjectFiles_wPreserveHierarchy_noIgnores(List<String> filePaths, String sourcePattern, List<String> expected) {
         List<String> actual = SourcesUtils.filterProjectFiles(
             filePaths, sourcePattern, Collections.EMPTY_LIST, true, PlaceholderUtilBuilder.STANDART.build(""));
+
+        actual = actual.stream().map(i -> i.replace("/", File.separator).replace("\\", File.separator))
+                .collect(Collectors.toList());
+        expected = expected.stream().map(i -> i.replace("/", File.separator).replace("\\", File.separator))
+                .collect(Collectors.toList());
         assertEquals(expected.size(), actual.size());
         assertThat(actual, containsInAnyOrder(expected.toArray()));
     }
@@ -281,12 +289,12 @@ public class SourcesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
-    @DisabledOnOs(OS.WINDOWS)
     public void testFilterProjectFiles_noPreserveHierarchy_wIgnores(
         List<String> filePaths, String sourcePattern, List<String> ignorePatterns, List<String> expected
     ) {
         List<String> actual = SourcesUtils.filterProjectFiles(
             filePaths, sourcePattern, ignorePatterns, false, PlaceholderUtilBuilder.STANDART.build(""));
+        expected = expected.stream().map(path -> path.replace("/", File.separator)).collect(Collectors.toList());
 //        assertEquals(expected.size(), actual.size());
         assertThat(actual, containsInAnyOrder(expected.toArray()));
     }
@@ -341,15 +349,15 @@ public class SourcesUtilsTest {
     }
 
     @Test
-    @DisabledOnOs(OS.WINDOWS)
     public void testFilterProjectFiles_dest() {
         List<String> filePaths = Arrays.asList("common/strings.xml");
         String sourcePattern = "/common/%original_file_name%";
         List<String> ignorePatterns = null;
-        String[] expected = {"common/strings.xml"};
+        Path expected = Paths.get("common/strings.xml");
 
-        List<String> actual = SourcesUtils.filterProjectFiles(
-            filePaths, sourcePattern, ignorePatterns, true, PlaceholderUtilBuilder.STANDART.build(""));
+        List<Path> actual = SourcesUtils.filterProjectFiles(filePaths, sourcePattern, ignorePatterns,
+                        true, PlaceholderUtilBuilder.STANDART.build("")).stream().map(Paths::get)
+                .collect(Collectors.toList());
         assertThat(actual, containsInAnyOrder(expected));
     }
 
@@ -375,9 +383,8 @@ public class SourcesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
-    @DisabledOnOs(OS.WINDOWS)
     public void testReplaceUnaryAsterisk(String sourcePattern, String projectFile, String expected) {
-        assertEquals(SourcesUtils.replaceUnaryAsterisk(sourcePattern, projectFile), expected);
+        assertPathsEqualIgnoringSeparator(SourcesUtils.replaceUnaryAsterisk(sourcePattern, projectFile), expected);
     }
 
     public static Stream<Arguments> testReplaceUnaryAsterisk() {

@@ -20,7 +20,6 @@ public class TranslationsUtilsTest {
 
     @ParameterizedTest
     @MethodSource
-    @DisabledOnOs(OS.WINDOWS)
     public void testReplaceDoubleAsterisk(String sourcePattern, String translationPattern, String sourceFile, String expected) {
         String result = TranslationsUtils.replaceDoubleAsterisk(sourcePattern, translationPattern, sourceFile);
         assertEquals(expected, result,
