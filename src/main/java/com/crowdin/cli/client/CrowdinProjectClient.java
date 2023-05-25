@@ -15,6 +15,8 @@ import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
 import com.crowdin.client.storage.model.Storage;
+import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
+import com.crowdin.client.stringcomments.model.StringComment;
 import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
@@ -299,6 +301,13 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
                 .deleteSourceString(this.projectId, sourceId);
             return true;
         });
+    }
+
+    @Override
+    public StringComment commentString(AddStringCommentRequest request) {
+        return executeRequest(() -> this.client.getStringCommentsApi()
+                                               .addStringComment(this.projectId, request)
+                                               .getData());
     }
 
     @Override
