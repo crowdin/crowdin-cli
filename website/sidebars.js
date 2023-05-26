@@ -113,6 +113,7 @@ const sidebars = {
             'commands/crowdin-string-add',
             'commands/crowdin-string-edit',
             'commands/crowdin-string-delete',
+            'commands/crowdin-string-comment',
           ]
         },
         {
@@ -157,6 +158,20 @@ const sidebars = {
             'commands/crowdin-tm-list',
             'commands/crowdin-tm-upload',
             'commands/crowdin-tm-download',
+          ]
+        },
+        {
+          type: 'category',
+          label: 'crowdin comment',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-comment'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-comment-list',
+            'commands/crowdin-comment-resolve',
           ]
         },
         {
