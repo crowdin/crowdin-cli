@@ -27,26 +27,26 @@ abstract class CrowdinClientCore {
 
     private static final Map<BiPredicate<String, String>, RuntimeException> standardErrorHandlers =
         new LinkedHashMap<BiPredicate<String, String>, RuntimeException>() {{
-            put((code, message) -> code.equals("401"),
-                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.401")));
-            put((code, message) -> code.equals("403") && message.contains("upgrade your subscription plan to upload more file formats"),
-                    new RuntimeException(RESOURCE_BUNDLE.getString("error.response.403_upgrade_subscription")));
-            put((code, message) -> code.equals("403"),
-                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.403")));
-            put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Project Not Found"),
-                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.404_project_not_found")));
-            put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Organization Not Found"),
-                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found")));
-            put((code, message) -> StringUtils.containsAny(message,
-                "PKIX path building failed",
-                "sun.security.provider.certpath.SunCertPathBuilderException",
-                "unable to find valid certification path to requested target"),
-                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.certificate")));
-            put((code, message) -> message.equals("Name or service not known"),
-                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.url_not_known")));
-            put((code, message) -> code.equals("<empty_code>") && message.equals("<empty_message>"),
-                new RuntimeException("Empty error message from server"));
-        }};
+                put((code, message) -> code.equals("401"),
+                    new RuntimeException(RESOURCE_BUNDLE.getString("error.response.401")));
+                put((code, message) -> code.equals("403") && message.contains("upgrade your subscription plan to upload more file formats"),
+                        new RuntimeException(RESOURCE_BUNDLE.getString("error.response.403_upgrade_subscription")));
+                put((code, message) -> code.equals("403"),
+                    new RuntimeException(RESOURCE_BUNDLE.getString("error.response.403")));
+                put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Project Not Found"),
+                    new RuntimeException(RESOURCE_BUNDLE.getString("error.response.404_project_not_found")));
+                put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Organization Not Found"),
+                    new RuntimeException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found")));
+                put((code, message) -> StringUtils.containsAny(message,
+                    "PKIX path building failed",
+                    "sun.security.provider.certpath.SunCertPathBuilderException",
+                    "unable to find valid certification path to requested target"),
+                    new RuntimeException(RESOURCE_BUNDLE.getString("error.response.certificate")));
+                put((code, message) -> message.equals("Name or service not known"),
+                    new RuntimeException(RESOURCE_BUNDLE.getString("error.response.url_not_known")));
+                put((code, message) -> code.equals("<empty_code>") && message.equals("<empty_message>"),
+                    new RuntimeException("Empty error message from server"));
+            }};
 
     /**
      * Util logic for downloading full lists.

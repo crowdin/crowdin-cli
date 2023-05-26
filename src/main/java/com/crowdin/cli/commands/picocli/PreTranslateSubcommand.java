@@ -50,11 +50,11 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
     protected boolean plainView;
 
     private Map<String, AutoApproveOption> autoApproveOptionWrapper = new HashMap<String, AutoApproveOption>() {{
-        put("all", AutoApproveOption.ALL);
-        put("except-auto-substituted", AutoApproveOption.EXCEPT_AUTO_SUBSTITUTED);
-        put("perfect-match-only", AutoApproveOption.PERFECT_MATCH_ONLY);
-        put("none", AutoApproveOption.NONE);
-    }};
+            put("all", AutoApproveOption.ALL);
+            put("except-auto-substituted", AutoApproveOption.EXCEPT_AUTO_SUBSTITUTED);
+            put("perfect-match-only", AutoApproveOption.PERFECT_MATCH_ONLY);
+            put("none", AutoApproveOption.NONE);
+        }};
 
     @Override
     protected final boolean isAnsi() {
@@ -63,7 +63,20 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
 
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
-        return actions.preTranslate(languageIds, method, engineId, branch, autoApproveOptionWrapper.get(autoApproveOption), duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, noProgress, debug, isVerbose, plainView);
+        return actions.preTranslate(
+                languageIds,
+                method,
+                engineId,
+                branch,
+                autoApproveOptionWrapper.get(autoApproveOption),
+                duplicateTranslations,
+                translateUntranslatedOnly,
+                translateWithPerfectMatchOnly,
+                noProgress,
+                debug,
+                isVerbose,
+                plainView
+        );
     }
 
     @Override

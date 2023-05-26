@@ -98,6 +98,7 @@ public class SourcesUtils {
                 })
                 .reduce((s) -> true, Predicate::and);
         }
+
         return filePaths.stream()
             .filter(sourcePredicate)
             .filter(ignorePredicate)
@@ -109,17 +110,17 @@ public class SourcesUtils {
      * Try to replace ‘*’ with ‘source’ param and project file path.
      * If project file path (or part of it) does not match the pattern, do nothing.
      * @param sourcePattern should contain '*'
-     * @param projectFile
-     * @return
+     * @param projectFile file path
+     * @return file path with replaced asterisk
      */
     public static String replaceUnaryAsterisk(@NonNull String sourcePattern, @NonNull String projectFile) {
         String[] parts = Utils.splitPath(sourcePattern);
         String [] fileParts = Utils.splitPath(projectFile);
         for (int i = 1; i <= parts.length; i++) {
-            if (!parts[parts.length-i].equals("**")
+            if (!parts[parts.length - i].equals("**")
                     && fileParts.length >= i
-                    && Pattern.matches(PlaceholderUtil.formatSourcePatternForRegex(parts[parts.length-i]), fileParts[fileParts.length-i])) {
-                parts[parts.length-i] = fileParts[fileParts.length-i];
+                    && Pattern.matches(PlaceholderUtil.formatSourcePatternForRegex(parts[parts.length - i]), fileParts[fileParts.length - i])) {
+                parts[parts.length - i] = fileParts[fileParts.length - i];
             }
         }
         return Utils.joinPaths(parts);

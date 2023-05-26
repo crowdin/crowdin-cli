@@ -99,10 +99,10 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
             .map(Branch::getId)
             .orElse(null);
 
-        String reviewedFilesTempDir = StringUtils.removeEnd(properties.getBasePath(), Utils.PATH_SEPARATOR) +
-                Utils.PATH_SEPARATOR +
-                "CrowdinReviewedSources_" +
-                RandomStringUtils.random(11, false, true);
+        String reviewedFilesTempDir = StringUtils.removeEnd(properties.getBasePath(), Utils.PATH_SEPARATOR)
+                + Utils.PATH_SEPARATOR
+                + "CrowdinReviewedSources_"
+                + RandomStringUtils.random(11, false, true);
 
         Map<String, java.io.File> reviewedFiles = this.reviewedOnly
                 ? this.getReviewedSourceFiles(reviewedFilesTempDir, client, project)
@@ -133,7 +133,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                             String translationPattern = TranslationsUtils.replaceDoubleAsterisk(fileBean.getSource(), fileBean.getTranslation(), filePathKey);
                             if (exportPattern == null || translationPattern.endsWith(exportPattern)) {
                                 String sourceName = new java.io.File(fileBean.getSource()).getName();
-                                if(sourceName.equals(new java.io.File(filePathKey).getName()) || SourcesUtils.containsPattern(sourceName)) {
+                                if (sourceName.equals(new java.io.File(filePathKey).getName()) || SourcesUtils.containsPattern(sourceName)) {
                                     filePaths2.add(filePathKey);
                                 }
                             }
@@ -200,7 +200,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                             }
                         }
                     });
-                }
+            }
             ).collect(Collectors.toList());
         ConcurrencyUtil.executeAndWait(tasks, debug);
 
@@ -209,11 +209,10 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
         }
     }
 
-
     private Map<String, java.io.File> getReviewedSourceFiles(String baseTemp, ProjectClient client, CrowdinProjectFull project) {
         BuildReviewedSourceFilesRequest request = new BuildReviewedSourceFilesRequest();
-        //branch id does not work properly
-//        request.setBranchId(branchId);
+        // TODO: branch id does not work properly
+        //  request.setBranchId(branchId);
         ReviewedStringsBuild build = this.buildReviewedSources(client, request);
         java.io.File baseTempDir = new java.io.File(baseTemp + Utils.PATH_SEPARATOR);
         String downloadedZipArchivePath = baseTemp + ".zip";
@@ -228,9 +227,9 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                         file -> {
                             String path = StringUtils.removeStart(
                                     file.getAbsolutePath(),
-                                    baseTempDir.getAbsolutePath() +
-                                            Utils.PATH_SEPARATOR +
-                                            project.getSourceLanguageId() + "-REV"
+                                    baseTempDir.getAbsolutePath()
+                                            + Utils.PATH_SEPARATOR
+                                            + project.getSourceLanguageId() + "-REV"
                             );
                             return Utils.unixPath(path);
                         },

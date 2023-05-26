@@ -146,12 +146,12 @@ public class ProjectFilesUtils {
                 .collect(Collectors.toList());
 
             StringBuilder sourcePatternRegex = new StringBuilder();
-            for (int i = 0; i < sourcePatternSplits.size()-1; i++) {
+            for (int i = 0; i < sourcePatternSplits.size() - 1; i++) {
                 sourcePatternRegex.insert(0, "(")
                     .append(sourcePatternSplits.get(i)).append(Utils.PATH_SEPARATOR_REGEX).append(")?");
             }
             sourcePatternRegex.insert(0, "^")
-                .append(sourcePatternSplits.get(sourcePatternSplits.size()-1)).append("$");
+                .append(sourcePatternSplits.get(sourcePatternSplits.size() - 1)).append("$");
 
             sourcePatternPred = Pattern.compile(sourcePatternRegex.toString()).asPredicate();
         }
@@ -172,12 +172,12 @@ public class ProjectFilesUtils {
                             .map(PlaceholderUtil::formatSourcePatternForRegex)
                             .collect(Collectors.toList());
                         StringBuilder ignorePatternRegex = new StringBuilder();
-                        for (int i = 0; i < ignorePatternSplits.size()-1; i++) {
+                        for (int i = 0; i < ignorePatternSplits.size() - 1; i++) {
                             ignorePatternRegex.insert(0, "(")
                                 .append(ignorePatternSplits.get(i)).append(Utils.PATH_SEPARATOR_REGEX).append(")?");
                         }
                         ignorePatternRegex.insert(0, "^")
-                            .append(ignorePatternSplits.get(ignorePatternSplits.size()-1)).append("$");
+                            .append(ignorePatternSplits.get(ignorePatternSplits.size() - 1)).append("$");
                         return ignorePatternRegex.toString();
                     })
                     .map(Pattern::compile)

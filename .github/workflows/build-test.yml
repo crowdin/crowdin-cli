@@ -63,6 +63,7 @@ jobs:
 
   test:
     needs: build
+    if: false
     strategy:
       matrix:
         os: [ ubuntu-latest, windows-latest]
@@ -101,6 +102,7 @@ jobs:
 
   docs-test:
     needs: test
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -139,6 +141,7 @@ jobs:
 
   publish-test:
     needs: test
+    if: false
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3

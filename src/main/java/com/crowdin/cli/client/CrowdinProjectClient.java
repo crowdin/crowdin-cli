@@ -151,9 +151,10 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     @Override
     public Long uploadStorage(String fileName, InputStream content) throws  ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
-            put((code, message) -> StringUtils.containsAny(message, "streamIsEmpty", "Stream size is null. Not empty content expected"),
+                put((code, message) -> StringUtils.containsAny(message, "streamIsEmpty", "Stream size is null. Not empty content expected"),
                     new EmptyFileException("Not empty content expected"));
-        }};
+            }};
+
         Storage storage = executeRequest(errorHandlers, () -> this.client.getStorageApi()
             .addStorage(fileName, content)
             .getData());
@@ -185,9 +186,10 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     @Override
     public void updateSource(Long sourceId, UpdateFileRequest request) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
-            put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"), new RepeatException());
-            put((code, message) -> StringUtils.contains(message, "Invalid SRX specified"), new ResponseException("Invalid SRX file specified"));
-        }};
+                put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"), new RepeatException());
+                put((code, message) -> StringUtils.contains(message, "Invalid SRX specified"), new ResponseException("Invalid SRX file specified"));
+            }};
+
         executeRequestWithPossibleRetry(
             errorHandlers,
             () -> this.client.getSourceFilesApi()
@@ -197,11 +199,12 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     @Override
     public void addSource(AddFileRequest request) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
-            put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"), new RepeatException());
-            put((code, message) -> StringUtils.contains(message, "Name must be unique"), new ExistsResponseException());
-            put((code, message) -> StringUtils.contains(message, "Invalid SRX specified"), new ResponseException("Invalid SRX file specified"));
-            put((code, message) -> StringUtils.containsAny(message, "isEmpty", "Value is required and can't be empty"), new EmptyFileException("Value is required and can't be empty"));
-        }};
+                put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"), new RepeatException());
+                put((code, message) -> StringUtils.contains(message, "Name must be unique"), new ExistsResponseException());
+                put((code, message) -> StringUtils.contains(message, "Invalid SRX specified"), new ResponseException("Invalid SRX file specified"));
+                put((code, message) -> StringUtils.containsAny(message, "isEmpty", "Value is required and can't be empty"), new EmptyFileException("Value is required and can't be empty"));
+            }};
+
         executeRequestWithPossibleRetry(
             errorHandlers,
             () -> this.client.getSourceFilesApi()
@@ -226,11 +229,12 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     @Override
     public void uploadTranslations(String languageId, UploadTranslationsRequest request) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorhandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
-            put((code, message) -> code.equals("0") && message.equals("File is not allowed for language"),
-                new WrongLanguageException());
-            put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"),
-                new RepeatException());
-        }};
+                put((code, message) -> code.equals("0") && message.equals("File is not allowed for language"),
+                    new WrongLanguageException());
+                put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"),
+                    new RepeatException());
+            }};
+
         executeRequestWithPossibleRetry(
             errorhandlers,
             () -> this.client.getTranslationsApi()
@@ -337,7 +341,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
 
     @Override
     public PreTranslationStatus startPreTranslation(ApplyPreTranslationRequest request) {
-        return executeRequest(() ->this.client.getTranslationsApi()
+        return executeRequest(() -> this.client.getTranslationsApi()
             .applyPreTranslation(this.projectId, request)
             .getData());
     }

@@ -261,7 +261,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
                                     request.setStorageId(client.uploadStorage(source.substring(source.lastIndexOf(Utils.PATH_SEPARATOR) + 1), fileStream));
-                                } catch (EmptyFileException e){
+                                } catch (EmptyFileException e) {
                                     errorsPresented.set(false);
                                     out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped"), fileFullPath)));
                                     return;
