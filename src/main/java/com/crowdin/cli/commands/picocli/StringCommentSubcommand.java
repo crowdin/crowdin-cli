@@ -14,8 +14,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
-    sortOptions = false,
-    name = CommandNames.STRING_COMMENT
+        sortOptions = false,
+        name = CommandNames.STRING_COMMENT
 )
 class StringCommentSubcommand extends ActCommandProject {
 
@@ -37,7 +37,6 @@ class StringCommentSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--issue-type"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.issue-type")
     protected String issueType;
 
-
     @Override
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
@@ -47,10 +46,15 @@ class StringCommentSubcommand extends ActCommandProject {
         if (Strings.isEmpty(languageId)) {
             errors.add(RESOURCE_BUNDLE.getString("error.comment_language_not_specified"));
         }
-        try {
-            Type.from(type);
-        } catch (Exception e) {
-            errors.add(RESOURCE_BUNDLE.getString("error.comment_type_not_specified_or_incorrect"));
+        if (com.crowdin.client.stringcomments.model.Type.COMMENT.toString().equalsIgnoreCase(
+                type) && !StringUtils.isEmpty(issueType)) {
+            errors.add(RESOURCE_BUNDLE.getString("error.comment_should_not_have_issue_type"));
+        } else {
+            try {
+                Type.from(type);
+            } catch (Exception e) {
+                errors.add(RESOURCE_BUNDLE.getString("error.comment_type_not_specified_or_incorrect"));
+            }
         }
         return errors;
     }

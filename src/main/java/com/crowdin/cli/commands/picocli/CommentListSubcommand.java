@@ -43,13 +43,4 @@ class CommentListSubcommand extends ActCommandComment {
         return super.isAnsi() && !plainView;
     }
 
-    @Override
-    protected List<String> checkOptions() {
-        List<String> errors = new ArrayList<>();
-//        if (!"comment".equals(type) && !"issue".equals(type)) {
-//            errors.add(String.format(RESOURCE_BUNDLE.getString("error.comment.list.unsupported_type"), type));
-//        }
-        return errors;
-    }
-
 }

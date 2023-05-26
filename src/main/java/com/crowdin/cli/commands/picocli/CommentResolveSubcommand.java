@@ -25,14 +25,4 @@ class CommentResolveSubcommand extends ActCommandComment {
         return actions.resolve(id);
     }
 
-    @Override
-    protected List<String> checkOptions() {
-        List<String> errors = new ArrayList<>();
-        //TODO:
-//        if (Strings.isEmpty(id)) {
-//            errors.add(RESOURCE_BUNDLE.getString("error.comment.empty_id"));
-//        }
-        return errors;
-    }
-
 }
