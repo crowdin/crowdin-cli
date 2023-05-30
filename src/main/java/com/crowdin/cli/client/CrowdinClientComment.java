@@ -2,17 +2,11 @@ package com.crowdin.cli.client;
 
 import com.crowdin.client.core.model.PatchOperation;
 import com.crowdin.client.core.model.PatchRequest;
-import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.IssueStatus;
 import com.crowdin.client.stringcomments.model.StringComment;
-import com.crowdin.client.stringcomments.model.Type;
-import com.crowdin.client.tasks.model.AddTaskRequest;
-import com.crowdin.client.tasks.model.Status;
-import com.crowdin.client.tasks.model.Task;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 public class CrowdinClientComment extends CrowdinClientCore implements ClientComment {
 
@@ -29,9 +23,8 @@ public class CrowdinClientComment extends CrowdinClientCore implements ClientCom
                                            com.crowdin.client.issues.model.Type issueType, IssueStatus issueStatus) {
         return executeRequestFullList((limit, offset) -> this.client.getStringCommentsApi()
                 .listStringComments(Long.valueOf(projectId), stringId == null ? null : Long.valueOf(stringId), limit,
-                                    offset, type, issueType == null ? null :issueType.toString(), issueStatus));
+                                    offset, type, issueType == null ? null :issueType.toString().toLowerCase(), issueStatus));
     }
-
 
     @Override
     public StringComment resolve(Long commentId) {
@@ -42,5 +35,4 @@ public class CrowdinClientComment extends CrowdinClientCore implements ClientCom
         return executeRequest(() -> this.client.getStringCommentsApi()
                 .editStringComment(Long.valueOf(projectId), commentId, Arrays.asList(patchRequest)).getData());
     }
-
 }

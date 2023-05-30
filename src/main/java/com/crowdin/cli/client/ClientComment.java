@@ -11,5 +11,4 @@ public interface ClientComment extends Client {
                                     com.crowdin.client.issues.model.Type issueType, IssueStatus issueStatus);
 
     StringComment resolve(Long commentId);
-
 }
