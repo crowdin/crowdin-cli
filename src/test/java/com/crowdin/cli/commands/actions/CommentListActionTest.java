@@ -19,11 +19,13 @@ public class CommentListActionTest {
 
     StringComment comment =   new StringComment() {{
         setId(1l);
+        setText("comment 1");
         setType(com.crowdin.client.stringcomments.model.Type.COMMENT);
     }};
 
     StringComment issue =   new StringComment() {{
         setId(2l);
+        setText("comment 2");
         setType(com.crowdin.client.stringcomments.model.Type.ISSUE);
         setIssueType(com.crowdin.client.issues.model.Type.CONTEXT_REQUEST.toString());
         setIssueStatus(IssueStatus.UNRESOLVED);
