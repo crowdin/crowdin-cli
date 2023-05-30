@@ -69,7 +69,7 @@ public class StringCommentActionTest {
         when(client.commentString(request))
                 .thenThrow(new RuntimeException("Whoops"));
 
-        action = new StringCommentAction(true, true, null, null, null, null, null);
+        action = new StringCommentAction(true, true, null, null, null, "comment", null);
 
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 

@@ -10,7 +10,10 @@ import org.apache.logging.log4j.util.Strings;
 import picocli.CommandLine;
 
 import java.util.ArrayList;
+import java.util.Objects;
 import java.util.List;
+
+import static com.crowdin.client.stringcomments.model.Type.COMMENT;
 
 @CommandLine.Command(
         sortOptions = false,
@@ -39,6 +42,9 @@ class StringCommentSubcommand extends ActCommandProject {
     @Override
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
+
+        type = Objects.toString(type, COMMENT.toString().toLowerCase());
+
         if (Strings.isEmpty(stringId)) {
             errors.add(RESOURCE_BUNDLE.getString("error.comment_string_id_not_specified"));
         }

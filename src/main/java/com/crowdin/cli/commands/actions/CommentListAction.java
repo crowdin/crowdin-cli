@@ -62,7 +62,7 @@ class CommentListAction implements NewAction<ProjectProperties, ClientComment> {
                             comment.getId(),
                             commentText,
                             Objects.toString(comment.getIssueType(), StringUtils.EMPTY),
-                            Objects.toString(comment.getIssueStatus(), StringUtils.EMPTY)
+                            Objects.toString(comment.getIssueStatus(), StringUtils.EMPTY).toLowerCase()
                     )
                 );
             } else {
