@@ -14,7 +14,6 @@ import java.util.Objects;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
-import static com.crowdin.client.stringcomments.model.IssueStatus.RESOLVED;
 import static com.crowdin.client.stringcomments.model.Type.ISSUE;
 
 class CommentListAction implements NewAction<ProjectProperties, ClientComment> {
@@ -40,7 +39,7 @@ class CommentListAction implements NewAction<ProjectProperties, ClientComment> {
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientComment client) {
-        if (status == RESOLVED && type == null) {
+        if (status != null && type == null) {
             type = ISSUE;
         }
 
@@ -69,9 +68,9 @@ class CommentListAction implements NewAction<ProjectProperties, ClientComment> {
             } else {
                 out.println(
                     String.format(
-                        RESOURCE_BUNDLE.getString("message.comment.list"),
-                        comment.getId(),
-                        commentText
+                            RESOURCE_BUNDLE.getString("message.comment.list"),
+                            comment.getId(),
+                            commentText
                     )
                 );
             }
