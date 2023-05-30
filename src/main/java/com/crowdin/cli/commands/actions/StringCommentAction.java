@@ -8,6 +8,9 @@ import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.StringComment;
 
+
+import java.util.Objects;
+
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
@@ -18,7 +21,7 @@ class StringCommentAction implements NewAction<ProjectProperties, ProjectClient>
     private final String text;
     private final String stringId;
     private final String language;
-    private final String type;
+    private String type;
     private final String issueType;
 
     public StringCommentAction(boolean plainView, boolean noProgress, String text, String stringId, String language,
@@ -34,6 +37,7 @@ class StringCommentAction implements NewAction<ProjectProperties, ProjectClient>
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
+        type = Objects.toString(type, "comment");
         AddStringCommentRequest request = RequestBuilder.addComment(text, type, language, issueType, stringId);
 
         try {

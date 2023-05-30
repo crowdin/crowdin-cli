@@ -6,8 +6,11 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.client.stringcomments.model.IssueStatus;
 import com.crowdin.client.stringcomments.model.StringComment;
+import jdk.internal.joptsimple.internal.Strings;
 
 import java.util.List;
+import java.util.Objects;
+
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
@@ -51,16 +54,16 @@ class CommentListAction implements NewAction<ProjectProperties, ClientComment> {
             }
 
             // Replace line breaks
-            String commentText = comment.getText().replaceAll("\\s+", " ");
+            String commentText = comment.getText().replaceAll(System.lineSeparator(), " ");
 
             if (isVerbose) {
                 out.println(
                     String.format(
-                        RESOURCE_BUNDLE.getString("message.comment.list.verbose"),
-                        comment.getId(),
-                        commentText,
-                        comment.getIssueType() != null ? comment.getIssueType() : "",
-                        comment.getIssueStatus() != null ? comment.getIssueStatus() : ""
+                            RESOURCE_BUNDLE.getString("message.comment.list.verbose"),
+                            comment.getId(),
+                            commentText,
+                            Objects.toString(comment.getIssueType(), Strings.EMPTY),
+                            Objects.toString(comment.getIssueStatus(), Strings.EMPTY)
                     )
                 );
             } else {

@@ -24,16 +24,16 @@ class StringCommentSubcommand extends ActCommandProject {
     @CommandLine.Parameters(descriptionKey = "crowdin.string.comment.text")
     protected String text;
 
-    @CommandLine.Option(names = {"--string-id"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.string-id")
+    @CommandLine.Option(names = {"--string-id"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.string-id", order = -2)
     protected String stringId;
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.language")
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.language", order = -2)
     protected String languageId;
 
-    @CommandLine.Option(names = {"--type"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.type")
+    @CommandLine.Option(names = {"--type"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.type", order = -2)
     protected String type;
 
-    @CommandLine.Option(names = {"--issue-type"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.issue-type")
+    @CommandLine.Option(names = {"--issue-type"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.issue-type", order = -2)
     protected String issueType;
 
     @Override
