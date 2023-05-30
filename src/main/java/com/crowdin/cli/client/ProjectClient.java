@@ -13,6 +13,8 @@ import com.crowdin.client.sourcefiles.model.ReviewedStringsBuild;
 import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
+import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
+import com.crowdin.client.stringcomments.model.StringComment;
 import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
@@ -80,6 +82,8 @@ public interface ProjectClient extends Client {
     List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql);
 
     void deleteSourceString(Long id);
+
+    StringComment commentString(AddStringCommentRequest request);
 
     SourceString editSourceString(Long sourceId, List<PatchRequest> requests);
 

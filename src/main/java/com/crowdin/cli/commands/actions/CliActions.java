@@ -12,6 +12,7 @@ import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.client.core.model.Priority;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
+import com.crowdin.client.stringcomments.model.IssueStatus;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import com.crowdin.client.translations.model.AutoApproveOption;
 import com.crowdin.client.translations.model.Method;
@@ -79,6 +80,11 @@ public class CliActions implements Actions {
         boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, Boolean hidden
     ) {
         return new StringAddAction(noProgress, text, identifier, maxLength, context, files, labelNames, hidden);
+    }
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> stringComment(boolean plainView,
+            boolean noProgress, String text, String stringId, String language, String type, String issueType) {
+        return new StringCommentAction(plainView, noProgress, text, stringId, language, type, issueType);
     }
 
     @Override
@@ -164,6 +170,18 @@ public class CliActions implements Actions {
     @Override
     public NewAction<ProjectProperties, ClientTask> taskAdd(String title, Integer type, String language, List<Long> fileId, Long workflowStep, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, List<Long> labels) {
         return new TaskAddAction(title, type, language, fileId, workflowStep, description, skipAssignedStrings, skipUntranslatedStrings, labels);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ClientComment> commentList(boolean plainView, boolean isVerbose,String stringId,
+                                                                   com.crowdin.client.stringcomments.model.Type type, com.crowdin.client.issues.model.Type issueType,
+                                                                   IssueStatus status) {
+        return new CommentListAction(plainView, isVerbose, stringId, type, issueType, status);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ClientComment> resolve(Long id) {
+        return new CommentResolveAction(id);
     }
 
     @Override

@@ -10,6 +10,8 @@ import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.client.core.model.Priority;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
+import com.crowdin.client.stringcomments.model.Type;
+import com.crowdin.client.stringcomments.model.IssueStatus;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import com.crowdin.client.translations.model.AutoApproveOption;
 import com.crowdin.client.translations.model.Method;
@@ -47,6 +49,9 @@ public interface Actions {
     NewAction<ProjectProperties, ProjectClient> stringAdd(
         boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, Boolean hidden);
 
+    NewAction<ProjectProperties, ProjectClient> stringComment(boolean plainView,
+        boolean noProgress, String text, String stringId, String language, String type, String issueType);
+
     NewAction<ProjectProperties, ProjectClient> stringDelete(
         boolean noProgress, List<Long> ids, List<String> texts, List<String> identifiers);
 
@@ -83,6 +88,10 @@ public interface Actions {
     NewAction<ProjectProperties, ClientTask> taskList(boolean plainView, boolean isVerbose, String status, Long assigneeId);
 
     NewAction<ProjectProperties, ClientTask> taskAdd(String title, Integer type, String language, List<Long> fileId, Long workflowStep, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, List<Long> labels);
+
+    NewAction<ProjectProperties, ClientComment> commentList(boolean plainView, boolean isVerbose, String stringId, com.crowdin.client.stringcomments.model.Type type, com.crowdin.client.issues.model.Type issueType, IssueStatus status);
+
+    NewAction<ProjectProperties, ClientComment> resolve(Long id);
 
     NewAction<ProjectProperties, ClientBundle> bundleList(boolean plainView, boolean isVerbose);
 

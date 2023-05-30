@@ -10,6 +10,9 @@ import com.crowdin.client.glossaries.model.ImportGlossaryRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
+import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
+import com.crowdin.client.stringcomments.model.IssueStatus;
+import com.crowdin.client.stringcomments.model.Type;
 import com.crowdin.client.tasks.model.CrowdinTaskCreateFormRequest;
 import com.crowdin.client.tasks.model.EnterpriseTaskCreateFormRequest;
 import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
@@ -28,6 +31,7 @@ import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 public class RequestBuilder {
 
@@ -40,6 +44,17 @@ public class RequestBuilder {
         request.setFileId(fileId);
         request.setIsHidden(hidden);
         request.setLabelIds(labelIds);
+        return request;
+    }
+
+    public static AddStringCommentRequest addComment(String text, String type, String language, String issueType,
+                                                     String stringId) {
+        AddStringCommentRequest request = new AddStringCommentRequest();
+        Optional.ofNullable(type).ifPresent(t -> request.setType(Type.from(t)));
+        Optional.ofNullable(stringId).ifPresent(id -> request.setStringId(Long.valueOf(id)));
+        request.setText(text);
+        request.setTargetLanguageId(language);
+        request.setIssueType(issueType);
         return request;
     }
 
