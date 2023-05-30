@@ -1,5 +1,18 @@
 # Changelog
 
+# [3.12.0](https://github.com/crowdin/crowdin-cli/compare/3.11.1...3.12.0) (2023-05-30)
+
+
+### Bug Fixes
+
+* **config:** discrepancies and indentation ([#584](https://github.com/crowdin/crowdin-cli/issues/584)) ([728dc9c](https://github.com/crowdin/crowdin-cli/commit/728dc9c2477647f8671a3b8ca51a01b0b7b9cb7e))
+
+
+### Features
+
+* improve CLI messages ([#582](https://github.com/crowdin/crowdin-cli/issues/582)) ([99595eb](https://github.com/crowdin/crowdin-cli/commit/99595eb2ed69bb7297c65fb38b26357f37e60196))
+* New command: comment ([#588](https://github.com/crowdin/crowdin-cli/issues/588)) ([3aefca0](https://github.com/crowdin/crowdin-cli/commit/3aefca085382c6a16fd35a559b81471af5fea203))
+
 ## [3.11.1](https://github.com/crowdin/crowdin-cli/compare/3.11.0...3.11.1) (2023-05-16)
 
 
