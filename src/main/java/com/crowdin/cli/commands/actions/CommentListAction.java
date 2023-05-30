@@ -6,7 +6,7 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.client.stringcomments.model.IssueStatus;
 import com.crowdin.client.stringcomments.model.StringComment;
-import jdk.internal.joptsimple.internal.Strings;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Objects;
@@ -62,8 +62,8 @@ class CommentListAction implements NewAction<ProjectProperties, ClientComment> {
                             RESOURCE_BUNDLE.getString("message.comment.list.verbose"),
                             comment.getId(),
                             commentText,
-                            Objects.toString(comment.getIssueType(), Strings.EMPTY),
-                            Objects.toString(comment.getIssueStatus(), Strings.EMPTY)
+                            Objects.toString(comment.getIssueType(), StringUtils.EMPTY),
+                            Objects.toString(comment.getIssueStatus(), StringUtils.EMPTY)
                     )
                 );
             } else {
