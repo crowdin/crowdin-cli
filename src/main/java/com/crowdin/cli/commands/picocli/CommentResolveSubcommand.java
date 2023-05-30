@@ -1,16 +1,10 @@
 package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.ClientComment;
-import com.crowdin.cli.client.ClientTask;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
-import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.properties.ProjectProperties;
-import org.apache.logging.log4j.util.Strings;
 import picocli.CommandLine;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @CommandLine.Command(
         name = CommandNames.COMMENT_RESOLVE
@@ -24,5 +18,4 @@ class CommentResolveSubcommand extends ActCommandComment {
     protected NewAction<ProjectProperties, ClientComment> getAction(Actions actions) {
         return actions.resolve(id);
     }
-
 }

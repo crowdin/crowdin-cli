@@ -1,17 +1,11 @@
 package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.ClientComment;
-import com.crowdin.cli.client.ClientTask;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.client.stringcomments.model.IssueStatus;
-import com.crowdin.client.stringcomments.model.Type;
-import com.crowdin.client.tasks.model.Status;
 import picocli.CommandLine;
-
-import java.util.ArrayList;
-import java.util.List;
 
 @CommandLine.Command(
         name = CommandNames.COMMENT_LIST
@@ -42,5 +36,4 @@ class CommentListSubcommand extends ActCommandComment {
     protected boolean isAnsi() {
         return super.isAnsi() && !plainView;
     }
-
 }

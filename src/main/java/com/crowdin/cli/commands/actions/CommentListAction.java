@@ -50,12 +50,15 @@ class CommentListAction implements NewAction<ProjectProperties, ClientComment> {
                 continue;
             }
 
+            // Replace line breaks
+            String commentText = comment.getText().replaceAll("\\s+", " ");
+
             if (isVerbose) {
                 out.println(
                     String.format(
                         RESOURCE_BUNDLE.getString("message.comment.list.verbose"),
                         comment.getId(),
-                        comment.getText(),
+                        commentText,
                         comment.getIssueType() != null ? comment.getIssueType() : "",
                         comment.getIssueStatus() != null ? comment.getIssueStatus() : ""
                     )
@@ -65,7 +68,7 @@ class CommentListAction implements NewAction<ProjectProperties, ClientComment> {
                     String.format(
                         RESOURCE_BUNDLE.getString("message.comment.list"),
                         comment.getId(),
-                        comment.getText()
+                        commentText
                     )
                 );
             }

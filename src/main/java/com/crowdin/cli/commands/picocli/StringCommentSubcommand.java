@@ -4,7 +4,6 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.properties.ProjectProperties;
-import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.stringcomments.model.Type;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.logging.log4j.util.Strings;
