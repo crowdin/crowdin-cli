@@ -1,8 +1,8 @@
 # FAQ
 
-### **Downloaded translations don't match the current project configuration**
+### Downloaded translations don't match the current project configuration
 
-I'm trying to download translations and getting the following error: `Downloaded translations don't match the current project configuration. The translations for the following sources will be omitted`.
+I'm trying to download translations and I get the following error: `Downloaded translations don't match the current project configuration. The translations for the following sources will be omitted`.
 
 **Answer:**
 
@@ -14,7 +14,17 @@ The best way to update the *Resulting file after translations export* - is to ru
 
 It might affect some existing integrations because the files structure will change in an exported archive with translations.
 
-### **No sources found for pattern**
+### Due to missing respective sources, the following translations will be omitted
+
+I'm trying to download translations and I get the following error: `Due to missing respective sources, the following translations will be omitted: ...`.
+
+**Answer:**
+
+It's related to the *Resulting file after translations export* files configuration in Crowdin. During the source push, the CLI will automatically set it, and it will be the same as the `translation` pattern of the `crowdin.yml` configuration file group. In the current case, the translation pattern is probably empty on the Crowdin side.
+
+Possible workaround: run the `crowdin push` command to update the sources in the Crowdin project and set the correct translation export pattern.
+
+### No sources found for pattern
 
 Downloading sources doesn't work, getting the warning `No sources found for '***' pattern. Check the source paths in your configuration file`.
 
@@ -32,7 +42,7 @@ In case you need a base path related to the current working directory, probably 
 crowdin download -c ~/project/crowdin.yml --base-path "..."
 ```
 
-### **JSON: empty string keys**
+### JSON: empty string keys
 
 Empty strings keys appear after translations download for JSON file format ([#457](https://github.com/crowdin/crowdin-cli/issues/457), [#497](https://github.com/crowdin/crowdin-cli/issues/497), [#502](https://github.com/crowdin/crowdin-cli/issues/502))
 
@@ -40,7 +50,7 @@ Empty strings keys appear after translations download for JSON file format ([#45
 
 This is caused by using the *Skip untranslated strings* export option when some translations are missing. By default, Crowdin will export these keys but the value will be empty. If you need such untranslated strings to be trimmed completely from the exported JSON files, please [contact](https://crowdin.com/contacts) our Customer Success Service.
 
-### **PKIX path building failed**
+### PKIX path building failed
 
 Crowdin CLI fails with an error `Java unable to find valid certification path to api.crowdin.com. ... PKIX path building failed`.
 
