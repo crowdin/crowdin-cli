@@ -7,23 +7,24 @@ import com.crowdin.cli.properties.PropertiesWithFiles;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = CommandNames.LIST_SOURCES
+    name = CommandNames.LIST_SOURCES,
+    sortOptions = false
 )
 class ListSourcesSubcommand extends ActCommandWithFiles {
 
-    @CommandLine.Option(names = {"-b", "--branch"})
+    @CommandLine.Option(names = {"-b", "--branch"}, order = -2)
     protected String branch;
 
-    @CommandLine.Option(names = {"--tree"})
+    @CommandLine.Option(names = {"--tree"}, order = -2)
     protected boolean treeView;
+
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
 
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return actions.listSources(false, null, this.noProgress, this.treeView, this.plainView);
     }
-
-    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
-    protected boolean plainView;
 
     @Override
     protected final boolean isAnsi() {

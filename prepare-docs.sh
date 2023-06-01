@@ -70,7 +70,7 @@ sed -i.bak -e 's/# Config Options/## Config Options/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]hidden\*\*/`--\[no-]hidden`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]duplicate-translations\*\*/`--[no-]duplicate-translations`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]translate-untranslated-only\*\*/`--[no-]translate-untranslated-only`/g' -- *.md
-sed -i.bak -e 's/\*\*--\[no-\]translate-with-perfect-match-only\*\*/--[no-]translate-with-perfect-match-only/g' -- *.md
+sed -i.bak -e 's/\*\*--\[no-\]translate-with-perfect-match-only\*\*/`--[no-]translate-with-perfect-match-only`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]skip-assigned-strings\*\*/`--[no-]skip-assigned-strings`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]skip-untranslated-strings\*\*/`--[no-]skip-untranslated-strings`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]auto-update\*\*/`--[no-]auto-update`/g' -- *.md

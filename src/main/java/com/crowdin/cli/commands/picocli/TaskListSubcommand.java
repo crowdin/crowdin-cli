@@ -11,23 +11,24 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
-    name = CommandNames.TASK_LIST
+    name = CommandNames.TASK_LIST,
+    sortOptions = false
 )
 class TaskListSubcommand extends ActCommandTask {
 
-    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
-    protected boolean plainView;
-
-    @CommandLine.Option(names = {"--status"}, paramLabel = "...", descriptionKey = "crowdin.task.list.status")
+    @CommandLine.Option(names = {"--status"}, paramLabel = "...", descriptionKey = "crowdin.task.list.status", order = -2)
     private String status;
 
-    @CommandLine.Option(names = {"--assignee-id"}, paramLabel = "...", descriptionKey = "crowdin.task.list.assignee-id")
+    @CommandLine.Option(names = {"--assignee-id"}, paramLabel = "...", descriptionKey = "crowdin.task.list.assignee-id", order = -2)
     private Long assigneeId;
 
     @Override
     protected NewAction<ProjectProperties, ClientTask> getAction(Actions actions) {
         return actions.taskList(this.plainView, this.isVerbose, status, assigneeId);
     }
+
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
 
     @Override
     protected boolean isAnsi() {
@@ -46,5 +47,4 @@ class TaskListSubcommand extends ActCommandTask {
         }
         return errors;
     }
-
 }

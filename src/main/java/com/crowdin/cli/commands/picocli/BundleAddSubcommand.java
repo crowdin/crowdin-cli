@@ -18,19 +18,19 @@ class BundleAddSubcommand extends ActCommandBundle {
     @CommandLine.Parameters(descriptionKey = "crowdin.bundle.add.name")
     protected String name;
 
-    @CommandLine.Option(names = {"--format"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.format")
+    @CommandLine.Option(names = {"--format"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.format", order = -2)
     protected String format;
 
-    @CommandLine.Option(names = {"--source"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.source")
+    @CommandLine.Option(names = {"--source"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.source", order = -2)
     protected List<String> source;
 
-    @CommandLine.Option(names = {"--ignore"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.ignore")
+    @CommandLine.Option(names = {"--ignore"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.ignore", order = -2)
     protected List<String> ignore;
 
-    @CommandLine.Option(names = {"--translation"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.translation")
+    @CommandLine.Option(names = {"--translation"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.translation", order = -2)
     protected String translation;
 
-    @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.label")
+    @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.label", order = -2)
     protected List<Long> labels;
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
@@ -63,5 +63,4 @@ class BundleAddSubcommand extends ActCommandBundle {
         }
         return errors;
     }
-
 }

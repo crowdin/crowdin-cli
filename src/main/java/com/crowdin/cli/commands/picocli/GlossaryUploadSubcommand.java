@@ -14,26 +14,27 @@ import java.util.List;
 import java.util.Map;
 
 @CommandLine.Command(
-    name = CommandNames.GLOSSARY_UPLOAD
+    name = CommandNames.GLOSSARY_UPLOAD,
+    sortOptions = false
 )
 class GlossaryUploadSubcommand extends ActCommandGlossary {
 
     @CommandLine.Parameters(descriptionKey = "crowdin.glossary.upload.file")
     private File file;
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
     private Long id;
 
-    @CommandLine.Option(names = {"--name"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--name"}, paramLabel = "...", order = -2)
     private String name;
 
-    @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.glossary.upload.language-id")
+    @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.glossary.upload.language-id", order = -2)
     private String languageId;
 
-    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...", order = -2)
     private Map<String, Integer> scheme;
 
-    @CommandLine.Option(names = {"--first-line-contains-header"})
+    @CommandLine.Option(names = {"--first-line-contains-header"}, order = -2)
     private Boolean firstLineContainsHeader;
 
     @Override

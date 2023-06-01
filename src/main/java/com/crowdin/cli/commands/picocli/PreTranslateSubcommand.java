@@ -22,34 +22,34 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 )
 public class PreTranslateSubcommand extends ActCommandWithFiles {
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", defaultValue = BaseCli.ALL)
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", defaultValue = BaseCli.ALL, order = -2)
     protected List<String> languageIds;
 
-    @CommandLine.Option(names = {"--method"}, paramLabel = "...", required = true)
+    @CommandLine.Option(names = {"--method"}, paramLabel = "...", required = true, order = -2)
     protected Method method;
 
-    @CommandLine.Option(names = {"--engine-id"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--engine-id"}, paramLabel = "...", order = -2)
     protected Long engineId;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", descriptionKey = "branch")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", descriptionKey = "branch", order = -2)
     protected String branch;
 
-    @CommandLine.Option(names = {"--auto-approve-option"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--auto-approve-option"}, paramLabel = "...", order = -2)
     protected String autoApproveOption;
 
-    @CommandLine.Option(names = {"--duplicate-translations"}, negatable = true)
+    @CommandLine.Option(names = {"--duplicate-translations"}, negatable = true, order = -2)
     protected Boolean duplicateTranslations;
 
-    @CommandLine.Option(names = {"--translate-untranslated-only"}, negatable = true)
+    @CommandLine.Option(names = {"--translate-untranslated-only"}, negatable = true, order = -2)
     protected Boolean translateUntranslatedOnly;
 
-    @CommandLine.Option(names = {"--translate-with-perfect-match-only"}, negatable = true)
+    @CommandLine.Option(names = {"--translate-with-perfect-match-only"}, negatable = true, order = -2)
     protected Boolean translateWithPerfectMatchOnly;
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
 
-    private Map<String, AutoApproveOption> autoApproveOptionWrapper = new HashMap<String, AutoApproveOption>() {{
+    private final Map<String, AutoApproveOption> autoApproveOptionWrapper = new HashMap<String, AutoApproveOption>() {{
         put("all", AutoApproveOption.ALL);
         put("except-auto-substituted", AutoApproveOption.EXCEPT_AUTO_SUBSTITUTED);
         put("perfect-match-only", AutoApproveOption.PERFECT_MATCH_ONLY);
@@ -63,7 +63,20 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
 
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
-        return actions.preTranslate(languageIds, method, engineId, branch, autoApproveOptionWrapper.get(autoApproveOption), duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, noProgress, debug, isVerbose, plainView);
+        return actions.preTranslate(
+            languageIds,
+            method,
+            engineId,
+            branch,
+            autoApproveOptionWrapper.get(autoApproveOption),
+            duplicateTranslations,
+            translateUntranslatedOnly,
+            translateWithPerfectMatchOnly,
+            noProgress,
+            debug,
+            isVerbose,
+            plainView
+        );
     }
 
     @Override

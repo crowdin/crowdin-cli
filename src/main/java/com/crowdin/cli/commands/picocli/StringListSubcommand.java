@@ -12,20 +12,21 @@ import java.util.Collections;
 import java.util.List;
 
 @CommandLine.Command(
-    name = CommandNames.STRING_LIST
+    name = CommandNames.STRING_LIST,
+    sortOptions = false
 )
 class StringListSubcommand extends ActCommandProject {
 
-    @CommandLine.Option(names = {"--file"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--file"}, paramLabel = "...", order = -2)
     protected String file;
 
-    @CommandLine.Option(names = {"--filter"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--filter"}, paramLabel = "...", order = -2)
     protected String filter;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
     protected String branchName;
 
-    @CommandLine.Option(names = {"--croql"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--croql"}, paramLabel = "...", order = -2)
     protected String croql;
 
     @Override

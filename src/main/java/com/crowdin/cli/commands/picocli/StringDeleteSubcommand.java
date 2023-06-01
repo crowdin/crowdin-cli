@@ -10,17 +10,18 @@ import java.util.Collections;
 import java.util.List;
 
 @CommandLine.Command(
-    name = CommandNames.STRING_DELETE
+    name = CommandNames.STRING_DELETE,
+    sortOptions = false
 )
 class StringDeleteSubcommand extends ActCommandProject {
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
     protected List<Long> ids;
 
     @CommandLine.Option(names = {"--text"}, paramLabel = "...", hidden = true)
     protected List<String> texts;
 
-    @CommandLine.Option(names = {"--identifier"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--identifier"}, paramLabel = "...", order = -2)
     protected List<String> identifiers;
 
     @Override

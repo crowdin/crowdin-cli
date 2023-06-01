@@ -14,26 +14,27 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
-    name = CommandNames.TM_DOWNLOAD
+    name = CommandNames.TM_DOWNLOAD,
+    sortOptions = false
 )
 class TmDownloadSubcommand extends ActCommandTm {
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
     private Long id;
 
-    @CommandLine.Option(names = {"--name"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--name"}, paramLabel = "...", order = -2)
     private String name;
 
-    @CommandLine.Option(names = {"--source-language-id"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--source-language-id"}, paramLabel = "...", order = -2)
     private String sourceLanguageId;
 
-    @CommandLine.Option(names = {"--target-language-id"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--target-language-id"}, paramLabel = "...", order = -2)
     private String targetLanguageId;
 
-    @CommandLine.Option(names = {"--format"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--format"}, paramLabel = "...", order = -2)
     private TranslationMemoryFormat format;
 
-    @CommandLine.Option(names = "--to", paramLabel = "...")
+    @CommandLine.Option(names = "--to", paramLabel = "...", order = -2)
     private File to;
 
     @Override

@@ -10,29 +10,30 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
-    name = CommandNames.STRING_EDIT
+    name = CommandNames.STRING_EDIT,
+    sortOptions = false
 )
 class StringEditSubcommand extends ActCommandProject {
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
     protected Long id;
 
-    @CommandLine.Option(names = {"--identifier"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--identifier"}, paramLabel = "...", order = -2)
     protected String identifier;
 
-    @CommandLine.Option(names = {"--text"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--text"}, paramLabel = "...", order = -2)
     protected String newText;
 
-    @CommandLine.Option(names = {"--context"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--context"}, paramLabel = "...", order = -2)
     protected String newContext;
 
-    @CommandLine.Option(names = {"--max-length"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--max-length"}, paramLabel = "...", order = -2)
     protected Integer newMaxLength;
 
-    @CommandLine.Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...")
+    @CommandLine.Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...", order = -2)
     protected List<String> labelNames;
 
-    @CommandLine.Option(names = {"--hidden"}, negatable = true)
+    @CommandLine.Option(names = {"--hidden"}, negatable = true, order = -2)
     protected Boolean newIsHidden;
 
     @Override
