@@ -351,8 +351,13 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("error.deleting_archive"), downloadedZipArchive)));
             }
         } else {
-            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.archive"), downloadedZipArchivePath)));
+            if (!plainView) {
+                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.archive"), downloadedZipArchivePath)));
+            } else {
+                out.println(downloadedZipArchivePath);
+            }
         }
+
         return Pair.of(baseTempDir, downloadedFilesProc);
     }
 

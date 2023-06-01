@@ -55,10 +55,12 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
         String baseTemp = StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR;
         java.io.File baseTempDir = new java.io.File(baseTemp + Utils.PATH_SEPARATOR);
         List<java.io.File> downloadedFiles = extractArchive(to, baseTempDir);
+
         for (File file: downloadedFiles) {
             String filePath = Utils.noSepAtStart(StringUtils.removeStart(file.getAbsolutePath(), baseTempDir.getAbsolutePath()));
             out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.extracted_file"), filePath)));
         }
+
         if (!keepArchive) {
             try {
                 files.deleteFile(to);
@@ -66,7 +68,11 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
                 out.println(ERROR.withIcon(String.format(RESOURCE_BUNDLE.getString("error.deleting_archive"), to)));
             }
         } else {
-            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.archive"), to.getAbsolutePath())));
+            if (!plainView) {
+                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.archive"), to.getAbsolutePath())));
+            } else {
+                out.println(to.getAbsolutePath());
+            }
         }
     }
 
