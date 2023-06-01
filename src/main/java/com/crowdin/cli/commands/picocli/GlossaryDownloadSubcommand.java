@@ -14,20 +14,21 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
-    name = CommandNames.GLOSSARY_DOWNLOAD
+    name = CommandNames.GLOSSARY_DOWNLOAD,
+    sortOptions = false
 )
 class GlossaryDownloadSubcommand extends ActCommandGlossary {
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
     private Long id;
 
-    @CommandLine.Option(names = {"--name"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--name"}, paramLabel = "...", order = -2)
     private String name;
 
-    @CommandLine.Option(names = {"--format"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--format"}, paramLabel = "...", order = -2)
     private GlossariesFormat format;
 
-    @CommandLine.Option(names = "--to", paramLabel = "...")
+    @CommandLine.Option(names = "--to", paramLabel = "...", order = -2)
     private File to;
 
     @Override

@@ -12,13 +12,13 @@ import picocli.CommandLine;
 )
 class StatusTranslationSubcommand extends ActCommandProject {
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...")
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", order = -2)
     protected String languageId;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
     protected String branchName;
 
-    @CommandLine.Option(names = {"--fail-if-incomplete"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--fail-if-incomplete"}, paramLabel = "...", order = -2)
     protected boolean failIfIncomplete;
 
     @Override

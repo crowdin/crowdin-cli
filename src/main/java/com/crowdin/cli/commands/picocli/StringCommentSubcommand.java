@@ -21,9 +21,6 @@ import static com.crowdin.client.stringcomments.model.Type.COMMENT;
 )
 class StringCommentSubcommand extends ActCommandProject {
 
-    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
-    protected boolean plainView;
-
     @CommandLine.Parameters(descriptionKey = "crowdin.string.comment.text")
     protected String text;
 
@@ -38,6 +35,9 @@ class StringCommentSubcommand extends ActCommandProject {
 
     @CommandLine.Option(names = {"--issue-type"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.issue-type", order = -2)
     protected String issueType;
+
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
 
     @Override
     protected List<String> checkOptions() {

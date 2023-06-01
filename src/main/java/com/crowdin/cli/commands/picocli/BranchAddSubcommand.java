@@ -16,13 +16,13 @@ class BranchAddSubcommand extends ActCommandProject {
     @CommandLine.Parameters(descriptionKey = "crowdin.branch.add.name")
     protected String name;
 
-    @CommandLine.Option(names = "--title", paramLabel = "...")
+    @CommandLine.Option(names = "--title", paramLabel = "...", order = -2)
     protected String title;
 
-    @CommandLine.Option(names = "--export-pattern", paramLabel = "...")
+    @CommandLine.Option(names = "--export-pattern", paramLabel = "...", order = -2)
     protected String exportPattern;
 
-    @CommandLine.Option(names = "--priority", paramLabel = "...")
+    @CommandLine.Option(names = "--priority", paramLabel = "...", order = -2)
     protected Priority priority;
 
     @Override

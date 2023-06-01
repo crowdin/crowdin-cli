@@ -12,37 +12,39 @@ import picocli.CommandLine;
 import java.util.*;
 
 @CommandLine.Command(
-    name = CommandNames.TASK_ADD
+    name = CommandNames.TASK_ADD,
+    sortOptions = false
 )
 class TaskAddSubcommand extends ActCommandTask {
 
     public static final String TRANSLATE_TASK_TYPE = "translate";
     public static final String PROOFREAD_TASK_TYPE = "proofread";
+
     @CommandLine.Parameters(descriptionKey = "crowdin.task.add.title")
     protected String title;
 
-    @CommandLine.Option(names = {"--type"}, paramLabel = "...", descriptionKey = "crowdin.task.add.type")
+    @CommandLine.Option(names = {"--type"}, paramLabel = "...", descriptionKey = "crowdin.task.add.type", order = -2)
     protected String type;
 
-    @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.task.add.language")
+    @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.task.add.language", order = -2)
     protected String language;
 
-    @CommandLine.Option(names = {"--file"}, paramLabel = "...", descriptionKey = "crowdin.task.add.file-id")
+    @CommandLine.Option(names = {"--file"}, paramLabel = "...", descriptionKey = "crowdin.task.add.file-id", order = -2)
     protected List<Long> files;
 
-    @CommandLine.Option(names = {"--workflow-step"}, paramLabel = "...", descriptionKey = "crowdin.task.add.workflow-step")
+    @CommandLine.Option(names = {"--workflow-step"}, paramLabel = "...", descriptionKey = "crowdin.task.add.workflow-step", order = -2)
     protected Long workflowStep;
 
-    @CommandLine.Option(names = {"--description"}, paramLabel = "...", descriptionKey = "crowdin.task.add.description")
+    @CommandLine.Option(names = {"--description"}, paramLabel = "...", descriptionKey = "crowdin.task.add.description", order = -2)
     protected String description;
 
-    @CommandLine.Option(names = {"--skip-assigned-strings"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-assigned-strings")
+    @CommandLine.Option(names = {"--skip-assigned-strings"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-assigned-strings", order = -2)
     protected boolean skipAssignedStrings;
 
-    @CommandLine.Option(names = {"--skip-untranslated-strings"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-untranslated-strings")
+    @CommandLine.Option(names = {"--skip-untranslated-strings"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-untranslated-strings", order = -2)
     protected boolean skipUntranslatedStrings;
 
-    @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "crowdin.task.add.label")
+    @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "crowdin.task.add.label", order = -2)
     protected List<Long> labels;
 
     @Override
@@ -83,5 +85,4 @@ class TaskAddSubcommand extends ActCommandTask {
         }
         return errors;
     }
-
 }

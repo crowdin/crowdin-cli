@@ -9,28 +9,34 @@ import picocli.CommandLine;
 
 import java.util.List;
 
+@CommandLine.Command(
+  sortOptions = false
+)
 class UploadSourcesCommand extends ActCommandWithFiles {
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...")
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
     protected String branch;
 
-    @CommandLine.Option(names = {"--delete-obsolete"}, descriptionKey = "crowdin.upload.sources.delete-obsolete")
+    @CommandLine.Option(names = {"--delete-obsolete"}, descriptionKey = "crowdin.upload.sources.delete-obsolete", order = -2)
     protected boolean deleteObsolete;
 
-    @CommandLine.Option(names = {"--no-auto-update"}, negatable = true)
+    @CommandLine.Option(names = {"--no-auto-update"}, negatable = true, order = -2)
     protected boolean autoUpdate = true;
+
+    @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun", order = -2)
+    protected boolean treeView;
+
+    @CommandLine.Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...", order = -2)
+    protected List<String> labels;
+
+    @CommandLine.Option(names = {"--excluded-language"}, descriptionKey = "params.excluded-languages", paramLabel = "...", order = -2)
+    protected List<String> excludedLanguages;
 
     @CommandLine.Option(names = {"--dryrun"})
     protected boolean dryrun;
 
-    @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
-    protected boolean treeView;
-
-    @CommandLine.Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...")
-    protected List<String> labels;
-
-    @CommandLine.Option(names = {"--excluded-language"}, descriptionKey = "params.excluded-languages", paramLabel = "...")
-    protected List<String> excludedLanguages;
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
 
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
@@ -38,9 +44,6 @@ class UploadSourcesCommand extends ActCommandWithFiles {
             ? actions.listSources(this.deleteObsolete, this.branch, this.noProgress, this.treeView, plainView)
             : actions.uploadSources(this.branch, this.deleteObsolete, this.noProgress, this.autoUpdate, debug, plainView);
     }
-
-    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
-    protected boolean plainView;
 
     @Override
     protected final boolean isAnsi() {
