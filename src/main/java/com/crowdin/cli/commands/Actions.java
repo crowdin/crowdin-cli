@@ -9,6 +9,7 @@ import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.client.core.model.Priority;
+import com.crowdin.client.distributions.model.ExportMode;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.stringcomments.model.IssueStatus;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
@@ -87,6 +88,12 @@ public interface Actions {
     NewAction<ProjectProperties, ClientTask> taskList(boolean plainView, boolean isVerbose, String status, Long assigneeId);
 
     NewAction<ProjectProperties, ClientTask> taskAdd(String title, Integer type, String language, List<Long> fileId, Long workflowStep, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, List<Long> labels);
+
+    NewAction<ProjectProperties, ClientDistribution> distributionList(boolean plainView, boolean isVerbose);
+
+    NewAction<ProjectProperties, ClientDistribution> distributionAdd(String name, ExportMode exportMode, List<Long> fileId);
+
+    NewAction<ProjectProperties, ClientDistribution> distributionRelease(String hash);
 
     NewAction<ProjectProperties, ClientComment> commentList(boolean plainView, boolean isVerbose, String stringId, com.crowdin.client.stringcomments.model.Type type, com.crowdin.client.issues.model.Type issueType, IssueStatus status);
 

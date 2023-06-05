@@ -19,7 +19,8 @@ import picocli.CommandLine;
         CheckVersionSubcommand.class,
         PreTranslateSubcommand.class,
         BranchSubcommand.class,
-        CommentSubcommand.class
+        CommentSubcommand.class,
+        DistributionSubcommand.class
     })
 class RootCommand extends HelpCommand {
     @Override

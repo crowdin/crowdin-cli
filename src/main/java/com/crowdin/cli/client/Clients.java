@@ -39,6 +39,11 @@ public final class Clients {
         return new CrowdinClientComment(client, projectId);
     }
 
+    public static ClientDistribution getClientDistribution(String apiToken, String baseUrl, String projectId) {
+        com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);
+        return new CrowdinClientDistribution(client, projectId);
+    }
+
     public static ClientBundle getClientBundle(String apiToken, String baseUrl, String projectId) {
         com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);
         return new CrowdinClientBundle(client, projectId);

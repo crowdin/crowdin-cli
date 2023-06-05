@@ -3,6 +3,8 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.client.core.model.PatchOperation;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.core.model.Priority;
+import com.crowdin.client.distributions.model.AddDistributionRequest;
+import com.crowdin.client.distributions.model.ExportMode;
 import com.crowdin.client.glossaries.model.AddGlossaryRequest;
 import com.crowdin.client.glossaries.model.ExportGlossaryRequest;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
@@ -56,6 +58,15 @@ public class RequestBuilder {
         request.setIssueType(issueType);
         return request;
     }
+
+    public static AddDistributionRequest addDistribution(String name, ExportMode exportMode, List<Long> fileId) {
+        AddDistributionRequest request = new AddDistributionRequest();
+        Optional.ofNullable(name).ifPresent(request::setName);
+        Optional.ofNullable(exportMode).ifPresent(request::setExportMode);
+        Optional.ofNullable(fileId).ifPresent(request::setFileIds);
+        return request;
+    }
+
 
     public static CrowdinTaskCreateFormRequest addCrowdinTask(String title, Integer type, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, List<Long> labelIds) {
         CrowdinTaskCreateFormRequest request = new CrowdinTaskCreateFormRequest();
