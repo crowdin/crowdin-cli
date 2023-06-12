@@ -1,5 +1,18 @@
 # Changelog
 
+# [3.13.0](https://github.com/crowdin/crowdin-cli/compare/3.12.0...3.13.0) (2023-06-12)
+
+
+### Bug Fixes
+
+* .env load - pass the cause exception for later retrieval ([#591](https://github.com/crowdin/crowdin-cli/issues/591)) ([fd0033d](https://github.com/crowdin/crowdin-cli/commit/fd0033d547981bf1b7866c964589b2e4e84ccb7b))
+* plain view for --keep-archive option ([#590](https://github.com/crowdin/crowdin-cli/issues/590)) ([7d33cb6](https://github.com/crowdin/crowdin-cli/commit/7d33cb65495fe6861ffce030f9ed31afd4c10bd8))
+
+
+### Features
+
+* Option to exclude some languages from the build ([#595](https://github.com/crowdin/crowdin-cli/issues/595)) ([325a014](https://github.com/crowdin/crowdin-cli/commit/325a01468783ab089a302b2ee22dc5d3f2285a29))
+
 # [3.12.0](https://github.com/crowdin/crowdin-cli/compare/3.11.1...3.12.0) (2023-05-30)
 
 
