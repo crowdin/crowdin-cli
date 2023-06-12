@@ -33,7 +33,7 @@ class DownloadSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", order = -2)
     protected List<String> languageIds;
 
-    @CommandLine.Option(names = {"-el", "--exclude-language"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"-e", "--exclude-language"}, paramLabel = "...", order = -2)
     protected List<String> excludeLanguageIds;
 
     @CommandLine.Option(names = {"--pseudo"}, descriptionKey = "crowdin.download.pseudo", order = -2)
