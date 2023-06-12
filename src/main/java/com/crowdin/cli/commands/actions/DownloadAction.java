@@ -58,6 +58,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     private FilesInterface files;
     private boolean noProgress;
     private List<String> languageIds;
+    private List<String> excludeLanguageIds;
     private boolean pseudo;
     private String branchName;
     private boolean ignoreMatch;
@@ -69,12 +70,13 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     private Outputter out;
 
     public DownloadAction(
-            FilesInterface files, boolean noProgress, List<String> languageIds, boolean pseudo, String branchName,
+            FilesInterface files, boolean noProgress, List<String> languageIds, List<String> excludeLanguageIds, boolean pseudo, String branchName,
             boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean useServerSources, boolean keepArchive
     ) {
         this.files = files;
         this.noProgress = noProgress || plainView;
         this.languageIds = languageIds;
+        this.excludeLanguageIds = excludeLanguageIds;
         this.pseudo = pseudo;
         this.branchName = branchName;
         this.ignoreMatch = ignoreMatch;
@@ -115,6 +117,12 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 .orElseThrow(() -> new RuntimeException(
                     String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))))
             .collect(Collectors.toList());
+        List<Language> excludeLanguages = excludeLanguageIds == null ? new ArrayList<>() : excludeLanguageIds.stream()
+            .map(lang -> project.findLanguageById(lang, true)
+                .orElseThrow(() -> new RuntimeException(
+                    String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))))
+            .collect(Collectors.toList());
+
         Optional<Branch> branch = Optional.ofNullable(project.getBranch());
 
         Map<String, com.crowdin.client.sourcefiles.model.File> serverSources = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getFiles());
@@ -154,16 +162,24 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 }
                 tempDirs.put(downloadedFiles.getLeft(), downloadedFiles.getRight());
             } else {
-                List<Language> forLanguages = languages != null ? languages : project.getProjectLanguages(true);
+                List<Language> forLanguages = languages != null ? languages :
+                        project.getProjectLanguages(true).stream()
+                               .filter(language -> !excludeLanguages.contains(language))
+                               .collect(Collectors.toList());
+
                 if (!plainView) {
                     out.println((languageIds != null)
                         ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), String.join(", ", languageIds)))
                         : OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive")));
                 }
                 CrowdinTranslationCreateProjectBuildForm templateRequest = new CrowdinTranslationCreateProjectBuildForm();
+
                 if (languages != null) {
                     templateRequest.setTargetLanguageIds(languages.stream().map(Language::getId).collect(Collectors.toList()));
+                } else if (!excludeLanguages.isEmpty()) {
+                    templateRequest.setTargetLanguageIds(forLanguages.stream().map(Language::getId).collect(Collectors.toList()));
                 }
+
                 branch
                     .map(Branch::getId)
                     .ifPresent(templateRequest::setBranchId);

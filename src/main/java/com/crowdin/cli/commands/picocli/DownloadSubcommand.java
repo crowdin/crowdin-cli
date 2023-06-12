@@ -6,8 +6,10 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.functionality.FsFiles;
 import com.crowdin.cli.properties.ParamsWithFiles;
 import com.crowdin.cli.properties.PropertiesWithFiles;
+import org.apache.commons.lang3.ArrayUtils;
 import picocli.CommandLine;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
@@ -30,6 +32,9 @@ class DownloadSubcommand extends ActCommandWithFiles {
 
     @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", order = -2)
     protected List<String> languageIds;
+
+    @CommandLine.Option(names = {"-el", "--exclude-language"}, paramLabel = "...", order = -2)
+    protected List<String> excludeLanguageIds;
 
     @CommandLine.Option(names = {"--pseudo"}, descriptionKey = "crowdin.download.pseudo", order = -2)
     protected boolean pseudo;
@@ -62,7 +67,7 @@ class DownloadSubcommand extends ActCommandWithFiles {
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
             ? actions.listTranslations(noProgress, treeView, false, plainView, all, true)
-            : actions.download(new FsFiles(), noProgress, languageIds, pseudo, branchName, ignoreMatch, isVerbose, plainView, all, keepArchive);
+            : actions.download(new FsFiles(), noProgress, languageIds, excludeLanguageIds, pseudo, branchName, ignoreMatch, isVerbose, plainView, all, keepArchive);
     }
 
     @Override
@@ -73,5 +78,14 @@ class DownloadSubcommand extends ActCommandWithFiles {
     @Override
     protected void updateParams(ParamsWithFiles params) {
         params.setExportOptions(skipTranslatedOnly, skipUntranslatedFiles, exportApprovedOnly);
+    }
+
+    @Override
+    protected List<String> checkOptions() {
+        List<String> errors = new ArrayList<>();
+        if (languageIds != null && excludeLanguageIds != null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.download.include_exclude_lang_conflict"));
+        }
+        return errors;
     }
 }
