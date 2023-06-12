@@ -140,4 +140,4 @@ jobs:
       - name: Choco publish
         uses: crazy-max/ghaction-chocolatey@v2
         with:
-          args: push --api-key ${{ secrets.CHOCOLATEY_API_KEY }}
+          args: push --api-key ${{ secrets.CHOCOLATEY_API_KEY }} --source=https://push.chocolatey.org/
