@@ -174,6 +174,8 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 CrowdinTranslationCreateProjectBuildForm templateRequest = new CrowdinTranslationCreateProjectBuildForm();
                 if (languages != null) {
                     templateRequest.setTargetLanguageIds(languages.stream().map(Language::getId).collect(Collectors.toList()));
+                } else if(!excludeLanguages.isEmpty()){
+                    templateRequest.setTargetLanguageIds(forLanguages.stream().map(Language::getId).collect(Collectors.toList()));
                 }
                 branch
                     .map(Branch::getId)
