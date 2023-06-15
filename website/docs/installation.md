@@ -1,3 +1,7 @@
+---
+description: Install Crowdin CLI easily with clear instructions on the installation page. Get started quickly and manage localization seamlessly with Crowdin CLI.
+---
+
 # Installation
 
 ## Homebrew for macOS

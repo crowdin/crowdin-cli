@@ -1,3 +1,7 @@
+---
+description: Discover essential configuration tips and guidelines for the Crowdin CLI.
+---
+
 # Configuration
 
 Crowdin CLI uses a YAML configuration file that contains a description of the resources to manage: files to be uploaded into Crowdin and the locations of the corresponding translations.
