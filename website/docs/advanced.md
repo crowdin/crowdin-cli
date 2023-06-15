@@ -1,3 +1,7 @@
+---
+description: Unlock the full potential of the Crowdin CLI. Dive deeper into advanced techniques, tips, and tricks for leveraging the capabilities of the CLI tool.
+---
+
 # Advanced Usage
 
 ### Using CLI with Proxy Server

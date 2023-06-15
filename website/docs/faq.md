@@ -1,3 +1,7 @@
+---
+description: Explore the Crowdin CLI FAQ page for quick answers to your questions. Find troubleshooting tips to optimize your Crowdin CLI experience.
+---
+
 # FAQ
 
 ### Downloaded translations don't match the current project configuration
