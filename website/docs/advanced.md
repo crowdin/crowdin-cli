@@ -61,6 +61,39 @@ Or using command options:
 crowdin upload sources --excluded-language uk fr
 ```
 
+### Languages mapping configuration
+
+Often software projects have custom names for locale directories. Crowdin allows you to map your own languages to be recognizable in your projects.
+
+Let's say your locale directories are named `en`, `uk`, `fr`, `de`. All of them can be represented by the `%two_letters_code%` placeholder. Still, you have one directory named `zh_CH`. You can also override language codes for other placeholders like `%android_code%`, `%locale%`, etc.
+
+To set up Language Mapping in your configuration file, add the `languages_mapping` section to your file set as shown below:
+
+```yml title="crowdin.yml"
+"files": [
+   {
+      "source": "/locale/en/**/*.po",
+      "translation": "/locale/%two_letters_code%/**/%original_file_name%",
+      "languages_mapping": {
+         "two_letters_code": {
+            "uk": "ukr",
+            "pl": "pol"
+         }
+      }
+   }
+]
+```
+
+Note that in the example above, we are configuring mapping for the `two_letters_code` placeholder because it is specified in the `translation` pattern. If you use a different language placeholder in your `translation` pattern, you should also specify this placeholder in the `languages_mapping` configuration.
+
+:::caution
+The mapping format is the following: `crowdin_language_code`: `code_you_use`. Check the full list of [Crowdin language codes](https://developer.crowdin.com/language-codes/) that can be used for mapping.
+:::
+
+:::tip
+Languages Mapping can be also configured in your crowdin.com or Crowdin Enterprise _Project Settings_ > _Languages_ section.
+:::
+
 ### Download Pseudo-localization
 
 You can configure and download pseudo-localized translation files.
