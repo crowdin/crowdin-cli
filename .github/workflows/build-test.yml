@@ -2,7 +2,8 @@ name: build-test
 
 on:
   push:
-    branches: [ '*' ]
+    branches:
+      - '*'
     paths-ignore:
       - 'README.md'
       - 'CHANGELOG.md'
@@ -11,6 +12,7 @@ on:
       - 'LICENSE'
   pull_request:
     branches: [ 'cli3' ]
+  workflow_dispatch:
 
 jobs:
   build:
