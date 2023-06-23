@@ -68,7 +68,12 @@ public class TranslationsUtilsTest {
                 Utils.normalizePath("/*/**/*.po"),
                 Utils.normalizePath("/%two_letters_code%/**/%original_file_name%"),
                 Utils.normalizePath("hmm/here/file.po"),
-                Utils.normalizePath("/%two_letters_code%/hmm/here/%original_file_name%"))
+                Utils.normalizePath("/%two_letters_code%/hmm/here/%original_file_name%")),
+            arguments(
+                Utils.normalizePath("/english/**/*.yml"),
+                Utils.normalizePath("/%language%/**/%file_name%_l_%language%.%file_extension%"),
+                Utils.normalizePath("english/folder/messages_l_english.yml"),
+                Utils.normalizePath("/%language%/folder/%file_name%_l_%language%.%file_extension%"))
         );
     }
 
