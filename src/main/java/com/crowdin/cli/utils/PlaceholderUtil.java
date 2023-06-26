@@ -185,6 +185,7 @@ public class PlaceholderUtil {
         toFormat = toFormat.contains(PLACEHOLDER_FILE_NAME) ? toFormat.replace(PLACEHOLDER_FILE_NAME, fileNameWithoutExt) : toFormat;
         toFormat = toFormat.contains(PLACEHOLDER_FILE_EXTENSION) ? toFormat.replace(PLACEHOLDER_FILE_EXTENSION, fileExt) : toFormat;
         toFormat = toFormat.contains(PLACEHOLDER_ORIGINAL_PATH) ? toFormat.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent) : toFormat;
+        toFormat = toFormat.replace("/", File.separator);
 
         if (toFormat.contains("**")) {
             String prefix = StringUtils.substringBefore(toFormat, "**");
@@ -242,8 +243,13 @@ public class PlaceholderUtil {
 
         if (Utils.isWindows()) {
             toFormat = toFormat
-                .replace("**", ".+")
-                .replace("\\" + ASTERISK + "\\", "[^/]+")
+                    .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
+                    .replace("**", ".+")
+                    .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
+
+                    .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
+                    .replace(ASTERISK, "[^/]+")
+                    .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
             ;
         } else {
             toFormat = toFormat

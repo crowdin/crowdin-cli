@@ -11,6 +11,9 @@ import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.cli.utils.console.ExecutionStatus;
+import org.apache.commons.lang3.StringUtils;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -20,11 +23,15 @@ import org.junit.jupiter.api.condition.OS;
 import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.net.URL;
 import java.util.ArrayList;
 
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
+import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -77,7 +84,6 @@ public class DownloadSourcesActionTest {
     }
 
     @Test
-    @DisabledOnOs(OS.WINDOWS)
     public void testDestAndUnaryAsterisk() throws IOException {
         PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean(
@@ -262,7 +268,6 @@ public class DownloadSourcesActionTest {
     }
 
     @Test
-    @DisabledOnOs(OS.WINDOWS)
     public void testDryRun() {
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         PrintStream ps = System.out;
@@ -290,19 +295,18 @@ public class DownloadSourcesActionTest {
             new DownloadSourcesAction(files, false, false, null, true, false,true);
         action.act(Outputter.getDefault(), pb, client);
 
-        String outMessage1 = "✔️  Fetching project info\n";
-        String outMessage2 = "✔️  File @|bold 'common/strings.xml'|@\n";
+        String outMessage1 = OK.withIcon("Fetching project info");
+        String outMessage2 = OK.withIcon(String.format("File @|bold 'common%sstrings.xml'|@", File.separator));
 
         client.downloadFullProject(null);
         client.downloadFile(101L);
 
-        assertTrue(outContent.toString().contains(outMessage1));
-        assertTrue(outContent.toString().contains(outMessage2));
+        assertThat(outContent.toString(), Matchers.containsString(outMessage1));
+        assertThat(outContent.toString(), Matchers.containsString(outMessage2));
     }
 
     @Test
-    @DisabledOnOs(OS.WINDOWS)
-    public void testReviewedOnly() throws IOException {
+    public void testReviewedOnly() {
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         PrintStream ps = System.out;
         System.setOut(new PrintStream(outContent));
@@ -329,7 +333,8 @@ public class DownloadSourcesActionTest {
             new DownloadSourcesAction(files, false, false, null, true, true, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        String warnMessage = "⚠️  Operation is available only for Crowdin Enterprise\n";
+        String warnMessage = WARNING.withIcon("Operation is available only for Crowdin Enterprise")
+                + System.lineSeparator();
 
         client.downloadFullProject(null);
         assertEquals(warnMessage, outContent.toString());

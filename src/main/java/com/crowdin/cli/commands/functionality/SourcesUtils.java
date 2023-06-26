@@ -50,7 +50,7 @@ public class SourcesUtils {
                 .map(Predicate::negate)
                 .reduce((s) -> true, Predicate::and);
         } else {
-            List<Pattern> patternPaths = Arrays.stream(sourcePattern.split("/"))
+            List<Pattern> patternPaths = Arrays.stream(sourcePattern.split(Pattern.quote(File.separator)))
                 .map(pathSplit -> Pattern.compile("^" + PlaceholderUtil.formatSourcePatternForRegex(pathSplit) + "$"))
                 .collect(Collectors.toList());
             Collections.reverse(patternPaths);
@@ -71,7 +71,7 @@ public class SourcesUtils {
             };
             ignorePredicate = ignorePatterns.stream()
                 .map(ignorePattern -> {
-                    List<String> ignorePatternPaths = placeholderUtil.formatForRegex(asList(ignorePattern.split("/")), false);
+                    List<String> ignorePatternPaths = placeholderUtil.formatForRegex(asList(ignorePattern.split(Pattern.quote(File.separator))), false);
                     Collections.reverse(ignorePatternPaths);
                     return ignorePatternPaths;
                 })
