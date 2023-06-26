@@ -28,7 +28,7 @@ public class TranslationsUtils {
         String[] sourceNodes = sourcePattern.split("\\*\\*");
         for (int i = 0; i < sourceNodes.length; i++) {
             if (sourceFile.contains(sourceNodes[i])) {
-                sourceFile = StringUtils.substring(sourceFile, sourceFile.indexOf(Utils.regexPath(sourceNodes[i])), sourceFile.length() - 1)
+                sourceFile = StringUtils.substring(sourceFile, sourceFile.indexOf(sourceNodes[i]), sourceFile.length() - 1)
                         .replaceFirst(Utils.regexPath(sourceNodes[i]), "");
             } else if (sourceNodes.length - 1 == i) {
                 if (sourceNodes[i].contains(Utils.PATH_SEPARATOR)) {
