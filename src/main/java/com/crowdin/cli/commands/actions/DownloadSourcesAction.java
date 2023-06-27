@@ -133,7 +133,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                             String translationPattern = TranslationsUtils.replaceDoubleAsterisk(fileBean.getSource(), fileBean.getTranslation(), filePathKey);
                             if (exportPattern == null || translationPattern.endsWith(exportPattern)) {
                                 String sourceName = new java.io.File(fileBean.getSource()).getName();
-                                if(sourceName.equals(new java.io.File(filePathKey).getName()) || SourcesUtils.containsPattern(sourceName)) {
+                                if(sourceName.equals(new java.io.File(filePathKey).getName()) || SourcesUtils.containsPattern(sourceName) || searchPattern.contains(filePathKey)) {
                                     filePaths2.add(filePathKey);
                                 }
                             }
