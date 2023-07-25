@@ -1,6 +1,6 @@
 module.exports = {
   branches: [
-    "cli3"
+    "main"
   ],
   repositoryUrl: "https://github.com/crowdin/crowdin-cli",
   tagFormat: "${version}",

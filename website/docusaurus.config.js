@@ -32,7 +32,7 @@ const config = {
         docs: {
           routeBasePath: '/',
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/crowdin/crowdin-cli/tree/cli3/website/',
+          editUrl: 'https://github.com/crowdin/crowdin-cli/tree/main/website/',
         },
         blog: false,
         theme: {

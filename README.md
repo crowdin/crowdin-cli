@@ -24,13 +24,13 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 [![GitHub contributors](https://img.shields.io/github/contributors/crowdin/crowdin-cli?cacheSeconds=1000)](https://github.com/crowdin/crowdin-cli/graphs/contributors)
 ![GitHub](https://img.shields.io/github/license/crowdin/crowdin-cli?cacheSeconds=50000)
 
-[![build-test](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml/badge.svg?branch=cli3)](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml)
-[![CodeQL](https://github.com/crowdin/crowdin-cli/actions/workflows/codeql-analysis.yml/badge.svg?branch=cli3)](https://github.com/crowdin/crowdin-cli/actions/workflows/codeql-analysis.yml)
-[![codecov](https://codecov.io/gh/crowdin/crowdin-cli/branch/cli3/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli)
+[![build-test](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml/badge.svg?branch=main)](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml)
+[![CodeQL](https://github.com/crowdin/crowdin-cli/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)](https://github.com/crowdin/crowdin-cli/actions/workflows/codeql-analysis.yml)
+[![codecov](https://codecov.io/gh/crowdin/crowdin-cli/branch/main/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli)
 
  </div>
 
-[<p align="center"><img src="https://raw.githubusercontent.com/crowdin/crowdin-cli/cli3/website/static/img/cli-demo-image.png" data-canonical-src="https://raw.githubusercontent.com/crowdin/crowdin-cli/cli3/website/static/img/cli-demo-image.png" width="100%" height="auto" align="center"/></p>](https://crowdin.com)
+[<p align="center"><img src="https://raw.githubusercontent.com/crowdin/crowdin-cli/main/website/static/img/cli-demo-image.png" data-canonical-src="https://raw.githubusercontent.com/crowdin/crowdin-cli/main/website/static/img/cli-demo-image.png" width="100%" height="auto" align="center"/></p>](https://crowdin.com)
 
 ## Usage
 

@@ -20,7 +20,7 @@ When you are creating a bug report, please include as many details as possible. 
 
 #### How Do I Submit a Bug Report?
 
-Bugs are tracked as [GitHub issues](https://github.com/crowdin/crowdin-cli-2/issues/).
+Bugs are tracked as [GitHub issues](https://github.com/crowdin/crowdin-cli/issues/).
 
 Explain the problem and include additional details to help reproduce the problem:
 
@@ -42,7 +42,7 @@ When you are creating an enhancement suggestion, please include as many details 
 
 #### How Do I Submit an Enhancement Suggestion?
 
-Enhancement suggestions are tracked as [GitHub issues](https://github.com/crowdin/crowdin-cli-2/issues/). 
+Enhancement suggestions are tracked as [GitHub issues](https://github.com/crowdin/crowdin-cli/issues/).
 
 Create an issue on that repository and provide the following information:
 
@@ -55,8 +55,8 @@ Create an issue on that repository and provide the following information:
 
 Unsure where to begin contributing to Crowdin CLI? You can start by looking through these `good-first-issue` and `help-wanted` issues:
 
-* [Good first issue](https://github.com/crowdin/crowdin-cli-2/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) - issues which should only require a small amount of code, and a test or two.
-* [Help wanted](https://github.com/crowdin/crowdin-cli-2/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) - issues which should be a bit more involved than `Good first issue` issues.
+* [Good first issue](https://github.com/crowdin/crowdin-cli/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22) - issues which should only require a small amount of code, and a test or two.
+* [Help wanted](https://github.com/crowdin/crowdin-cli/issues?q=is%3Aopen+is%3Aissue+label%3A%22help+wanted%22) - issues which should be a bit more involved than `Good first issue` issues.
 
 #### Pull Request Checklist
 
@@ -81,7 +81,7 @@ Before sending your pull requests, make sure you followed the list below:
 
 #### Contributing to the docs
 
-The documentation is based on [Docusaurus](https://docusaurus.io/) framework. Source inside the [website](https://github.com/crowdin/crowdin-cli/tree/cli3/website) directory.
+The documentation is based on [Docusaurus](https://docusaurus.io/) framework. Source inside the [website](https://github.com/crowdin/crowdin-cli/tree/main/website) directory.
 
 - Go to the `website` directory:
 
