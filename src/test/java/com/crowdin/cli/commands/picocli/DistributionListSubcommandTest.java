@@ -11,7 +11,7 @@ public class DistributionListSubcommandTest extends PicocliTestUtils {
     public void testDistributionList() {
         this.execute(CommandNames.DISTRIBUTION, CommandNames.DISTRIBUTION_LIST);
         verify(actionsMock)
-            .distributionList(anyBoolean(), anyBoolean());
+            .distributionList(anyBoolean());
         this.check(true);
     }
 }

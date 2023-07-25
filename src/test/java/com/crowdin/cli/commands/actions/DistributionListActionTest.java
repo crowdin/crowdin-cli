@@ -1,5 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
+import static org.mockito.Mockito.*;
+
 import com.crowdin.cli.client.ClientDistribution;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
@@ -13,8 +15,6 @@ import org.junit.jupiter.api.Test;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
-import static org.mockito.Mockito.*;
 
 public class DistributionListActionTest {
 
@@ -42,7 +42,7 @@ public class DistributionListActionTest {
         when(clientMock.listDistribution())
             .thenReturn(standardList);
 
-        action = new DistributionListAction(false, false);
+        action = new DistributionListAction(false);
         action.act(out, pb, clientMock);
 
         verify(clientMock).listDistribution();
@@ -54,7 +54,7 @@ public class DistributionListActionTest {
         when(clientMock.listDistribution())
             .thenReturn(standardList);
 
-        action = new DistributionListAction(true, false);
+        action = new DistributionListAction(true);
         action.act(out, pb, clientMock);
 
         verify(clientMock).listDistribution();
@@ -66,7 +66,7 @@ public class DistributionListActionTest {
         when(clientMock.listDistribution())
             .thenReturn(emptyList);
 
-        action = new DistributionListAction(false, false);
+        action = new DistributionListAction(false);
         action.act(out, pb, clientMock);
 
         verify(clientMock).listDistribution();
@@ -78,7 +78,7 @@ public class DistributionListActionTest {
         when(clientMock.listDistribution())
             .thenReturn(emptyList);
 
-        action = new DistributionListAction(true, false);
+        action = new DistributionListAction(true);
         action.act(out, pb, clientMock);
 
         verify(clientMock).listDistribution();

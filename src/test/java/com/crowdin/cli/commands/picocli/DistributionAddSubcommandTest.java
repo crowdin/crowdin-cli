@@ -26,11 +26,11 @@ public class DistributionAddSubcommandTest extends PicocliTestUtils {
 
     @ParameterizedTest
     @MethodSource
-    public void testSubCommandCheckValidOptions(String name, ExportMode exportMode, List<Long> fileIds) {
+    public void testSubCommandCheckValidOptions(String name, ExportMode exportMode, List<String> files) {
         DistributionAddSubcommand distributionAddSubcommand = new DistributionAddSubcommand();
         distributionAddSubcommand.name = name;
         distributionAddSubcommand.exportMode = exportMode;
-        distributionAddSubcommand.files = fileIds;
+        distributionAddSubcommand.files = files;
 
         List<String> errors = distributionAddSubcommand.checkOptions();
         assertEquals(Collections.emptyList(), errors);
@@ -38,18 +38,18 @@ public class DistributionAddSubcommandTest extends PicocliTestUtils {
 
     public static Stream<Arguments> testSubCommandCheckValidOptions() {
         return Stream.of(
-            arguments("Distribution 1", ExportMode.DEFAULT, Arrays.asList(12L)),
-            arguments("Distribution 2", ExportMode.BUNDLE, Arrays.asList(12L)),
-            arguments("Distribution 3", null, Arrays.asList(12L)));
+            arguments("Distribution 1", ExportMode.DEFAULT, Arrays.asList("strings.xml", "strings2.xml")),
+            arguments("Distribution 2", ExportMode.BUNDLE, Arrays.asList("strings.xml", "strings2.xml")),
+            arguments("Distribution 3", null, Arrays.asList("strings.xml", "strings2.xml")));
     }
 
     @ParameterizedTest
     @MethodSource
-    public void testSubCommandCheckInvalidOptions(String name, ExportMode exportMode, List<Long> fileIds, List<String> expErrors) {
+    public void testSubCommandCheckInvalidOptions(String name, ExportMode exportMode, List<String> files, List<String> expErrors) {
         DistributionAddSubcommand distributionAddSubcommand = new DistributionAddSubcommand();
         distributionAddSubcommand.name = name;
         distributionAddSubcommand.exportMode = exportMode;
-        distributionAddSubcommand.files = fileIds;
+        distributionAddSubcommand.files = files;
 
         List<String> errors = distributionAddSubcommand.checkOptions();
         assertThat(errors, Matchers.equalTo(expErrors));

@@ -89,11 +89,11 @@ public interface Actions {
 
     NewAction<ProjectProperties, ClientTask> taskAdd(String title, Integer type, String language, List<Long> fileId, Long workflowStep, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, List<Long> labels);
 
-    NewAction<ProjectProperties, ClientDistribution> distributionList(boolean plainView, boolean isVerbose);
+    NewAction<ProjectProperties, ClientDistribution> distributionList(boolean plainView);
 
-    NewAction<ProjectProperties, ClientDistribution> distributionAdd(String name, ExportMode exportMode, List<Long> fileId);
+    NewAction<ProjectProperties, ClientDistribution> distributionAdd(boolean noProgress, boolean plainView, String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds, String branch, ProjectClient projectClient);
 
-    NewAction<ProjectProperties, ClientDistribution> distributionRelease(String hash);
+    NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, String hash);
 
     NewAction<ProjectProperties, ClientComment> commentList(boolean plainView, boolean isVerbose, String stringId, com.crowdin.client.stringcomments.model.Type type, com.crowdin.client.issues.model.Type issueType, IssueStatus status);
 

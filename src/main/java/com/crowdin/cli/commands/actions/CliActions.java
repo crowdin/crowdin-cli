@@ -174,18 +174,18 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientDistribution> distributionList(boolean plainView, boolean isVerbose) {
-        return new DistributionListAction(plainView, isVerbose);
+    public NewAction<ProjectProperties, ClientDistribution> distributionList(boolean plainView) {
+        return new DistributionListAction(plainView);
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientDistribution> distributionAdd(String name, ExportMode exportMode, List<Long> fileId) {
-        return new DistributionAddAction(name, exportMode, fileId);
+    public NewAction<ProjectProperties, ClientDistribution> distributionAdd(boolean noProgress, boolean plainView, String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds, String branch, ProjectClient projectClient) {
+        return new DistributionAddAction(noProgress, plainView, name, exportMode, files, bundleIds, branch, projectClient);
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientDistribution> distributionRelease(String hash) {
-        return new DistributionReleaseAction(hash);
+    public NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, String hash) {
+        return new DistributionReleaseAction(noProgress, hash);
     }
 
     @Override

@@ -109,17 +109,17 @@ public class CliActionsTest {
 
     @Test
     public void testDistributionAdd() {
-        assertNotNull(actions.distributionAdd(null, null, null));
+        assertNotNull(actions.distributionAdd(false, false, null, null, null, null, null, null));
     }
 
     @Test
     public void testDistributionList() {
-        assertNotNull(actions.distributionList(true, true));
+        assertNotNull(actions.distributionList(true));
     }
 
     @Test
     public void testDistributionRelease() {
-        assertNotNull(actions.distributionRelease(null));
+        assertNotNull(actions.distributionRelease(false,null));
     }
 
     @Test

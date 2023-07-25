@@ -59,14 +59,14 @@ public class RequestBuilder {
         return request;
     }
 
-    public static AddDistributionRequest addDistribution(String name, ExportMode exportMode, List<Long> fileId) {
+    public static AddDistributionRequest addDistribution(String name, ExportMode exportMode, List<Long> fileIds, List<Integer> bundleIds) {
         AddDistributionRequest request = new AddDistributionRequest();
         Optional.ofNullable(name).ifPresent(request::setName);
         Optional.ofNullable(exportMode).ifPresent(request::setExportMode);
-        Optional.ofNullable(fileId).ifPresent(request::setFileIds);
+        Optional.ofNullable(fileIds).ifPresent(request::setFileIds);
+        Optional.ofNullable(bundleIds).ifPresent(request::setBundleIds);
         return request;
     }
-
 
     public static CrowdinTaskCreateFormRequest addCrowdinTask(String title, Integer type, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, List<Long> labelIds) {
         CrowdinTaskCreateFormRequest request = new CrowdinTaskCreateFormRequest();
