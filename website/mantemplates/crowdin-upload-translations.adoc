@@ -14,3 +14,7 @@ include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-commands]
 include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-options]
 
 include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
+
+=== Notes
+
+- `-l`, `--language=language_code` - defines the language translations that should be uploaded to Crowdin. By default, translations are uploaded to all project's target languages. link:https://developer.crowdin.com/language-codes/[Crowdin Language Codes].
