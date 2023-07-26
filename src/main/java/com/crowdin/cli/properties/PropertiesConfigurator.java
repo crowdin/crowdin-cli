@@ -12,6 +12,6 @@ interface PropertiesConfigurator<P extends Properties> {
 
     enum CheckType {
         STANDARD,
-        LINT;
+        LINT
     }
 }

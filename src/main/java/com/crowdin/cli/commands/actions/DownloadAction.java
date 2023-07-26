@@ -140,7 +140,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive_pseudo")));
                 }
                 PseudoLocalization pl = pb.getPseudoLocalization();
-                BuildProjectTranslationRequest request = null;
+                BuildProjectTranslationRequest request;
 
                 if (branchName != null) {
                     request = (pl != null)

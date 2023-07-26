@@ -10,7 +10,6 @@ import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.client.core.model.Priority;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
-import com.crowdin.client.stringcomments.model.Type;
 import com.crowdin.client.stringcomments.model.IssueStatus;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import com.crowdin.client.translations.model.AutoApproveOption;

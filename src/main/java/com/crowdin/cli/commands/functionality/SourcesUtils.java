@@ -109,8 +109,8 @@ public class SourcesUtils {
      * Try to replace ‘*’ with ‘source’ param and project file path.
      * If project file path (or part of it) does not match the pattern, do nothing.
      * @param sourcePattern should contain '*'
-     * @param projectFile
-     * @return
+     * @param projectFile file path
+     * @return source pattern with replaced ‘*’
      */
     public static String replaceUnaryAsterisk(@NonNull String sourcePattern, @NonNull String projectFile) {
         String[] parts = Utils.splitPath(sourcePattern);

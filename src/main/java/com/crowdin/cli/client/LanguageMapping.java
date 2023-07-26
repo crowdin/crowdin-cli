@@ -62,7 +62,7 @@ public final class LanguageMapping {
      *         "uk": "Ukrainian"
      *     }
      * }
-     * @param fileLanguageMapping langauge mapping from configuration file. May be null/empty
+     * @param fileLanguageMapping language mapping from configuration file. May be null/empty
      * @return immutable LanguageMapping object
      */
     public static LanguageMapping fromConfigFileLanguageMapping(Map<String, Map<String, String>> fileLanguageMapping) {

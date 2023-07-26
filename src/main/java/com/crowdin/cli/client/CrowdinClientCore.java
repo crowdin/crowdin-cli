@@ -5,8 +5,6 @@ import com.crowdin.client.core.http.exceptions.HttpException;
 import com.crowdin.client.core.model.DownloadLink;
 import com.crowdin.client.core.model.ResponseList;
 import com.crowdin.client.core.model.ResponseObject;
-import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
-import com.crowdin.client.stringcomments.model.StringComment;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;

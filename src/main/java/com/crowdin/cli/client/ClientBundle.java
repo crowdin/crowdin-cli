@@ -2,9 +2,6 @@ package com.crowdin.cli.client;
 
 import com.crowdin.client.bundles.model.Bundle;
 import com.crowdin.client.bundles.model.BundleExport;
-import com.crowdin.client.tasks.model.Status;
-import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
-import com.crowdin.client.translationmemory.model.TranslationMemoryExportStatus;
 
 import java.net.URL;
 import java.util.List;

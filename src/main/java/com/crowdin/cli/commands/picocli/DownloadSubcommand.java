@@ -6,7 +6,6 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.functionality.FsFiles;
 import com.crowdin.cli.properties.ParamsWithFiles;
 import com.crowdin.cli.properties.PropertiesWithFiles;
-import org.apache.commons.lang3.ArrayUtils;
 import picocli.CommandLine;
 
 import java.util.ArrayList;

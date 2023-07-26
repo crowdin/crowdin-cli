@@ -88,7 +88,7 @@ public class CrowdinProjectInfo {
     }
 
     public enum Access {
-        TRANSLATOR, MANAGER;
+        TRANSLATOR, MANAGER
     }
 
 }
