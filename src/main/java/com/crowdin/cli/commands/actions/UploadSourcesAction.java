@@ -245,7 +245,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             }
 
                             return (Runnable) () -> {
-                                Long directoryId = null;
+                                Long directoryId;
                                 try {
                                     directoryId = ProjectUtils.createPath(out, client, directoryPaths, filePath, branch, plainView);
                                 } catch (Exception e) {

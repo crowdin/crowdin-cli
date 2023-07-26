@@ -50,20 +50,20 @@ public class ObsoleteSourcesUtils {
             }
         }
 
-        List<String> obsoleteDirPathes = obsoleteDeletedProjectFiles.keySet().stream()
+        List<String> obsoleteDirPaths = obsoleteDeletedProjectFiles.keySet().stream()
             .map(Utils::getParentDirectory)
             .distinct()
             .collect(Collectors.toList());
-        for (int i = 0; i < obsoleteDirPathes.size(); i++) {
-            String parentDir = Utils.getParentDirectory(obsoleteDirPathes.get(i));
-            if (!obsoleteDirPathes.contains(parentDir)) {
-                obsoleteDirPathes.add(parentDir);
+        for (int i = 0; i < obsoleteDirPaths.size(); i++) {
+            String parentDir = Utils.getParentDirectory(obsoleteDirPaths.get(i));
+            if (!obsoleteDirPaths.contains(parentDir)) {
+                obsoleteDirPaths.add(parentDir);
             }
         }
-        obsoleteDirPathes.remove(Utils.PATH_SEPARATOR);
+        obsoleteDirPaths.remove(Utils.PATH_SEPARATOR);
 
         SortedMap<String, Long> obsoleteDirs = new TreeMap<>(Collections.reverseOrder());
-        for (String obsoleteDirPath : obsoleteDirPathes) {
+        for (String obsoleteDirPath : obsoleteDirPaths) {
             if (!upToDateDirs.contains(obsoleteDirPath)) {
                 obsoleteDirs.put(obsoleteDirPath, directoryIds.get(obsoleteDirPath));
             }

@@ -15,10 +15,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
@@ -27,10 +24,10 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 public class DownloadBundleAction implements NewAction<ProjectProperties, ClientBundle> {
 
     private final Long id;
-    private FilesInterface files;
-    private boolean noProgress;
-    private boolean plainView;
-    private boolean keepArchive;
+    private final FilesInterface files;
+    private final boolean noProgress;
+    private final boolean plainView;
+    private final boolean keepArchive;
     private File to;
 
     private Outputter out;

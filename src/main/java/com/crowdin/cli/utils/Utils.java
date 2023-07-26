@@ -133,8 +133,8 @@ public class Utils {
 
     /**
      * return parent directory with slash on end, or "/" if root
-     * @param path
-     * @return
+     * @param path directory path
+     * @return parent directory
      */
     public static String getParentDirectory(String path) {
         path = noSepAtEnd(path);

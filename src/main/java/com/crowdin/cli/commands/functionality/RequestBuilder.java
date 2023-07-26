@@ -11,7 +11,6 @@ import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
-import com.crowdin.client.stringcomments.model.IssueStatus;
 import com.crowdin.client.stringcomments.model.Type;
 import com.crowdin.client.tasks.model.CrowdinTaskCreateFormRequest;
 import com.crowdin.client.tasks.model.EnterpriseTaskCreateFormRequest;

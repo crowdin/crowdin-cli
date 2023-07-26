@@ -241,26 +241,15 @@ public class PlaceholderUtil {
             .replace(QUESTION_MARK, "[^/]")
             .replace(ESCAPE_QUESTION_PLACEHOLDER, ESCAPE_QUESTION);
 
-        if (Utils.isWindows()) {
-            toFormat = toFormat
-                    .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
-                    .replace("**", ".+")
-                    .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
+        toFormat = toFormat
+            .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
+            .replace("**", ".+")
+            .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
 
-                    .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
-                    .replace(ASTERISK, "[^/]+")
-                    .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
-            ;
-        } else {
-            toFormat = toFormat
-                .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
-                .replace("**", ".+")
-                .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK)
+            .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
+            .replace(ASTERISK, "[^/]+")
+            .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK);
 
-                .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
-                .replace(ASTERISK, "[^/]+")
-                .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK);
-        }
         toFormat = toFormat
             .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
 
