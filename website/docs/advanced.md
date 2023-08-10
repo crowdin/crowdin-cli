@@ -117,6 +117,57 @@ pseudo_localization: {
 
 Visit the [KB article](https://developer.crowdin.com/pseudolocalization/) to read more about Pseudo-Localiation.
 
+### Export configuration for specific file formats
+
+#### Java Properties
+
+**Escape Quotes**
+
+The `escape_qutes` option defines whether a single quote should be escaped by another single quote or backslash in exported translations. You can add the `escape_quotes` per-file option. Acceptable values are `0`, `1`, `2`, `3`. Default is `3`.
+
+- `0` - do not escape
+- `1` - escape single quote with another single quote
+- `2` - escape single quote with a backslash
+- `3` - escape single quote with another single quote only in strings containing variables ( {0} )
+
+**Escape special characters**
+
+Defines whether any special characters (`=`, `:`, `!` and `#`) should be escaped by a backslash in exported translations. You can add the `escape_special_characters` per-file option. Acceptable values are `0`, `1`. Default is `1`.
+
+- `0` - do not escape special characters
+- `1` - escape special characters by a backslash
+
+Example of the configuration:
+
+```yml title="crowdin.yml"
+"files": [
+  {
+    "source": "/en/strings.properties",
+    "translation": "/%two_letters_code%/%original_file_name%",
+    "escape_quotes": 1,
+    "escape_special_characters": 0
+  }
+]
+```
+
+#### JavaScript
+
+**Export Quotes**
+
+The `export_quotes` option defines the type of quotes to use in exported translations. You can add the `export_quotes` per-file option. Acceptable values are `single`, `double`. Default is `single`.
+
+Example of the configuration:
+
+```yml title="crowdin.yml"
+"files": [
+  {
+    "source": "/en/strings.js",
+    "translation": "/%two_letters_code%/%original_file_name%",
+    "export_quotes": "double"
+  }
+]
+```
+
 ### Configure export options for each file group
 
 There is a way to specify export options for each file-group in the `crowdin.yml` configuration file:

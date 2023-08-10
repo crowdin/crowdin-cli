@@ -16,6 +16,7 @@ import static com.crowdin.cli.properties.PropertiesBuilder.CUSTOM_SEGMENTATION;
 import static com.crowdin.cli.properties.PropertiesBuilder.DEST;
 import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_QUOTES;
 import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_SPECIAL_CHARACTERS;
+import static com.crowdin.cli.properties.PropertiesBuilder.EXPORT_QUOTES;
 import static com.crowdin.cli.properties.PropertiesBuilder.EXCLUDED_TARGET_LANGUAGES;
 import static com.crowdin.cli.properties.PropertiesBuilder.EXPORT_APPROVED_ONLY;
 import static com.crowdin.cli.properties.PropertiesBuilder.FIRST_LINE_CONTAINS_HEADER;
@@ -60,6 +61,7 @@ public class FileBean {
     private Boolean contentSegmentation;
     private Integer escapeQuotes;
     private Integer escapeSpecialCharacters;
+    private String exportQuotes;
     private Map<String, String> translationReplace;
     private Boolean skipTranslatedOnly;
     private Boolean skipUntranslatedFiles;
@@ -79,31 +81,33 @@ public class FileBean {
         @Override
         public FileBean buildFromMap(Map<String, Object> map) {
             FileBean fileBean = new FileBean();
-            PropertiesBuilder.setPropertyIfExists(fileBean::setSource,                    map, SOURCE, String.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setDest,                      map, DEST, String.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setType,                      map, TYPE, String.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslation,               map, TRANSLATION, String.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setUpdateOption,              map, UPDATE_OPTION, String.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setScheme,                    map, SCHEME, String.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setIgnore,                    map, IGNORE, List.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslatableElements,      map, TRANSLATABLE_ELEMENTS, List.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setLanguagesMapping,          map, LANGUAGES_MAPPING, Map.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslationReplace,        map, TRANSLATION_REPLACE, Map.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setEscapeQuotes,              map, ESCAPE_QUOTES, Integer.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setEscapeSpecialCharacters,   map, ESCAPE_SPECIAL_CHARACTERS, Integer.class);
-            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setFirstLineContainsHeader,   map, FIRST_LINE_CONTAINS_HEADER);
-            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setTranslateAttributes,       map, TRANSLATE_ATTRIBUTES);
-            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setTranslateContent,          map, TRANSLATE_CONTENT);
-            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setContentSegmentation,       map, CONTENT_SEGMENTATION);
-            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setMultilingualSpreadsheet,   map, MULTILINGUAL_SPREADSHEET);
-            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setSkipTranslatedOnly,   map, SKIP_UNTRANSLATED_STRINGS);
-            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setSkipUntranslatedFiles,     map, SKIP_UNTRANSLATED_FILES);
-            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setExportApprovedOnly,        map, EXPORT_APPROVED_ONLY);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setSource, map, SOURCE, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setDest, map, DEST, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setType, map, TYPE, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslation, map, TRANSLATION, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setUpdateOption, map, UPDATE_OPTION, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setScheme, map, SCHEME, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setIgnore, map, IGNORE, List.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslatableElements, map, TRANSLATABLE_ELEMENTS, List.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setLanguagesMapping, map, LANGUAGES_MAPPING, Map.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setTranslationReplace, map, TRANSLATION_REPLACE, Map.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setEscapeQuotes, map, ESCAPE_QUOTES, Integer.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setEscapeSpecialCharacters, map, ESCAPE_SPECIAL_CHARACTERS, Integer.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setExportQuotes, map, EXPORT_QUOTES, String.class);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setFirstLineContainsHeader, map, FIRST_LINE_CONTAINS_HEADER);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setTranslateAttributes, map, TRANSLATE_ATTRIBUTES);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setTranslateContent, map, TRANSLATE_CONTENT);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setContentSegmentation, map, CONTENT_SEGMENTATION);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setMultilingualSpreadsheet, map, MULTILINGUAL_SPREADSHEET);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setSkipTranslatedOnly, map, SKIP_UNTRANSLATED_STRINGS);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setSkipUntranslatedFiles, map, SKIP_UNTRANSLATED_FILES);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setExportApprovedOnly, map, EXPORT_APPROVED_ONLY);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setExportStringsThatPassedWorkflow, map, EXPORT_STRINGS_THAT_PASSED_WORKFLOW);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setLabels,                    map, LABELS, List.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setExcludedTargetLanguages,   map, EXCLUDED_TARGET_LANGUAGES, List.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setCustomSegmentation,        map, CUSTOM_SEGMENTATION, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setLabels, map, LABELS, List.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setExcludedTargetLanguages, map, EXCLUDED_TARGET_LANGUAGES, List.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setCustomSegmentation, map, CUSTOM_SEGMENTATION, String.class);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setImportTranslations, map, IMPORT_TRANSLATIONS);
+
             return fileBean;
         }
 
@@ -122,7 +126,6 @@ public class FileBean {
                     bean.setTranslation(Utils.sepAtStart(bean.getTranslation()));
                 }
             }
-
 
             //Ignore
             if (bean.getIgnore() != null && !bean.getIgnore().isEmpty()) {
@@ -164,18 +167,22 @@ public class FileBean {
         @Override
         public List<String> checkProperties(FileBean bean) {
             List<String> errors = new ArrayList<>();
+
             if (StringUtils.isEmpty(bean.getSource())) {
                 errors.add(RESOURCE_BUNDLE.getString("error.config.empty_source_section"));
             }
+
             if (StringUtils.isEmpty(bean.getTranslation())) {
                 errors.add(RESOURCE_BUNDLE.getString("error.config.empty_translation_section"));
             } else {
                 if (!checkForDoubleAsterisks(bean.getSource(), bean.getTranslation())) {
                     errors.add(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
                 }
+
                 if (!PlaceholderUtil.containsLangPlaceholders(bean.getTranslation()) && bean.getScheme() == null) {
                     errors.add(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
                 }
+
                 if (hasRelativePaths(bean.getTranslation())) {
                     errors.add(RESOURCE_BUNDLE.getString("error.config.translation_contains_relative_paths"));
                 }
@@ -185,22 +192,31 @@ public class FileBean {
             if (updateOption != null && !(updateOption.equals("update_as_unapproved") || updateOption.equals("update_without_changes"))) {
                 errors.add(RESOURCE_BUNDLE.getString("error.config.update_option"));
             }
+
             Integer escQuotes = bean.getEscapeQuotes();
             if (escQuotes != null && (escQuotes < 0 || escQuotes > 3)) {
                 errors.add(RESOURCE_BUNDLE.getString("error.config.escape_quotes"));
             }
+
             Integer escSpecialCharacters = bean.getEscapeSpecialCharacters();
             if (escSpecialCharacters != null && (escSpecialCharacters < 0 || escSpecialCharacters > 1)) {
                 errors.add(RESOURCE_BUNDLE.getString("error.config.escape_special_characters"));
             }
 
+            String exportQuotes = bean.getExportQuotes();
+            if (exportQuotes != null && !(exportQuotes.equals("single") || exportQuotes.equals("double"))) {
+                errors.add(RESOURCE_BUNDLE.getString("error.config.export_quotes"));
+            }
+
             if (StringUtils.isNotEmpty(bean.getDest()) && !checkDest(bean.getDest(), bean.getSource())) {
                 errors.add(RESOURCE_BUNDLE.getString("error.dest_and_pattern_in_source"));
             }
+
             if (bean.getSkipTranslatedOnly() != null && bean.getSkipUntranslatedFiles() != null
                 && bean.getSkipTranslatedOnly() && bean.getSkipUntranslatedFiles()) {
                 errors.add(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
             }
+
             return errors;
         }
     }

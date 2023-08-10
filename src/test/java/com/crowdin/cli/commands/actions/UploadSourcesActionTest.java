@@ -17,6 +17,9 @@ import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.Directory;
+import com.crowdin.client.sourcefiles.model.ExportQuotes;
+import com.crowdin.client.sourcefiles.model.GeneralFileExportOptions;
+import com.crowdin.client.sourcefiles.model.JavaScriptFileExportOptions;
 import com.crowdin.client.sourcefiles.model.OtherFileImportOptions;
 import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
 import com.crowdin.client.sourcefiles.model.SpreadsheetFileImportOptions;
@@ -76,8 +79,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -114,8 +116,84 @@ public class UploadSourcesActionTest {
                                  setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                              }}
             );
+            setExportOptions(new GeneralFileExportOptions() {{
+                                 setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                             }}
+            );
+        }};
+        verify(client).addSource(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadPropertiesFileWithEscapeQuotes_EmptyProject() throws ResponseException {
+        project.addFile(Utils.normalizePath("first.properties"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+                                                        .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+                                                        .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setEscapeQuotes(1);
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+          .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+        when(client.uploadStorage(eq("first.properties"), any()))
+          .thenReturn(1L);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("first.properties"), any());
+        AddFileRequest addFileRequest = new AddFileRequest() {{
+            setName("first.properties");
+            setStorageId(1L);
+            setImportOptions(new OtherFileImportOptions() {{
+                                 setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                             }}
+            );
             setExportOptions(new PropertyFileExportOptions() {{
-                                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                                setEscapeSpecialCharacters(1);
+                                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                            }}
+            );
+        }};
+        verify(client).addSource(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadJavaScriptFileWithExportQuotes_EmptyProject() throws ResponseException {
+        project.addFile(Utils.normalizePath("first.js"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+                                                        .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+                                                        .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setExportQuotes("single");
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+          .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+        when(client.uploadStorage(eq("first.js"), any()))
+          .thenReturn(1L);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("first.js"), any());
+        AddFileRequest addFileRequest = new AddFileRequest() {{
+            setName("first.js");
+            setStorageId(1L);
+            setImportOptions(new OtherFileImportOptions() {{
+                                 setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                             }}
+            );
+            setExportOptions(new JavaScriptFileExportOptions() {{
+                                 setExportQuotes(ExportQuotes.SINGLE);
                                  setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                              }}
             );
@@ -166,8 +244,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -181,8 +258,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -195,8 +271,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -240,8 +315,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -278,8 +352,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -315,8 +388,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -354,8 +426,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -392,8 +463,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -438,8 +508,7 @@ public class UploadSourcesActionTest {
                                  setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                              }}
             );
-            setExportOptions(new PropertyFileExportOptions() {{
-                                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+            setExportOptions(new GeneralFileExportOptions() {{
                                  setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                              }}
             );
@@ -478,8 +547,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -492,8 +560,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -538,8 +605,7 @@ public class UploadSourcesActionTest {
                         setFirstLineContainsHeader(false);
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -576,8 +642,7 @@ public class UploadSourcesActionTest {
                                  setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                              }}
             );
-            setExportOptions(new PropertyFileExportOptions() {{
-                                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+            setExportOptions(new GeneralFileExportOptions() {{
                                  setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                              }}
             );
@@ -622,8 +687,7 @@ public class UploadSourcesActionTest {
                                  setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                              }}
             );
-            setExportOptions(new PropertyFileExportOptions() {{
-                                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+            setExportOptions(new GeneralFileExportOptions() {{
                                  setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                              }}
             );
@@ -677,8 +741,7 @@ public class UploadSourcesActionTest {
                                  setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                              }}
             );
-            setExportOptions(new PropertyFileExportOptions() {{
-                                 setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+            setExportOptions(new GeneralFileExportOptions() {{
                                  setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                              }}
             );
