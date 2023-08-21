@@ -38,7 +38,7 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
 
     public static final String BASE_PATH_DEFAULT = ".";
     public static final String BASE_URL_DEFAULT = "https://api.crowdin.com";
-    public static final String BASE_ENTERPRISE_URL_DEFAULT = "https://%s.crowdin.com";
+    public static final String BASE_ENTERPRISE_URL_DEFAULT = "https://%s.api.crowdin.com";
 
     private boolean isEnterprise;
     private boolean withBrowser;
