@@ -87,7 +87,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         List<String> projectLanguages = projectInfo.getProjectLanguages(false).stream()
             .map(Language::getId)
             .collect(Collectors.toList());
-        if (languageIds.size() == 1 && BaseCli.ALL.equals(languageIds.get(0))) {
+        if (languageIds.size() == 1 && BaseCli.ALL.equalsIgnoreCase(languageIds.get(0))) {
             return projectLanguages;
         } else {
             String wrongLanguageIds = languageIds.stream()
