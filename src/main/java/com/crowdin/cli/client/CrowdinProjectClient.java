@@ -189,6 +189,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
             put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"), new RepeatException());
             put((code, message) -> StringUtils.contains(message, "Invalid SRX specified"), new ResponseException("Invalid SRX file specified"));
+            put((code, message) -> code.equals("409"), new FileInUpdateException());
         }};
         executeRequestWithPossibleRetry(
             errorHandlers,
