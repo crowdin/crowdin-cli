@@ -231,8 +231,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     } else {
                                         out.println(RESOURCE_BUNDLE.getString("message.file_being_updated"));
                                     }
-                                }
-                                catch (Exception e) {
+                                } catch (Exception e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
                                 }
