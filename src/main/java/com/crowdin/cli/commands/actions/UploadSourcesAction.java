@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.EmptyFileException;
 import com.crowdin.cli.client.ExistsResponseException;
+import com.crowdin.cli.client.FileInUpdateException;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
@@ -222,6 +223,13 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                             OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
                                     } else {
                                         out.println(fileFullPath);
+                                    }
+                                } catch (FileInUpdateException e) {
+                                    if (!plainView) {
+                                        out.println(
+                                            SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.file_being_updated"), fileFullPath)));
+                                    } else {
+                                        out.println(RESOURCE_BUNDLE.getString("message.file_being_updated"));
                                     }
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
