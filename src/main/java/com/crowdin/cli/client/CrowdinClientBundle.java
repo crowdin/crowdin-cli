@@ -1,6 +1,7 @@
 package com.crowdin.cli.client;
 
 
+import com.crowdin.client.bundles.model.AddBundleRequest;
 import com.crowdin.client.bundles.model.Bundle;
 import com.crowdin.client.bundles.model.BundleExport;
 
@@ -24,9 +25,9 @@ public class CrowdinClientBundle extends CrowdinClientCore implements ClientBund
     }
 
     @Override
-    public Bundle addBundle(Bundle bundleRequest) {
+    public Bundle addBundle(AddBundleRequest addBundleRequest) {
         return executeRequest(() -> this.client.getBundlesApi()
-                .addBundle(Long.valueOf(projectId), bundleRequest)
+                .addBundle(Long.valueOf(projectId), addBundleRequest)
                 .getData());
     }
 
@@ -49,9 +50,9 @@ public class CrowdinClientBundle extends CrowdinClientCore implements ClientBund
     }
 
     @Override
-    public BundleExport startExportingBundle(Long id, Bundle bundle) {
+    public BundleExport startExportingBundle(Long id) {
         return executeRequest(() -> this.client.getBundlesApi()
-                .exportBundle(Long.valueOf(projectId), id, bundle)
+                .exportBundle(Long.valueOf(projectId), id)
                 .getData());
     }
 

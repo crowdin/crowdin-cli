@@ -4,6 +4,7 @@ import com.crowdin.cli.client.ClientBundle;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectProperties;
+import com.crowdin.client.bundles.model.AddBundleRequest;
 import com.crowdin.client.bundles.model.Bundle;
 import lombok.AllArgsConstructor;
 
@@ -33,7 +34,7 @@ class BundleAddAction implements NewAction<ProjectProperties, ClientBundle> {
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientBundle client) {
         Bundle bundle;
-        Bundle addBundleRequest = new Bundle();
+        AddBundleRequest addBundleRequest = new AddBundleRequest();
         Optional.ofNullable(name).ifPresent(addBundleRequest::setName);
         Optional.ofNullable(format).ifPresent(addBundleRequest::setFormat);
         Optional.ofNullable(source).ifPresent(addBundleRequest::setSourcePatterns);

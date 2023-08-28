@@ -8,6 +8,7 @@ import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.Utils;
 
+import com.crowdin.client.bundles.model.AddBundleRequest;
 import com.crowdin.client.bundles.model.Bundle;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
@@ -36,7 +37,7 @@ public class BundleAddActionTest {
                 .setBasePath(Utils.PATH_SEPARATOR);
         PropertiesWithFiles pb = pbBuilder.build();
 
-        Bundle request = new Bundle();
+        AddBundleRequest request = new AddBundleRequest();
         request.setName(name);
         request.setFormat(format);
         request.setExportPattern(translation);
@@ -74,7 +75,7 @@ public class BundleAddActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         ClientBundle client = mock(ClientBundle.class);
 
-        Bundle request = new Bundle();
+        AddBundleRequest request = new AddBundleRequest();
         request.setName("");
         request.setFormat("");
         request.setExportPattern(null);
