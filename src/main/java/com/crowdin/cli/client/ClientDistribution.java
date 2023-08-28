@@ -13,4 +13,6 @@ public interface ClientDistribution extends Client {
     Distribution addDistribution(AddDistributionRequest request);
 
     DistributionRelease release(String hash);
+
+    DistributionRelease getDistributionRelease(String hash);
 }

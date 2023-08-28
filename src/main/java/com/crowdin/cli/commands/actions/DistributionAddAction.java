@@ -44,14 +44,22 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
             () -> this.projectClient.downloadFullProject(this.branch)
         );
 
+        if (files != null) {
+            List<String> projectFiles = project.getFiles().stream().map(FileInfo::getPath).collect(Collectors.toList());
+            List<String> notExistingFiles = files.stream().filter(file -> !projectFiles.contains(file))
+                                                 .collect(Collectors.toList());
+            if (!notExistingFiles.isEmpty()) {
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"),
+                                                         String.join("\n", notExistingFiles)));
+            }
+        }
+
         List<Long> fileIds = files == null ? null : project
             .getFiles()
             .stream()
             .filter(file -> files.contains(file.getPath()))
             .map(FileInfo::getId)
             .collect(Collectors.toList());
-
-        // TODO: handle not existing files
 
         Distribution distribution;
         AddDistributionRequest addDistributionRequest = RequestBuilder.addDistribution(name, exportMode, fileIds, bundleIds);
@@ -66,8 +74,12 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
             throw new RuntimeException(
                     String.format(RESOURCE_BUNDLE.getString("error.distribution_is_not_added"), addDistributionRequest), e);
         }
-
-        out.println(
-                OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.distribution.added"), distribution.getName())));
+        if (!plainView) {
+            out.println(
+                    OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.distribution.added"),
+                                              distribution.getName())));
+        } else {
+            out.println(String.valueOf(distribution.getName()));
+        }
     }
 }

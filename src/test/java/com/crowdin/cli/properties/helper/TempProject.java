@@ -8,6 +8,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Random;
 
 public class TempProject {
 
@@ -30,7 +31,7 @@ public class TempProject {
         return dir.toString() + Utils.PATH_SEPARATOR;
     }
 
-    public File addFile(String path) {
+    public com.crowdin.client.sourcefiles.model.File addFile(String path) {
         try {
             Path file = dir.resolve(path);
             Path parentFile = file.getParent();
@@ -38,7 +39,11 @@ public class TempProject {
                 Files.createDirectories(parentFile);
             }
             Files.createFile(file);
-            return file.toFile();
+            com.crowdin.client.sourcefiles.model.File crowdinFile = new com.crowdin.client.sourcefiles.model.File();
+            crowdinFile.setName(file.toFile().getName());
+            crowdinFile.setPath(file.toFile().getPath());
+            crowdinFile.setId(new Random().nextLong());
+            return crowdinFile;
         } catch (IOException e) {
             throw new RuntimeException("couldn't add file to folder", e);
         }

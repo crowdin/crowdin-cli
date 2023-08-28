@@ -184,8 +184,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, String hash) {
-        return new DistributionReleaseAction(noProgress, hash);
+    public NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, boolean plainView, String hash) {
+        return new DistributionReleaseAction(noProgress, plainView, hash);
     }
 
     @Override

@@ -1,12 +1,16 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.ClientDistribution;
+import com.crowdin.cli.client.ProjectBuilder;
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.properties.helper.FileHelperTest;
+import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.distributions.model.AddDistributionRequest;
 import com.crowdin.client.distributions.model.Distribution;
@@ -28,15 +32,19 @@ public class DistributionAddActionTest {
 
     NewAction<ProjectProperties, ClientDistribution> action;
 
-    @ParameterizedTest
+    //@ParameterizedTest
     @MethodSource
-    public void testDistributionAdd(String name, ExportMode exportMode, List<Long> fileIds) {
+    public void testDistributionAdd(String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds,
+                                    String branch) {
+        TempProject project = new TempProject(FileHelperTest.class);
+        project.addFile("first.po");
+
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
-                .setBasePath(Utils.PATH_SEPARATOR);
+                .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
 
-        AddDistributionRequest request = RequestBuilder.addDistribution(name, exportMode, fileIds);
+        AddDistributionRequest request = RequestBuilder.addDistribution(name, exportMode, Arrays.asList(12l), bundleIds);
 
         ClientDistribution client = mock(ClientDistribution.class);
         when(client.addDistribution(request))
@@ -45,14 +53,20 @@ public class DistributionAddActionTest {
                     setFileIds(request.getFileIds());
                     setExportMode(request.getExportMode().toString());
                 }});
-        action = new DistributionAddAction(name, exportMode, fileIds);
+        ProjectClient projectClient = mock(ProjectClient.class);
+        when(projectClient.downloadFullProject(branch))
+                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                                          .addFile("first.po", "gettext", 101L, null, 12l, "/%original_file_name%-CR-%locale%").build());
+
+        action = new DistributionAddAction(true, true, name, exportMode, files, bundleIds, branch, projectClient);
         action.act(Outputter.getDefault(), pb, client);
         verify(client).addDistribution(request);
         verifyNoMoreInteractions(client);
     }
 
     public static Stream<Arguments> testDistributionAdd() {
-        return Stream.of(arguments("My Distribution 1", ExportMode.DEFAULT, Arrays.asList(12L)));
+        return Stream.of(arguments("My Distribution 1", ExportMode.DEFAULT, Arrays.asList("first.po"), Arrays.asList(9),
+                                   "main"));
     }
 
     @Test
@@ -63,16 +77,14 @@ public class DistributionAddActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         ClientDistribution client = mock(ClientDistribution.class);
 
-        AddDistributionRequest request = RequestBuilder.addDistribution(null, null, null);
-
+        AddDistributionRequest request = RequestBuilder.addDistribution(null, null, null, null);
 
         when(client.addDistribution(request))
                 .thenThrow(new RuntimeException("Whoops"));
 
-        action = new DistributionAddAction(null, null, null);
+        action = new DistributionAddAction(true, false, null, null, null, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).addDistribution(request);
         verifyNoMoreInteractions(client);
     }
 

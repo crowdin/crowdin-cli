@@ -36,4 +36,11 @@ public class CrowdinClientDistribution extends CrowdinClientCore implements Clie
                                                .getData());
     }
 
+    @Override
+    public DistributionRelease getDistributionRelease(String hash) {
+        return executeRequest(() -> this.client.getDistributionsApi()
+                                               .getDistributionRelease(Long.valueOf(projectId), hash)
+                                               .getData());
+    }
+
 }

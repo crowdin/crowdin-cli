@@ -15,8 +15,11 @@ class DistributionReleaseSubcommand extends ActCommandDistribution {
     @CommandLine.Parameters(descriptionKey = "crowdin.distribution.release.hash")
     protected String hash;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.distribution.usage.plain")
+    protected boolean plainView;
+
     @Override
     protected NewAction<ProjectProperties, ClientDistribution> getAction(Actions actions) {
-        return actions.distributionRelease(noProgress, hash);
+        return actions.distributionRelease(noProgress, plainView, hash);
     }
 }
