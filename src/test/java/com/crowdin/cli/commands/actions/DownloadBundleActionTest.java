@@ -57,7 +57,7 @@ public class DownloadBundleActionTest {
         when(client.getBundle(bundle.getId()))
                 .thenReturn(Optional.of(bundle));
 
-        when(client.startExportingBundle(bundle.getId(), bundle))
+        when(client.startExportingBundle(bundle.getId()))
                 .thenReturn(export);
 
         FilesInterface files = mock(FilesInterface.class);
@@ -67,7 +67,7 @@ public class DownloadBundleActionTest {
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).getBundle(bundle.getId());
-        verify(client).startExportingBundle(bundle.getId(), bundle);
+        verify(client).startExportingBundle(bundle.getId());
         verify(client).downloadBundle(bundle.getId(), null);
         verifyNoMoreInteractions(client);
     }
