@@ -21,16 +21,17 @@ public class DistributionAddSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testDistributionAddInvalidOptions() {
-        this.executeInvalidParams(CommandNames.DISTRIBUTION, CommandNames.DISTRIBUTION_ADD, "Test Distribution1", "--file", "stringId");
+        this.executeInvalidParams(CommandNames.DISTRIBUTION, CommandNames.DISTRIBUTION_ADD, "Test Distribution1", "--file", null);
     }
 
     @ParameterizedTest
     @MethodSource
-    public void testSubCommandCheckValidOptions(String name, ExportMode exportMode, List<String> files) {
+    public void testSubCommandCheckValidOptions(String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds) {
         DistributionAddSubcommand distributionAddSubcommand = new DistributionAddSubcommand();
         distributionAddSubcommand.name = name;
         distributionAddSubcommand.exportMode = exportMode;
         distributionAddSubcommand.files = files;
+        distributionAddSubcommand.bundleIds = bundleIds;
 
         List<String> errors = distributionAddSubcommand.checkOptions();
         assertEquals(Collections.emptyList(), errors);
@@ -38,18 +39,20 @@ public class DistributionAddSubcommandTest extends PicocliTestUtils {
 
     public static Stream<Arguments> testSubCommandCheckValidOptions() {
         return Stream.of(
-            arguments("Distribution 1", ExportMode.DEFAULT, Arrays.asList("strings.xml", "strings2.xml")),
-            arguments("Distribution 2", ExportMode.BUNDLE, Arrays.asList("strings.xml", "strings2.xml")),
-            arguments("Distribution 3", null, Arrays.asList("strings.xml", "strings2.xml")));
+            arguments("Distribution 1", ExportMode.DEFAULT, Arrays.asList("strings.xml", "strings2.xml"), null),
+            arguments("Distribution 2", ExportMode.BUNDLE, null, Arrays.asList(1l, 2l)),
+            arguments("Distribution 3", null, Arrays.asList("strings.xml", "strings2.xml"), null));
     }
 
     @ParameterizedTest
     @MethodSource
-    public void testSubCommandCheckInvalidOptions(String name, ExportMode exportMode, List<String> files, List<String> expErrors) {
+    public void testSubCommandCheckInvalidOptions(String name, ExportMode exportMode, List<String> files,
+                                                  List<Integer> bundleIds, List<String> expErrors) {
         DistributionAddSubcommand distributionAddSubcommand = new DistributionAddSubcommand();
         distributionAddSubcommand.name = name;
         distributionAddSubcommand.exportMode = exportMode;
         distributionAddSubcommand.files = files;
+        distributionAddSubcommand.bundleIds = bundleIds;
 
         List<String> errors = distributionAddSubcommand.checkOptions();
         assertThat(errors, Matchers.equalTo(expErrors));
@@ -57,6 +60,10 @@ public class DistributionAddSubcommandTest extends PicocliTestUtils {
 
     public static Stream<Arguments> testSubCommandCheckInvalidOptions() {
         return Stream.of(
-            arguments("Distribution 1", ExportMode.DEFAULT, null, Arrays.asList(RESOURCE_BUNDLE.getString("error.distribution.empty_fileId"))));
+            arguments("Distribution 1", ExportMode.DEFAULT, null, null, Arrays.asList(RESOURCE_BUNDLE.getString("error.distribution.empty_file"))),
+            arguments("Distribution 2", ExportMode.BUNDLE, null, null, Arrays.asList(RESOURCE_BUNDLE.getString("error.distribution.empty_bundle_ids"))),
+            arguments("Distribution 3", ExportMode.BUNDLE, Arrays.asList("file.json"), Arrays.asList(1l), Arrays.asList(RESOURCE_BUNDLE.getString("error.distribution.incorrect_file_command_usage"))),
+            arguments("Distribution 4", ExportMode.DEFAULT, Arrays.asList("file.json"), Arrays.asList(1l), Arrays.asList(RESOURCE_BUNDLE.getString("error.distribution.incorrect_bundle_id_command_usage")))
+        );
     }
 }
