@@ -57,7 +57,7 @@ public class DistributionAddActionTest {
         ProjectClient projectClient = mock(ProjectClient.class);
         when(projectClient.downloadFullProject(branch))
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                                          .addFile("/first.po", "gettext", file.getId(), null, 12l, "/%original_file_name%-CR-%locale%").build());
+                                          .addFile(java.io.File.separator + "first.po", "gettext", file.getId(), null, 12l, "/%original_file_name%-CR-%locale%").build());
 
         action = new DistributionAddAction(true, true, name, exportMode, files, bundleIds, branch, projectClient);
         action.act(Outputter.getDefault(), pb, client);
