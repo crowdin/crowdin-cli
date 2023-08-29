@@ -84,6 +84,7 @@ public class ProjectBuilder {
                 setExportPattern(exportPattern);
             }}
         );
+        file.setPath(name);
         files.add(file);
         return this;
     }

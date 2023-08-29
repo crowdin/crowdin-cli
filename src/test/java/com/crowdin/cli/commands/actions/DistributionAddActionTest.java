@@ -15,6 +15,7 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.distributions.model.AddDistributionRequest;
 import com.crowdin.client.distributions.model.Distribution;
 import com.crowdin.client.distributions.model.ExportMode;
+import com.crowdin.client.sourcefiles.model.File;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -32,19 +33,19 @@ public class DistributionAddActionTest {
 
     NewAction<ProjectProperties, ClientDistribution> action;
 
-    //@ParameterizedTest
+    @ParameterizedTest
     @MethodSource
     public void testDistributionAdd(String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds,
                                     String branch) {
         TempProject project = new TempProject(FileHelperTest.class);
-        project.addFile("first.po");
+        File file = project.addFile("first.po");
 
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
 
-        AddDistributionRequest request = RequestBuilder.addDistribution(name, exportMode, Arrays.asList(12l), bundleIds);
+        AddDistributionRequest request = RequestBuilder.addDistribution(name, exportMode, Arrays.asList(file.getId()), bundleIds);
 
         ClientDistribution client = mock(ClientDistribution.class);
         when(client.addDistribution(request))
@@ -56,7 +57,7 @@ public class DistributionAddActionTest {
         ProjectClient projectClient = mock(ProjectClient.class);
         when(projectClient.downloadFullProject(branch))
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                                          .addFile("first.po", "gettext", 101L, null, 12l, "/%original_file_name%-CR-%locale%").build());
+                                          .addFile("first.po", "gettext", file.getId(), null, 12l, "/%original_file_name%-CR-%locale%").build());
 
         action = new DistributionAddAction(true, true, name, exportMode, files, bundleIds, branch, projectClient);
         action.act(Outputter.getDefault(), pb, client);
@@ -66,7 +67,7 @@ public class DistributionAddActionTest {
 
     public static Stream<Arguments> testDistributionAdd() {
         return Stream.of(arguments("My Distribution 1", ExportMode.DEFAULT, Arrays.asList("first.po"), Arrays.asList(9),
-                                   "main"));
+                                   null));
     }
 
     @Test
