@@ -40,7 +40,7 @@ class DistributionReleaseAction implements NewAction<ProjectProperties, ClientDi
                         ConsoleSpinner.update(
                                 String.format(RESOURCE_BUNDLE.getString("message.spinner.releasing_distribution_percents"),
                                               release.getProgress()));
-                        Thread.sleep(500);
+                        Thread.sleep(1000);
 
                         release = client.getDistributionRelease(hash);
 
