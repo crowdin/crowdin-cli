@@ -59,16 +59,19 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
                                                .map(FileInfo::getPath)
                                                .collect(Collectors.toList());
             List<String> notExistingFiles = files.stream()
-                                                 .map(file -> branch == null ? file : Utils.sepAtStart(Paths.get(branch, file).toString()))
+                                                 .map(file -> branch == null ? file : Paths.get(branch, file).toString())
+                                                 .map(Utils::sepAtStart)
                                                  .filter(file -> !projectFiles.contains(file))
                                                  .collect(Collectors.toList());
             if (!notExistingFiles.isEmpty()) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"),
-                                                         String.join("\n", notExistingFiles)));
+                throw new RuntimeException(notExistingFiles.stream().map(Utils::noSepAtStart)
+                     .map(file -> String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), file))
+                     .collect(Collectors.joining("\n\u274C ")));
             }
         }
-        files = branch != null ? files.stream().map(file->Utils.sepAtStart(Paths.get(branch, file).toString()))
-                                    .collect(Collectors.toList()): files;
+        files = branch != null ? files.stream().map(file -> Paths.get(branch, file).toString())
+                                      .collect(Collectors.toList()) : files;
+        files = files.stream().map(Utils::sepAtStart).collect(Collectors.toList());
         List<Long> fileIds = files == null ? null : project
                 .getFiles()
                 .stream()
