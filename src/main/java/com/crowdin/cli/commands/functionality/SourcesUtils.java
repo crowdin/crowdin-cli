@@ -146,4 +146,8 @@ public class SourcesUtils {
     public static boolean isFileProperties(File source) {
         return FilenameUtils.isExtension(source.getName(), "properties");
     }
+
+    public static boolean isFileJavaScript(File source) {
+        return FilenameUtils.isExtension(source.getName(), "js");
+    }
 }

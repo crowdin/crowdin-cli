@@ -29,10 +29,12 @@ import com.crowdin.client.sourcefiles.model.AddFileRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.ExportOptions;
 import com.crowdin.client.sourcefiles.model.FileInfo;
+import com.crowdin.client.sourcefiles.model.GeneralFileExportOptions;
 import com.crowdin.client.sourcefiles.model.ImportOptions;
 import com.crowdin.client.sourcefiles.model.OtherFileImportOptions;
 import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
 import com.crowdin.client.sourcefiles.model.SpreadsheetFileImportOptions;
+import com.crowdin.client.sourcefiles.model.JavaScriptFileExportOptions;
 import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcefiles.model.XmlFileImportOptions;
 import org.apache.commons.io.FilenameUtils;
@@ -53,6 +55,8 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
+import static com.crowdin.client.sourcefiles.model.ExportQuotes.SINGLE;
+import static com.crowdin.client.sourcefiles.model.ExportQuotes.DOUBLE;
 
 class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
@@ -350,21 +354,40 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
     }
 
     private ExportOptions buildExportOptions(java.io.File sourceFile, FileBean fileBean, String basePath) {
-        PropertyFileExportOptions exportOptions = new PropertyFileExportOptions();
         String exportPattern = TranslationsUtils.replaceDoubleAsterisk(
             fileBean.getSource(),
             fileBean.getTranslation(),
             StringUtils.removeStart(sourceFile.getAbsolutePath(), basePath)
         );
+
         exportPattern = StringUtils.replacePattern(exportPattern, "[\\\\/]+", "/");
-        exportOptions.setExportPattern(exportPattern);
-        exportOptions.setEscapeQuotes(fileBean.getEscapeQuotes());
-        if (fileBean.getEscapeSpecialCharacters() != null) {
-            exportOptions.setEscapeSpecialCharacters(fileBean.getEscapeSpecialCharacters());
-        } else if (SourcesUtils.isFileProperties(sourceFile)) {
+
+        if (SourcesUtils.isFileProperties(sourceFile)) {
+            PropertyFileExportOptions exportOptions = new PropertyFileExportOptions();
+            exportOptions.setExportPattern(exportPattern);
+            exportOptions.setEscapeQuotes(fileBean.getEscapeQuotes());
             exportOptions.setEscapeSpecialCharacters(1);
+
+            if (fileBean.getEscapeSpecialCharacters() != null) {
+                exportOptions.setEscapeSpecialCharacters(fileBean.getEscapeSpecialCharacters());
+            }
+
+            return exportOptions;
+        } else if (SourcesUtils.isFileJavaScript(sourceFile)) {
+            JavaScriptFileExportOptions exportOptions = new JavaScriptFileExportOptions();
+            exportOptions.setExportPattern(exportPattern);
+
+            if (fileBean.getExportQuotes() != null) {
+                exportOptions.setExportQuotes(fileBean.getExportQuotes().equals("double") ? DOUBLE : SINGLE);
+            }
+
+            return exportOptions;
+        } else {
+            GeneralFileExportOptions exportOptions = new GeneralFileExportOptions();
+            exportOptions.setExportPattern(exportPattern);
+
+            return exportOptions;
         }
-        return exportOptions;
     }
 
     private Branch getOrCreateBranch(Outputter out, String branchName, ProjectClient client, CrowdinProjectFull project) {

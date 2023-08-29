@@ -76,6 +76,8 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String ESCAPE_SPECIAL_CHARACTERS = "escape_special_characters";
 
+    public static final String EXPORT_QUOTES = "export_quotes";
+
     public static final String MULTILINGUAL_SPREADSHEET = "multilingual_spreadsheet";
 
     public static final String SCHEME = "scheme";
