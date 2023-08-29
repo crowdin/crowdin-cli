@@ -49,6 +49,7 @@ import static com.crowdin.cli.BaseCli.CHECK_WAITING_TIME_FIRST;
 import static com.crowdin.cli.BaseCli.CHECK_WAITING_TIME_INCREMENT;
 import static com.crowdin.cli.BaseCli.CHECK_WAITING_TIME_MAX;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.EMPTY;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
@@ -300,6 +301,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
                 if (!totalOmittedFiles.isEmpty()) {
                     out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted")));
+
                     totalOmittedFiles.forEach((file, translations) -> {
                         out.println(String.format(
                             RESOURCE_BUNDLE.getString("message.item_list_with_count"), file, translations.size()));
@@ -308,6 +310,8 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                                 String.format(RESOURCE_BUNDLE.getString("message.inner_item_list"), trans)));
                         }
                     });
+
+                    out.println(EMPTY.withIcon(RESOURCE_BUNDLE.getString("message.faq_link")));
                 }
 
                 List<String> totalOmittedFilesNoSources = omittedFilesNoSources.isEmpty() ? new ArrayList<>() : omittedFilesNoSources.get(0);
@@ -315,11 +319,12 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     totalOmittedFilesNoSources.retainAll(eachOmittedFilesNoSources);
                 }
                 if (!totalOmittedFilesNoSources.isEmpty()) {
-                    out.println(
-                        WARNING.withIcon(
-                            RESOURCE_BUNDLE.getString("message.downloaded_files_omitted_without_sources")));
+                    out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.downloaded_files_omitted_without_sources")));
+
                     totalOmittedFilesNoSources.forEach(file ->
                         out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), file)));
+
+                    out.println(EMPTY.withIcon(RESOURCE_BUNDLE.getString("message.faq_link")));
                 }
             }
         } finally {
