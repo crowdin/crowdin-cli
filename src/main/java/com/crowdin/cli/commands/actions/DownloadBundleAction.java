@@ -44,7 +44,7 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
     public void act(Outputter out, ProjectProperties pb, ClientBundle client) {
         this.out = out;
         Bundle bundle = getBundle(client);
-        BundleExport status = this.buildBundle(out, client, bundle.getId(), bundle);
+        BundleExport status = this.buildBundle(out, client, bundle.getId());
         to = new File("bundle-" + status.getIdentifier() + ".zip");
         downloadBundle(client, bundle.getId(), status.getIdentifier());
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.bundle.download_success"), bundle.getId(), bundle.getName())));
@@ -78,7 +78,7 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.bundle.not_found_by_id")));
     }
 
-    private BundleExport buildBundle(Outputter out, ClientBundle client, Long bundleId, Bundle request) {
+    private BundleExport buildBundle(Outputter out, ClientBundle client, Long bundleId) {
         return ConsoleSpinner.execute(
                 out,
                 "message.spinner.building_bundle",
@@ -86,7 +86,7 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
                 this.noProgress,
                 false,
                 () -> {
-                    BundleExport status = client.startExportingBundle(bundleId, request);
+                    BundleExport status = client.startExportingBundle(bundleId);
 
                     while (!status.getStatus().equalsIgnoreCase("finished")) {
                         ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.building_bundle_percents"), status.getProgress()));

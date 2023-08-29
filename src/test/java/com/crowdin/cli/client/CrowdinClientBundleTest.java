@@ -1,5 +1,6 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.client.bundles.model.AddBundleRequest;
 import com.crowdin.client.bundles.model.Bundle;
 import com.crowdin.client.bundles.model.BundleResponseList;
 import com.crowdin.client.bundles.model.BundleResponseObject;
@@ -63,7 +64,7 @@ public class CrowdinClientBundleTest {
         when(httpClientMock.post(eq(addBundleUrl), any(), any(), eq(BundleResponseObject.class)))
                 .thenReturn(response);
 
-        client.addBundle(new Bundle());
+        client.addBundle(new AddBundleRequest());
 
         verify(httpClientMock).post(eq(addBundleUrl), any(), any(), eq(BundleResponseObject.class));
         verifyNoMoreInteractions(httpClientMock);

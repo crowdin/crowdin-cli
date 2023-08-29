@@ -1,5 +1,6 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.client.bundles.model.AddBundleRequest;
 import com.crowdin.client.bundles.model.Bundle;
 import com.crowdin.client.bundles.model.BundleExport;
 
@@ -11,13 +12,13 @@ public interface ClientBundle extends Client {
 
     List<Bundle> listBundle();
 
-    Bundle addBundle(Bundle request);
+    Bundle addBundle(AddBundleRequest addBundleRequest);
 
     Optional<Bundle> getBundle(Long id);
 
     URL downloadBundle(Long id, String exportId);
 
-    BundleExport startExportingBundle(Long id, Bundle bundle);
+    BundleExport startExportingBundle(Long id);
 
     BundleExport checkExportingBundle(Long tmId, String exportId);
 
