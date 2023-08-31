@@ -11,6 +11,7 @@ import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.client.core.model.Priority;
+import com.crowdin.client.distributions.model.ExportMode;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.stringcomments.model.IssueStatus;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
@@ -170,6 +171,21 @@ public class CliActions implements Actions {
     @Override
     public NewAction<ProjectProperties, ClientTask> taskAdd(String title, Integer type, String language, List<Long> fileId, Long workflowStep, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, List<Long> labels) {
         return new TaskAddAction(title, type, language, fileId, workflowStep, description, skipAssignedStrings, skipUntranslatedStrings, labels);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ClientDistribution> distributionList(boolean plainView) {
+        return new DistributionListAction(plainView);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ClientDistribution> distributionAdd(boolean noProgress, boolean plainView, String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds, String branch, ProjectClient projectClient) {
+        return new DistributionAddAction(noProgress, plainView, name, exportMode, files, bundleIds, branch, projectClient);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, boolean plainView, String hash) {
+        return new DistributionReleaseAction(noProgress, plainView, hash);
     }
 
     @Override

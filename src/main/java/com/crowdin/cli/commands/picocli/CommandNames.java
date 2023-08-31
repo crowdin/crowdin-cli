@@ -64,4 +64,9 @@ public final class CommandNames {
     public static final String COMMENT = "comment";
     public static final String COMMENT_LIST = "list";
     public static final String COMMENT_RESOLVE = "resolve";
+
+    public static final String DISTRIBUTION = "distribution";
+    public static final String DISTRIBUTION_ADD = "add";
+    public static final String DISTRIBUTION_LIST = "list";
+    public static final String DISTRIBUTION_RELEASE = "release";
 }

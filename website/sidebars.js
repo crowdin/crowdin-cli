@@ -188,6 +188,21 @@ const sidebars = {
             'commands/crowdin-task-list',
           ]
         },
+        {
+          type: 'category',
+          label: 'crowdin distribution',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-distribution'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-distribution-add',
+            'commands/crowdin-distribution-list',
+            'commands/crowdin-distribution-release',
+          ]
+        },
         'commands/crowdin-pre-translate',
       ],
     },

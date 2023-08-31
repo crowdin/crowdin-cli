@@ -108,6 +108,21 @@ public class CliActionsTest {
     }
 
     @Test
+    public void testDistributionAdd() {
+        assertNotNull(actions.distributionAdd(false, false, null, null, null, null, null, null));
+    }
+
+    @Test
+    public void testDistributionList() {
+        assertNotNull(actions.distributionList(true));
+    }
+
+    @Test
+    public void testDistributionRelease() {
+        assertNotNull(actions.distributionRelease(false,true,null));
+    }
+
+    @Test
     public void testCheckNewVersion() {
         assertNotNull(actions.checkNewVersion());
     }
