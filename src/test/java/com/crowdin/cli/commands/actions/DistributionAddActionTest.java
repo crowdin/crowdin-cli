@@ -21,8 +21,12 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import javax.annotation.Nullable;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -36,28 +40,35 @@ public class DistributionAddActionTest {
     @ParameterizedTest
     @MethodSource
     public void testDistributionAdd(String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds,
-                                    String branch) {
+                                        String branch) {
         TempProject project = new TempProject(FileHelperTest.class);
-        File file = project.addFile("first.po");
 
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
 
-        AddDistributionRequest request = RequestBuilder.addDistribution(name, exportMode, Arrays.asList(file.getId()), bundleIds);
+        List<Long> fileIds = files == null ? null : files.stream().map(f -> project.addFile(f).getId()).collect(
+                Collectors.toList());
+        AddDistributionRequest request = RequestBuilder.addDistribution(name, exportMode, fileIds, bundleIds);
 
         ClientDistribution client = mock(ClientDistribution.class);
         when(client.addDistribution(request))
                 .thenReturn(new Distribution() {{
                     setName(request.getName());
                     setFileIds(request.getFileIds());
+                    setBundleIds(request.getBundleIds());
                     setExportMode(request.getExportMode().toString());
                 }});
+
+        ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
+        Optional.ofNullable(fileIds).ifPresent(ids -> new ArrayList<>(ids).forEach(
+                f -> projectBuilder.addFile(java.io.File.separator + files.get(ids.indexOf(f)), "gettext", f, null, 12l,
+                                            "/%original_file_name%-CR-%locale%")));
+
         ProjectClient projectClient = mock(ProjectClient.class);
         when(projectClient.downloadFullProject(branch))
-                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                                          .addFile(java.io.File.separator + "first.po", "gettext", file.getId(), null, 12l, "/%original_file_name%-CR-%locale%").build());
+                .thenReturn(projectBuilder.build());
 
         action = new DistributionAddAction(true, true, name, exportMode, files, bundleIds, branch, projectClient);
         action.act(Outputter.getDefault(), pb, client);
@@ -66,7 +77,9 @@ public class DistributionAddActionTest {
     }
 
     public static Stream<Arguments> testDistributionAdd() {
-        return Stream.of(arguments("My Distribution 1", ExportMode.DEFAULT, Arrays.asList("first.po"), Arrays.asList(9),
+        return Stream.of(arguments("My Distribution 1", ExportMode.DEFAULT, Arrays.asList("first.po"), null,
+                                   null),
+                         arguments("My Distribution 2", ExportMode.BUNDLE, null, Arrays.asList(9),
                                    null));
     }
 

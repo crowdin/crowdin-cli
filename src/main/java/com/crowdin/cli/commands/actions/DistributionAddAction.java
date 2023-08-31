@@ -48,7 +48,7 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
                 this.plainView,
                 () -> this.projectClient.downloadFullProject(this.branch)
         );
-
+        List<Long> fileIds = null;
         if (files != null) {
             Map<String, Long> projectBranches = project.getBranches().values().stream()
                                                        .collect(Collectors.toMap(Branch::getName, Branch::getId));
@@ -68,16 +68,16 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
                      .map(file -> String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), file))
                      .collect(Collectors.joining("\n\u274C ")));
             }
+            files = branch != null ? files.stream().map(file -> Paths.get(branch, file).toString())
+                                          .collect(Collectors.toList()) : files;
+            files = files.stream().map(Utils::sepAtStart).collect(Collectors.toList());
+            fileIds = project
+                    .getFiles()
+                    .stream()
+                    .filter(file -> files.contains(file.getPath()))
+                    .map(FileInfo::getId)
+                    .collect(Collectors.toList());
         }
-        files = branch != null ? files.stream().map(file -> Paths.get(branch, file).toString())
-                                      .collect(Collectors.toList()) : files;
-        files = files.stream().map(Utils::sepAtStart).collect(Collectors.toList());
-        List<Long> fileIds = files == null ? null : project
-                .getFiles()
-                .stream()
-                .filter(file -> files.contains(file.getPath()))
-                .map(FileInfo::getId)
-                .collect(Collectors.toList());
 
         Distribution distribution;
         AddDistributionRequest addDistributionRequest = RequestBuilder.addDistribution(name, exportMode, fileIds,
