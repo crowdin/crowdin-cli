@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
@@ -53,9 +52,7 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
             Map<String, Long> projectBranches = project.getBranches().values().stream()
                                                        .collect(Collectors.toMap(Branch::getName, Branch::getId));
             List<String> projectFiles = project.getFiles().stream()
-                                               .filter(file -> branch == null || file.getBranchId()
-                                                                                     .equals(projectBranches.get(
-                                                                                             branch)))
+                                               .filter(file -> branch == null || file.getBranchId().equals(projectBranches.get(branch)))
                                                .map(FileInfo::getPath)
                                                .collect(Collectors.toList());
             List<String> notExistingFiles = files.stream()
@@ -80,8 +77,7 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
         }
 
         Distribution distribution;
-        AddDistributionRequest addDistributionRequest = RequestBuilder.addDistribution(name, exportMode, fileIds,
-                                                                                       bundleIds);
+        AddDistributionRequest addDistributionRequest = RequestBuilder.addDistribution(name, exportMode, fileIds, bundleIds);
         Optional.ofNullable(name).ifPresent(addDistributionRequest::setName);
         Optional.ofNullable(exportMode).ifPresent(addDistributionRequest::setExportMode);
         Optional.ofNullable(fileIds).ifPresent(addDistributionRequest::setFileIds);
@@ -90,14 +86,11 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
         try {
             distribution = client.addDistribution(addDistributionRequest);
         } catch (Exception e) {
-            throw new RuntimeException(
-                    String.format(RESOURCE_BUNDLE.getString("error.distribution_is_not_added"), addDistributionRequest),
-                    e);
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.distribution_is_not_added"), addDistributionRequest), e);
         }
+
         if (!plainView) {
-            out.println(
-                    OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.distribution.added"),
-                                              distribution.getName())));
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.distribution.added"), distribution.getName())));
         } else {
             out.println(String.valueOf(distribution.getName()));
         }

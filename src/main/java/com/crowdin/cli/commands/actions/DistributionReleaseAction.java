@@ -18,15 +18,13 @@ class DistributionReleaseAction implements NewAction<ProjectProperties, ClientDi
     private boolean plainView;
     private String hash;
 
-
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientDistribution client) {
         this.releaseDistribution(out, client);
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.distribution.released"), hash)));
-
     }
 
-        private DistributionRelease releaseDistribution(Outputter out, ClientDistribution client) {
+    private DistributionRelease releaseDistribution(Outputter out, ClientDistribution client) {
         return ConsoleSpinner.execute(
                 out,
                 "message.spinner.releasing_distribution",
@@ -48,6 +46,7 @@ class DistributionReleaseAction implements NewAction<ProjectProperties, ClientDi
                             throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.build_has_failed"));
                         }
                     }
+
                     ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.releasing_distribution_percents"), 100));
 
                     return release;
