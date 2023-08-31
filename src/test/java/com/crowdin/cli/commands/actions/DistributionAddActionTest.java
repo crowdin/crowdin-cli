@@ -16,16 +16,16 @@ import com.crowdin.client.distributions.model.AddDistributionRequest;
 import com.crowdin.client.distributions.model.Distribution;
 import com.crowdin.client.distributions.model.ExportMode;
 import com.crowdin.client.sourcefiles.model.File;
+import jdk.internal.joptsimple.internal.Strings;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import javax.annotation.Nullable;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -40,7 +40,7 @@ public class DistributionAddActionTest {
     @ParameterizedTest
     @MethodSource
     public void testDistributionAdd(String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds,
-                                        String branch) {
+                                        String branch, Long branchId) {
         TempProject project = new TempProject(FileHelperTest.class);
 
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
@@ -62,8 +62,13 @@ public class DistributionAddActionTest {
                 }});
 
         ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
+        if (branch != null) {
+            projectBuilder.addBranches(branchId, branch);
+        }
         Optional.ofNullable(fileIds).ifPresent(ids -> new ArrayList<>(ids).forEach(
-                f -> projectBuilder.addFile(java.io.File.separator + files.get(ids.indexOf(f)), "gettext", f, null, 12l,
+                f -> projectBuilder.addFile(Utils.sepAtStart(Paths.get(Optional.ofNullable(branch).orElse(""),
+                                                                       files.get(ids.indexOf(f))).toString()),
+                                            "gettext", f, null, branchId,
                                             "/%original_file_name%-CR-%locale%")));
 
         ProjectClient projectClient = mock(ProjectClient.class);
@@ -78,9 +83,11 @@ public class DistributionAddActionTest {
 
     public static Stream<Arguments> testDistributionAdd() {
         return Stream.of(arguments("My Distribution 1", ExportMode.DEFAULT, Arrays.asList("first.po"), null,
-                                   null),
+                                   null, null),
                          arguments("My Distribution 2", ExportMode.BUNDLE, null, Arrays.asList(9),
-                                   null));
+                                   null, null),
+                          arguments("My Distribution 3", ExportMode.DEFAULT, Arrays.asList("second.po"), null,
+                                   "master", 1l));
     }
 
     @Test
