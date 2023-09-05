@@ -88,7 +88,10 @@ public class ScreenshotUploadActionTest {
 
         when(directory.getId()).thenReturn(directoryId);
         when(directory.getPath()).thenReturn(directoryPath);
-        when(projectFull.getDirectories()).thenReturn(nonNull(directoryId) ? Map.of(directoryId, directory) : new HashMap<>());
+
+        Map<Long, Directory> directories = new HashMap<>();
+        directories.put(directoryId, directory);
+        when(projectFull.getDirectories()).thenReturn(nonNull(directoryId) ? directories : new HashMap<>());
 
         when(projectClient.uploadStorage(eq(fileName), any())).thenReturn(1L);
         when(client.listScreenshots(null)).thenReturn(new ArrayList<>());
