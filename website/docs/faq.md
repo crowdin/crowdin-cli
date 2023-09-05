@@ -10,13 +10,21 @@ I'm trying to download translations and I get the following error: `Downloaded t
 
 **Answer:**
 
-The issue is related to the *Resulting file after translations export* files configuration.
+The issue is related to the "[*Resulting file after translations export*](https://support.crowdin.com/file-management/#file-settings)" file setting. This setting is used to define the resulting files and directory structure in the exported archive with translations.
 
-For CLI this export pattern should be the same as the `translation` pattern in the `crowdin.yml` configuration file. CLI passing it during the sources upload, but in case of files were uploaded in a **different way** or **patterns mismatch**, it should be specified manually or updated.
+For CLI, this export pattern should match the `translation` pattern in the `crowdin.yml` configuration file. CLI will pass it on source upload, but in case of files uploaded in **different way** or **patterns mismatch** it should be specified updated.
 
-The best way to update the *Resulting file after translations export* - is to run sources upload via CLI. Another way - manually modify files settings in Crowdin.
+The best way to update the *Resulting file after translations export* - is to run sources upload. Another way - manually modify files settings in Crowdin.
 
 It might affect some existing integrations because the files structure will change in an exported archive with translations.
+
+:::info
+The warning may appear in cases where all source files are located in a branch in the Crowdin project, but the branch was not specified when executing the CLI command (e.g. `crowdin download -b main` or `crowdin_branch_name: main` for [GitHub Action](https://github.com/crowdin/github-action)).
+:::
+
+:::note
+If you use [double asterisk](https://developer.crowdin.com/configuration-file/#general-configuration) in the `translation` pattern, the CLI will automatically fill the *Resulting file after translations export* pattern with all subdirectories during the source upload.
+:::
 
 ### Due to missing respective sources, the following translations will be omitted
 
@@ -24,7 +32,9 @@ I'm trying to download translations and I get the following error: `Due to missi
 
 **Answer:**
 
-It's related to the *Resulting file after translations export* files configuration in Crowdin. During the source push, the CLI will automatically set it, and it will be the same as the `translation` pattern of the `crowdin.yml` configuration file group. In the current case, the translation pattern is probably empty on the Crowdin side.
+It's related to the "[*Resulting file after translations export*](https://support.crowdin.com/file-management/#file-settings)" file setting in the Crowdin project. During the source push, the CLI will automatically set it, and it will be the same as the `translation` pattern of the `crowdin.yml` configuration file group (except for cases of using a double asterisk).
+
+In the current case, the translation pattern is probably **empty** on the Crowdin side.
 
 Possible workaround: run the `crowdin push` command to update the sources in the Crowdin project and set the correct translation export pattern.
 
