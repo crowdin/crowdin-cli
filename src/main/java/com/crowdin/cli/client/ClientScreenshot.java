@@ -10,7 +10,7 @@ public interface ClientScreenshot extends Client {
 
     List<Screenshot> listScreenshots(Long stringId);
 
-    Screenshot addScreenshot(AddScreenshotRequest request) throws ResponseException;
+    Screenshot uploadScreenshot(AddScreenshotRequest request) throws ResponseException;
 
     Screenshot updateScreenshot(Long screenshotId, UpdateScreenshotRequest request);
 

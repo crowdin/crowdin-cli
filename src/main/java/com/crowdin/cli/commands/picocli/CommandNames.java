@@ -72,6 +72,6 @@ public final class CommandNames {
 
     public static final String SCREENSHOT = "screenshot";
     public static final String SCREENSHOT_LIST = "list";
-    public static final String SCREENSHOT_ADD = "add";
+    public static final String SCREENSHOT_UPLOAD = "upload";
     public static final String SCREENSHOT_DELETE = "delete";
 }

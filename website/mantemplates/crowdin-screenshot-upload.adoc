@@ -1,7 +1,7 @@
 :includedir: ../generated-picocli-docs
-:command: crowdin-screenshot-add
+:command: crowdin-screenshot-upload
 
-== crowdin screenshot add
+== crowdin screenshot upload
 
 include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
 

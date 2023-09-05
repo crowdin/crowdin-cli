@@ -34,7 +34,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.*;
 
-public class ScreenshotAddActionTest {
+public class ScreenshotUploadActionTest {
 
     NewAction<ProjectProperties, ClientScreenshot> action;
 
@@ -52,8 +52,8 @@ public class ScreenshotAddActionTest {
 
     @ParameterizedTest
     @MethodSource
-    public void testAddScreenshot(String fileName, String sourceFilePath, Long sourceFileId, String branchName,
-          Long branchId, String directoryPath, Long directoryId, boolean autoTag) throws ResponseException {
+    public void testUploadScreenshot(String fileName, String sourceFilePath, Long sourceFileId, String branchName,
+                                     Long branchId, String directoryPath, Long directoryId, boolean autoTag) throws ResponseException {
         File fileToUpload = new File(project.getBasePath() + fileName);
         project.addFile(Utils.normalizePath(fileName));
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
@@ -93,21 +93,21 @@ public class ScreenshotAddActionTest {
         when(projectClient.uploadStorage(eq(fileName), any())).thenReturn(1L);
         when(client.listScreenshots(null)).thenReturn(new ArrayList<>());
 
-        when(client.addScreenshot(request))
+        when(client.uploadScreenshot(request))
                 .thenReturn(new Screenshot() {{
                     setName(request.getName());
                     setId(1L);
                 }});
 
-        action = new ScreenshotAddAction(fileToUpload, branchName, sourceFilePath, directoryPath, autoTag, false, false, projectClient);
+        action = new ScreenshotUploadAction(fileToUpload, branchName, sourceFilePath, directoryPath, autoTag, false, false, projectClient);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).listScreenshots(null);
-        verify(client).addScreenshot(request);
+        verify(client).uploadScreenshot(request);
         verifyNoMoreInteractions(client);
     }
 
-    public static Stream<Arguments> testAddScreenshot() {
+    public static Stream<Arguments> testUploadScreenshot() {
         return Stream.of(
                 arguments("screenshot.png", null, null, null, null, null, null, false),
                 arguments("screenshot.png", "/path/to/source/file", 10L, null, null, null, null, true),
@@ -116,7 +116,7 @@ public class ScreenshotAddActionTest {
     }
 
     @Test
-    public void testAddScreenshotToUpdate() throws ResponseException {
+    public void testUploadScreenshotToUpdate() throws ResponseException {
         String fileName = "to-upload.png";
         File fileToUpload = new File(project.getBasePath() + fileName);
         project.addFile(Utils.normalizePath(fileName));
@@ -145,7 +145,7 @@ public class ScreenshotAddActionTest {
                     setId(123L);
                 }});
 
-        action = new ScreenshotAddAction(fileToUpload, null, null, null, false, false, false, projectClient);
+        action = new ScreenshotUploadAction(fileToUpload, null, null, null, false, false, false, projectClient);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).listScreenshots(null);
@@ -154,7 +154,7 @@ public class ScreenshotAddActionTest {
     }
 
     @Test
-    public void testAddScreenshotNotExistingBranch() {
+    public void testUploadScreenshotNotExistingBranch() {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(Utils.PATH_SEPARATOR);
@@ -169,12 +169,12 @@ public class ScreenshotAddActionTest {
 
         when(projectFull.findBranchByName("main")).thenReturn(Optional.empty());
 
-        action = new ScreenshotAddAction(new File("screenshot.png"), "main", null, null, true, false, false, projectClient);
+        action = new ScreenshotUploadAction(new File("screenshot.png"), "main", null, null, true, false, false, projectClient);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
     }
 
     @Test
-    public void testAddScreenshotNotExistingSourceFile() {
+    public void testUploadScreenshotNotExistingSourceFile() {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(Utils.PATH_SEPARATOR);
@@ -189,12 +189,12 @@ public class ScreenshotAddActionTest {
 
         when(projectFull.getFileInfos()).thenReturn(new ArrayList<>());
 
-        action = new ScreenshotAddAction(new File("screenshot.png"), null, "/path/to/file", null, true, false, false, projectClient);
+        action = new ScreenshotUploadAction(new File("screenshot.png"), null, "/path/to/file", null, true, false, false, projectClient);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
     }
 
     @Test
-    public void testAddScreenshotNotExistingDirectory() {
+    public void testUploadScreenshotNotExistingDirectory() {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(Utils.PATH_SEPARATOR);
@@ -209,7 +209,7 @@ public class ScreenshotAddActionTest {
 
         when(projectFull.getDirectories()).thenReturn(new HashMap<>());
 
-        action = new ScreenshotAddAction(new File("screenshot.png"), null, null, "/path/to/directory", true, false, false, projectClient);
+        action = new ScreenshotUploadAction(new File("screenshot.png"), null, null, "/path/to/directory", true, false, false, projectClient);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
     }
 }

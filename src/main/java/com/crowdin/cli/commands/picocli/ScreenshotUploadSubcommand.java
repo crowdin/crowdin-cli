@@ -17,24 +17,24 @@ import java.util.List;
 import static java.util.Objects.nonNull;
 
 @CommandLine.Command(
-    name = CommandNames.SCREENSHOT_ADD,
+    name = CommandNames.SCREENSHOT_UPLOAD,
     sortOptions = false
 )
-class ScreenshotAddSubcommand extends ActCommandScreenshot{
+class ScreenshotUploadSubcommand extends ActCommandScreenshot{
 
-    @CommandLine.Parameters(descriptionKey = "crowdin.screenshot.add.file")
+    @CommandLine.Parameters(descriptionKey = "crowdin.screenshot.upload.file")
     protected File file;
 
-    @CommandLine.Option(names = {"--auto-tag"}, negatable = true, descriptionKey = "crowdin.screenshot.add.auto-tag", order = -2)
+    @CommandLine.Option(names = {"--auto-tag"}, negatable = true, descriptionKey = "crowdin.screenshot.upload.auto-tag", order = -2)
     protected boolean autoTag;
 
-    @CommandLine.Option(names = {"-f", "--file"}, paramLabel = "...", descriptionKey = "crowdin.screenshot.add.file-path", order = -2)
+    @CommandLine.Option(names = {"-f", "--file"}, paramLabel = "...", descriptionKey = "crowdin.screenshot.upload.file-path", order = -2)
     protected String filePath;
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", descriptionKey = "crowdin.screenshot.add.branch-name", order = -2)
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", descriptionKey = "crowdin.screenshot.upload.branch-name", order = -2)
     protected String branchName;
 
-    @CommandLine.Option(names = {"-d", "--directory"}, paramLabel = "...", descriptionKey = "crowdin.screenshot.add.directory-path", order = -2)
+    @CommandLine.Option(names = {"-d", "--directory"}, paramLabel = "...", descriptionKey = "crowdin.screenshot.upload.directory-path", order = -2)
     protected String directoryPath;
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
@@ -44,7 +44,7 @@ class ScreenshotAddSubcommand extends ActCommandScreenshot{
     protected NewAction<ProjectProperties, ClientScreenshot> getAction(Actions actions) {
         Outputter out = new PicocliOutputter(System.out, isAnsi());
         ProjectClient projectClient = this.getProjectClient(this.getProperties(propertiesBuilders, out));
-        return actions.screenshotAdd(file, branchName, directoryPath, filePath, autoTag, plainView, this.noProgress, projectClient);
+        return actions.screenshotUpload(file, branchName, directoryPath, filePath, autoTag, plainView, this.noProgress, projectClient);
     }
 
     @Override

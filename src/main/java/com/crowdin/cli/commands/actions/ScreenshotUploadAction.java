@@ -28,7 +28,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 import static java.util.Objects.nonNull;
 
 @AllArgsConstructor
-class ScreenshotAddAction implements NewAction<ProjectProperties, ClientScreenshot> {
+class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScreenshot> {
 
     private final File file;
     private final String branchName;
@@ -91,7 +91,7 @@ class ScreenshotAddAction implements NewAction<ProjectProperties, ClientScreensh
         request.setAutoTag(autoTag);
 
         try {
-            client.addScreenshot(request);
+            client.uploadScreenshot(request);
         } catch (AutoTagInProgressException e) {
             if (!plainView) {
                 out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.screenshot.not_auto-tagged"), file.getName())));
@@ -99,10 +99,10 @@ class ScreenshotAddAction implements NewAction<ProjectProperties, ClientScreensh
                 out.println(String.format(RESOURCE_BUNDLE.getString("message.screenshot.not_auto-tagged"), file.getName()));
             }
         } catch (Exception e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.screenshot.not_added"), request), e);
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.screenshot.not_uploaded"), request), e);
         }
         if (!plainView) {
-            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.screenshot.added"), file.getName())));
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.screenshot.uploaded"), file.getName())));
         } else {
             out.println(file.getName());
         }

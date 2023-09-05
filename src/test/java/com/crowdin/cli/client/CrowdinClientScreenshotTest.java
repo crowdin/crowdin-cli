@@ -27,7 +27,7 @@ class CrowdinClientScreenshotTest {
 
     private static final String listScreenshotUrl = String.format("%s/projects/%d/screenshots", url, projectId);
     private static final String deleteScreenshotUrl = String.format("%s/projects/%d/screenshots/%d", url, projectId, screenshotId);
-    private static final String addScreenshotUrl = String.format("%s/projects/%d/screenshots", url, projectId);
+    private static final String uploadScreenshotUrl = String.format("%s/projects/%d/screenshots", url, projectId);
     private static final String updateScreenshotUrl = String.format("%s/projects/%d/screenshots/%d", url, projectId, screenshotId);
 
     @BeforeEach
@@ -65,16 +65,16 @@ class CrowdinClientScreenshotTest {
     }
 
     @Test
-    public void testAddScreenshot() throws ResponseException {
+    public void testUploadScreenshot() throws ResponseException {
         ScreenshotResponseObject response = new ScreenshotResponseObject() {{
             setData(new Screenshot());
         }};
-        when(httpClientMock.post(eq(addScreenshotUrl), any(), any(), eq(ScreenshotResponseObject.class)))
+        when(httpClientMock.post(eq(uploadScreenshotUrl), any(), any(), eq(ScreenshotResponseObject.class)))
             .thenReturn(response);
 
-        client.addScreenshot(new AddScreenshotRequest());
+        client.uploadScreenshot(new AddScreenshotRequest());
 
-        verify(httpClientMock).post(eq(addScreenshotUrl), any(), any(), eq(ScreenshotResponseObject.class));
+        verify(httpClientMock).post(eq(uploadScreenshotUrl), any(), any(), eq(ScreenshotResponseObject.class));
         verifyNoMoreInteractions(httpClientMock);
     }
 

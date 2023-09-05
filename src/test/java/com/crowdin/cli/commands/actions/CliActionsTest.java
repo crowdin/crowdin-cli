@@ -133,8 +133,8 @@ public class CliActionsTest {
     }
 
     @Test
-    void testScreenshotAdd() {
-        assertNotNull(actions.screenshotAdd(null, null, null, null, false, false, false, null));
+    void testScreenshotUpload() {
+        assertNotNull(actions.screenshotUpload(null, null, null, null, false, false, false, null));
     }
 
     @Test

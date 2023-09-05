@@ -17,24 +17,24 @@ import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
-public class ScreenshotAddSubcommandTest extends PicocliTestUtils {
+public class ScreenshotUploadSubcommandTest extends PicocliTestUtils {
 
     @Test
-    public void testScreenshotAddInvalidOptions() {
-        this.executeInvalidParams(CommandNames.SCREENSHOT, CommandNames.SCREENSHOT_ADD);
+    public void testScreenshotUploadInvalidOptions() {
+        this.executeInvalidParams(CommandNames.SCREENSHOT, CommandNames.SCREENSHOT_UPLOAD);
     }
 
     @ParameterizedTest
     @MethodSource
     public void testSubCommandCheckValidOptions(File file, boolean autoTag, String filePath, String branchName, String directoryPath) {
-        ScreenshotAddSubcommand screenshotAddSubcommand = new ScreenshotAddSubcommand();
-        screenshotAddSubcommand.file = file;
-        screenshotAddSubcommand.autoTag = autoTag;
-        screenshotAddSubcommand.filePath = filePath;
-        screenshotAddSubcommand.branchName = branchName;
-        screenshotAddSubcommand.directoryPath = directoryPath;
+        ScreenshotUploadSubcommand screenshotUploadSubcommand = new ScreenshotUploadSubcommand();
+        screenshotUploadSubcommand.file = file;
+        screenshotUploadSubcommand.autoTag = autoTag;
+        screenshotUploadSubcommand.filePath = filePath;
+        screenshotUploadSubcommand.branchName = branchName;
+        screenshotUploadSubcommand.directoryPath = directoryPath;
 
-        List<String> errors = screenshotAddSubcommand.checkOptions();
+        List<String> errors = screenshotUploadSubcommand.checkOptions();
         assertEquals(Collections.emptyList(), errors);
     }
 
@@ -49,14 +49,14 @@ public class ScreenshotAddSubcommandTest extends PicocliTestUtils {
     @ParameterizedTest
     @MethodSource
     public void testSubCommandCheckInvalidOptions(File file, boolean autoTag, String filePath, String branchName, String directoryPath, List<String> expErrors) {
-        ScreenshotAddSubcommand screenshotAddSubcommand = new ScreenshotAddSubcommand();
-        screenshotAddSubcommand.file = file;
-        screenshotAddSubcommand.autoTag = autoTag;
-        screenshotAddSubcommand.filePath = filePath;
-        screenshotAddSubcommand.branchName = branchName;
-        screenshotAddSubcommand.directoryPath = directoryPath;
+        ScreenshotUploadSubcommand screenshotUploadSubcommand = new ScreenshotUploadSubcommand();
+        screenshotUploadSubcommand.file = file;
+        screenshotUploadSubcommand.autoTag = autoTag;
+        screenshotUploadSubcommand.filePath = filePath;
+        screenshotUploadSubcommand.branchName = branchName;
+        screenshotUploadSubcommand.directoryPath = directoryPath;
 
-        List<String> errors = screenshotAddSubcommand.checkOptions();
+        List<String> errors = screenshotUploadSubcommand.checkOptions();
         assertThat(errors, Matchers.equalTo(expErrors));
     }
 

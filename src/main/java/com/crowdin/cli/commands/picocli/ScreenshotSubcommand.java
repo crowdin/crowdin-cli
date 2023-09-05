@@ -7,7 +7,7 @@ import picocli.CommandLine.Command;
     name = CommandNames.SCREENSHOT,
     subcommands = {
         ScreenshotListSubcommand.class,
-        ScreenshotAddSubcommand.class,
+        ScreenshotUploadSubcommand.class,
         ScreenshotDeleteSubcommand.class
     }
 )
