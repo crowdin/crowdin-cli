@@ -23,19 +23,19 @@ import static java.util.Objects.nonNull;
 class ScreenshotAddSubcommand extends ActCommandScreenshot{
 
     @CommandLine.Parameters(descriptionKey = "crowdin.screenshot.add.file")
-    private File file;
+    protected File file;
 
     @CommandLine.Option(names = {"--auto-tag"}, negatable = true, descriptionKey = "crowdin.screenshot.add.auto-tag", order = -2)
-    private boolean autoTag;
+    protected boolean autoTag;
 
     @CommandLine.Option(names = {"-f", "--file"}, paramLabel = "...", descriptionKey = "crowdin.screenshot.add.file-path", order = -2)
-    private String filePath;
+    protected String filePath;
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", descriptionKey = "crowdin.screenshot.add.branch-name", order = -2)
-    private String branchName;
+    protected String branchName;
 
     @CommandLine.Option(names = {"-d", "--directory"}, paramLabel = "...", descriptionKey = "crowdin.screenshot.add.directory-path", order = -2)
-    private String directoryPath;
+    protected String directoryPath;
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;

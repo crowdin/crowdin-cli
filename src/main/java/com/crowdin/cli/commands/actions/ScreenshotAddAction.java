@@ -113,7 +113,7 @@ class ScreenshotAddAction implements NewAction<ProjectProperties, ClientScreensh
         try (InputStream fileStream = Files.newInputStream(fileToUpload.toPath())) {
             storageId = this.projectClient.uploadStorage(fileToUpload.getName(), fileStream);
         } catch (Exception e) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_to_storage"), e);
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), fileToUpload.getName()), e);
         }
         return storageId;
     }

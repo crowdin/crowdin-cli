@@ -126,4 +126,19 @@ public class CliActionsTest {
     public void testCheckNewVersion() {
         assertNotNull(actions.checkNewVersion());
     }
+
+    @Test
+    void testScreenshotList() {
+        assertNotNull(actions.screenshotList(null, false));
+    }
+
+    @Test
+    void testScreenshotAdd() {
+        assertNotNull(actions.screenshotAdd(null, null, null, null, false, false, false, null));
+    }
+
+    @Test
+    void testScreenshotDelete() {
+        assertNotNull(actions.screenshotDelete(null));
+    }
 }

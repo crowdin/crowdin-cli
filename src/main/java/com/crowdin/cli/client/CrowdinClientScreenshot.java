@@ -39,7 +39,8 @@ public class CrowdinClientScreenshot extends CrowdinClientCore implements Client
     @Override
     public Screenshot updateScreenshot(Long screenshotId, UpdateScreenshotRequest request) {
         return executeRequest(() -> this.client.getScreenshotsApi()
-            .updateScreenshot(parseLong(this.projectId), screenshotId, request).getData());
+            .updateScreenshot(parseLong(this.projectId), screenshotId, request)
+            .getData());
     }
 
     @Override
