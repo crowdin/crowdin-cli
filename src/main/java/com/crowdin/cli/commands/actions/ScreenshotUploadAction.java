@@ -7,6 +7,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectProperties;
+import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.screenshots.model.AddScreenshotRequest;
 import com.crowdin.client.screenshots.model.Screenshot;
@@ -75,14 +76,16 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
             request.setBranchId(branch.getId());
         }
         if (nonNull(pathToSourceFile)) {
+            final String normalizedPath = Utils.unixPath(Utils.sepAtStart(pathToSourceFile));
             FileInfo fileInfo = project.getFileInfos().stream()
-                .filter(f -> pathToSourceFile.equals(f.getPath())).findFirst()
+                .filter(f -> normalizedPath.equals(f.getPath())).findFirst()
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), pathToSourceFile)));
             request.setFileId(fileInfo.getId());
         }
         if (nonNull(directoryPath)) {
+            final String normalizedPath = Utils.unixPath(Utils.sepAtStart(directoryPath));
             Directory directory = project.getDirectories().values().stream()
-                .filter(d -> directoryPath.equals(d.getPath())).findFirst()
+                .filter(d -> normalizedPath.equals(d.getPath())).findFirst()
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.dir_not_exists"), directoryPath)));
             request.setDirectoryId(directory.getId());
         }
