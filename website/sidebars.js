@@ -204,6 +204,21 @@ const sidebars = {
             'commands/crowdin-distribution-release',
           ]
         },
+        {
+          type: 'category',
+          label: 'crowdin screenshot',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-screenshot'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-screenshot-upload',
+            'commands/crowdin-screenshot-list',
+            'commands/crowdin-screenshot-delete',
+          ]
+        },
         'commands/crowdin-pre-translate',
       ],
     },

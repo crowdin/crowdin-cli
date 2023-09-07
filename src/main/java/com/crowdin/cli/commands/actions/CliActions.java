@@ -241,4 +241,19 @@ public class CliActions implements Actions {
     public NewAction<ProjectProperties, ProjectClient> branchDelete(String name) {
         return new BranchDeleteAction(name);
     }
+
+    @Override
+    public NewAction<ProjectProperties, ClientScreenshot> screenshotList(Long stringId, boolean plainView) {
+        return new ScreenshotListAction(stringId, plainView);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ClientScreenshot> screenshotUpload(File file, String branchName, String directoryPath, String filePath, boolean autoTag, boolean plainView, boolean noProgress, ProjectClient projectClient) {
+        return new ScreenshotUploadAction(file, branchName, filePath, directoryPath, autoTag, plainView, noProgress, projectClient);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ClientScreenshot> screenshotDelete(String name) {
+        return new ScreenshotDeleteAction(name);
+    }
 }

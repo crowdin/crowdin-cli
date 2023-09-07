@@ -117,4 +117,9 @@ public interface Actions {
 
     NewAction<ProjectProperties, ProjectClient> branchDelete(String name);
 
+    NewAction<ProjectProperties, ClientScreenshot> screenshotList(Long stringId, boolean plainView);
+
+    NewAction<ProjectProperties, ClientScreenshot> screenshotUpload(File file, String branchName, String directoryPath, String filePath, boolean autoTag, boolean plainView, boolean noProgress, ProjectClient projectClient);
+
+    NewAction<ProjectProperties, ClientScreenshot> screenshotDelete(String name);
 }
