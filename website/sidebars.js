@@ -50,6 +50,7 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
+            'commands/crowdin-download-translations',
             'commands/crowdin-download-sources',
             'commands/crowdin-download-bundle',
           ]
