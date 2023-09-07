@@ -44,13 +44,28 @@ class TaskAddSubcommand extends ActCommandTask {
     @CommandLine.Option(names = {"--skip-untranslated-strings"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-untranslated-strings", order = -2)
     protected boolean skipUntranslatedStrings;
 
+    @CommandLine.Option(names = {"--include-pre-translated-strings-only"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.include-pre-translated-strings-only", order = -2)
+    protected boolean includePreTranslatedStringsOnly;
+
     @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "crowdin.task.add.label", order = -2)
     protected List<Long> labels;
 
     @Override
     protected NewAction<ProjectProperties, ClientTask> getAction(Actions actions) {
         int intType = TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) ? 0 : 1;
-        return actions.taskAdd(title, intType, language, files, workflowStep, description, skipAssignedStrings, skipUntranslatedStrings, labels);
+
+        return actions.taskAdd(
+          title,
+          intType,
+          language,
+          files,
+          workflowStep,
+          description,
+          skipAssignedStrings,
+          skipUntranslatedStrings,
+          includePreTranslatedStringsOnly,
+          labels
+        );
     }
 
     @Override
@@ -66,23 +81,40 @@ class TaskAddSubcommand extends ActCommandTask {
             if (Strings.isEmpty(type)) {
                 errors.add(RESOURCE_BUNDLE.getString("error.task.empty_type"));
             }
+
             if (Strings.isNotEmpty(type) && !(TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) || PROOFREAD_TASK_TYPE.equalsIgnoreCase(type))) {
                 errors.add(RESOURCE_BUNDLE.getString("error.task.unsupported.type"));
+            }
+
+            if (TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) && skipUntranslatedStrings) {
+                errors.add(RESOURCE_BUNDLE.getString("error.task.translate_type_skip_untranslated_strings"));
+            }
+
+            if (includePreTranslatedStringsOnly && !skipUntranslatedStrings) {
+                errors.add(RESOURCE_BUNDLE.getString("error.task.skip_untranslated_strings_include_pre_translated"));
             }
         } else {
             if (workflowStep == null) {
                 errors.add(RESOURCE_BUNDLE.getString("error.task.empty_workflow_step"));
             }
         }
+
         if (Strings.isEmpty(title)) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.empty_title"));
         }
+
         if (Strings.isEmpty(language)) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.empty_language"));
         }
+
         if (files == null || files.isEmpty()) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.empty_fileId"));
         }
+
+        if (TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) && includePreTranslatedStringsOnly) {
+            errors.add(RESOURCE_BUNDLE.getString("error.task.translate_type_include_pre_translated_strings"));
+        }
+
         return errors;
     }
 }

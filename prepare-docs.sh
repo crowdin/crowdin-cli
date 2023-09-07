@@ -73,6 +73,7 @@ sed -i.bak -e 's/\*\*--\[no-\]translate-untranslated-only\*\*/`--[no-]translate-
 sed -i.bak -e 's/\*\*--\[no-\]translate-with-perfect-match-only\*\*/`--[no-]translate-with-perfect-match-only`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]skip-assigned-strings\*\*/`--[no-]skip-assigned-strings`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]skip-untranslated-strings\*\*/`--[no-]skip-untranslated-strings`/g' -- *.md
+sed -i.bak -e 's/\*\*--\[no-\]include-pre-translated-strings-only\*\*/`--[no-]include-pre-translated-strings-only`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]auto-update\*\*/`--[no-]auto-update`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]auto-approve-imported\*\*/`--[no-]auto-approve-imported`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]import-eq-suggestions\*\*/`--[no-]import-eq-suggestions`/g' -- *.md
