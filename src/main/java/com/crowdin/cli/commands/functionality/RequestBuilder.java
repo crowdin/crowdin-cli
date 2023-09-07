@@ -68,7 +68,7 @@ public class RequestBuilder {
         return request;
     }
 
-    public static CrowdinTaskCreateFormRequest addCrowdinTask(String title, Integer type, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, List<Long> labelIds) {
+    public static CrowdinTaskCreateFormRequest addCrowdinTask(String title, Integer type, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, boolean includePreTranslatedStringsOnly, List<Long> labelIds) {
         CrowdinTaskCreateFormRequest request = new CrowdinTaskCreateFormRequest();
         request.setTitle(title);
         request.setType(type);
@@ -77,17 +77,19 @@ public class RequestBuilder {
         request.setDescription(description);
         request.setSkipAssignedStrings(skipAssignedStrings);
         request.setSkipUntranslatedStrings(skipUntranslatedStrings);
+        request.setIncludePreTranslatedStringsOnly(includePreTranslatedStringsOnly);
         request.setLabelIds(labelIds);
         return request;
     }
 
-    public static EnterpriseTaskCreateFormRequest addEnterpriseTask(String title, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, List<Long> labelIds, Long workflowStepId) {
+    public static EnterpriseTaskCreateFormRequest addEnterpriseTask(String title, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, boolean includePreTranslatedStringsOnly, List<Long> labelIds, Long workflowStepId) {
         EnterpriseTaskCreateFormRequest request = new EnterpriseTaskCreateFormRequest();
         request.setTitle(title);
         request.setLanguageId(languageId);
         request.setFileIds(fileId);
         request.setDescription(description);
         request.setSkipAssignedStrings(skipAssignedStrings);
+        request.setIncludePreTranslatedStringsOnly(includePreTranslatedStringsOnly);
         request.setLabelIds(labelIds);
         request.setWorkflowStepId(workflowStepId);
         return request;

@@ -42,14 +42,14 @@ public class TaskAddActionTest {
     @ParameterizedTest
     @MethodSource
     public void testTaskAdd(String title, Integer type, String languageId, List<Long> fileIds, String description,
-                            boolean skipAssignedStrings, boolean skipUntranslatedStrings, List<Long> labelIds) {
+                            boolean skipAssignedStrings, boolean skipUntranslatedStrings, boolean includePreTranslatedStringsOnly, List<Long> labelIds) {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(Utils.PATH_SEPARATOR);
         PropertiesWithFiles pb = pbBuilder.build();
 
         CrowdinTaskCreateFormRequest request = RequestBuilder.addCrowdinTask(title, type, languageId, fileIds,
-                description, skipAssignedStrings, skipUntranslatedStrings, labelIds);
+                description, skipAssignedStrings, skipUntranslatedStrings, includePreTranslatedStringsOnly, labelIds);
 
         ClientTask client = mock(ClientTask.class);
         when(client.addTask(request))
@@ -59,15 +59,16 @@ public class TaskAddActionTest {
                     setDescription(request.getDescription());
                     setTitle(request.getTitle());
                 }});
-        action = new TaskAddAction(title, type, languageId, fileIds, null, description, skipAssignedStrings,
-                skipUntranslatedStrings, labelIds);
+
+        action = new TaskAddAction(title, type, languageId, fileIds, null, description, skipAssignedStrings, skipUntranslatedStrings, includePreTranslatedStringsOnly, labelIds);
         action.act(Outputter.getDefault(), pb, client);
+
         verify(client).addTask(request);
         verifyNoMoreInteractions(client);
     }
 
     public static Stream<Arguments> testTaskAdd() {
-        return Stream.of(arguments("My title", 1, "es", Arrays.asList(12L), "It's description", false, false, null));
+        return Stream.of(arguments("My title", 1, "es", Arrays.asList(12L), "It's description", false, false, false, null));
     }
 
     @ParameterizedTest
@@ -82,7 +83,7 @@ public class TaskAddActionTest {
         pb.setBaseUrl("https://testos.crowdin.com");
 
         EnterpriseTaskCreateFormRequest request = RequestBuilder.addEnterpriseTask(title, languageId, fileIds,
-                description, skipAssignedStrings, labelIds, workflowStepId);
+                description, skipAssignedStrings, false, labelIds, workflowStepId);
 
         ClientTask client = mock(ClientTask.class);
         when(client.addTask(request))
@@ -92,9 +93,10 @@ public class TaskAddActionTest {
                     setDescription(request.getDescription());
                     setTitle(request.getTitle());
                 }});
-        action = new TaskAddAction(title, null, languageId, fileIds, workflowStepId, description, skipAssignedStrings,
-                false, labelIds);
+
+        action = new TaskAddAction(title, null, languageId, fileIds, workflowStepId, description, skipAssignedStrings, false, false, labelIds);
         action.act(Outputter.getDefault(), pb, client);
+
         verify(client).addTask(request);
         verifyNoMoreInteractions(client);
     }
@@ -112,17 +114,16 @@ public class TaskAddActionTest {
         ClientTask client = mock(ClientTask.class);
 
         CrowdinTaskCreateFormRequest request = RequestBuilder.addCrowdinTask(null, null, null,
-                null, null, false, false, null);
+                null, null, false, false, false, null);
 
         when(client.addTask(request))
                 .thenThrow(new RuntimeException("Whoops"));
 
-        action = new TaskAddAction(null, null, null,null, null, null,
-                false, false, null);
+        action = new TaskAddAction(null, null, null, null, null, null, false, false, false, null);
+
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).addTask(request);
         verifyNoMoreInteractions(client);
     }
-
 }

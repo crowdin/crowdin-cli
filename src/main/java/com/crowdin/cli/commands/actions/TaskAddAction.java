@@ -39,6 +39,8 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
 
     private boolean skipUntranslatedStrings;
 
+    private boolean includePreTranslatedStringsOnly;
+
     private List<Long> labels;
 
     @Override
@@ -53,6 +55,7 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
             Optional.ofNullable(fileId).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setFileIds(value));
             Optional.ofNullable(description).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setDescription(value));
             Optional.ofNullable(skipAssignedStrings).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setSkipAssignedStrings(value));
+            Optional.ofNullable(includePreTranslatedStringsOnly).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setIncludePreTranslatedStringsOnly(value));
             Optional.ofNullable(labels).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setLabelIds(value));
             Optional.ofNullable(workflowStep).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setWorkflowStepId(value));
         } else {
@@ -64,6 +67,7 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
             Optional.ofNullable(description).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setDescription(value));
             Optional.ofNullable(skipAssignedStrings).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setSkipAssignedStrings(value));
             Optional.ofNullable(skipUntranslatedStrings).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setSkipUntranslatedStrings(value));
+            Optional.ofNullable(includePreTranslatedStringsOnly).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setIncludePreTranslatedStringsOnly(value));
             Optional.ofNullable(labels).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setLabelIds(value));
         }
 
