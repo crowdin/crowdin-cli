@@ -3,14 +3,14 @@
   <metadata>
     <id>crowdin-cli</id>
     <version>3.14.0</version>
-    <packageSourceUrl>https://github.com/crowdin/crowdin-cli/tree/cli3/chocolatey</packageSourceUrl>
+    <packageSourceUrl>https://github.com/crowdin/crowdin-cli/tree/main/chocolatey</packageSourceUrl>
     <owners>crowdin</owners>
     <title>Crowdin CLI (Portable)</title>
     <authors>Crowdin</authors>
     <projectUrl>https://github.com/crowdin/crowdin-cli</projectUrl>
     <iconUrl>https://support.crowdin.com/assets/logos/crowdin-dark-symbol.png</iconUrl>
     <copyright>© Crowdin</copyright>
-    <licenseUrl>https://github.com/crowdin/crowdin-cli/blob/cli3/LICENSE</licenseUrl>
+    <licenseUrl>https://github.com/crowdin/crowdin-cli/blob/main/LICENSE</licenseUrl>
     <requireLicenseAcceptance>true</requireLicenseAcceptance>
     <projectSourceUrl>https://github.com/crowdin/crowdin-cli</projectSourceUrl>
     <docsUrl>https://crowdin.github.io/crowdin-cli</docsUrl>
