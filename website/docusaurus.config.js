@@ -71,6 +71,11 @@ const config = {
             label: 'GitHub',
             position: 'right',
           },
+          {
+            href: 'https://github.com/crowdin/crowdin-cli/releases',
+            label: 'Release Notes',
+            position: 'right',
+          }
         ],
       },
       footer: {
