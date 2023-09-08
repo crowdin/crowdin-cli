@@ -1,5 +1,24 @@
 # Changelog
 
+# [3.14.0](https://github.com/crowdin/crowdin-cli/compare/3.13.0...3.14.0) (2023-09-08)
+
+
+### Bug Fixes
+
+* add api subpath to the base url ([#622](https://github.com/crowdin/crowdin-cli/issues/622)) ([f13915f](https://github.com/crowdin/crowdin-cli/commit/f13915f64d4b5b7bb8945f5d1f28e0e24cee7ed1))
+* source downloading when source and dest have different base name ([#608](https://github.com/crowdin/crowdin-cli/issues/608)) ([60a760a](https://github.com/crowdin/crowdin-cli/commit/60a760a8e33b345ec2d4a2b53c983d850fe171c3))
+* translation pattern creation on windows ([#604](https://github.com/crowdin/crowdin-cli/issues/604)) ([c4ad0af](https://github.com/crowdin/crowdin-cli/commit/c4ad0af7f3fc1f7f47dd1850c193c3b04f29d1fc))
+* unix tests on windows ([#580](https://github.com/crowdin/crowdin-cli/issues/580)) ([9be90fc](https://github.com/crowdin/crowdin-cli/commit/9be90fcc750b486d03907dc5864c490d7632d0fa))
+
+
+### Features
+
+* add the 'export_quotes' support for JavaScript files ([#621](https://github.com/crowdin/crowdin-cli/issues/621)) ([e6c1b08](https://github.com/crowdin/crowdin-cli/commit/e6c1b0867ef0dfa9f03ff9a4ec89a2f1afddd17a))
+* New command: distribution ([#593](https://github.com/crowdin/crowdin-cli/issues/593)) ([9312fe1](https://github.com/crowdin/crowdin-cli/commit/9312fe1b38a86fc6dccfdfb4e054433b673c3924))
+* new command: screenshot ([#631](https://github.com/crowdin/crowdin-cli/issues/631)) ([c704029](https://github.com/crowdin/crowdin-cli/commit/c704029ac12c0e76b614d159f735c346e8b73422))
+* reduce error severity for files being updated. ([#623](https://github.com/crowdin/crowdin-cli/issues/623)) ([6887f03](https://github.com/crowdin/crowdin-cli/commit/6887f039b504c15eba6c1650b02dcb37e79e1352))
+* task add command - add '--include-pre-translated-strings-only' option ([#634](https://github.com/crowdin/crowdin-cli/issues/634)) ([0c45d27](https://github.com/crowdin/crowdin-cli/commit/0c45d272ce21a19d25c20cd143be980248a91677))
+
 # [3.13.0](https://github.com/crowdin/crowdin-cli/compare/3.12.0...3.13.0) (2023-06-12)
 
 

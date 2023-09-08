@@ -9,7 +9,7 @@
     "type": "git",
     "url": "https://github.com/crowdin/crowdin-cli.git"
   },
-  "version": "3.13.0",
+  "version": "3.14.0",
   "bin": {
     "crowdin": "jdeploy-bundle/jdeploy.js"
   },
