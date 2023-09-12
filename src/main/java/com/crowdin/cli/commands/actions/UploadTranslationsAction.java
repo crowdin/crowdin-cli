@@ -176,7 +176,10 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         request.setStorageId(storageId);
                     } catch (Exception e) {
                         containsErrors.set(true);
-                        throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation_to_storage"), e);
+                        throw new RuntimeException(String.format(
+                            RESOURCE_BUNDLE.getString("error.upload_translation_to_storage"),
+                            StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
+                        ), e);
                     }
                     try {
                         for (Language lang : langs) {
@@ -190,7 +193,10 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         }
                     } catch (Exception e) {
                         containsErrors.set(true);
-                        throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
+                        throw new RuntimeException(String.format(
+                            RESOURCE_BUNDLE.getString("error.upload_translation"),
+                            StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
+                        ), e);
                     }
                     if (!plainView) {
                         out.println(OK.withIcon(String.format(
