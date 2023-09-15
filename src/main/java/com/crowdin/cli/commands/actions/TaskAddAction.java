@@ -68,6 +68,7 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
         boolean isIdUsed = false;
         Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
         for (String file : files) {
+            // TODO: Remove backward compatibility with file ids
             if (isConvertibleToLong(file)) {
                 isIdUsed = true;
                 Long id = Long.parseLong(file);
@@ -86,6 +87,7 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
                 }
             }
         }
+        // TODO: Remove backward compatibility with file ids
         if (isIdUsed) {
             out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.file_id_deprecated"))));
         }
