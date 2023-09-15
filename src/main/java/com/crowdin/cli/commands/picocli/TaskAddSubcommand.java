@@ -1,8 +1,10 @@
 package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.ClientTask;
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
+import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.properties.ProjectProperties;
 
@@ -29,8 +31,11 @@ class TaskAddSubcommand extends ActCommandTask {
     @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.task.add.language", order = -2)
     protected String language;
 
-    @CommandLine.Option(names = {"--file"}, paramLabel = "...", descriptionKey = "crowdin.task.add.file-id", order = -2)
-    protected List<Long> files;
+    @CommandLine.Option(names = {"--file"}, paramLabel = "...", descriptionKey = "crowdin.task.add.file", order = -2)
+    protected List<String> files;
+
+    @CommandLine.Option(names = {"--branch"}, paramLabel = "...", descriptionKey = "branch", order = -2)
+    protected String branch;
 
     @CommandLine.Option(names = {"--workflow-step"}, paramLabel = "...", descriptionKey = "crowdin.task.add.workflow-step", order = -2)
     protected Long workflowStep;
@@ -53,18 +58,23 @@ class TaskAddSubcommand extends ActCommandTask {
     @Override
     protected NewAction<ProjectProperties, ClientTask> getAction(Actions actions) {
         int intType = TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) ? 0 : 1;
+        Outputter out = new PicocliOutputter(System.out, isAnsi());
+        ProjectClient projectClient = this.getProjectClient(this.getProperties(propertiesBuilders, out));
 
         return actions.taskAdd(
-          title,
-          intType,
-          language,
-          files,
-          workflowStep,
-          description,
-          skipAssignedStrings,
-          skipUntranslatedStrings,
-          includePreTranslatedStringsOnly,
-          labels
+            noProgress,
+            title,
+            intType,
+            language,
+            files,
+            branch,
+            workflowStep,
+            description,
+            skipAssignedStrings,
+            skipUntranslatedStrings,
+            includePreTranslatedStringsOnly,
+            labels,
+            projectClient
         );
     }
 
@@ -108,7 +118,7 @@ class TaskAddSubcommand extends ActCommandTask {
         }
 
         if (files == null || files.isEmpty()) {
-            errors.add(RESOURCE_BUNDLE.getString("error.task.empty_fileId"));
+            errors.add(RESOURCE_BUNDLE.getString("error.task.empty_file"));
         }
 
         if (TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) && includePreTranslatedStringsOnly) {
