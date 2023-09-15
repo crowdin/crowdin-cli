@@ -70,7 +70,13 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
         for (String file : files) {
             if (isConvertibleToLong(file)) {
                 isIdUsed = true;
-                fileIds.add(Long.parseLong(file));
+                Long id = Long.parseLong(file);
+                boolean isFileExist = paths.values().stream().anyMatch(p -> p.getId().equals(id));
+                if (isFileExist) {
+                    fileIds.add(id);
+                } else {
+                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_id_not_exists"), file)));
+                }
             } else {
                 final String path = Utils.normalizePath(Utils.noSepAtStart(file));
                 if (paths.containsKey(path)) {
@@ -79,9 +85,12 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
                     out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), path)));
                 }
             }
-            if (isIdUsed) {
-                out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.file_id_deprecated"))));
-            }
+        }
+        if (isIdUsed) {
+            out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.file_id_deprecated"))));
+        }
+        if (fileIds.isEmpty()) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.task.no_valid_file")));
         }
 
         if (isOrganization) {

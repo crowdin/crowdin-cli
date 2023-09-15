@@ -145,17 +145,18 @@ public class TaskAddActionTest {
         ClientTask client = mock(ClientTask.class);
 
         ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
+        projectBuilder.addFile("file.txt", "txt", 1L, null, null);
         ProjectClient projectClient = mock(ProjectClient.class);
         when(projectClient.downloadFullProject(any()))
                 .thenReturn(projectBuilder.build());
 
         CrowdinTaskCreateFormRequest request = RequestBuilder.addCrowdinTask(null, null, null,
-                new ArrayList<>(), null, false, false, false, null);
+                Arrays.asList(1L), null, false, false, false, null);
 
         when(client.addTask(request))
                 .thenThrow(new RuntimeException("Whoops"));
 
-        action = new TaskAddAction(false, null, null, null, new ArrayList<>(), null, null, null, false, false, false, null, projectClient);
+        action = new TaskAddAction(false, null, null, null, Arrays.asList("file.txt"), null, null, null, false, false, false, null, projectClient);
 
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
