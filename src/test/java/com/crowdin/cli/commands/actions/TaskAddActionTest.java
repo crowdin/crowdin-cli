@@ -41,14 +41,23 @@ public class TaskAddActionTest {
 
     @ParameterizedTest
     @MethodSource
-    public void testTaskAdd(String title, Integer type, String languageId, List<Long> fileIds, String description,
+    public void testTaskAdd(String title, Integer type, String languageId, Map<String, Long> filesMap, List<String> files, String description,
                             boolean skipAssignedStrings, boolean skipUntranslatedStrings, boolean includePreTranslatedStringsOnly, List<Long> labelIds) {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(Utils.PATH_SEPARATOR);
         PropertiesWithFiles pb = pbBuilder.build();
 
-        CrowdinTaskCreateFormRequest request = RequestBuilder.addCrowdinTask(title, type, languageId, fileIds,
+        ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
+        for (Map.Entry<String, Long> pathWithId : filesMap.entrySet()) {
+            projectBuilder.addFile(pathWithId.getKey(), "txt", pathWithId.getValue(), null, null);
+        }
+
+        ProjectClient projectClient = mock(ProjectClient.class);
+        when(projectClient.downloadFullProject(any()))
+                .thenReturn(projectBuilder.build());
+
+        CrowdinTaskCreateFormRequest request = RequestBuilder.addCrowdinTask(title, type, languageId, new ArrayList<>(filesMap.values()),
                 description, skipAssignedStrings, skipUntranslatedStrings, includePreTranslatedStringsOnly, labelIds);
 
         ClientTask client = mock(ClientTask.class);
@@ -60,20 +69,29 @@ public class TaskAddActionTest {
                     setTitle(request.getTitle());
                 }});
 
-        action = new TaskAddAction(title, type, languageId, fileIds, null, description, skipAssignedStrings, skipUntranslatedStrings, includePreTranslatedStringsOnly, labelIds);
+        action = new TaskAddAction(true, title, type, languageId, files, null, null, description, skipAssignedStrings, skipUntranslatedStrings, includePreTranslatedStringsOnly, labelIds, projectClient);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).addTask(request);
+        verify(projectClient).downloadFullProject(null);
         verifyNoMoreInteractions(client);
     }
 
     public static Stream<Arguments> testTaskAdd() {
-        return Stream.of(arguments("My title", 1, "es", Arrays.asList(12L), "It's description", false, false, false, null));
+        Map<String, Long> filesMap = new HashMap<String, Long>() {{
+            put("first.txt", 51L);
+            put("second.txt", 52L);
+        }};
+        List<String> files = new ArrayList<String>() {{
+            add("52");
+            add("first.txt");
+        }};
+        return Stream.of(arguments("My title", 1, "es", filesMap, files, "It's description", false, false, false, null));
     }
 
     @ParameterizedTest
     @MethodSource
-    public void testEnterpriseTaskAdd(String title, String languageId, List<Long> fileIds, String description,
+    public void testEnterpriseTaskAdd(String title, String languageId, Map<String, Long> filesMap, List<String> files, String description,
                             boolean skipAssignedStrings, List<Long> labelIds, Long workflowStepId) {
 
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
@@ -82,7 +100,16 @@ public class TaskAddActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.setBaseUrl("https://testos.crowdin.com");
 
-        EnterpriseTaskCreateFormRequest request = RequestBuilder.addEnterpriseTask(title, languageId, fileIds,
+        ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
+        for (Map.Entry<String, Long> pathWithId : filesMap.entrySet()) {
+            projectBuilder.addFile(pathWithId.getKey(), "txt", pathWithId.getValue(), null, null);
+        }
+
+        ProjectClient projectClient = mock(ProjectClient.class);
+        when(projectClient.downloadFullProject(any()))
+                .thenReturn(projectBuilder.build());
+
+        EnterpriseTaskCreateFormRequest request = RequestBuilder.addEnterpriseTask(title, languageId, new ArrayList<>(filesMap.values()),
                 description, skipAssignedStrings, false, labelIds, workflowStepId);
 
         ClientTask client = mock(ClientTask.class);
@@ -94,15 +121,19 @@ public class TaskAddActionTest {
                     setTitle(request.getTitle());
                 }});
 
-        action = new TaskAddAction(title, null, languageId, fileIds, workflowStepId, description, skipAssignedStrings, false, false, labelIds);
+        action = new TaskAddAction(false, title, null, languageId, files, null, workflowStepId, description, skipAssignedStrings, false, false, labelIds, projectClient);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).addTask(request);
+        verify(projectClient).downloadFullProject(null);
         verifyNoMoreInteractions(client);
     }
 
     public static Stream<Arguments> testEnterpriseTaskAdd() {
-        return Stream.of(arguments("My title", "es", Arrays.asList(12L), "It's description", false, Arrays.asList(1L), 10L));
+        Map<String, Long> filesMap = new HashMap<String, Long>() {{
+            put("first.txt", 51L);
+        }};
+        return Stream.of(arguments("My title", "es", filesMap, Arrays.asList("first.txt"), "It's description", false, Arrays.asList(1L), 10L));
     }
 
     @Test
@@ -113,13 +144,19 @@ public class TaskAddActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         ClientTask client = mock(ClientTask.class);
 
+        ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
+        projectBuilder.addFile("file.txt", "txt", 1L, null, null);
+        ProjectClient projectClient = mock(ProjectClient.class);
+        when(projectClient.downloadFullProject(any()))
+                .thenReturn(projectBuilder.build());
+
         CrowdinTaskCreateFormRequest request = RequestBuilder.addCrowdinTask(null, null, null,
-                null, null, false, false, false, null);
+                Arrays.asList(1L), null, false, false, false, null);
 
         when(client.addTask(request))
                 .thenThrow(new RuntimeException("Whoops"));
 
-        action = new TaskAddAction(null, null, null, null, null, null, false, false, false, null);
+        action = new TaskAddAction(false, null, null, null, Arrays.asList("file.txt"), null, null, null, false, false, false, null, projectClient);
 
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
