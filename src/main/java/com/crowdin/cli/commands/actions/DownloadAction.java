@@ -405,7 +405,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
         return this.doTranslationMapping(
             forLanguages, fb.getDest(), fb.getTranslation(), serverLanguageMapping, languageMapping,
-            translationReplace, sources, fb.getSource(), basePath, placeholderUtil);
+            translationReplace, sources, fb.getSource(), basePath, placeholderUtil, preserveHierarchy);
     }
 
     private ProjectBuild buildTranslation(ProjectClient client, BuildProjectTranslationRequest request) {
@@ -495,7 +495,8 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         List<String> sources,
         String source,
         String basePath,
-        PlaceholderUtil placeholderUtil
+        PlaceholderUtil placeholderUtil,
+        boolean preserveHierarchy
     ) {
         Map<String, String> mapping = new HashMap<>();
 
@@ -505,6 +506,9 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
             String translationProject1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, projLanguageMapping, language);
             String translationFile1 = placeholderUtil.replaceLanguageDependentPlaceholders(translation, languageMapping, language);
+            if (!preserveHierarchy) {
+                translationProject1 = StringUtils.remove(translationProject1, PlaceholderUtil.PLACEHOLDER_ORIGINAL_PATH);
+            }
 
             for (String projectFile : sources) {
                 String file = StringUtils.removeStart(projectFile, basePath);
