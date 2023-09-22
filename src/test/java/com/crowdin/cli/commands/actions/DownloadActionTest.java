@@ -519,6 +519,62 @@ public class DownloadActionTest {
     }
 
     @Test
+    public void testProjectOneFittingFile_UploadedWithoutHierarchy() throws IOException {
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+                .minimalBuiltPropertiesBean("files" + Utils.PATH_SEPARATOR + "*", Utils.PATH_SEPARATOR + "%original_path%" + Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+                .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+
+        project.addFile("files" + Utils.PATH_SEPARATOR + "first.po");
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject(null))
+                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                        .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
+        long buildId = 42L;
+        when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
+                .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
+        when(client.downloadBuild(eq(buildId)))
+                .thenReturn(urlMock);
+
+        FilesInterface files = mock(FilesInterface.class);
+        AtomicReference<File> zipArchive = new AtomicReference<>();
+        AtomicReference<File> tempDir = new AtomicReference<>();
+        when(files.extractZipArchive(any(), any()))
+                .thenAnswer((invocation -> {
+                    zipArchive.set(invocation.getArgument(0));
+                    tempDir.set(invocation.getArgument(1));
+                    return new ArrayList<File>() {{
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"));
+                        add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
+                    }};
+                }));
+
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+                new DownloadAction(files, false, null, null,false, null, false, false, false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(null);
+        verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
+        verify(client).downloadBuild(eq(buildId));
+        verifyNoMoreInteractions(client);
+
+        verify(files).writeToFile(any(), any());
+        verify(files).extractZipArchive(any(), any());
+        verify(files).copyFile(
+                new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"),
+                new File(pb.getBasePath() + "files/first.po-CR-ru-RU"));
+        verify(files).copyFile(
+                new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-uk-UA"),
+                new File(pb.getBasePath() + "files/first.po-CR-uk-UA"));
+        verify(files).deleteFile(eq(zipArchive.get()));
+        verify(files).deleteDirectory(tempDir.get());
+        verifyNoMoreInteractions(files);
+    }
+
+    @Test
     public void testProjectOneFittingFile_FailBuild() {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
