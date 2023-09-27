@@ -28,6 +28,9 @@ class FileMatcher implements PathMatcher {
         pattern = pattern.replaceAll("/+", "/");
         pattern = pattern.replaceAll("\\{\\{+", "\\\\{\\\\{");
         pattern = pattern.replaceAll("}}+", "\\\\}\\\\}");
+        pattern = pattern.replaceAll("\\[+", "\\\\[");
+        pattern = pattern.replaceAll("]+", "\\\\]");
+
 
         // We *could* implement exactly what's documented. The idea would be to implement something like
         // Java's Globs.toRegexPattern but supporting only the documented syntax. Instead, we will use
