@@ -6,6 +6,11 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.properties.ProjectProperties;
 import picocli.CommandLine;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Objects.nonNull;
+
 @CommandLine.Command(
     name = CommandNames.STATUS_PROOFREADING,
     sortOptions = false
@@ -18,11 +23,26 @@ class StatusProofreadingSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
     protected String branchName;
 
+    @CommandLine.Option(names = {"-f", "--file"}, paramLabel = "...", descriptionKey = "crowdin.status.file-path", order = -2)
+    protected String file;
+
+    @CommandLine.Option(names = {"-d", "--directory"}, paramLabel = "...", descriptionKey = "crowdin.status.directory-path", order = -2)
+    protected String directory;
+
     @CommandLine.Option(names = {"--fail-if-incomplete"}, paramLabel = "...", order = -2)
     protected boolean failIfIncomplete;
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.status(noProgress, branchName, languageId, isVerbose, false, true, failIfIncomplete);
+        return actions.status(noProgress, branchName, languageId, file, directory, isVerbose, false, true, failIfIncomplete);
+    }
+
+    @Override
+    protected List<String> checkOptions() {
+        List<String> errors = new ArrayList<>();
+        if (nonNull(directory) && nonNull(file)) {
+            errors.add(RESOURCE_BUNDLE.getString("error.status.only_one_allowed"));
+        }
+        return errors;
     }
 }

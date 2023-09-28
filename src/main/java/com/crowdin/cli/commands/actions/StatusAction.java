@@ -1,10 +1,11 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.CrowdinProject;
+import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectProperties;
+import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
@@ -21,15 +22,19 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
     private boolean noProgress;
     private String branchName;
     private String languageId;
+    private String file;
+    private String directory;
     private boolean isVerbose;
     private boolean showTranslated;
     private boolean showApproved;
     private boolean failIfIncomplete;
 
-    public StatusAction(boolean noProgress, String branchName, String languageId, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failIfIncomplete) {
+    public StatusAction(boolean noProgress, String branchName, String languageId, String file, String directory, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failIfIncomplete) {
         this.noProgress = noProgress;
         this.branchName = branchName;
         this.languageId = languageId;
+        this.file = file;
+        this.directory = directory;
         this.isVerbose = isVerbose;
         this.showTranslated = showTranslated;
         this.showApproved = showApproved;
@@ -38,8 +43,8 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
-        CrowdinProject project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, false, client::downloadProjectWithLanguages);
+        CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+            this.noProgress, false, () -> client.downloadFullProject(branchName));
 
         if (languageId != null) {
             project.findLanguageById(languageId, true)
@@ -53,15 +58,32 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
             .getId();
 
         List<LanguageProgress> progresses;
-        if (branchId == null) {
-            progresses = client.getProjectProgress(languageId);
-        } else {
+
+        if (file != null) {
+            String filePath = Utils.unixPath(Utils.sepAtStart(file));
+            Long fileId = project.getFileInfos().stream()
+                .filter(f -> filePath.equals(f.getPath()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)))
+                .getId();
+            progresses = client.getFileProgress(fileId);
+        } else if (directory != null) {
+            String directoryPath = Utils.unixPath(Utils.sepAtStart(directory));
+            Long directoryId = project.getDirectories().values().stream()
+                .filter(d -> directoryPath.equals(d.getPath()))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.dir_not_exists"), directory)))
+                .getId();
+            progresses = client.getDirectoryProgress(directoryId);
+        } else if (branchId != null) {
             progresses = client.getBranchProgress(branchId);
-            if (languageId != null) {
-                progresses = progresses.stream()
+        } else {
+            progresses = client.getProjectProgress(languageId);
+        }
+        if (languageId != null) {
+            progresses = progresses.stream()
                     .filter(langProgress -> languageId.equals(langProgress.getLanguageId()))
                     .collect(Collectors.toList());
-            }
         }
 
         if (isVerbose) {

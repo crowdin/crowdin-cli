@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.actions;
 
+import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Outputter;
@@ -8,6 +9,8 @@ import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.sourcefiles.model.Branch;
+import com.crowdin.client.sourcefiles.model.Directory;
+import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
 import com.crowdin.client.translationstatus.model.Progress;
 import org.junit.jupiter.api.Test;
@@ -45,15 +48,13 @@ class StatusActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
 
-        when(projectClient.downloadProjectWithLanguages())
+        when(projectClient.downloadFullProject("TestBranch"))
                 .thenReturn(projectBuilder.build());
-        statusAction = new StatusAction(noProgress, branchName, languageId, isVerbose, showTranslated, showApproved, failIfIncomplete);
+        statusAction = new StatusAction(noProgress, branchName, languageId, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete);
         when(languageProgress.getApprovalProgress()).thenReturn(99);
         when(languageProgress.getLanguageId()).thenReturn("ua");
         when(branch.getId()).thenReturn(123L);
         when(branch.getName()).thenReturn("TestBranch");
-        when(projectClient.getProjectProgress(null))
-                .thenReturn(Collections.singletonList(languageProgress));
         when(projectClient.getBranchProgress(123L))
                 .thenReturn(Collections.singletonList(languageProgress));
         when(projectClient.listBranches()).
@@ -63,7 +64,7 @@ class StatusActionTest {
 
         statusAction.act(Outputter.getDefault(), projectProperties, projectClient);
 
-        verify(projectClient).downloadProjectWithLanguages();
+        verify(projectClient).downloadFullProject("TestBranch");
         verify(projectClient).listBranches();
         verify(projectClient).getBranchProgress(123L);
         verifyNoMoreInteractions(projectClient);
@@ -89,16 +90,16 @@ class StatusActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
 
-        when(projectClient.downloadProjectWithLanguages())
+        when(projectClient.downloadFullProject(branchName))
                 .thenReturn(projectBuilder.build());
-        statusAction = new StatusAction(noProgress, branchName, languageId, isVerbose, showTranslated, showApproved, failIfIncomplete);
+        statusAction = new StatusAction(noProgress, branchName, languageId, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete);
         when(languageProgress.getApprovalProgress()).thenReturn(99);
         when(projectClient.getProjectProgress(null))
                 .thenReturn(Collections.singletonList(languageProgress));
         assertThrows(
                 RuntimeException.class,
                 () -> statusAction.act(Outputter.getDefault(), projectProperties, projectClient));
-        verify(projectClient).downloadProjectWithLanguages();
+        verify(projectClient).downloadFullProject(branchName);
         verify(projectClient).listBranches();
         verify(projectClient).getProjectProgress(null);
         verifyNoMoreInteractions(projectClient);
@@ -128,14 +129,14 @@ class StatusActionTest {
         ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadProjectWithLanguages())
+        when(client.downloadFullProject(branchName))
                 .thenReturn(projectBuilder.build());
-        statusAction = new StatusAction(noProgress, branchName, null, isVerbose, showTranslated, showApproved, failIfIncomplete);
+        statusAction = new StatusAction(noProgress, branchName, null, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete);
         when(client.listBranches()).thenReturn(Collections.emptyList());
 
         assertThrows(
                 RuntimeException.class, () -> statusAction.act(Outputter.getDefault(), null, client));
-        verify(client).downloadProjectWithLanguages();
+        verify(client).downloadFullProject(branchName);
         verify(client).listBranches();
         verifyNoMoreInteractions(client);
     }
@@ -155,15 +156,78 @@ class StatusActionTest {
         ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
 
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadProjectWithLanguages())
+        when(client.downloadFullProject(null))
                 .thenReturn(projectBuilder.build());
-        statusAction = new StatusAction(noProgress, null, languageId, isVerbose, showTranslated, showApproved, failIfIncomplete);
+        statusAction = new StatusAction(noProgress, null, languageId, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete);
         when(client.listBranches()).thenReturn(Collections.emptyList());
 
         assertThrows(
                 RuntimeException.class, () -> statusAction.act(Outputter.getDefault(), null, client));
-        verify(client).downloadProjectWithLanguages();
+        verify(client).downloadFullProject(null);
         verifyNoMoreInteractions(client);
     }
 
+    @Test
+    public void testStatusWithFile(){
+        String file = "file.json";
+        ProjectClient projectClient = mock(ProjectClient.class);
+        ProjectProperties projectProperties = mock(ProjectProperties.class);
+        LanguageProgress languageProgress = mock(LanguageProgress.class);
+        CrowdinProjectFull projectFull = mock(CrowdinProjectFull.class);
+        Branch branch = mock(Branch.class);
+        FileInfo fileInfo = mock(FileInfo.class);
+
+        when(projectClient.downloadFullProject(null)).thenReturn(projectFull);
+        when(fileInfo.getId()).thenReturn(12L);
+        when(fileInfo.getPath()).thenReturn("/file.json");
+        when(languageProgress.getApprovalProgress()).thenReturn(99);
+        when(languageProgress.getLanguageId()).thenReturn("ua");
+        when(projectFull.getFileInfos()).thenReturn(Arrays.asList(fileInfo));
+        when(projectClient.getFileProgress(123L))
+                .thenReturn(Collections.singletonList(languageProgress));
+        when(projectClient.listBranches()).
+                thenReturn(Collections.singletonList(branch));
+        when(languageProgress.getWords()).thenReturn(getWords());
+        when(languageProgress.getPhrases()).thenReturn(getWords());
+
+        statusAction = new StatusAction(true, null, null, file, null, true, true, true, true);
+        statusAction.act(Outputter.getDefault(), projectProperties, projectClient);
+
+        verify(projectClient).downloadFullProject(null);
+        verify(projectClient).listBranches();
+        verify(projectClient).getFileProgress(12L);
+        verifyNoMoreInteractions(projectClient);
+    }
+
+    @Test
+    public void testStatusWithDirectory(){
+        String directoryPath = "directory";
+        ProjectClient projectClient = mock(ProjectClient.class);
+        ProjectProperties projectProperties = mock(ProjectProperties.class);
+        LanguageProgress languageProgress = mock(LanguageProgress.class);
+        CrowdinProjectFull projectFull = mock(CrowdinProjectFull.class);
+        Branch branch = mock(Branch.class);
+        Directory directory = mock(Directory.class);
+
+        when(projectClient.downloadFullProject(null)).thenReturn(projectFull);
+        when(directory.getId()).thenReturn(12L);
+        when(directory.getPath()).thenReturn("/directory");
+        when(languageProgress.getApprovalProgress()).thenReturn(99);
+        when(languageProgress.getLanguageId()).thenReturn("ua");
+        when(projectFull.getDirectories()).thenReturn(Collections.singletonMap(12L, directory));
+        when(projectClient.getFileProgress(123L))
+                .thenReturn(Collections.singletonList(languageProgress));
+        when(projectClient.listBranches()).
+                thenReturn(Collections.singletonList(branch));
+        when(languageProgress.getWords()).thenReturn(getWords());
+        when(languageProgress.getPhrases()).thenReturn(getWords());
+
+        statusAction = new StatusAction(true, null, null, null, directoryPath, true, true, true, true);
+        statusAction.act(Outputter.getDefault(), projectProperties, projectClient);
+
+        verify(projectClient).downloadFullProject(null);
+        verify(projectClient).listBranches();
+        verify(projectClient).getDirectoryProgress(12L);
+        verifyNoMoreInteractions(projectClient);
+    }
 }

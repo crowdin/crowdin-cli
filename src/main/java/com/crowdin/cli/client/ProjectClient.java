@@ -77,6 +77,10 @@ public interface ProjectClient extends Client {
 
     List<LanguageProgress> getBranchProgress(Long branchId);
 
+    List<LanguageProgress> getFileProgress(Long fileId);
+
+    List<LanguageProgress> getDirectoryProgress(Long directoryId);
+
     SourceString addSourceString(AddSourceStringRequest request);
 
     List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql);
