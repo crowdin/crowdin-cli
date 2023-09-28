@@ -129,6 +129,18 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public List<LanguageProgress> getFileProgress(Long fileId) {
+        return executeRequestFullList((limit, offset) -> this.client.getTranslationStatusApi()
+            .getFileProgress(this.projectId, fileId, limit, offset));
+    }
+
+    @Override
+    public List<LanguageProgress> getDirectoryProgress(Long directoryId) {
+        return executeRequestFullList((limit, offset) -> this.client.getTranslationStatusApi()
+            .getDirectoryProgress(this.projectId, directoryId, limit, offset));
+    }
+
+    @Override
     public Branch addBranch(AddBranchRequest request) {
         return executeRequest(() -> this.client.getSourceFilesApi()
             .addBranch(this.projectId, request)
