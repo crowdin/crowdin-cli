@@ -23,8 +23,11 @@ public class DownloadBundleSubcommand extends ActCommandBundle {
     @CommandLine.Option(names = {"--keep-archive"}, descriptionKey = "params.keepArchive")
     protected boolean keepArchive;
 
+    @CommandLine.Option(names = {"--dryrun"})
+    protected boolean dryrun;
+
     @Override
     protected NewAction<ProjectProperties, ClientBundle> getAction(Actions actions) {
-        return new DownloadBundleAction(id, new FsFiles(), plainView, keepArchive, noProgress);
+        return new DownloadBundleAction(id, new FsFiles(), plainView, keepArchive, noProgress, dryrun);
     }
 }
