@@ -114,7 +114,7 @@ public interface Actions {
 
     NewAction<PropertiesWithFiles, ProjectClient> preTranslate(
         List<String> languageIds, Method method, Long engineId, String branchName, AutoApproveOption autoApproveOption, Boolean duplicateTranslations,
-        Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress, boolean debug, boolean verbose, boolean plainView);
+        Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress, boolean debug, boolean verbose, boolean plainView, List<String> labelNames);
 
     NewAction<ProjectProperties, ProjectClient> branchAdd(String name, String title, String exportPattern, Priority priority);
 

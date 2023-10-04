@@ -14,6 +14,7 @@ import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
+import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
@@ -45,10 +46,11 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
     private boolean debug;
     private boolean verbose;
     private boolean plainView;
+    private List<String> labelNames;
 
     public PreTranslateAction(
         List<String> languageIds, Method method, Long engineId, String branchName, AutoApproveOption autoApproveOption, Boolean duplicateTranslations,
-        Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress, boolean debug, boolean verbose, boolean plainView
+        Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress, boolean debug, boolean verbose, boolean plainView, List<String> labelNames
     ) {
         this.languageIds = languageIds;
         this.method = method;
@@ -62,6 +64,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         this.debug = debug;
         this.verbose = verbose;
         this.plainView = plainView;
+        this.labelNames = labelNames;
     }
 
     @Override
@@ -71,6 +74,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
 
         List<String> languages = this.prepareLanguageIds(project);
         List<Long> fileIds = this.prepareFileIds(out, properties, project);
+        List<Long> labelIds = this.prepareLabelIds(client);
 
         if (fileIds == null || fileIds.isEmpty()) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.no_files_found_for_pre_translate")));
@@ -78,7 +82,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
 
         ApplyPreTranslationRequest request = RequestBuilder.applyPreTranslation(
             languages, fileIds, method, engineId, autoApproveOption,
-            duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly);
+            duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds);
 
         this.applyPreTranslation(out, client, request);
     }
@@ -139,6 +143,21 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
             .map(paths::get)
             .map(FileInfo::getId)
             .collect(Collectors.toList());
+    }
+
+    private List<Long> prepareLabelIds(ProjectClient client) {
+        if (labelNames != null && !labelNames.isEmpty()) {
+            Map<String, Long> labels = client.listLabels().stream()
+                    .collect(Collectors.toMap(Label::getTitle, Label::getId));
+            labelNames.stream()
+                    .distinct()
+                    .forEach(labelName -> labels.computeIfAbsent(labelName, (title) -> client.addLabel(RequestBuilder.addLabel(title)).getId()));
+            return labelNames.stream()
+                    .map(labels::get)
+                    .collect(Collectors.toList());
+        } else {
+            return null;
+        }
     }
 
     private void applyPreTranslation(Outputter out, ProjectClient client, ApplyPreTranslationRequest request) {

@@ -270,7 +270,7 @@ public class RequestBuilder {
 
     public static ApplyPreTranslationRequest applyPreTranslation(
         List<String> languageIds, List<Long> fileIds, Method method, Long engineId, AutoApproveOption autoApproveOption,
-        Boolean duplicateTranslations, Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly
+        Boolean duplicateTranslations, Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, List<Long> labelIds
     ) {
         ApplyPreTranslationRequest request = new ApplyPreTranslationRequest();
         request.setLanguageIds(languageIds);
@@ -281,6 +281,7 @@ public class RequestBuilder {
         request.setDuplicateTranslations(duplicateTranslations);
         request.setTranslateUntranslatedOnly(translateUntranslatedOnly);
         request.setTranslateWithPerfectMatchOnly(translateWithPerfectMatchOnly);
+        request.setLabelIds(labelIds);
         return request;
     }
 
