@@ -27,6 +27,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -74,7 +75,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
 
         List<String> languages = this.prepareLanguageIds(project);
         List<Long> fileIds = this.prepareFileIds(out, properties, project);
-        List<Long> labelIds = this.prepareLabelIds(client);
+        List<Long> labelIds = this.prepareLabelIds(out, client);
 
         if (fileIds == null || fileIds.isEmpty()) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.no_files_found_for_pre_translate")));
@@ -145,15 +146,21 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
             .collect(Collectors.toList());
     }
 
-    private List<Long> prepareLabelIds(ProjectClient client) {
+    private List<Long> prepareLabelIds(Outputter out, ProjectClient client) {
         if (labelNames != null && !labelNames.isEmpty()) {
             Map<String, Long> labels = client.listLabels().stream()
                     .collect(Collectors.toMap(Label::getTitle, Label::getId));
             labelNames.stream()
                     .distinct()
-                    .forEach(labelName -> labels.computeIfAbsent(labelName, (title) -> client.addLabel(RequestBuilder.addLabel(title)).getId()));
+                    .forEach(labelName -> {
+                                if (!labels.containsKey(labelName)) {
+                                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.pre_translate.missing_label"), labelName)));
+                                }
+                            }
+                    );
             return labelNames.stream()
                     .map(labels::get)
+                    .filter(Objects::nonNull)
                     .collect(Collectors.toList());
         } else {
             return null;
