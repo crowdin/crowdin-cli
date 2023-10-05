@@ -13,6 +13,8 @@ public interface FilesInterface {
 
     List<File> extractZipArchive(File zipArchive, File dir);
 
+    List<String> zipArchiveContent(File zipArchive);
+
     void deleteFile(File file) throws IOException;
 
     void deleteDirectory(File dir) throws IOException;

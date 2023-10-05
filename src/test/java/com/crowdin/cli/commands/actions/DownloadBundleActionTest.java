@@ -44,7 +44,7 @@ public class DownloadBundleActionTest {
                 .build();
 
         Bundle bundle = new Bundle();
-        bundle.setId(1l);
+        bundle.setId(1L);
 
         BundleExport export = new BundleExport();
         export.setStatus("finished");
@@ -63,12 +63,51 @@ public class DownloadBundleActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<ProjectProperties, ClientBundle> action =
-                new DownloadBundleAction(bundle.getId(), files, false, false, false);
+                new DownloadBundleAction(bundle.getId(), files, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).getBundle(bundle.getId());
         verify(client).startExportingBundle(bundle.getId());
         verify(client).downloadBundle(bundle.getId(), null);
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testDryRun() {
+        PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
+                .minimalBuiltPropertiesBean(
+                        "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
+                        null, "/common/%original_file_name%")
+                .setBasePath(project.getBasePath())
+                .build();
+
+        Bundle bundle = new Bundle();
+        bundle.setId(1L);
+
+        BundleExport export = new BundleExport();
+        export.setStatus("finished");
+        ClientBundle client = mock(ClientBundle.class);
+
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
+
+        when(client.downloadBundle(bundle.getId(), null))
+                .thenReturn(urlMock);
+        when(client.getBundle(bundle.getId()))
+                .thenReturn(Optional.of(bundle));
+
+        when(client.startExportingBundle(bundle.getId()))
+                .thenReturn(export);
+
+        FilesInterface files = mock(FilesInterface.class);
+
+        NewAction<ProjectProperties, ClientBundle> action =
+                new DownloadBundleAction(bundle.getId(), files, false, false, false, true);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).getBundle(bundle.getId());
+        verify(client).startExportingBundle(bundle.getId());
+        verify(client).downloadBundle(bundle.getId(), null);
+
         verifyNoMoreInteractions(client);
     }
 }

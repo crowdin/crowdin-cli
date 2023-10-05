@@ -74,6 +74,26 @@ public class FsFiles implements FilesInterface {
     }
 
     @Override
+    public List<String> zipArchiveContent(File zipArchive) {
+        List<String> archiveFiles = new ArrayList<>();
+        ZipFile zipFile;
+        try {
+            zipFile = new ZipFile(zipArchive);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.archive_not_exist"), zipArchive.getAbsolutePath()));
+        }
+        try {
+            List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+            for (FileHeader fileHeader : fileHeaders) {
+                archiveFiles.add(fileHeader.getFileName());
+            }
+        } catch (net.lingala.zip4j.exception.ZipException e) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.extract_archive"), zipArchive.getAbsolutePath()));
+        }
+        return archiveFiles;
+    }
+
+    @Override
     public void deleteFile(File file) throws IOException {
         java.nio.file.Files.delete(file.toPath());
     }

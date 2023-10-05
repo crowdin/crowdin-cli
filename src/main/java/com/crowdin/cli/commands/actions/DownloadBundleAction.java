@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
@@ -28,16 +29,18 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
     private final boolean noProgress;
     private final boolean plainView;
     private final boolean keepArchive;
+    private final boolean dryrun;
     private File to;
 
     private Outputter out;
 
-    public DownloadBundleAction(Long id, FilesInterface files, boolean plainView, boolean keepArchive, boolean noProgress) {
+    public DownloadBundleAction(Long id, FilesInterface files, boolean plainView, boolean keepArchive, boolean noProgress, boolean dryrun) {
         this.id = id;
         this.files = files;
         this.plainView = plainView;
         this.keepArchive = keepArchive;
         this.noProgress = noProgress;
+        this.dryrun = dryrun;
     }
 
     @Override
@@ -49,12 +52,18 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
         downloadBundle(client, bundle.getId(), status.getIdentifier());
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.bundle.download_success"), bundle.getId(), bundle.getName())));
 
+        List<String> extractedPaths;
         String baseTemp = StringUtils.removeEnd(pb.getBasePath(), Utils.PATH_SEPARATOR) + Utils.PATH_SEPARATOR;
-        java.io.File baseTempDir = new java.io.File(baseTemp + Utils.PATH_SEPARATOR);
-        List<java.io.File> downloadedFiles = extractArchive(to, baseTempDir);
+        File baseTempDir = new File(baseTemp + Utils.PATH_SEPARATOR);
+        if (dryrun) {
+            extractedPaths = files.zipArchiveContent(to);
+        } else {
+            List<File> downloadedFiles = extractArchive(to, baseTempDir);
+            extractedPaths = downloadedFiles.stream().map(File::getAbsolutePath).collect(Collectors.toList());
+        }
 
-        for (File file: downloadedFiles) {
-            String filePath = Utils.noSepAtStart(StringUtils.removeStart(file.getAbsolutePath(), baseTempDir.getAbsolutePath()));
+        for (String file: extractedPaths) {
+            String filePath = Utils.noSepAtStart(StringUtils.removeStart(file, baseTempDir.getAbsolutePath()));
             out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.extracted_file"), filePath)));
         }
 
