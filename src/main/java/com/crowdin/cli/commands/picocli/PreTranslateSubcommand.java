@@ -49,6 +49,9 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
 
+    @CommandLine.Option(names = {"--label"}, descriptionKey = "crowdin.pre-translate.label", paramLabel = "...", order = -2)
+    protected List<String> labelNames;
+
     private final Map<String, AutoApproveOption> autoApproveOptionWrapper = new HashMap<String, AutoApproveOption>() {{
         put("all", AutoApproveOption.ALL);
         put("except-auto-substituted", AutoApproveOption.EXCEPT_AUTO_SUBSTITUTED);
@@ -75,7 +78,8 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
             noProgress,
             debug,
             isVerbose,
-            plainView
+            plainView,
+            labelNames
         );
     }
 
