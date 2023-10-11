@@ -54,6 +54,11 @@ public final class Clients {
         return new CrowdinClientScreenshot(client, projectId);
     }
 
+    public static ClientLabel getClientLabel(String apiToken, String baseUrl, String projectId) {
+        com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);
+        return new CrowdinClientLabel(client, projectId);
+    }
+
 //    mb divide args to move token and url to constructor?
     public static ProjectClient getProjectClient(String apiToken, String baseUrl, long projectId) {
         com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);

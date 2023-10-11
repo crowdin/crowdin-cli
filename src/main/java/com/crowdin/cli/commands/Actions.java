@@ -125,4 +125,10 @@ public interface Actions {
     NewAction<ProjectProperties, ClientScreenshot> screenshotUpload(File file, String branchName, String directoryPath, String filePath, boolean autoTag, boolean plainView, boolean noProgress, ProjectClient projectClient);
 
     NewAction<ProjectProperties, ClientScreenshot> screenshotDelete(String name);
+
+    NewAction<ProjectProperties, ClientLabel> labelList(boolean plainView, boolean isVerbose);
+
+    NewAction<ProjectProperties, ClientLabel> labelAdd(String title, boolean plainView);
+
+    NewAction<ProjectProperties, ClientLabel> labelDelete(String title);
 }
