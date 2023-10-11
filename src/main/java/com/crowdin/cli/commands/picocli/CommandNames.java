@@ -74,4 +74,9 @@ public final class CommandNames {
     public static final String SCREENSHOT_LIST = "list";
     public static final String SCREENSHOT_UPLOAD = "upload";
     public static final String SCREENSHOT_DELETE = "delete";
+
+    public static final String LABEL = "label";
+    public static final String LABEL_LIST = "list";
+    public static final String LABEL_ADD = "add";
+    public static final String LABEL_DELETE = "delete";
 }
