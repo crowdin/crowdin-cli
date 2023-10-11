@@ -6,14 +6,11 @@ import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public class FileUtilsTest extends WorkWithProjectTestPart {
 
@@ -45,5 +42,31 @@ public class FileUtilsTest extends WorkWithProjectTestPart {
         assertTrue(file.exists());
         String result = org.apache.commons.io.FileUtils.readFileToString(file, "UTF-8");
         assertEquals(text, result);
+    }
+    @Test
+    public void testReadYamlFile_UnexpectedException() {
+        File yamlFile = new File(tempProject.getBasePath() + "invalid.yaml");
+        try (FileOutputStream fos = new FileOutputStream(yamlFile)) {
+            fos.write("invalid_yaml_content: @#!@".getBytes());
+        } catch (IOException e) {
+            fail("Failed to setup test: " + e.getMessage());
+        }
+
+        assertThrows(RuntimeException.class, () -> FileUtils.readYamlFile(yamlFile));
+    }
+
+    @Test
+    public void testReadYamlFile_NullFile() {
+        assertThrows(NullPointerException.class, () -> FileUtils.readYamlFile(null));
+    }
+
+    @Test
+    public void testReadYamlFile_NonYamlExtension() {
+        File nonYamlFile = new File(tempProject.getBasePath() + "somefile.txt");
+        try {
+            FileUtils.readYamlFile(nonYamlFile);
+        } catch (RuntimeException e) {
+            assertFalse(e.getMessage().equals("error.configuration_file_not_exist"));
+        }
     }
 }
