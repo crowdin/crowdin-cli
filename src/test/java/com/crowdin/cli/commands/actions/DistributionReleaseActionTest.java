@@ -21,10 +21,10 @@ public class DistributionReleaseActionTest {
 
     @Test
     public void releaseDistributionTest_whenSuccess() {
-            NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
-                    .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
-                    .setBasePath(Utils.PATH_SEPARATOR);
-            PropertiesWithFiles pb = pbBuilder.build();
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+                .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+                .setBasePath(Utils.PATH_SEPARATOR);
+        PropertiesWithFiles pb = pbBuilder.build();
         ClientDistribution client = mock(ClientDistribution.class);
         DistributionRelease distributionRelease = new DistributionRelease();
         distributionRelease.setStatus("success");
