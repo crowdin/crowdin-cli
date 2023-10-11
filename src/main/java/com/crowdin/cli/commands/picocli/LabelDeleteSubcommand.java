@@ -12,7 +12,7 @@ import picocli.CommandLine;
 )
 public class LabelDeleteSubcommand extends ActCommandLabel {
 
-    @CommandLine.Parameters(descriptionKey = "crowdin.label.delete.title")
+    @CommandLine.Parameters(descriptionKey = "crowdin.label.title")
     protected String title;
 
     @Override

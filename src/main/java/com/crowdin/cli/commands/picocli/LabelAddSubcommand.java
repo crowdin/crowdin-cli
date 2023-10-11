@@ -12,7 +12,7 @@ import picocli.CommandLine;
 )
 public class LabelAddSubcommand extends ActCommandLabel {
 
-    @CommandLine.Parameters(descriptionKey = "crowdin.label.add.title")
+    @CommandLine.Parameters(descriptionKey = "crowdin.label.title")
     protected String title;
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
