@@ -21,7 +21,8 @@ import picocli.CommandLine;
         BranchSubcommand.class,
         CommentSubcommand.class,
         DistributionSubcommand.class,
-        ScreenshotSubcommand.class
+        ScreenshotSubcommand.class,
+        LabelSubcommand.class,
     })
 class RootCommand extends HelpCommand {
     @Override

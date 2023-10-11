@@ -141,4 +141,19 @@ public class CliActionsTest {
     void testScreenshotDelete() {
         assertNotNull(actions.screenshotDelete(null));
     }
+
+    @Test
+    void testLabelList() {
+        assertNotNull(actions.labelList(false, true));
+    }
+
+    @Test
+    void testLabelAdd() {
+        assertNotNull(actions.labelAdd(null, false));
+    }
+
+    @Test
+    void testLabelDelete() {
+        assertNotNull(actions.labelDelete(null));
+    }
 }

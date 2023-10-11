@@ -219,6 +219,21 @@ const sidebars = {
             'commands/crowdin-screenshot-delete',
           ]
         },
+        {
+          type: 'category',
+          label: 'crowdin label',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-label'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-label-add',
+            'commands/crowdin-label-list',
+            'commands/crowdin-label-delete',
+          ]
+        },
         'commands/crowdin-pre-translate',
       ],
     },

@@ -16,6 +16,6 @@ public class ScreenshotDeleteSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testScreenshotDeleteInvalidOptions() {
-        this.executeInvalidParams(CommandNames.STRING, CommandNames.STRING_DELETE);
+        this.executeInvalidParams(CommandNames.SCREENSHOT, CommandNames.SCREENSHOT_DELETE);
     }
 }

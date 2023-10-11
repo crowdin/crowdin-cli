@@ -259,4 +259,19 @@ public class CliActions implements Actions {
     public NewAction<ProjectProperties, ClientScreenshot> screenshotDelete(String name) {
         return new ScreenshotDeleteAction(name);
     }
+
+    @Override
+    public NewAction<ProjectProperties, ClientLabel> labelList(boolean plainView, boolean isVerbose) {
+        return new LabelListAction(plainView, isVerbose);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ClientLabel> labelAdd(String title, boolean plainView) {
+        return new LabelAddAction(title, plainView);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ClientLabel> labelDelete(String title) {
+        return new LabelDeleteAction(title);
+    }
 }
