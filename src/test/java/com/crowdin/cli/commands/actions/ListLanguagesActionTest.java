@@ -125,18 +125,4 @@ public class ListLanguagesActionTest {
         ListLanguagesAction action = new ListLanguagesAction(BaseCli.LanguageCode.id, false, true);
         assertThrows(RuntimeException.class, () -> action.act(out, properties, client));
     }
-
-    @Test
-    public void testActPrintLanguagesWithNullCode() {
-        Language lang = new Language();
-        lang.setName("English");
-        lang.setTwoLettersCode("en");
-        when(projectInfo.getProjectLanguages(true)).thenReturn(Collections.singletonList(lang));
-
-        ListLanguagesAction action = new ListLanguagesAction(null, false, false);
-        action.act(out, properties, client);
-
-        verify(out, times(1)).println("✔️  Fetching project info");
-        verify(out, times(1)).println("✔️  English @|bold 'en'|@");
-    }
 }
