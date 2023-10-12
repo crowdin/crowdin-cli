@@ -7,10 +7,10 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ToString
-public final class LanguageMapping {
+public class LanguageMapping {
     private final Map<String, Map<String, String>> languageMapping;
 
-    private LanguageMapping() {
+    protected LanguageMapping() {
         this.languageMapping = new HashMap<>();
     }
 
