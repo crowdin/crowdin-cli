@@ -23,7 +23,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 abstract class CrowdinClientCore {
 
-    private static final long millisToRetry = 100;
+    private static final long defaultMillisToRetry = 100;
 
     private static final Map<BiPredicate<String, String>, RuntimeException> standardErrorHandlers =
         new LinkedHashMap<BiPredicate<String, String>, RuntimeException>() {{
@@ -67,32 +67,23 @@ abstract class CrowdinClientCore {
         return directories;
     }
 
-    protected static <T> T executeRequestWithPossibleRetry(BiPredicate<String, String> expectedError, Supplier<T> request) {
-        Map<BiPredicate<String, String>, RepeatException> errorHandler = new LinkedHashMap<BiPredicate<String, String>, RepeatException>() {{
-                put(expectedError, new RepeatException());
-            }};
-        try {
-            return executeRequest(errorHandler, request);
-        } catch (RepeatException e) {
-            try {
-                Thread.sleep(millisToRetry);
-            } catch (InterruptedException ie) {
-//                    ignore
-            }
-            return executeRequest(request);
-        }
+    protected static <T> T executeRequestWithPossibleRetry(Map<BiPredicate<String, String>, ResponseException> errorHandlers, Supplier<T> request) throws ResponseException {
+        return executeRequestWithPossibleRetries(errorHandlers, request, 1, defaultMillisToRetry);
     }
 
-    protected static <T> T executeRequestWithPossibleRetry(Map<BiPredicate<String, String>, ResponseException> errorHandlers, Supplier<T> request) throws ResponseException {
+    protected static <T> T executeRequestWithPossibleRetries(Map<BiPredicate<String, String>, ResponseException> errorHandlers, Supplier<T> request, int retries, long millisToRetry) throws ResponseException {
+        if (retries < 1) {
+            throw new MaxNumberOfRetriesException();
+        }
         try {
             return executeRequest(errorHandlers, request);
         } catch (RepeatException e) {
             try {
                 Thread.sleep(millisToRetry);
             } catch (InterruptedException ie) {
-//                    ignore
+//              ignore
             }
-            return executeRequest(request);
+            return executeRequestWithPossibleRetries(errorHandlers, request, retries - 1, millisToRetry);
         }
     }
 

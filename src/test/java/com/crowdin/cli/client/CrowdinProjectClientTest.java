@@ -437,7 +437,7 @@ public class CrowdinProjectClientTest {
     }
 
     @Test
-    public void testStartBuildingTranslation() {
+    public void testStartBuildingTranslation() throws ResponseException {
         ProjectBuildResponseObject response = new ProjectBuildResponseObject() {{
                 setData(new ProjectBuild());
             }};

@@ -58,7 +58,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testEmptyProject() throws IOException {
+    public void testEmptyProject() throws IOException, ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
@@ -103,7 +103,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testProjectOneFittingFile() throws IOException {
+    public void testProjectOneFittingFile() throws IOException, ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
@@ -159,7 +159,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testProjectOneFittingFile_WithExportApprovedOnly_WithSkipUntranslatedFiles() throws IOException {
+    public void testProjectOneFittingFile_WithExportApprovedOnly_WithSkipUntranslatedFiles() throws IOException, ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
@@ -220,7 +220,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testProjectDownloadWithKeepArchive() throws IOException {
+    public void testProjectDownloadWithKeepArchive() throws IOException, ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
@@ -275,7 +275,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testProjectOneFittingFile_LongBuild() throws IOException {
+    public void testProjectOneFittingFile_LongBuild() throws IOException, ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
@@ -336,7 +336,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testProjectOneFittingOneUnfittingFile_LongBuild() throws IOException {
+    public void testProjectOneFittingOneUnfittingFile_LongBuild() throws IOException, ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
@@ -396,7 +396,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testProjectOneFittingOneUnfittingOneWithUnfoundSourceFile_LongBuild() throws IOException {
+    public void testProjectOneFittingOneUnfittingOneWithUnfoundSourceFile_LongBuild() throws IOException, ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
@@ -457,7 +457,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testProjectOneFittingFile_WithLanguageMapping() throws IOException {
+    public void testProjectOneFittingFile_WithLanguageMapping() throws IOException, ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
@@ -519,7 +519,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testProjectOneFittingFile_UploadedWithoutHierarchy() throws IOException {
+    public void testProjectOneFittingFile_UploadedWithoutHierarchy() throws IOException, ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("files" + Utils.PATH_SEPARATOR + "*", Utils.PATH_SEPARATOR + "%original_path%" + Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
@@ -575,7 +575,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testProjectOneFittingFile_FailBuild() {
+    public void testProjectOneFittingFile_FailBuild() throws ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
@@ -634,7 +634,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testProjectOneFittingFile_failDeleteFile() throws IOException {
+    public void testProjectOneFittingFile_failDeleteFile() throws IOException, ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
@@ -695,7 +695,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testProjectOneFittingFile_failDownloadingException() {
+    public void testProjectOneFittingFile_failDownloadingException() throws ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
                 .setBasePath(project.getBasePath());
@@ -729,7 +729,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testProjectOneFittingFile_failWritingFile() throws IOException {
+    public void testProjectOneFittingFile_failWritingFile() throws IOException, ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
