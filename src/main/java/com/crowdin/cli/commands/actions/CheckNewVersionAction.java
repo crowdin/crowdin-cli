@@ -32,7 +32,7 @@ class CheckNewVersionAction implements NewAction<NoProperties, NoClient> {
         }
     }
 
-    private static Optional<String> getNewVersionMessage() {
+    public static Optional<String> getNewVersionMessage() {
         String message2 = BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text.2");
         String message3 = BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text.3");
         String c1 = Utils.isWindows() ? "┌" : "\u256d";
