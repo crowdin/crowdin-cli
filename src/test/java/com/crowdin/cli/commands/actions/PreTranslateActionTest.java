@@ -12,7 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
-
+import com.crowdin.client.languages.model.Language;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -37,11 +37,15 @@ class PreTranslateActionTest {
     @Mock
     private PreTranslationStatus preTranslationStatus;
 
+    @Mock
     private PreTranslateAction action;
 
     @BeforeEach
     void setUp() {
         MockitoAnnotations.initMocks(this);
+        Language enLanguage = new Language();
+        enLanguage.setId("en");
+        when(project.getProjectLanguages(false)).thenReturn(Collections.singletonList(enLanguage));
         action = new PreTranslateAction(
                 Collections.singletonList("en"), null, 1L, "master", null, false, false, false, false, false, false, false, null
         );
@@ -77,4 +81,60 @@ class PreTranslateActionTest {
         when(project.getFileInfos()).thenReturn(Collections.emptyList());
         assertThrows(RuntimeException.class, () -> action.act(out, properties, client));
     }
+    @Test
+    void testPrepareLabelIds() {
+        action = new PreTranslateAction(
+                Collections.singletonList("en"), null, 1L, "master", null, false, false, false, false, false, false, false, Collections.singletonList("label1")
+        );
+        when(client.listLabels()).thenReturn(Collections.emptyList());
+
+        assertThrows(RuntimeException.class, () -> action.act(out, properties, client));
+        verify(out, times(1)).println(anyString());
+    }
+    @Test
+    void testPrepareFileIds() {
+        when(project.getFileInfos()).thenReturn(Collections.emptyList());
+        assertThrows(RuntimeException.class, () -> action.act(out, properties, client));
+    }
+//    @Test
+//    void testPrepareFileIds_AllSourcesExistInProjectPaths() {
+//        Language english = new Language();
+//        english.setId("en");
+//        when(project.getProjectLanguages(false)).thenReturn(Collections.singletonList(english));
+//        when(project.getDirectories()).thenReturn(new HashMap<>());
+//        when(project.getBranches()).thenReturn(new HashMap<>());
+//        when(project.getFileInfos()).thenReturn(Collections.emptyList());
+//
+//        action.act(out, properties, client);
+//
+//        verify(out, times(0)).println(anyString());
+//    }
+//
+//    @Test
+//    void testPrepareFileIds_SomeSourcesDoNotExistInProjectPaths() {
+//        Language english = new Language();
+//        english.setId("en");
+//        when(project.getProjectLanguages(false)).thenReturn(Collections.singletonList(english));
+//        when(project.getDirectories()).thenReturn(new HashMap<>());
+//        when(project.getBranches()).thenReturn(new HashMap<>());
+//        when(project.getFileInfos()).thenReturn(Collections.emptyList());
+//
+//        action.act(out, properties, client);
+//
+//        verify(out, times(1)).println(anyString());
+//    }
+//
+//    @Test
+//    void testPrepareFileIds_NoSourcesExistInProjectPaths() {
+//        Language english = new Language();
+//        english.setId("en");
+//        when(project.getProjectLanguages(false)).thenReturn(Collections.singletonList(english));
+//        when(project.getDirectories()).thenReturn(new HashMap<>());
+//        when(project.getBranches()).thenReturn(new HashMap<>());
+//        when(project.getFileInfos()).thenReturn(Collections.emptyList());
+//
+//        action.act(out, properties, client);
+//
+//        verify(out, times(1)).println(anyString());
+//    }
 }
