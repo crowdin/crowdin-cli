@@ -68,11 +68,11 @@ abstract class CrowdinClientCore {
     }
 
     protected static <T> T executeRequestWithPossibleRetry(Map<BiPredicate<String, String>, ResponseException> errorHandlers, Supplier<T> request) throws ResponseException {
-        return executeRequestWithPossibleRetries(errorHandlers, request, 1, defaultMillisToRetry);
+        return executeRequestWithPossibleRetries(errorHandlers, request, 2, defaultMillisToRetry);
     }
 
-    protected static <T> T executeRequestWithPossibleRetries(Map<BiPredicate<String, String>, ResponseException> errorHandlers, Supplier<T> request, int retries, long millisToRetry) throws ResponseException {
-        if (retries < 1) {
+    protected static <T> T executeRequestWithPossibleRetries(Map<BiPredicate<String, String>, ResponseException> errorHandlers, Supplier<T> request, int maxAttempts, long millisToRetry) throws ResponseException {
+        if (maxAttempts < 1) {
             throw new MaxNumberOfRetriesException();
         }
         try {
@@ -83,7 +83,7 @@ abstract class CrowdinClientCore {
             } catch (InterruptedException ie) {
 //              ignore
             }
-            return executeRequestWithPossibleRetries(errorHandlers, request, retries - 1, millisToRetry);
+            return executeRequestWithPossibleRetries(errorHandlers, request, maxAttempts - 1, millisToRetry);
         }
     }
 

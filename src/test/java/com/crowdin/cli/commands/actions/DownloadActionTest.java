@@ -1,9 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.MockitoUtils;
-import com.crowdin.cli.client.ProjectClient;
-import com.crowdin.cli.client.ProjectBuilder;
-import com.crowdin.cli.client.ResponseException;
+import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
@@ -600,6 +598,40 @@ public class DownloadActionTest {
         NewAction<PropertiesWithFiles, ProjectClient> action =
             new DownloadAction(files, false, null, null, false, null, false, false, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+
+        verify(client).downloadFullProject(null);
+        verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
+        verifyNoMoreInteractions(client);
+
+        verifyNoMoreInteractions(files);
+    }
+
+    @Test
+    public void testProjectOneFittingFile_FailBuildInProgress() throws ResponseException {
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+                .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+                .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+
+        project.addFile("first.po");
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject(null))
+                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                        .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
+        long buildId = 42L;
+        when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
+                .thenThrow(new MaxNumberOfRetriesException());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
+        when(client.downloadBuild(eq(buildId)))
+                .thenReturn(urlMock);
+
+        FilesInterface files = mock(FilesInterface.class);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+                new DownloadAction(files, false, null, null, false, null, false, false, false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));

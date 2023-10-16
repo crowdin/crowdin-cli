@@ -327,8 +327,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             }
         } catch (ProjectBuildFailedException e) {
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.translations_build_unsuccessful")));
-        }
-        finally {
+        } finally {
             try {
                 for (File tempDir : tempDirs.keySet()) {
                     files.deleteDirectory(tempDir);
