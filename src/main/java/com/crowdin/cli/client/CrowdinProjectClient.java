@@ -253,10 +253,17 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
-    public ProjectBuild startBuildingTranslation(BuildProjectTranslationRequest request) {
-        return executeRequest(() -> this.client.getTranslationsApi()
-            .buildProjectTranslation(this.projectId, request)
-            .getData());
+    public ProjectBuild startBuildingTranslation(BuildProjectTranslationRequest request) throws ResponseException {
+        Map<BiPredicate<String, String>, ResponseException> errorHandler = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
+            put((code, message) -> code.equals("409") && message.contains("Another build is currently in progress"),
+                new RepeatException());
+        }};
+        return executeRequestWithPossibleRetries(
+            errorHandler,
+            () -> this.client.getTranslationsApi().buildProjectTranslation(this.projectId, request).getData(),
+            3,
+            60 * 100
+        );
     }
 
     @Override
