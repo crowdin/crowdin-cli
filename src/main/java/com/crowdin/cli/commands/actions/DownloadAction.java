@@ -1,8 +1,6 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.CrowdinProjectFull;
-import com.crowdin.cli.client.LanguageMapping;
-import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
@@ -327,6 +325,8 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     out.println(EMPTY.withIcon(RESOURCE_BUNDLE.getString("message.faq_link")));
                 }
             }
+        } catch (ProjectBuildFailedException e) {
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.translations_build_unsuccessful")));
         } finally {
             try {
                 for (File tempDir : tempDirs.keySet()) {
@@ -348,6 +348,9 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
      */
     private Pair<File, List<String>> download(BuildProjectTranslationRequest request, ProjectClient client, String basePath, Boolean keepArchive) {
         ProjectBuild projectBuild = buildTranslation(client, request);
+        if (projectBuild == null) {
+            throw new ProjectBuildFailedException();
+        }
         String randomHash = RandomStringUtils.random(11, false, true);
         File baseTempDir =
             new File(StringUtils.removeEnd(
@@ -418,23 +421,27 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             this.noProgress,
             this.plainView,
             () -> {
-                ProjectBuild build = client.startBuildingTranslation(request);
+                ProjectBuild build = null;
+                try {
+                    build = client.startBuildingTranslation(request);
 
-                while (!build.getStatus().equalsIgnoreCase("finished")) {
-                    ConsoleSpinner.update(
-                        String.format(RESOURCE_BUNDLE.getString("message.building_translation"),
-                            Math.toIntExact(build.getProgress())));
+                    while (!build.getStatus().equalsIgnoreCase("finished")) {
+                        ConsoleSpinner.update(
+                            String.format(RESOURCE_BUNDLE.getString("message.building_translation"),
+                                Math.toIntExact(build.getProgress())));
 
-                    Thread.sleep(sleepTime.getAndUpdate(val -> val < CHECK_WAITING_TIME_MAX ? val + CHECK_WAITING_TIME_INCREMENT : CHECK_WAITING_TIME_MAX));
+                        Thread.sleep(sleepTime.getAndUpdate(val -> val < CHECK_WAITING_TIME_MAX ? val + CHECK_WAITING_TIME_INCREMENT : CHECK_WAITING_TIME_MAX));
 
-                    build = client.checkBuildingTranslation(build.getId());
+                        build = client.checkBuildingTranslation(build.getId());
 
-                    if (build.getStatus().equalsIgnoreCase("failed")) {
-                        throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.build_has_failed"));
+                        if (build.getStatus().equalsIgnoreCase("failed")) {
+                            throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.build_has_failed"));
+                        }
                     }
+                    ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
+                } catch (MaxNumberOfRetriesException e) {
+                    ConsoleSpinner.stop(WARNING, RESOURCE_BUNDLE.getString("message.warning.another_build_in_progress"));
                 }
-
-                ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
                 return build;
             }
         );
@@ -555,4 +562,6 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         }
         return result;
     }
+
+    private static class ProjectBuildFailedException extends RuntimeException { }
 }
