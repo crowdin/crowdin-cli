@@ -29,7 +29,7 @@ public interface Actions {
     );
 
     NewAction<NoProperties, NoClient> generate(FilesInterface files, String token, String baseUrl, String basePath,
-        String projectId, String source, String translation, String dest, Boolean preserveHierarchy, Path configDestPath, boolean skipGenerateDescription);
+        String projectId, String source, String translation, Boolean preserveHierarchy, Path destinationPath, boolean skipGenerateDescription);
 
     NewAction<ProjectProperties, ProjectClient> listBranches(boolean noProgress, boolean plainView);
 

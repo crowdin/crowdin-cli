@@ -52,9 +52,8 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
     private final String projectId;
     private final String source;
     private final String translation;
-    private final String dest;
     private final Boolean preserveHierarchy;
-    private final Path configDestPath;
+    private final Path destinationPath;
     private final boolean skipGenerateDescription;
 
     @Override
@@ -64,10 +63,10 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
         try {
             out.println(String.format(
                 RESOURCE_BUNDLE.getString("message.command_generate_description"),
-                configDestPath.toAbsolutePath()));
-            if (Files.exists(configDestPath)) {
+                destinationPath.toAbsolutePath()));
+            if (Files.exists(destinationPath)) {
                 out.println(ExecutionStatus.SKIPPED.getIcon() + String.format(
-                        RESOURCE_BUNDLE.getString("message.already_exists"), configDestPath.toAbsolutePath()));
+                        RESOURCE_BUNDLE.getString("message.already_exists"), destinationPath.toAbsolutePath()));
                 return;
             }
 
@@ -76,7 +75,7 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
                 this.updateWithUserInputs(out, asking, fileLines);
             }
             files.writeToFile(
-                configDestPath.toString(), new ByteArrayInputStream(StringUtils.join(fileLines, "\n").getBytes(StandardCharsets.UTF_8)));
+                destinationPath.toString(), new ByteArrayInputStream(StringUtils.join(fileLines, "\n").getBytes(StandardCharsets.UTF_8)));
             out.println(String.format(
                 RESOURCE_BUNDLE.getString("message.generate_successful"),
                 this.isEnterprise ? ENTERPRISE_LINK : LINK));
@@ -168,13 +167,9 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
             for (int i = 0; i < fileLines.size(); i++) {
                 String keyToSearch = String.format("\"%s\"", entry.getKey());
                 if (fileLines.get(i).contains(keyToSearch)) {
-                    String updatedLine;
-                    if (PRESERVE_HIERARCHY.equals(entry.getKey())) {
-                        updatedLine = fileLines.get(i).replace(String.valueOf(TRUE), entry.getValue());
-                    } else {
-                        updatedLine = fileLines.get(i).replaceFirst(": \"*\"", String.format(": \"%s\"", Utils.regexPath(entry.getValue())));
-                    }
-                    updatedLine = updatedLine.replace(" #", "");
+                    String updatedLine = PRESERVE_HIERARCHY.equals(entry.getKey()) ?
+                        fileLines.get(i).replace(String.valueOf(TRUE), entry.getValue())
+                        : fileLines.get(i).replaceFirst(": \"*\"", String.format(": \"%s\"", Utils.regexPath(entry.getValue())));
                     fileLines.set(i, updatedLine);
                     break;
                 }
@@ -189,7 +184,6 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
         Optional.ofNullable(projectId).ifPresent(v -> values.put(PROJECT_ID, projectId));
         Optional.ofNullable(source).ifPresent(v ->  values.put(SOURCE, source));
         Optional.ofNullable(translation).ifPresent(v -> values.put(TRANSLATION, translation));
-        Optional.ofNullable(dest).ifPresent(v -> values.put(DEST, dest));
         Optional.ofNullable(preserveHierarchy).ifPresent(v -> values.put(PRESERVE_HIERARCHY, String.valueOf(preserveHierarchy)));
     }
 
