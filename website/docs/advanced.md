@@ -168,6 +168,24 @@ Example of the configuration:
 ]
 ```
 
+#### Apple Strings Catalog
+
+Apple Strings Catalog is a natively supported file format by Crowdin, you can use it without any additional installation. Since this file format is **multilingual** (contains multiple languages in one file), you can omit the language placeholders in the `translation` pattern:
+
+```yml title="crowdin.yml"
+"files": [
+  {
+    "source": "Localizable.xcstrings",
+    "translation": "Localizable.xcstrings",
+    "scheme": ""
+  }
+]
+```
+
+:::caution
+Note the `scheme` option in the configuration above. It's needed to indicate that this file is multilingual for correct file processing.
+:::
+
 ### Configure export options for each file group
 
 There is a way to specify export options for each file-group in the `crowdin.yml` configuration file:
