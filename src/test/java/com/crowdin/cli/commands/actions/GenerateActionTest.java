@@ -20,10 +20,7 @@ import java.nio.file.Paths;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
+import static org.mockito.Mockito.*;
 
 public class GenerateActionTest {
 
@@ -47,7 +44,18 @@ public class GenerateActionTest {
         InputStream responsesIS = setResponses(false, false, "apiToken", "42", ".");
         System.setIn(responsesIS);
 
-        action = new GenerateAction(files, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new GenerateAction(files,  null, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class));
+
+        verify(files).writeToFile(anyString(), any());
+        verifyNoMoreInteractions(files);
+    }
+
+    @Test
+    public void userInputTest() throws IOException {
+        FilesInterface files = mock(FilesInterface.class);
+
+        action = new GenerateAction(files,  "token", "", ".", "42", "file.json", "translation.json", "dest", true, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class));
 
         verify(files).writeToFile(anyString(), any());
@@ -61,7 +69,7 @@ public class GenerateActionTest {
         InputStream responsesIS = setResponses(false, false, "apiToken", "42", ".");
         System.setIn(responsesIS);
 
-        action = new GenerateAction(files, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new GenerateAction(files, null, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class)));
 
         verify(files).writeToFile(anyString(), any());
@@ -75,7 +83,7 @@ public class GenerateActionTest {
         InputStream responsesIS = setResponses(false, true, "undefined", "apiToken", "42", ".");
         System.setIn(responsesIS);
 
-        action = new GenerateAction(files, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new GenerateAction(files, null, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class)));
 
         verify(files).writeToFile(anyString(), any());
@@ -89,7 +97,7 @@ public class GenerateActionTest {
         InputStream responsesIS = setResponses(false, true, "https://undefined.crowdin.com", "apiToken", "42", ".");
         System.setIn(responsesIS);
 
-        action = new GenerateAction(files, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new GenerateAction(files, null, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class)));
 
         verify(files).writeToFile(anyString(), any());
@@ -103,7 +111,7 @@ public class GenerateActionTest {
         InputStream responsesIS = setResponses(false, true, "", "apiToken", "42", ".");
         System.setIn(responsesIS);
 
-        action = new GenerateAction(files, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new GenerateAction(files, null, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class)));
 
         verify(files).writeToFile(anyString(), any());
@@ -118,7 +126,7 @@ public class GenerateActionTest {
         InputStream responsesIS = setResponses(false, true, "https://undefined.crowdin.com", "apiToken", "42", ".");
         System.setIn(responsesIS);
 
-        action = new GenerateAction(files, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new GenerateAction(files, null, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class));
 
         verifyNoMoreInteractions(files);

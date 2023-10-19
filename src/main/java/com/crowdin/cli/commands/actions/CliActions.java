@@ -34,8 +34,10 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<NoProperties, NoClient> generate(FilesInterface files, Path destinationPath, boolean skipGenerateDescription) {
-        return new GenerateAction(files, destinationPath, skipGenerateDescription);
+    public NewAction<NoProperties, NoClient> generate(FilesInterface files, String token, String baseUrl, String basePath,
+        String projectId, String source, String translation, String dest, Boolean preserveHierarchy, Path configDestPath, boolean skipGenerateDescription
+    ) {
+        return new GenerateAction(files, token, baseUrl, basePath, projectId, source, translation, dest, preserveHierarchy, configDestPath, skipGenerateDescription);
     }
 
     @Override

@@ -12,7 +12,7 @@ public class GenerateSubcommandTest extends PicocliTestUtils {
     public void testGenerate() {
         this.execute(CommandNames.GENERATE);
         verify(actionsMock)
-            .generate(any(), any(), anyBoolean());
+            .generate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean());
         this.check(false);
     }
 }
