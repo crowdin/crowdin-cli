@@ -1,5 +1,28 @@
 # Changelog
 
+# [3.15.0](https://github.com/crowdin/crowdin-cli/compare/3.14.0...3.15.0) (2023-10-25)
+
+
+### Bug Fixes
+
+* translations download without preserve hierarchy ([#643](https://github.com/crowdin/crowdin-cli/issues/643)) ([4099eea](https://github.com/crowdin/crowdin-cli/commit/4099eea6f5bc2a63bd1030d3670621af6f2297db))
+
+
+### Features
+
+* add file name to translation upload error message ([#639](https://github.com/crowdin/crowdin-cli/issues/639)) ([9246038](https://github.com/crowdin/crowdin-cli/commit/9246038c4f55cdf3c0d87c3645e67f7a2f4906ff))
+* added support of passing labels to pre translate command ([#649](https://github.com/crowdin/crowdin-cli/issues/649)) ([619ffbe](https://github.com/crowdin/crowdin-cli/commit/619ffbef29f9219951c989d8250d7649c1b8345d))
+* dryrun for bundle download ([#648](https://github.com/crowdin/crowdin-cli/issues/648)) ([201eb58](https://github.com/crowdin/crowdin-cli/commit/201eb581e29e71d1b214841b335c41e7462301ae))
+* file and directory options for status command ([#646](https://github.com/crowdin/crowdin-cli/issues/646)) ([3c2f517](https://github.com/crowdin/crowdin-cli/commit/3c2f51798c25369133518ffd2e37b8fe05a6eef1))
+* label command ([#661](https://github.com/crowdin/crowdin-cli/issues/661)) ([3da23ec](https://github.com/crowdin/crowdin-cli/commit/3da23ec6f32f3ee3ce15929eb2c0e1db93980935))
+* replace file id with file path in task add command ([#641](https://github.com/crowdin/crowdin-cli/issues/641)) ([fdf9cec](https://github.com/crowdin/crowdin-cli/commit/fdf9cecb310d44f5a3cee849c8f9943b170e4452))
+* retries for translations build ([#667](https://github.com/crowdin/crowdin-cli/issues/667)) ([2a59e03](https://github.com/crowdin/crowdin-cli/commit/2a59e034c82fc56b6a3d5a14004c98f4eecef8e3))
+
+
+### Reverts
+
+* square brackets fix ([#671](https://github.com/crowdin/crowdin-cli/issues/671)) ([40d18f7](https://github.com/crowdin/crowdin-cli/commit/40d18f799f1fdd1e4d16e4b3c4a4ddf5a2836d29))
+
 # [3.14.0](https://github.com/crowdin/crowdin-cli/compare/3.13.0...3.14.0) (2023-09-08)
 
 
