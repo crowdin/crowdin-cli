@@ -6,7 +6,8 @@ import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.IOException;
+
+import java.io.UncheckedIOException;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -70,7 +71,7 @@ public class Utils {
     public static List<String> readResource(String path) {
         try {
             return IOUtils.readLines(Utils.class.getResourceAsStream(path), "UTF-8");
-        } catch (IOException e) {
+        } catch (UncheckedIOException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.read_resource_file"), path), e);
         }
     }
