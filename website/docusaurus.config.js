@@ -9,6 +9,7 @@ const config = {
   title: 'Crowdin CLI',
   tagline: 'Crowdin CLI is a command line tool that allows you to manage and synchronize localization resources with your Crowdin project',
   favicon: 'img/favicon.ico',
+  trailingSlash: false,
 
   // Set the production url of your site here
   url: 'https://crowdin.github.io/',
