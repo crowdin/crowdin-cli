@@ -21,7 +21,7 @@ class CheckNewVersionAction implements NewAction<NoProperties, NoClient> {
         getNewVersionMessage().ifPresent(out::println);
     }
 
-    private static Optional<String> getAppNewLatestVersion() {
+    static Optional<String> getAppNewLatestVersion() {
         try {
             List<String> versionFile = IOUtils.readLines(new URL(Utils.getLatestVersionUrl()).openStream(), "UTF-8");
             return (versionFile.size() > 0 && !Utils.getAppVersion().equals(versionFile.get(0)))
