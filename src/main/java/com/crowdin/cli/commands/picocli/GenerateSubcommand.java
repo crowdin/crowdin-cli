@@ -41,7 +41,7 @@ public class GenerateSubcommand extends GenericActCommand<NoProperties, NoClient
     @CommandLine.Option(names = {"-d", "--destination"}, paramLabel = "...", descriptionKey = "crowdin.generate.destination", defaultValue = "crowdin.yml", order = -2)
     private Path destinationPath;
 
-    @CommandLine.Option(names = "--skip-generate-description", hidden = true, order = -2)
+    @CommandLine.Option(names = "--skip-generate-description", hidden = true)
     private boolean skipGenerateDescription;
 
     protected NewAction<NoProperties, NoClient> getAction(Actions actions) {
