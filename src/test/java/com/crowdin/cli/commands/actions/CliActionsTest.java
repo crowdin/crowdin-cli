@@ -19,7 +19,7 @@ public class CliActionsTest {
 
     @Test
     public void testGenerate() {
-        assertNotNull(actions.generate(new FsFiles(), null, false));
+        assertNotNull(actions.generate(new FsFiles(), null, null, null, null, null, null, null, null, false));
     }
 
     @Test
