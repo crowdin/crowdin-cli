@@ -15,6 +15,7 @@ One way to do this is to use Crowdin CLI with your CI tools. You can use Crowdin
 - [AWS CodeCommit](https://store.crowdin.com/codecommit)
 - [Bitbucket Pipelines](https://store.crowdin.com/bitbucket-pipelines)
 - [CircleCI](https://store.crowdin.com/circle-ci)
+- [Drone CI](https://store.crowdin.com/drone-ci)
 - [Go Task](https://store.crowdin.com/go-task)
 - [Grunt](https://store.crowdin.com/grunt)
 
