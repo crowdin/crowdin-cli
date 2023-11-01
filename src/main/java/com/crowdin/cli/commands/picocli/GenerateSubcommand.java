@@ -14,20 +14,25 @@ import java.nio.file.Path;
 
 @CommandLine.Command(
     name = CommandNames.GENERATE,
-    aliases = CommandNames.ALIAS_GENERATE)
+    aliases = CommandNames.ALIAS_GENERATE,
+    sortOptions = false
+)
 public class GenerateSubcommand extends GenericActCommand<NoProperties, NoClient> {
+
+    @CommandLine.Option(names = {"-d", "--destination"}, paramLabel = "...", descriptionKey = "crowdin.generate.destination", defaultValue = "crowdin.yml", order = -2)
+    private Path destinationPath;
 
     @CommandLine.Option(names = {"-T", "--token"}, paramLabel = "...", descriptionKey = "params.token", order = -2)
     private String token;
 
-    @CommandLine.Option(names = {"--base-url"}, paramLabel = "...", descriptionKey = "params.base-url", order = -2)
-    private String baseUrl;
+    @CommandLine.Option(names = {"-i", "--project-id"}, paramLabel = "...", descriptionKey = "params.project-id", order = -2)
+    private String projectId;
 
     @CommandLine.Option(names = {"--base-path"}, paramLabel = "...", descriptionKey = "params.base-path", order = -2)
     private String basePath;
 
-    @CommandLine.Option(names = {"-i", "--project-id"}, paramLabel = "...", descriptionKey = "params.project-id", order = -2)
-    private String projectId;
+    @CommandLine.Option(names = {"--base-url"}, paramLabel = "...", descriptionKey = "params.base-url", order = -2)
+    private String baseUrl;
 
     @CommandLine.Option(names = {"-s", "--source"}, paramLabel = "...", descriptionKey = "params.source", order = -2)
     private String source;
@@ -37,9 +42,6 @@ public class GenerateSubcommand extends GenericActCommand<NoProperties, NoClient
 
     @CommandLine.Option(names = {"--preserve-hierarchy"}, negatable = true, paramLabel = "...", descriptionKey = "params.preserve-hierarchy", order = -2)
     private Boolean preserveHierarchy;
-
-    @CommandLine.Option(names = {"-d", "--destination"}, paramLabel = "...", descriptionKey = "crowdin.generate.destination", defaultValue = "crowdin.yml", order = -2)
-    private Path destinationPath;
 
     @CommandLine.Option(names = "--skip-generate-description", hidden = true)
     private boolean skipGenerateDescription;
