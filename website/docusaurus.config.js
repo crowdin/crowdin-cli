@@ -36,6 +36,11 @@ const config = {
           editUrl: 'https://github.com/crowdin/crowdin-cli/tree/main/website/',
         },
         blog: false,
+        sitemap: {
+          changefreq: "weekly",
+          priority: 0.5,
+          filename: "sitemap.xml",
+        },
         theme: {
           customCss: require.resolve('./src/css/custom.css'),
         },
