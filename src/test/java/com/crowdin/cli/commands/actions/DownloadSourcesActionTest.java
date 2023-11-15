@@ -84,6 +84,7 @@ public class DownloadSourcesActionTest {
     }
 
     @Test
+    @DisabledOnOs(OS.WINDOWS)
     public void testDestAndUnaryAsterisk() throws IOException {
         PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean(

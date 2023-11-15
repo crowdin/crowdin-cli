@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.crowdin.cli.utils.Utils.isWindows;
+
 public class PlaceholderUtil {
 
     public static final String PLACEHOLDER_ANDROID_CODE = "%android_code%";
@@ -51,13 +53,13 @@ public class PlaceholderUtil {
     private static final String SET_CLOSE_BRACKET = "]";
     public static final String ROUND_BRACKET_OPEN = "(";
     public static final String ROUND_BRACKET_CLOSE = ")";
-    public static final String ESCAPE_ROUND_BRACKET_OPEN = "\\(";
-    public static final String ESCAPE_ROUND_BRACKET_CLOSE = "\\)";
-    private static final String ESCAPE_DOT = "\\.";
+    public static final String ESCAPE_ROUND_BRACKET_OPEN = isWindows() ? "^(" : "\\(";
+    public static final String ESCAPE_ROUND_BRACKET_CLOSE = isWindows() ? "^)" : "\\)";
+    private static final String ESCAPE_DOT = isWindows() ? "^." : "\\.";
     private static final String ESCAPE_DOT_PLACEHOLDER = "{ESCAPE_DOT}";
-    private static final String ESCAPE_QUESTION = "\\?";
+    private static final String ESCAPE_QUESTION = isWindows() ? "^?" : "\\?";
     private static final String ESCAPE_QUESTION_PLACEHOLDER = "{ESCAPE_QUESTION_MARK}";
-    private static final String ESCAPE_ASTERISK = "\\*";
+    private static final String ESCAPE_ASTERISK = isWindows() ? "^*" : "\\*";
     private static final String ESCAPE_ASTERISK_PLACEHOLDER = "{ESCAPE_ASTERISK}";
     private static final String ESCAPE_ASTERISK_REPLACEMENT_FROM = ".+" + Utils.PATH_SEPARATOR;
     private static final String ESCAPE_ASTERISK_REPLACEMENT_TO = "(.+" + Utils.PATH_SEPARATOR_REGEX + ")?";
@@ -228,7 +230,7 @@ public class PlaceholderUtil {
     }
 
     public static String formatSourcePatternForRegex(String toFormat) {
-        if(Utils.isWindows()){
+        if(isWindows()){
             toFormat = toFormat
                     .replace("\\", "\\\\");
         }

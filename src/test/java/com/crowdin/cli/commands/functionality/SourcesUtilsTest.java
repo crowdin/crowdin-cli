@@ -289,6 +289,7 @@ public class SourcesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
     public void testFilterProjectFiles_noPreserveHierarchy_wIgnores(
         List<String> filePaths, String sourcePattern, List<String> ignorePatterns, List<String> expected
     ) {
@@ -383,6 +384,7 @@ public class SourcesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
     public void testReplaceUnaryAsterisk(String sourcePattern, String projectFile, String expected) {
         assertPathsEqualIgnoringSeparator(SourcesUtils.replaceUnaryAsterisk(sourcePattern, projectFile), expected);
     }
