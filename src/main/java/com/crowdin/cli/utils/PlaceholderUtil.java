@@ -230,9 +230,9 @@ public class PlaceholderUtil {
     }
 
     public static String formatSourcePatternForRegex(String toFormat) {
-        if(isWindows()){
+        if (isWindows()) {
             toFormat = toFormat
-                    .replace("\\", "\\\\");
+                .replace("\\", "\\\\");
         }
         toFormat = toFormat
             .replace(ESCAPE_DOT, ESCAPE_DOT_PLACEHOLDER)
@@ -254,10 +254,15 @@ public class PlaceholderUtil {
 
         toFormat = toFormat
             .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
-
             .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE)
-
             .replace(ESCAPE_ASTERISK_REPLACEMENT_FROM, ESCAPE_ASTERISK_REPLACEMENT_TO);
+
+        if (isWindows()) {
+            toFormat = toFormat
+                .replace(ESCAPE_ASTERISK, "\\*")
+                .replace(ESCAPE_DOT, "\\.")
+                .replace(ESCAPE_QUESTION, "\\?");
+        }
         return toFormat
             .replace(PLACEHOLDER_FILE_EXTENSION, "[^/]+")
             .replace(PLACEHOLDER_FILE_NAME, "[^/]+")

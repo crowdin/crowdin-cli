@@ -87,7 +87,12 @@ public class Utils {
     }
 
     public static String unixPath(String path) {
-        return (path != null) ? path.replaceAll("[\\\\/]+", "/") : null;
+        if (path == null) {
+            return null;
+        }
+        return isWindows()
+            ? path.replaceAll("[\\\\/]+", "/")
+            : path.replaceAll("\\\\{2,}", "/").replaceAll("/+", "/");
     }
 
     public static String windowsPath(String path) {
