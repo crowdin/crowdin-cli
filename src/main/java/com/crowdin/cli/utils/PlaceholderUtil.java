@@ -236,7 +236,7 @@ public class PlaceholderUtil {
         }
         toFormat = toFormat
             .replace(ESCAPE_DOT, ESCAPE_DOT_PLACEHOLDER)
-            .replace(DOT, ESCAPE_DOT)
+            .replace(DOT, "\\.")
             .replace(ESCAPE_DOT_PLACEHOLDER, ESCAPE_DOT)
 
             .replace(ESCAPE_QUESTION, ESCAPE_QUESTION_PLACEHOLDER)
