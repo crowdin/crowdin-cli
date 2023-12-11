@@ -1,35 +1,51 @@
 {
-  "bin": {
-    "crowdin": "jdeploy-bundle/jdeploy.js"
-  },
+  "name": "@crowdin/cli",
   "author": "Crowdin",
   "description": "Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project",
+  "homepage": "https://crowdin.github.io/crowdin-cli",
   "main": "index.js",
   "preferGlobal": true,
   "repository": {
     "type": "git",
     "url": "https://github.com/crowdin/crowdin-cli.git"
   },
-  "version": "3.5.1",
+  "version": "3.15.0",
+  "bin": {
+    "crowdin": "jdeploy-bundle/jdeploy.js"
+  },
   "jdeploy": {
     "jar": "dist/crowdin-cli.jar"
   },
   "dependencies": {
-    "shelljs": "^0.7.5"
+    "command-exists-promise": "^2.0.2",
+    "node-fetch": "2.6.7",
+    "shelljs": "^0.8.4",
+    "tar": "^4.4.8",
+    "yauzl": "^2.10.0"
   },
   "license": "MIT",
-  "name": "@crowdin/cli",
   "files": [
     "jdeploy-bundle"
   ],
-  "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
-  },
   "keywords": [
     "Crowdin",
     "CLI",
     "Client",
     "Sync",
-    "Localization"
-  ]
+    "Localization",
+    "Translation",
+    "Automation",
+    "Integration",
+    "CI/CD",
+    "Command-line interface",
+    "Synchronization",
+    "Translation management"
+  ],
+  "devDependencies": {
+    "@google/semantic-release-replace-plugin": "^1.2.0",
+    "@semantic-release/changelog": "^6.0.2",
+    "@semantic-release/exec": "^6.0.3",
+    "@semantic-release/git": "^10.0.1",
+    "semantic-release": "^20.1.1"
+  }
 }

@@ -1,0 +1,20 @@
+:includedir: ../generated-picocli-docs
+:command: crowdin-glossary
+
+== crowdin glossary
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-synopsis]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-arguments]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-commands]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-options]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
+
+=== See also
+
+* link:https://support.crowdin.com/glossary/[Glossary Management]

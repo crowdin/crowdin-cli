@@ -43,7 +43,7 @@ public class ListSourcesActionTest {
         when(client.downloadProjectWithLanguages())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new ListSourcesAction(false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new ListSourcesAction(false, null, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadProjectWithLanguages();
@@ -60,7 +60,7 @@ public class ListSourcesActionTest {
         when(client.downloadProjectWithLanguages())
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new ListSourcesAction(false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new ListSourcesAction(false, null, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
         pb.setPreserveHierarchy(true);
         action.act(Outputter.getDefault(), pb, client);

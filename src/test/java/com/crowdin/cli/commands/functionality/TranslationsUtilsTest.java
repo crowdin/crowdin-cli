@@ -2,6 +2,8 @@ package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.utils.Utils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -42,6 +44,11 @@ public class TranslationsUtilsTest {
                 Utils.normalizePath("f1/android.xml"),
                 Utils.normalizePath("/%locale%/%original_file_name%")),
             arguments(
+                Utils.normalizePath("/folder1/folder2/**/messages.properties"),
+                Utils.normalizePath("/folder1/folder2/**/%file_name%_%two_letters_code%.properties"),
+                Utils.normalizePath("/folder_on_crowdin/folder1/folder2/folder3/folder4/messages.properties"),
+                Utils.normalizePath("/folder1/folder2/folder3/folder4/%file_name%_%two_letters_code%.properties")),
+            arguments(
                 Utils.normalizePath("/home/daanya/Documents/**/*.txt"),
                 Utils.normalizePath("/**/%locale%/%original_file_name%"),
                 Utils.normalizePath("/home/daanya/Documents/here/and/there/file.txt"),
@@ -60,7 +67,12 @@ public class TranslationsUtilsTest {
                 Utils.normalizePath("/*/**/*.po"),
                 Utils.normalizePath("/%two_letters_code%/**/%original_file_name%"),
                 Utils.normalizePath("hmm/here/file.po"),
-                Utils.normalizePath("/%two_letters_code%/hmm/here/%original_file_name%"))
+                Utils.normalizePath("/%two_letters_code%/hmm/here/%original_file_name%")),
+            arguments(
+                Utils.normalizePath("/english/**/*.yml"),
+                Utils.normalizePath("/%language%/**/%file_name%_l_%language%.%file_extension%"),
+                Utils.normalizePath("english/folder/messages_l_english.yml"),
+                Utils.normalizePath("/%language%/folder/%file_name%_l_%language%.%file_extension%"))
         );
     }
 

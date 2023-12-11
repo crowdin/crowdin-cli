@@ -1,15 +1,15 @@
 package com.crowdin.cli.commands.functionality;
 
 import com.crowdin.cli.utils.file.FileUtils;
-import net.lingala.zip4j.core.ZipFile;
+import net.lingala.zip4j.ZipFile;
+import net.lingala.zip4j.model.FileHeader;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
-import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
@@ -35,10 +35,11 @@ public class FsFiles implements FilesInterface {
 
     @Override
     public List<File> extractZipArchive(File zipArchive, File dir) {
+        List<File> extractedFiles = new ArrayList<>();
         ZipFile zipFile;
         try {
             zipFile = new ZipFile(zipArchive);
-        } catch (net.lingala.zip4j.exception.ZipException e) {
+        } catch (IllegalArgumentException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.archive_not_exist"), zipArchive.getAbsolutePath()));
         }
         if (!dir.exists()) {
@@ -48,19 +49,48 @@ public class FsFiles implements FilesInterface {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.creatingDirectory"));
             }
         }
+        Integer filesQnt = null;
         try {
-            zipFile.extractAll(dir.getAbsolutePath());
+            List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+            filesQnt = fileHeaders.size();
+            for (FileHeader fileHeader : fileHeaders) {
+                if (!fileHeader.isDirectory()) {
+                    File destFile = new File(dir, fileHeader.getFileName());
+                    destFile.getParentFile().mkdirs();
+                    zipFile.extractFile(fileHeader, dir.getAbsolutePath());
+                    extractedFiles.add(destFile);
+                } else {
+                    new File(dir.getAbsolutePath() + File.separator + fileHeader.getFileName()).mkdirs();
+                }
+            }
+        } catch (net.lingala.zip4j.exception.ZipException e) {
+            if (filesQnt != null && filesQnt.equals(1)) {
+                return new ArrayList<>();
+            } else {
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.extract_archive"), zipArchive.getAbsolutePath()));
+            }
+        }
+        return extractedFiles;
+    }
+
+    @Override
+    public List<String> zipArchiveContent(File zipArchive) {
+        List<String> archiveFiles = new ArrayList<>();
+        ZipFile zipFile;
+        try {
+            zipFile = new ZipFile(zipArchive);
+        } catch (IllegalArgumentException e) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.archive_not_exist"), zipArchive.getAbsolutePath()));
+        }
+        try {
+            List<FileHeader> fileHeaders = zipFile.getFileHeaders();
+            for (FileHeader fileHeader : fileHeaders) {
+                archiveFiles.add(fileHeader.getFileName());
+            }
         } catch (net.lingala.zip4j.exception.ZipException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.extract_archive"), zipArchive.getAbsolutePath()));
         }
-        try {
-            return java.nio.file.Files.walk(dir.toPath())
-                .filter(java.nio.file.Files::isRegularFile)
-                .map(Path::toFile)
-                .collect(Collectors.toList());
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        return archiveFiles;
     }
 
     @Override

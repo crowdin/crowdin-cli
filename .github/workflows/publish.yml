@@ -1,0 +1,150 @@
+name: Publish
+
+on:
+  workflow_dispatch:
+  release:
+    types: [released]
+
+jobs:
+  assets:
+    runs-on: ubuntu-latest
+    outputs:
+      checksum: ${{ steps.shasum.outputs.hash }}
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+          cache: 'gradle'
+
+      - name: Setup Gradle
+        uses: gradle/gradle-build-action@v2
+
+      - name: Download the latest zip
+        uses: carlosperate/download-file-action@v2
+        with:
+          file-url: 'https://downloads.crowdin.com/cli/v3/crowdin-cli.zip'
+
+      - name: Generate autocomplete script
+        run: |
+          ./gradlew shadowJar
+          cd build/libs
+          java -cp crowdin-cli-*.jar picocli.AutoComplete com.crowdin.cli.commands.picocli.RootCommand
+
+      - name: Generate shasum
+        id: shasum
+        run: |
+          echo hash=$(shasum -a 256 crowdin-cli.zip | cut -f 1 -d " ") >> $GITHUB_OUTPUT
+          touch crowdin-cli_checksum.sha256
+          shasum -a 256 crowdin-cli.zip > crowdin-cli_checksum.sha256
+
+      - name: Upload asset
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            crowdin-cli.zip
+            crowdin-cli_checksum.sha256
+            build/libs/crowdin_completion
+
+  npm:
+    runs-on: ubuntu-latest
+    needs: assets
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+          cache: 'gradle'
+
+      - name: Generate autocomplete script
+        run: |
+          ./gradlew shadowJar
+          cd build/libs
+          java -cp crowdin-cli-*.jar picocli.AutoComplete com.crowdin.cli.commands.picocli.RootCommand
+
+      - name: Prepare distribution
+        run: |
+          mkdir dist
+          mv build/libs/crowdin-cli-*.jar dist/crowdin-cli.jar
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install the latest version of the npm CLI
+        run: npm install -g npm@latest
+
+      - name: Build and install the package
+        run: |
+          sudo npm install --location=global jdeploy@4.0.22
+          npm install
+          jdeploy install
+          mv build/libs/crowdin_completion jdeploy-bundle/crowdin_completion
+
+      - name: Test crowdin command
+        run: crowdin -V
+
+      - name: Publish the package
+        uses: JS-DevTools/npm-publish@v2
+        with:
+          provenance: true
+          token: ${{ secrets.NPM_TOKEN }}
+
+  aur:
+    runs-on: ubuntu-latest
+    needs: assets
+    steps:
+      - uses: actions/checkout@v3
+      - name: Publish AUR package
+        uses: KSXGitHub/github-actions-deploy-aur@v2.6.0
+        with:
+          pkgname: crowdin-cli
+          pkgbuild: ./pkgbuild/PKGBUILD
+          commit_username: ${{ secrets.AUR_USERNAME }}
+          commit_email: ${{ secrets.AUR_EMAIL }}
+          ssh_private_key: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+          commit_message: Update AUR package
+          ssh_keyscan_types: rsa,dsa,ecdsa,ed25519
+
+  homebrew:
+    runs-on: ubuntu-latest
+    needs: assets
+    steps:
+      - uses: actions/checkout@v3
+      - name: Invoke workflow in the homebrew-crowdin repo
+        uses: benc-uk/workflow-dispatch@v1
+        with:
+          workflow: publish.yml
+          repo: crowdin/homebrew-crowdin
+          ref: refs/heads/master
+          token: ${{ secrets.GH_HOMEBREW_TOKEN }}
+          inputs: '{ "version": "${{ github.ref_name }}" }'
+
+  chocolatey:
+    runs-on: windows-latest
+    needs: assets
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Update checksum
+        run: |
+          echo "New Hash: ${{ needs.assets.outputs.checksum }}\n"
+          sed -i "s/checksum      = '.*'/checksum      = '${{ needs.assets.outputs.checksum }}'/g" chocolatey/tools/chocolateyinstall.ps1
+          cat chocolatey/tools/chocolateyinstall.ps1
+
+      - name: Choco pack
+        uses: crazy-max/ghaction-chocolatey@v2
+        with:
+          args: pack chocolatey/crowdin-cli.nuspec
+
+      - name: Choco publish
+        uses: crazy-max/ghaction-chocolatey@v2
+        with:
+          args: push --api-key ${{ secrets.CHOCOLATEY_API_KEY }} --source=https://push.chocolatey.org/

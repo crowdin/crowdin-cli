@@ -8,6 +8,7 @@ import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemory;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -25,13 +26,15 @@ class TmUploadAction implements NewAction<BaseProperties, ClientTm> {
     private final File file;
     private final Long id;
     private final String name;
+    private final String languageId;
     private final Map<String, Integer> scheme;
     private final Boolean firstLineContainsHeader;
 
-    public TmUploadAction(File file, Long id, String name, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
+    public TmUploadAction(File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
         this.file = file;
         this.id = id;
         this.name = name;
+        this.languageId = languageId;
         this.scheme = scheme;
         this.firstLineContainsHeader = firstLineContainsHeader;
     }
@@ -60,7 +63,10 @@ class TmUploadAction implements NewAction<BaseProperties, ClientTm> {
                 .filter(gl -> gl.getName() != null && gl.getName().equals(name))
                 .collect(Collectors.toList());
             if (foundTms.isEmpty()) {
-                return client.addTm(RequestBuilder.addTm(name));
+                if (StringUtils.isEmpty(languageId)) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.no_language_id"));
+                }
+                return client.addTm(RequestBuilder.addTm(name, languageId));
             } else if (foundTms.size() == 1) {
                 return foundTms.get(0);
             } else {
@@ -68,8 +74,8 @@ class TmUploadAction implements NewAction<BaseProperties, ClientTm> {
             }
         } else {
             AddTranslationMemoryRequest addTmRequest = (isEnterprise)
-                ? RequestBuilder.addTmEnterprise(String.format(DEFAULT_TM_NAME, file.getName()), 0L)
-                : RequestBuilder.addTm(String.format(DEFAULT_TM_NAME, file.getName()));
+                ? RequestBuilder.addTmEnterprise(String.format(DEFAULT_TM_NAME, file.getName()), languageId, 0L)
+                : RequestBuilder.addTm(String.format(DEFAULT_TM_NAME, file.getName()), languageId);
             return client.addTm(addTmRequest);
         }
     }

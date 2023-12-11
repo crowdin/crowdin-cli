@@ -14,7 +14,7 @@ public class UploadTranslationsSubcommandTest extends PicocliTestUtils {
     public void testUploadTranslations() {
         this.execute(CommandNames.UPLOAD, CommandNames.UPLOAD_TRANSLATIONS);
         verify(actionsMock)
-            .uploadTranslations(anyBoolean(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
+            .uploadTranslations(anyBoolean(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 
@@ -22,7 +22,7 @@ public class UploadTranslationsSubcommandTest extends PicocliTestUtils {
     public void testUploadTranslationsDryrun() {
         this.execute(CommandNames.UPLOAD, CommandNames.UPLOAD_TRANSLATIONS, "--dryrun");
         verify(actionsMock)
-            .listTranslations(anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
+            .listTranslations(anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 }

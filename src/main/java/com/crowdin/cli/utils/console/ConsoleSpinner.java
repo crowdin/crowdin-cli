@@ -58,7 +58,6 @@ public class ConsoleSpinner {
         }
     }
 
-
     public static void stop(ExecutionStatus status, String message) {
         synchronized (object) {
             if (worker == null) {

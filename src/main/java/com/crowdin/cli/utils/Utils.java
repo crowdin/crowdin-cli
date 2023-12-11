@@ -1,24 +1,30 @@
 package com.crowdin.cli.utils;
 
+import lombok.NonNull;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.SystemUtils;
 import org.apache.commons.lang3.tuple.ImmutablePair;
 import org.apache.commons.lang3.tuple.Pair;
 
-import java.io.IOException;
+
+import java.io.UncheckedIOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.FileSystems;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_HOST_ENV;
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_PASSWORD_ENV;
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_PORT_ENV;
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_USER_ENV;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-
+import static com.crowdin.cli.utils.PlaceholderUtil.ESCAPE_ROUND_BRACKET_CLOSE;
+import static com.crowdin.cli.utils.PlaceholderUtil.ESCAPE_ROUND_BRACKET_OPEN;
+import static com.crowdin.cli.utils.PlaceholderUtil.ROUND_BRACKET_CLOSE;
+import static com.crowdin.cli.utils.PlaceholderUtil.ROUND_BRACKET_OPEN;
 
 public class Utils {
 
@@ -37,6 +43,8 @@ public class Utils {
      * Path separator for use in regex patterns, or in regex replacements, which use the same escaping.
      */
     public static final String PATH_SEPARATOR_REGEX = "\\".equals(PATH_SEPARATOR) ? "\\\\" : PATH_SEPARATOR;
+
+    public static final String PRESERVE_HIERARCHY_REGEX_PART = "(.*" + Utils.PATH_SEPARATOR_REGEX + ")?";
 
     private static final ResourceBundle CROWDIN_PROPERTIES = ResourceBundle.getBundle("crowdin");
 
@@ -63,7 +71,7 @@ public class Utils {
     public static List<String> readResource(String path) {
         try {
             return IOUtils.readLines(Utils.class.getResourceAsStream(path), "UTF-8");
-        } catch (IOException e) {
+        } catch (UncheckedIOException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.read_resource_file"), path), e);
         }
     }
@@ -79,23 +87,62 @@ public class Utils {
     }
 
     public static String unixPath(String path) {
-        return path.replaceAll("[\\\\/]+", "/");
+        return (path != null) ? path.replaceAll("[\\\\/]+", "/") : null;
+    }
+
+    public static String windowsPath(String path) {
+        return (path != null) ? path.replaceAll("[\\\\/]+", "\\\\") : null;
     }
 
     public static String normalizePath(String path) {
-        return path.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
+        return (path != null) ? path.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX) : null;
     }
 
     public static String noSepAtStart(String path) {
-        return path.replaceAll("^[\\\\/]+", "");
+        return (path != null) ? path.replaceAll("^[\\\\/]+", "") : null;
+    }
+
+    public static String sepAtStart(String path) {
+        return (path != null) ? Utils.PATH_SEPARATOR + noSepAtStart(path) : null;
+    }
+
+    public static String noSepAtEnd(String path) {
+        return (path != null) ? path.replaceAll("[\\\\/]+$", "") : null;
+    }
+
+    public static String sepAtEnd(String path) {
+        return (path != null) ? (noSepAtEnd(path) + Utils.PATH_SEPARATOR) : null;
     }
 
     public static String regexPath(String path) {
-        return path.replaceAll("\\\\", "\\\\\\\\");
+        if (path != null) {
+            return path.replaceAll("\\\\", "\\\\\\\\")
+                .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
+                .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE);
+        } else {
+            return null;
+        }
     }
 
-    public static String joinPaths(String... pathes) {
-        return String.join(Utils.PATH_SEPARATOR, pathes).replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
+    public static String joinPaths(String... paths) {
+        return String.join(Utils.PATH_SEPARATOR, paths).replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
+    }
+
+    public static String[] splitPath(String path) {
+        return path.split("[\\\\/]+");
+    }
+
+    /**
+     * return parent directory with slash on end, or "/" if root
+     * @param path directory path
+     * @return parent directory
+     */
+    public static String getParentDirectory(String path) {
+        path = noSepAtEnd(path);
+        if (!path.contains(Utils.PATH_SEPARATOR)) {
+            return Utils.PATH_SEPARATOR;
+        }
+        return path.substring(0, path.lastIndexOf(Utils.PATH_SEPARATOR)+1);
     }
 
     public static Optional<Pair<String, Integer>> proxyHost() {
@@ -104,7 +151,7 @@ public class Utils {
         }
         Integer port;
         try {
-            port = new Integer(System.getenv(HTTP_PROXY_PORT_ENV));
+            port = Integer.valueOf(System.getenv(HTTP_PROXY_PORT_ENV));
         } catch (NumberFormatException e) {
             return Optional.empty();
         }
@@ -116,6 +163,14 @@ public class Utils {
             return Optional.of(new ImmutablePair<>(System.getenv(HTTP_PROXY_USER_ENV), System.getenv(HTTP_PROXY_PASSWORD_ENV)));
         } else {
             return Optional.empty();
+        }
+    }
+
+    public static String encodeURL(@NonNull String toEncode) {
+        try {
+            return URLEncoder.encode(toEncode, StandardCharsets.UTF_8.toString());
+        } catch (UnsupportedEncodingException e) {
+            throw new RuntimeException(e);
         }
     }
 }

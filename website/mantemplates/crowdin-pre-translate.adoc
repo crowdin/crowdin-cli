@@ -1,0 +1,32 @@
+:includedir: ../generated-picocli-docs
+:command: crowdin-pre-translate
+
+== crowdin pre-translate
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-synopsis]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-arguments]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-commands]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-options]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
+
+=== Notes
+
+Crowdin CLI uses the `crowdin.yml` configuration to Pre-Translate files.
+
+- At first, it finds local source files that match the source configuration pattern. Then CLI tries to find the corresponding files in the crowdin project. After that, CLI will request Pre-translation for the found file IDs (matching these files to local sources and configuration file).
+- `-l`, `--language=language_code` - defines the language to which pre-translation should be applied. By default, pre-translation is applied for all project's target languages. link:https://developer.crowdin.com/language-codes/[Crowdin Language Codes].
+- The `--engine-id` value you can find in the MT engine details (_Profile_ > _Machine translation_ for crowdin.com and _Dashboard_ > _Machine translation_ for Crowdin Enterprise)
+
+=== Examples
+
+----
+crowdin pre-translate -l fr -l uk --method tm
+crowdin pre-translate -l fr --method mt --engine-id 5
+crowdin pre-translate -l fr --method mt --engine-id 5 --branch main
+----

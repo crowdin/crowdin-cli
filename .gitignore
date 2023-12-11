@@ -8,3 +8,6 @@ crowdin.yml
 /testing
 dist
 jdeploy-bundle
+node_modules
+.DS_Store
+*.patch

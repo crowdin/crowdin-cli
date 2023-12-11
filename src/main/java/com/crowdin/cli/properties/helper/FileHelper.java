@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-
 public class FileHelper {
 
     private static final String DOUBLED_ASTERISK = "**";
@@ -29,9 +28,9 @@ public class FileHelper {
 
     private static final String DOT_PLUS = ".+";
 
-    private static final String SET_OPEN_BRECKET = "[";
+    private static final String SET_OPEN_BRACKET = "[";
 
-    private static final String SET_CLOSE_BRECKET = "]";
+    private static final String SET_CLOSE_BRACKET = "]";
 
     private static final String ROUND_BRACKET_OPEN = "(";
 
@@ -52,6 +51,10 @@ public class FileHelper {
     private static final String ESCAPE_ASTERISK = "\\*";
 
     private static final String ESCAPE_ASTERISK_PLACEHOLDER = "{ESCAPE_ASTERISK}";
+
+    private static final String PLUS = "+";
+
+    private static final String ESCAPE_PLUS = "\\+";
 
     private final String basePath;
 
@@ -92,7 +95,7 @@ public class FileHelper {
      *
      * @param sources  the source files.
      * @param ignores the configured filters.
-     * @return the list of source files withoug the ignores.
+     * @return the list of source files without the ignores.
      */
     public List<File> filterOutIgnoredFiles(List<File> sources, List<String> ignores) {
         if (sources == null || ignores == null) {
@@ -128,6 +131,8 @@ public class FileHelper {
             .replace(QUESTION_MARK, DOT)
             .replace(ESCAPE_QUESTION_PLACEHOLDER, ESCAPE_QUESTION);
         node = node
+            .replace(PLUS, ESCAPE_PLUS);
+        node = node
             .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
             .replace(ASTERISK, DOT_PLUS)
             .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK);
@@ -153,7 +158,7 @@ public class FileHelper {
                 continue;
             }
             if (DOUBLED_ASTERISK.equals(node)) {
-                result.addAll(getlistDirectory(file));
+                result.addAll(getListDirectory(file));
             } else if (file.isDirectory()) {
                 FileFilter fileFilter = new RegexFileFilter(node);
                 File[] files = file.listFiles(fileFilter);
@@ -166,18 +171,17 @@ public class FileHelper {
         return result;
     }
 
-    private List<File> getlistDirectory(File directory) {
+    private List<File> getListDirectory(File directory) {
         List<File> resultList = new ArrayList<>();
         resultList.add(directory);
         File[] fileList = directory.listFiles();
         if (fileList != null) {
             for (File file : fileList) {
                 if (Files.isDirectory(file.toPath(), LinkOption.NOFOLLOW_LINKS)) {
-                    resultList.addAll(getlistDirectory(file));
+                    resultList.addAll(getListDirectory(file));
                 }
             }
         }
         return resultList;
     }
-
 }

@@ -20,27 +20,27 @@ public class PropertiesBuilderChecker extends PropertiesBuilder<AllProperties, N
 
     @Override
     protected void populateWithIdentityFileParams(AllProperties props, @NonNull Map<String, Object> identityFileParams) {
-        BaseProperties.CONFIGURATOR.populateWithValues(props.getIdProperties(), identityFileParams);
-        IdProperties.CONFIGURATOR.populateWithValues(props.getIdProperties(), identityFileParams);
+        BaseProperties.CONFIGURATOR.populateWithValues(props.getProjectProperties(), identityFileParams);
+        ProjectProperties.CONFIGURATOR.populateWithValues(props.getProjectProperties(), identityFileParams);
 
         BaseProperties.CONFIGURATOR.populateWithValues(props.getPropertiesWithFiles(), identityFileParams);
-        IdProperties.CONFIGURATOR.populateWithValues(props.getPropertiesWithFiles(), identityFileParams);
+        ProjectProperties.CONFIGURATOR.populateWithValues(props.getPropertiesWithFiles(), identityFileParams);
 
         BaseProperties.CONFIGURATOR.populateWithValues(props.getPropertiesWithTargets(), identityFileParams);
-        IdProperties.CONFIGURATOR.populateWithValues(props.getPropertiesWithTargets(), identityFileParams);
+        ProjectProperties.CONFIGURATOR.populateWithValues(props.getPropertiesWithTargets(), identityFileParams);
     }
 
     @Override
     protected void populateWithConfigFileParams(AllProperties props, @NonNull Map<String, Object> configFileParams) {
-        BaseProperties.CONFIGURATOR.populateWithValues(props.getIdProperties(), configFileParams);
-        IdProperties.CONFIGURATOR.populateWithValues(props.getIdProperties(), configFileParams);
+        BaseProperties.CONFIGURATOR.populateWithValues(props.getProjectProperties(), configFileParams);
+        ProjectProperties.CONFIGURATOR.populateWithValues(props.getProjectProperties(), configFileParams);
 
         BaseProperties.CONFIGURATOR.populateWithValues(props.getPropertiesWithFiles(), configFileParams);
-        IdProperties.CONFIGURATOR.populateWithValues(props.getPropertiesWithFiles(), configFileParams);
+        ProjectProperties.CONFIGURATOR.populateWithValues(props.getPropertiesWithFiles(), configFileParams);
         PropertiesWithFiles.CONFIGURATOR.populateWithValues(props.getPropertiesWithFiles(), configFileParams);
 
         BaseProperties.CONFIGURATOR.populateWithValues(props.getPropertiesWithTargets(), configFileParams);
-        IdProperties.CONFIGURATOR.populateWithValues(props.getPropertiesWithTargets(), configFileParams);
+        ProjectProperties.CONFIGURATOR.populateWithValues(props.getPropertiesWithTargets(), configFileParams);
         PropertiesWithTargets.CONFIGURATOR.populateWithValues(props.getPropertiesWithTargets(), configFileParams);
     }
 
@@ -59,15 +59,15 @@ public class PropertiesBuilderChecker extends PropertiesBuilder<AllProperties, N
         if (props == null) {
             return;
         }
-        BaseProperties.CONFIGURATOR.populateWithDefaultValues(props.getIdProperties());
-        IdProperties.CONFIGURATOR.populateWithDefaultValues(props.getIdProperties());
+        BaseProperties.CONFIGURATOR.populateWithDefaultValues(props.getProjectProperties());
+        ProjectProperties.CONFIGURATOR.populateWithDefaultValues(props.getProjectProperties());
 
         BaseProperties.CONFIGURATOR.populateWithDefaultValues(props.getPropertiesWithFiles());
-        IdProperties.CONFIGURATOR.populateWithDefaultValues(props.getPropertiesWithFiles());
+        ProjectProperties.CONFIGURATOR.populateWithDefaultValues(props.getPropertiesWithFiles());
         PropertiesWithFiles.CONFIGURATOR.populateWithDefaultValues(props.getPropertiesWithFiles());
 
         BaseProperties.CONFIGURATOR.populateWithDefaultValues(props.getPropertiesWithTargets());
-        IdProperties.CONFIGURATOR.populateWithDefaultValues(props.getPropertiesWithTargets());
+        ProjectProperties.CONFIGURATOR.populateWithDefaultValues(props.getPropertiesWithTargets());
         PropertiesWithTargets.CONFIGURATOR.populateWithDefaultValues(props.getPropertiesWithTargets());
     }
 
@@ -78,8 +78,8 @@ public class PropertiesBuilderChecker extends PropertiesBuilder<AllProperties, N
             messages.addError(RESOURCE_BUNDLE.getString("error.config.property_bean_null"));
             return messages;
         }
-        messages.populate(BaseProperties.CONFIGURATOR.checkProperties(props.getIdProperties(), PropertiesConfigurator.CheckType.LINT));
-        messages.populate(IdProperties.CONFIGURATOR.checkProperties(props.getIdProperties(), PropertiesConfigurator.CheckType.LINT));
+        messages.populate(BaseProperties.CONFIGURATOR.checkProperties(props.getProjectProperties(), PropertiesConfigurator.CheckType.LINT));
+        messages.populate(ProjectProperties.CONFIGURATOR.checkProperties(props.getProjectProperties(), PropertiesConfigurator.CheckType.LINT));
         if (!props.getPropertiesWithTargets().getTargets().isEmpty()) {
             messages.populate(PropertiesWithTargets.CONFIGURATOR.checkProperties(
                 props.getPropertiesWithTargets(), PropertiesConfigurator.CheckType.LINT));

@@ -8,6 +8,7 @@ import com.crowdin.client.sourcefiles.model.FileInfo;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ public class CrowdinProjectFull extends CrowdinProject {
     private List<? extends FileInfo> files;
     private List<Directory> directories;
     private List<Branch> branches;
+    private Branch branch;
 
     void setFiles(List<? extends FileInfo> files) {
         this.files = files;
@@ -38,6 +40,14 @@ public class CrowdinProjectFull extends CrowdinProject {
             .collect(Collectors.toMap(Branch::getId, Function.identity()));
     }
 
+    public Branch getBranch() {
+        return branch;
+    }
+
+    public void setBranch(Branch branch) {
+        this.branch = branch;
+    }
+
     public void addBranchToLocalList(Branch branch) {
         this.branches.add(branch);
     }
@@ -52,6 +62,13 @@ public class CrowdinProjectFull extends CrowdinProject {
     public Map<Long, Directory> getDirectories() {
         return directories
             .stream()
+            .collect(Collectors.toMap(Directory::getId, Function.identity()));
+    }
+
+    public Map<Long, Directory> getDirectories(Long branchId) {
+        return directories
+            .stream()
+            .filter(dir -> Objects.equals(dir.getBranchId(), branchId))
             .collect(Collectors.toMap(Directory::getId, Function.identity()));
     }
 
@@ -72,7 +89,27 @@ public class CrowdinProjectFull extends CrowdinProject {
         }
     }
 
+    public List<File> getFiles(Long branchId) {
+        List<File> result = new ArrayList<>();
+        for (File file : this.getFiles()) {
+            if (Objects.equals(file.getBranchId(), branchId)) {
+                result.add(file);
+            }
+        }
+        return result;
+    }
+
     public List<FileInfo> getFileInfos() {
         return (List<FileInfo>) files;
+    }
+
+    public List<FileInfo> getFileInfos(Long branchId) {
+        List<FileInfo> result = new ArrayList<>();
+        for (FileInfo file : this.getFileInfos()) {
+            if (Objects.equals(file.getBranchId(), branchId)) {
+                result.add(file);
+            }
+        }
+        return result;
     }
 }

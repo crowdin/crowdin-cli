@@ -20,6 +20,7 @@ public final class CommandNames {
     public static final String LIST_PROJECT = "project";
     public static final String LIST_SOURCES = "sources";
     public static final String LIST_TRANSLATIONS = "translations";
+    public static final String LIST_LANGUAGES = "languages";
 
     public static final String STATUS = "status";
     public static final String STATUS_TRANSLATION = "translation";
@@ -30,6 +31,11 @@ public final class CommandNames {
     public static final String STRING_DELETE = "delete";
     public static final String STRING_EDIT = "edit";
     public static final String STRING_LIST = "list";
+    public static final String STRING_COMMENT = "comment";
+
+    public static final String BRANCH = "branch";
+    public static final String BRANCH_ADD = "add";
+    public static final String BRANCH_DELETE = "delete";
 
     public static final String GLOSSARY = "glossary";
     public static final String GLOSSARY_LIST = "list";
@@ -45,4 +51,32 @@ public final class CommandNames {
     public static final String ALIAS_UPLOAD = "push";
     public static final String UPLOAD_SOURCES = "sources";
     public static final String UPLOAD_TRANSLATIONS = "translations";
+
+    public static final String PRE_TRANSLATE = "pre-translate";
+
+    public static final String TASK = "task";
+    public static final String TASK_LIST = "list";
+    public static final String TASK_ADD = "add";
+    public static final String BUNDLE = "bundle";
+    public static final String BUNDLE_LIST = "list";
+    public static final String BUNDLE_ADD = "add";
+
+    public static final String COMMENT = "comment";
+    public static final String COMMENT_LIST = "list";
+    public static final String COMMENT_RESOLVE = "resolve";
+
+    public static final String DISTRIBUTION = "distribution";
+    public static final String DISTRIBUTION_ADD = "add";
+    public static final String DISTRIBUTION_LIST = "list";
+    public static final String DISTRIBUTION_RELEASE = "release";
+
+    public static final String SCREENSHOT = "screenshot";
+    public static final String SCREENSHOT_LIST = "list";
+    public static final String SCREENSHOT_UPLOAD = "upload";
+    public static final String SCREENSHOT_DELETE = "delete";
+
+    public static final String LABEL = "label";
+    public static final String LABEL_LIST = "list";
+    public static final String LABEL_ADD = "add";
+    public static final String LABEL_DELETE = "delete";
 }

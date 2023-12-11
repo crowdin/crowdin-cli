@@ -188,7 +188,7 @@ public class CrowdinProjectClientTest {
         when(httpClientMock.get(eq(listBranchesUrl), any(), eq(BranchResponseList.class)))
             .thenReturn(branchesResponse);
 
-        CrowdinProject crowdinProject = client.downloadFullProject();
+        CrowdinProject crowdinProject = client.downloadFullProject(null);
         assertEquals(1, crowdinProject.getProjectLanguages(false).size());
         assertEquals(2, crowdinProject.getSupportedLanguages().size());
         assertTrue(crowdinProject.findLanguageById("ua", false).isPresent());
@@ -329,7 +329,7 @@ public class CrowdinProjectClientTest {
     }
 
     @Test
-    public void testUploadStorage() throws IOException {
+    public void testUploadStorage() throws IOException, ResponseException {
         InputStream requestData = IOUtils.toInputStream("Something to send", "UTF-8");
         StorageResponseObject response = new StorageResponseObject() {{
                 setData(new Storage());
@@ -371,7 +371,7 @@ public class CrowdinProjectClientTest {
     }
 
     @Test
-    public void testUpdateSource() {
+    public void testUpdateSource() throws ResponseException {
         FileResponseObject response = new FileResponseObject() {{
                 setData(new File());
             }};
@@ -405,7 +405,7 @@ public class CrowdinProjectClientTest {
     }
 
     @Test
-    public void testUploadTranslations() {
+    public void testUploadTranslations() throws ResponseException {
         UploadTranslationsResponseObject response = new UploadTranslationsResponseObject() {{
                 setData(new UploadTranslationsResponse());
             }};
@@ -420,7 +420,7 @@ public class CrowdinProjectClientTest {
     }
 
     @Test
-    public void testUploadTranslationsWithRepeat() {
+    public void testUploadTranslationsWithRepeat() throws ResponseException {
         UploadTranslationsResponseObject response = new UploadTranslationsResponseObject() {{
                 setData(new UploadTranslationsResponse());
             }};
@@ -437,7 +437,7 @@ public class CrowdinProjectClientTest {
     }
 
     @Test
-    public void testStartBuildingTranslation() {
+    public void testStartBuildingTranslation() throws ResponseException {
         ProjectBuildResponseObject response = new ProjectBuildResponseObject() {{
                 setData(new ProjectBuild());
             }};
@@ -523,7 +523,7 @@ public class CrowdinProjectClientTest {
         when(httpClientMock.get(eq(listSourceStringUrl), any(), eq(SourceStringResponseList.class)))
             .thenReturn(response);
 
-        client.listSourceString(fileId, null, "FiLtEr");
+        client.listSourceString(fileId, null, null, "FiLtEr", null);
 
         verify(httpClientMock).get(eq(listSourceStringUrl), any(), eq(SourceStringResponseList.class));
         verifyNoMoreInteractions(httpClientMock);

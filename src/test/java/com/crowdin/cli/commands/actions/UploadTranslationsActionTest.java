@@ -49,22 +49,23 @@ public class UploadTranslationsActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 301L, null, null).build());
         when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
         assertDoesNotThrow(() -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
         UploadTranslationsRequest uploadTranslationRequest = new UploadTranslationsRequest() {{
                 setStorageId(1L);
                 setFileId(301L);
                 setImportEqSuggestions(false);
                 setAutoApproveImported(false);
+                setTranslateHidden(false);
             }};
         verify(client).uploadTranslations(eq("ua"), eq(uploadTranslationRequest));
         verifyNoMoreInteractions(client);
@@ -80,7 +81,7 @@ public class UploadTranslationsActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 301L, null, null).build());
         when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
@@ -88,10 +89,10 @@ public class UploadTranslationsActionTest {
         when(client.uploadStorage(eq("first.po-CR-ru-RU"), any()))
             .thenReturn(2L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
         verify(client).uploadStorage(eq("first.po-CR-ru-RU"), any());
         UploadTranslationsRequest uploadTranslationRequest1 = new UploadTranslationsRequest() {{
@@ -99,6 +100,7 @@ public class UploadTranslationsActionTest {
                 setFileId(301L);
                 setImportEqSuggestions(false);
                 setAutoApproveImported(false);
+                setTranslateHidden(false);
             }};
         verify(client).uploadTranslations(eq("ua"), eq(uploadTranslationRequest1));
         UploadTranslationsRequest uploadTranslationRequest2 = new UploadTranslationsRequest() {{
@@ -106,6 +108,7 @@ public class UploadTranslationsActionTest {
                 setFileId(301L);
                 setImportEqSuggestions(false);
                 setAutoApproveImported(false);
+                setTranslateHidden(false);
             }};
         verify(client).uploadTranslations(eq("ru"), eq(uploadTranslationRequest2));
         verifyNoMoreInteractions(client);
@@ -120,13 +123,13 @@ public class UploadTranslationsActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verifyNoMoreInteractions(client);
     }
 
@@ -140,22 +143,23 @@ public class UploadTranslationsActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setScheme("identifier,source_phrase,context,uk,ru,fr");
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 301L, null, null).build());
         when(client.uploadStorage(eq("first.csv-CR"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).uploadStorage(eq("first.csv-CR"), any());
         UploadTranslationsRequest uploadTranslationRequest = new UploadTranslationsRequest() {{
                 setStorageId(1L);
                 setFileId(301L);
                 setImportEqSuggestions(false);
                 setAutoApproveImported(false);
+                setTranslateHidden(false);
             }};
         verify(client).uploadTranslations(eq("ua"), eq(uploadTranslationRequest));
         verify(client).uploadTranslations(eq("ru"), eq(uploadTranslationRequest));
@@ -171,22 +175,23 @@ public class UploadTranslationsActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("second.po", "gettext", 301L, null, null).build());
         when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
         assertDoesNotThrow(() -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(null);
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
         UploadTranslationsRequest uploadTranslationRequest = new UploadTranslationsRequest() {{
                 setStorageId(1L);
                 setFileId(301L);
                 setImportEqSuggestions(false);
                 setAutoApproveImported(false);
+                setTranslateHidden(false);
             }};
         verify(client).uploadTranslations(eq("ua"), eq(uploadTranslationRequest));
         verifyNoMoreInteractions(client);

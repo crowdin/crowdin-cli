@@ -10,30 +10,37 @@ import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcefiles.model.GeneralFileExportOptions;
 import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
+import lombok.NonNull;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.crowdin.cli.utils.PlaceholderUtil.PLACEHOLDER_LANGUAGE_ID;
+
 public class ProjectFilesUtils {
 
-    public static Map<String, FileInfo> buildFilePaths(
-        Map<Long, Directory> directories, Map<Long, Branch> branchNames, List<? extends FileInfo> files
+    public static <T extends FileInfo> Map<String, T> buildFilePaths(
+        Map<Long, Directory> directories, Map<Long, Branch> branchNames, List<T> files
     ) {
         Map<Long, String> directoryPaths = buildDirectoryPaths(directories, branchNames);
-        Map<String, FileInfo> filePathsToId = new HashMap<>();
+        Map<String, T> filePathsToId = new HashMap<>();
         files.forEach(fe -> filePathsToId.put(getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName(), fe));
         return filePathsToId;
     }
 
-    public static Map<String, FileInfo> buildFilePaths(
-        Map<Long, Directory> directories, List<? extends FileInfo> files
+    public static <T extends FileInfo> Map<String, T> buildFilePaths(
+        Map<Long, Directory> directories, List<T> files
     ) {
         Map<Long, String> directoryPaths = buildDirectoryPaths(directories);
-        Map<String, FileInfo> filePathsToId = new HashMap<>();
+        Map<String, T> filePathsToId = new HashMap<>();
         files.forEach(fe -> filePathsToId.put(Optional.ofNullable(fe.getDirectoryId()).map(directoryPaths::get).orElse("") + fe.getName(), fe));
         return filePathsToId;
     }
@@ -66,15 +73,22 @@ public class ProjectFilesUtils {
                 continue;
             }
             String path = getParentId(fe).map(directoryPaths::get).orElse("") + fe.getName();
-            Stream<String> translations = isMultilingualFile(fe)
-                ? Stream.concat(
+            Stream<String> translations;
+            if (isMultilingualFile(fe)) {
+                translations = Stream.concat(
                     Stream.of(Utils.normalizePath(fe.getName())),
                     placeholderUtil.replaceLanguageDependentPlaceholders(
-                        Utils.normalizePath("%language_id%/" + fe.getName()), languageMapping).stream())
-                : placeholderUtil.replaceLanguageDependentPlaceholders(Utils.normalizePath(getExportPattern(fe.getExportOptions())), languageMapping)
+                        Utils.joinPaths(PLACEHOLDER_LANGUAGE_ID, fe.getName()), languageMapping).stream());
+            } else {
+                String exportPattern = Utils.normalizePath(getExportPattern(fe.getExportOptions()));
+                if (!PlaceholderUtil.containsLangPlaceholders(exportPattern)) {
+                    exportPattern = Utils.joinPaths(PLACEHOLDER_LANGUAGE_ID, exportPattern);
+                }
+                String fileDependentPlaceholdersReplaced = placeholderUtil.replaceFileDependentPlaceholders(exportPattern, new java.io.File(basePath + path));
+                translations = placeholderUtil.replaceLanguageDependentPlaceholders(fileDependentPlaceholdersReplaced, languageMapping)
                     .stream()
-                    .map(tr -> placeholderUtil.replaceFileDependentPlaceholders(tr, new java.io.File(basePath + path)))
                     .map(translation -> ((fe.getBranchId() != null) ? directoryPaths.getOrDefault(fe.getBranchId(), "") : "") + translation);
+            }
             allProjectTranslations.put(path, translations.collect(Collectors.toList()));
         }
         return allProjectTranslations;
@@ -96,6 +110,12 @@ public class ProjectFilesUtils {
         return ((branchId != null) ? branchNames.get(branchId).getName() + Utils.PATH_SEPARATOR : "");
     }
 
+    public static <T extends FileInfo> List<T> filterFilesByBranch(List<T> files, Long branchId) {
+        return files.stream()
+            .filter(f -> Objects.equals(branchId, f.getBranchId()))
+            .collect(Collectors.toList());
+    }
+
     private static Optional<Long> getParentId(FileInfo fe) {
         return (fe.getDirectoryId() != null) ? Optional.of(fe.getDirectoryId()) : Optional.ofNullable(fe.getBranchId());
     }
@@ -112,5 +132,61 @@ public class ProjectFilesUtils {
         } else {
             return null;
         }
+    }
+
+    public static Predicate<String> isProjectFilePathSatisfiesPatterns(@NonNull String sourcePattern, List<String> ignorePatterns, boolean preserveHierarchy) {
+        Predicate<String> sourcePatternPred;
+        Predicate<String> ignorePatternPred;
+
+        if (preserveHierarchy) {
+            sourcePatternPred = Pattern.compile("^" + PlaceholderUtil.formatSourcePatternForRegex(Utils.noSepAtStart(sourcePattern)) + "$").asPredicate();
+        } else {
+            List<String> sourcePatternSplits = Arrays.stream(Utils.splitPath(Utils.noSepAtStart(sourcePattern)))
+                .map(PlaceholderUtil::formatSourcePatternForRegex)
+                .collect(Collectors.toList());
+
+            StringBuilder sourcePatternRegex = new StringBuilder();
+            for (int i = 0; i < sourcePatternSplits.size()-1; i++) {
+                sourcePatternRegex.insert(0, "(")
+                    .append(sourcePatternSplits.get(i)).append(Utils.PATH_SEPARATOR_REGEX).append(")?");
+            }
+            sourcePatternRegex.insert(0, "^")
+                .append(sourcePatternSplits.get(sourcePatternSplits.size()-1)).append("$");
+
+            sourcePatternPred = Pattern.compile(sourcePatternRegex.toString()).asPredicate();
+        }
+
+        if (ignorePatterns != null && !ignorePatterns.isEmpty()) {
+            if (preserveHierarchy) {
+                ignorePatternPred = ignorePatterns.stream()
+                    .map(Utils::noSepAtStart)
+                    .map(ignorePattern -> "^" + PlaceholderUtil.formatSourcePatternForRegex(ignorePattern) + "$")
+                    .map(Pattern::compile)
+                    .map(Pattern::asPredicate)
+                    .reduce((s) -> false, Predicate::or);
+            } else {
+                ignorePatternPred = ignorePatterns.stream()
+                    .map(Utils::noSepAtStart)
+                    .map(ignorePattern -> {
+                        List<String> ignorePatternSplits = Arrays.stream(Utils.splitPath(ignorePattern))
+                            .map(PlaceholderUtil::formatSourcePatternForRegex)
+                            .collect(Collectors.toList());
+                        StringBuilder ignorePatternRegex = new StringBuilder();
+                        for (int i = 0; i < ignorePatternSplits.size()-1; i++) {
+                            ignorePatternRegex.insert(0, "(")
+                                .append(ignorePatternSplits.get(i)).append(Utils.PATH_SEPARATOR_REGEX).append(")?");
+                        }
+                        ignorePatternRegex.insert(0, "^")
+                            .append(ignorePatternSplits.get(ignorePatternSplits.size()-1)).append("$");
+                        return ignorePatternRegex.toString();
+                    })
+                    .map(Pattern::compile)
+                    .map(Pattern::asPredicate)
+                    .reduce((s) -> false, Predicate::or);
+            }
+        } else {
+            ignorePatternPred = (projectFilePath) -> false;
+        }
+        return (projectFilePath) -> !ignorePatternPred.test(projectFilePath) && sourcePatternPred.test(projectFilePath);
     }
 }

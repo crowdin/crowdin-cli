@@ -71,19 +71,33 @@ class GlossaryDownloadAction implements NewAction<BaseProperties, ClientGlossary
     }
 
     private GlossaryExportStatus buildGlossary(Outputter out, ClientGlossary client, Long glossaryId, ExportGlossaryRequest request) {
-        return ConsoleSpinner.execute(out, "message.spinner.building_glossary", "error.glossary.build_glossary", this.noProgress, false, () -> {
-            GlossaryExportStatus status = client.startExportingGlossary(glossaryId, request);
+        return ConsoleSpinner.execute(
+            out,
+            "message.spinner.building_glossary",
+            "error.glossary.build_glossary",
+            this.noProgress,
+            false,
+            () -> {
+                GlossaryExportStatus status = client.startExportingGlossary(glossaryId, request);
 
-            while (!status.getStatus().equalsIgnoreCase("Finished")) {
-                ConsoleSpinner.update(
-                    String.format(RESOURCE_BUNDLE.getString("message.spinner.building_glossary_percents"),
-                        status.getProgress()));
-                Thread.sleep(100);
-                status = client.checkExportingGlossary(glossaryId, status.getIdentifier());
+                while (!status.getStatus().equalsIgnoreCase("finished")) {
+                    ConsoleSpinner.update(
+                        String.format(RESOURCE_BUNDLE.getString("message.spinner.building_glossary_percents"),
+                            status.getProgress()));
+                    Thread.sleep(1000);
+
+                    status = client.checkExportingGlossary(glossaryId, status.getIdentifier());
+
+                    if (status.getStatus().equalsIgnoreCase("failed")) {
+                        throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.build_has_failed"));
+                    }
+                }
+
+                ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.building_glossary_percents"), 100));
+
+                return status;
             }
-            ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.building_glossary_percents"), 100));
-            return status;
-        });
+        );
     }
 
     private void downloadGlossary(ClientGlossary client, Long glossaryId, String exportId) {

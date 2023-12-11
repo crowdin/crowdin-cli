@@ -1,5 +1,7 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.utils.PlaceholderUtil;
+import com.crowdin.cli.utils.PlaceholderUtilBuilder;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.sourcefiles.model.UpdateOption;
 import org.junit.jupiter.api.Test;
@@ -14,6 +16,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class PropertiesBeanUtilsTest {
@@ -114,7 +117,10 @@ public class PropertiesBeanUtilsTest {
             arguments("https://Daanya.crowdin.com", "Daanya"),
             arguments("https://Daanya.api.crowdin.com", "Daanya"),
             arguments("https://crowdin.com", null),
-            arguments("https://api.crowdin.com", null)
+            arguments("https://api.crowdin.com", null),
+            arguments("https://apicustom.crowdin.com", "apicustom"),
+            arguments("https://apicustom.api.crowdin.com", "apicustom"),
+            arguments("andriy.crowdin.com", "andriy")
         );
     }
 
@@ -127,10 +133,50 @@ public class PropertiesBeanUtilsTest {
 
     private static Stream<Arguments> testGetOrganizationForTestUrls() {
         return Stream.of(
-            arguments("http://vasyl.dev.crowdin.com", null),
-            arguments("http://myorg.vasyl.dev.crowdin.com", "myorg"),
+            arguments("https://organizzzation.daanya.crowdin.dev", "organizzzation"),
+            arguments("https://daanya.crowdin.dev", null),
             arguments("https://98011165-2619304c.test.crowdin.com", null),
             arguments("https://myorg.e-test.crowdin.com", "myorg")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testIsUrlValid(String baseUrl) {
+        assertTrue(PropertiesBeanUtils.isUrlValid(baseUrl));
+    }
+
+    private static Stream<Arguments> testIsUrlValid() {
+        return Stream.of(
+            arguments("https://Daanya.crowdin.com"),
+            arguments("https://Daanya.api.crowdin.com"),
+            arguments("https://crowdin.com"),
+            arguments("https://api.crowdin.com"),
+            arguments("https://organizzzation.daanya.crowdin.dev"),
+            arguments("https://daanya.crowdin.dev"),
+            arguments("https://98011165-2619304c.test.crowdin.com"),
+            arguments("https://myorg.e-test.crowdin.com")
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testPrepareDest(String dest, String sourceFile, String expected) {
+        PlaceholderUtil placeholderUtil = PlaceholderUtilBuilder.STANDART.build("/does/not/matter");
+        String result = PropertiesBeanUtils.prepareDest(dest, sourceFile, placeholderUtil);
+        assertEquals(expected, result, String.format("dest: %s SourceFile: %s", dest, sourceFile));
+    }
+
+    private static Stream<Arguments> testPrepareDest() {
+        return Stream.of(
+            arguments(
+                Utils.normalizePath("/frontend/**/%original_file_name%"),
+                Utils.normalizePath("intl/messages/en-US.json"),
+                Utils.normalizePath("frontend/intl/messages/en-US.json")),
+            arguments(
+                Utils.normalizePath("/**/%file_name%_hmm.%file_extension%"),
+                Utils.normalizePath("en_GB/avmedia/source/framework_hmm.po"),
+                Utils.normalizePath("en_GB/avmedia/source/framework_hmm_hmm.po"))
         );
     }
 }

@@ -1,0 +1,19 @@
+name: crowdin
+summary: The Crowdin CLI
+description: |
+  Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project. Using CLI, you can:
+
+  - automate the process of updating your source files in your Crowdin project
+  - download translations from Crowdin and automatically save them in the correct locations
+  - upload all your existing translations to Crowdin in minutes
+  - integrate Crowdin with GIT, SVN, Mercurial, and other software
+
+  ## Usage
+
+  Visit the [documentation](https://crowdin.github.io/crowdin-cli/) for more details.
+
+adopt-info: crowdin
+grade: stable
+confinement: strict  # classic
+base: core18
+license: MIT

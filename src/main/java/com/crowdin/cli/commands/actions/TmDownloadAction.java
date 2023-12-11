@@ -48,29 +48,32 @@ class TmDownloadAction implements NewAction<BaseProperties, ClientTm> {
 
     @Override
     public void act(Outputter out, BaseProperties pb, ClientTm client) {
-        TranslationMemory targetTm = getGlossary(client);
+        TranslationMemory targetTm = getTranslationMemory(client);
+
         if (to == null) {
             to = new File(targetTm.getName() + "."
                 + ((format != null) ? format.toString().toLowerCase() : TranslationMemoryFormat.TMX.toString().toLowerCase()));
         }
+
         TranslationMemoryExportStatus status =
-            this.buildGlossary(out, client, targetTm.getId(), RequestBuilder.exportTranslationMemory(sourceLanguageId, targetLanguageId, format));
+            this.buildTranslationMemory(out, client, targetTm.getId(), RequestBuilder.exportTranslationMemory(sourceLanguageId, targetLanguageId, format));
         downloadTm(client, targetTm.getId(), status.getIdentifier());
-        out.println(String.format(RESOURCE_BUNDLE.getString("message.glossary.download_success"), to));
+
+        out.println(String.format(RESOURCE_BUNDLE.getString("message.tm.download_success"), to));
     }
 
-    private TranslationMemory getGlossary(ClientTm client) {
+    private TranslationMemory getTranslationMemory(ClientTm client) {
         if (id != null) {
             return client.getTm(id)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.not_found_by_id")));
         } else if (name != null) {
-            List<TranslationMemory> foundGlossaries = client.listTms().stream()
+            List<TranslationMemory> foundTranslationMemories = client.listTms().stream()
                 .filter(gl -> gl.getName() != null && gl.getName().equals(name))
                 .collect(Collectors.toList());
-            if (foundGlossaries.isEmpty()) {
+            if (foundTranslationMemories.isEmpty()) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.not_found_by_name"));
-            } else if (foundGlossaries.size() == 1) {
-                return foundGlossaries.get(0);
+            } else if (foundTranslationMemories.size() == 1) {
+                return foundTranslationMemories.get(0);
             } else {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.more_than_one_tm_by_that_name"));
             }
@@ -79,18 +82,32 @@ class TmDownloadAction implements NewAction<BaseProperties, ClientTm> {
         }
     }
 
-    private TranslationMemoryExportStatus buildGlossary(Outputter out, ClientTm client, Long tmId, TranslationMemoryExportRequest request) {
-        return ConsoleSpinner.execute(out, "message.spinner.building_tm", "error.tm.build_tm", this.noProgress, false, () -> {
-            TranslationMemoryExportStatus status = client.startExportingTm(tmId, request);
+    private TranslationMemoryExportStatus buildTranslationMemory(Outputter out, ClientTm client, Long tmId, TranslationMemoryExportRequest request) {
+        return ConsoleSpinner.execute(
+            out,
+            "message.spinner.building_tm",
+            "error.tm.build_tm",
+            this.noProgress,
+            false,
+            () -> {
+                TranslationMemoryExportStatus status = client.startExportingTm(tmId, request);
 
-            while (!status.getStatus().equalsIgnoreCase("Finished")) {
-                ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.building_tm_percents"), status.getProgress()));
-                Thread.sleep(100);
-                status = client.checkExportingTm(tmId, status.getIdentifier());
+                while (!status.getStatus().equalsIgnoreCase("finished")) {
+                    ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.building_tm_percents"), status.getProgress()));
+                    Thread.sleep(1000);
+
+                    status = client.checkExportingTm(tmId, status.getIdentifier());
+
+                    if (status.getStatus().equalsIgnoreCase("failed")) {
+                        throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.build_has_failed"));
+                    }
+                }
+
+                ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.building_tm_percents"), 100));
+
+                return status;
             }
-            ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.building_tm_percents"), 100));
-            return status;
-        });
+        );
     }
 
     private void downloadTm(ClientTm client, Long tmId, String exportId) {

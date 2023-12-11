@@ -14,7 +14,7 @@ import java.util.stream.Collectors;
 public abstract class GenericActCommand<P extends Properties, C extends Client> extends GenericCommand {
 
     private static Actions actions;
-    private static PropertiesBuilders propertiesBuilders;
+    protected static PropertiesBuilders propertiesBuilders;
 
     public static void init(Actions actions, PropertiesBuilders propertiesBuilders) {
         GenericActCommand.actions = actions;
@@ -23,6 +23,9 @@ public abstract class GenericActCommand<P extends Properties, C extends Client> 
 
     @Override
     public final void run() {
+        Outputter out = new PicocliOutputter(System.out, isAnsi());
+        P properties = this.getProperties(propertiesBuilders, out);
+
         List<String> errors = checkOptions();
         if (errors != null && !errors.isEmpty()) {
             String errorsInOne = errors.stream()
@@ -30,9 +33,7 @@ public abstract class GenericActCommand<P extends Properties, C extends Client> 
                 .collect(Collectors.joining("\n"));
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.params_are_invalid") + "\n" + errorsInOne);
         }
-        Outputter out = new PicocliOutputter(System.out, isAnsi());
         NewAction<P, C> action = this.getAction(actions);
-        P properties = this.getProperties(propertiesBuilders, out);
         C client = this.getClient(properties);
         action.act(out, properties, client);
     }

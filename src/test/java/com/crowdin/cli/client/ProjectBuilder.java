@@ -84,6 +84,7 @@ public class ProjectBuilder {
                 setExportPattern(exportPattern);
             }}
         );
+        file.setPath(name);
         files.add(file);
         return this;
     }
@@ -123,12 +124,12 @@ public class ProjectBuilder {
             throw new RuntimeException(e);
         }
         ps.setTranslateDuplicates(3);
-        ps.setMtAllowed(true);
+        ps.setIsMtAllowed(true);
         ps.setAutoSubstitution(true);
         ps.setUseGlobalTm(false);
         ps.setInContext(true);
         ps.setInContextPseudoLanguageId("ach");
-        ps.setSuspended(false);
+        ps.setIsSuspended(false);
         ps.setQaCheckIsActive(false);
         return ps;
     }

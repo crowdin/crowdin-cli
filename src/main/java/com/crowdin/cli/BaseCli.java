@@ -38,6 +38,13 @@ public class BaseCli {
                 put("xliff", "xliff");
                 put("xml", "android");
                 put("strings", "macosx");
+                put("yml", "yaml-export");
+                put("resx", "crowdin-resx");
+                put("csv", "crowdin-csv");
+                put("properties", "crowdin-properties");
+                put("arb", "arb-export");
+                put("stringsdict", "stringsdict-export");
+                put("po", "po-export");
         }}
     );
 
@@ -53,4 +60,12 @@ public class BaseCli {
     public static final String HTTP_PROXY_PASSWORD_ENV = "HTTP_PROXY_PASSWORD";
 
     public static final String IGNORE_HIDDEN_FILES_PATTERN = "**/.*";
+
+    public enum LanguageCode {
+        id, two_letters_code, three_letters_code, locale, android_code, osx_code, osx_locale
+    }
+
+    public static final Integer CHECK_WAITING_TIME_FIRST = 1000;
+    public static final Integer CHECK_WAITING_TIME_INCREMENT = 500;
+    public static final Integer CHECK_WAITING_TIME_MAX = 5000;
 }

@@ -1,0 +1,36 @@
+:includedir: ../generated-picocli-docs
+:command: crowdin-string-add
+
+== crowdin string add
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-synopsis]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-arguments]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-commands]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-options]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
+
+=== Examples
+
+Add a new string with the `app.home` key to the `src/values/strings.xml` file:
+
+----
+crowdin string add Home --file src/values/strings.xml --identifier "app.home"
+----
+
+Add a new string with the `app.download` key to the `src/values/strings.xml` file (branch `main`):
+
+----
+crowdin string add Download --file main/src/values/strings.xml --identifier "app.download"
+----
+
+Add a new string with the `app.hello` key to the `strings.xml` file, with labels `app` and `home`:
+
+----
+crowdin string add "Hello world" --file strings.xml --identifier "app.hello" --label app --label home
+----

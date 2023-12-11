@@ -11,7 +11,7 @@ public class ListTranslationsSubcommandTest extends PicocliTestUtils {
     public void testListTranslations() {
         this.execute(CommandNames.LIST, CommandNames.LIST_TRANSLATIONS);
         verify(actionsMock)
-            .listTranslations(anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
+            .listTranslations(anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 }

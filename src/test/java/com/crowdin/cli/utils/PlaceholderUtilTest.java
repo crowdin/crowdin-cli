@@ -17,6 +17,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.stream.Stream;
 
+import static com.crowdin.cli.utils.AssertUtils.assertPathsEqualIgnoringSeparator;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
@@ -133,6 +134,26 @@ public class PlaceholderUtilTest {
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(langs, langs, "");
         List<String> result = placeholderUtil.replaceLanguageDependentPlaceholders(toFormat, LanguageMapping.fromServerLanguageMapping(null));
         assertEquals(expected, result);
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testDoubleAsteriskInWildCard(String source, File crowdinFile, String expected) {
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(new ArrayList<>(), new ArrayList<>(), "./");
+        assertPathsEqualIgnoringSeparator(expected, placeholderUtil.replaceFileDependentPlaceholders(source, crowdinFile));
+    }
+
+    static Stream<Arguments> testDoubleAsteriskInWildCard() {
+        return Stream.of(
+                arguments("folder1/folder2/**/messages.properties",
+                    new File("folder_on_crowdin/folder1/folder2/folder3/folder4/messages.properties"),
+                    "folder1/folder2/folder3/folder4/messages.properties"
+                ),
+                arguments("folder/**/*.xml",
+                    new File("files/folder/sub/1.xml"),
+                    "folder/sub/*.xml"
+                )
+        );
     }
 
     @Test

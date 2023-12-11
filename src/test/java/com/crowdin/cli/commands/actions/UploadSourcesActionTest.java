@@ -17,6 +17,9 @@ import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.Directory;
+import com.crowdin.client.sourcefiles.model.ExportQuotes;
+import com.crowdin.client.sourcefiles.model.GeneralFileExportOptions;
+import com.crowdin.client.sourcefiles.model.JavaScriptFileExportOptions;
 import com.crowdin.client.sourcefiles.model.OtherFileImportOptions;
 import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
 import com.crowdin.client.sourcefiles.model.SpreadsheetFileImportOptions;
@@ -25,6 +28,7 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -62,7 +66,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -75,12 +79,125 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
             }};
+        verify(client).addSource(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadOneSourceWithNullContentSegmentation_EmptyProject() throws ResponseException {
+        project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+                .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+                .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setContentSegmentation(null);
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+        when(client.uploadStorage(eq("first.po"), any()))
+                .thenReturn(1L);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("first.po"), any());
+        AddFileRequest addFileRequest = new AddFileRequest() {{
+            setName("first.po");
+            setStorageId(1L);
+            setImportOptions(new OtherFileImportOptions() {{
+                                 setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                             }}
+            );
+            setExportOptions(new GeneralFileExportOptions() {{
+                                 setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                             }}
+            );
+        }};
+        verify(client).addSource(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadPropertiesFileWithEscapeQuotes_EmptyProject() throws ResponseException {
+        project.addFile(Utils.normalizePath("first.properties"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+                                                        .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+                                                        .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setEscapeQuotes(1);
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+          .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+        when(client.uploadStorage(eq("first.properties"), any()))
+          .thenReturn(1L);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("first.properties"), any());
+        AddFileRequest addFileRequest = new AddFileRequest() {{
+            setName("first.properties");
+            setStorageId(1L);
+            setImportOptions(new OtherFileImportOptions() {{
+                                 setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                             }}
+            );
+            setExportOptions(new PropertyFileExportOptions() {{
+                                setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                                setEscapeSpecialCharacters(1);
+                                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                            }}
+            );
+        }};
+        verify(client).addSource(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadJavaScriptFileWithExportQuotes_EmptyProject() throws ResponseException {
+        project.addFile(Utils.normalizePath("first.js"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+                                                        .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+                                                        .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setExportQuotes("single");
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+          .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+        when(client.uploadStorage(eq("first.js"), any()))
+          .thenReturn(1L);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("first.js"), any());
+        AddFileRequest addFileRequest = new AddFileRequest() {{
+            setName("first.js");
+            setStorageId(1L);
+            setImportOptions(new OtherFileImportOptions() {{
+                                 setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                             }}
+            );
+            setExportOptions(new JavaScriptFileExportOptions() {{
+                                 setExportQuotes(ExportQuotes.SINGLE);
+                                 setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                             }}
+            );
+        }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }
@@ -111,7 +228,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("third.po"), any()))
             .thenReturn(3L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -127,8 +244,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -142,8 +258,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -156,8 +271,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -186,7 +300,7 @@ public class UploadSourcesActionTest {
         when(client.addBranch(addBranchRequest))
             .thenReturn(branch);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("newBranch", false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("newBranch", false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -201,8 +315,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -225,7 +338,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("newBranch", false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("newBranch", false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -239,8 +352,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -262,7 +374,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -276,8 +388,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -301,7 +412,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -315,8 +426,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -336,15 +446,15 @@ public class UploadSourcesActionTest {
         ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
-        when(client.uploadStorage(eq("last.po"), any()))
+        when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).listLabels();
-        verify(client).uploadStorage(eq("last.po"), any());
+        verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
                 setName("last.po");
                 setStorageId(1L);
@@ -353,13 +463,57 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
             }};
         verify(client).addSource(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadOneSourceWithDestAndDeleteObsoleteOption_Project() throws ResponseException {
+        project.addFile(Utils.normalizePath("docs/en/index.md"), "Hello, World!");
+        String translationPattern = "/app/docs/%two_letters_code%/%original_file_name%";
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+                .minimalBuiltPropertiesBean(Utils.normalizePath("/docs/en/index.md"), translationPattern, Arrays.asList("**/.*"))
+                .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setDest("/app/%original_path%/%original_file_name%");
+        pb.setPreserveHierarchy(true);
+        pb.setProjectId("551261");
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                        .addFile("locale.yml", "yaml", 66l, 209l, null, translationPattern)
+                        .addFile("index.md", "yaml", 77l, 209l, null, translationPattern)
+                        .addDirectory("docs", 207l, 215l, null)
+                        .addDirectory("app", 215l, null, null)
+                        .addDirectory("en", 209l, 207l, null)
+                        .addDirectory("en", 225l, null, null)
+                        .build());
+        when(client.uploadStorage(eq("/docs/en/index.md"), any()))
+                .thenReturn(1L);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, true, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("index.md"), any());
+        UpdateFileRequest updateFileRequest = new UpdateFileRequest() {{
+            setStorageId(0L);
+            setImportOptions(new OtherFileImportOptions() {{
+                                 setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                             }}
+            );
+            setExportOptions(new GeneralFileExportOptions() {{
+                                 setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                             }}
+            );
+        }};
+        verify(client).updateSource(eq(77l), eq(updateFileRequest));
         verifyNoMoreInteractions(client);
     }
 
@@ -380,7 +534,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("second.po"), any()))
             .thenReturn(2L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -393,8 +547,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -407,8 +560,7 @@ public class UploadSourcesActionTest {
                         setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
@@ -432,7 +584,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.csv"), any()))
                 .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -453,12 +605,147 @@ public class UploadSourcesActionTest {
                         setFirstLineContainsHeader(false);
                     }}
                 );
-                setExportOptions(new PropertyFileExportOptions() {{
-                        setEscapeQuotes(pb.getFiles().get(0).getEscapeQuotes());
+                setExportOptions(new GeneralFileExportOptions() {{
                         setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
                     }}
                 );
             }};
+        verify(client).addSource(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadOneSourceWithDest_DifferentPlaceholders_1_Project() throws ResponseException {
+        project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(Utils.normalizePath("first.po"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setDest("%file_name%_file.%file_extension%");
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+        when(client.uploadStorage(eq("first.po"), any()))
+            .thenReturn(1L);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("first.po"), any());
+        AddFileRequest addFileRequest = new AddFileRequest() {{
+            setName("first_file.po");
+            setStorageId(1L);
+            setDirectoryId(null);
+            setImportOptions(new OtherFileImportOptions() {{
+                                 setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                             }}
+            );
+            setExportOptions(new GeneralFileExportOptions() {{
+                                 setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                             }}
+            );
+        }};
+        verify(client).addSource(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadOneSourceWithDest_DifferentPlaceholders_2_Project() throws ResponseException {
+        project.addFile(Utils.normalizePath("here/first.po"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(Utils.normalizePath("here/first.po"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setDest("**/%original_file_name%");
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+        when(client.uploadStorage(eq("first.po"), any()))
+            .thenReturn(1L);
+        AddDirectoryRequest addDirectoryRequest1 = new AddDirectoryRequest() {{
+            setName("here");
+        }};
+        when(client.addDirectory(eq(addDirectoryRequest1)))
+            .thenReturn(new Directory() {{
+                setId(3L);
+            }});
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, true, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("first.po"), any());
+        verify(client).addDirectory(eq(addDirectoryRequest1));
+        AddFileRequest addFileRequest = new AddFileRequest() {{
+            setName("first.po");
+            setStorageId(1L);
+            setDirectoryId(3L);
+            setImportOptions(new OtherFileImportOptions() {{
+                                 setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                             }}
+            );
+            setExportOptions(new GeneralFileExportOptions() {{
+                                 setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                             }}
+            );
+        }};
+        verify(client).addSource(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadOneSourceWithDest_DifferentPlaceholders_3_Project() throws ResponseException {
+        project.addFile(Utils.normalizePath("here/first.po"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(Utils.normalizePath("here/first.po"), Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setDest("%original_path%/inner/%original_file_name%");
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+        when(client.uploadStorage(eq("first.po"), any()))
+            .thenReturn(1L);
+        AddDirectoryRequest addDirectoryRequest1 = new AddDirectoryRequest() {{
+            setName("here");
+        }};
+        AddDirectoryRequest addDirectoryRequest2 = new AddDirectoryRequest() {{
+            setName("inner");
+            setDirectoryId(3L);
+        }};
+        when(client.addDirectory(eq(addDirectoryRequest1)))
+            .thenReturn(new Directory() {{
+                setId(3L);
+            }});
+        when(client.addDirectory(eq(addDirectoryRequest2)))
+            .thenReturn(new Directory() {{
+                setId(4L);
+            }});
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("first.po"), any());
+        verify(client).addDirectory(eq(addDirectoryRequest1));
+        verify(client).addDirectory(eq(addDirectoryRequest2));
+        AddFileRequest addFileRequest = new AddFileRequest() {{
+            setName("first.po");
+            setStorageId(1L);
+            setDirectoryId(4L);
+            setImportOptions(new OtherFileImportOptions() {{
+                                 setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                             }}
+            );
+            setExportOptions(new GeneralFileExportOptions() {{
+                                 setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                             }}
+            );
+        }};
         verify(client).addSource(eq(addFileRequest));
         verifyNoMoreInteractions(client);
     }

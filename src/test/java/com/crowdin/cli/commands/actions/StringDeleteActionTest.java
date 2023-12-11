@@ -6,6 +6,7 @@ import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.client.models.SourceStringBuilder;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.utils.Utils;
@@ -33,7 +34,7 @@ public class StringDeleteActionTest {
 
     private PropertiesWithFiles pb;
     private ProjectClient client = mock(ProjectClient.class);
-    private NewAction<PropertiesWithFiles, ProjectClient> action;
+    private NewAction<ProjectProperties, ProjectClient> action;
 
     @ParameterizedTest
     @MethodSource
@@ -44,7 +45,7 @@ public class StringDeleteActionTest {
         pb = pbBuilder.build();
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
-        when(client.listSourceString(null, null, null))
+        when(client.listSourceString(null, null, null, null, null))
             .thenReturn(strings);
 
 
@@ -52,7 +53,7 @@ public class StringDeleteActionTest {
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
-        verify(client).listSourceString(null, null, null);
+        verify(client).listSourceString(null, null, null, null, null);
         for (SourceString sourceString : strings) {
             verify(client).deleteSourceString(sourceString.getId());
         }
@@ -85,7 +86,7 @@ public class StringDeleteActionTest {
         pb = pbBuilder.build();
         when(client.downloadFullProject())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
-        when(client.listSourceString(null, null, null))
+        when(client.listSourceString(null, null, null, null, null))
             .thenReturn(strings);
 
 
@@ -93,7 +94,7 @@ public class StringDeleteActionTest {
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
-        verify(client).listSourceString(null, null, null);
+        verify(client).listSourceString(null, null, null, null, null);
         for (SourceString sourceString : strings) {
             verify(client).deleteSourceString(sourceString.getId());
         }

@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.client.WrongLanguageException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
@@ -17,7 +18,7 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
-import com.crowdin.client.sourcefiles.model.FileInfo;
+import com.crowdin.client.sourcefiles.model.File;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
@@ -44,18 +45,20 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
     private String branchName;
     private boolean importEqSuggestions;
     private boolean autoApproveImported;
+    private boolean translateHidden;
     private boolean debug;
     private boolean plainView;
 
     public UploadTranslationsAction(
         boolean noProgress, String languageId, String branchName, boolean importEqSuggestions,
-        boolean autoApproveImported, boolean debug, boolean plainView
+        boolean autoApproveImported, boolean translateHidden, boolean debug, boolean plainView
     ) {
         this.noProgress = noProgress || plainView;
         this.languageId = languageId;
         this.branchName = branchName;
         this.importEqSuggestions = importEqSuggestions;
         this.autoApproveImported = autoApproveImported;
+        this.translateHidden = translateHidden;
         this.debug = debug;
         this.plainView = plainView;
     }
@@ -63,7 +66,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
     @Override
     public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, this.plainView, client::downloadFullProject);
+            this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
@@ -78,12 +81,12 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
 
         LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
-        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
+        Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
 
         List<Language> languages = (languageId != null)
             ? project.findLanguageById(languageId, true)
                 .map(Collections::singletonList)
-                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.not_found_language"), languageId)))
+                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)))
             : project.getProjectLanguages(false);
 
         for (FileBean file : pb.getFiles()) {
@@ -108,7 +111,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
             AtomicBoolean containsErrors = new AtomicBoolean(false);
             fileSourcesWithoutIgnores.forEach(source -> {
                 String filePath = branchPath + (StringUtils.isNotEmpty(file.getDest())
-                    ? StringUtils.removeStart(file.getDest(), Utils.PATH_SEPARATOR)
+                    ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil)
                     : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
 
                 if (!paths.containsKey(filePath)) {
@@ -136,7 +139,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         }
                         return;
                     }
-                    UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported);
+                    UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported, translateHidden);
                     preparedRequests.put(transFile, Pair.of(languages, request));
                 } else {
                     for (Language language : languages) {
@@ -156,7 +159,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                             }
                             continue;
                         }
-                        UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported);
+                        UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported, translateHidden);
                         preparedRequests.put(transFile, Pair.of(Collections.singletonList(language), request));
                     }
                 }
@@ -173,15 +176,27 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         request.setStorageId(storageId);
                     } catch (Exception e) {
                         containsErrors.set(true);
-                        throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation_to_storage"), e);
+                        throw new RuntimeException(String.format(
+                            RESOURCE_BUNDLE.getString("error.upload_translation_to_storage"),
+                            StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
+                        ), e);
                     }
                     try {
                         for (Language lang : langs) {
-                            client.uploadTranslations(lang.getId(), request);
+                            try {
+                                client.uploadTranslations(lang.getId(), request);
+                            } catch (WrongLanguageException e) {
+                                out.println(WARNING.withIcon(String.format(
+                                    RESOURCE_BUNDLE.getString("message.warning.file_not_uploaded_cause_of_language"),
+                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()), lang.getName())));
+                            }
                         }
                     } catch (Exception e) {
                         containsErrors.set(true);
-                        throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_translation"), e);
+                        throw new RuntimeException(String.format(
+                            RESOURCE_BUNDLE.getString("error.upload_translation"),
+                            StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
+                        ), e);
                     }
                     if (!plainView) {
                         out.println(OK.withIcon(String.format(

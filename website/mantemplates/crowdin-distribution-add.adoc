@@ -1,0 +1,38 @@
+:includedir: ../generated-picocli-docs
+:command: crowdin-distribution-add
+
+== crowdin distribution add
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-synopsis]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-arguments]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-commands]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-options]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
+
+=== Examples
+
+Add a new distribution with the `default` export mode and the `src/values/strings.xml` file:
+
+----
+crowdin distribution add "Android" --export-mode default --file src/values/strings.xml
+----
+
+Add a new distribution with the `default` export mode and the `src/values/strings.xml` file on the `main` branch:
+
+----
+crowdin distribution add "Android" --export-mode default --branch main --file src/values/strings.xml
+----
+
+Add a new distribution with the `bundle` export mode:
+
+----
+crowdin distribution add "iOS Bundle" --export-mode bundle --bundle-id 19
+----
+
+See the link:/crowdin-cli/commands/crowdin-bundle-list[`crowdin bundle list` command] to get the list of bundles including their IDs.

@@ -1,0 +1,29 @@
+:includedir: ../generated-picocli-docs
+:command: crowdin-glossary-upload
+
+== crowdin glossary upload
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-synopsis]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-arguments]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-commands]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-options]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
+
+=== Notes
+
+To form the scheme for your CSV or XLS/XLSX glossary file, use the following constants:
+
+- `term_++{language_code}++` – Column contains terms.
+- `+{column_number}+` – Column number.Numbering starts from 0.
+- `description_++{language_code}++` – Column contains term descriptions.
+- `partOfSpeech_++{language_code}++` – Column contains part of speech for terms.
+
+Where `+{language_code}+` – Language code for the specified language.See the full list of https://developer.crowdin.com/language-codes[Supported Languages].
+
+`--first-line-contains-header` – used to skip the import of the first row (header).

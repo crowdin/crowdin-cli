@@ -2,7 +2,6 @@ package com.crowdin.cli.client;
 
 import com.crowdin.client.languages.model.Language;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 

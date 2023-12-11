@@ -7,12 +7,18 @@ import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
+import com.crowdin.client.sourcefiles.model.BuildReviewedSourceFilesRequest;
 import com.crowdin.client.sourcefiles.model.Directory;
+import com.crowdin.client.sourcefiles.model.ReviewedStringsBuild;
 import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
+import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
+import com.crowdin.client.stringcomments.model.StringComment;
+import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
 import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
 import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
+import com.crowdin.client.translations.model.PreTranslationStatus;
 import com.crowdin.client.translations.model.ProjectBuild;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
@@ -23,7 +29,11 @@ import java.util.List;
 
 public interface ProjectClient extends Client {
 
-    CrowdinProjectFull downloadFullProject();
+    default CrowdinProjectFull downloadFullProject() {
+        return this.downloadFullProject(null);
+    }
+
+    CrowdinProjectFull downloadFullProject(String branchName);
 
     CrowdinProject downloadProjectWithLanguages();
 
@@ -31,31 +41,53 @@ public interface ProjectClient extends Client {
 
     Branch addBranch(AddBranchRequest request);
 
-    Long uploadStorage(String fileName, InputStream content);
+    void deleteBranch(Long branchId);
+
+    List<Branch> listBranches();
+
+    Long uploadStorage(String fileName, InputStream content) throws ResponseException;
 
     Directory addDirectory(AddDirectoryRequest request) throws ResponseException;
 
-    void updateSource(Long sourceId, UpdateFileRequest request);
+    void deleteDirectory(Long directoryId);
+
+    void updateSource(Long sourceId, UpdateFileRequest request) throws ResponseException;
 
     void addSource(AddFileRequest request) throws ResponseException;
 
     void editSource(Long fileId, List<PatchRequest> request);
 
-    void uploadTranslations(String languageId, UploadTranslationsRequest request);
+    void deleteSource(Long fileId);
 
-    ProjectBuild startBuildingTranslation(BuildProjectTranslationRequest request);
+    void uploadTranslations(String languageId, UploadTranslationsRequest request) throws ResponseException;
+
+    ProjectBuild startBuildingTranslation(BuildProjectTranslationRequest request) throws ResponseException;
 
     ProjectBuild checkBuildingTranslation(Long buildId);
 
     URL downloadBuild(Long buildId);
 
+    ReviewedStringsBuild startBuildingReviewedSources(BuildReviewedSourceFilesRequest request);
+
+    ReviewedStringsBuild checkBuildingReviewedSources(Long build);
+
+    URL downloadReviewedSourcesBuild(Long buildId);
+
     List<LanguageProgress> getProjectProgress(String languageId);
+
+    List<LanguageProgress> getBranchProgress(Long branchId);
+
+    List<LanguageProgress> getFileProgress(Long fileId);
+
+    List<LanguageProgress> getDirectoryProgress(Long directoryId);
 
     SourceString addSourceString(AddSourceStringRequest request);
 
-    List<SourceString> listSourceString(Long fileId, String labelIds, String filter);
+    List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql);
 
     void deleteSourceString(Long id);
+
+    StringComment commentString(AddStringCommentRequest request);
 
     SourceString editSourceString(Long sourceId, List<PatchRequest> requests);
 
@@ -66,4 +98,8 @@ public interface ProjectClient extends Client {
     Label addLabel(AddLabelRequest request);
 
     URL downloadFile(Long fileId);
+
+    PreTranslationStatus startPreTranslation(ApplyPreTranslationRequest request);
+
+    PreTranslationStatus checkPreTranslation(String preTranslationId);
 }

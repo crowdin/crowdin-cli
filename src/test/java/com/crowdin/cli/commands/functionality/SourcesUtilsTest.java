@@ -3,19 +3,26 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.PlaceholderUtilBuilder;
 import com.crowdin.cli.utils.Utils;
+import org.apache.commons.io.FilenameUtils;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static com.crowdin.cli.utils.AssertUtils.assertPathsEqualIgnoringSeparator;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.containsInAnyOrder;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -86,9 +93,15 @@ public class SourcesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
     public void testFilterProjectFiles_wPreserveHierarchy_noIgnores(List<String> filePaths, String sourcePattern, List<String> expected) {
         List<String> actual = SourcesUtils.filterProjectFiles(
             filePaths, sourcePattern, Collections.EMPTY_LIST, true, PlaceholderUtilBuilder.STANDART.build(""));
+
+        actual = actual.stream().map(i -> i.replace("/", File.separator).replace("\\", File.separator))
+                .collect(Collectors.toList());
+        expected = expected.stream().map(i -> i.replace("/", File.separator).replace("\\", File.separator))
+                .collect(Collectors.toList());
         assertEquals(expected.size(), actual.size());
         assertThat(actual, containsInAnyOrder(expected.toArray()));
     }
@@ -154,12 +167,14 @@ public class SourcesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
     public void testFilterProjectFiles_wPreserveHierarchy_wIgnores(
         List<String> filePaths, String sourcePattern, List<String> ignorePatterns, List<String> expected
     ) {
         List<String> actual = SourcesUtils.filterProjectFiles(
             filePaths, sourcePattern, ignorePatterns, true, PlaceholderUtilBuilder.STANDART.build(""));
 //        assertEquals(expected.size(), actual.size());
+        expected = expected.stream().map(FilenameUtils::separatorsToSystem).collect(Collectors.toList());
         assertThat(actual, containsInAnyOrder(expected.toArray()));
     }
 
@@ -234,6 +249,7 @@ public class SourcesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
     public void testFilterProjectFiles_noPreserveHierarchy_noIgnores(List<String> filePaths, String sourcePattern, List<String> expected) {
         List<String> actual = SourcesUtils.filterProjectFiles(
                 filePaths, sourcePattern, Collections.emptyList(), false, PlaceholderUtilBuilder.STANDART.build(""));
@@ -278,6 +294,7 @@ public class SourcesUtilsTest {
     ) {
         List<String> actual = SourcesUtils.filterProjectFiles(
             filePaths, sourcePattern, ignorePatterns, false, PlaceholderUtilBuilder.STANDART.build(""));
+        expected = expected.stream().map(path -> path.replace("/", File.separator)).collect(Collectors.toList());
 //        assertEquals(expected.size(), actual.size());
         assertThat(actual, containsInAnyOrder(expected.toArray()));
     }
@@ -331,6 +348,19 @@ public class SourcesUtilsTest {
         );
     }
 
+    @Test
+    public void testFilterProjectFiles_dest() {
+        List<String> filePaths = Arrays.asList("common/strings.xml");
+        String sourcePattern = "/common/%original_file_name%";
+        List<String> ignorePatterns = null;
+        Path expected = Paths.get("common/strings.xml");
+
+        List<Path> actual = SourcesUtils.filterProjectFiles(filePaths, sourcePattern, ignorePatterns,
+                        true, PlaceholderUtilBuilder.STANDART.build("")).stream().map(Paths::get)
+                .collect(Collectors.toList());
+        assertThat(actual, containsInAnyOrder(expected));
+    }
+
     @ParameterizedTest
     @MethodSource
     public void testContainsParameter(String sourcePattern, boolean expected) {
@@ -348,6 +378,18 @@ public class SourcesUtilsTest {
             arguments(Utils.normalizePath("folder/[a-z/file.txt"), false),
             arguments(Utils.normalizePath("folder/file.txt"), false),
             arguments("", false)
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testReplaceUnaryAsterisk(String sourcePattern, String projectFile, String expected) {
+        assertPathsEqualIgnoringSeparator(SourcesUtils.replaceUnaryAsterisk(sourcePattern, projectFile), expected);
+    }
+
+    public static Stream<Arguments> testReplaceUnaryAsterisk() {
+        return Stream.of(
+            arguments("/*.xml", "destination/crowdin_sample_android.xml", "/crowdin_sample_android.xml")
         );
     }
 }

@@ -14,28 +14,32 @@ import java.util.List;
 import java.util.Map;
 
 @CommandLine.Command(
-    name = CommandNames.GLOSSARY_UPLOAD
+    name = CommandNames.GLOSSARY_UPLOAD,
+    sortOptions = false
 )
 class GlossaryUploadSubcommand extends ActCommandGlossary {
 
     @CommandLine.Parameters(descriptionKey = "crowdin.glossary.upload.file")
     private File file;
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
     private Long id;
 
-    @CommandLine.Option(names = {"--name"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--name"}, paramLabel = "...", order = -2)
     private String name;
 
-    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.glossary.upload.language-id", order = -2)
+    private String languageId;
+
+    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...", order = -2)
     private Map<String, Integer> scheme;
 
-    @CommandLine.Option(names = {"--first-line-contains-header"})
+    @CommandLine.Option(names = {"--first-line-contains-header"}, order = -2)
     private Boolean firstLineContainsHeader;
 
     @Override
     protected NewAction<BaseProperties, ClientGlossary> getAction(Actions actions) {
-        return actions.glossaryUpload(file, id, name, scheme, firstLineContainsHeader);
+        return actions.glossaryUpload(file, id, name, languageId, scheme, firstLineContainsHeader);
     }
 
     @Override
@@ -57,6 +61,9 @@ class GlossaryUploadSubcommand extends ActCommandGlossary {
         }
         if (id != null && name != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.id_and_name"));
+        }
+        if (id == null && name == null && languageId == null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.glossary.no_language_id"));
         }
         return errors;
     }

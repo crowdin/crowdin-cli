@@ -1,0 +1,50 @@
+name: Documentation release
+
+on:
+  release:
+    types: [released]
+  workflow_dispatch:
+
+jobs:
+  build_and_deploy_docs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+          cache: 'npm'
+
+      - uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 8
+          cache: 'gradle'
+
+      - name: Install asciidoctor and pandoc
+        run: |
+          sudo apt install -y asciidoctor
+          wget https://github.com/jgm/pandoc/releases/download/3.1.2/pandoc-3.1.2-1-amd64.deb
+          sudo dpkg -i pandoc-3.1.2-1-amd64.deb
+
+      - name: Generate Docs
+        run: |
+          chmod +x prepare-docs.sh
+          ./prepare-docs.sh
+        shell: bash
+
+      - name: Install dependencies
+        working-directory: website
+        run: npm ci
+
+      - name: Build Website
+        working-directory: website
+        run: npm run build
+
+      - name: Deploy 🚀
+        uses: JamesIves/github-pages-deploy-action@v4
+        with:
+          branch: gh-pages
+          folder: website/build

@@ -41,6 +41,8 @@ public class FileHelperTest {
     private static String f2 =     Utils.normalizePath("f2/");
     private static String f21 =    Utils.normalizePath("f2/in1/");
 
+    private static String fintlicu = Utils.normalizePath("f+intl-icu.en.yaml");
+
     private static String projectRoot = Utils.normalizePath("");
 
     private static List<String> allFiles = Arrays.asList(a, ax, f1a, f1ax, f11a, f11ax, f2a, f2ax, f21a, f21ax);
@@ -74,6 +76,17 @@ public class FileHelperTest {
             "FileHelper should throw NPE in filterOutIgnoredFiles");
         assertThrows(NullPointerException.class, () -> fileHelper.filterOutIgnoredFiles(null, new ArrayList<>()),
             "FileHelper should throw NPE in filterOutIgnoredFiles");
+    }
+
+    @Test
+    public void testFilterSourcesWithSpecialSymbols() {
+        List<File> sources = new ArrayList<>();
+        sources.add(new File("/files/folder/sub/1.xml"));
+        sources.add(new File("/files/{{cookiecutter.module_name}}"));
+        sources.add(new File("/files/{{cookiecutter.module_name}}/1.xml"));
+        FileHelper fileHelper = new FileHelper(project.getBasePath());
+        List<File> actualResult = fileHelper.filterOutIgnoredFiles(sources, Arrays.asList(".*"));
+        assertEquals(sources, actualResult);
     }
 
     @Test
@@ -111,7 +124,8 @@ public class FileHelperTest {
             arguments(allFiles, Utils.normalizePath("?.*"), Arrays.asList(a, ax)),
             arguments(allFiles, Utils.normalizePath("*"), Arrays.asList(a, ax, f1, f2)),
             arguments(allFiles, Utils.normalizePath("f3/**/*"), Collections.EMPTY_LIST),
-            arguments(allFiles, Utils.normalizePath("/f1/**"), Arrays.asList(f1, f11))
+            arguments(allFiles, Utils.normalizePath("/f1/**"), Arrays.asList(f1, f11)),
+            arguments(Collections.singletonList(fintlicu), fintlicu, Arrays.asList(fintlicu))
         );
     }
 

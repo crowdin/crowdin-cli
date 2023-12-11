@@ -1,0 +1,35 @@
+:includedir: ../generated-picocli-docs
+:command: crowdin-download
+
+== crowdin download
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-synopsis]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-arguments]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-commands]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-options]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
+
+=== Notes
+
+- `-l`, `--language=language_code` - defines the language translations that should be downloaded from Crowdin. By default, translations are downloaded for all project's target languages. link:https://developer.crowdin.com/language-codes/[Crowdin Language Codes].
+
+=== Examples
+
+Download multiple languages:
+
+----
+crowdin download -l de -l fr -l it
+crowdin download --language=de --language=fr --language=it
+----
+
+Download all translations even if the corresponding source files are missing locally:
+
+----
+crowdin download --all
+----

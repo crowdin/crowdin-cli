@@ -9,7 +9,6 @@ import java.util.stream.Collectors;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
-
 public abstract class Dryrun {
 
     protected abstract List<String> getFiles();

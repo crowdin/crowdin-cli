@@ -6,6 +6,8 @@ import com.crowdin.cli.utils.OutputUtil;
 import com.crowdin.cli.utils.Utils;
 import picocli.CommandLine;
 
+import java.util.stream.Stream;
+
 /**
  * Facade singleton class that is used to run <a href="https://picocli.info">picocli framework</a>.
  */
@@ -39,10 +41,14 @@ public class PicocliRunner {
 
     public boolean hasMatchedArg(String name) {
         CommandLine.ParseResult parseResult = commandLine.getParseResult();
-        return parseResult != null
-            && ((parseResult.hasSubcommand())
-                ? parseResult.subcommand().hasMatchedOption(name)
-                : parseResult.hasMatchedOption(name));
+        while (parseResult.hasSubcommand()) {
+            parseResult = parseResult.subcommand();
+        }
+        return parseResult.hasMatchedOption(name);
+    }
+
+    public boolean noneMatchArgs(String... args) {
+        return Stream.of(args).noneMatch(this::hasMatchedArg);
     }
 
     private void init() {
@@ -51,7 +57,8 @@ public class PicocliRunner {
         CommandLine.IExecutionExceptionHandler executionExceptionHandler = buildExecutionExceptionHandler();
         this.commandLine = new CommandLine(rootCommand)
             .setExecutionExceptionHandler(executionExceptionHandler)
-            .setColorScheme(colorScheme);
+            .setColorScheme(colorScheme)
+            .setCaseInsensitiveEnumValuesAllowed(true);
         HelpCommand.setOptions(commandLine, System.out, colorScheme);
     }
 

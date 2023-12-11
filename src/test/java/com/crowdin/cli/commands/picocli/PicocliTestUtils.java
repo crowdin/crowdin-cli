@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.picocli;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.properties.NewBasePropertiesUtilBuilder;
+import com.crowdin.cli.properties.NewProjectPropertiesUtilBuilder;
 import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.NewPropertiesWithTargetsUtilBuilder;
@@ -11,8 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -22,7 +22,7 @@ public class PicocliTestUtils {
 
     protected Actions actionsMock;
     protected NewAction actionMock;
-    protected PropertiesBuilders properitesBuildersMock;
+    protected PropertiesBuilders propertiesBuildersMock;
 
     @BeforeEach
     public void beforeEach() {
@@ -31,18 +31,18 @@ public class PicocliTestUtils {
     }
 
     public void execute(String... args) {
-        int exitCode = PicocliRunner.getInstance().execute(actionsMock, properitesBuildersMock, args);
+        int exitCode = PicocliRunner.getInstance().execute(actionsMock, propertiesBuildersMock, args);
         assertEquals(0, exitCode);
     }
 
     public void executeInvalidParams(String... args) {
-        int exitCode = PicocliRunner.getInstance().execute(actionsMock, properitesBuildersMock, args);
+        int exitCode = PicocliRunner.getInstance().execute(actionsMock, propertiesBuildersMock, args);
         assertNotEquals(0, exitCode);
         verifyNoMoreInteractions(actionsMock);
     }
 
     public void executeHelp(String... args) {
-        int exitCode = PicocliRunner.getInstance().execute(actionsMock, properitesBuildersMock, args);
+        int exitCode = PicocliRunner.getInstance().execute(actionsMock, propertiesBuildersMock, args);
         assertEquals(0, exitCode);
         verifyNoMoreInteractions(actionsMock);
     }
@@ -58,35 +58,37 @@ public class PicocliTestUtils {
         actionsMock = mock(Actions.class);
         actionMock = mock(NewAction.class);
 
-        when(actionsMock.download(any(), anyBoolean(), any(), anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
+        when(actionsMock.download(any(), anyBoolean(), any(), any(), anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.generate(any(), any(), anyBoolean()))
+        when(actionsMock.generate(any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.listBranches(anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.listProject(anyBoolean(), any(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.listSources(anyBoolean(), anyBoolean(), anyBoolean()))
+        when(actionsMock.listSources(anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.listTranslations(anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
+        when(actionsMock.listTranslations(anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.status(anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
+        when(actionsMock.status(anyBoolean(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any()))
+        when(actionsMock.stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(actionMock);
+        when(actionsMock.stringComment(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any()))
+                .thenReturn(actionMock);
         when(actionsMock.stringDelete(anyBoolean(), any(), any(), any()))
             .thenReturn(actionMock);
-        when(actionsMock.stringEdit(anyBoolean(), any(), any(), any(), any(), any(), any()))
+        when(actionsMock.stringEdit(anyBoolean(), any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(actionMock);
-        when(actionsMock.stringList(anyBoolean(), anyBoolean(), any(), any()))
+        when(actionsMock.stringList(anyBoolean(), anyBoolean(), any(), any(), any(), any()))
             .thenReturn(actionMock);
-        when(actionsMock.uploadSources(any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
+        when(actionsMock.uploadSources(any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.uploadTranslations(anyBoolean(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
+        when(actionsMock.uploadTranslations(anyBoolean(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.glossaryList(anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.glossaryUpload(any(), any(), any(), any(), any()))
+        when(actionsMock.glossaryUpload(any(), any(), any(), any(), any(), any()))
             .thenReturn(actionMock);
         when(actionsMock.glossaryDownload(any(), any(), any(), anyBoolean(), any(), any()))
             .thenReturn(actionMock);
@@ -94,21 +96,51 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.tmList(anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.tmUpload(any(), any(), any(), any(), any()))
+        when(actionsMock.taskList(anyBoolean(), anyBoolean(), any(), any()))
+            .thenReturn(actionMock);
+        when(actionsMock.taskAdd(anyBoolean(), any(), any(), any(), any(), any(), anyLong(), any(), anyBoolean(), anyBoolean(), anyBoolean(), any(), any()))
+            .thenReturn(actionMock);
+        when(actionsMock.distributionList(anyBoolean()))
+                .thenReturn(actionMock);
+        when(actionsMock.distributionAdd(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any()))
+                .thenReturn(actionMock);
+        when(actionsMock.bundleList(anyBoolean(), anyBoolean()))
+                .thenReturn(actionMock);
+        when(actionsMock.bundleAdd(any(), any(), any(), any(), any(), any(), anyBoolean()))
+                .thenReturn(actionMock);
+        when(actionsMock.screenshotList(any(), anyBoolean()))
+                .thenReturn(actionMock);
+        when(actionsMock.screenshotUpload(any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), any()))
+                .thenReturn(actionMock);
+        when(actionsMock.screenshotDelete(any()))
+                .thenReturn(actionMock);
+        when(actionsMock.labelList(anyBoolean(), anyBoolean()))
+                .thenReturn(actionMock);
+        when(actionsMock.labelAdd(any(), anyBoolean()))
+                .thenReturn(actionMock);
+        when(actionsMock.labelDelete(any()))
+                .thenReturn(actionMock);
+        when(actionsMock.resolve(any()))
+                .thenReturn(actionMock);
+        when(actionsMock.commentList(anyBoolean(), anyBoolean(),any(),any(),any(),any()))
+                .thenReturn(actionMock);
+        when(actionsMock.tmUpload(any(), any(), any(), any(), any(), any()))
             .thenReturn(actionMock);
         when(actionsMock.checkNewVersion())
             .thenReturn(actionMock);
     }
 
     private void mockBuilders() {
-        properitesBuildersMock = mock(PropertiesBuilders.class);
-        when(properitesBuildersMock.buildBaseProperties(any(), any(), any(), any()))
+        propertiesBuildersMock = mock(PropertiesBuilders.class);
+        when(propertiesBuildersMock.buildBaseProperties(any(), any(), any(), any()))
             .thenReturn(NewBasePropertiesUtilBuilder.minimalBuilt().build());
-        when(properitesBuildersMock.buildNoProperties())
+        when(propertiesBuildersMock.buildNoProperties())
             .thenReturn(new NoProperties());
-        when(properitesBuildersMock.buildPropertiesWithFiles(any(), any(), any(), any()))
+        when(propertiesBuildersMock.buildPropertiesWithFiles(any(), any(), any(), any()))
             .thenReturn(NewPropertiesWithFilesUtilBuilder.minimalBuiltPropertiesBean().build());
-        when(properitesBuildersMock.buildPropertiesWithTargets(any(), any(), any(), any()))
+        when(propertiesBuildersMock.buildPropertiesWithTargets(any(), any(), any(), any()))
             .thenReturn(NewPropertiesWithTargetsUtilBuilder.minimalBuilt().build());
+        when(propertiesBuildersMock.buildProjectProperties(any(), any(), any(), any()))
+            .thenReturn(NewProjectPropertiesUtilBuilder.minimalBuilt().build());
     }
 }

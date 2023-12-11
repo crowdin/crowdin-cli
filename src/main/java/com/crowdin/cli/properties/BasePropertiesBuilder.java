@@ -1,10 +1,9 @@
 package com.crowdin.cli.properties;
 
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import lombok.NonNull;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -39,7 +38,7 @@ public class BasePropertiesBuilder extends PropertiesBuilder<BaseProperties, Bas
         if (params == null) {
             return messages;
         }
-        if (params.getBaseUrlParam() != null && !checkBaseUrl(params.getBaseUrlParam())) {
+        if (params.getBaseUrlParam() != null && !PropertiesBeanUtils.isUrlValid(params.getBaseUrlParam())) {
             messages.addError(RESOURCE_BUNDLE.getString("error.config.wrong_base_url"));
         }
         if (params.getBasePathParam() != null) {

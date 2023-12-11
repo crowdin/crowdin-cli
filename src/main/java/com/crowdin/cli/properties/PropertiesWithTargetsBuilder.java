@@ -1,10 +1,9 @@
 package com.crowdin.cli.properties;
 
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import lombok.NonNull;
 
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -23,7 +22,7 @@ public class PropertiesWithTargetsBuilder extends PropertiesBuilder<PropertiesWi
     @Override
     protected void populateWithIdentityFileParams(PropertiesWithTargets props, @NonNull Map<String, Object> identityFileParams) {
         BaseProperties.CONFIGURATOR.populateWithValues(props, identityFileParams);
-        IdProperties.CONFIGURATOR.populateWithValues(props, identityFileParams);
+        ProjectProperties.CONFIGURATOR.populateWithValues(props, identityFileParams);
     }
 
     @Override
@@ -32,7 +31,7 @@ public class PropertiesWithTargetsBuilder extends PropertiesBuilder<PropertiesWi
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.empty_properties_file"));
         }
         BaseProperties.CONFIGURATOR.populateWithValues(props, configFileParams);
-        IdProperties.CONFIGURATOR.populateWithValues(props, configFileParams);
+        ProjectProperties.CONFIGURATOR.populateWithValues(props, configFileParams);
         PropertiesWithTargets.CONFIGURATOR.populateWithValues(props, configFileParams);
     }
 
@@ -42,7 +41,7 @@ public class PropertiesWithTargetsBuilder extends PropertiesBuilder<PropertiesWi
         if (params == null) {
             return messages;
         }
-        if (params.getBaseUrlParam() != null && !checkBaseUrl(params.getBaseUrlParam())) {
+        if (params.getBaseUrlParam() != null && !PropertiesBeanUtils.isUrlValid(params.getBaseUrlParam())) {
             messages.addError(RESOURCE_BUNDLE.getString("error.config.wrong_base_url"));
         }
         if (params.getSkipTranslatedOnly() != null && params.getSkipUntranslatedFiles() != null
@@ -87,7 +86,7 @@ public class PropertiesWithTargetsBuilder extends PropertiesBuilder<PropertiesWi
             return;
         }
         BaseProperties.CONFIGURATOR.populateWithDefaultValues(props);
-        IdProperties.CONFIGURATOR.populateWithDefaultValues(props);
+        ProjectProperties.CONFIGURATOR.populateWithDefaultValues(props);
         PropertiesWithTargets.CONFIGURATOR.populateWithDefaultValues(props);
     }
 
@@ -99,7 +98,7 @@ public class PropertiesWithTargetsBuilder extends PropertiesBuilder<PropertiesWi
             return messages;
         }
         messages.populate(BaseProperties.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
-        messages.populate(IdProperties.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
+        messages.populate(ProjectProperties.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
         messages.populate(PropertiesWithTargets.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
         return messages;
     }

@@ -5,11 +5,9 @@ import com.crowdin.client.core.http.exceptions.HttpException;
 import com.crowdin.client.core.model.DownloadLink;
 import com.crowdin.client.core.model.ResponseList;
 import com.crowdin.client.core.model.ResponseObject;
-import com.crowdin.client.storage.model.Storage;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
-import java.io.InputStream;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -25,12 +23,14 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 abstract class CrowdinClientCore {
 
-    private static final long millisToRetry = 100;
+    private static final long defaultMillisToRetry = 100;
 
     private static final Map<BiPredicate<String, String>, RuntimeException> standardErrorHandlers =
         new LinkedHashMap<BiPredicate<String, String>, RuntimeException>() {{
             put((code, message) -> code.equals("401"),
                 new RuntimeException(RESOURCE_BUNDLE.getString("error.response.401")));
+            put((code, message) -> code.equals("403") && message.contains("upgrade your subscription plan to upload more file formats"),
+                    new RuntimeException(RESOURCE_BUNDLE.getString("error.response.403_upgrade_subscription")));
             put((code, message) -> code.equals("403"),
                 new RuntimeException(RESOURCE_BUNDLE.getString("error.response.403")));
             put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Project Not Found"),
@@ -67,32 +67,23 @@ abstract class CrowdinClientCore {
         return directories;
     }
 
-    protected static <T> T executeRequestWithPossibleRetry(BiPredicate<String, String> expectedError, Supplier<T> request) {
-        Map<BiPredicate<String, String>, RepeatException> errorHandler = new LinkedHashMap<BiPredicate<String, String>, RepeatException>() {{
-                put(expectedError, new RepeatException());
-            }};
-        try {
-            return executeRequest(errorHandler, request);
-        } catch (RepeatException e) {
-            try {
-                Thread.sleep(millisToRetry);
-            } catch (InterruptedException ie) {
-//                    ignore
-            }
-            return executeRequest(request);
-        }
+    protected static <T> T executeRequestWithPossibleRetry(Map<BiPredicate<String, String>, ResponseException> errorHandlers, Supplier<T> request) throws ResponseException {
+        return executeRequestWithPossibleRetries(errorHandlers, request, 2, defaultMillisToRetry);
     }
 
-    protected static <T> T executeRequestWithPossibleRetry(Map<BiPredicate<String, String>, ResponseException> errorHandlers, Supplier<T> request) throws ResponseException {
+    protected static <T> T executeRequestWithPossibleRetries(Map<BiPredicate<String, String>, ResponseException> errorHandlers, Supplier<T> request, int maxAttempts, long millisToRetry) throws ResponseException {
+        if (maxAttempts < 1) {
+            throw new MaxNumberOfRetriesException();
+        }
         try {
             return executeRequest(errorHandlers, request);
         } catch (RepeatException e) {
             try {
                 Thread.sleep(millisToRetry);
             } catch (InterruptedException ie) {
-//                    ignore
+//              ignore
             }
-            return executeRequest(request);
+            return executeRequestWithPossibleRetries(errorHandlers, request, maxAttempts - 1, millisToRetry);
         }
     }
 
@@ -104,6 +95,13 @@ abstract class CrowdinClientCore {
         try {
             return r.get();
         } catch (HttpBadRequestException e) {
+            for (HttpBadRequestException.ErrorHolder eh : e.getErrors()) {
+                for (HttpBadRequestException.Error error : eh.getError().errors) {
+                    String code = (error.code != null) ? error.code : "<empty_code>";
+                    String message = (error.message != null) ? error.message : "<empty_message>";
+                    searchErrorHandler(errorHandlers, code, message);
+                }
+            }
             String errorMessage = "Wrong parameters: \n" + e.getErrors()
                 .stream()
                 .flatMap(holder -> holder.getError().getErrors()
@@ -112,21 +110,25 @@ abstract class CrowdinClientCore {
                 .collect(Collectors.joining("\n"));
             throw new RuntimeException(errorMessage);
         } catch (HttpException e) {
-            String code = (e.getError().code != null) ? e.getError().code : "<empty_code>";
-            String message = (e.getError().message != null) ? e.getError().message : "<empty_message>";
-            for (Map.Entry<BiPredicate<String, String>, R> errorHandler : errorHandlers.entrySet()) {
-                if (errorHandler.getKey().test(code, message)) {
-                    throw errorHandler.getValue();
-                }
-            }
-            for (Map.Entry<BiPredicate<String, String>, RuntimeException> errorHandler : standardErrorHandlers.entrySet()) {
-                if (errorHandler.getKey().test(code, message)) {
-                    throw errorHandler.getValue();
-                }
-            }
+            String code = (e.getError() != null && e.getError().code != null) ? e.getError().code : "<empty_code>";
+            String message = (e.getError() != null && e.getError().message != null) ? e.getError().message : "<empty_message>";
+            searchErrorHandler(errorHandlers, code, message);
             throw new RuntimeException(String.format("Error from server: <Code: %s, Message: %s>", code, message));
         } catch (Exception e) {
             throw e;
+        }
+    }
+
+    private static <T, R extends Exception> void searchErrorHandler(Map<BiPredicate<String, String>, R> errorHandlers, String code, String message) throws R {
+        for (Map.Entry<BiPredicate<String, String>, R> errorHandler : errorHandlers.entrySet()) {
+            if (errorHandler.getKey().test(code, message)) {
+                throw errorHandler.getValue();
+            }
+        }
+        for (Map.Entry<BiPredicate<String, String>, RuntimeException> errorHandler : standardErrorHandlers.entrySet()) {
+            if (errorHandler.getKey().test(code, message)) {
+                throw errorHandler.getValue();
+            }
         }
     }
 

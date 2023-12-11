@@ -6,7 +6,6 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
@@ -22,6 +21,7 @@ import static com.crowdin.cli.properties.PropertiesBuilder.LABELS;
 import static com.crowdin.cli.properties.PropertiesBuilder.NAME;
 import static com.crowdin.cli.properties.PropertiesBuilder.SKIP_UNTRANSLATED_FILES;
 import static com.crowdin.cli.properties.PropertiesBuilder.SKIP_UNTRANSLATED_STRINGS;
+import static com.crowdin.cli.properties.PropertiesBuilder.EXPORT_STRINGS_THAT_PASSED_WORKFLOW;
 import static com.crowdin.cli.properties.PropertiesBuilder.SOURCES;
 import static com.crowdin.cli.properties.PropertiesBuilder.FILE;
 
@@ -43,6 +43,7 @@ public class TargetBean {
         private Boolean skipTranslatedOnly;
         private Boolean skipUntranslatedFiles;
         private Boolean exportApprovedOnly;
+        private Boolean exportStringsThatPassedWorkflow;
     }
 
     static class TargetBeanConfigurator implements BeanConfigurator<TargetBean> {
@@ -72,6 +73,7 @@ public class TargetBean {
             PropertiesBuilder.setBooleanPropertyIfExists(fb::setSkipTranslatedOnly,   map, SKIP_UNTRANSLATED_STRINGS);
             PropertiesBuilder.setBooleanPropertyIfExists(fb::setSkipUntranslatedFiles,     map, SKIP_UNTRANSLATED_FILES);
             PropertiesBuilder.setBooleanPropertyIfExists(fb::setExportApprovedOnly,        map, EXPORT_APPROVED_ONLY);
+            PropertiesBuilder.setBooleanPropertyIfExists(fb::setExportStringsThatPassedWorkflow, map, EXPORT_STRINGS_THAT_PASSED_WORKFLOW);
             return fb;
         }
 

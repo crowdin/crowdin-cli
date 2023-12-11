@@ -12,6 +12,7 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.cli.utils.http.OAuthUtil;
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.ByteArrayInputStream;
@@ -19,26 +20,24 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Scanner;
+import java.util.*;
 
 import static com.crowdin.cli.BaseCli.OAUTH_CLIENT_ID;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.properties.PropertiesBuilder.API_TOKEN;
-import static com.crowdin.cli.properties.PropertiesBuilder.BASE_PATH;
-import static com.crowdin.cli.properties.PropertiesBuilder.BASE_URL;
-import static com.crowdin.cli.properties.PropertiesBuilder.PROJECT_ID;
+import static com.crowdin.cli.properties.PropertiesBuilder.*;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
+import static java.lang.Boolean.TRUE;
+import static java.util.Objects.isNull;
+import static java.util.Objects.nonNull;
 
+@RequiredArgsConstructor
 class GenerateAction implements NewAction<NoProperties, NoClient> {
 
     public static final String BASE_PATH_DEFAULT = ".";
     public static final String BASE_URL_DEFAULT = "https://api.crowdin.com";
-    public static final String BASE_ENTERPRISE_URL_DEFAULT = "https://%s.crowdin.com";
+    public static final String BASE_ENTERPRISE_URL_DEFAULT = "https://%s.api.crowdin.com";
 
     private boolean isEnterprise;
     private boolean withBrowser;
@@ -46,15 +45,16 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
     public static final String LINK = "https://support.crowdin.com/configuration-file/";
     public static final String ENTERPRISE_LINK = "https://support.crowdin.com/enterprise/configuration-file/";
 
-    private FilesInterface files;
-    private Path destinationPath;
-    private boolean skipGenerateDescription;
-
-    public GenerateAction(FilesInterface files, Path destinationPath, boolean skipGenerateDescription) {
-        this.files = files;
-        this.destinationPath = destinationPath;
-        this.skipGenerateDescription = skipGenerateDescription;
-    }
+    private final FilesInterface files;
+    private final String token;
+    private final String baseUrl;
+    private final String basePath;
+    private final String projectId;
+    private final String source;
+    private final String translation;
+    private final Boolean preserveHierarchy;
+    private final Path destinationPath;
+    private final boolean skipGenerateDescription;
 
     @Override
     public void act(Outputter out, NoProperties noProperties, NoClient noClient) {
@@ -87,14 +87,15 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
 
     private void updateWithUserInputs(Outputter out, Asking asking, List<String> fileLines) {
         Map<String, String> values = new HashMap<>();
+        setGivenParams(values);
 
-        withBrowser = !StringUtils.startsWithAny(asking.ask(
+        withBrowser = isNull(token) && !StringUtils.startsWithAny(asking.ask(
             RESOURCE_BUNDLE.getString("message.ask_auth_via_browser") + ": (Y/n) "), "n", "N", "-");
         if (withBrowser) {
             String token;
             try {
                 ConsoleSpinner.start(out, "Waiting for authorization to complete (Press <Ctrl>+C to exit)", false);
-                token = OAuthUtil.getToken(OAUTH_CLIENT_ID);
+                token = OAuthUtil.getToken(out, OAUTH_CLIENT_ID);
                 ConsoleSpinner.stop(OK, "Authorization finished successfully");
             } catch (Exception e) {
                 ConsoleSpinner.stop(ERROR, e.getMessage());
@@ -108,38 +109,45 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
                 values.put(BASE_URL, BASE_URL_DEFAULT);
             }
         } else {
-            this.isEnterprise = StringUtils.startsWithAny(asking.ask(
+            if (isNull(baseUrl)) {
+                this.isEnterprise = StringUtils.startsWithAny(asking.ask(
                     RESOURCE_BUNDLE.getString("message.ask_is_enterprise") + ": (N/y) "), "y", "Y", "+");
-            if (this.isEnterprise) {
-                String organizationName = asking.ask(RESOURCE_BUNDLE.getString("message.ask_organization_name") + ": ");
-                if (StringUtils.isNotEmpty(organizationName)) {
-                    if (PropertiesBeanUtils.isCrowdinUrl(organizationName)) {
-                        String realOrganizationName = PropertiesBeanUtils.getOrganization(organizationName);
-                        System.out.println(String.format(RESOURCE_BUNDLE.getString("message.exctracted_organization_name"), realOrganizationName));
-                        values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, realOrganizationName));
+                if (this.isEnterprise) {
+                    String organizationName = asking.ask(RESOURCE_BUNDLE.getString("message.ask_organization_name") + ": ");
+                    if (StringUtils.isNotEmpty(organizationName)) {
+                        if (PropertiesBeanUtils.isUrlValid(organizationName)) {
+                            String realOrganizationName = PropertiesBeanUtils.getOrganization(organizationName);
+                            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.extracted_organization_name"), realOrganizationName));
+                            values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, realOrganizationName));
+                        } else {
+                            values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, PropertiesBeanUtils.getOrganization(organizationName)));
+                        }
                     } else {
-                        values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, organizationName));
+                        this.isEnterprise = false;
+                        values.put(BASE_URL, BASE_URL_DEFAULT);
                     }
                 } else {
-                    this.isEnterprise = false;
                     values.put(BASE_URL, BASE_URL_DEFAULT);
                 }
-            } else {
-                values.put(BASE_URL, BASE_URL_DEFAULT);
             }
-            String apiToken = asking.askParam(API_TOKEN);
-            if (!apiToken.isEmpty()) {
-                values.put(API_TOKEN, apiToken);
+            if (isNull(token)) {
+                String apiToken = asking.askParam(API_TOKEN);
+                if (!apiToken.isEmpty()) {
+                    values.put(API_TOKEN, apiToken);
+                }
             }
         }
+        boolean projectIdSpecified = nonNull(projectId);
         while (true) {
-            String projectId = asking.askParam(PROJECT_ID);
-            if (projectId.isEmpty()) {
+            String projectIdToSet = projectIdSpecified ? projectId : asking.askParam(PROJECT_ID);
+            if (projectIdToSet.isEmpty()) {
                 break;
-            } else if (StringUtils.isNumeric(projectId)) {
-                values.put(PROJECT_ID, projectId);
+            } else if (StringUtils.isNumeric(projectIdToSet)) {
+                values.put(PROJECT_ID, projectIdToSet);
                 break;
             } else {
+                projectIdSpecified = false;
+                values.remove(PROJECT_ID);
                 System.out.println(String.format(RESOURCE_BUNDLE.getString("error.init.project_id_is_not_number"), projectId));
             }
         }
@@ -148,21 +156,35 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
         } else {
             System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("error.init.skip_project_validation")));
         }
-        String basePath = asking.askWithDefault(RESOURCE_BUNDLE.getString("message.ask_project_directory"), BASE_PATH_DEFAULT);
-        java.io.File basePathFile = Paths.get(basePath).normalize().toAbsolutePath().toFile();
+        String basePathToSet = nonNull(basePath) ? basePath : asking.askWithDefault(RESOURCE_BUNDLE.getString("message.ask_project_directory"), BASE_PATH_DEFAULT);
+        java.io.File basePathFile = Paths.get(basePathToSet).normalize().toAbsolutePath().toFile();
         if (!basePathFile.exists()) {
             System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.init.path_not_exist"), basePathFile)));
         }
-        values.put(BASE_PATH, basePath);
+        values.put(BASE_PATH, basePathToSet);
 
         for (Map.Entry<String, String> entry : values.entrySet()) {
             for (int i = 0; i < fileLines.size(); i++) {
-                if (fileLines.get(i).contains(entry.getKey())) {
-                    fileLines.set(i, fileLines.get(i).replaceFirst(": \"*\"", String.format(": \"%s\"", Utils.regexPath(entry.getValue()))));
+                String keyToSearch = String.format("\"%s\"", entry.getKey());
+                if (fileLines.get(i).contains(keyToSearch)) {
+                    String updatedLine = PRESERVE_HIERARCHY.equals(entry.getKey()) ?
+                        fileLines.get(i).replace(String.valueOf(TRUE), entry.getValue())
+                        : fileLines.get(i).replaceFirst(": \"*\"", String.format(": \"%s\"", Utils.regexPath(entry.getValue())));
+                    fileLines.set(i, updatedLine);
                     break;
                 }
             }
         }
+    }
+
+    private void setGivenParams(Map<String, String> values) {
+        Optional.ofNullable(token).ifPresent(v -> values.put(API_TOKEN, token));
+        Optional.ofNullable(baseUrl).ifPresent(v -> values.put(BASE_URL, baseUrl));
+        Optional.ofNullable(basePath).ifPresent(v -> values.put(BASE_PATH, basePath));
+        Optional.ofNullable(projectId).ifPresent(v -> values.put(PROJECT_ID, projectId));
+        Optional.ofNullable(source).ifPresent(v ->  values.put(SOURCE, source));
+        Optional.ofNullable(translation).ifPresent(v -> values.put(TRANSLATION, translation));
+        Optional.ofNullable(preserveHierarchy).ifPresent(v -> values.put(PRESERVE_HIERARCHY, String.valueOf(preserveHierarchy)));
     }
 
     public static class Asking {

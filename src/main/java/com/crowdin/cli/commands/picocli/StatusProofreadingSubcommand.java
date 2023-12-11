@@ -3,20 +3,46 @@ package com.crowdin.cli.commands.picocli;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
-import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.properties.ProjectProperties;
 import picocli.CommandLine;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static java.util.Objects.nonNull;
 
 @CommandLine.Command(
     name = CommandNames.STATUS_PROOFREADING,
     sortOptions = false
 )
-class StatusProofreadingSubcommand extends ActCommandWithFiles {
+class StatusProofreadingSubcommand extends ActCommandProject {
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...")
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", order = -2)
     protected String languageId;
 
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
+    protected String branchName;
+
+    @CommandLine.Option(names = {"-f", "--file"}, paramLabel = "...", descriptionKey = "crowdin.status.file-path", order = -2)
+    protected String file;
+
+    @CommandLine.Option(names = {"-d", "--directory"}, paramLabel = "...", descriptionKey = "crowdin.status.directory-path", order = -2)
+    protected String directory;
+
+    @CommandLine.Option(names = {"--fail-if-incomplete"}, paramLabel = "...", order = -2)
+    protected boolean failIfIncomplete;
+
     @Override
-    protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
-        return actions.status(noProgress, languageId, isVerbose, false, true);
+    protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
+        return actions.status(noProgress, branchName, languageId, file, directory, isVerbose, false, true, failIfIncomplete);
+    }
+
+    @Override
+    protected List<String> checkOptions() {
+        List<String> errors = new ArrayList<>();
+        if (nonNull(directory) && nonNull(file)) {
+            errors.add(RESOURCE_BUNDLE.getString("error.status.only_one_allowed"));
+        }
+        return errors;
     }
 }

@@ -14,12 +14,26 @@ public class PicocliRunnerTest extends PicocliTestUtils {
     public void testHasMatchedArgs() {
         PicocliRunner picocliRunner = PicocliRunner.getInstance();
         assertFalse(picocliRunner.hasMatchedArg("plain"));
-        picocliRunner.execute(actionsMock, properitesBuildersMock, CommandNames.DOWNLOAD, "--plain");
+        picocliRunner.execute(actionsMock, propertiesBuildersMock, CommandNames.DOWNLOAD, "--plain");
         assertTrue(picocliRunner.hasMatchedArg("plain"));
-        picocliRunner.execute(actionsMock, properitesBuildersMock, CommandNames.DOWNLOAD);
+        picocliRunner.execute(actionsMock, propertiesBuildersMock, CommandNames.DOWNLOAD);
         assertFalse(picocliRunner.hasMatchedArg("plain"));
-        picocliRunner.execute(actionsMock, properitesBuildersMock, "--verbose");
+        picocliRunner.execute(actionsMock, propertiesBuildersMock, "--verbose");
         assertTrue(picocliRunner.hasMatchedArg("verbose"));
+    }
+
+    @Test
+    public void testNoneMatchedArgs() {
+        PicocliRunner picocliRunner = PicocliRunner.getInstance();
+        picocliRunner.execute(actionsMock, propertiesBuildersMock, "--version");
+        assertFalse(picocliRunner.noneMatchArgs("version"));
+        assertFalse(picocliRunner.noneMatchArgs("--version"));
+        assertFalse(picocliRunner.noneMatchArgs("-V"));
+
+        picocliRunner.execute(actionsMock, propertiesBuildersMock, "--help");
+        assertFalse(picocliRunner.noneMatchArgs("help"));
+        assertFalse(picocliRunner.noneMatchArgs("--help"));
+        assertFalse(picocliRunner.noneMatchArgs("-h"));
     }
 
     @Test

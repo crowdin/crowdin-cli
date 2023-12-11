@@ -29,6 +29,36 @@ public final class Clients {
         return new CrowdinClientTm(client);
     }
 
+    public static ClientTask getClientTask(String apiToken, String baseUrl, String projectId) {
+        com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);
+        return new CrowdinClientTask(client, projectId);
+    }
+
+    public static ClientComment getClientComment(String apiToken, String baseUrl, String projectId) {
+        com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);
+        return new CrowdinClientComment(client, projectId);
+    }
+
+    public static ClientDistribution getClientDistribution(String apiToken, String baseUrl, String projectId) {
+        com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);
+        return new CrowdinClientDistribution(client, projectId);
+    }
+
+    public static ClientBundle getClientBundle(String apiToken, String baseUrl, String projectId) {
+        com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);
+        return new CrowdinClientBundle(client, projectId);
+    }
+
+    public static ClientScreenshot getClientScreenshot(String apiToken, String baseUrl, String projectId) {
+        com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);
+        return new CrowdinClientScreenshot(client, projectId);
+    }
+
+    public static ClientLabel getClientLabel(String apiToken, String baseUrl, String projectId) {
+        com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);
+        return new CrowdinClientLabel(client, projectId);
+    }
+
 //    mb divide args to move token and url to constructor?
     public static ProjectClient getProjectClient(String apiToken, String baseUrl, long projectId) {
         com.crowdin.client.Client client = prepareClient(apiToken, baseUrl);

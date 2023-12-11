@@ -14,7 +14,15 @@ import picocli.CommandLine;
         StringSubcommand.class,
         GlossarySubcommand.class,
         TmSubcommand.class,
-        CheckVersionSubcommand.class
+        TaskSubcommand.class,
+        BundleSubcommand.class,
+        CheckVersionSubcommand.class,
+        PreTranslateSubcommand.class,
+        BranchSubcommand.class,
+        CommentSubcommand.class,
+        DistributionSubcommand.class,
+        ScreenshotSubcommand.class,
+        LabelSubcommand.class,
     })
 class RootCommand extends HelpCommand {
     @Override

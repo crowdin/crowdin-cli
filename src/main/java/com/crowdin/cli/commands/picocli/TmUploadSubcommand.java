@@ -14,28 +14,32 @@ import java.util.List;
 import java.util.Map;
 
 @CommandLine.Command(
-    name = CommandNames.TM_UPLOAD
+    name = CommandNames.TM_UPLOAD,
+    sortOptions = false
 )
 class TmUploadSubcommand extends ActCommandTm {
 
     @CommandLine.Parameters(descriptionKey = "crowdin.glossary.upload.file")
     private File file;
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
     private Long id;
 
-    @CommandLine.Option(names = {"--name"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--name"}, paramLabel = "...", order = -2)
     private String name;
 
-    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...")
+    @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.tm.upload.language-id", order = -2)
+    private String languageId;
+
+    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...", order = -2)
     private Map<String, Integer> scheme;
 
-    @CommandLine.Option(names = {"--first-line-contains-header"})
+    @CommandLine.Option(names = {"--first-line-contains-header"}, order = -2)
     private Boolean firstLineContainsHeader;
 
     @Override
     protected NewAction<BaseProperties, ClientTm> getAction(Actions actions) {
-        return actions.tmUpload(file, id, name, scheme, firstLineContainsHeader);
+        return actions.tmUpload(file, id, name, languageId, scheme, firstLineContainsHeader);
     }
 
     @Override
@@ -50,6 +54,9 @@ class TmUploadSubcommand extends ActCommandTm {
         }
         if (!equalsAny(FilenameUtils.getExtension(file.getName()), "csv", "xls", "xlsx") && firstLineContainsHeader != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.tm.first_line_contains_header_and_wrong_format"));
+        }
+        if (id == null && name == null && languageId == null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.tm.no_language_id"));
         }
         return errors;
     }

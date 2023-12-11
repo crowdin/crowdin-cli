@@ -1,6 +1,7 @@
 package com.crowdin.cli.properties;
 
 import com.crowdin.cli.commands.Outputter;
+import io.github.cdimascio.dotenv.Dotenv;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,6 +25,8 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
  * @param <P> Parameters from command line
  */
 public abstract class PropertiesBuilder<T extends Properties, P extends Params> {
+
+    private static Dotenv dotenv;
 
     public static final String PROJECT_ID = "project_id";
 
@@ -73,6 +76,8 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String ESCAPE_SPECIAL_CHARACTERS = "escape_special_characters";
 
+    public static final String EXPORT_QUOTES = "export_quotes";
+
     public static final String MULTILINGUAL_SPREADSHEET = "multilingual_spreadsheet";
 
     public static final String SCHEME = "scheme";
@@ -109,11 +114,19 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String EXPORT_APPROVED_ONLY = "export_only_approved";
 
+    public static final String EXPORT_STRINGS_THAT_PASSED_WORKFLOW = "export_strings_that_passed_workflow";
+
     public static final String EXCLUDED_TARGET_LANGUAGES = "excluded_target_languages";
+
+    public static final String CUSTOM_SEGMENTATION = "custom_segmentation";
 
     public static final String SETTINGS = "settings";
 
     public static final String IGNORE_HIDDEN_FILES = "ignore_hidden_files";
+
+    public static final String CONFIG_FILE_PATH = "config_file_path";
+
+    public static final String IMPORT_TRANSLATIONS = "import_translations";
 
     private Outputter out;
     private Map<String, Object> configFileParams;
@@ -158,7 +171,10 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
             this.populateWithArgParams(props, params);
         }
         this.populateWithDefaultValues(props);
-        this.throwErrorIfNeeded(this.checkProperties(props), RESOURCE_BUNDLE.getString("error.configuration_file_is_invalid"));
+        String errorTitle = (configFileParams == null && identityFileParams == null)
+            ? RESOURCE_BUNDLE.getString("error.configuration_is_invalid")
+            : RESOURCE_BUNDLE.getString("error.configuration_file_is_invalid");
+        this.throwErrorIfNeeded(this.checkProperties(props), errorTitle);
         return props;
     }
 
@@ -208,13 +224,28 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     static void setEnvOrPropertyIfExists(Consumer<String> setter, Map<String, Object> properties, String envKey, String key) {
         String param = properties.containsKey(envKey)
-            ? System.getenv(properties.get(envKey).toString())
+            ? getDotenv().get(properties.get(envKey).toString())
             : (properties.containsKey(key))
             ? (properties.get(key) != null) ? properties.get(key).toString() : null
             : null;
         if (param != null) {
             setter.accept(param);
         }
+    }
+
+    private static Dotenv getDotenv() {
+        if (dotenv == null) {
+            try {
+                dotenv = Dotenv.configure().ignoreIfMissing().load();
+            } catch (IllegalStateException e) {
+                if (e.getMessage() != null && e.getMessage().contains("Duplicate key")) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.duplicate_environment_variable"), e);
+                } else {
+                    throw e;
+                }
+            }
+        }
+        return dotenv;
     }
 
     static void setBooleanPropertyIfExists(Consumer<Boolean> setter, Map<String, Object> properties, String key) {
@@ -278,10 +309,6 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
         } catch (IllegalArgumentException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.config.enum_wrong_value"), key, acceptableValuesEnum));
         }
-    }
-
-    protected static boolean checkBaseUrl(String baseUrl) {
-        return baseUrl == null || baseUrl.matches("^(https://(.+\\.)?|http://(.+\\.)?.+\\.dev\\.)crowdin\\.com(/api/v2)?$");
     }
 
     protected static boolean checkBasePathExists(String basePath) {

@@ -1,6 +1,7 @@
 package com.crowdin.cli.properties;
 
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
@@ -30,7 +31,7 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
     @Override
     protected void populateWithIdentityFileParams(PropertiesWithFiles props, Map<String, Object> identityFileParams) {
         BaseProperties.CONFIGURATOR.populateWithValues(props, identityFileParams);
-        IdProperties.CONFIGURATOR.populateWithValues(props, identityFileParams);
+        ProjectProperties.CONFIGURATOR.populateWithValues(props, identityFileParams);
     }
 
     @Override
@@ -39,7 +40,7 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.empty_properties_file"));
         }
         BaseProperties.CONFIGURATOR.populateWithValues(props, configFileParams);
-        IdProperties.CONFIGURATOR.populateWithValues(props, configFileParams);
+        ProjectProperties.CONFIGURATOR.populateWithValues(props, configFileParams);
         PropertiesWithFiles.CONFIGURATOR.populateWithValues(props, configFileParams);
     }
 
@@ -49,7 +50,7 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
         if (params == null) {
             return messages;
         }
-        if (params.getBaseUrlParam() != null && !checkBaseUrl(params.getBaseUrlParam())) {
+        if (params.getBaseUrlParam() != null && !PropertiesBeanUtils.isUrlValid(params.getBaseUrlParam())) {
             messages.addError(RESOURCE_BUNDLE.getString("error.config.wrong_base_url"));
         }
         if (params.getBasePathParam() != null) {
@@ -66,8 +67,13 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
             if (!PlaceholderUtil.containsLangPlaceholders(params.getTranslationParam())) {
                 messages.addError(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
             }
-        } else if (params.getSourceParam() != null ^ params.getTranslationParam() != null) {
-            messages.addError(RESOURCE_BUNDLE.getString("error.config.params_xor_source_translation"));
+        } else {
+            if (params.getSourceParam() != null ^ params.getTranslationParam() != null) {
+                messages.addError(RESOURCE_BUNDLE.getString("error.config.params_xor_source_translation"));
+            }
+            if (params.getDestParam() != null) {
+                messages.addError(RESOURCE_BUNDLE.getString("error.config.params_dest"));
+            }
         }
         if (params.getSkipTranslatedOnly() != null && params.getSkipUntranslatedFiles() != null
             && params.getSkipTranslatedOnly() && params.getSkipUntranslatedFiles()) {
@@ -82,8 +88,11 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
             props.setPreserveHierarchy(false);
 
             Path root = Paths.get(System.getProperty("user.dir")).getRoot();
-            props.setBasePath((root != null) ? root.toString() : "/");
-            params.setSourceParam(StringUtils.removePattern(params.getSourceParam(), "^([a-zA-Z]:)?[\\\\/]+"));
+            String rootPath = root != null ? root.toString() : "/";
+            if(props.getBasePath() == null) {
+                props.setBasePath(rootPath);
+            }
+            params.setSourceParam(StringUtils.removePattern(params.getSourceParam(), "^\\?([a-zA-Z]:)?[\\\\/]+"));
         }
         if (params.getIdParam() != null) {
             props.setProjectId(params.getIdParam());
@@ -97,14 +106,20 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
         if (params.getBaseUrlParam() != null) {
             props.setBaseUrl(params.getBaseUrlParam());
         }
+        props.setPreserveHierarchy(params.getPreserveHierarchy() != null ? params.getPreserveHierarchy()
+                : props.getPreserveHierarchy());
+
         if (params.getSourceParam() != null && params.getTranslationParam() != null) {
-            props.setPreserveHierarchy(false);
             FileBean fb = new FileBean();
             if (params.getSourceParam() != null) {
-                fb.setSource(StringUtils.removePattern(params.getSourceParam(), "^([a-zA-Z]:)?[\\\\/]+"));
+                fb.setSource(StringUtils.removePattern(params.getSourceParam(), "^\\?([a-zA-Z]:)?[\\\\/]+"));
             }
             if (params.getTranslationParam() != null) {
                 fb.setTranslation(params.getTranslationParam());
+            }
+            if (params.getDestParam() != null) {
+                props.setPreserveHierarchy(true);
+                fb.setDest(params.getDestParam());
             }
             props.setFiles(Arrays.asList(fb));
         }
@@ -142,7 +157,7 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
             return;
         }
         BaseProperties.CONFIGURATOR.populateWithDefaultValues(props);
-        IdProperties.CONFIGURATOR.populateWithDefaultValues(props);
+        ProjectProperties.CONFIGURATOR.populateWithDefaultValues(props);
         PropertiesWithFiles.CONFIGURATOR.populateWithDefaultValues(props);
     }
 
@@ -154,7 +169,7 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
             return messages;
         }
         messages.populate(BaseProperties.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
-        messages.populate(IdProperties.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
+        messages.populate(ProjectProperties.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
         messages.populate(PropertiesWithFiles.CONFIGURATOR.checkProperties(props, PropertiesConfigurator.CheckType.STANDARD));
         return messages;
     }

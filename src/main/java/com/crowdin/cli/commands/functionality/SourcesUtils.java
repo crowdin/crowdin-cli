@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.cli.properties.helper.FileHelper;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
+import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -18,32 +19,13 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 
 public class SourcesUtils {
-
-    private static final String DOUBLED_ASTERISK = "**";
-    private static final String REGEX = "regex";
-    private static final String ASTERISK = "*";
-    private static final String QUESTION_MARK = "?";
-    private static final String DOT = ".";
-    private static final String DOT_PLUS = ".+";
-    private static final String SET_OPEN_BRECKET = "[";
-    private static final String SET_CLOSE_BRECKET = "]";
-    private static final String ROUND_BRACKET_OPEN = "(";
-    private static final String ROUND_BRACKET_CLOSE = ")";
-    private static final String ESCAPE_ROUND_BRACKET_OPEN = "\\(";
-    private static final String ESCAPE_ROUND_BRACKET_CLOSE = "\\)";
-    private static final String ESCAPE_DOT = "\\.";
-    private static final String ESCAPE_DOT_PLACEHOLDER = "{ESCAPE_DOT}";
-    private static final String ESCAPE_QUESTION = "\\?";
-    private static final String ESCAPE_QUESTION_PLACEHOLDER = "{ESCAPE_QUESTION_MARK}";
-    private static final String ESCAPE_ASTERISK = "\\*";
-    private static final String ESCAPE_ASTERISK_PLACEHOLDER = "{ESCAPE_ASTERISK}";
-
     public static Stream<File> getFiles(String basePath, String sourcePattern, List<String> ignorePattern, PlaceholderUtil placeholderUtil) {
         if (basePath == null || sourcePattern == null || placeholderUtil == null) {
             throw new NullPointerException("null args in SourceUtils.getFiles");
         }
         FileHelper fileHelper = new FileHelper(basePath);
-        List<File> sources = fileHelper.getFiles(sourcePattern);
+        String relativePath = StringUtils.removeStart(sourcePattern, basePath);
+        List<File> sources = fileHelper.getFiles(relativePath);
         List<String> formattedIgnores = placeholderUtil.format(sources, ignorePattern, false);
         return fileHelper.filterOutIgnoredFiles(sources, formattedIgnores)
             .stream()
@@ -53,22 +35,23 @@ public class SourcesUtils {
     public static List<String> filterProjectFiles(
         List<String> filePaths, String sourcePattern, List<String> ignorePatterns, boolean preserveHierarchy, PlaceholderUtil placeholderUtil
     ) {
-        filePaths = filePaths.stream().map(Utils::unixPath).map(Utils::noSepAtStart).collect(Collectors.toList());
-        sourcePattern = Utils.noSepAtStart(Utils.unixPath(sourcePattern));
+        filePaths = filePaths.stream().map((Utils.isWindows() ? Utils::windowsPath : Utils::unixPath)).map(Utils::noSepAtStart).collect(Collectors.toList());
+        sourcePattern = Utils.noSepAtStart(Utils.isWindows() ? Utils.windowsPath(sourcePattern) : Utils.unixPath(sourcePattern));
         ignorePatterns = (ignorePatterns != null)
-            ? ignorePatterns.stream().map(Utils::unixPath).map(Utils::noSepAtStart).collect(Collectors.toList()) : Collections.emptyList();
+            ? ignorePatterns.stream().map((Utils.isWindows() ? Utils::windowsPath : Utils::unixPath)).map(Utils::noSepAtStart).collect(Collectors.toList()) : Collections.emptyList();
+
         Predicate<String> sourcePredicate;
         Predicate<String> ignorePredicate;
         if (preserveHierarchy) {
-            sourcePredicate = Pattern.compile("^" + translateToRegex(sourcePattern) + "$").asPredicate();
+            sourcePredicate = Pattern.compile("^" + PlaceholderUtil.formatSourcePatternForRegex(sourcePattern) + "$").asPredicate();
             ignorePredicate = placeholderUtil.formatForRegex(ignorePatterns, false).stream()
                 .map(Pattern::compile)
                 .map(Pattern::asPredicate)
                 .map(Predicate::negate)
                 .reduce((s) -> true, Predicate::and);
         } else {
-            List<Pattern> patternPaths = Arrays.stream(sourcePattern.split("/"))
-                .map(pathSplit -> Pattern.compile(translateToRegex(pathSplit)))
+            List<Pattern> patternPaths = Arrays.stream(sourcePattern.split(Pattern.quote(File.separator)))
+                .map(pathSplit -> Pattern.compile("^" + PlaceholderUtil.formatSourcePatternForRegex(pathSplit) + "$"))
                 .collect(Collectors.toList());
             Collections.reverse(patternPaths);
             sourcePredicate = (filePath) -> {
@@ -88,7 +71,7 @@ public class SourcesUtils {
             };
             ignorePredicate = ignorePatterns.stream()
                 .map(ignorePattern -> {
-                    List<String> ignorePatternPaths = placeholderUtil.formatForRegex(asList(ignorePattern.split("/")), false);
+                    List<String> ignorePatternPaths = placeholderUtil.formatForRegex(asList(ignorePattern.split(Pattern.quote(File.separator))), false);
                     Collections.reverse(ignorePatternPaths);
                     return ignorePatternPaths;
                 })
@@ -122,29 +105,24 @@ public class SourcesUtils {
             .collect(Collectors.toList());
     }
 
-    private static String translateToRegex(String node) {
-        node = node
-            .replace(ESCAPE_DOT, ESCAPE_DOT_PLACEHOLDER)
-            .replace(DOT, ESCAPE_DOT)
-            .replace(ESCAPE_DOT_PLACEHOLDER, ESCAPE_DOT);
-        node = node
-            .replace(ESCAPE_QUESTION, ESCAPE_QUESTION_PLACEHOLDER)
-            .replace(QUESTION_MARK, "[^/]")//DOT)
-            .replace(ESCAPE_QUESTION_PLACEHOLDER, ESCAPE_QUESTION);
-        node = node
-            .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
-            .replace("**", ".+")
-            .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK);
-        node = node
-            .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_PLACEHOLDER)
-            .replace(ASTERISK, "[^/]+")//DOT_PLUS)
-            .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK);
-        node = node
-            .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN);
-        node = node
-            .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE);
-        node = "^" + node + "$";
-        return node;
+    /**
+     * Try to replace ‘*’ with ‘source’ param and project file path.
+     * If project file path (or part of it) does not match the pattern, do nothing.
+     * @param sourcePattern should contain '*'
+     * @param projectFile file path
+     * @return source pattern with replaced ‘*’
+     */
+    public static String replaceUnaryAsterisk(@NonNull String sourcePattern, @NonNull String projectFile) {
+        String[] parts = Utils.splitPath(sourcePattern);
+        String [] fileParts = Utils.splitPath(projectFile);
+        for (int i = 1; i <= parts.length; i++) {
+            if (!parts[parts.length-i].equals("**")
+                    && fileParts.length >= i
+                    && Pattern.matches(PlaceholderUtil.formatSourcePatternForRegex(parts[parts.length-i]), fileParts[fileParts.length-i])) {
+                parts[parts.length-i] = fileParts[fileParts.length-i];
+            }
+        }
+        return Utils.joinPaths(parts);
     }
 
     public static boolean containsPattern(String sourcePattern) {
@@ -167,5 +145,9 @@ public class SourcesUtils {
 
     public static boolean isFileProperties(File source) {
         return FilenameUtils.isExtension(source.getName(), "properties");
+    }
+
+    public static boolean isFileJavaScript(File source) {
+        return FilenameUtils.isExtension(source.getName(), "js");
     }
 }
