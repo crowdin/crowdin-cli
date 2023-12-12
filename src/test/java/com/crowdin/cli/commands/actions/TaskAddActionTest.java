@@ -14,10 +14,7 @@ import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
-import com.crowdin.client.tasks.model.AddTaskRequest;
-import com.crowdin.client.tasks.model.CrowdinTaskCreateFormRequest;
-import com.crowdin.client.tasks.model.EnterpriseTaskCreateFormRequest;
-import com.crowdin.client.tasks.model.Task;
+import com.crowdin.client.tasks.model.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -57,7 +54,7 @@ public class TaskAddActionTest {
         when(projectClient.downloadFullProject(any()))
                 .thenReturn(projectBuilder.build());
 
-        CrowdinTaskCreateFormRequest request = RequestBuilder.addCrowdinTask(title, type, languageId, new ArrayList<>(filesMap.values()),
+        CreateTaskRequest request = RequestBuilder.addCrowdinTask(title, Type.from(String.valueOf(type)), languageId, new ArrayList<>(filesMap.values()),
                 description, skipAssignedStrings, skipUntranslatedStrings, includePreTranslatedStringsOnly, labelIds);
 
         ClientTask client = mock(ClientTask.class);
@@ -109,7 +106,7 @@ public class TaskAddActionTest {
         when(projectClient.downloadFullProject(any()))
                 .thenReturn(projectBuilder.build());
 
-        EnterpriseTaskCreateFormRequest request = RequestBuilder.addEnterpriseTask(title, languageId, new ArrayList<>(filesMap.values()),
+        CreateTaskEnterpriseRequest request = RequestBuilder.addEnterpriseTask(title, languageId, new ArrayList<>(filesMap.values()),
                 description, skipAssignedStrings, false, labelIds, workflowStepId);
 
         ClientTask client = mock(ClientTask.class);
@@ -150,7 +147,7 @@ public class TaskAddActionTest {
         when(projectClient.downloadFullProject(any()))
                 .thenReturn(projectBuilder.build());
 
-        CrowdinTaskCreateFormRequest request = RequestBuilder.addCrowdinTask(null, null, null,
+        CreateTaskRequest request = RequestBuilder.addCrowdinTask(null, null, null,
                 Arrays.asList(1L), null, false, false, false, null);
 
         when(client.addTask(request))

@@ -18,7 +18,7 @@ public class CrowdinClientLabel extends CrowdinClientCore implements ClientLabel
     @Override
     public List<Label> listLabels() {
         return executeRequestFullList((limit, offset) -> this.client.getLabelsApi()
-            .listLabels(parseLong(this.projectId), limit, offset));
+            .listLabels(parseLong(this.projectId), limit, offset, null));
     }
 
     @Override

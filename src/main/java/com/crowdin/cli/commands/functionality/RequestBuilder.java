@@ -14,8 +14,8 @@ import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.Type;
-import com.crowdin.client.tasks.model.CrowdinTaskCreateFormRequest;
-import com.crowdin.client.tasks.model.EnterpriseTaskCreateFormRequest;
+import com.crowdin.client.tasks.model.CreateTaskRequest;
+import com.crowdin.client.tasks.model.CreateTaskEnterpriseRequest;
 import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
@@ -68,8 +68,8 @@ public class RequestBuilder {
         return request;
     }
 
-    public static CrowdinTaskCreateFormRequest addCrowdinTask(String title, Integer type, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, boolean includePreTranslatedStringsOnly, List<Long> labelIds) {
-        CrowdinTaskCreateFormRequest request = new CrowdinTaskCreateFormRequest();
+    public static CreateTaskRequest addCrowdinTask(String title, com.crowdin.client.tasks.model.Type type, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, boolean includePreTranslatedStringsOnly, List<Long> labelIds) {
+        CreateTaskRequest request = new CreateTaskRequest();
         request.setTitle(title);
         request.setType(type);
         request.setLanguageId(languageId);
@@ -82,8 +82,8 @@ public class RequestBuilder {
         return request;
     }
 
-    public static EnterpriseTaskCreateFormRequest addEnterpriseTask(String title, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, boolean includePreTranslatedStringsOnly, List<Long> labelIds, Long workflowStepId) {
-        EnterpriseTaskCreateFormRequest request = new EnterpriseTaskCreateFormRequest();
+    public static CreateTaskEnterpriseRequest addEnterpriseTask(String title, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, boolean includePreTranslatedStringsOnly, List<Long> labelIds, Long workflowStepId) {
+        CreateTaskEnterpriseRequest request = new CreateTaskEnterpriseRequest();
         request.setTitle(title);
         request.setLanguageId(languageId);
         request.setFileIds(fileId);

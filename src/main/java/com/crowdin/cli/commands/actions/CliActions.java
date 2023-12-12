@@ -276,4 +276,19 @@ public class CliActions implements Actions {
     public NewAction<ProjectProperties, ClientLabel> labelDelete(String title) {
         return new LabelDeleteAction(title);
     }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> fileUpload(File file, String branch, boolean autoUpdate, boolean preserveHierarchy, List<String> labels, String destination, List<String> excludedLanguages, boolean plainView, boolean cleanupMode, boolean updateStrings) {
+        return new FileUploadAction(file, branch, autoUpdate, preserveHierarchy, labels, destination, cleanupMode, updateStrings, excludedLanguages, plainView);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> fileDownload(String file, List<String> languageIds, String destParam) {
+        return new FileDownloadAction(file, languageIds, destParam);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> fileDelete(String file) {
+        return new FileDeleteAction(file);
+    }
 }

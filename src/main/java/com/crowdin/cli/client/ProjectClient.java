@@ -3,16 +3,10 @@ package com.crowdin.cli.client;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
-import com.crowdin.client.sourcefiles.model.AddBranchRequest;
-import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
-import com.crowdin.client.sourcefiles.model.AddFileRequest;
-import com.crowdin.client.sourcefiles.model.Branch;
-import com.crowdin.client.sourcefiles.model.BuildReviewedSourceFilesRequest;
-import com.crowdin.client.sourcefiles.model.Directory;
-import com.crowdin.client.sourcefiles.model.ReviewedStringsBuild;
-import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
+import com.crowdin.client.sourcefiles.model.*;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
+import com.crowdin.client.sourcestrings.model.UploadStringsRequest;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.StringComment;
 import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
@@ -54,6 +48,8 @@ public interface ProjectClient extends Client {
     void updateSource(Long sourceId, UpdateFileRequest request) throws ResponseException;
 
     void addSource(AddFileRequest request) throws ResponseException;
+
+    void addSourceStringsBased(UploadStringsRequest request);
 
     void editSource(Long fileId, List<PatchRequest> request);
 

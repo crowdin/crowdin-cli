@@ -4,16 +4,11 @@ import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
-import com.crowdin.client.sourcefiles.model.AddBranchRequest;
-import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
-import com.crowdin.client.sourcefiles.model.AddFileRequest;
-import com.crowdin.client.sourcefiles.model.Branch;
-import com.crowdin.client.sourcefiles.model.BuildReviewedSourceFilesRequest;
-import com.crowdin.client.sourcefiles.model.Directory;
-import com.crowdin.client.sourcefiles.model.ReviewedStringsBuild;
-import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
+import com.crowdin.client.sourcefiles.model.*;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
+import com.crowdin.client.sourcestrings.model.AddSourceStringStringsBasedRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
+import com.crowdin.client.sourcestrings.model.UploadStringsRequest;
 import com.crowdin.client.storage.model.Storage;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.StringComment;
@@ -92,6 +87,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     private void populateProjectWithInfo(CrowdinProjectInfo project) {
         com.crowdin.client.projectsgroups.model.Project projectModel = this.getProject();
         project.setProjectId(projectModel.getId());
+        project.setType(projectModel.getType());
         project.setSourceLanguageId(projectModel.getSourceLanguageId());
         project.setProjectLanguages(projectModel.getTargetLanguages());
         if (projectModel instanceof ProjectSettings) {
@@ -224,6 +220,14 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public void addSourceStringsBased(UploadStringsRequest request) {
+        //todo: errors handler
+        executeRequest(
+            () -> this.client.getSourceStringsApi().uploadStrings(this.projectId, request)
+        );
+    }
+
+    @Override
     public void editSource(Long fileId, List<PatchRequest> request) {
         executeRequest(() -> this.client.getSourceFilesApi()
             .editFile(this.projectId, fileId, request));
@@ -347,7 +351,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     @Override
     public List<Label> listLabels() {
         return executeRequestFullList((limit, offset) -> this.client.getLabelsApi()
-            .listLabels(this.projectId, limit, offset));
+            .listLabels(this.projectId, limit, offset, null));
     }
 
     @Override
