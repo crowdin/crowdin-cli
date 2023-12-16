@@ -27,11 +27,14 @@ import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
+import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
+import java.util.stream.Stream;
 
+import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.eq;
 import static org.mockito.Mockito.mock;
@@ -515,6 +518,68 @@ public class UploadSourcesActionTest {
         }};
         verify(client).updateSource(eq(77l), eq(updateFileRequest));
         verifyNoMoreInteractions(client);
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    public void testUploadOneSourceWithAsteriskSourceBracketsDirAndIgnore_Project(String folderName) throws ResponseException {
+        project.addFile(Utils.normalizePath(folderName + "/first.md"), "Hello, World!");
+        project.addFile(Utils.normalizePath(folderName + "/1.md"), "Hello, World!");
+        String translationPattern = Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%";
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(Utils.normalizePath("**/*"), translationPattern, Arrays.asList("**/[0-9].*"))
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.setPreserveHierarchy(true);
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject())
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+
+        AddDirectoryRequest addDirectoryRequest = new AddDirectoryRequest() {{
+            setName(folderName);
+        }};
+        Directory directory = DirectoryBuilder.standard().setProjectId(Long.parseLong(pb.getProjectId()))
+            .setIdentifiers(folderName, 201L, null, null).build();
+        when(client.addDirectory(eq(addDirectoryRequest)))
+            .thenReturn(directory);
+
+        when(client.uploadStorage(eq("first.md"), any()))
+            .thenReturn(1L);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, true, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("first.md"), any());
+        verify(client).addDirectory(eq(addDirectoryRequest));
+        AddFileRequest addFileRequest = new AddFileRequest() {{
+            setName("first.md");
+            setStorageId(1L);
+            setDirectoryId(201L);
+            setImportOptions(new OtherFileImportOptions() {{
+                setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+            }}
+            );
+            setExportOptions(new GeneralFileExportOptions() {{
+                setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+            }}
+            );
+        }};
+        verify(client).addSource(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    static Stream<Arguments> testUploadOneSourceWithAsteriskSourceBracketsDirAndIgnore_Project() {
+        return Stream.of(
+                arguments("[en]"),
+                arguments("t[en]"),
+                arguments("[en]t"),
+                arguments("t[en]t"),
+                arguments("t[en]"),
+                arguments("[en]t"),
+                arguments("tent")
+        );
     }
 
     @Test

@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import static com.crowdin.cli.utils.Utils.isWindows;
+
 public class PlaceholderUtil {
 
     public static final String PLACEHOLDER_ANDROID_CODE = "%android_code%";
@@ -47,8 +49,12 @@ public class PlaceholderUtil {
     private static final String QUESTION_MARK = "?";
     private static final String DOT = ".";
     private static final String DOT_PLUS = ".+";
-    private static final String SET_OPEN_BRACKET = "[";
-    private static final String SET_CLOSE_BRACKET = "]";
+    private static final String SQUARE_BRACKET_OPEN = "[";
+    private static final String SQUARE_BRACKET_CLOSE = "]";
+    public static final String REGEX_SQUARE_BRACKET_OPEN = "\\[";
+    public static final String ESCAPE_SQUARE_BRACKET_OPEN = isWindows()? "^[" : "\\\\[";
+    public static final String ESCAPE_SQUARE_BRACKET_CLOSE = isWindows()? "^]" : "\\\\]";
+
     public static final String ROUND_BRACKET_OPEN = "(";
     public static final String ROUND_BRACKET_CLOSE = ")";
     public static final String ESCAPE_ROUND_BRACKET_OPEN = "\\(";
@@ -192,10 +198,12 @@ public class PlaceholderUtil {
             prefix = prefix.length() > 1 && file.getPath().contains(prefix) ? StringUtils.substringBefore(fileParent, Utils.noSepAtStart(prefix)) : "";
             String doubleAsterisks =
                     StringUtils.removeStart(Utils.noSepAtStart(StringUtils.removeStart(fileParent, prefix)), Utils.noSepAtEnd(Utils.noSepAtStart(StringUtils.substringBefore(toFormat, "**"))));
+            doubleAsterisks = doubleAsterisks.replaceAll(REGEX_SQUARE_BRACKET_OPEN, ESCAPE_SQUARE_BRACKET_OPEN);
+            doubleAsterisks = doubleAsterisks.replaceAll(SQUARE_BRACKET_CLOSE, ESCAPE_SQUARE_BRACKET_CLOSE);
             toFormat = toFormat.replace("**", doubleAsterisks);
         }
 
-        toFormat = toFormat.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
+        toFormat = toFormat.replaceAll("[" + Utils.PATH_SEPARATOR_REGEX + "]+", Utils.PATH_SEPARATOR_REGEX);
         return StringUtils.removeStart(toFormat, Utils.PATH_SEPARATOR);
     }
 
@@ -228,7 +236,7 @@ public class PlaceholderUtil {
     }
 
     public static String formatSourcePatternForRegex(String toFormat) {
-        if(Utils.isWindows()){
+        if(isWindows()){
             toFormat = toFormat
                     .replace("\\", "\\\\");
         }
