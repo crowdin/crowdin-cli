@@ -56,10 +56,13 @@ public class PlaceholderUtil {
     public static final String ESCAPE_ROUND_BRACKET_OPEN = isWindows() ? "^(" : "\\(";
     public static final String ESCAPE_ROUND_BRACKET_CLOSE = isWindows() ? "^)" : "\\)";
     private static final String ESCAPE_DOT = isWindows() ? "^." : "\\.";
+    private static final String ESCAPE_DOT_REGEX = "\\.";
     private static final String ESCAPE_DOT_PLACEHOLDER = "{ESCAPE_DOT}";
     private static final String ESCAPE_QUESTION = isWindows() ? "^?" : "\\?";
+    private static final String ESCAPE_QUESTION_REGEX = "\\?";
     private static final String ESCAPE_QUESTION_PLACEHOLDER = "{ESCAPE_QUESTION_MARK}";
     private static final String ESCAPE_ASTERISK = isWindows() ? "^*" : "\\*";
+    private static final String ESCAPE_ASTERISK_REGEX = "\\*";
     private static final String ESCAPE_ASTERISK_PLACEHOLDER = "{ESCAPE_ASTERISK}";
     private static final String ESCAPE_ASTERISK_REPLACEMENT_FROM = ".+" + Utils.PATH_SEPARATOR;
     private static final String ESCAPE_ASTERISK_REPLACEMENT_TO = "(.+" + Utils.PATH_SEPARATOR_REGEX + ")?";
@@ -236,7 +239,7 @@ public class PlaceholderUtil {
         }
         toFormat = toFormat
             .replace(ESCAPE_DOT, ESCAPE_DOT_PLACEHOLDER)
-            .replace(DOT, "\\.")
+            .replace(DOT, ESCAPE_DOT_REGEX)
             .replace(ESCAPE_DOT_PLACEHOLDER, ESCAPE_DOT)
 
             .replace(ESCAPE_QUESTION, ESCAPE_QUESTION_PLACEHOLDER)
@@ -259,9 +262,9 @@ public class PlaceholderUtil {
 
         if (isWindows()) {
             toFormat = toFormat
-                .replace(ESCAPE_ASTERISK, "\\*")
-                .replace(ESCAPE_DOT, "\\.")
-                .replace(ESCAPE_QUESTION, "\\?");
+                .replace(ESCAPE_ASTERISK, ESCAPE_ASTERISK_REGEX)
+                .replace(ESCAPE_DOT, ESCAPE_DOT_REGEX)
+                .replace(ESCAPE_QUESTION, ESCAPE_QUESTION_REGEX);
         }
         return toFormat
             .replace(PLACEHOLDER_FILE_EXTENSION, "[^/]+")
