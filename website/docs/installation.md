@@ -120,7 +120,7 @@ docker pull crowdin/cli
 
 ## Standalone version
 
-Crowdin CLI can be installed as a stand-alone Java application. [Download for macOS, Linux and Windows](https://downloads.crowdin.com/cli/v3/crowdin-cli.zip)
+Crowdin CLI can be installed as a stand-alone Java application. [Download](https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin-cli.zip).
 
 ### Installation on Linux and macOS
 

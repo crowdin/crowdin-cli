@@ -68,13 +68,13 @@ module.exports = {
           },
           {
             "files": [
-              "pkgbuild/PKGBUILD"
+              "packages/aur/pkgbuild/PKGBUILD"
             ],
             "from": "pkgver=.*",
             "to": "pkgver=${nextRelease.version}",
             "results": [
               {
-                "file": "pkgbuild/PKGBUILD",
+                "file": "packages/aur/pkgbuild/PKGBUILD",
                 "hasChanged": true,
                 "numMatches": 1,
                 "numReplacements": 1
@@ -84,13 +84,13 @@ module.exports = {
           },
           {
             "files": [
-              "chocolatey/crowdin-cli.nuspec"
+              "packages/chocolatey/crowdin-cli.nuspec"
             ],
             "from": "<version>.*</version>",
             "to": "<version>${nextRelease.version}</version>",
             "results": [
               {
-                "file": "chocolatey/crowdin-cli.nuspec",
+                "file": "packages/chocolatey/crowdin-cli.nuspec",
                 "hasChanged": true,
                 "numMatches": 1,
                 "numReplacements": 1
@@ -115,8 +115,8 @@ module.exports = {
           "src/main/resources/crowdin.properties",
           "package.json",
           "package-lock.json",
-          "pkgbuild/PKGBUILD",
-          "chocolatey/*",
+          "packages/aur/pkgbuild/PKGBUILD",
+          "packages/chocolatey/*",
           "CHANGELOG.md"
         ],
         "message": "chore(release): version ${nextRelease.version} [skip ci]"
