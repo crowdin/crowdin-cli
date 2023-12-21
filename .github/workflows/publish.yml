@@ -157,3 +157,20 @@ jobs:
         uses: crazy-max/ghaction-chocolatey@v2
         with:
           args: push --api-key ${{ secrets.CHOCOLATEY_API_KEY }} --source=https://push.chocolatey.org/
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: assets
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Copy Dockerfile
+        run: |
+          cp packages/docker/Dockerfile Dockerfile
+
+      - name: Build Docker image
+        run: |
+          docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}" docker.io
+          docker build --pull -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}" -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest" .
+          docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}"
+          docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest"
