@@ -6,7 +6,7 @@ $packageVersion = $env:ChocolateyPackageVersion
 $packageArgs = @{
   packageName   = $packageName
   unzipLocation = $toolsDir
-  url           = 'https://downloads.crowdin.com/cli/v3/crowdin-cli.zip'
+  url           = 'https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin-cli.zip'
   checksum      = '9078bcacbb481eb01fbbfaf6bef87322bb1ca8d6835b543517e913127e0089c4'
   checksumType  = 'sha256'
 }
