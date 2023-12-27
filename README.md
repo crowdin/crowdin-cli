@@ -28,12 +28,13 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 [![homebrew downloads](https://img.shields.io/homebrew/installs/dy/crowdin?logo=homebrew)](https://formulae.brew.sh/formula/crowdin)
 ![GitHub all releases](https://img.shields.io/github/downloads/crowdin/crowdin-cli/total?label=assets%20downloads&logo=github&cacheSeconds=2000)
 [![GitHub Used by](https://img.shields.io/static/v1?label=Used%20by&message=1.5k&color=brightgreen&logo=github&cacheSeconds=10000)](https://github.com/crowdin/crowdin-cli/network/dependents)
-[![GitHub contributors](https://img.shields.io/github/contributors/crowdin/crowdin-cli?cacheSeconds=1000)](https://github.com/crowdin/crowdin-cli/graphs/contributors)
-![GitHub](https://img.shields.io/github/license/crowdin/crowdin-cli?cacheSeconds=50000)
 
 [![build-test](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml/badge.svg?branch=main)](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml)
 [![CodeQL](https://github.com/crowdin/crowdin-cli/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)](https://github.com/crowdin/crowdin-cli/actions/workflows/codeql-analysis.yml)
 [![codecov](https://codecov.io/gh/crowdin/crowdin-cli/branch/main/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli)
+
+[![GitHub contributors](https://img.shields.io/github/contributors/crowdin/crowdin-cli?cacheSeconds=1000)](https://github.com/crowdin/crowdin-cli/graphs/contributors)
+![GitHub](https://img.shields.io/github/license/crowdin/crowdin-cli?cacheSeconds=50000)
 
  </div>
 
