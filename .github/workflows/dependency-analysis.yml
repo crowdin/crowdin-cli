@@ -6,9 +6,12 @@ on:
       - main
   schedule:
     - cron: '0 0 * * *'
+  workflow_dispatch:
 
 jobs:
   dependency-analysis:
     uses: crowdin/.github/.github/workflows/dependency-analysis.yml@main
     secrets:
       FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
+    with:
+      exclude-path: 'website'
