@@ -1,0 +1,14 @@
+name: Dependency Analysis
+
+on:
+  push:
+    branches:
+      - main
+  schedule:
+    - cron: '0 0 * * *'
+
+jobs:
+  dependency-analysis:
+    uses: crowdin/.github/.github/workflows/dependency-analysis.yml@main
+    secrets:
+      FOSSA_API_KEY: ${{ secrets.FOSSA_API_KEY }}
