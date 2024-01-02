@@ -38,9 +38,6 @@ dependencies {
     implementation 'org.yaml:snakeyaml:_'
     implementation 'commons-io:commons-io:_'
 
-    implementation 'org.glassfish.jersey.core:jersey-client:_'
-    implementation 'org.glassfish.jersey.inject:jersey-hk2:_'
-    implementation 'org.glassfish.jersey.media:jersey-media-multipart:_'
     implementation 'javax.activation:activation:_'
 
     implementation 'org.apache.commons:commons-lang3:_'
