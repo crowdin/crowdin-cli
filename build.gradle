@@ -43,7 +43,6 @@ dependencies {
     implementation 'org.apache.commons:commons-lang3:_'
     implementation 'net.lingala.zip4j:zip4j:_'
     implementation 'net.ricecode:string-similarity:_'
-    implementation 'com.github.fge:json-patch:_'
     implementation 'io.github.cdimascio:dotenv-java:_'
 
     implementation 'org.apache.httpcomponents:httpclient:_'
