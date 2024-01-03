@@ -9,8 +9,6 @@ plugins {
     id 'org.asciidoctor.jvm.convert'
 }
 
-apply plugin: 'checkstyle'
-
 group 'com.crowdin'
 version '3.15.0'
 
@@ -133,35 +131,8 @@ spotbugsTest {
     } as Closure<NamedDomainObjectContainer<? extends SpotBugsReport>>))
 }
 
-checkstyle {
-    toolVersion '9.3'
-    configFile file("config/checkstyle/checkstyle.xml")
-}
-checkstyleMain {
-    onlyIf {project.hasProperty('staticAnalysisMarker')}
-    source ='src/main/java'
-    reports(({
-        html {
-            required = true
-            destination = file("$buildDir/reports/staticAnalysis/checkstyle-main.html")
-        }
-        xml.required = false
-    }))
-}
-checkstyleTest {
-    onlyIf {project.hasProperty('staticAnalysisMarker')}
-    source ='src/test/java'
-    reports(({
-        html {
-            required = true
-            destination = file("$buildDir/reports/staticAnalysis/checkstyle-test.html")
-        }
-        xml.required = false
-    }))
-}
-
 task staticAnalysis(type: GradleBuild) {
-    tasks = ['checkstyleMain', 'checkstyleTest', 'spotbugsMain', 'spotbugsTest']
+    tasks = ['spotbugsMain', 'spotbugsTest']
 }
 
 task generateManpageAsciiDoc(type: JavaExec) {
