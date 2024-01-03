@@ -134,7 +134,7 @@ spotbugsTest {
 }
 
 checkstyle {
-    toolVersion '8.44'
+    toolVersion '9.3'
     configFile file("config/checkstyle/checkstyle.xml")
 }
 checkstyleMain {
