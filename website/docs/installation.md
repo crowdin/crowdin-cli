@@ -95,7 +95,7 @@ To install the Crowdin CLI manually:
 
 ```bash
 wget https://artifacts.crowdin.com/repo/rpm/crowdin3.rpm -O crowdin.rpm
-sudo rpm -U crowdin3.rpm
+sudo rpm -U crowdin.rpm
 ```
 
 ## Arch Linux
