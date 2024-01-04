@@ -1,5 +1,17 @@
 # Changelog
 
+# [3.16.0](https://github.com/crowdin/crowdin-cli/compare/3.15.0...3.16.0) (2024-01-04)
+
+
+### Bug Fixes
+
+* Update dependencies version ([#673](https://github.com/crowdin/crowdin-cli/issues/673)) ([f9dc265](https://github.com/crowdin/crowdin-cli/commit/f9dc26537727e684f9dded92f9401cf76144840e))
+
+
+### Features
+
+* config params for generate command ([#670](https://github.com/crowdin/crowdin-cli/issues/670)) ([9c93fc7](https://github.com/crowdin/crowdin-cli/commit/9c93fc7f0e1ee276759d524acf7388eca70af38c))
+
 # [3.15.0](https://github.com/crowdin/crowdin-cli/compare/3.14.0...3.15.0) (2023-10-25)
 
 
