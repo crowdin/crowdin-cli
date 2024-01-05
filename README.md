@@ -26,8 +26,9 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 [![Docker Pulls](https://img.shields.io/docker/pulls/crowdin/cli?logo=docker&cacheSeconds=2000)](https://hub.docker.com/r/crowdin/cli)
 [![npm](https://img.shields.io/npm/dt/@crowdin/cli?logo=npm&cacheSeconds=2000)](https://www.npmjs.com/package/@crowdin/cli)
 [![homebrew downloads](https://img.shields.io/homebrew/installs/dy/crowdin?logo=homebrew)](https://formulae.brew.sh/formula/crowdin)
-![GitHub all releases](https://img.shields.io/github/downloads/crowdin/crowdin-cli/total?label=assets%20downloads&logo=github&cacheSeconds=2000)
-[![GitHub Used by](https://img.shields.io/static/v1?label=Used%20by&message=1.5k&color=brightgreen&logo=github&cacheSeconds=10000)](https://github.com/crowdin/crowdin-cli/network/dependents)
+[![Chocolatey](https://img.shields.io/chocolatey/dt/crowdin-cli?logo=chocolatey&cacheSeconds=2000)](https://community.chocolatey.org/packages/crowdin-cli)
+[![GitHub all releases](https://img.shields.io/github/downloads/crowdin/crowdin-cli/total?label=assets%20downloads&logo=github&cacheSeconds=2000)](https://github.com/crowdin/crowdin-cli/releases)
+[![GitHub Used by](https://img.shields.io/static/v1?label=used%20by&message=1.5k&color=brightgreen&logo=github&cacheSeconds=10000)](https://github.com/crowdin/crowdin-cli/network/dependents)
 
 [![build-test](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml/badge.svg?branch=main)](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml)
 [![CodeQL](https://github.com/crowdin/crowdin-cli/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)](https://github.com/crowdin/crowdin-cli/actions/workflows/codeql-analysis.yml)
