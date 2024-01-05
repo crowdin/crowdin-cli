@@ -167,11 +167,16 @@ jobs:
         run: |
           mv packages/chocolatey chocolatey
 
+      # We need to update the checksum in the 'chocolateyinstall.ps1' file.
+      # In case of manual deploy from branch, don't forget to update the checksum manually before deploying (get it from the latest release assets).
       - name: Update checksum
+        if: github.event_name == 'release'
         run: |
           echo "New Hash: ${{ needs.assets.outputs.checksum }}\n"
           sed -i "s/checksum      = '.*'/checksum      = '${{ needs.assets.outputs.checksum }}'/g" chocolatey/tools/chocolateyinstall.ps1
-          cat chocolatey/tools/chocolateyinstall.ps1
+
+      - name: check chocolateyinstall.ps1
+        run: cat chocolatey/tools/chocolateyinstall.ps1
 
       - name: Choco pack
         uses: crazy-max/ghaction-chocolatey@v2
