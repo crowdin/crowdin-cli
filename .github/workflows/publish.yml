@@ -2,6 +2,20 @@ name: Publish
 
 on:
   workflow_dispatch:
+    inputs:
+      package:
+        description: 'Package to publish'
+        type: choice
+        required: true
+        default: 'all'
+        options:
+          - 'all'
+          - 'npm'
+          - 'aur'
+          - 'homebrew'
+          - 'chocolatey'
+          - 'docker'
+
   release:
     types: [released]
 
@@ -60,6 +74,7 @@ jobs:
 
   npm:
     runs-on: ubuntu-latest
+    if: github.event.inputs.package == 'all' || github.event.inputs.package == 'npm'
     needs: assets
     permissions:
       contents: read
@@ -109,6 +124,7 @@ jobs:
 
   aur:
     runs-on: ubuntu-latest
+    if: github.event.inputs.package == 'all' || github.event.inputs.package == 'aur'
     needs: assets
     steps:
       - uses: actions/checkout@v4
@@ -126,6 +142,7 @@ jobs:
 
   homebrew:
     runs-on: ubuntu-latest
+    if: github.event.inputs.package == 'all' || github.event.inputs.package == 'homebrew'
     needs: assets
     steps:
       - uses: actions/checkout@v4
@@ -141,20 +158,25 @@ jobs:
 
   chocolatey:
     runs-on: windows-latest
+    if: github.event.inputs.package == 'all' || github.event.inputs.package == 'chocolatey'
     needs: assets
     steps:
       - uses: actions/checkout@v4
 
+      - name: move packages/chocolatey to chocolatey
+        run: |
+          mv packages/chocolatey chocolatey
+
       - name: Update checksum
         run: |
           echo "New Hash: ${{ needs.assets.outputs.checksum }}\n"
-          sed -i "s/checksum      = '.*'/checksum      = '${{ needs.assets.outputs.checksum }}'/g" packages/chocolatey/tools/chocolateyinstall.ps1
-          cat packages/chocolatey/tools/chocolateyinstall.ps1
+          sed -i "s/checksum      = '.*'/checksum      = '${{ needs.assets.outputs.checksum }}'/g" chocolatey/tools/chocolateyinstall.ps1
+          cat chocolatey/tools/chocolateyinstall.ps1
 
       - name: Choco pack
         uses: crazy-max/ghaction-chocolatey@v2
         with:
-          args: pack packages/chocolatey/crowdin-cli.nuspec
+          args: pack chocolatey/crowdin-cli.nuspec
 
       - name: Choco publish
         uses: crazy-max/ghaction-chocolatey@v2
@@ -163,6 +185,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
+    if: github.event.inputs.package == 'all' || github.event.inputs.package == 'docker'
     needs: assets
     steps:
       - uses: actions/checkout@v4
