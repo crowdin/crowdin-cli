@@ -17,8 +17,12 @@ This is a cross-platform, and it runs in a terminal on Linux based and macOS ope
 [![Docker Pulls](https://img.shields.io/docker/pulls/crowdin/cli?logo=docker&cacheSeconds=2000)](https://hub.docker.com/r/crowdin/cli)
 [![npm](https://img.shields.io/npm/dt/@crowdin/cli?logo=npm&cacheSeconds=2000)](https://www.npmjs.com/package/@crowdin/cli)
 [![homebrew downloads](https://img.shields.io/homebrew/installs/dy/crowdin?logo=homebrew)](https://formulae.brew.sh/formula/crowdin)
-[![GitHub contributors](https://img.shields.io/github/contributors/crowdin/crowdin-cli?cacheSeconds=1000)](https://github.com/crowdin/crowdin-cli/graphs/contributors)
+[![Chocolatey](https://img.shields.io/chocolatey/dt/crowdin-cli?logo=chocolatey&cacheSeconds=2000)](https://community.chocolatey.org/packages/crowdin-cli)
+[![GitHub all releases](https://img.shields.io/github/downloads/crowdin/crowdin-cli/total?label=assets%20downloads&logo=github&cacheSeconds=2000)](https://github.com/crowdin/crowdin-cli/releases)
 [![codecov](https://codecov.io/gh/crowdin/crowdin-cli/branch/main/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli)
+
+[![GitHub Used by](https://img.shields.io/static/v1?label=used%20by&message=1.5k&color=brightgreen&logo=github&cacheSeconds=10000)](https://github.com/crowdin/crowdin-cli/network/dependents)
+[![GitHub contributors](https://img.shields.io/github/contributors/crowdin/crowdin-cli?cacheSeconds=1000)](https://github.com/crowdin/crowdin-cli/graphs/contributors)
 ![GitHub](https://img.shields.io/github/license/crowdin/crowdin-cli?cacheSeconds=50000)
 [![GitHub Repo stars](https://img.shields.io/github/stars/crowdin/crowdin-cli?style=social&cacheSeconds=1800)](https://github.com/crowdin/crowdin-cli/stargazers)
 
@@ -26,7 +30,6 @@ This is a cross-platform, and it runs in a terminal on Linux based and macOS ope
 
 ## Features
 
-- Interactive generation of a configuration file
 - Upload source files and existing translations to a Crowdin project
 - Download the latest translations from Crowdin to the specified place
 - Multithreading for source and translation files upload
@@ -39,6 +42,7 @@ This is a cross-platform, and it runs in a terminal on Linux based and macOS ope
 - Bash/Zsh command completion
 - Process indicators, loading states, emojis
 - HTTP Proxy support including authorization
+- Interactive generation of a configuration file
 - and more.
 
 ## Usage

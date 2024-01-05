@@ -4,7 +4,7 @@ description: Install Crowdin CLI easily with clear instructions on the installat
 
 # Installation
 
-## Homebrew for macOS
+## Homebrew
 
 To install the Crowdin CLI with [Homebrew](https://brew.sh/) (the package manager for macOS):
 
@@ -18,11 +18,23 @@ brew install crowdin@3
 
 [Homebrew Tap Reference](https://github.com/crowdin/homebrew-crowdin).
 
+## NPM
+
+```bash
+npm i -g @crowdin/cli
+```
+
+[NPM Package Reference](https://www.npmjs.com/package/@crowdin/cli).
+
+## Docker
+
+```bash
+docker pull crowdin/cli
+```
+
+[Docker Container Reference](https://hub.docker.com/r/crowdin/cli).
+
 ## Windows
-
-### Installer
-
-Download and run [installer for Windows](https://downloads.crowdin.com/cli/v3/crowdin.exe).
 
 ### Chocolatey
 
@@ -31,6 +43,10 @@ choco install crowdin-cli
 ```
 
 [Chocolatey Package Reference](https://community.chocolatey.org/packages/crowdin-cli).
+
+### Installer
+
+Download and run [installer for Windows](https://downloads.crowdin.com/cli/v3/crowdin.exe).
 
 ## Debian
 
@@ -101,22 +117,6 @@ sudo rpm -U crowdin.rpm
 ## Arch Linux
 
 Visit the [Crowdin CLI package page](https://aur.archlinux.org/packages/crowdin-cli) on Arch Linux user repository.
-
-## NPM
-
-```bash
-npm i -g @crowdin/cli
-```
-
-[NPM Package Reference](https://www.npmjs.com/package/@crowdin/cli).
-
-## Docker
-
-```bash
-docker pull crowdin/cli
-```
-
-[Docker Container Reference](https://hub.docker.com/r/crowdin/cli).
 
 ## Standalone version
 
