@@ -232,7 +232,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                                             Utils.PATH_SEPARATOR +
                                             project.getSourceLanguageId() + "-REV"
                             );
-                            return Utils.unixPath(path);
+                            return Utils.toUnixPath(path);
                         },
                         Function.identity()
                 ));

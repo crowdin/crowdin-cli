@@ -40,18 +40,18 @@ public class UtilsTest {
     @Test
     @DisabledOnOs({OS.LINUX, OS.MAC})
     public void testUnixPath_windows() {
-        assertEquals("/path/to/file", Utils.unixPath("\\path\\to\\\\file"));
+        assertEquals("/path/to/file", Utils.toUnixPath("\\path\\to\\\\file"));
     }
 
     @Test
     @DisabledOnOs(OS.WINDOWS)
     public void testUnixPath_unix() {
-        assertEquals("/path/to/file", Utils.unixPath("/path/to\\\\file"));
+        assertEquals("/path/to/file", Utils.toUnixPath("/path/to\\\\file"));
     }
 
     @Test
     public void testWindowsPath() {
-        assertEquals("\\path\\to\\file", Utils.windowsPath("/path/to/file"));
+        assertEquals("\\path\\to\\file", Utils.toWindowsPath("/path/to/file"));
     }
 
     @Test

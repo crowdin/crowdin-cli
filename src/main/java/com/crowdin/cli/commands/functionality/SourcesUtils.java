@@ -35,10 +35,10 @@ public class SourcesUtils {
     public static List<String> filterProjectFiles(
         List<String> filePaths, String sourcePattern, List<String> ignorePatterns, boolean preserveHierarchy, PlaceholderUtil placeholderUtil
     ) {
-        filePaths = filePaths.stream().map((Utils.isWindows() ? Utils::windowsPath : Utils::unixPath)).map(Utils::noSepAtStart).collect(Collectors.toList());
-        sourcePattern = Utils.noSepAtStart(Utils.isWindows() ? Utils.windowsPath(sourcePattern) : Utils.unixPath(sourcePattern));
+        filePaths = filePaths.stream().map((Utils.isWindows() ? Utils::toWindowsPath : Utils::toUnixPath)).map(Utils::noSepAtStart).collect(Collectors.toList());
+        sourcePattern = Utils.noSepAtStart(Utils.isWindows() ? Utils.toWindowsPath(sourcePattern) : Utils.toUnixPath(sourcePattern));
         ignorePatterns = (ignorePatterns != null)
-            ? ignorePatterns.stream().map((Utils.isWindows() ? Utils::windowsPath : Utils::unixPath)).map(Utils::noSepAtStart).collect(Collectors.toList()) : Collections.emptyList();
+            ? ignorePatterns.stream().map((Utils.isWindows() ? Utils::toWindowsPath : Utils::toUnixPath)).map(Utils::noSepAtStart).collect(Collectors.toList()) : Collections.emptyList();
 
         Predicate<String> sourcePredicate;
         Predicate<String> ignorePredicate;

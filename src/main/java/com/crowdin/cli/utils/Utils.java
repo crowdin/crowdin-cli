@@ -86,7 +86,7 @@ public class Utils {
             System.getProperty("os.version"));
     }
 
-    public static String unixPath(String path) {
+    public static String toUnixPath(String path) {
         if (path == null) {
             return null;
         }
@@ -95,7 +95,7 @@ public class Utils {
             : path.replaceAll("\\\\{2,}", "/").replaceAll("/+", "/");
     }
 
-    public static String windowsPath(String path) {
+    public static String toWindowsPath(String path) {
         return (path != null) ? path.replaceAll("[\\\\/]+", "\\\\") : null;
     }
 
