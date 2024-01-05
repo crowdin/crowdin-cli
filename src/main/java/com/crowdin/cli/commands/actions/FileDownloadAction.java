@@ -63,14 +63,14 @@ class FileDownloadAction implements NewAction<ProjectProperties, ProjectClient> 
                 //todo
             }
 
-            ConsoleSpinner.execute(out, "message.spinner.downloading_translation", "error.downloading_file", this.noProgress, this.plainView, () -> {
-                URL url = client.downloadBuild(build.getId());
-                try (InputStream data = url.openStream()) {
-                    files.writeToFile(archivePath, data);
-                } catch (IOException e) {
-                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.write_file"), archivePath), e);
-                }
-            });
+//            ConsoleSpinner.execute(out, "message.spinner.downloading_translation", "error.downloading_file", this.noProgress, this.plainView, () -> {
+//                URL url = client.downloadBuild(build.getId());
+//                try (InputStream data = url.openStream()) {
+//                    files.writeToFile(archivePath, data);
+//                } catch (IOException e) {
+//                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.write_file"), archivePath), e);
+//                }
+//            });
 
 
 //            request

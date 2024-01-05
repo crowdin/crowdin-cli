@@ -18,7 +18,7 @@ import java.util.List;
 class FileDownloadSubcommand extends ActCommandProject {
 
     @Parameters(descriptionKey = "crowdin.file.upload.file")
-    protected File file;
+    protected String file;
 
     @Option(names = {"-l", "--language"}, paramLabel = "...", order = -2)
     protected List<String> languageIds;

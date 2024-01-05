@@ -6,9 +6,9 @@ import picocli.CommandLine.Command;
 @Command(
     name = CommandNames.FILE,
     subcommands = {
-        ScreenshotListSubcommand.class,
-        ScreenshotUploadSubcommand.class,
-        ScreenshotDeleteSubcommand.class
+        FileUploadSubcommand.class,
+        FileDownloadSubcommand.class,
+        FileDeleteSubcommand.class
     }
 )
 class FileSubcommand extends HelpCommand {

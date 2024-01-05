@@ -4,6 +4,7 @@ import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
+import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.*;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringStringsBasedRequest;
@@ -23,10 +24,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.InputStream;
 import java.net.URL;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BiPredicate;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -73,6 +71,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
                 )
                 .ifPresent(project::setBranch);
         Long branchId = Optional.ofNullable(project.getBranch()).map(Branch::getId).orElse(null);
+        if (Objects.equals(project.getType(), Type.STRINGS_BASED)) return;
         project.setFiles(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
             .listFiles(this.projectId, branchId, null, null, true, limit, offset)));
         project.setDirectories(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()

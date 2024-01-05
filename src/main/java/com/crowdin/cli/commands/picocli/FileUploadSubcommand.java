@@ -26,9 +26,6 @@ class FileUploadSubcommand extends ActCommandProject {
     @Option(names = {"--no-auto-update"}, negatable = true, order = -2)
     protected boolean autoUpdate = true;
 
-    @Option(names = {"--preserve-hierarchy"}, negatable = true, paramLabel = "...", descriptionKey = "params.preserve-hierarchy")
-    private boolean preserveHierarchy;
-
     @Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...", order = -2)
     protected List<String> labels;
 
@@ -49,6 +46,6 @@ class FileUploadSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.fileUpload(file, branch, autoUpdate, preserveHierarchy, labels, destination, excludedLanguages, plainView, cleanupMode, updateStrings);
+        return actions.fileUpload(file, branch, autoUpdate, labels, destination, excludedLanguages, plainView, cleanupMode, updateStrings);
     }
 }
