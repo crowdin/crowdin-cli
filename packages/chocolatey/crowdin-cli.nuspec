@@ -3,7 +3,7 @@
   <metadata>
     <id>crowdin-cli</id>
     <version>3.16.0</version>
-    <packageSourceUrl>https://github.com/crowdin/crowdin-cli/tree/main/chocolatey</packageSourceUrl>
+    <packageSourceUrl>https://github.com/crowdin/crowdin-cli/tree/main/packages/chocolatey</packageSourceUrl>
     <owners>crowdin</owners>
     <title>Crowdin CLI (Portable)</title>
     <authors>Crowdin</authors>
