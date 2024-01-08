@@ -185,6 +185,11 @@ jobs:
         with:
           args: pack chocolatey/crowdin-cli.nuspec
 
+      - name: install local package
+        run: |
+          choco install jdk8
+          choco install crowdin-cli -s . -y
+
       - name: Choco publish
         uses: crazy-max/ghaction-chocolatey@v2
         with:
