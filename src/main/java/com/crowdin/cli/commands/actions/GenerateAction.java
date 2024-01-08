@@ -42,9 +42,6 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
     private boolean isEnterprise;
     private boolean withBrowser;
 
-    public static final String LINK = "https://support.crowdin.com/configuration-file/";
-    public static final String ENTERPRISE_LINK = "https://support.crowdin.com/enterprise/configuration-file/";
-
     private final FilesInterface files;
     private final String token;
     private final String baseUrl;
@@ -76,10 +73,8 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
             }
             files.writeToFile(
                 destinationPath.toString(), new ByteArrayInputStream(StringUtils.join(fileLines, "\n").getBytes(StandardCharsets.UTF_8)));
-            out.println(String.format(
-                RESOURCE_BUNDLE.getString("message.generate_successful"),
-                this.isEnterprise ? ENTERPRISE_LINK : LINK));
 
+            out.println(String.format(RESOURCE_BUNDLE.getString("message.generate_successful")));
         } catch (Exception e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.create_file"), e);
         }
