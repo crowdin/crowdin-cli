@@ -43,8 +43,9 @@ jobs:
           java -cp crowdin-cli-*.jar picocli.AutoComplete com.crowdin.cli.commands.picocli.RootCommand
 
       - name: Build zip package
+        if: github.event_name == 'release'
         run: |
-          mkdir crowdin-cli
+          mkdir ${{ github.ref_name }}
           cp build/libs/crowdin-cli-*.jar crowdin-cli/crowdin-cli.jar
           cp build/libs/crowdin_completion crowdin-cli/crowdin_completion
           cp packages/zip/* crowdin-cli/
@@ -53,14 +54,15 @@ jobs:
 
       - name: Generate shasum
         id: shasum
+        if: github.event_name == 'release'
         run: |
           echo hash=$(shasum -a 256 crowdin-cli.zip | cut -f 1 -d " ") >> $GITHUB_OUTPUT
           touch crowdin-cli_checksum.sha256
           shasum -a 256 crowdin-cli.zip > crowdin-cli_checksum.sha256
 
       - name: Generate version.txt file
-        run: |
-          echo ${{ github.ref_name }} > version.txt
+        if: github.event_name == 'release'
+        run: echo ${{ github.ref_name }} > version.txt
 
       - name: Upload asset
         uses: softprops/action-gh-release@v1
