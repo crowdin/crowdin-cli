@@ -363,6 +363,90 @@ public class SourcesUtilsTest {
 
     @ParameterizedTest
     @MethodSource
+    @DisabledOnOs({OS.LINUX, OS.MAC})
+    public void testFilterProjectFiles_escapeSymbols_windows(List<String> filePaths, String sourcePattern, List<String> expected) {
+        List<String> actual = SourcesUtils.filterProjectFiles(
+                filePaths, sourcePattern, Collections.emptyList(), true, PlaceholderUtilBuilder.STANDART.build(""));
+        assertEquals(expected.size(), actual.size());
+        assertThat(actual, containsInAnyOrder(expected.toArray()));
+    }
+
+    static Stream<Arguments> testFilterProjectFiles_escapeSymbols_windows() {
+        String file1 = "here\\file-1.po";
+        String file1Symbol = "here\\file?1.po";
+        String file2 = "here\\file-2.po";
+        String file2Symbol = "here\\file*2.po";
+        String file3 = "here\\file-3.po";
+        String file3Symbol = "here\\file.3.po";
+        List<String> allFiles = Arrays.asList(file1, file1Symbol, file2, file2Symbol, file3, file3Symbol);
+        return Stream.of(
+            arguments(
+                allFiles,
+                "here\\file^?1.po",
+                Arrays.asList(file1Symbol)
+            ),
+            arguments(
+                allFiles,
+                "here\\file^*2.po",
+                Arrays.asList(file2Symbol)
+            ),
+            arguments(
+                allFiles,
+                "here\\file^.3.po",
+                Arrays.asList(file3Symbol)
+            ),
+            arguments(
+                allFiles,
+                "here\\*.po",
+                allFiles
+            )
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
+    @DisabledOnOs(OS.WINDOWS)
+    public void testFilterProjectFiles_escapeSymbols_unix(List<String> filePaths, String sourcePattern, List<String> expected) {
+        List<String> actual = SourcesUtils.filterProjectFiles(
+                filePaths, sourcePattern, Collections.emptyList(), true, PlaceholderUtilBuilder.STANDART.build(""));
+        assertEquals(expected.size(), actual.size());
+        assertThat(actual, containsInAnyOrder(expected.toArray()));
+    }
+
+    static Stream<Arguments> testFilterProjectFiles_escapeSymbols_unix() {
+        String file1 = "here/file-1.po";
+        String file1Symbol = "here/file?1.po";
+        String file2 = "here/file-2.po";
+        String file2Symbol = "here/file*2.po";
+        String file3 = "here/file-3.po";
+        String file3Symbol = "here/file.3.po";
+        List<String> allFiles = Arrays.asList(file1, file1Symbol, file2, file2Symbol, file3, file3Symbol);
+        return Stream.of(
+            arguments(
+                allFiles,
+                "here/file\\?1.po",
+                Arrays.asList(file1Symbol)
+            ),
+            arguments(
+                allFiles,
+                "here/file\\*2.po",
+                Arrays.asList(file2Symbol)
+            ),
+            arguments(
+                allFiles,
+                "here/file\\.3.po",
+                Arrays.asList(file3Symbol)
+            ),
+            arguments(
+                allFiles,
+                "here/*.po",
+                allFiles
+            )
+        );
+    }
+
+    @ParameterizedTest
+    @MethodSource
     public void testContainsParameter(String sourcePattern, boolean expected) {
         boolean result = SourcesUtils.containsPattern(sourcePattern);
         assertEquals(expected, result, "Wrong result with source pattern: " + sourcePattern);

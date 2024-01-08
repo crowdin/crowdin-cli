@@ -60,7 +60,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
         List<LanguageProgress> progresses;
 
         if (file != null) {
-            String filePath = Utils.unixPath(Utils.sepAtStart(file));
+            String filePath = Utils.toUnixPath(Utils.sepAtStart(file));
             Long fileId = project.getFileInfos().stream()
                 .filter(f -> filePath.equals(f.getPath()))
                 .findFirst()
@@ -68,7 +68,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 .getId();
             progresses = client.getFileProgress(fileId);
         } else if (directory != null) {
-            String directoryPath = Utils.unixPath(Utils.sepAtStart(directory));
+            String directoryPath = Utils.toUnixPath(Utils.sepAtStart(directory));
             Long directoryId = project.getDirectories().values().stream()
                 .filter(d -> directoryPath.equals(d.getPath()))
                 .findFirst()

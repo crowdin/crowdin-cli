@@ -3,6 +3,8 @@ package com.crowdin.cli.utils;
 import java.util.Optional;
 import org.apache.commons.lang3.SystemUtils;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.DisabledOnOs;
+import org.junit.jupiter.api.condition.OS;
 
 import static org.junit.jupiter.api.Assertions.assertArrayEquals;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -36,13 +38,20 @@ public class UtilsTest {
     }
 
     @Test
-    public void testUnixPath() {
-        assertEquals("/path/to/file", Utils.unixPath("\\path\\to\\file"));
+    @DisabledOnOs({OS.LINUX, OS.MAC})
+    public void testUnixPath_windows() {
+        assertEquals("/path/to/file", Utils.toUnixPath("\\path\\to\\\\file"));
+    }
+
+    @Test
+    @DisabledOnOs(OS.WINDOWS)
+    public void testUnixPath_unix() {
+        assertEquals("/path/to/file", Utils.toUnixPath("/path/to\\\\file"));
     }
 
     @Test
     public void testWindowsPath() {
-        assertEquals("\\path\\to\\file", Utils.windowsPath("/path/to/file"));
+        assertEquals("\\path\\to\\file", Utils.toWindowsPath("/path/to/file"));
     }
 
     @Test

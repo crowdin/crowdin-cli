@@ -76,14 +76,14 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
             request.setBranchId(branch.getId());
         }
         if (nonNull(pathToSourceFile)) {
-            final String normalizedPath = Utils.unixPath(Utils.sepAtStart(pathToSourceFile));
+            final String normalizedPath = Utils.toUnixPath(Utils.sepAtStart(pathToSourceFile));
             FileInfo fileInfo = project.getFileInfos().stream()
                 .filter(f -> normalizedPath.equals(f.getPath())).findFirst()
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), pathToSourceFile)));
             request.setFileId(fileInfo.getId());
         }
         if (nonNull(directoryPath)) {
-            final String normalizedPath = Utils.unixPath(Utils.sepAtStart(directoryPath));
+            final String normalizedPath = Utils.toUnixPath(Utils.sepAtStart(directoryPath));
             Directory directory = project.getDirectories().values().stream()
                 .filter(d -> normalizedPath.equals(d.getPath())).findFirst()
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.dir_not_exists"), directoryPath)));
