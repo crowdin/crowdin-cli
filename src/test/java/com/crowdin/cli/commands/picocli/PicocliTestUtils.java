@@ -120,6 +120,16 @@ public class PicocliTestUtils {
                 .thenReturn(actionMock);
         when(actionsMock.labelDelete(any()))
                 .thenReturn(actionMock);
+        when(actionsMock.fileUpload(any(), any(), anyBoolean(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
+                .thenReturn(actionMock);
+        when(actionsMock.fileUploadTranslation(any(), any(), any(), any(), anyBoolean()))
+                .thenReturn(actionMock);
+        when(actionsMock.fileDownload(any(), any()))
+                .thenReturn(actionMock);
+        when(actionsMock.fileDownloadTranslation(any(), any(), any()))
+                .thenReturn(actionMock);
+        when(actionsMock.fileDelete(any()))
+                .thenReturn(actionMock);
         when(actionsMock.resolve(any()))
                 .thenReturn(actionMock);
         when(actionsMock.commentList(anyBoolean(), anyBoolean(),any(),any(),any(),any()))

@@ -10,6 +10,7 @@ import picocli.CommandLine.Parameters;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 
 @CommandLine.Command(
     name = CommandNames.FILE_UPLOAD,
@@ -29,7 +30,7 @@ class FileUploadSubcommand extends ActCommandProject {
     @Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...", order = -2)
     protected List<String> labels;
 
-    @Option(names = {"--dest"}, paramLabel = "...", descriptionKey = "crowdin.file.dest")
+    @Option(names = {"-d", "--dest"}, paramLabel = "...", descriptionKey = "crowdin.file.dest")
     private String destination;
 
     @Option(names = {"--excluded-language"}, descriptionKey = "params.excluded-languages", paramLabel = "...", order = -2)
@@ -41,11 +42,17 @@ class FileUploadSubcommand extends ActCommandProject {
     @Option(names = {"--no-update-strings"}, negatable = true, order = -2)
     protected boolean updateStrings;
 
-    @Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    @Option(names = {"-l", "--language"}, paramLabel = "...", descriptionKey = "crowdin.file.language", order = -2)
+    protected String languageId;
+
+    @Option(names = {"--plain"})
     protected boolean plainView;
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
+        if (Objects.nonNull(languageId)) {
+            return actions.fileUploadTranslation(file, branch, destination, languageId, plainView);
+        }
         return actions.fileUpload(file, branch, autoUpdate, labels, destination, excludedLanguages, plainView, cleanupMode, updateStrings);
     }
 }

@@ -1,20 +1,18 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.client.core.model.DownloadLink;
 import com.crowdin.client.core.model.PatchRequest;
+import com.crowdin.client.distributions.model.DistributionRelease;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.sourcefiles.model.*;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
+import com.crowdin.client.sourcestrings.model.UploadStringsProgress;
 import com.crowdin.client.sourcestrings.model.UploadStringsRequest;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.StringComment;
-import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
-import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
-import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
-import com.crowdin.client.translations.model.PreTranslationStatus;
-import com.crowdin.client.translations.model.ProjectBuild;
-import com.crowdin.client.translations.model.UploadTranslationsRequest;
+import com.crowdin.client.translations.model.*;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
 
 import java.io.InputStream;
@@ -49,7 +47,9 @@ public interface ProjectClient extends Client {
 
     void addSource(AddFileRequest request) throws ResponseException;
 
-    void addSourceStringsBased(UploadStringsRequest request);
+    UploadStringsProgress addSourceStringsBased(UploadStringsRequest request);
+
+    UploadStringsProgress getUploadStringsStatus(String uploadId);
 
     void editSource(Long fileId, List<PatchRequest> request);
 
@@ -57,9 +57,13 @@ public interface ProjectClient extends Client {
 
     void uploadTranslations(String languageId, UploadTranslationsRequest request) throws ResponseException;
 
+    void uploadTranslationStringsBased(String languageId, UploadTranslationsStringsRequest request);
+
     ProjectBuild startBuildingTranslation(BuildProjectTranslationRequest request) throws ResponseException;
 
     ProjectBuild checkBuildingTranslation(Long buildId);
+
+    URL buildProjectFileTranslation(Long fileId, BuildProjectFileTranslationRequest request);
 
     URL downloadBuild(Long buildId);
 

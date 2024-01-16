@@ -283,8 +283,18 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> fileDownload(String file, List<String> languageIds, String destParam) {
-        return new FileDownloadAction(file, languageIds, destParam);
+    public NewAction<ProjectProperties, ProjectClient> fileUploadTranslation(File file, String branch, String dest, String languageId, boolean plainView) {
+        return new FileUploadTranslationAction(file, branch, dest, languageId, plainView);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> fileDownload(String file, String destParam) {
+        return new FileDownloadAction(file, destParam);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> fileDownloadTranslation(String file, String languageId, String destParam) {
+        return new FileDownloadTranslationAction(file, languageId, destParam);
     }
 
     @Override

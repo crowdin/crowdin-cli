@@ -14,12 +14,13 @@ import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.*;
-import com.crowdin.client.sourcestrings.model.ImportOptions;
+import com.crowdin.client.sourcestrings.model.UploadStringsProgress;
 import com.crowdin.client.sourcestrings.model.UploadStringsRequest;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.*;
@@ -64,14 +65,16 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
             FileInfo projectFile = paths.get(fileFullPath);
 
-            if (nonNull(projectFile) && autoUpdate) {
+            if (nonNull(projectFile)) {
+                if (!autoUpdate) {
+                    out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_already_exists"), fileFullPath)));
+                    return;
+                }
                 final UpdateFileRequest request = new UpdateFileRequest();
                 final Long sourceId = projectFile.getId();
                 attachLabelIds.ifPresent(request::setAttachLabelIds);
 
-                Optional<Long> storageIdOptional = getStorageId(out, client);
-                if (!storageIdOptional.isPresent()) return;
-                Long storageId = storageIdOptional.get();
+                Long storageId = getStorageId(client);
                 request.setStorageId(storageId);
 
                 try {
@@ -99,18 +102,18 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
                 } catch (Exception e) {
                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
                 }
+                return;
             }
-            return;
         }
 
         Optional<Branch> branch = Optional.empty();
         if (StringUtils.isNotEmpty(branchName)) {
             branch = Optional.ofNullable(BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView));
+        } else if (Objects.equals(Type.STRINGS_BASED, project.getType())) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
         }
 
-        Optional<Long> storageIdOptional = getStorageId(out, client);
-        if (!storageIdOptional.isPresent()) return;
-        Long storageId = storageIdOptional.get();
+        Long storageId = getStorageId(client);
 
         Optional<List<String>> excludedLanguageNames = Optional.empty();
         if (nonNull(excludedLanguages) && !excludedLanguages.isEmpty()) {
@@ -139,17 +142,37 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         }
         if (Objects.equals(Type.STRINGS_BASED, project.getType())) {
             UploadStringsRequest request = new UploadStringsRequest();
-            //todo create error message
-            request.setBranchId(branch.orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required"))).getId());
+            request.setBranchId(branch.orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"))).getId());
             request.setCleanupMode(cleanupMode);
             attachLabelIds.ifPresent(request::setLabelIds);
             request.setUpdateStrings(updateStrings);
             request.setStorageId(storageId);
-//            ImportOptions importOptions = new ImportOptions();
-//            request.setImportOptions(importOptions);
-            client.addSourceStringsBased(request);
-        }
+            ConsoleSpinner.execute(
+                out,
+                "message.spinner.uploading_strings",
+                "message.spinner.upload_strings_failed",
+                this.plainView,
+                this.plainView,
+                () -> {
+                    UploadStringsProgress uploadStrings = client.addSourceStringsBased(request);
+                    String uploadId = uploadStrings.getIdentifier();
 
+                    while (!"finished".equalsIgnoreCase(uploadStrings.getStatus())) {
+                        ConsoleSpinner.update(
+                            String.format(RESOURCE_BUNDLE.getString("message.spinner.uploading_strings_percents"),
+                                uploadStrings.getProgress()));
+                        Thread.sleep(1000);
+
+                        uploadStrings = client.getUploadStringsStatus(uploadId);
+
+                        if ("failed".equalsIgnoreCase(uploadStrings.getStatus())) {
+                            throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.upload_strings_failed"));
+                        }
+                    }
+                    ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.uploading_strings_percents"), 100));
+                    return uploadStrings;
+                });
+        }
         if (!plainView) {
             out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
         } else {
@@ -174,14 +197,9 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             .collect(Collectors.toMap(Label::getTitle, Label::getId));
         if (labelList.containsKey(labelName)) return labelList.get(labelName);
         else {
-            Label createdLabel = new Label();
-            try {
-                AddLabelRequest request = new AddLabelRequest();
-                request.setTitle(labelName);
-                createdLabel = client.addLabel(request);
-            } catch (Exception e) {
-                System.out.println(e);
-            }
+            AddLabelRequest request = new AddLabelRequest();
+            request.setTitle(labelName);
+            Label createdLabel = client.addLabel(request);
             return createdLabel.getId();
         }
     }
@@ -203,16 +221,16 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         return directoryId;
     }
 
-    private Optional<Long> getStorageId(Outputter out, ProjectClient client) {
+    private Long getStorageId(ProjectClient client) {
         try (InputStream fileStream = Files.newInputStream(file.toPath())) {
-            return Optional.of(client.uploadStorage(file.getName(), fileStream));
+            return client.uploadStorage(file.getName(), fileStream);
+        } catch (FileNotFoundException e) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.local_file_not_found"), file.getAbsolutePath()));
         } catch (EmptyFileException e){
-            out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped"), file.getAbsolutePath())));
-            return Optional.empty();
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped"), file.getAbsolutePath()));
         } catch (Exception e) {
             throw new RuntimeException(
                 String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), file.getAbsolutePath()), e);
         }
     }
-
 }

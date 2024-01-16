@@ -7,18 +7,13 @@ import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.*;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
-import com.crowdin.client.sourcestrings.model.AddSourceStringStringsBasedRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
+import com.crowdin.client.sourcestrings.model.UploadStringsProgress;
 import com.crowdin.client.sourcestrings.model.UploadStringsRequest;
 import com.crowdin.client.storage.model.Storage;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.StringComment;
-import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
-import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
-import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
-import com.crowdin.client.translations.model.PreTranslationStatus;
-import com.crowdin.client.translations.model.ProjectBuild;
-import com.crowdin.client.translations.model.UploadTranslationsRequest;
+import com.crowdin.client.translations.model.*;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
 import org.apache.commons.lang3.StringUtils;
 
@@ -219,10 +214,16 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
-    public void addSourceStringsBased(UploadStringsRequest request) {
-        //todo: errors handler
-        executeRequest(
-            () -> this.client.getSourceStringsApi().uploadStrings(this.projectId, request)
+    public UploadStringsProgress addSourceStringsBased(UploadStringsRequest request) {
+        return executeRequest(
+            () -> this.client.getSourceStringsApi().uploadStrings(this.projectId, request).getData()
+        );
+    }
+
+    @Override
+    public UploadStringsProgress getUploadStringsStatus(String uploadId) {
+        return executeRequest(
+            () -> this.client.getSourceStringsApi().uploadStringsStatus(this.projectId, uploadId).getData()
         );
     }
 
@@ -256,6 +257,12 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public void uploadTranslationStringsBased(String languageId, UploadTranslationsStringsRequest request) {
+        executeRequest(() -> this.client.getTranslationsApi()
+            .uploadTranslationStringsBased(this.projectId, languageId, request));
+    }
+
+    @Override
     public ProjectBuild startBuildingTranslation(BuildProjectTranslationRequest request) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorHandler = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
             put((code, message) -> code.equals("409") && message.contains("Another build is currently in progress"),
@@ -274,6 +281,13 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return executeRequest(() -> this.client.getTranslationsApi()
             .checkBuildStatus(projectId, buildId)
             .getData());
+    }
+
+    @Override
+    public URL buildProjectFileTranslation(Long fileId, BuildProjectFileTranslationRequest request) {
+        return url(executeRequest(() -> this.client.getTranslationsApi()
+            .buildProjectFileTranslation(projectId, fileId, null, request)
+            .getData()));
     }
 
     @Override

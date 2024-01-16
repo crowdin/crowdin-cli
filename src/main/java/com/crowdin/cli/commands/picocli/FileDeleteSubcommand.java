@@ -13,7 +13,7 @@ import picocli.CommandLine.Parameters;
 )
 class FileDeleteSubcommand extends ActCommandProject {
 
-    @Parameters(descriptionKey = "crowdin.file.file")
+    @Parameters(descriptionKey = "crowdin.file.delete.file")
     protected String file;
 
     @Override

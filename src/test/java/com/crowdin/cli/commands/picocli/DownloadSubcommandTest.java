@@ -2,17 +2,12 @@ package com.crowdin.cli.commands.picocli;
 
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.params.ParameterizedTest;
-import org.junit.jupiter.params.provider.Arguments;
-import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.stream.Stream;
 
 import static com.crowdin.cli.commands.picocli.GenericCommand.RESOURCE_BUNDLE;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.verify;
@@ -43,5 +38,4 @@ public class DownloadSubcommandTest extends PicocliTestUtils {
         List<String> errors = downloadSubcommand.checkOptions();
         assertThat(errors, Matchers.equalTo(Arrays.asList(RESOURCE_BUNDLE.getString("error.download.include_exclude_lang_conflict"))));
     }
-
 }
