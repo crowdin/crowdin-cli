@@ -46,7 +46,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
         if (Objects.equals(Type.FILES_BASED, project.getType())) {
             if (Objects.isNull(dest))
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file.dest_required"), languageId));
-            String sourcePath = Utils.unixPath(Utils.sepAtStart(dest));
+            String sourcePath = Utils.toUnixPath(Utils.sepAtStart(dest));
             FileInfo sourceFileInfo = project.getFileInfos().stream()
                 .filter(fi -> Objects.equals(sourcePath, fi.getPath()))
                 .findFirst()

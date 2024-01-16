@@ -51,7 +51,7 @@ class FileDownloadActionTest {
         when(client.downloadFile(eq(101L)))
             .thenReturn(urlMock);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadAction("first.po", null);
+        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadAction("first.po", "dest");
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();

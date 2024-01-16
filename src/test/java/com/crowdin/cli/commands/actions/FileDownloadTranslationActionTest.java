@@ -55,7 +55,7 @@ class FileDownloadTranslationActionTest {
         when(client.buildProjectFileTranslation(eq(101L), eq(request)))
             .thenReturn(urlMock);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadTranslationAction("first.po", "ua", "first.po");
+        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadTranslationAction("first.po", "ua", null);
         action.act(Outputter.getDefault(), pb, client);
 
 

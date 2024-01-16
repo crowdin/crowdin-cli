@@ -49,7 +49,7 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
 
         Language language = project.findLanguageById(languageId, true)
             .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)));
-        String sourcePath = Utils.unixPath(Utils.sepAtStart(file));
+        String sourcePath = Utils.toUnixPath(Utils.sepAtStart(file));
         FileInfo sourceFileInfo = project.getFileInfos().stream()
             .filter(fi -> Objects.equals(sourcePath, fi.getPath()))
             .findFirst()

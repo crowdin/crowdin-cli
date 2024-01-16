@@ -32,7 +32,7 @@ class FileDeleteAction implements NewAction<ProjectProperties, ProjectClient> {
             out.println(SKIPPED.withIcon(RESOURCE_BUNDLE.getString("message.no_file_string_project")));
             return;
         }
-        String filePath = Utils.unixPath(Utils.sepAtStart(file));
+        String filePath = Utils.toUnixPath(Utils.sepAtStart(file));
         List<FileInfo> projectFiles = project.getFileInfos();
         FileInfo foundFile = projectFiles.stream()
             .filter(f -> Objects.equals(filePath, f.getPath()))

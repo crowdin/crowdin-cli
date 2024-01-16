@@ -43,14 +43,14 @@ class FileDownloadAction implements NewAction<ProjectProperties, ProjectClient> 
             return;
         }
 
-        String filePath = Utils.unixPath(Utils.sepAtStart(file));
+        String filePath = Utils.toUnixPath(Utils.sepAtStart(file));
         FileInfo foundFile = project.getFileInfos().stream()
             .filter(f -> Objects.equals(filePath, f.getPath()))
             .findFirst()
             .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), filePath)));
         URL url = client.downloadFile(foundFile.getId());
-        String destPath = nonNull(dest) ? Utils.normalizePath(Utils.sepAtEnd(dest)) + foundFile.getName() : filePath;
-        saveToFile(destPath, url);
+        String destPath = nonNull(dest) ? Utils.sepAtEnd(dest) + foundFile.getName() : file;
+        saveToFile(Utils.normalizePath(destPath), url);
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));
         out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.experimental_command")));
     }

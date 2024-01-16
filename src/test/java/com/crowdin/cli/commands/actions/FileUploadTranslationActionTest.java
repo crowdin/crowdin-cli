@@ -56,7 +56,7 @@ class FileUploadTranslationActionTest {
         when(client.uploadStorage(eq("first_uk.po"), any()))
             .thenReturn(1L);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, null, "first.po", "ua", false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, null, "/first.po", "ua", false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(any());
