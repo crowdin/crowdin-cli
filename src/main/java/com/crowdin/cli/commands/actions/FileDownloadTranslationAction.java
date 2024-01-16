@@ -68,6 +68,7 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
             : languageId + sourcePath;
         saveToFile(Utils.normalizePath(destPath), url);
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), destPath)));
+        out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.experimental_command")));
     }
 
     private void saveToFile(String destPath, URL url) {

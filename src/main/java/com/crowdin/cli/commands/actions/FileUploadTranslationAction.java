@@ -24,6 +24,7 @@ import java.util.Objects;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 @AllArgsConstructor
 public class FileUploadTranslationAction implements NewAction<ProjectProperties, ProjectClient> {
@@ -78,6 +79,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
         } else {
             out.println(file.getPath());
         }
+        out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.experimental_command")));
     }
 
     private Long getStorageId(ProjectClient client) {

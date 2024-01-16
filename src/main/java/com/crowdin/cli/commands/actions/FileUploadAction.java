@@ -27,8 +27,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
-import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
+import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 import static java.util.Objects.nonNull;
 
 @AllArgsConstructor
@@ -178,6 +177,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         } else {
             out.println(fileFullPath);
         }
+        out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.experimental_command")));
     }
 
     private List<String> filterExcludedLanguages(List<String> excludedLanguages, CrowdinProjectFull project) {

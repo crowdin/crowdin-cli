@@ -57,6 +57,21 @@ const sidebars = {
         },
         {
           type: 'category',
+          label: 'crowdin file',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-file'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-file-upload',
+            'commands/crowdin-file-download',
+            'commands/crowdin-file-delete',
+          ]
+        },
+        {
+          type: 'category',
           label: 'crowdin list',
           link: {
             type: 'doc',
