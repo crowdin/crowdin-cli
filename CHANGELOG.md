@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.16.1](https://github.com/crowdin/crowdin-cli/compare/3.16.0...3.16.1) (2024-01-18)
+
+
+### Bug Fixes
+
+* windows escape symbols ([#684](https://github.com/crowdin/crowdin-cli/issues/684)) ([09a79dc](https://github.com/crowdin/crowdin-cli/commit/09a79dc065f99403a9ec4f79b5088dd498d74c98))
+
 # [3.16.0](https://github.com/crowdin/crowdin-cli/compare/3.15.0...3.16.0) (2024-01-04)
 
 
