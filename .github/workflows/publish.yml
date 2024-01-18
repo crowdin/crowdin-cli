@@ -76,7 +76,7 @@ jobs:
 
   npm:
     runs-on: ubuntu-latest
-    if: github.event.inputs.package == 'all' || github.event.inputs.package == 'npm'
+    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'npm'
     needs: assets
     permissions:
       contents: read
@@ -126,7 +126,7 @@ jobs:
 
   aur:
     runs-on: ubuntu-latest
-    if: github.event.inputs.package == 'all' || github.event.inputs.package == 'aur'
+    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'aur'
     needs: assets
     steps:
       - uses: actions/checkout@v4
@@ -144,7 +144,7 @@ jobs:
 
   homebrew:
     runs-on: ubuntu-latest
-    if: github.event.inputs.package == 'all' || github.event.inputs.package == 'homebrew'
+    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'homebrew'
     needs: assets
     steps:
       - uses: actions/checkout@v4
@@ -160,7 +160,7 @@ jobs:
 
   chocolatey:
     runs-on: windows-latest
-    if: github.event.inputs.package == 'all' || github.event.inputs.package == 'chocolatey'
+    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'chocolatey'
     needs: assets
     steps:
       - uses: actions/checkout@v4
@@ -197,7 +197,7 @@ jobs:
 
   docker:
     runs-on: ubuntu-latest
-    if: github.event.inputs.package == 'all' || github.event.inputs.package == 'docker'
+    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'docker'
     needs: assets
     steps:
       - uses: actions/checkout@v4
