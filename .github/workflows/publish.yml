@@ -46,11 +46,11 @@ jobs:
         if: github.event_name == 'release'
         run: |
           mkdir ${{ github.ref_name }}
-          cp build/libs/crowdin-cli-*.jar crowdin-cli/crowdin-cli.jar
-          cp build/libs/crowdin_completion crowdin-cli/crowdin_completion
-          cp packages/zip/* crowdin-cli/
-          zip -r crowdin-cli.zip crowdin-cli && chmod 0644 crowdin-cli.zip
-          rm -rf crowdin-cli
+          cp build/libs/crowdin-cli-*.jar ${{ github.ref_name }}/crowdin-cli.jar
+          cp build/libs/crowdin_completion ${{ github.ref_name }}/crowdin_completion
+          cp packages/zip/* ${{ github.ref_name }}/
+          zip -r crowdin-cli.zip ${{ github.ref_name }} && chmod 0644 crowdin-cli.zip
+          rm -rf ${{ github.ref_name }}
 
       - name: Generate shasum
         id: shasum
