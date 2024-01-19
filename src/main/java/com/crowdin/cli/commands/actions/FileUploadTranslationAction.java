@@ -40,8 +40,9 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.plainView, this.plainView, () -> client.downloadFullProject(branchName));
 
-        if (!project.findLanguageById(languageId, true).isPresent())
+        if (!project.findLanguageById(languageId, true).isPresent()) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId));
+        }
 
         if (Objects.equals(Type.FILES_BASED, project.getType())) {
             if (Objects.isNull(dest))
@@ -65,8 +66,9 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
         } else if (Objects.equals(Type.STRINGS_BASED, project.getType())) {
             UploadTranslationsStringsRequest request = new UploadTranslationsStringsRequest();
             Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView);
-            if (Objects.isNull(branch))
+            if (Objects.isNull(branch)) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
+            }
             Long storageId = getStorageId(client);
             request.setBranchId(branch.getId());
             request.setStorageId(storageId);

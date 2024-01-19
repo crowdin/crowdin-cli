@@ -16,13 +16,13 @@ import java.util.Objects;
 )
 class FileDownloadSubcommand extends ActCommandProject {
 
-    @Parameters(descriptionKey = "crowdin.file.upload.file")
+    @Parameters(descriptionKey = "crowdin.file.download.file")
     protected String file;
 
     @Option(names = {"-l", "--language"}, paramLabel = "...", descriptionKey = "crowdin.file.language", order = -2)
     protected String languageId;
 
-    @Option(names = {"-d", "--dest"}, paramLabel = "...", descriptionKey = "crowdin.file.dest")
+    @Option(names = {"-d", "--dest"}, paramLabel = "...", descriptionKey = "crowdin.file.download.dest", order = -2)
     private String destination;
 
     @Override
