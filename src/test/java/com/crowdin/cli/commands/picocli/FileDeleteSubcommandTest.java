@@ -10,7 +10,7 @@ class FileDeleteSubcommandTest extends PicocliTestUtils {
     @Test
     public void testFileDelete() {
         this.execute(CommandNames.FILE, CommandNames.FILE_DELETE, "file.txt");
-        verify(actionsMock).fileDelete(any());
+        verify(actionsMock).fileDelete(any(), any());
         this.check(true);
     }
 

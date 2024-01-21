@@ -10,14 +10,14 @@ class FileDownloadSubcommandTest extends PicocliTestUtils {
     @Test
     public void testFileDownload() {
         this.execute(CommandNames.FILE, CommandNames.FILE_DOWNLOAD, "file.txt");
-        verify(actionsMock).fileDownload(any(), any());
+        verify(actionsMock).fileDownload(any(), any(), any());
         this.check(true);
     }
 
     @Test
     public void testFileDownloadTranslations() {
         this.execute(CommandNames.FILE, CommandNames.FILE_DOWNLOAD, "file.txt", "--language", "uk");
-        verify(actionsMock).fileDownloadTranslation(any(), any(), any());
+        verify(actionsMock).fileDownloadTranslation(any(), any(), any(), any());
         this.check(true);
     }
 

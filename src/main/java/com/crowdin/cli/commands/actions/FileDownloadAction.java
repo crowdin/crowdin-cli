@@ -27,13 +27,14 @@ import static java.util.Objects.nonNull;
 class FileDownloadAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private final String file;
+    private final String branch;
     private final String dest;
 
     @Override
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                true, true, client::downloadFullProject);
+                false, false, () -> client.downloadFullProject(branch));
         if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_file_string_project")));
             return;
@@ -43,14 +44,25 @@ class FileDownloadAction implements NewAction<ProjectProperties, ProjectClient> 
             return;
         }
 
-        String filePath = Utils.toUnixPath(Utils.sepAtStart(file));
+        String branchPrefix = nonNull(branch) ? branch + Utils.PATH_SEPARATOR : "";
+        String filePath = Utils.toUnixPath(Utils.sepAtStart(branchPrefix + file));
         FileInfo foundFile = project.getFileInfos().stream()
             .filter(f -> Objects.equals(filePath, f.getPath()))
             .findFirst()
             .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), filePath)));
-        URL url = client.downloadFile(foundFile.getId());
-        String destPath = nonNull(dest) ? Utils.sepAtEnd(dest) + foundFile.getName() : file;
-        saveToFile(Utils.normalizePath(destPath), url);
+        ConsoleSpinner.execute(
+            out,
+            "message.spinner.downloading_file",
+            "error.downloading_file",
+            false,
+            false,
+            () -> {
+                URL url = client.downloadFile(foundFile.getId());
+                String destPath = nonNull(dest) ? Utils.sepAtEnd(dest) + foundFile.getName() : Utils.joinPaths(properties.getBasePath(), file);
+                saveToFile(Utils.normalizePath(destPath), url);
+                return url;
+            }
+        );
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));
         out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.experimental_command")));
     }

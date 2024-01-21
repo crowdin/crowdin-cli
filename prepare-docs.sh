@@ -80,6 +80,8 @@ sed -i.bak -e 's/\*\*--\[no-\]import-eq-suggestions\*\*/`--[no-]import-eq-sugges
 sed -i.bak -e 's/\*\*--\[no-\]translate-hidden\*\*/`--[no-]translate-hidden`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]preserve-hierarchy\*\*/`--[no-]preserve-hierarchy`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]auto-tag\*\*/`--[no-]auto-tag`/g' -- *.md
+sed -i.bak -e 's/\*\*--\[no-\]cleanup-mode\*\*/`--[no-]cleanup-mode`/g' -- *.md
+sed -i.bak -e 's/\*\*--\[no-\]update-strings\*\*/`--[no-]update-strings`/g' -- *.md
 
 rm -- *.md.bak
 

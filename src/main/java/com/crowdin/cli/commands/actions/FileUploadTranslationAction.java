@@ -65,10 +65,8 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
             }
         } else if (Objects.equals(Type.STRINGS_BASED, project.getType())) {
             UploadTranslationsStringsRequest request = new UploadTranslationsStringsRequest();
-            Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView);
-            if (Objects.isNull(branch)) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
-            }
+            Branch branch = project.findBranchByName(branchName)
+                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project")));
             Long storageId = getStorageId(client);
             request.setBranchId(branch.getId());
             request.setStorageId(storageId);

@@ -31,13 +31,14 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
 
     private final String file;
     private final String languageId;
+    private final String branch;
     private final String dest;
 
     @Override
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                true, true, client::downloadFullProject);
+                false, false, client::downloadFullProject);
         if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_file_string_project")));
             return;
@@ -49,7 +50,9 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
 
         Language language = project.findLanguageById(languageId, true)
             .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)));
-        String sourcePath = Utils.toUnixPath(Utils.sepAtStart(file));
+
+        String branchPrefix = nonNull(branch) ? branch + Utils.PATH_SEPARATOR : "";
+        String sourcePath = Utils.toUnixPath(Utils.sepAtStart(branchPrefix + file));
         FileInfo sourceFileInfo = project.getFileInfos().stream()
             .filter(fi -> Objects.equals(sourcePath, fi.getPath()))
             .findFirst()
@@ -62,21 +65,38 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
         BuildProjectFileTranslationRequest request = new BuildProjectFileTranslationRequest();
         request.setTargetLanguageId(language.getId());
 
-        URL url = client.buildProjectFileTranslation(sourceFileInfo.getId(), request);
+        URL url = ConsoleSpinner.execute(
+            out,
+            "message.spinner.building_translation",
+            "error.building_translation",
+            false,
+            false,
+            () -> client.buildProjectFileTranslation(sourceFileInfo.getId(), request)
+        );
         String destPath = nonNull(dest)
             ? placeholderUtil.replaceLanguageDependentPlaceholders(dest + Utils.PATH_SEPARATOR + sourceFileInfo.getName(), language)
             : languageId + sourcePath;
-        saveToFile(Utils.normalizePath(destPath), url);
+        saveToFile(Utils.normalizePath(destPath), url, out);
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), destPath)));
         out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.experimental_command")));
     }
 
-    private void saveToFile(String destPath, URL url) {
-        FilesInterface files = new FsFiles();
-        try (InputStream data = url.openStream()) {
-            files.writeToFile(destPath, data);
-        } catch (IOException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.write_file"), destPath), e);
-        }
+    private void saveToFile(String destPath, URL url, Outputter out) {
+        ConsoleSpinner.execute(
+            out,
+            "message.spinner.downloading_translation",
+            "error.write_file",
+            false,
+            false,
+            () -> {
+                FilesInterface files = new FsFiles();
+                try (InputStream data = url.openStream()) {
+                    files.writeToFile(destPath, data);
+                } catch (IOException e) {
+                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.write_file"), destPath), e);
+                }
+                return url;
+            }
+        );
     }
 }

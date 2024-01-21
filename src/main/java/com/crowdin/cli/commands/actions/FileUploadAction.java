@@ -46,7 +46,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
     @Override
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.plainView, this.plainView, () -> client.downloadFullProject(branchName));
+            this.plainView, this.plainView, client::downloadFullProject);
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), properties.getBasePath());
 
         Optional<List<Long>> attachLabelIds = Optional.empty();
@@ -60,7 +60,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             final String filePath = (nonNull(dest))
                 ? PropertiesBeanUtils.prepareDest(dest, StringUtils.removeStart(file.getAbsolutePath(), properties.getBasePath()), placeholderUtil)
                 : StringUtils.removeStart(file.getAbsolutePath(), properties.getBasePath() + commonPath);
-            fileFullPath = (branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + filePath;
+            fileFullPath = (nonNull(branchName) ? branchName + Utils.PATH_SEPARATOR : "") + filePath;
             Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
             FileInfo projectFile = paths.get(fileFullPath);
 

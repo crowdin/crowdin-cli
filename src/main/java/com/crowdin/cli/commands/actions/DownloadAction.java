@@ -416,7 +416,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
         return ConsoleSpinner.execute(
             out,
-            "message.spinner.building_translation",
+            "message.spinner.building_translations",
             "error.building_translation",
             this.noProgress,
             this.plainView,
@@ -537,7 +537,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     }
 
     private void downloadTranslations(ProjectClient client, Long buildId, String archivePath) {
-        ConsoleSpinner.execute(out, "message.spinner.downloading_translation", "error.downloading_file", this.noProgress, this.plainView, () -> {
+        ConsoleSpinner.execute(out, "message.spinner.downloading_translations", "error.downloading_file", this.noProgress, this.plainView, () -> {
             URL url = client.downloadBuild(buildId);
             try (InputStream data = url.openStream()) {
                 files.writeToFile(archivePath, data);

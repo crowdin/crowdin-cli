@@ -45,7 +45,7 @@ class FileDeleteActionTest {
         when(client.downloadFullProject())
             .thenReturn(build);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileDeleteAction("first.po");
+        NewAction<ProjectProperties, ProjectClient> action = new FileDeleteAction("first.po", null);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();

@@ -22,13 +22,16 @@ class FileDownloadSubcommand extends ActCommandProject {
     @Option(names = {"-l", "--language"}, paramLabel = "...", descriptionKey = "crowdin.file.language", order = -2)
     protected String languageId;
 
+    @Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
+    protected String branch;
+
     @Option(names = {"-d", "--dest"}, paramLabel = "...", descriptionKey = "crowdin.file.download.dest", order = -2)
     private String destination;
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
         if (Objects.nonNull(languageId))
-            return actions.fileDownloadTranslation(file, languageId, destination);
-        return actions.fileDownload(file, destination);
+            return actions.fileDownloadTranslation(file, languageId, branch, destination);
+        return actions.fileDownload(file, branch, destination);
     }
 }

@@ -50,7 +50,7 @@ class FileUploadActionTest {
         ProjectClient client = mock(ProjectClient.class);
         CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
         build.setType(Type.FILES_BASED);
-        when(client.downloadFullProject(any()))
+        when(client.downloadFullProject())
             .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
@@ -58,7 +58,7 @@ class FileUploadActionTest {
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject(any());
+        verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
         AddFileRequest addFileRequest = new AddFileRequest() {{
             setName("first.po");
@@ -91,7 +91,7 @@ class FileUploadActionTest {
         }};
 
         when(branch.getId()).thenReturn(2L);
-        when(client.downloadFullProject(any())).thenReturn(build);
+        when(client.downloadFullProject()).thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any())).thenReturn(1L);
         when(client.addBranch(any())).thenReturn(branch);
         when(client.addSourceStringsBased(any())).thenReturn(progress);
@@ -100,7 +100,7 @@ class FileUploadActionTest {
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, "branch", false, null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject(any());
+        verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
         verify(client).addBranch(any());
         verify(client).getUploadStringsStatus(any());
@@ -126,7 +126,7 @@ class FileUploadActionTest {
         CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
             .addFile("first.po", "gettext", 101L, null, null).build();
         build.setType(Type.FILES_BASED);
-        when(client.downloadFullProject(any()))
+        when(client.downloadFullProject())
             .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
@@ -134,7 +134,7 @@ class FileUploadActionTest {
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, true, null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject(any());
+        verify(client).downloadFullProject();
         verify(client).uploadStorage(eq("first.po"), any());
         UpdateFileRequest addFileRequest = new UpdateFileRequest() {{
             setStorageId(1L);

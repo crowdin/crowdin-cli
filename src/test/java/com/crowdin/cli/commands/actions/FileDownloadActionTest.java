@@ -46,15 +46,15 @@ class FileDownloadActionTest {
         CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
             .addFile("/first.po", "gettext", 101L, null, null, null).build();
         build.setType(Type.FILES_BASED);
-        when(client.downloadFullProject())
+        when(client.downloadFullProject(any()))
             .thenReturn(build);
         when(client.downloadFile(eq(101L)))
             .thenReturn(urlMock);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadAction("first.po", "dest");
+        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadAction("first.po", null, "dest");
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadFullProject();
+        verify(client).downloadFullProject(any());
         verify(client).downloadFile(eq(101L));
         verifyNoMoreInteractions(client);
     }

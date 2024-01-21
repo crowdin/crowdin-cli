@@ -169,16 +169,16 @@ public class CliActionsTest {
 
     @Test
     void testFileDownload() {
-        assertNotNull(actions.fileDownload(null, null));
+        assertNotNull(actions.fileDownload(null, null, null));
     }
 
     @Test
     void testFileDownloadTranslation() {
-        assertNotNull(actions.fileDownloadTranslation(null, null, null));
+        assertNotNull(actions.fileDownloadTranslation(null, null,null, null));
     }
 
     @Test
     void testFileDelete() {
-        assertNotNull(actions.fileDelete(null));
+        assertNotNull(actions.fileDelete(null, null));
     }
 }

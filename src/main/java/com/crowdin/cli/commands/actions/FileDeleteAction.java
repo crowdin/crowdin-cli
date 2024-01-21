@@ -17,11 +17,13 @@ import java.util.Objects;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
+import static java.util.Objects.nonNull;
 
 @AllArgsConstructor
 class FileDeleteAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private final String file;
+    private final String branch;
 
     @Override
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
@@ -32,7 +34,8 @@ class FileDeleteAction implements NewAction<ProjectProperties, ProjectClient> {
             out.println(SKIPPED.withIcon(RESOURCE_BUNDLE.getString("message.no_file_string_project")));
             return;
         }
-        String filePath = Utils.toUnixPath(Utils.sepAtStart(file));
+        String branchPrefix = nonNull(branch) ? branch + Utils.PATH_SEPARATOR : "";
+        String filePath = Utils.toUnixPath(Utils.sepAtStart(branchPrefix + file));
         List<FileInfo> projectFiles = project.getFileInfos();
         FileInfo foundFile = projectFiles.stream()
             .filter(f -> Objects.equals(filePath, f.getPath()))

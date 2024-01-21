@@ -78,22 +78,18 @@ class FileUploadTranslationActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addBranches(2L, "main").build();
         build.setType(Type.STRINGS_BASED);
-        Branch branch = mock(Branch.class);
-        when(branch.getId()).thenReturn(2L);
         when(client.downloadFullProject(any()))
             .thenReturn(build);
         when(client.uploadStorage(eq("first_uk.po"), any()))
             .thenReturn(1L);
-        when(client.addBranch(any()))
-            .thenReturn(branch);
 
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, "main", null, "ua", false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(any());
-        verify(client).addBranch(any());
         verify(client).uploadStorage(eq("first_uk.po"), any());
         UploadTranslationsStringsRequest request = new UploadTranslationsStringsRequest() {{
             setBranchId(2L);

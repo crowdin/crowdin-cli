@@ -288,17 +288,17 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> fileDownload(String file, String destParam) {
-        return new FileDownloadAction(file, destParam);
+    public NewAction<ProjectProperties, ProjectClient> fileDownload(String file, String branch, String destParam) {
+        return new FileDownloadAction(file, branch, destParam);
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> fileDownloadTranslation(String file, String languageId, String destParam) {
-        return new FileDownloadTranslationAction(file, languageId, destParam);
+    public NewAction<ProjectProperties, ProjectClient> fileDownloadTranslation(String file, String languageId, String branch, String destParam) {
+        return new FileDownloadTranslationAction(file, languageId, branch, destParam);
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> fileDelete(String file) {
-        return new FileDeleteAction(file);
+    public NewAction<ProjectProperties, ProjectClient> fileDelete(String file, String branch) {
+        return new FileDeleteAction(file, branch);
     }
 }
