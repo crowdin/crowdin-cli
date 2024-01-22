@@ -1,8 +1,8 @@
------------------------------- Crowdin CLI v3 ---------------------------------
+# Crowdin CLI
 
-# Installation on Linux and MacOS
+## Installation on Linux and MacOS
 
-Run `. install-crowdin-cli.sh` in the terminal with sudo rights in order to add `crowdin` command to your terminal
+Run `. install-crowdin-cli.sh` in the terminal with sudo rights to add the `crowdin` command to your terminal
 
 -------------------------------------------------------------------------------
 
@@ -13,12 +13,12 @@ Run `. install-crowdin-cli.sh` in the terminal with sudo rights in order to add 
     - In the Start Search box, type `cmd`, and then press CTRL+SHIFT+ENTER
     - If the User Account Control dialog box appears, confirm that the action it displays is what you want, and then click Continue
 
-2. Run `setup-crowdin.bat` script in order to add `crowdin` command to the Command Prompt
+2. Run the `setup_crowdin.bat` script to add the `crowdin` command to the Command Prompt
 3. Restart your Command Prompt
 
 -------------------------------------------------------------------------------
 
-# Running the App
+## Running the App
 
 Use the following method to run the app:
 
@@ -30,7 +30,7 @@ Alternative method:
 
 -------------------------------------------------------------------------------
 
-# General Commands
+## General Commands
 
 To display help information:
 
@@ -44,6 +44,6 @@ To analyze your configuration file for potential errors:
 
 - crowdin lint
 
-To show a list of source files in the current project:
+-------------------------------------------------------------------------------
 
-- crowdin list project
+See the official documentation for more details - https://crowdin.github.io/crowdin-cli
