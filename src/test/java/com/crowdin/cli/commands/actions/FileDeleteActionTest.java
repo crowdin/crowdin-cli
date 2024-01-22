@@ -52,4 +52,24 @@ class FileDeleteActionTest {
         verify(client).deleteSource(eq(101L));
         verifyNoMoreInteractions(client);
     }
+
+    @Test
+    public void testDelete_StringBasedProject() {
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("/first.po", "gettext", 101L, null, null, null).build();
+        build.setType(Type.STRINGS_BASED);
+        when(client.downloadFullProject())
+            .thenReturn(build);
+
+        NewAction<ProjectProperties, ProjectClient> action = new FileDeleteAction("first.po", null);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verifyNoMoreInteractions(client);
+    }
 }

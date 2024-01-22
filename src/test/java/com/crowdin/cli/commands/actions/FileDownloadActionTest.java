@@ -18,7 +18,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -56,6 +59,26 @@ class FileDownloadActionTest {
 
         verify(client).downloadFullProject(any());
         verify(client).downloadFile(eq(101L));
+        verifyNoMoreInteractions(client);
+        assertTrue(Files.exists(Paths.get("dest" + Utils.PATH_SEPARATOR + "first.po")), "File should exist at the specified path");
+    }
+
+    @Test
+    public void testDownload_StringBasedProject() {
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.STRINGS_BASED);
+        when(client.downloadFullProject(any()))
+            .thenReturn(build);
+
+        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadAction("first.po", "main", "dest");
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(any());
         verifyNoMoreInteractions(client);
     }
 }

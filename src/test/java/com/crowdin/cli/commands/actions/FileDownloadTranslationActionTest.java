@@ -19,7 +19,10 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
@@ -58,9 +61,9 @@ class FileDownloadTranslationActionTest {
         NewAction<ProjectProperties, ProjectClient> action = new FileDownloadTranslationAction("first.po", "ua", null, null);
         action.act(Outputter.getDefault(), pb, client);
 
-
         verify(client).downloadFullProject();
         verify(client).buildProjectFileTranslation(eq(101L), eq(request));
         verifyNoMoreInteractions(client);
+        assertTrue(Files.exists(Paths.get("ua" + Utils.PATH_SEPARATOR + "first.po")), "File should exist at the specified path");
     }
 }

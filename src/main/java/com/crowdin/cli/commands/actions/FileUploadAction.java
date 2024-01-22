@@ -55,12 +55,14 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         }
 
         String fileFullPath = file.getPath();
+        String fileDestName = file.getName();
         if (Objects.equals(Type.FILES_BASED, project.getType())) {
             String commonPath = SourcesUtils.getCommonPath(Collections.singletonList(this.file.getAbsolutePath()), properties.getBasePath());
             final String filePath = (nonNull(dest))
                 ? PropertiesBeanUtils.prepareDest(dest, StringUtils.removeStart(file.getAbsolutePath(), properties.getBasePath()), placeholderUtil)
                 : StringUtils.removeStart(file.getAbsolutePath(), properties.getBasePath() + commonPath);
             fileFullPath = (nonNull(branchName) ? branchName + Utils.PATH_SEPARATOR : "") + filePath;
+            fileDestName = fileFullPath.substring(fileFullPath.lastIndexOf(Utils.PATH_SEPARATOR) + 1);
             Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
             FileInfo projectFile = paths.get(fileFullPath);
 
@@ -73,7 +75,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
                 final Long sourceId = projectFile.getId();
                 attachLabelIds.ifPresent(request::setAttachLabelIds);
 
-                Long storageId = getStorageId(client);
+                Long storageId = getStorageId(client, fileDestName);
                 request.setStorageId(storageId);
 
                 try {
@@ -112,7 +114,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
         }
 
-        Long storageId = getStorageId(client);
+        Long storageId = getStorageId(client, fileDestName);
 
         Optional<List<String>> excludedLanguageNames = Optional.empty();
         if (nonNull(excludedLanguages) && !excludedLanguages.isEmpty()) {
@@ -121,7 +123,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
 
         if (Objects.equals(Type.FILES_BASED, project.getType())) {
             AddFileRequest request = new AddFileRequest();
-            request.setName(file.getName());
+            request.setName(fileDestName);
             request.setStorageId(storageId);
 
             Optional<Long> directoryId = getOrCreateDirectoryId(out, client, project, properties, branch.orElse(null));
@@ -183,7 +185,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
     private List<String> filterExcludedLanguages(List<String> excludedLanguages, CrowdinProjectFull project) {
         List<String> projectLanguageNames = project.getProjectLanguages(false)
             .stream()
-            .map(Language::getName)
+            .map(Language::getId)
             .collect(Collectors.toList());
 
         return excludedLanguages
@@ -221,9 +223,9 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         return directoryId;
     }
 
-    private Long getStorageId(ProjectClient client) {
+    private Long getStorageId(ProjectClient client, String fileName) {
         try (InputStream fileStream = Files.newInputStream(file.toPath())) {
-            return client.uploadStorage(file.getName(), fileStream);
+            return client.uploadStorage(fileName, fileStream);
         } catch (FileNotFoundException e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.local_file_not_found"), file.getAbsolutePath()));
         } catch (EmptyFileException e){
