@@ -79,4 +79,9 @@ public final class CommandNames {
     public static final String LABEL_LIST = "list";
     public static final String LABEL_ADD = "add";
     public static final String LABEL_DELETE = "delete";
+
+    public static final String FILE = "file";
+    public static final String FILE_UPLOAD = "upload";
+    public static final String FILE_DOWNLOAD = "download";
+    public static final String FILE_DELETE = "delete";
 }

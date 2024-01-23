@@ -1,6 +1,7 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.projectsgroups.model.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,6 +12,7 @@ public class CrowdinProjectInfo {
     private Long projectId;
     private String sourceLanguageId;
     private Access accessLevel;
+    private Type type;
     private Language inContextLanguage;
     private LanguageMapping languageMapping;
     private List<Language> projectLanguages;
@@ -42,6 +44,14 @@ public class CrowdinProjectInfo {
 
     public boolean isManagerAccess() {
         return accessLevel == Access.MANAGER;
+    }
+
+    public void setType(Type type) {
+        this.type = type;
+    }
+
+    public Type getType() {
+        return type;
     }
 
     void setInContextLanguage(Language inContextLanguage) {
@@ -90,5 +100,4 @@ public class CrowdinProjectInfo {
     public enum Access {
         TRANSLATOR, MANAGER
     }
-
 }

@@ -61,7 +61,7 @@ public class CrowdinClientTaskTest {
         when(httpClientMock.post(eq(addTmUrl), any(), any(), eq(TaskResponseObject.class)))
                 .thenReturn(response);
 
-        client.addTask(new AddTaskRequest());
+        client.addTask(new CreateTaskRequest());
 
         verify(httpClientMock).post(eq(addTmUrl), any(), any(), eq(TaskResponseObject.class));
         verifyNoMoreInteractions(httpClientMock);

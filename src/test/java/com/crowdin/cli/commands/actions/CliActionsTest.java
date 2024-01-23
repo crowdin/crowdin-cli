@@ -156,4 +156,29 @@ public class CliActionsTest {
     void testLabelDelete() {
         assertNotNull(actions.labelDelete(null));
     }
+
+    @Test
+    void testFileUpload() {
+        assertNotNull(actions.fileUpload(null, null, false, null, null, null,false, true, false));
+    }
+
+    @Test
+    void testFileUploadTranslation() {
+        assertNotNull(actions.fileUploadTranslation(null, null, null, null,false));
+    }
+
+    @Test
+    void testFileDownload() {
+        assertNotNull(actions.fileDownload(null, null, null));
+    }
+
+    @Test
+    void testFileDownloadTranslation() {
+        assertNotNull(actions.fileDownloadTranslation(null, null,null, null));
+    }
+
+    @Test
+    void testFileDelete() {
+        assertNotNull(actions.fileDelete(null, null));
+    }
 }

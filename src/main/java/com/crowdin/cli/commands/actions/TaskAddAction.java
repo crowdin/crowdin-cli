@@ -13,10 +13,7 @@ import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.FileInfo;
-import com.crowdin.client.tasks.model.AddTaskRequest;
-import com.crowdin.client.tasks.model.CrowdinTaskCreateFormRequest;
-import com.crowdin.client.tasks.model.EnterpriseTaskCreateFormRequest;
-import com.crowdin.client.tasks.model.Task;
+import com.crowdin.client.tasks.model.*;
 
 import lombok.AllArgsConstructor;
 
@@ -96,26 +93,26 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
         }
 
         if (isOrganization) {
-            addTaskRequest = new EnterpriseTaskCreateFormRequest();
-            Optional.ofNullable(title).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setTitle(value));
-            Optional.ofNullable(language).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setLanguageId(value));
-            Optional.ofNullable(fileIds).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setFileIds(value));
-            Optional.ofNullable(description).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setDescription(value));
-            Optional.ofNullable(skipAssignedStrings).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setSkipAssignedStrings(value));
-            Optional.ofNullable(includePreTranslatedStringsOnly).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setIncludePreTranslatedStringsOnly(value));
-            Optional.ofNullable(labels).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setLabelIds(value));
-            Optional.ofNullable(workflowStep).ifPresent(value -> ((EnterpriseTaskCreateFormRequest) addTaskRequest).setWorkflowStepId(value));
+            addTaskRequest = new CreateTaskEnterpriseRequest();
+            Optional.ofNullable(title).ifPresent(value -> ((CreateTaskEnterpriseRequest) addTaskRequest).setTitle(value));
+            Optional.ofNullable(language).ifPresent(value -> ((CreateTaskEnterpriseRequest) addTaskRequest).setLanguageId(value));
+            Optional.ofNullable(fileIds).ifPresent(value -> ((CreateTaskEnterpriseRequest) addTaskRequest).setFileIds(value));
+            Optional.ofNullable(description).ifPresent(value -> ((CreateTaskEnterpriseRequest) addTaskRequest).setDescription(value));
+            Optional.ofNullable(skipAssignedStrings).ifPresent(value -> ((CreateTaskEnterpriseRequest) addTaskRequest).setSkipAssignedStrings(value));
+            Optional.ofNullable(includePreTranslatedStringsOnly).ifPresent(value -> ((CreateTaskEnterpriseRequest) addTaskRequest).setIncludePreTranslatedStringsOnly(value));
+            Optional.ofNullable(labels).ifPresent(value -> ((CreateTaskEnterpriseRequest) addTaskRequest).setLabelIds(value));
+            Optional.ofNullable(workflowStep).ifPresent(value -> ((CreateTaskEnterpriseRequest) addTaskRequest).setWorkflowStepId(value));
         } else {
-            addTaskRequest = new CrowdinTaskCreateFormRequest();
-            Optional.ofNullable(title).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setTitle(value));
-            Optional.ofNullable(type).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setType(value));
-            Optional.ofNullable(language).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setLanguageId(value));
-            Optional.ofNullable(fileIds).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setFileIds(value));
-            Optional.ofNullable(description).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setDescription(value));
-            Optional.ofNullable(skipAssignedStrings).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setSkipAssignedStrings(value));
-            Optional.ofNullable(skipUntranslatedStrings).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setSkipUntranslatedStrings(value));
-            Optional.ofNullable(includePreTranslatedStringsOnly).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setIncludePreTranslatedStringsOnly(value));
-            Optional.ofNullable(labels).ifPresent(value -> ((CrowdinTaskCreateFormRequest) addTaskRequest).setLabelIds(value));
+            addTaskRequest = new CreateTaskRequest();
+            Optional.ofNullable(title).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setTitle(value));
+            Optional.ofNullable(type).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setType(Type.from(String.valueOf(value))));
+            Optional.ofNullable(language).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setLanguageId(value));
+            Optional.ofNullable(fileIds).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setFileIds(value));
+            Optional.ofNullable(description).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setDescription(value));
+            Optional.ofNullable(skipAssignedStrings).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setSkipAssignedStrings(value));
+            Optional.ofNullable(skipUntranslatedStrings).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setSkipUntranslatedStrings(value));
+            Optional.ofNullable(includePreTranslatedStringsOnly).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setIncludePreTranslatedStringsOnly(value));
+            Optional.ofNullable(labels).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setLabelIds(value));
         }
 
         try {

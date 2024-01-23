@@ -24,7 +24,7 @@ public class CrowdinClientTm extends CrowdinClientCore implements ClientTm {
     @Override
     public List<TranslationMemory> listTms() {
         return executeRequestFullList((limit, offset) -> this.client.getTranslationMemoryApi()
-            .listTms(null, limit, offset));
+            .listTms(null, limit, offset, null));
     }
 
     @Override

@@ -8,12 +8,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.actions.subactions.DeleteObsoleteProjectFilesSubAction;
-import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
-import com.crowdin.cli.commands.functionality.ProjectUtils;
-import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
-import com.crowdin.cli.commands.functionality.RequestBuilder;
-import com.crowdin.cli.commands.functionality.SourcesUtils;
-import com.crowdin.cli.commands.functionality.TranslationsUtils;
+import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
@@ -94,7 +89,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
 
-        Branch branch = (branchName != null) ? this.getOrCreateBranch(out, branchName, client, project) : null;
+        Branch branch = (branchName != null) ? BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView) : null;
         Long branchId = (branch != null) ? branch.getId() : null;
 
         Map<String, Long> directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
@@ -387,28 +382,6 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             exportOptions.setExportPattern(exportPattern);
 
             return exportOptions;
-        }
-    }
-
-    private Branch getOrCreateBranch(Outputter out, String branchName, ProjectClient client, CrowdinProjectFull project) {
-        if (StringUtils.isEmpty(branchName)) {
-            return null;
-        }
-        Optional<Branch> branchOpt = project.findBranchByName(branchName);
-        if (branchOpt.isPresent()) {
-            if (!plainView) {
-                out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch_already_exists"), branchName)));
-            }
-            return branchOpt.get();
-        } else {
-            AddBranchRequest request = new AddBranchRequest();
-            request.setName(branchName);
-            Branch newBranch = client.addBranch(request);
-            if (!plainView) {
-                out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branchName)));
-            }
-            project.addBranchToLocalList(newBranch);
-            return newBranch;
         }
     }
 

@@ -132,4 +132,14 @@ public interface Actions {
     NewAction<ProjectProperties, ClientLabel> labelAdd(String title, boolean plainView);
 
     NewAction<ProjectProperties, ClientLabel> labelDelete(String title);
+
+    NewAction<ProjectProperties, ProjectClient> fileUpload(File file, String branch, boolean autoUpdate, List<String> labels, String destination, List<String> excludedLanguages,  boolean plainView, boolean cleanupMode, boolean updateString);
+
+    NewAction<ProjectProperties, ProjectClient> fileUploadTranslation(File file, String branch, String dest, String languageId, boolean plainView);
+
+    NewAction<ProjectProperties, ProjectClient> fileDownload(String file, String branch, String destParam);
+
+    NewAction<ProjectProperties, ProjectClient> fileDownloadTranslation(String file, String languageId, String branch, String destParam);
+
+    NewAction<ProjectProperties, ProjectClient> fileDelete(String file, String branch);
 }

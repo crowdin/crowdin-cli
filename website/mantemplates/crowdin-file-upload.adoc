@@ -1,0 +1,19 @@
+:includedir: ../generated-picocli-docs
+:command: crowdin-file-upload
+
+== crowdin file upload
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-synopsis]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-arguments]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-commands]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-options]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
+
+=== Notes
+This command is experimental. Experimental features are not covered by semver and might change in the future. If you have any feedback, feel free to raise a discussion: https://github.com/crowdin/crowdin-cli/discussions

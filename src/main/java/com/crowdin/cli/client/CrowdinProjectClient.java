@@ -4,34 +4,22 @@ import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
-import com.crowdin.client.sourcefiles.model.AddBranchRequest;
-import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
-import com.crowdin.client.sourcefiles.model.AddFileRequest;
-import com.crowdin.client.sourcefiles.model.Branch;
-import com.crowdin.client.sourcefiles.model.BuildReviewedSourceFilesRequest;
-import com.crowdin.client.sourcefiles.model.Directory;
-import com.crowdin.client.sourcefiles.model.ReviewedStringsBuild;
-import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
+import com.crowdin.client.projectsgroups.model.Type;
+import com.crowdin.client.sourcefiles.model.*;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.SourceString;
+import com.crowdin.client.sourcestrings.model.UploadStringsProgress;
+import com.crowdin.client.sourcestrings.model.UploadStringsRequest;
 import com.crowdin.client.storage.model.Storage;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.StringComment;
-import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
-import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
-import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
-import com.crowdin.client.translations.model.PreTranslationStatus;
-import com.crowdin.client.translations.model.ProjectBuild;
-import com.crowdin.client.translations.model.UploadTranslationsRequest;
+import com.crowdin.client.translations.model.*;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.InputStream;
 import java.net.URL;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.BiPredicate;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -78,6 +66,10 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
                 )
                 .ifPresent(project::setBranch);
         Long branchId = Optional.ofNullable(project.getBranch()).map(Branch::getId).orElse(null);
+
+        if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
+            return;
+        }
         project.setFiles(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
             .listFiles(this.projectId, branchId, null, null, true, limit, offset)));
         project.setDirectories(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
@@ -92,6 +84,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     private void populateProjectWithInfo(CrowdinProjectInfo project) {
         com.crowdin.client.projectsgroups.model.Project projectModel = this.getProject();
         project.setProjectId(projectModel.getId());
+        project.setType(projectModel.getType());
         project.setSourceLanguageId(projectModel.getSourceLanguageId());
         project.setProjectLanguages(projectModel.getTargetLanguages());
         if (projectModel instanceof ProjectSettings) {
@@ -224,6 +217,20 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public UploadStringsProgress addSourceStringsBased(UploadStringsRequest request) {
+        return executeRequest(
+            () -> this.client.getSourceStringsApi().uploadStrings(this.projectId, request).getData()
+        );
+    }
+
+    @Override
+    public UploadStringsProgress getUploadStringsStatus(String uploadId) {
+        return executeRequest(
+            () -> this.client.getSourceStringsApi().uploadStringsStatus(this.projectId, uploadId).getData()
+        );
+    }
+
+    @Override
     public void editSource(Long fileId, List<PatchRequest> request) {
         executeRequest(() -> this.client.getSourceFilesApi()
             .editFile(this.projectId, fileId, request));
@@ -253,6 +260,12 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public void uploadTranslationStringsBased(String languageId, UploadTranslationsStringsRequest request) {
+        executeRequest(() -> this.client.getTranslationsApi()
+            .uploadTranslationStringsBased(this.projectId, languageId, request));
+    }
+
+    @Override
     public ProjectBuild startBuildingTranslation(BuildProjectTranslationRequest request) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorHandler = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
             put((code, message) -> code.equals("409") && message.contains("Another build is currently in progress"),
@@ -271,6 +284,13 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return executeRequest(() -> this.client.getTranslationsApi()
             .checkBuildStatus(projectId, buildId)
             .getData());
+    }
+
+    @Override
+    public URL buildProjectFileTranslation(Long fileId, BuildProjectFileTranslationRequest request) {
+        return url(executeRequest(() -> this.client.getTranslationsApi()
+            .buildProjectFileTranslation(projectId, fileId, null, request)
+            .getData()));
     }
 
     @Override
@@ -347,7 +367,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     @Override
     public List<Label> listLabels() {
         return executeRequestFullList((limit, offset) -> this.client.getLabelsApi()
-            .listLabels(this.projectId, limit, offset));
+            .listLabels(this.projectId, limit, offset, null));
     }
 
     @Override
