@@ -58,8 +58,8 @@ class FileDownloadAction implements NewAction<ProjectProperties, ProjectClient> 
             false,
             () -> {
                 URL url = client.downloadFile(foundFile.getId());
-                String destPath = nonNull(dest) ? Utils.sepAtEnd(dest) + foundFile.getName() : Utils.joinPaths(properties.getBasePath(), file);
-                saveToFile(Utils.normalizePath(destPath), url);
+                String destPath = nonNull(dest) ? Utils.sepAtEnd(dest) + foundFile.getName() : file;
+                saveToFile(Utils.normalizePath(Utils.joinPaths(properties.getBasePath(), destPath)), url);
                 return url;
             }
         );

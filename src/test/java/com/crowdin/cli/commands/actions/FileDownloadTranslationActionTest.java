@@ -64,6 +64,54 @@ class FileDownloadTranslationActionTest {
         verify(client).downloadFullProject();
         verify(client).buildProjectFileTranslation(eq(101L), eq(request));
         verifyNoMoreInteractions(client);
-        assertTrue(Files.exists(Paths.get("ua" + Utils.PATH_SEPARATOR + "first.po")), "File should exist at the specified path");
+        assertTrue(Files.exists(Paths.get(project.getBasePath() + "ua/first.po")), "File should exist at the specified path");
+    }
+
+    @Test
+    public void testDownloadTranslationWithDest() {
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("/first.po", "gettext", 101L, null, null, null).build();
+        build.setType(Type.FILES_BASED);
+        BuildProjectFileTranslationRequest request = new BuildProjectFileTranslationRequest() {{
+            setTargetLanguageId("ua");
+        }};
+        when(client.downloadFullProject())
+            .thenReturn(build);
+        when(client.buildProjectFileTranslation(eq(101L), eq(request)))
+            .thenReturn(urlMock);
+
+        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadTranslationAction("first.po", "ua", null, "path/to/save");
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).buildProjectFileTranslation(eq(101L), eq(request));
+        verifyNoMoreInteractions(client);
+        assertTrue(Files.exists(Paths.get(project.getBasePath() + "path/to/save/first.po")), "File should exist at the specified path");
+    }
+
+    @Test
+    public void testDownloadTranslation_StringBasedProject() {
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.STRINGS_BASED);
+        when(client.downloadFullProject())
+            .thenReturn(build);
+
+        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadTranslationAction("first.po", "ua", null, "path/to/save");
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verifyNoMoreInteractions(client);
     }
 }

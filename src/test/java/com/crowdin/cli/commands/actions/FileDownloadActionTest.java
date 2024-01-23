@@ -60,7 +60,7 @@ class FileDownloadActionTest {
         verify(client).downloadFullProject(any());
         verify(client).downloadFile(eq(101L));
         verifyNoMoreInteractions(client);
-        assertTrue(Files.exists(Paths.get("dest" + Utils.PATH_SEPARATOR + "first.po")), "File should exist at the specified path");
+        assertTrue(Files.exists(Paths.get(project.getBasePath() + "dest/first.po")), "File should exist at the specified path");
     }
 
     @Test

@@ -76,7 +76,7 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
         String destPath = nonNull(dest)
             ? placeholderUtil.replaceLanguageDependentPlaceholders(dest + Utils.PATH_SEPARATOR + sourceFileInfo.getName(), language)
             : languageId + sourcePath;
-        saveToFile(Utils.normalizePath(destPath), url, out);
+        saveToFile(Utils.normalizePath(Utils.joinPaths(properties.getBasePath(), destPath)), url, out);
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), destPath)));
         out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.experimental_command")));
     }
