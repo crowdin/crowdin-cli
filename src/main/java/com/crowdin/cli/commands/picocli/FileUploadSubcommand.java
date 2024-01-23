@@ -36,11 +36,11 @@ class FileUploadSubcommand extends ActCommandProject {
     @Option(names = {"--excluded-language"}, descriptionKey = "params.excluded-languages", paramLabel = "...", order = -2)
     protected List<String> excludedLanguages;
 
-    @Option(names = {"--no-cleanup-mode"}, negatable = true, descriptionKey = "crowdin.file.upload.cleanup-mode", order = -2)
-    protected boolean cleanupMode = true;
+    @Option(names = {"--cleanup-mode"}, negatable = true, descriptionKey = "crowdin.file.upload.cleanup-mode", order = -2)
+    protected boolean cleanupMode = false;
 
-    @Option(names = {"--no-update-strings"}, negatable = true, descriptionKey = "crowdin.file.upload.update-strings", order = -2)
-    protected boolean updateStrings = true;
+    @Option(names = {"--update-strings"}, negatable = true, descriptionKey = "crowdin.file.upload.update-strings", order = -2)
+    protected boolean updateStrings = false;
 
     @Option(names = {"-l", "--language"}, paramLabel = "...", descriptionKey = "crowdin.file.language", order = -2)
     protected String languageId;
