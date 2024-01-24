@@ -16,4 +16,4 @@ include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-options]
 include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
 
 === Notes
-This command is experimental. Experimental features are not covered by semver and might change in the future. If you have any feedback, feel free to raise a discussion: https://github.com/crowdin/crowdin-cli/discussions
+This command is experimental. Experimental features are not covered by semver and might change in the future. If you have any feedback, feel free to raise a discussion: https://github.com/crowdin/crowdin-cli/discussions/713
