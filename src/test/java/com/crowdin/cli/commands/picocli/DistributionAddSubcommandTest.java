@@ -60,10 +60,9 @@ public class DistributionAddSubcommandTest extends PicocliTestUtils {
 
     public static Stream<Arguments> testSubCommandCheckInvalidOptions() {
         return Stream.of(
-            arguments("Distribution 1", ExportMode.DEFAULT, null, null, Arrays.asList(RESOURCE_BUNDLE.getString("error.distribution.empty_file"))),
-            arguments("Distribution 2", ExportMode.BUNDLE, null, null, Arrays.asList(RESOURCE_BUNDLE.getString("error.distribution.empty_bundle_ids"))),
-            arguments("Distribution 3", ExportMode.BUNDLE, Arrays.asList("file.json"), Arrays.asList(1l), Arrays.asList(RESOURCE_BUNDLE.getString("error.distribution.incorrect_file_command_usage"))),
-            arguments("Distribution 4", ExportMode.DEFAULT, Arrays.asList("file.json"), Arrays.asList(1l), Arrays.asList(RESOURCE_BUNDLE.getString("error.distribution.incorrect_bundle_id_command_usage")))
+            arguments("Distribution 1", ExportMode.BUNDLE, null, null, Arrays.asList(RESOURCE_BUNDLE.getString("error.distribution.empty_bundle_ids"))),
+            arguments("Distribution 2", ExportMode.BUNDLE, Arrays.asList("file.json"), Arrays.asList(1l), Arrays.asList(RESOURCE_BUNDLE.getString("error.distribution.incorrect_file_command_usage"))),
+            arguments("Distribution 3", ExportMode.DEFAULT, Arrays.asList("file.json"), Arrays.asList(1l), Arrays.asList(RESOURCE_BUNDLE.getString("error.distribution.incorrect_bundle_id_command_usage")))
         );
     }
 }

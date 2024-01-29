@@ -35,6 +35,9 @@ class StringAddSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...", order = -2)
     protected List<String> labelNames;
 
+    @CommandLine.Option(names = {"--branch"}, descriptionKey = "branch", paramLabel = "...", order = -2)
+    protected String branch;
+
     @CommandLine.Option(names = {"--hidden"}, order = -2)
     protected Boolean isHidden;
 
@@ -55,6 +58,6 @@ class StringAddSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.stringAdd(noProgress, text, identifier, maxLength, context, files, labelNames, isHidden);
+        return actions.stringAdd(noProgress, text, identifier, maxLength, context, files, labelNames, branch, isHidden);
     }
 }

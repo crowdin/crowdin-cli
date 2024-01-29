@@ -56,10 +56,6 @@ class DistributionAddSubcommand extends ActCommandDistribution {
             errors.add(RESOURCE_BUNDLE.getString("error.distribution.empty_name"));
         }
 
-        if (exportMode == DEFAULT && files == null) {
-            errors.add(RESOURCE_BUNDLE.getString("error.distribution.empty_file"));
-        }
-
         if (exportMode == BUNDLE && bundleIds == null) {
             errors.add(RESOURCE_BUNDLE.getString("error.distribution.empty_bundle_ids"));
         }

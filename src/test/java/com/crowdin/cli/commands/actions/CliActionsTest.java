@@ -49,7 +49,7 @@ public class CliActionsTest {
 
     @Test
     public void testStringAdd() {
-        assertNotNull(actions.stringAdd(false, null, null, null, null, null, null, null));
+        assertNotNull(actions.stringAdd(false, null, null, null, null, null, null, null, null));
     }
 
     @Test
@@ -119,7 +119,7 @@ public class CliActionsTest {
 
     @Test
     public void testDistributionRelease() {
-        assertNotNull(actions.distributionRelease(false,true,null));
+        assertNotNull(actions.distributionRelease(false,true,null, null));
     }
 
     @Test

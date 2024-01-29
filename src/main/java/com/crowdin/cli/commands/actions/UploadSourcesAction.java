@@ -1,10 +1,6 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.CrowdinProjectFull;
-import com.crowdin.cli.client.EmptyFileException;
-import com.crowdin.cli.client.ExistsResponseException;
-import com.crowdin.cli.client.FileInUpdateException;
-import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.actions.subactions.DeleteObsoleteProjectFilesSubAction;
@@ -15,23 +11,12 @@ import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
-import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
-import com.crowdin.client.sourcefiles.model.AddBranchRequest;
-import com.crowdin.client.sourcefiles.model.AddFileRequest;
-import com.crowdin.client.sourcefiles.model.Branch;
-import com.crowdin.client.sourcefiles.model.ExportOptions;
-import com.crowdin.client.sourcefiles.model.FileInfo;
-import com.crowdin.client.sourcefiles.model.GeneralFileExportOptions;
-import com.crowdin.client.sourcefiles.model.ImportOptions;
-import com.crowdin.client.sourcefiles.model.OtherFileImportOptions;
-import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
-import com.crowdin.client.sourcefiles.model.SpreadsheetFileImportOptions;
-import com.crowdin.client.sourcefiles.model.JavaScriptFileExportOptions;
-import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
-import com.crowdin.client.sourcefiles.model.XmlFileImportOptions;
+import com.crowdin.client.projectsgroups.model.Type;
+import com.crowdin.client.sourcefiles.model.*;
+import com.crowdin.client.sourcestrings.model.UploadStringsRequest;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -42,16 +27,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
-import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
-import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
-import static com.crowdin.client.sourcefiles.model.ExportQuotes.SINGLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 import static com.crowdin.client.sourcefiles.model.ExportQuotes.DOUBLE;
+import static com.crowdin.client.sourcefiles.model.ExportQuotes.SINGLE;
 
 class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
@@ -92,17 +74,25 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
         Branch branch = (branchName != null) ? BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView) : null;
         Long branchId = (branch != null) ? branch.getId() : null;
 
-        Map<String, Long> directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
-                .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
-
+        boolean isFilesBasedProject = Objects.equals(Type.FILES_BASED, project.getType());
+        Map<String, Long> directoryPaths = null;
+        Map<String, FileInfo> paths = null;
         DeleteObsoleteProjectFilesSubAction deleteObsoleteProjectFilesSubAction = new DeleteObsoleteProjectFilesSubAction(out, client);
-        if (deleteObsolete) {
-            Map<String, Long> directories = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(branchId))
+
+        if (isFilesBasedProject) {
+            directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
                 .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-            Map<String, com.crowdin.client.sourcefiles.model.File> projectFiles = ProjectFilesUtils.buildFilePaths(project.getDirectories(branchId), project.getFiles(branchId));
-            deleteObsoleteProjectFilesSubAction.setData(projectFiles, directories, pb.getPreserveHierarchy(), this.plainView);
+            paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
+            if (deleteObsolete) {
+                Map<String, Long> directories = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(branchId))
+                    .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
+                Map<String, com.crowdin.client.sourcefiles.model.File> projectFiles = ProjectFilesUtils.buildFilePaths(project.getDirectories(branchId), project.getFiles(branchId));
+                deleteObsoleteProjectFilesSubAction.setData(projectFiles, directories, pb.getPreserveHierarchy(), this.plainView);
+            }
         }
+
+        Map<String, Long> finalDirectoryPaths = directoryPaths;
+        Map<String, FileInfo> finalPaths = paths;
 
         List<String> uploadedSources = new ArrayList<>();
 
@@ -185,8 +175,8 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             uploadedSources.add(fileFullPath);
                         }
 
-                        FileInfo projectFile = paths.get(fileFullPath);
-                        if (autoUpdate && projectFile != null) {
+                        FileInfo projectFile = isFilesBasedProject ? finalPaths.get(fileFullPath) : null;
+                        if (isFilesBasedProject && autoUpdate && projectFile != null) {
                             final UpdateFileRequest request = new UpdateFileRequest();
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
                             request.setImportOptions(buildImportOptions(sourceFile, file, srxStorageId));
@@ -235,7 +225,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
                                 }
                             };
-                        } else if (projectFile == null) {
+                        } else if (projectFile == null && isFilesBasedProject) {
                             final AddFileRequest request = new AddFileRequest();
                             request.setName(fileName);
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
@@ -254,7 +244,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             return (Runnable) () -> {
                                 Long directoryId;
                                 try {
-                                    directoryId = ProjectUtils.createPath(out, client, directoryPaths, filePath, branch, plainView);
+                                    directoryId = ProjectUtils.createPath(out, client, finalDirectoryPaths, filePath, branch, plainView);
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.creating_directories"), e);
@@ -268,7 +258,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
                                     request.setStorageId(client.uploadStorage(source.substring(source.lastIndexOf(Utils.PATH_SEPARATOR) + 1), fileStream));
-                                } catch (EmptyFileException e){
+                                } catch (EmptyFileException e) {
                                     errorsPresented.set(false);
                                     out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped"), fileFullPath)));
                                     return;
@@ -282,6 +272,47 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 } catch (ExistsResponseException e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_already_exists"), fileFullPath));
+                                } catch (Exception e) {
+                                    errorsPresented.set(true);
+                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
+                                }
+                                if (!plainView) {
+                                    out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
+                                } else {
+                                    out.println(fileFullPath);
+                                }
+                            };
+                        } else if (Objects.equals(Type.STRINGS_BASED, project.getType())) {
+                            final UploadStringsRequest request = new UploadStringsRequest();
+                            request.setImportOptions(buildImportOptionsStringsBased(sourceFile, file, srxStorageId));
+                            if (file.getType() != null) {
+                                request.setType(file.getType());
+                            }
+                            if (file.getLabels() != null) {
+                                List<Long> labelsIds = file.getLabels().stream().map(labels::get)
+                                    .collect(Collectors.toList());
+                                request.setLabelIds(labelsIds);
+                            }
+
+                            return (Runnable) () -> {
+                                if (branch == null) {
+                                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
+                                }
+                                request.setBranchId(branch.getId());
+
+                                try (InputStream fileStream = new FileInputStream(sourceFile)) {
+                                    request.setStorageId(client.uploadStorage(source.substring(source.lastIndexOf(Utils.PATH_SEPARATOR) + 1), fileStream));
+                                } catch (EmptyFileException e) {
+                                    errorsPresented.set(false);
+                                    out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped"), fileFullPath)));
+                                    return;
+                                } catch (Exception e) {
+                                    errorsPresented.set(true);
+                                    throw new RuntimeException(
+                                        String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()), e);
+                                }
+                                try {
+                                    client.addSourceStringsBased(request);
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
@@ -336,6 +367,16 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             importOptions.setSrxStorageId(srxStorageId);
             return importOptions;
         }
+    }
+
+    private com.crowdin.client.sourcestrings.model.ImportOptions buildImportOptionsStringsBased(java.io.File sourceFile, FileBean fileBean, Long srxStorageId) {
+        com.crowdin.client.sourcestrings.model.ImportOptions importOptions = new com.crowdin.client.sourcestrings.model.ImportOptions();
+        if (isSpreadsheet(sourceFile, fileBean)) {
+            importOptions.setFirstLineContainsHeader(fileBean.getFirstLineContainsHeader());
+            importOptions.setScheme(PropertiesBeanUtils.getSchemeObject(fileBean.getScheme()));
+            importOptions.setImportTranslations(fileBean.getImportTranslations());
+        }
+        return importOptions;
     }
 
     private boolean isSpreadsheet(java.io.File file, FileBean fileBean) {

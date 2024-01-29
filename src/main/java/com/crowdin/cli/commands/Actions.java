@@ -48,7 +48,7 @@ public interface Actions {
         boolean noProgress, String branchName, String languageId, String file, String directory, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failIfIncomplete);
 
     NewAction<ProjectProperties, ProjectClient> stringAdd(
-        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, Boolean hidden);
+        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, String branch, Boolean hidden);
 
     NewAction<ProjectProperties, ProjectClient> stringComment(boolean plainView,
         boolean noProgress, String text, String stringId, String language, String type, String issueType);
@@ -97,7 +97,7 @@ public interface Actions {
 
     NewAction<ProjectProperties, ClientDistribution> distributionAdd(boolean noProgress, boolean plainView, String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds, String branch, ProjectClient projectClient);
 
-    NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, boolean plainView, String hash);
+    NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, boolean plainView, String hash, ProjectClient projectClient);
 
     NewAction<ProjectProperties, ClientComment> commentList(boolean plainView, boolean isVerbose, String stringId, com.crowdin.client.stringcomments.model.Type type, com.crowdin.client.issues.model.Type issueType, IssueStatus status);
 

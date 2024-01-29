@@ -80,9 +80,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<ProjectProperties, ProjectClient> stringAdd(
-        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, Boolean hidden
+        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, String branch, Boolean hidden
     ) {
-        return new StringAddAction(noProgress, text, identifier, maxLength, context, files, labelNames, hidden);
+        return new StringAddAction(noProgress, text, identifier, maxLength, context, files, labelNames, branch, hidden);
     }
     @Override
     public NewAction<ProjectProperties, ProjectClient> stringComment(boolean plainView,
@@ -189,8 +189,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, boolean plainView, String hash) {
-        return new DistributionReleaseAction(noProgress, plainView, hash);
+    public NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, boolean plainView, String hash, ProjectClient projectClient) {
+        return new DistributionReleaseAction(noProgress, plainView, hash, projectClient);
     }
 
     @Override

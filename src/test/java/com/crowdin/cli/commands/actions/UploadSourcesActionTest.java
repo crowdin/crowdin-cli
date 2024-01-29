@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.actions;
 
+import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ResponseException;
@@ -12,6 +13,7 @@ import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
 import com.crowdin.client.sourcefiles.model.AddFileRequest;
@@ -24,6 +26,8 @@ import com.crowdin.client.sourcefiles.model.OtherFileImportOptions;
 import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
 import com.crowdin.client.sourcefiles.model.SpreadsheetFileImportOptions;
 import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
+import com.crowdin.client.sourcestrings.model.ImportOptions;
+import com.crowdin.client.sourcestrings.model.UploadStringsRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -61,8 +65,10 @@ public class UploadSourcesActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+            .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
@@ -98,8 +104,10 @@ public class UploadSourcesActionTest {
         pb.getFiles().get(0).setContentSegmentation(null);
 
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+                .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
                 .thenReturn(1L);
 
@@ -135,8 +143,10 @@ public class UploadSourcesActionTest {
         pb.getFiles().get(0).setEscapeQuotes(1);
 
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-          .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+          .thenReturn(build);
         when(client.uploadStorage(eq("first.properties"), any()))
           .thenReturn(1L);
 
@@ -174,8 +184,10 @@ public class UploadSourcesActionTest {
         pb.getFiles().get(0).setExportQuotes("single");
 
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-          .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+          .thenReturn(build);
         when(client.uploadStorage(eq("first.js"), any()))
           .thenReturn(1L);
 
@@ -212,8 +224,10 @@ public class UploadSourcesActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+            .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
         AddDirectoryRequest addDirectoryRequest = new AddDirectoryRequest() {{
@@ -288,8 +302,10 @@ public class UploadSourcesActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+            .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
         Branch branch = BranchBuilder.standard().setProjectId(Long.parseLong(pb.getProjectId()))
@@ -332,9 +348,11 @@ public class UploadSourcesActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addBranches(201L, "newBranch").build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                .addBranches(201L, "newBranch").build());
+            .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
@@ -369,8 +387,10 @@ public class UploadSourcesActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+            .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
@@ -406,9 +426,11 @@ public class UploadSourcesActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.setPreserveHierarchy(true);
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addDirectory("folder", 101L, null, null).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                .addDirectory("folder", 101L, null, null).build());
+            .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
@@ -444,8 +466,10 @@ public class UploadSourcesActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setDest("last.po");
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+            .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
@@ -484,15 +508,17 @@ public class UploadSourcesActionTest {
         pb.setPreserveHierarchy(true);
         pb.setProjectId("551261");
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("locale.yml", "yaml", 66l, 209l, null, translationPattern)
+            .addFile("index.md", "yaml", 77l, 209l, null, translationPattern)
+            .addDirectory("docs", 207l, 215l, null)
+            .addDirectory("app", 215l, null, null)
+            .addDirectory("en", 209l, 207l, null)
+            .addDirectory("en", 225l, null, null)
+            .build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                        .addFile("locale.yml", "yaml", 66l, 209l, null, translationPattern)
-                        .addFile("index.md", "yaml", 77l, 209l, null, translationPattern)
-                        .addDirectory("docs", 207l, 215l, null)
-                        .addDirectory("app", 215l, null, null)
-                        .addDirectory("en", 209l, 207l, null)
-                        .addDirectory("en", 225l, null, null)
-                        .build());
+                .thenReturn(build);
         when(client.uploadStorage(eq("/docs/en/index.md"), any()))
                 .thenReturn(1L);
 
@@ -526,9 +552,11 @@ public class UploadSourcesActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("first.po", "gettext", 101L, null, null).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                .addFile("first.po", "gettext", 101L, null, null).build());
+            .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
         when(client.uploadStorage(eq("second.po"), any()))
@@ -579,8 +607,10 @@ public class UploadSourcesActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setScheme("identifier,source_phrase,context,uk,ru,fr");
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+                .thenReturn(build);
         when(client.uploadStorage(eq("first.csv"), any()))
                 .thenReturn(1L);
 
@@ -623,8 +653,10 @@ public class UploadSourcesActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setDest("%file_name%_file.%file_extension%");
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+            .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
@@ -660,8 +692,10 @@ public class UploadSourcesActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setDest("**/%original_file_name%");
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+            .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
         AddDirectoryRequest addDirectoryRequest1 = new AddDirectoryRequest() {{
@@ -705,8 +739,10 @@ public class UploadSourcesActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         pb.getFiles().get(0).setDest("%original_path%/inner/%original_file_name%");
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+            .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
         AddDirectoryRequest addDirectoryRequest1 = new AddDirectoryRequest() {{
@@ -747,6 +783,37 @@ public class UploadSourcesActionTest {
             );
         }};
         verify(client).addSource(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadOneSource_StringBasedProject() throws ResponseException {
+        project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).addBranches(2L, "main").build();
+        build.setType(Type.STRINGS_BASED);
+        when(client.downloadFullProject())
+            .thenReturn(build);
+        when(client.uploadStorage(eq("first.po"), any()))
+            .thenReturn(1L);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("main", false, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("first.po"), any());
+        UploadStringsRequest uploadStringsRequest = new UploadStringsRequest() {
+            {
+                setStorageId(1L);
+                setBranchId(2L);
+                setImportOptions(new ImportOptions());
+        }};
+        verify(client).addSourceStringsBased(eq(uploadStringsRequest));
         verifyNoMoreInteractions(client);
     }
 }

@@ -4,16 +4,21 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchUtils;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.labels.model.Label;
+import com.crowdin.client.projectsgroups.model.Type;
+import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
+import com.crowdin.client.sourcestrings.model.AddSourceStringStringsBasedRequest;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -29,10 +34,11 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
     private final String context;
     private final List<String> files;
     private final List<String> labelNames;
+    private final String branchName;
     private final Boolean hidden;
 
     public StringAddAction(
-        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, Boolean hidden
+        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, String branchName, Boolean hidden
     ) {
         this.noProgress = noProgress;
         this.text = text;
@@ -41,6 +47,7 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
         this.context = context;
         this.files = files;
         this.labelNames = labelNames;
+        this.branchName = branchName;
         this.hidden = hidden;
     }
 
@@ -52,10 +59,22 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
         List<Long> labelIds = (labelNames != null && !labelNames.isEmpty()) ? this.prepareLabelIds(client) : null;
 
         if (files == null || files.isEmpty()) {
-            AddSourceStringRequest request = RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, null, this.hidden, labelIds);
-            client.addSourceString(request);
+            if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
+                Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, false);
+                if (Objects.isNull(branch)) {
+                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
+                }
+                AddSourceStringStringsBasedRequest request = RequestBuilder.addStringStringsBased(this.text, this.identifier, this.maxLength, this.context, branch.getId(), this.hidden, labelIds);
+                client.addSourceStringStringsBased(request);
+            } else {
+                AddSourceStringRequest request = RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, null, this.hidden, labelIds);
+                client.addSourceString(request);
+            }
             out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.source_string_uploaded")));
         } else {
+            if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
+            }
             Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
             boolean containsError = false;
             for (String file : files) {
@@ -79,7 +98,6 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
                 throw new RuntimeException();
             }
         }
-
     }
 
     private List<Long> prepareLabelIds(ProjectClient client) {

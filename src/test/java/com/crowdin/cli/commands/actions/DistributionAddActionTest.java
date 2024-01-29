@@ -1,6 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.ClientDistribution;
+import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
@@ -13,8 +14,10 @@ import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.distributions.model.AddDistributionRequest;
+import com.crowdin.client.distributions.model.AddDistributionStringsBasedRequest;
 import com.crowdin.client.distributions.model.Distribution;
 import com.crowdin.client.distributions.model.ExportMode;
+import com.crowdin.client.projectsgroups.model.Type;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -68,8 +71,10 @@ public class DistributionAddActionTest {
                                             "/%original_file_name%-CR-%locale%")));
 
         ProjectClient projectClient = mock(ProjectClient.class);
+        CrowdinProjectFull build = projectBuilder.build();
+        build.setType(Type.FILES_BASED);
         when(projectClient.downloadFullProject(branch))
-                .thenReturn(projectBuilder.build());
+                .thenReturn(build);
 
         action = new DistributionAddAction(true, true, name, exportMode, files, bundleIds, branch, projectClient);
         action.act(Outputter.getDefault(), pb, client);
@@ -102,6 +107,40 @@ public class DistributionAddActionTest {
         action = new DistributionAddAction(true, false, null, null, null, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testDistributionAdd_StringsBasedProject() {
+        TempProject project = new TempProject(FileHelperTest.class);
+
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+
+        AddDistributionStringsBasedRequest request = new AddDistributionStringsBasedRequest();
+        request.setName("My Distribution 1");
+        request.setBundleIds(Arrays.asList(9));
+
+        ClientDistribution client = mock(ClientDistribution.class);
+        when(client.addDistributionStringsBased(request))
+            .thenReturn(new Distribution() {{
+                setName(request.getName());
+                setBundleIds(request.getBundleIds());
+            }});
+
+        ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
+        projectBuilder.addBranches(1L, "main");
+        ProjectClient projectClient = mock(ProjectClient.class);
+        CrowdinProjectFull build = projectBuilder.build();
+        build.setType(Type.STRINGS_BASED);
+        when(projectClient.downloadFullProject("main"))
+            .thenReturn(build);
+
+        action = new DistributionAddAction(true, true, "My Distribution 1", ExportMode.BUNDLE, null, Arrays.asList(9), "main", projectClient);
+        action.act(Outputter.getDefault(), pb, client);
+        verify(client).addDistributionStringsBased(request);
         verifyNoMoreInteractions(client);
     }
 

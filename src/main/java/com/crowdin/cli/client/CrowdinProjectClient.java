@@ -6,10 +6,7 @@ import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.*;
-import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
-import com.crowdin.client.sourcestrings.model.SourceString;
-import com.crowdin.client.sourcestrings.model.UploadStringsProgress;
-import com.crowdin.client.sourcestrings.model.UploadStringsRequest;
+import com.crowdin.client.sourcestrings.model.*;
 import com.crowdin.client.storage.model.Storage;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.StringComment;
@@ -329,6 +326,13 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public SourceString addSourceStringStringsBased(AddSourceStringStringsBasedRequest request) {
+        return executeRequest(() -> this.client.getSourceStringsApi()
+            .addSourceStringStringsBased(this.projectId, request)
+            .getData());
+    }
+
+    @Override
     public List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql) {
         return executeRequestFullList((limit, offset) -> this.client.getSourceStringsApi()
             .listSourceStrings(this.projectId, fileId, null, branchId, labelIds, croql, filter, null, limit, offset));
@@ -388,6 +392,13 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     public PreTranslationStatus startPreTranslation(ApplyPreTranslationRequest request) {
         return executeRequest(() ->this.client.getTranslationsApi()
             .applyPreTranslation(this.projectId, request)
+            .getData());
+    }
+
+    @Override
+    public PreTranslationStatus startPreTranslationStringsBased(ApplyPreTranslationStringsBasedRequest request) {
+        return executeRequest(() ->this.client.getTranslationsApi()
+            .applyPreTranslationStringsBased(this.projectId, request)
             .getData());
     }
 
