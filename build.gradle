@@ -55,8 +55,6 @@ dependencies {
     testImplementation Testing.junit.jupiter
     testImplementation Testing.hamcrest
     testImplementation Testing.mockito.core
-
-    spotbugsPlugins 'com.h3xstream.findsecbugs:findsecbugs-plugin:_'
 }
 
 dependencies {
