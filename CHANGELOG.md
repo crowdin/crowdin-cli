@@ -1,5 +1,12 @@
 # Changelog
 
+# [3.17.0](https://github.com/crowdin/crowdin-cli/compare/3.16.1...3.17.0) (2024-01-30)
+
+
+### Features
+
+* file command ([#708](https://github.com/crowdin/crowdin-cli/issues/708)) ([251867b](https://github.com/crowdin/crowdin-cli/commit/251867ba9b53ef972fb66b202cb5ee2c9c007212))
+
 ## [3.16.1](https://github.com/crowdin/crowdin-cli/compare/3.16.0...3.16.1) (2024-01-18)
 
 
