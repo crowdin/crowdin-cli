@@ -62,7 +62,7 @@ class DistributionReleaseAction implements NewAction<ProjectProperties, ClientDi
                         release = client.getDistributionRelease(hash);
 
                         if ("failed".equalsIgnoreCase(release.getStatus())) {
-                            throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.build_has_failed"));
+                            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.distribution_failed"));
                         }
                     }
 
@@ -92,7 +92,7 @@ class DistributionReleaseAction implements NewAction<ProjectProperties, ClientDi
                         release = client.getDistributionStringsBasedRelease(hash);
 
                         if ("failed".equalsIgnoreCase(release.getStatus())) {
-                            throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.build_has_failed"));
+                            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.distribution_failed"));
                         }
                     }
 

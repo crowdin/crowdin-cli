@@ -110,6 +110,15 @@ public class RequestBuilder {
         return request;
     }
 
+    public static UploadTranslationsStringsRequest uploadTranslationsStrings(Long branchId, boolean importEqSuggestions, boolean autoApproveImported, boolean translateHidden) {
+        UploadTranslationsStringsRequest request = new UploadTranslationsStringsRequest();
+        request.setBranchId(branchId);
+        request.setImportEqSuggestions(importEqSuggestions);
+        request.setAutoApproveImported(autoApproveImported);
+        request.setTranslateHidden(translateHidden);
+        return request;
+    }
+
     public static PatchRequest patch(Object value, PatchOperation op, String path) {
         PatchRequest request = new PatchRequest();
         request.setValue(value);

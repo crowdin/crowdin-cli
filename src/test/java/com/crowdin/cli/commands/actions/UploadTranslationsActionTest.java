@@ -213,9 +213,9 @@ public class UploadTranslationsActionTest {
     @Test
     public void testUploadOneOfTwoTranslation_StringBasedProject() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
-        project.addFile(Utils.normalizePath("translation.po"), "Hello, World!");
+        project.addFile(Utils.normalizePath("first.po-CR-uk-UA"), "Hello, World!");
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
-            .minimalBuiltPropertiesBean("*", "translation.po")
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%", Arrays.asList("*-CR-*"))
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
@@ -223,14 +223,14 @@ public class UploadTranslationsActionTest {
         build.setType(Type.STRINGS_BASED);
         when(client.downloadFullProject("main"))
             .thenReturn(build);
-        when(client.uploadStorage(eq("translation.po"), any()))
+        when(client.uploadStorage(eq("first.po-CR-uk-UA"), any()))
             .thenReturn(1L);
 
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, "main", false, false, false, false, false);
         assertDoesNotThrow(() -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject("main");
-        verify(client).uploadStorage(eq("translation.po"), any());
+        verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
         UploadTranslationsStringsRequest uploadTranslationRequest = new UploadTranslationsStringsRequest() {{
             setStorageId(1L);
             setBranchId(2L);

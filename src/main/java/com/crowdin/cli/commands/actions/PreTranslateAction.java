@@ -79,10 +79,8 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                 duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds);
             this.applyPreTranslation(out, client, request);
         } else if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
-            Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, false);
-            if (Objects.isNull(branch)) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
-            }
+            Branch branch = project.findBranchByName(branchName)
+                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project")));
             ApplyPreTranslationStringsBasedRequest request = RequestBuilder.applyPreTranslationStringsBased(
                 languages, Collections.singletonList(branch.getId()), method, engineId, autoApproveOption,
                 duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds);

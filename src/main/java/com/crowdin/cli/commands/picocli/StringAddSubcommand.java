@@ -35,7 +35,7 @@ class StringAddSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...", order = -2)
     protected List<String> labelNames;
 
-    @CommandLine.Option(names = {"--branch"}, descriptionKey = "branch", paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"-b", "--branch"}, descriptionKey = "branch", paramLabel = "...", order = -2)
     protected String branch;
 
     @CommandLine.Option(names = {"--hidden"}, order = -2)
