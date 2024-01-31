@@ -65,7 +65,7 @@ public class PropertiesWithFiles extends ProjectProperties {
         public PropertiesBuilder.Messages checkProperties(PropertiesWithFiles props, CheckType checkType) {
             PropertiesBuilder.Messages messages = new PropertiesBuilder.Messages();
             if (props.getFiles() == null || props.getFiles().isEmpty()) {
-                messages.addWarning(RESOURCE_BUNDLE.getString("message.warning.empty_or_missed_section_files"));
+                messages.addError(RESOURCE_BUNDLE.getString("error.config.empty_or_missed_section_files"));
             } else {
                 for (FileBean fileBean : props.getFiles()) {
                     messages.addAllErrors(FileBean.CONFIGURATOR.checkProperties(fileBean));
