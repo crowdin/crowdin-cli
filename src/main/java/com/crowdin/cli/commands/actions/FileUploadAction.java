@@ -4,6 +4,7 @@ import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.*;
+import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
@@ -47,6 +48,16 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.plainView, this.plainView, client::downloadFullProject);
+
+        if (!project.isManagerAccess()) {
+            if (!plainView) {
+                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
+                return;
+            } else {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+            }
+        }
+
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), properties.getBasePath());
 
         Optional<List<Long>> attachLabelIds = Optional.empty();

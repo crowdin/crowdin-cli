@@ -40,6 +40,15 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.plainView, this.plainView, () -> client.downloadFullProject(branchName));
 
+        if (!project.isManagerAccess()) {
+            if (!plainView) {
+                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
+                return;
+            } else {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+            }
+        }
+
         if (!project.findLanguageById(languageId, true).isPresent()) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId));
         }
