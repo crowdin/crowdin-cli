@@ -55,11 +55,12 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, client::downloadFullProject);
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
         List<Long> labelIds = (labelNames != null && !labelNames.isEmpty()) ? this.prepareLabelIds(client) : null;
 
         if (files == null || files.isEmpty()) {
-            if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
+            if (isStringsBasedProject) {
                 Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, false);
                 if (Objects.isNull(branch)) {
                     throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
@@ -72,7 +73,7 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
             }
             out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.source_string_uploaded")));
         } else {
-            if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
+            if (isStringsBasedProject) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
             }
             Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());

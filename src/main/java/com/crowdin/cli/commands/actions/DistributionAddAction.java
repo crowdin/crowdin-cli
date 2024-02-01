@@ -51,9 +51,11 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
                 this.plainView,
                 () -> this.projectClient.downloadFullProject(this.branch)
         );
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
+
         List<Long> fileIds = null;
         if (files != null) {
-            if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
+            if (isStringsBasedProject) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
             }
             Map<String, Long> projectBranches = project.getBranches().values().stream()
@@ -81,12 +83,12 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
                     .filter(file -> files.contains(file.getPath()))
                     .map(FileInfo::getId)
                     .collect(Collectors.toList());
-        } else if (exportMode == DEFAULT && Objects.equals(project.getType(), Type.FILES_BASED)) {
+        } else if (exportMode == DEFAULT && !isStringsBasedProject) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.distribution.empty_file"));
         }
 
         Distribution distribution = null;
-        if (Objects.equals(project.getType(), Type.FILES_BASED)) {
+        if (!isStringsBasedProject) {
             AddDistributionRequest addDistributionRequest = RequestBuilder.addDistribution(name, exportMode, fileIds, bundleIds);
             Optional.ofNullable(name).ifPresent(addDistributionRequest::setName);
             Optional.ofNullable(exportMode).ifPresent(addDistributionRequest::setExportMode);
@@ -98,7 +100,7 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
             } catch (Exception e) {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.distribution_is_not_added"), addDistributionRequest), e);
             }
-        } else if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
+        } else if (isStringsBasedProject) {
             AddDistributionStringsBasedRequest addDistributionRequest = new AddDistributionStringsBasedRequest();
             addDistributionRequest.setName(name);
             if (Objects.isNull(bundleIds)) {

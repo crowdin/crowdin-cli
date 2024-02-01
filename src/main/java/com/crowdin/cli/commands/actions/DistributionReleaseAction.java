@@ -35,9 +35,11 @@ class DistributionReleaseAction implements NewAction<ProjectProperties, ClientDi
             this.plainView,
             () -> this.projectClient.downloadProjectInfo()
         );
-        if (Objects.equals(project.getType(), Type.FILES_BASED)) {
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
+
+        if (!isStringsBasedProject) {
             this.releaseDistributionFilesBased(out, client);
-        } else if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
+        } else {
             this.releaseDistributionStringsBased(out, client);
         }
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.distribution.released"), hash)));

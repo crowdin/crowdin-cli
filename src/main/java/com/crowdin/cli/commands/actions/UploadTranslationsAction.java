@@ -67,6 +67,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
     public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
@@ -105,7 +106,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
             }
             List<Runnable> tasks = null;
             AtomicBoolean containsErrors = new AtomicBoolean(false);
-            if (Objects.equals(project.getType(), Type.FILES_BASED)) {
+            if (!isStringsBasedProject) {
                 Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
                 Map<java.io.File, Pair<List<Language>, UploadTranslationsRequest>> preparedRequests = new HashMap<>();
                 String branchPath = (StringUtils.isNotEmpty(this.branchName) ? branchName + Utils.PATH_SEPARATOR : "");
@@ -177,7 +178,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         }
                     })
                     .collect(Collectors.toList());
-            } else if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
+            } else {
                 Map<java.io.File, Pair<List<Language>, UploadTranslationsStringsRequest>> preparedRequests = new HashMap<>();
                 Branch branch = project.findBranchByName(branchName)
                     .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project")));

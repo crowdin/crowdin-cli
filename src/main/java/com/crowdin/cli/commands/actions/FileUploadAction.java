@@ -48,6 +48,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.plainView, this.plainView, client::downloadFullProject);
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
@@ -67,7 +68,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
 
         String fileFullPath = file.getPath();
         String fileDestName = file.getName();
-        if (Objects.equals(Type.FILES_BASED, project.getType())) {
+        if (!isStringsBasedProject) {
             String commonPath = SourcesUtils.getCommonPath(Collections.singletonList(this.file.getAbsolutePath()), properties.getBasePath());
             final String filePath = (nonNull(dest))
                 ? PropertiesBeanUtils.prepareDest(dest, StringUtils.removeStart(file.getAbsolutePath(), properties.getBasePath()), placeholderUtil)
@@ -121,7 +122,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         Optional<Branch> branch = Optional.empty();
         if (StringUtils.isNotEmpty(branchName)) {
             branch = Optional.ofNullable(BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView));
-        } else if (Objects.equals(Type.STRINGS_BASED, project.getType())) {
+        } else if (isStringsBasedProject) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
         }
 
@@ -132,7 +133,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             excludedLanguageNames = Optional.of(filterExcludedLanguages(excludedLanguages, project));
         }
 
-        if (Objects.equals(Type.FILES_BASED, project.getType())) {
+        if (!isStringsBasedProject) {
             AddFileRequest request = new AddFileRequest();
             request.setName(fileDestName);
             request.setStorageId(storageId);
@@ -152,7 +153,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             }
 
         }
-        if (Objects.equals(Type.STRINGS_BASED, project.getType())) {
+        if (isStringsBasedProject) {
             UploadStringsRequest request = new UploadStringsRequest();
             request.setBranchId(branch.orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"))).getId());
             request.setCleanupMode(cleanupMode);

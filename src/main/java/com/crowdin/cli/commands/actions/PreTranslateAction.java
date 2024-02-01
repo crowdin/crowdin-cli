@@ -65,11 +65,12 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
     public void act(Outputter out, PropertiesWithFiles properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
         List<String> languages = this.prepareLanguageIds(project);
         List<Long> labelIds = this.prepareLabelIds(out, client);
 
-        if (Objects.equals(project.getType(), Type.FILES_BASED)) {
+        if (!isStringsBasedProject) {
             List<Long> fileIds = this.prepareFileIds(out, properties, project);
             if (fileIds == null || fileIds.isEmpty()) {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.no_files_found_for_pre_translate")));
@@ -78,7 +79,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                 languages, fileIds, method, engineId, autoApproveOption,
                 duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds);
             this.applyPreTranslation(out, client, request);
-        } else if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
+        } else {
             Branch branch = project.findBranchByName(branchName)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project")));
             ApplyPreTranslationStringsBasedRequest request = RequestBuilder.applyPreTranslationStringsBased(

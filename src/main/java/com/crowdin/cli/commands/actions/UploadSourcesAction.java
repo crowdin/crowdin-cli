@@ -57,6 +57,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
     public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, this.plainView, client::downloadFullProject);
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
         boolean containsExcludedLanguages = pb.getFiles().stream()
             .map(FileBean::getExcludedTargetLanguages).filter(Objects::nonNull).anyMatch(l -> !l.isEmpty());
@@ -74,12 +75,11 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
         Branch branch = (branchName != null) ? BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView) : null;
         Long branchId = (branch != null) ? branch.getId() : null;
 
-        boolean isFilesBasedProject = Objects.equals(Type.FILES_BASED, project.getType());
         Map<String, Long> directoryPaths = null;
         Map<String, FileInfo> paths = null;
         DeleteObsoleteProjectFilesSubAction deleteObsoleteProjectFilesSubAction = new DeleteObsoleteProjectFilesSubAction(out, client);
 
-        if (isFilesBasedProject) {
+        if (!isStringsBasedProject) {
             directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
                 .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
             paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
@@ -175,8 +175,8 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             uploadedSources.add(fileFullPath);
                         }
 
-                        FileInfo projectFile = isFilesBasedProject ? finalPaths.get(fileFullPath) : null;
-                        if (isFilesBasedProject && autoUpdate && projectFile != null) {
+                        FileInfo projectFile = !isStringsBasedProject ? finalPaths.get(fileFullPath) : null;
+                        if (!isStringsBasedProject && autoUpdate && projectFile != null) {
                             final UpdateFileRequest request = new UpdateFileRequest();
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
                             request.setImportOptions(buildImportOptions(sourceFile, file, srxStorageId));
@@ -225,7 +225,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
                                 }
                             };
-                        } else if (projectFile == null && isFilesBasedProject) {
+                        } else if (projectFile == null && !isStringsBasedProject) {
                             final AddFileRequest request = new AddFileRequest();
                             request.setName(fileName);
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
@@ -282,7 +282,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     out.println(fileFullPath);
                                 }
                             };
-                        } else if (Objects.equals(Type.STRINGS_BASED, project.getType())) {
+                        } else if (isStringsBasedProject) {
                             final UploadStringsRequest request = new UploadStringsRequest();
                             request.setImportOptions(buildImportOptionsStringsBased(sourceFile, file, srxStorageId));
                             if (file.getType() != null) {

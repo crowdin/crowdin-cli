@@ -39,6 +39,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.plainView, this.plainView, () -> client.downloadFullProject(branchName));
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
@@ -53,7 +54,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId));
         }
 
-        if (Objects.equals(Type.FILES_BASED, project.getType())) {
+        if (!isStringsBasedProject) {
             if (Objects.isNull(dest))
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file.dest_required"), languageId));
             String sourcePath = Utils.toUnixPath(Utils.sepAtStart(dest));
@@ -72,7 +73,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
                 throw new RuntimeException(String.format(
                     RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()), e);
             }
-        } else if (Objects.equals(Type.STRINGS_BASED, project.getType())) {
+        } else {
             UploadTranslationsStringsRequest request = new UploadTranslationsStringsRequest();
             Branch branch = project.findBranchByName(branchName)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project")));

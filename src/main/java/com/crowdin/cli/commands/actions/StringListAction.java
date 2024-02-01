@@ -46,6 +46,7 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, () -> client.downloadFullProject(this.branchName));
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
         Long branchId = Optional.ofNullable(project.getBranch())
             .map(Branch::getId)
@@ -54,10 +55,9 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         Map<Long, String> labels = client.listLabels().stream()
             .collect(Collectors.toMap(Label::getId, Label::getTitle));
 
-        boolean isFileBasedProject = Objects.equals(project.getType(), Type.FILES_BASED);
         Map<String, FileInfo> paths = null;
         Map<Long, String> reversePaths = null;
-        if (isFileBasedProject) {
+        if (!isStringsBasedProject) {
             paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
             reversePaths = paths.entrySet()
                 .stream()
@@ -72,7 +72,7 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         if (StringUtils.isEmpty(file)) {
             sourceStrings = client.listSourceString(null, branchId, null, encodedFilter, encodedCroql);
         } else {
-            if (!isFileBasedProject) {
+            if (isStringsBasedProject) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
             }
             if (paths.containsKey(file)) {
@@ -97,7 +97,7 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
                     out.println(String.format(
                         RESOURCE_BUNDLE.getString("message.source_string_list_context"), ss.getContext().trim().replaceAll("\n", "\n\t\t")));
                 }
-                if (isFileBasedProject && (ss.getFileId() != null)) {
+                if (!isStringsBasedProject && (ss.getFileId() != null)) {
                     out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_file"), finalReversePaths.get(ss.getFileId())));
                 }
                 if (ss.getMaxLength() != null && ss.getMaxLength() != 0) {

@@ -64,7 +64,8 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
                 .ifPresent(project::setBranch);
         Long branchId = Optional.ofNullable(project.getBranch()).map(Branch::getId).orElse(null);
 
-        if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
+        if (isStringsBasedProject) {
             return;
         }
         project.setFiles(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()

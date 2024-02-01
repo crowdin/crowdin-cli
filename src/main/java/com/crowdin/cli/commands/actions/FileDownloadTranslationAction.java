@@ -39,7 +39,8 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
                 false, false, client::downloadFullProject);
-        if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
+        if (isStringsBasedProject) {
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_file_string_project")));
             return;
         }
