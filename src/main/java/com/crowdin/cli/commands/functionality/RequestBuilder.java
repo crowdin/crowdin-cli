@@ -12,6 +12,7 @@ import com.crowdin.client.glossaries.model.ImportGlossaryRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
+import com.crowdin.client.sourcestrings.model.AddSourceStringStringsBasedRequest;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.Type;
 import com.crowdin.client.tasks.model.CreateTaskRequest;
@@ -20,14 +21,7 @@ import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryExportRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
-import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
-import com.crowdin.client.translations.model.AutoApproveOption;
-import com.crowdin.client.translations.model.CharTransformation;
-import com.crowdin.client.translations.model.CrowdinTranslationCraeteProjectPseudoBuildForm;
-import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
-import com.crowdin.client.translations.model.ExportProjectTranslationRequest;
-import com.crowdin.client.translations.model.Method;
-import com.crowdin.client.translations.model.UploadTranslationsRequest;
+import com.crowdin.client.translations.model.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +37,18 @@ public class RequestBuilder {
         request.setMaxLength(maxLength);
         request.setContext(context);
         request.setFileId(fileId);
+        request.setIsHidden(hidden);
+        request.setLabelIds(labelIds);
+        return request;
+    }
+
+    public static AddSourceStringStringsBasedRequest addStringStringsBased(String text, String identifier, Integer maxLength, String context, Long branchId, Boolean hidden, List<Long> labelIds) {
+        AddSourceStringStringsBasedRequest request = new AddSourceStringStringsBasedRequest();
+        request.setText(text);
+        request.setIdentifier(identifier);
+        request.setMaxLength(maxLength);
+        request.setContext(context);
+        request.setBranchId(branchId);
         request.setIsHidden(hidden);
         request.setLabelIds(labelIds);
         return request;
@@ -98,6 +104,15 @@ public class RequestBuilder {
     public static UploadTranslationsRequest uploadTranslations(Long fileId, boolean importEqSuggestions, boolean autoApproveImported, boolean translateHidden) {
         UploadTranslationsRequest request = new UploadTranslationsRequest();
         request.setFileId(fileId);
+        request.setImportEqSuggestions(importEqSuggestions);
+        request.setAutoApproveImported(autoApproveImported);
+        request.setTranslateHidden(translateHidden);
+        return request;
+    }
+
+    public static UploadTranslationsStringsRequest uploadTranslationsStrings(Long branchId, boolean importEqSuggestions, boolean autoApproveImported, boolean translateHidden) {
+        UploadTranslationsStringsRequest request = new UploadTranslationsStringsRequest();
+        request.setBranchId(branchId);
         request.setImportEqSuggestions(importEqSuggestions);
         request.setAutoApproveImported(autoApproveImported);
         request.setTranslateHidden(translateHidden);
@@ -275,6 +290,23 @@ public class RequestBuilder {
         ApplyPreTranslationRequest request = new ApplyPreTranslationRequest();
         request.setLanguageIds(languageIds);
         request.setFileIds(fileIds);
+        request.setMethod(method);
+        request.setEngineId(engineId);
+        request.setAutoApproveOption(autoApproveOption);
+        request.setDuplicateTranslations(duplicateTranslations);
+        request.setTranslateUntranslatedOnly(translateUntranslatedOnly);
+        request.setTranslateWithPerfectMatchOnly(translateWithPerfectMatchOnly);
+        request.setLabelIds(labelIds);
+        return request;
+    }
+
+    public static ApplyPreTranslationStringsBasedRequest applyPreTranslationStringsBased(
+        List<String> languageIds, List<Long> branchId, Method method, Long engineId, AutoApproveOption autoApproveOption,
+        Boolean duplicateTranslations, Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, List<Long> labelIds
+    ) {
+        ApplyPreTranslationStringsBasedRequest request = new ApplyPreTranslationStringsBasedRequest();
+        request.setLanguageIds(languageIds);
+        request.setBranchIds(branchId);
         request.setMethod(method);
         request.setEngineId(engineId);
         request.setAutoApproveOption(autoApproveOption);

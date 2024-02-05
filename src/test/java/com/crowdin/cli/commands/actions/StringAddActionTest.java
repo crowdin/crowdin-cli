@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.actions;
 
+import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ResponseException;
@@ -11,7 +12,9 @@ import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.labels.model.Label;
+import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
+import com.crowdin.client.sourcestrings.model.AddSourceStringStringsBasedRequest;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -40,7 +43,7 @@ public class StringAddActionTest {
     @MethodSource
     public void testStringAdd(
         String text, String identifier, Integer maxLength, String context, List<Long> labelIds, List<String> labelNames, Boolean hidden, Map<String, Long> files, String[] stringFiles
-    ) throws ResponseException {
+    ) {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
@@ -67,11 +70,13 @@ public class StringAddActionTest {
         }
 
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = projectBuilder.build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(projectBuilder.build());
+            .thenReturn(build);
 
         action =
-            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, hidden);
+            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, null, hidden);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -131,11 +136,13 @@ public class StringAddActionTest {
         }
 
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = projectBuilder.build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(projectBuilder.build());
+            .thenReturn(build);
 
         action =
-            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, hidden);
+            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, null, hidden);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -157,7 +164,7 @@ public class StringAddActionTest {
         when(client.downloadFullProject())
             .thenThrow(new RuntimeException("Whoops"));
 
-        action = new StringAddAction(false, null, null, null, null, null, null, null);
+        action = new StringAddAction(false, null, null, null, null, null, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -205,8 +212,10 @@ public class StringAddActionTest {
         }
 
         ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = projectBuilder.build();
+        build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
-            .thenReturn(projectBuilder.build());
+            .thenReturn(build);
         List<Label> labelsResponse = labels.entrySet().stream()
             .map(entry -> createLabel(entry.getKey(), entry.getValue()))
             .collect(Collectors.toList());
@@ -215,7 +224,7 @@ public class StringAddActionTest {
 
 
         action =
-            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), new ArrayList<>(labels.values()), hidden);
+            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), new ArrayList<>(labels.values()), null, hidden);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -232,5 +241,32 @@ public class StringAddActionTest {
         label.setId(id);
         label.setTitle(title);
         return label;
+    }
+
+    @Test
+    public void testStringAdd_StringsBasedProject() {
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(Utils.PATH_SEPARATOR);
+        PropertiesWithFiles pb = pbBuilder.build();
+        AddSourceStringStringsBasedRequest request = RequestBuilder.addStringStringsBased(
+            "first text", "1.1", 42, "It's first text", 1L, false, null);
+
+        ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).addBranches(1L, "main");
+
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = projectBuilder.build();
+        build.setType(Type.STRINGS_BASED);
+        when(client.downloadFullProject())
+            .thenReturn(build);
+
+        action =
+            new StringAddAction(true, "first text", "1.1", 42, "It's first text", null, null, "main", false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).addSourceStringStringsBased(request);
+
+        verifyNoMoreInteractions(client);
     }
 }

@@ -9,6 +9,7 @@ import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.labels.model.Label;
+import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcestrings.model.SourceString;
@@ -16,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -44,6 +46,7 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, () -> client.downloadFullProject(this.branchName));
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
         Long branchId = Optional.ofNullable(project.getBranch())
             .map(Branch::getId)
@@ -52,10 +55,15 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         Map<Long, String> labels = client.listLabels().stream()
             .collect(Collectors.toMap(Label::getId, Label::getTitle));
 
-        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
-        Map<Long, String> reversePaths = paths.entrySet()
-            .stream()
-            .collect(Collectors.toMap((entry) -> entry.getValue().getId(), Map.Entry::getKey));
+        Map<String, FileInfo> paths = null;
+        Map<Long, String> reversePaths = null;
+        if (!isStringsBasedProject) {
+            paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
+            reversePaths = paths.entrySet()
+                .stream()
+                .collect(Collectors.toMap((entry) -> entry.getValue().getId(), Map.Entry::getKey));
+        }
+        Map<Long, String> finalReversePaths = reversePaths;
 
         String encodedFilter = filter != null ? Utils.encodeURL(filter) : null;
         String encodedCroql = croql != null ? Utils.encodeURL(croql) : null;
@@ -64,6 +72,9 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         if (StringUtils.isEmpty(file)) {
             sourceStrings = client.listSourceString(null, branchId, null, encodedFilter, encodedCroql);
         } else {
+            if (isStringsBasedProject) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
+            }
             if (paths.containsKey(file)) {
                 sourceStrings = client.listSourceString(paths.get(file).getId(), branchId, null, encodedFilter, encodedCroql);
             } else {
@@ -86,8 +97,8 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
                     out.println(String.format(
                         RESOURCE_BUNDLE.getString("message.source_string_list_context"), ss.getContext().trim().replaceAll("\n", "\n\t\t")));
                 }
-                if (ss.getFileId() != null) {
-                    out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_file"), reversePaths.get(ss.getFileId())));
+                if (!isStringsBasedProject && (ss.getFileId() != null)) {
+                    out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_file"), finalReversePaths.get(ss.getFileId())));
                 }
                 if (ss.getMaxLength() != null && ss.getMaxLength() != 0) {
                     out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_max_length"), ss.getMaxLength()));

@@ -10,8 +10,10 @@ import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.distributions.model.AddDistributionRequest;
+import com.crowdin.client.distributions.model.AddDistributionStringsBasedRequest;
 import com.crowdin.client.distributions.model.Distribution;
 import com.crowdin.client.distributions.model.ExportMode;
+import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import lombok.AllArgsConstructor;
@@ -19,11 +21,13 @@ import lombok.AllArgsConstructor;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.client.distributions.model.ExportMode.DEFAULT;
 
 @AllArgsConstructor
 class DistributionAddAction implements NewAction<ProjectProperties, ClientDistribution> {
@@ -47,8 +51,13 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
                 this.plainView,
                 () -> this.projectClient.downloadFullProject(this.branch)
         );
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
+
         List<Long> fileIds = null;
         if (files != null) {
+            if (isStringsBasedProject) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
+            }
             Map<String, Long> projectBranches = project.getBranches().values().stream()
                                                        .collect(Collectors.toMap(Branch::getName, Branch::getId));
             List<String> projectFiles = project.getFiles().stream()
@@ -74,19 +83,36 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
                     .filter(file -> files.contains(file.getPath()))
                     .map(FileInfo::getId)
                     .collect(Collectors.toList());
+        } else if (exportMode == DEFAULT && !isStringsBasedProject) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.distribution.empty_file"));
         }
 
-        Distribution distribution;
-        AddDistributionRequest addDistributionRequest = RequestBuilder.addDistribution(name, exportMode, fileIds, bundleIds);
-        Optional.ofNullable(name).ifPresent(addDistributionRequest::setName);
-        Optional.ofNullable(exportMode).ifPresent(addDistributionRequest::setExportMode);
-        Optional.ofNullable(fileIds).ifPresent(addDistributionRequest::setFileIds);
-        Optional.ofNullable(bundleIds).ifPresent(addDistributionRequest::setBundleIds);
+        Distribution distribution = null;
+        if (!isStringsBasedProject) {
+            AddDistributionRequest addDistributionRequest = RequestBuilder.addDistribution(name, exportMode, fileIds, bundleIds);
+            Optional.ofNullable(name).ifPresent(addDistributionRequest::setName);
+            Optional.ofNullable(exportMode).ifPresent(addDistributionRequest::setExportMode);
+            Optional.ofNullable(fileIds).ifPresent(addDistributionRequest::setFileIds);
+            Optional.ofNullable(bundleIds).ifPresent(addDistributionRequest::setBundleIds);
 
-        try {
-            distribution = client.addDistribution(addDistributionRequest);
-        } catch (Exception e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.distribution_is_not_added"), addDistributionRequest), e);
+            try {
+                distribution = client.addDistribution(addDistributionRequest);
+            } catch (Exception e) {
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.distribution_is_not_added"), addDistributionRequest), e);
+            }
+        } else if (isStringsBasedProject) {
+            AddDistributionStringsBasedRequest addDistributionRequest = new AddDistributionStringsBasedRequest();
+            addDistributionRequest.setName(name);
+            if (Objects.isNull(bundleIds)) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.distribution.empty_bundle_ids"));
+            }
+            addDistributionRequest.setBundleIds(bundleIds);
+
+            try {
+                distribution = client.addDistributionStringsBased(addDistributionRequest);
+            } catch (Exception e) {
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.distribution_is_not_added"), addDistributionRequest), e);
+            }
         }
 
         if (!plainView) {

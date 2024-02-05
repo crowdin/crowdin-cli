@@ -4,6 +4,7 @@ import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.*;
+import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
@@ -47,6 +48,17 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.plainView, this.plainView, client::downloadFullProject);
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
+
+        if (!project.isManagerAccess()) {
+            if (!plainView) {
+                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
+                return;
+            } else {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+            }
+        }
+
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), properties.getBasePath());
 
         Optional<List<Long>> attachLabelIds = Optional.empty();
@@ -56,7 +68,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
 
         String fileFullPath = file.getPath();
         String fileDestName = file.getName();
-        if (Objects.equals(Type.FILES_BASED, project.getType())) {
+        if (!isStringsBasedProject) {
             String commonPath = SourcesUtils.getCommonPath(Collections.singletonList(this.file.getAbsolutePath()), properties.getBasePath());
             final String filePath = (nonNull(dest))
                 ? PropertiesBeanUtils.prepareDest(dest, StringUtils.removeStart(file.getAbsolutePath(), properties.getBasePath()), placeholderUtil)
@@ -110,7 +122,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         Optional<Branch> branch = Optional.empty();
         if (StringUtils.isNotEmpty(branchName)) {
             branch = Optional.ofNullable(BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView));
-        } else if (Objects.equals(Type.STRINGS_BASED, project.getType())) {
+        } else if (isStringsBasedProject) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
         }
 
@@ -121,7 +133,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             excludedLanguageNames = Optional.of(filterExcludedLanguages(excludedLanguages, project));
         }
 
-        if (Objects.equals(Type.FILES_BASED, project.getType())) {
+        if (!isStringsBasedProject) {
             AddFileRequest request = new AddFileRequest();
             request.setName(fileDestName);
             request.setStorageId(storageId);
@@ -141,7 +153,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             }
 
         }
-        if (Objects.equals(Type.STRINGS_BASED, project.getType())) {
+        if (isStringsBasedProject) {
             UploadStringsRequest request = new UploadStringsRequest();
             request.setBranchId(branch.orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"))).getId());
             request.setCleanupMode(cleanupMode);

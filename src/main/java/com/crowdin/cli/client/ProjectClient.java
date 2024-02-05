@@ -6,10 +6,7 @@ import com.crowdin.client.distributions.model.DistributionRelease;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.sourcefiles.model.*;
-import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
-import com.crowdin.client.sourcestrings.model.SourceString;
-import com.crowdin.client.sourcestrings.model.UploadStringsProgress;
-import com.crowdin.client.sourcestrings.model.UploadStringsRequest;
+import com.crowdin.client.sourcestrings.model.*;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.StringComment;
 import com.crowdin.client.translations.model.*;
@@ -83,6 +80,8 @@ public interface ProjectClient extends Client {
 
     SourceString addSourceString(AddSourceStringRequest request);
 
+    SourceString addSourceStringStringsBased(AddSourceStringStringsBasedRequest request);
+
     List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql);
 
     void deleteSourceString(Long id);
@@ -100,6 +99,8 @@ public interface ProjectClient extends Client {
     URL downloadFile(Long fileId);
 
     PreTranslationStatus startPreTranslation(ApplyPreTranslationRequest request);
+
+    PreTranslationStatus startPreTranslationStringsBased(ApplyPreTranslationStringsBasedRequest request);
 
     PreTranslationStatus checkPreTranslation(String preTranslationId);
 }

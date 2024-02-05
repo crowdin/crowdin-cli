@@ -1,8 +1,6 @@
 package com.crowdin.cli.client;
 
-import com.crowdin.client.distributions.model.AddDistributionRequest;
-import com.crowdin.client.distributions.model.Distribution;
-import com.crowdin.client.distributions.model.DistributionRelease;
+import com.crowdin.client.distributions.model.*;
 
 import java.util.List;
 
@@ -30,9 +28,23 @@ public class CrowdinClientDistribution extends CrowdinClientCore implements Clie
     }
 
     @Override
+    public Distribution addDistributionStringsBased(AddDistributionStringsBasedRequest distributionRequest) {
+        return executeRequest(() -> this.client.getDistributionsApi()
+            .addDistributionStringsBased(Long.valueOf(projectId), distributionRequest)
+            .getData());
+    }
+
+    @Override
     public DistributionRelease release(String hash) {
         return executeRequest(() -> this.client.getDistributionsApi()
                                                .createDistributionRelease(Long.valueOf(projectId), hash)
+                                               .getData());
+    }
+
+    @Override
+    public DistributionStringsBasedRelease releaseStringsBased(String hash) {
+        return executeRequest(() -> this.client.getDistributionsApi()
+                                               .createDistributionStringsBasedRelease(Long.valueOf(projectId), hash)
                                                .getData());
     }
 
@@ -43,4 +55,10 @@ public class CrowdinClientDistribution extends CrowdinClientCore implements Clie
                                                .getData());
     }
 
+    @Override
+    public DistributionStringsBasedRelease getDistributionStringsBasedRelease(String hash) {
+        return executeRequest(() -> this.client.getDistributionsApi()
+                                               .getDistributionStringsBasedRelease(Long.valueOf(projectId), hash)
+                                               .getData());
+    }
 }

@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.actions;
 
+import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ResponseException;
@@ -10,6 +11,7 @@ import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.client.projectsgroups.model.Type;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -38,9 +40,11 @@ public class StringListActionTest {
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
         pb = pbBuilder.build();
+        CrowdinProjectFull projectFull = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("first.csv", "csv", 101L, null, null).build();
+        projectFull.setType(Type.FILES_BASED);
         when(client.downloadFullProject(null))
-            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                .addFile("first.csv", "csv", 101L, null, null).build());
+            .thenReturn(projectFull);
         when(client.listSourceString(101L, null, null, filter, null))
             .thenReturn(Arrays.asList(SourceStringBuilder.standard()
                 .setProjectId(Long.parseLong(pb.getProjectId()))
@@ -99,6 +103,31 @@ public class StringListActionTest {
 
         verify(client).downloadFullProject(null);
         verify(client).listLabels();
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testStringList_StringsBasedProject() {
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(Utils.PATH_SEPARATOR);
+        pb = pbBuilder.build();
+        CrowdinProjectFull projectFull = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("first.csv", "csv", 101L, null, null).build();
+        projectFull.setType(Type.STRINGS_BASED);
+        when(client.downloadFullProject(null))
+            .thenReturn(projectFull);
+        when(client.listSourceString(101L, null, null, null, null))
+            .thenReturn(Arrays.asList(SourceStringBuilder.standard()
+                .setProjectId(Long.parseLong(pb.getProjectId()))
+                .setIdentifiers(701L, "7-0-1", "seven-o-one", "7.0.1", 101L).build()));
+
+        action = new StringListAction(true, true, null, null, null, null);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(null);
+        verify(client).listLabels();
+        verify(client).listSourceString(null, null, null, null, null);
         verifyNoMoreInteractions(client);
     }
 }

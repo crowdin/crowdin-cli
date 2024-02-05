@@ -1,8 +1,6 @@
 package com.crowdin.cli.client;
 
-import com.crowdin.client.distributions.model.AddDistributionRequest;
-import com.crowdin.client.distributions.model.Distribution;
-import com.crowdin.client.distributions.model.DistributionRelease;
+import com.crowdin.client.distributions.model.*;
 
 import java.util.List;
 
@@ -12,7 +10,13 @@ public interface ClientDistribution extends Client {
 
     Distribution addDistribution(AddDistributionRequest request);
 
+    Distribution addDistributionStringsBased(AddDistributionStringsBasedRequest request);
+
     DistributionRelease release(String hash);
 
+    DistributionStringsBasedRelease releaseStringsBased(String hash);
+
     DistributionRelease getDistributionRelease(String hash);
+
+    DistributionStringsBasedRelease getDistributionStringsBasedRelease(String hash);
 }

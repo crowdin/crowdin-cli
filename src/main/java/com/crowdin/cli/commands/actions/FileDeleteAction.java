@@ -30,7 +30,8 @@ class FileDeleteAction implements NewAction<ProjectProperties, ProjectClient> {
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
                 true, true, client::downloadFullProject);
-        if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
+        if (isStringsBasedProject) {
             out.println(SKIPPED.withIcon(RESOURCE_BUNDLE.getString("message.no_file_string_project")));
             return;
         }
