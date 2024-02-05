@@ -12,7 +12,7 @@ There are several commands you can use to manage your files. The CLI provides hi
 
 The high level commands are [`crowdin upload`](/commands/crowdin-upload) and [`crowdin download`](/commands/crowdin-download). These commands are easy to use and they rely mostly on the configuration file.
 
-The low-level commands include [`crowdin file upload`](/commands/crowdin-file-upload), [`crowdin file download`](/commands/crowdin-file-download), and [`crowdin file delete`](/commands/crowdin-file-delete). These commands are more like a lightweight wrapper over the [Crowdin API](https://developer.crowdin.com/api/v2/). They give you more flexibility and control over the file management process. These commands are also supported by string-based projects.
+The low-level commands include [`crowdin file upload`](/commands/crowdin-file-upload), [`crowdin file download`](/commands/crowdin-file-download), and [`crowdin file delete`](/commands/crowdin-file-delete). These commands are more like a lightweight wrapper over the [Crowdin API](https://developer.crowdin.com/api/v2/). They give you more flexibility and control over the file management process.
 
 ## The `upload` and `download` commands
 
@@ -103,10 +103,6 @@ To download the source files from Crowdin, run the following command:
 crowdin download sources
 ```
 
-:::caution
-This way of managing files is not supported for string-based projects. Use the `files` command instead.
-:::
-
 ## The `file` command
 
 The [`file`](/commands/crowdin-file) command is a low-level command that allows you to manage your files with more flexibility and control.
@@ -123,13 +119,13 @@ crowdin file upload locales/en/messages.xml -d messages.xml
 
 The command above will take the file `locales/en/messages.xml` and upload it to Crowdin as `messages.xml` in the root directory. The `-d`/`--dest` option stands for `destination` and allows you to specify the path to the file in Crowdin. If you omit the `-d` option, the file will be uploaded to the root directory with the same path as the source file.
 
-You can also upload strings to string-based projects as well:
+You can upload strings to string-based projects as well:
 
 ```bash
 crowdin file upload locales/en/messages.xml --branch main --cleanup-mode --update-strings
 ```
 
-The `--branch` option is required for string-based projects. The `--cleanup-mode` and `--update-strings` options are not required.
+The `--branch` option is required for string-based projects. The `--cleanup-mode` and `--update-strings` options are optional. Use the `--update-strings` option to update strings with the same identifiers and the `--cleanup-mode` option to remove strings that are not present in the uploaded file.
 
 To **upload translations** you need to specify the `-l`/`--language` option:
 
