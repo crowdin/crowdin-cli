@@ -6,9 +6,11 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
+import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.screenshots.model.AddScreenshotRequest;
 import com.crowdin.client.screenshots.model.Screenshot;
 import com.crowdin.client.screenshots.model.UpdateScreenshotRequest;
@@ -21,7 +23,9 @@ import java.io.File;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
@@ -33,6 +37,7 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
 
     private final File file;
     private final String branchName;
+    private final List<String> labelNames;
     private final String pathToSourceFile;
     private final String directoryPath;
     private final boolean autoTag;
@@ -89,6 +94,9 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.dir_not_exists"), directoryPath)));
             request.setDirectoryId(directory.getId());
         }
+        if (nonNull(labelNames) && !labelNames.isEmpty()) {
+            request.setLabelIds(prepareLabelIds());
+        }
         request.setStorageId(uploadToStorage(file));
         request.setName(file.getName());
         request.setAutoTag(autoTag);
@@ -119,5 +127,16 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), fileToUpload.getName()), e);
         }
         return storageId;
+    }
+
+    private Long[] prepareLabelIds() {
+        Map<String, Long> labels = projectClient.listLabels().stream()
+            .collect(Collectors.toMap(Label::getTitle, Label::getId));
+        labelNames.stream()
+            .distinct()
+            .forEach(labelName -> labels.computeIfAbsent(labelName, (title) -> projectClient.addLabel(RequestBuilder.addLabel(title)).getId()));
+        return labelNames.stream()
+            .map(labels::get)
+            .toArray(Long[]::new);
     }
 }

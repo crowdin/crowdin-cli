@@ -12,6 +12,7 @@ import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.screenshots.model.AddScreenshotRequest;
 import com.crowdin.client.screenshots.model.Screenshot;
 import com.crowdin.client.screenshots.model.UpdateScreenshotRequest;
@@ -53,7 +54,7 @@ public class ScreenshotUploadActionTest {
     @ParameterizedTest
     @MethodSource
     public void testUploadScreenshot(String fileName, String sourceFilePath, Long sourceFileId, String branchName,
-                                     Long branchId, String directoryPath, Long directoryId, boolean autoTag) throws ResponseException {
+                                     Long branchId, List<String> labelNames, String directoryPath, Long directoryId, boolean autoTag) throws ResponseException {
         File fileToUpload = new File(project.getBasePath() + fileName);
         project.addFile(Utils.normalizePath(fileName));
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
@@ -102,7 +103,7 @@ public class ScreenshotUploadActionTest {
                     setId(1L);
                 }});
 
-        action = new ScreenshotUploadAction(fileToUpload, branchName, sourceFilePath, directoryPath, autoTag, false, false, projectClient);
+        action = new ScreenshotUploadAction(fileToUpload, branchName, labelNames, sourceFilePath, directoryPath, autoTag, false, false, projectClient);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).listScreenshots(null);
@@ -112,10 +113,10 @@ public class ScreenshotUploadActionTest {
 
     public static Stream<Arguments> testUploadScreenshot() {
         return Stream.of(
-                arguments("screenshot.png", null, null, null, null, null, null, false),
-                arguments("screenshot.png", "/path/to/source/file", 10L, null, null, null, null, true),
-                arguments("screenshot.png", null, null, "main", 11L, null, null, true),
-                arguments("screenshot.png", null, null, null, null, "/path/to/directory", 12L, true));
+                arguments("screenshot.png", null, null, null, null, null,  null, null, false),
+                arguments("screenshot.png", "/path/to/source/file", 10L, null, null, null, null, null, true),
+                arguments("screenshot.png", null, null, "main", 11L, null, null, null, true),
+                arguments("screenshot.png", null, null, null, null, null, "/path/to/directory", 12L, true));
     }
 
     @Test
@@ -148,7 +149,7 @@ public class ScreenshotUploadActionTest {
                     setId(123L);
                 }});
 
-        action = new ScreenshotUploadAction(fileToUpload, null, null, null, false, false, false, projectClient);
+        action = new ScreenshotUploadAction(fileToUpload, null, null, null, null, false, false, false, projectClient);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).listScreenshots(null);
@@ -172,7 +173,7 @@ public class ScreenshotUploadActionTest {
 
         when(projectFull.findBranchByName("main")).thenReturn(Optional.empty());
 
-        action = new ScreenshotUploadAction(new File("screenshot.png"), "main", null, null, true, false, false, projectClient);
+        action = new ScreenshotUploadAction(new File("screenshot.png"), "main", null, null, null, true, false, false, projectClient);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
     }
 
@@ -192,7 +193,7 @@ public class ScreenshotUploadActionTest {
 
         when(projectFull.getFileInfos()).thenReturn(new ArrayList<>());
 
-        action = new ScreenshotUploadAction(new File("screenshot.png"), null, "/path/to/file", null, true, false, false, projectClient);
+        action = new ScreenshotUploadAction(new File("screenshot.png"), null, null, "/path/to/file", null, true, false, false, projectClient);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
     }
 
@@ -212,7 +213,114 @@ public class ScreenshotUploadActionTest {
 
         when(projectFull.getDirectories()).thenReturn(new HashMap<>());
 
-        action = new ScreenshotUploadAction(new File("screenshot.png"), null, null, "/path/to/directory", true, false, false, projectClient);
+        action = new ScreenshotUploadAction(new File("screenshot.png"), null, null, null, "/path/to/directory", true, false, false, projectClient);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+    }
+
+    @Test
+    public void testUploadScreenshotWithLabels() throws ResponseException {
+        File fileToUpload = new File(project.getBasePath() + "screenshot.png");
+        project.addFile(Utils.normalizePath("screenshot.png"));
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+
+        AddScreenshotRequest request = new AddScreenshotRequest();
+        request.setStorageId(1L);
+        request.setName("screenshot.png");
+        request.setAutoTag(false);
+        request.setLabelIds(new Long[] {3L, 4L});
+        ClientScreenshot client = mock(ClientScreenshot.class);
+        Label label1 = new Label() {{
+            setId(3L);
+            setTitle("label1");
+        }};
+        Label label2 = new Label() {{
+            setId(4L);
+            setTitle("label2");
+        }};
+
+        ProjectClient projectClient = mock(ProjectClient.class);
+        CrowdinProjectFull projectFull = mock(CrowdinProjectFull.class);
+
+        FileInfo fileInfo = mock(FileInfo.class);
+
+        when(projectClient.downloadFullProject()).thenReturn(projectFull);
+        when(projectFull.getFileInfos()).thenReturn(Arrays.asList(fileInfo));
+
+        when(projectClient.uploadStorage(eq("screenshot.png"), any())).thenReturn(1L);
+        when(projectClient.listLabels()).thenReturn(Arrays.asList(label1, label2));
+        when(client.listScreenshots(null)).thenReturn(new ArrayList<>());
+
+        when(client.uploadScreenshot(request))
+            .thenReturn(new Screenshot() {{
+                setName(request.getName());
+                setId(1L);
+            }});
+
+        action = new ScreenshotUploadAction(fileToUpload, null, Arrays.asList("label1", "label2"), null, null, false, false, false, projectClient);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).listScreenshots(null);
+        verify(client).uploadScreenshot(request);
+        verify(projectClient).downloadFullProject();
+        verify(projectClient).listLabels();
+        verify(projectClient).uploadStorage(any(), any());
+        verifyNoMoreInteractions(client);
+        verifyNoMoreInteractions(projectClient);
+    }
+
+    @Test
+    public void testUploadScreenshotNotExistingLabel() throws ResponseException {
+        File fileToUpload = new File(project.getBasePath() + "screenshot.png");
+        project.addFile(Utils.normalizePath("screenshot.png"));
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+
+        AddScreenshotRequest request = new AddScreenshotRequest();
+        request.setStorageId(1L);
+        request.setName("screenshot.png");
+        request.setAutoTag(false);
+        request.setLabelIds(new Long[] {3L});
+        ClientScreenshot client = mock(ClientScreenshot.class);
+
+        Label label1 = new Label() {{
+            setId(3L);
+            setTitle("label1");
+        }};
+
+        ProjectClient projectClient = mock(ProjectClient.class);
+        CrowdinProjectFull projectFull = mock(CrowdinProjectFull.class);
+
+        FileInfo fileInfo = mock(FileInfo.class);
+
+        when(projectClient.downloadFullProject()).thenReturn(projectFull);
+        when(projectFull.getFileInfos()).thenReturn(Arrays.asList(fileInfo));
+
+        when(projectClient.uploadStorage(eq("screenshot.png"), any())).thenReturn(1L);
+        when(projectClient.listLabels()).thenReturn(new ArrayList<>());
+        when(projectClient.addLabel(any())).thenReturn(label1);
+        when(client.listScreenshots(null)).thenReturn(new ArrayList<>());
+
+        when(client.uploadScreenshot(request))
+            .thenReturn(new Screenshot() {{
+                setName(request.getName());
+                setId(1L);
+            }});
+
+        action = new ScreenshotUploadAction(fileToUpload, null, Arrays.asList("label1"), null, null, false, false, false, projectClient);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).listScreenshots(null);
+        verify(client).uploadScreenshot(request);
+        verify(projectClient).downloadFullProject();
+        verify(projectClient).listLabels();
+        verify(projectClient).addLabel(any());
+        verify(projectClient).uploadStorage(any(), any());
+        verifyNoMoreInteractions(client);
+        verifyNoMoreInteractions(projectClient);
     }
 }
