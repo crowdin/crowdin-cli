@@ -253,8 +253,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientScreenshot> screenshotUpload(File file, String branchName, String directoryPath, String filePath, boolean autoTag, boolean plainView, boolean noProgress, ProjectClient projectClient) {
-        return new ScreenshotUploadAction(file, branchName, filePath, directoryPath, autoTag, plainView, noProgress, projectClient);
+    public NewAction<ProjectProperties, ClientScreenshot> screenshotUpload(File file, String branchName, List<String> labelNames, String directoryPath, String filePath, boolean autoTag, boolean plainView, boolean noProgress, ProjectClient projectClient) {
+        return new ScreenshotUploadAction(file, branchName, labelNames, filePath, directoryPath, autoTag, plainView, noProgress, projectClient);
     }
 
     @Override
