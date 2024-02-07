@@ -1,5 +1,12 @@
 # Changelog
 
+# [3.18.0](https://github.com/crowdin/crowdin-cli/compare/3.17.0...3.18.0) (2024-02-07)
+
+
+### Features
+
+* strings based project functionality ([#714](https://github.com/crowdin/crowdin-cli/issues/714)) ([8d00c4b](https://github.com/crowdin/crowdin-cli/commit/8d00c4b8e47d6cae70ee6489e1230704aa54513e))
+
 # [3.17.0](https://github.com/crowdin/crowdin-cli/compare/3.16.1...3.17.0) (2024-01-30)
 
 
