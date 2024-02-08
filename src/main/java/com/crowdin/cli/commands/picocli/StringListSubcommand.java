@@ -26,7 +26,7 @@ class StringListSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
     protected String branchName;
 
-    @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "params.label", order = -2)
+    @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "crowdin.string.list.label", order = -2)
     protected List<String> labelNames;
 
     @CommandLine.Option(names = {"--croql"}, paramLabel = "...", order = -2)

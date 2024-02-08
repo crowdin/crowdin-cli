@@ -34,7 +34,7 @@ class ScreenshotUploadSubcommand extends ActCommandScreenshot{
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", descriptionKey = "crowdin.screenshot.upload.branch-name", order = -2)
     protected String branchName;
 
-    @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "params.label", order = -2)
+    @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "crowdin.screenshot.upload.label", order = -2)
     protected List<String> labelNames;
 
     @CommandLine.Option(names = {"-d", "--directory"}, paramLabel = "...", descriptionKey = "crowdin.screenshot.upload.directory-path", order = -2)
