@@ -106,9 +106,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<ProjectProperties, ProjectClient> stringList(
-        boolean noProgress, boolean isVerbose, String file, String filter, String branchName, String croql
+        boolean noProgress, boolean isVerbose, String file, String filter, String branchName, List<String> labelNames, String croql
     ) {
-        return new StringListAction(noProgress, isVerbose, file, filter, branchName, croql);
+        return new StringListAction(noProgress, isVerbose, file, filter, branchName, labelNames, croql);
     }
 
     @Override

@@ -64,7 +64,7 @@ public class CliActionsTest {
 
     @Test
     public void testStringList() {
-        assertNotNull(actions.stringList(false, false, null, null, null, null));
+        assertNotNull(actions.stringList(false, false, null, null, null, null, null));
     }
 
     @Test

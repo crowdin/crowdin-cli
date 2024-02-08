@@ -23,6 +23,7 @@ import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
+import static java.util.Objects.nonNull;
 
 class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
 
@@ -31,14 +32,16 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
     private final String file;
     private final String filter;
     private final String branchName;
+    private final List<String> labelNames;
     private final String croql;
 
-    public StringListAction(boolean noProgress, boolean isVerbose, String file, String filter, String branchName, String croql) {
+    public StringListAction(boolean noProgress, boolean isVerbose, String file, String filter, String branchName, List<String> labelNames, String croql) {
         this.noProgress = noProgress;
         this.isVerbose = isVerbose;
         this.file = file;
         this.filter = filter;
         this.branchName = branchName;
+        this.labelNames = labelNames;
         this.croql = croql;
     }
 
@@ -52,7 +55,8 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
             .map(Branch::getId)
             .orElse(null);
 
-        Map<Long, String> labels = client.listLabels().stream()
+        List<Label> labels = client.listLabels();
+        Map<Long, String> labelsMap = labels.stream()
             .collect(Collectors.toMap(Label::getId, Label::getTitle));
 
         Map<String, FileInfo> paths = null;
@@ -65,20 +69,22 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         }
         Map<Long, String> finalReversePaths = reversePaths;
 
-        String encodedFilter = filter != null ? Utils.encodeURL(filter) : null;
-        String encodedCroql = croql != null ? Utils.encodeURL(croql) : null;
+        String encodedFilter = nonNull(filter) ? Utils.encodeURL(filter) : null;
+        String encodedCroql = nonNull(croql) ? Utils.encodeURL(croql) : null;
+        String labelIds = nonNull(labelNames) ? prepareLabelIds(labels) : null;
+        String fullPath = nonNull(branchName) ? (branchName  + Utils.PATH_SEPARATOR + file) : file;
 
         List<SourceString> sourceStrings;
         if (StringUtils.isEmpty(file)) {
-            sourceStrings = client.listSourceString(null, branchId, null, encodedFilter, encodedCroql);
+            sourceStrings = client.listSourceString(null, branchId, labelIds, encodedFilter, encodedCroql);
         } else {
             if (isStringsBasedProject) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
             }
-            if (paths.containsKey(file)) {
-                sourceStrings = client.listSourceString(paths.get(file).getId(), branchId, null, encodedFilter, encodedCroql);
+            if (paths.containsKey(fullPath)) {
+                sourceStrings = client.listSourceString(paths.get(fullPath).getId(), branchId, labelIds, encodedFilter, encodedCroql);
             } else {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
+                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), fullPath));
             }
         }
         if (sourceStrings.isEmpty()) {
@@ -86,7 +92,7 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         }
         sourceStrings.forEach(ss -> {
             String labelsString = (ss.getLabelIds() != null)
-                ? ss.getLabelIds().stream().map(labels::get).map(s -> String.format("[@|cyan %s|@]", s)).collect(Collectors.joining(" "))
+                ? ss.getLabelIds().stream().map(labelsMap::get).map(s -> String.format("[@|cyan %s|@]", s)).collect(Collectors.joining(" "))
                 : "";
             out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getText(), labelsString));
             if (isVerbose) {
@@ -105,5 +111,15 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
                 }
             }
         });
+    }
+
+    private String prepareLabelIds(List<Label> labels) {
+        Map<String, Long> labelsMap = labels.stream()
+            .collect(Collectors.toMap(Label::getTitle, Label::getId));
+
+        return labelNames.stream()
+            .map(labelsMap::get)
+            .map(String::valueOf)
+            .collect(Collectors.joining(","));
     }
 }
