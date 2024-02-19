@@ -52,6 +52,8 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String IGNORE = "ignore";
 
+    public static final String MULTILINGUAL = "multilingual";
+
     public static final String DEST = "dest";
 
     public static final String TYPE = "type";

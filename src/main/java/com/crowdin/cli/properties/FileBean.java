@@ -11,34 +11,7 @@ import java.util.List;
 import java.util.Map;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.properties.PropertiesBuilder.CONTENT_SEGMENTATION;
-import static com.crowdin.cli.properties.PropertiesBuilder.CUSTOM_SEGMENTATION;
-import static com.crowdin.cli.properties.PropertiesBuilder.DEST;
-import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_QUOTES;
-import static com.crowdin.cli.properties.PropertiesBuilder.ESCAPE_SPECIAL_CHARACTERS;
-import static com.crowdin.cli.properties.PropertiesBuilder.EXPORT_QUOTES;
-import static com.crowdin.cli.properties.PropertiesBuilder.EXCLUDED_TARGET_LANGUAGES;
-import static com.crowdin.cli.properties.PropertiesBuilder.EXPORT_APPROVED_ONLY;
-import static com.crowdin.cli.properties.PropertiesBuilder.FIRST_LINE_CONTAINS_HEADER;
-import static com.crowdin.cli.properties.PropertiesBuilder.IGNORE;
-import static com.crowdin.cli.properties.PropertiesBuilder.LABELS;
-import static com.crowdin.cli.properties.PropertiesBuilder.LANGUAGES_MAPPING;
-import static com.crowdin.cli.properties.PropertiesBuilder.MULTILINGUAL_SPREADSHEET;
-import static com.crowdin.cli.properties.PropertiesBuilder.SCHEME;
-import static com.crowdin.cli.properties.PropertiesBuilder.SKIP_UNTRANSLATED_FILES;
-import static com.crowdin.cli.properties.PropertiesBuilder.SKIP_UNTRANSLATED_STRINGS;
-import static com.crowdin.cli.properties.PropertiesBuilder.EXPORT_STRINGS_THAT_PASSED_WORKFLOW;
-import static com.crowdin.cli.properties.PropertiesBuilder.SOURCE;
-import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATABLE_ELEMENTS;
-import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATE_ATTRIBUTES;
-import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATE_CONTENT;
-import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATION;
-import static com.crowdin.cli.properties.PropertiesBuilder.TRANSLATION_REPLACE;
-import static com.crowdin.cli.properties.PropertiesBuilder.TYPE;
-import static com.crowdin.cli.properties.PropertiesBuilder.UPDATE_OPTION;
-import static com.crowdin.cli.properties.PropertiesBuilder.IMPORT_TRANSLATIONS;
-import static com.crowdin.cli.properties.PropertiesBuilder.checkForDoubleAsterisks;
-import static com.crowdin.cli.properties.PropertiesBuilder.hasRelativePaths;
+import static com.crowdin.cli.properties.PropertiesBuilder.*;
 
 @Data
 public class FileBean {
@@ -48,6 +21,7 @@ public class FileBean {
     private String source;
     private String translation;
     private List<String> ignore;
+    private Boolean multilingual;
     private String dest;
     private String type;
     private String updateOption;
@@ -98,6 +72,7 @@ public class FileBean {
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setTranslateAttributes, map, TRANSLATE_ATTRIBUTES);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setTranslateContent, map, TRANSLATE_CONTENT);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setContentSegmentation, map, CONTENT_SEGMENTATION);
+            PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setMultilingual, map, MULTILINGUAL);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setMultilingualSpreadsheet, map, MULTILINGUAL_SPREADSHEET);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setSkipTranslatedOnly, map, SKIP_UNTRANSLATED_STRINGS);
             PropertiesBuilder.setBooleanPropertyIfExists(fileBean::setSkipUntranslatedFiles, map, SKIP_UNTRANSLATED_FILES);
@@ -120,7 +95,9 @@ public class FileBean {
             //Translation
             if (bean.getTranslation() != null) {
                 bean.setTranslation(Utils.normalizePath(bean.getTranslation()));
-                if (!PlaceholderUtil.containsLangPlaceholders(bean.getTranslation()) && bean.getScheme() != null) {
+                if (!PlaceholderUtil.containsLangPlaceholders(bean.getTranslation())
+                    && (bean.getScheme() != null
+                    || (bean.getMultilingual() != null && bean.getMultilingual()))) {
                     bean.setTranslation(Utils.noSepAtStart(bean.getTranslation()));
                 } else {
                     bean.setTranslation(Utils.sepAtStart(bean.getTranslation()));
@@ -134,6 +111,10 @@ public class FileBean {
                     ignores.add(ignore.replaceAll("[/\\\\]+", Utils.PATH_SEPARATOR_REGEX));
                 }
                 bean.setIgnore(ignores);
+            }
+            //Multilingual
+            if (bean.getMultilingual() == null) {
+                bean.setMultilingual(Boolean.FALSE);
             }
             //dest
             if (StringUtils.isNotEmpty(bean.getDest())) {
@@ -179,7 +160,9 @@ public class FileBean {
                     errors.add(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
                 }
 
-                if (!PlaceholderUtil.containsLangPlaceholders(bean.getTranslation()) && bean.getScheme() == null) {
+                if (!PlaceholderUtil.containsLangPlaceholders(bean.getTranslation())
+                    && bean.getScheme() == null
+                    && (bean.getMultilingual() == null || !bean.getMultilingual())) {
                     errors.add(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
                 }
 

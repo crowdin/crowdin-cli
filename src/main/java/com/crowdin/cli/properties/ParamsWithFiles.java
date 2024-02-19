@@ -22,6 +22,9 @@ public class ParamsWithFiles extends ProjectParams {
     @CommandLine.Option(names = {"--preserve-hierarchy"}, negatable = true, paramLabel = "...", descriptionKey = "params.preserve-hierarchy")
     private Boolean preserveHierarchy;
 
+    @CommandLine.Option(names = {"--multilingual"}, negatable = true, paramLabel = "...", descriptionKey = "params.multilingual")
+    private Boolean multilingual;
+
     private Boolean skipTranslatedOnly;
     private Boolean skipUntranslatedFiles;
     private Boolean exportApprovedOnly;
