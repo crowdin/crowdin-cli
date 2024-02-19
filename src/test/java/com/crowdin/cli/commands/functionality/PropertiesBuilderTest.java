@@ -13,6 +13,7 @@ import java.io.File;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -100,6 +101,22 @@ public class PropertiesBuilderTest {
     }
 
     @Test
+    public void testOk_Params_WithoutConfigFile_TranslationNoSepAtStart() {
+        ParamsWithFiles okParams = new ParamsWithFiles() {{
+            setIdParam("666");
+            setTokenParam("123abc456");
+            setSourceParam(Utils.regexPath(Utils.normalizePath("/Localizable.xcstrings")));
+            setTranslationParam("/Localizable.xcstrings");
+            setMultilingual(true);
+        }};
+
+        PropertiesWithFiles pb = propertiesBuilders.buildPropertiesWithFiles(out, null, null, okParams);
+
+        assertEquals(pb.getFiles().get(0).getSource(), Utils.PATH_SEPARATOR + "Localizable.xcstrings");
+        assertEquals(pb.getFiles().get(0).getTranslation(), "Localizable.xcstrings");
+    }
+
+    @Test
     public void testBuildNoProperties() {
         PropertiesBuilders pb = mock(PropertiesBuilders.class);
         NoProperties np = mock(NoProperties.class);
@@ -179,6 +196,21 @@ public class PropertiesBuilderTest {
 
         assertEquals(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"), actualException.getMessage());
 
+    }
+
+    @Test
+    public void testNoTranslationLangPlaceholder() {
+        ParamsWithFiles params = new ParamsWithFiles() {{
+            setIdParam("666");
+            setTokenParam("123abc456");
+            setSourceParam(Utils.regexPath(Utils.normalizePath("/Localizable.xcstrings")));
+            setTranslationParam("Localizable.xcstrings");
+        }};
+
+        Exception actualException = assertThrows(RuntimeException.class, () ->
+            propertiesBuilders.buildPropertiesWithFiles(out, null, null, params));
+
+        assertTrue(actualException.getMessage().contains(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders")));
     }
 
     @Test
