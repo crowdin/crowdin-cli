@@ -168,9 +168,9 @@ Example of the configuration:
 ]
 ```
 
-### Multilingual Support
+### Multilingual Files
 
-For multilingual file formats (contains multiple languages in one file), you can use the `multilingual` option in the configuration. With this option you can omit the language placeholders in the `translation` pattern:
+For multilingual file formats (containing multiple languages in one file) you can use the `multilingual` option in the configuration. This option allows you to omit the language placeholders in the `translation` pattern:
 
 ```yml title="crowdin.yml"
 "files": [
