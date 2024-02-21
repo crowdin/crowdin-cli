@@ -64,8 +64,7 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
             if (!checkForDoubleAsterisks(params.getSourceParam(), params.getTranslationParam())) {
                 messages.addError(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
             }
-            if (!PlaceholderUtil.containsLangPlaceholders(params.getTranslationParam())
-                && (params.getMultilingual() == null || !params.getMultilingual())) {
+            if (!PlaceholderUtil.containsLangPlaceholders(params.getTranslationParam())) {
                 messages.addError(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
             }
         } else {
@@ -121,9 +120,6 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
             if (params.getDestParam() != null) {
                 props.setPreserveHierarchy(true);
                 fb.setDest(params.getDestParam());
-            }
-            if (params.getMultilingual() != null) {
-                fb.setMultilingual(params.getMultilingual());
             }
             props.setFiles(Arrays.asList(fb));
         }

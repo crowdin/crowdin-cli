@@ -76,12 +76,6 @@ files: [
     # "translatable_elements": [],
 
     #
-    # Is file format multilingual?
-    # e.g. true or false
-    #
-    # "multilingual": true,
-
-    #
     # Defines whether to split long texts into smaller text segments
     # e.g. 0 or 1 (Default is 1)
     #

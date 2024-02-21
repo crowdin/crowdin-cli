@@ -82,7 +82,6 @@ sed -i.bak -e 's/\*\*--\[no-\]preserve-hierarchy\*\*/`--[no-]preserve-hierarchy`
 sed -i.bak -e 's/\*\*--\[no-\]auto-tag\*\*/`--[no-]auto-tag`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]cleanup-mode\*\*/`--[no-]cleanup-mode`/g' -- *.md
 sed -i.bak -e 's/\*\*--\[no-\]update-strings\*\*/`--[no-]update-strings`/g' -- *.md
-sed -i.bak -e 's/\*\*--\[no-\]multilingual\*\*/`--[no-]multilingual`/g' -- *.md
 
 rm -- *.md.bak
 
