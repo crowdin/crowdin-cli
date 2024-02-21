@@ -18,10 +18,10 @@
   },
   "dependencies": {
     "command-exists-promise": "^2.0.2",
-    "node-fetch": "2.6.7",
-    "shelljs": "^0.8.4",
-    "tar": "^4.4.8",
-    "yauzl": "^2.10.0"
+    "node-fetch": "2.7.0",
+    "shelljs": "^0.8.5",
+    "tar": "^6.2.0",
+    "yauzl": "^3.1.0"
   },
   "license": "MIT",
   "files": [
@@ -43,9 +43,9 @@
   ],
   "devDependencies": {
     "@google/semantic-release-replace-plugin": "^1.2.0",
-    "@semantic-release/changelog": "^6.0.2",
+    "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^6.0.3",
     "@semantic-release/git": "^10.0.1",
-    "semantic-release": "^20.1.1"
+    "semantic-release": "^23.0.2"
   }
 }
