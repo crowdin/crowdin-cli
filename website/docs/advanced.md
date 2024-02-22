@@ -123,7 +123,7 @@ Visit the [KB article](https://developer.crowdin.com/pseudolocalization/) to rea
 
 **Escape Quotes**
 
-The `escape_qutes` option defines whether a single quote should be escaped by another single quote or backslash in exported translations. You can add the `escape_quotes` per-file option. Acceptable values are `0`, `1`, `2`, `3`. Default is `3`.
+The `escape_quotes` option defines whether a single quote should be escaped by another single quote or backslash in exported translations. You can add the `escape_quotes` per-file option. Acceptable values are `0`, `1`, `2`, `3`. Default is `3`.
 
 - `0` - do not escape
 - `1` - escape single quote with another single quote
@@ -168,23 +168,19 @@ Example of the configuration:
 ]
 ```
 
-#### Apple Strings Catalog
+### Multilingual Files
 
-Apple Strings Catalog is a natively supported file format by Crowdin, you can use it without any additional installation. Since this file format is **multilingual** (contains multiple languages in one file), you can omit the language placeholders in the `translation` pattern:
+For multilingual file formats (containing multiple languages in one file) you can use the `multilingual` option in the configuration. This option allows you to omit the language placeholders in the `translation` pattern:
 
 ```yml title="crowdin.yml"
 "files": [
   {
     "source": "Localizable.xcstrings",
     "translation": "Localizable.xcstrings",
-    "scheme": ""
+    "multilingual": true
   }
 ]
 ```
-
-:::caution
-Note the `scheme` option in the configuration above. It's needed to indicate that this file is multilingual for correct file processing.
-:::
 
 ### Configure export options for each file group
 

@@ -13,6 +13,7 @@ import java.io.File;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -179,6 +180,21 @@ public class PropertiesBuilderTest {
 
         assertEquals(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"), actualException.getMessage());
 
+    }
+
+    @Test
+    public void testNoTranslationLangPlaceholder() {
+        ParamsWithFiles params = new ParamsWithFiles() {{
+            setIdParam("666");
+            setTokenParam("123abc456");
+            setSourceParam(Utils.regexPath(Utils.normalizePath("/Localizable.xcstrings")));
+            setTranslationParam("Localizable.xcstrings");
+        }};
+
+        Exception actualException = assertThrows(RuntimeException.class, () ->
+            propertiesBuilders.buildPropertiesWithFiles(out, null, null, params));
+
+        assertTrue(actualException.getMessage().contains(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders")));
     }
 
     @Test
