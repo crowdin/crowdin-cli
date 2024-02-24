@@ -98,6 +98,7 @@ baseurl=https://artifacts.crowdin.com/repo/rpm
 gpgcheck=1
 gpgkey=https://artifacts.crowdin.com/repo/GPG-KEY-crowdin
 enabled=1
+autorefresh=1
 ```
 
 And your repository is ready for use. You can now install Crowdin CLI with one of the following commands:
