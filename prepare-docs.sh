@@ -49,6 +49,7 @@ sed -i.bak -e 's/\[39m//g' -e 's/\[32m//g' -e 's/\[0m//g' -- *.md # remove style
 sed -i.bak -e 's/\x1B//g' -- *.md # remove invisible ESC character
 sed -i.bak -e 's/\xe2\x80\x8b//g' -- *.md # remove zero-width space
 sed -i.bak -e 's/\\\[/\[/g' -e 's/\\\]/\]/g' -- *.md # remove brackets escape
+sed -i.bak -e 's/</\&lt;/g' -e 's/>/\&gt;/g' -- *.md # replace < and > with &lt; and &gt;
 
 # Content formatting
 sed -i.bak -e 's/\*CONFIG OPTIONS\*\:/Config Options/g' -- *.md # CONFIG OPTIONS: -> Config Options
@@ -58,6 +59,8 @@ sed -i.bak -e 's/\*CONFIG OPTIONS\*\:/Config Options/g' -- *.md # CONFIG OPTIONS
 sed -i.bak -e 's/\*\*--\([[:alnum:]_\-]*\)\*\*/`--\1`/g' -- *.md # **--config** -> `--config`
 sed -i.bak -e 's/\*\*-\([[:alnum:]_\-]*\)\*\*/`-\1`/g' -- *.md # **-c** -> `-c`
 sed -i.bak -e 's/.xml)/)/g' -- *.md # fix links
+sed -i.bak -e 's/^    crowdin\([^[:cntrl:]]*\)/```\ncrowdin\1\n```/g' -- *.md # convert indented code blocks (4 spaces) to fenced code blocks
+sed -i.bak -e '/^```/,/^```/ s/\&lt;/</g' -e '/^```/,/^```/ s/\&gt;/>/g' -- *.md # replace &lt; and &gt; with < and > inside code blocks
 
 # Set headings level 2
 sed -i.bak -e 's/# Description$/## Description/g' -- *.md

@@ -103,13 +103,14 @@ jobs:
       - name: Install asciidoctor and pandoc
         run: |
           sudo apt install -y asciidoctor
-          wget https://github.com/jgm/pandoc/releases/download/3.1.2/pandoc-3.1.2-1-amd64.deb
-          sudo dpkg -i pandoc-3.1.2-1-amd64.deb
+          wget https://github.com/jgm/pandoc/releases/download/3.1.12/pandoc-3.1.12-1-amd64.deb
+          sudo dpkg -i pandoc-3.1.12-1-amd64.deb
 
       - name: Generate Docs
         run: |
           chmod +x prepare-docs.sh
           ./prepare-docs.sh
+          cat website/docs/commands/crowdin.md
         shell: bash
 
       - name: Install dependencies
