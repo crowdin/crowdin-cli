@@ -55,7 +55,7 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
 
         List<Long> labelIds = (labelNames != null && !labelNames.isEmpty()) ? this.prepareLabelIds(client) : null;
         if (isStringsBasedProject) {
-            if (files != null || !files.isEmpty()) {
+            if (files != null && !files.isEmpty()) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
             }
             Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, false);

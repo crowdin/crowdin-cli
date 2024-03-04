@@ -17,6 +17,7 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -94,7 +95,19 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
             String labelsString = (ss.getLabelIds() != null)
                 ? ss.getLabelIds().stream().map(labelsMap::get).map(s -> String.format("[@|cyan %s|@]", s)).collect(Collectors.joining(" "))
                 : "";
-            out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getText(), labelsString));
+            StringBuilder text = new StringBuilder();
+            if (ss.getText() instanceof HashMap<?, ?>) {
+                HashMap<?, ?> map = (HashMap<?, ?>) ss.getText();
+                for (Map.Entry<?, ?> entry : map.entrySet()) {
+                    text.append(entry.getKey()).append(": ").append(entry.getValue()).append(" | ");
+                }
+                if (text.length() > 0) {
+                    text.delete(text.length() - 3, text.length());
+                }
+            } else {
+                text.append((String) ss.getText());
+            }
+            out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), text, labelsString));
             if (isVerbose) {
                 if (ss.getIdentifier() != null) {
                     out.println(String.format("\t- @|bold identifier|@: '%s'", ss.getIdentifier()));

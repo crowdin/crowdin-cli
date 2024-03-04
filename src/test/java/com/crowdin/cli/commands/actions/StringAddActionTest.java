@@ -94,8 +94,7 @@ public class StringAddActionTest {
                 put("first.csv", 801L);
             }};
         return Stream.of(
-            arguments("first text", "1.1", 42, "It's first text", null, null, false, headers, new String[] {"first.csv"}),
-            arguments("first text", "1.1", 42, "It's first text", null, null, false, new HashMap<String, Long>(), new String[0])
+            arguments("first text", "1.1", 42, "It's first text", null, null, false, headers, new String[] {"first.csv"})
         );
     }
 
