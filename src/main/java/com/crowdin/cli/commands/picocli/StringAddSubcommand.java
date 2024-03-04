@@ -41,19 +41,19 @@ class StringAddSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--hidden"}, order = -2)
     protected Boolean isHidden;
 
-    @CommandLine.Option(names = {"--one"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--one"}, descriptionKey = "crowdin.string.add.one", paramLabel = "...", order = -2)
     protected String one;
 
-    @CommandLine.Option(names = {"--two"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--two"}, descriptionKey = "crowdin.string.add.two", paramLabel = "...", order = -2)
     protected String two;
 
-    @CommandLine.Option(names = {"--few"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--few"}, descriptionKey = "crowdin.string.add.few", paramLabel = "...", order = -2)
     protected String few;
 
-    @CommandLine.Option(names = {"--many"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--many"}, descriptionKey = "crowdin.string.add.many", paramLabel = "...", order = -2)
     protected String many;
 
-    @CommandLine.Option(names = {"--zero"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--zero"}, descriptionKey = "crowdin.string.add.zero", paramLabel = "...", order = -2)
     protected String zero;
 
     @Override
