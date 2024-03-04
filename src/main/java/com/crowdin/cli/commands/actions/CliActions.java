@@ -80,9 +80,10 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<ProjectProperties, ProjectClient> stringAdd(
-        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, String branch, Boolean hidden
+        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, String branch, Boolean hidden,
+        String one, String two, String few, String many, String zero
     ) {
-        return new StringAddAction(noProgress, text, identifier, maxLength, context, files, labelNames, branch, hidden);
+        return new StringAddAction(noProgress, text, identifier, maxLength, context, files, labelNames, branch, hidden, one, two, few, many, zero);
     }
     @Override
     public NewAction<ProjectProperties, ProjectClient> stringComment(boolean plainView,

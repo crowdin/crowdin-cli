@@ -41,6 +41,21 @@ class StringAddSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--hidden"}, order = -2)
     protected Boolean isHidden;
 
+    @CommandLine.Option(names = {"--one"}, paramLabel = "...", order = -2)
+    protected String one;
+
+    @CommandLine.Option(names = {"--two"}, paramLabel = "...", order = -2)
+    protected String two;
+
+    @CommandLine.Option(names = {"--few"}, paramLabel = "...", order = -2)
+    protected String few;
+
+    @CommandLine.Option(names = {"--many"}, paramLabel = "...", order = -2)
+    protected String many;
+
+    @CommandLine.Option(names = {"--zero"}, paramLabel = "...", order = -2)
+    protected String zero;
+
     @Override
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
@@ -58,6 +73,7 @@ class StringAddSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.stringAdd(noProgress, text, identifier, maxLength, context, files, labelNames, branch, isHidden);
+        return actions.stringAdd(noProgress, text, identifier, maxLength, context, files, labelNames, branch, isHidden,
+            one, two, few, many, zero);
     }
 }
