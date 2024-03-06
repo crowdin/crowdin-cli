@@ -48,7 +48,8 @@ public interface Actions {
         boolean noProgress, String branchName, String languageId, String file, String directory, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failIfIncomplete);
 
     NewAction<ProjectProperties, ProjectClient> stringAdd(
-        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, String branch, Boolean hidden);
+        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, String branch, Boolean hidden,
+        String one, String two, String few, String many, String zero);
 
     NewAction<ProjectProperties, ProjectClient> stringComment(boolean plainView,
         boolean noProgress, String text, String stringId, String language, String type, String issueType);

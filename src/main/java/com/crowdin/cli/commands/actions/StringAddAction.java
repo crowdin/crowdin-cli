@@ -13,8 +13,11 @@ import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
+import com.crowdin.client.sourcestrings.model.AddSourcePluralStringRequest;
+import com.crowdin.client.sourcestrings.model.AddSourcePluralStringStringsBasedRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringStringsBasedRequest;
+import lombok.Data;
 
 import java.util.List;
 import java.util.Map;
@@ -25,6 +28,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
+@Data
 class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private final boolean noProgress;
@@ -36,45 +40,40 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
     private final List<String> labelNames;
     private final String branchName;
     private final Boolean hidden;
-
-    public StringAddAction(
-        boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, String branchName, Boolean hidden
-    ) {
-        this.noProgress = noProgress;
-        this.text = text;
-        this.identifier = identifier;
-        this.maxLength = maxLength;
-        this.context = context;
-        this.files = files;
-        this.labelNames = labelNames;
-        this.branchName = branchName;
-        this.hidden = hidden;
-    }
+    private final String one;
+    private final String two;
+    private final String few;
+    private final String many;
+    private final String zero;
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, false, client::downloadFullProject);
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
+        boolean isPluralString = one != null || two != null || few != null || many != null || zero != null;
 
         List<Long> labelIds = (labelNames != null && !labelNames.isEmpty()) ? this.prepareLabelIds(client) : null;
-
-        if (files == null || files.isEmpty()) {
-            if (isStringsBasedProject) {
-                Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, false);
-                if (Objects.isNull(branch)) {
-                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
-                }
+        if (isStringsBasedProject) {
+            if (files != null && !files.isEmpty()) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
+            }
+            Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, false);
+            if (Objects.isNull(branch)) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
+            }
+            if (isPluralString) {
+                AddSourcePluralStringStringsBasedRequest request = RequestBuilder.addPluralStringStringsBased(
+                    this.text, this.identifier, this.maxLength, this.context, branch.getId(), this.hidden, labelIds, one, two, few, many, zero);
+                client.addSourcePluralStringStringsBased(request);
+            } else {
                 AddSourceStringStringsBasedRequest request = RequestBuilder.addStringStringsBased(this.text, this.identifier, this.maxLength, this.context, branch.getId(), this.hidden, labelIds);
                 client.addSourceStringStringsBased(request);
-            } else {
-                AddSourceStringRequest request = RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, null, this.hidden, labelIds);
-                client.addSourceString(request);
             }
             out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.source_string_uploaded")));
         } else {
-            if (isStringsBasedProject) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
+            if (files == null || files.isEmpty()) {
+                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.file_required"));
             }
             Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
             boolean containsError = false;
@@ -90,9 +89,15 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
                 }
                 Long fileId = paths.get(file).getId();
 
-                AddSourceStringRequest request =
-                    RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden, labelIds);
-                client.addSourceString(request);
+                if (isPluralString) {
+                    AddSourcePluralStringRequest request = RequestBuilder.addPluralString(
+                        this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden, labelIds, one, two, few, many, zero);
+                    client.addSourcePluralString(request);
+                } else {
+                    AddSourceStringRequest request =
+                        RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden, labelIds);
+                    client.addSourceString(request);
+                }
                 out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_for_file_uploaded"), file)));
             }
             if (containsError) {

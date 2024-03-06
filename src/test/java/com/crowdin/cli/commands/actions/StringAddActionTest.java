@@ -13,6 +13,8 @@ import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.projectsgroups.model.Type;
+import com.crowdin.client.sourcestrings.model.AddSourcePluralStringRequest;
+import com.crowdin.client.sourcestrings.model.AddSourcePluralStringStringsBasedRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
 import com.crowdin.client.sourcestrings.model.AddSourceStringStringsBasedRequest;
 import org.junit.jupiter.api.Test;
@@ -76,7 +78,7 @@ public class StringAddActionTest {
             .thenReturn(build);
 
         action =
-            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, null, hidden);
+            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, null, hidden, null, null, null, null, null);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -92,8 +94,7 @@ public class StringAddActionTest {
                 put("first.csv", 801L);
             }};
         return Stream.of(
-            arguments("first text", "1.1", 42, "It's first text", null, null, false, headers, new String[] {"first.csv"}),
-            arguments("first text", "1.1", 42, "It's first text", null, null, false, new HashMap<String, Long>(), new String[0])
+            arguments("first text", "1.1", 42, "It's first text", null, null, false, headers, new String[] {"first.csv"})
         );
     }
 
@@ -142,7 +143,7 @@ public class StringAddActionTest {
             .thenReturn(build);
 
         action =
-            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, null, hidden);
+            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, null, hidden, null, null, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -164,7 +165,7 @@ public class StringAddActionTest {
         when(client.downloadFullProject())
             .thenThrow(new RuntimeException("Whoops"));
 
-        action = new StringAddAction(false, null, null, null, null, null, null, null, null);
+        action = new StringAddAction(false, null, null, null, null, null, null, null, null,  null, null, null, null, null);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -224,7 +225,7 @@ public class StringAddActionTest {
 
 
         action =
-            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), new ArrayList<>(labels.values()), null, hidden);
+            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), new ArrayList<>(labels.values()), null, hidden,  null, null, null, null, null);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -241,6 +242,34 @@ public class StringAddActionTest {
         label.setId(id);
         label.setTitle(title);
         return label;
+    }
+
+    @Test
+    public void testStringAdd_PluralString() {
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(Utils.PATH_SEPARATOR);
+        PropertiesWithFiles pb = pbBuilder.build();
+        AddSourcePluralStringRequest request = RequestBuilder.addPluralString(
+            "strings", "1.1", 42, "It's first text", 101L, false, null, "string", null, null, null, null);
+
+        ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
+        projectBuilder.addFile("file.csv", "csv", 101L, null, null);
+
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = projectBuilder.build();
+        build.setType(Type.FILES_BASED);
+        when(client.downloadFullProject())
+            .thenReturn(build);
+
+        action =
+            new StringAddAction(true, "strings", "1.1", 42, "It's first text", Arrays.asList("file.csv"), null, null, false, "string", null, null, null, null);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).addSourcePluralString(request);
+
+        verifyNoMoreInteractions(client);
     }
 
     @Test
@@ -261,11 +290,38 @@ public class StringAddActionTest {
             .thenReturn(build);
 
         action =
-            new StringAddAction(true, "first text", "1.1", 42, "It's first text", null, null, "main", false);
+            new StringAddAction(true, "first text", "1.1", 42, "It's first text", null, null, "main", false, null, null, null, null, null);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
         verify(client).addSourceStringStringsBased(request);
+
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testStringAdd_PluralStringStringsBasedProject() {
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(Utils.PATH_SEPARATOR);
+        PropertiesWithFiles pb = pbBuilder.build();
+        AddSourcePluralStringStringsBasedRequest request = RequestBuilder.addPluralStringStringsBased(
+            "strings", "1.1", 42, "It's first text", 1L, false, null, "string", null, null, null, null);
+
+        ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).addBranches(1L, "main");
+
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = projectBuilder.build();
+        build.setType(Type.STRINGS_BASED);
+        when(client.downloadFullProject())
+            .thenReturn(build);
+
+        action =
+            new StringAddAction(true, "strings", "1.1", 42, "It's first text", null, null, "main", false, "string", null, null, null, null);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).addSourcePluralStringStringsBased(request);
 
         verifyNoMoreInteractions(client);
     }

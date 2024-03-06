@@ -72,7 +72,7 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.status(anyBoolean(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any(), any(), any()))
+        when(actionsMock.stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(actionMock);
         when(actionsMock.stringComment(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any()))
                 .thenReturn(actionMock);

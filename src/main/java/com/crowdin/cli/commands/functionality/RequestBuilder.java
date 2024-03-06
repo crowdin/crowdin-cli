@@ -11,8 +11,7 @@ import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.glossaries.model.ImportGlossaryRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
-import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
-import com.crowdin.client.sourcestrings.model.AddSourceStringStringsBasedRequest;
+import com.crowdin.client.sourcestrings.model.*;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.Type;
 import com.crowdin.client.tasks.model.CreateTaskRequest;
@@ -42,9 +41,37 @@ public class RequestBuilder {
         return request;
     }
 
+    public static AddSourcePluralStringRequest addPluralString(String text, String identifier, Integer maxLength, String context, Long fileId, Boolean hidden, List<Long> labelIds,
+        String one, String two, String few, String many, String zero) {
+        AddSourcePluralStringRequest request = new AddSourcePluralStringRequest();
+        PluralText pluralText = buildPluralText(text, one, two, few, many, zero);
+        request.setText(pluralText);
+        request.setIdentifier(identifier);
+        request.setMaxLength(maxLength);
+        request.setContext(context);
+        request.setFileId(fileId);
+        request.setIsHidden(hidden);
+        request.setLabelIds(labelIds);
+        return request;
+    }
+
     public static AddSourceStringStringsBasedRequest addStringStringsBased(String text, String identifier, Integer maxLength, String context, Long branchId, Boolean hidden, List<Long> labelIds) {
         AddSourceStringStringsBasedRequest request = new AddSourceStringStringsBasedRequest();
         request.setText(text);
+        request.setIdentifier(identifier);
+        request.setMaxLength(maxLength);
+        request.setContext(context);
+        request.setBranchId(branchId);
+        request.setIsHidden(hidden);
+        request.setLabelIds(labelIds);
+        return request;
+    }
+
+    public static AddSourcePluralStringStringsBasedRequest addPluralStringStringsBased(String text, String identifier, Integer maxLength, String context, Long branchId, Boolean hidden, List<Long> labelIds,
+        String one, String two, String few, String many, String zero) {
+        AddSourcePluralStringStringsBasedRequest request = new AddSourcePluralStringStringsBasedRequest();
+        PluralText pluralText = buildPluralText(text, one, two, few, many, zero);
+        request.setText(pluralText);
         request.setIdentifier(identifier);
         request.setMaxLength(maxLength);
         request.setContext(context);
@@ -326,4 +353,14 @@ public class RequestBuilder {
         return request;
     }
 
+    private static PluralText buildPluralText(String text, String one, String two, String few, String many, String zero) {
+        PluralText pluralText = new PluralText();
+        Optional.ofNullable(text).ifPresent(pluralText::setOther);
+        Optional.ofNullable(one).ifPresent(pluralText::setOne);
+        Optional.ofNullable(two).ifPresent(pluralText::setTwo);
+        Optional.ofNullable(few).ifPresent(pluralText::setFew);
+        Optional.ofNullable(many).ifPresent(pluralText::setMany);
+        Optional.ofNullable(zero).ifPresent(pluralText::setZero);
+        return pluralText;
+    }
 }

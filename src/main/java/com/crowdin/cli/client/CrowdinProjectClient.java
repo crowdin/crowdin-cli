@@ -327,9 +327,23 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public SourceString addSourcePluralString(AddSourcePluralStringRequest request) {
+        return executeRequest(() -> this.client.getSourceStringsApi()
+            .addSourcePluralString(this.projectId, request)
+            .getData());
+    }
+
+    @Override
     public SourceString addSourceStringStringsBased(AddSourceStringStringsBasedRequest request) {
         return executeRequest(() -> this.client.getSourceStringsApi()
             .addSourceStringStringsBased(this.projectId, request)
+            .getData());
+    }
+
+    @Override
+    public SourceString addSourcePluralStringStringsBased(AddSourcePluralStringStringsBasedRequest request) {
+        return executeRequest(() -> this.client.getSourceStringsApi()
+            .addSourcePluralStringStringsBased(this.projectId, request)
             .getData());
     }
 

@@ -34,3 +34,13 @@ Add a new string with the `app.hello` key to the `strings.xml` file, with labels
 ----
 crowdin string add "Hello world" --file strings.xml --identifier "app.hello" --label app --label home
 ----
+
+Add a new plural string:
+
+----
+crowdin string add Cats --file strings.xml --identifier "ui.cats" --one "cat"
+----
+
+In this example, the `<text>` argument is used as the "other" plural form.
+
+If your source language contains more plural forms, you can also specify them using the `--two', `--few', `--many' and `--zero' options.

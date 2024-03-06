@@ -80,7 +80,11 @@ public interface ProjectClient extends Client {
 
     SourceString addSourceString(AddSourceStringRequest request);
 
+    SourceString addSourcePluralString(AddSourcePluralStringRequest request);
+
     SourceString addSourceStringStringsBased(AddSourceStringStringsBasedRequest request);
+
+    SourceString addSourcePluralStringStringsBased(AddSourcePluralStringStringsBasedRequest request);
 
     List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql);
 
