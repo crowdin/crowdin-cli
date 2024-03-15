@@ -264,6 +264,11 @@ const sidebars = {
     'ci-cd',
     'advanced',
     'faq',
+    {
+      type: "category",
+      label: "Releases",
+      items: ["releases/migration-4"],
+    },
   ],
 };
 
