@@ -13,28 +13,23 @@ public class GlossaryDownloadSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testGlossaryDownload() {
-        this.execute(CommandNames.GLOSSARY, CommandNames.GLOSSARY_DOWNLOAD, "--id", "42", "--debug");
+        this.execute(CommandNames.GLOSSARY, CommandNames.GLOSSARY_DOWNLOAD, "42", "--debug");
         verify(actionsMock)
-            .glossaryDownload(eq(42L), isNull(), isNull(), anyBoolean(), isNull(), any());
+            .glossaryDownload(eq(42L), isNull(), anyBoolean(), isNull(), any());
         this.check(true);
     }
 
     @Test
     public void testGlossaryDownload_fileWithExt() {
-        this.execute(CommandNames.GLOSSARY, CommandNames.GLOSSARY_DOWNLOAD, "--id", "42", "--debug", "--to", "file.tbx");
+        this.execute(CommandNames.GLOSSARY, CommandNames.GLOSSARY_DOWNLOAD, "42", "--debug", "--to", "file.tbx");
         verify(actionsMock)
-            .glossaryDownload(eq(42L), isNull(), eq(GlossariesFormat.TBX), anyBoolean(), any(), any());
+            .glossaryDownload(eq(42L), eq(GlossariesFormat.TBX), anyBoolean(), any(), any());
         this.check(true);
     }
 
     @Test
     public void testGlossaryDownload_invalid_fileWithWrongExt() {
-        this.executeInvalidParams(CommandNames.GLOSSARY, CommandNames.GLOSSARY_DOWNLOAD, "--id", "42", "--debug", "--to", "file.txt");
-    }
-
-    @Test
-    public void testGlossaryDownload_invalid_bothIdentifiers() {
-        this.executeInvalidParams(CommandNames.GLOSSARY, CommandNames.GLOSSARY_DOWNLOAD, "--id", "42", "--name", "glossaryName", "--debug");
+        this.executeInvalidParams(CommandNames.GLOSSARY, CommandNames.GLOSSARY_DOWNLOAD, "42", "--debug", "--to", "file.txt");
     }
 
     @Test

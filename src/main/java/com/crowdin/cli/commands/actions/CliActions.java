@@ -141,9 +141,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<BaseProperties, ClientGlossary> glossaryDownload(
-        Long id, String name, GlossariesFormat format, boolean noProgress, File to, FilesInterface files
+        Long id, GlossariesFormat format, boolean noProgress, File to, FilesInterface files
     ) {
-        return new GlossaryDownloadAction(id, name, format, noProgress, to, files);
+        return new GlossaryDownloadAction(id, format, noProgress, to, files);
     }
 
     @Override

@@ -15,8 +15,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -31,9 +29,7 @@ import static org.mockito.Mockito.when;
 public class GlossaryDownloadActionTest {
 
     private static final Long glossaryId = 42L;
-    private static final Long glossaryId2 = 43L;
     private static final String glossaryName = "FirstName";
-    private static final String glossaryName2 = "SecondName";
     private static final String exportId = "52";
     private final BaseProperties pb = NewPropertiesWithFilesUtilBuilder
         .minimalBuiltPropertiesBean()
@@ -71,7 +67,7 @@ public class GlossaryDownloadActionTest {
         when(clientMock.downloadGlossary(eq(glossaryId), eq(exportId)))
             .thenReturn(MockitoUtils.getMockUrl(getClass()));
 
-        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(glossaryId, null, format, true, to, filesMock);
+        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(glossaryId, format, true, to, filesMock);
         action.act(outputter, pb, clientMock);
 
         verify(filesMock).writeToFile(eq("nowhere.tbx"), any());
@@ -85,112 +81,14 @@ public class GlossaryDownloadActionTest {
     }
 
     @Test
-    public void test_findByName() throws IOException {
-        FilesInterface filesMock = mock(FilesInterface.class);
-        ClientGlossary clientMock = mock(ClientGlossary.class);
-        GlossariesFormat format = GlossariesFormat.TBX;
-
-        List<Glossary> glossaries = Arrays.asList(
-            new Glossary() {{
-                    setId(glossaryId);
-                    setName(glossaryName);
-                }},
-            new Glossary() {{
-                    setId(glossaryId2);
-                    setName(glossaryName2);
-                }}
-        );
-        GlossaryExportStatus buildingGlossary1 = new GlossaryExportStatus() {{
-                setIdentifier(exportId);
-                setStatus("Is building");
-            }};
-        GlossaryExportStatus buildingGlossary2 = new GlossaryExportStatus() {{
-                setIdentifier(exportId);
-                setStatus("Finished");
-            }};
-
-        when(clientMock.listGlossaries())
-            .thenReturn(glossaries);
-        when(clientMock.startExportingGlossary(eq(glossaryId), eq(RequestBuilder.exportGlossary(format))))
-            .thenReturn(buildingGlossary1);
-        when(clientMock.checkExportingGlossary(eq(glossaryId), eq(exportId)))
-            .thenReturn(buildingGlossary2);
-        when(clientMock.downloadGlossary(eq(glossaryId), eq(exportId)))
-            .thenReturn(MockitoUtils.getMockUrl(getClass()));
-
-        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(null, glossaryName, format, true, null, filesMock);
-        action.act(outputter, pb, clientMock);
-
-        verify(filesMock).writeToFile(eq(glossaryName + ".tbx"), any());
-        verifyNoMoreInteractions(filesMock);
-        verify(clientMock).listGlossaries();
-        verify(clientMock).startExportingGlossary(eq(glossaryId), eq(RequestBuilder.exportGlossary(format)));
-        verify(clientMock).startExportingGlossary(eq(glossaryId), eq(RequestBuilder.exportGlossary(format)));
-        verify(clientMock).checkExportingGlossary(eq(glossaryId), eq(exportId));
-        verify(clientMock).downloadGlossary(eq(glossaryId), eq(exportId));
-        verifyNoMoreInteractions(clientMock);
-    }
-
-    @Test
-    public void test_findByName_throwsNoGlossaries() {
-        FilesInterface filesMock = mock(FilesInterface.class);
-        ClientGlossary clientMock = mock(ClientGlossary.class);
-
-        List<Glossary> glossaries = Arrays.asList(
-            new Glossary() {{
-                    setId(glossaryId);
-                    setName(glossaryName2);
-                }},
-            new Glossary() {{
-                    setId(glossaryId2);
-                    setName(glossaryName2);
-                }}
-        );
-
-        when(clientMock.listGlossaries())
-            .thenReturn(glossaries);
-
-        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(null, glossaryName, null, true, null, filesMock);
-        assertThrows(RuntimeException.class, () -> action.act(outputter, pb, clientMock));
-
-        verify(clientMock).listGlossaries();
-        verifyNoMoreInteractions(clientMock);
-    }
-
-    @Test
-    public void test_findByName_throwsTooManyGlossaries() {
-        FilesInterface filesMock = mock(FilesInterface.class);
-        ClientGlossary clientMock = mock(ClientGlossary.class);
-
-        List<Glossary> glossaries = Arrays.asList(
-            new Glossary() {{
-                    setId(glossaryId);
-                    setName(glossaryName);
-                }},
-            new Glossary() {{
-                    setId(glossaryId2);
-                    setName(glossaryName);
-                }}
-        );
-
-        when(clientMock.listGlossaries())
-            .thenReturn(glossaries);
-
-        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(null, glossaryName, null, true, null, filesMock);
-        assertThrows(RuntimeException.class, () -> action.act(outputter, pb, clientMock));
-
-        verify(clientMock).listGlossaries();
-        verifyNoMoreInteractions(clientMock);
-    }
-
-    @Test
     public void test_throwsNoIdentifiers() {
         FilesInterface filesMock = mock(FilesInterface.class);
         ClientGlossary clientMock = mock(ClientGlossary.class);
 
-        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(null, null, null, true, null, filesMock);
+        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(null, null, true, null, filesMock);
         assertThrows(RuntimeException.class, () -> action.act(outputter, pb, clientMock));
 
+        verify(clientMock).getGlossary(any());
         verifyNoMoreInteractions(clientMock);
     }
 
@@ -228,7 +126,7 @@ public class GlossaryDownloadActionTest {
         when(clientMock.downloadGlossary(eq(glossaryId), eq(exportId)))
             .thenReturn(MockitoUtils.getMockUrl(getClass()));
 
-        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(glossaryId, null, format, true, to, filesMock);
+        NewAction<BaseProperties, ClientGlossary> action = new GlossaryDownloadAction(glossaryId, format, true, to, filesMock);
         assertThrows(RuntimeException.class, () -> action.act(outputter, pb, clientMock));
 
         verify(filesMock).writeToFile(eq("nowhere.tbx"), any());

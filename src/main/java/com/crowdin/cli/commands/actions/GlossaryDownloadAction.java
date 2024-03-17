@@ -24,15 +24,13 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 class GlossaryDownloadAction implements NewAction<BaseProperties, ClientGlossary> {
 
     private final Long id;
-    private final String name;
     private final GlossariesFormat format;
     private final boolean noProgress;
     private File to;
     private final FilesInterface files;
 
-    public GlossaryDownloadAction(Long id, String name, GlossariesFormat format, boolean noProgress, File to, FilesInterface files) {
+    public GlossaryDownloadAction(Long id, GlossariesFormat format, boolean noProgress, File to, FilesInterface files) {
         this.id = id;
-        this.name = name;
         this.format = format;
         this.noProgress = noProgress;
         this.to = to;
@@ -51,23 +49,8 @@ class GlossaryDownloadAction implements NewAction<BaseProperties, ClientGlossary
     }
 
     private Glossary getGlossary(ClientGlossary client) {
-        if (id != null) {
-            return client.getGlossary(id)
+        return client.getGlossary(id)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.glossary.not_found_by_id")));
-        } else if (name != null) {
-            List<Glossary> foundGlossaries = client.listGlossaries().stream()
-                .filter(gl -> gl.getName() != null && gl.getName().equals(name))
-                .collect(Collectors.toList());
-            if (foundGlossaries.isEmpty()) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.glossary.not_found_by_name"));
-            } else if (foundGlossaries.size() == 1) {
-                return foundGlossaries.get(0);
-            } else {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.glossary.more_than_one_glossary_by_that_name"));
-            }
-        } else {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.glossary.no_identifiers"));
-        }
     }
 
     private GlossaryExportStatus buildGlossary(Outputter out, ClientGlossary client, Long glossaryId, ExportGlossaryRequest request) {

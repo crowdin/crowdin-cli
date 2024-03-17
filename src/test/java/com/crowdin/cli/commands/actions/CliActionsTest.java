@@ -89,7 +89,7 @@ public class CliActionsTest {
 
     @Test
     public void testGlossaryDownload() {
-        assertNotNull(actions.glossaryDownload(null, null, null, false, null, null));
+        assertNotNull(actions.glossaryDownload(null, null, false, null, null));
     }
 
     @Test

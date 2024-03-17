@@ -76,7 +76,7 @@ public interface Actions {
         java.io.File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
 
     NewAction<BaseProperties, ClientGlossary> glossaryDownload(
-        Long id, String name, GlossariesFormat format, boolean noProgress, File to, FilesInterface files);
+        Long id, GlossariesFormat format, boolean noProgress, File to, FilesInterface files);
 
     NewAction<BaseProperties, ClientTm> tmList(boolean plainView);
 
