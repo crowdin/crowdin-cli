@@ -104,7 +104,7 @@ public class CliActionsTest {
 
     @Test
     public void testTmDownload() {
-        assertNotNull(actions.tmDownload(null, null, null, null, null, false, null, null));
+        assertNotNull(actions.tmDownload(null, null, null, null, false, null, null));
     }
 
     @Test

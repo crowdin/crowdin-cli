@@ -92,7 +92,7 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.glossaryDownload(any(), any(), any(), anyBoolean(), any(), any()))
             .thenReturn(actionMock);
-        when(actionsMock.tmDownload(any(), any(), any(), any(), any(), anyBoolean(), any(), any()))
+        when(actionsMock.tmDownload(any(), any(), any(), any(), anyBoolean(), any(), any()))
             .thenReturn(actionMock);
         when(actionsMock.tmList(anyBoolean()))
             .thenReturn(actionMock);

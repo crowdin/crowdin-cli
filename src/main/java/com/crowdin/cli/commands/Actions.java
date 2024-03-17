@@ -84,7 +84,7 @@ public interface Actions {
         File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
 
     NewAction<BaseProperties, ClientTm> tmDownload(
-        Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,
+        Long id, TranslationMemoryFormat format, String sourceLanguageId,
         String targetLanguageId, boolean noProgress, File to, FilesInterface files);
 
     NewAction<ProjectProperties, ClientTask> taskList(boolean plainView, boolean isVerbose, String status, Long assigneeId);

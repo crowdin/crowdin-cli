@@ -24,7 +24,6 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 class TmDownloadAction implements NewAction<BaseProperties, ClientTm> {
 
     private final Long id;
-    private final String name;
     private final TranslationMemoryFormat format;
     private final String sourceLanguageId;
     private final String targetLanguageId;
@@ -33,11 +32,10 @@ class TmDownloadAction implements NewAction<BaseProperties, ClientTm> {
     private final FilesInterface files;
 
     public TmDownloadAction(
-        Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,
+        Long id, TranslationMemoryFormat format, String sourceLanguageId,
         String targetLanguageId, boolean noProgress, File to, FilesInterface files
     ) {
         this.id = id;
-        this.name = name;
         this.format = format;
         this.sourceLanguageId = sourceLanguageId;
         this.targetLanguageId = targetLanguageId;
@@ -63,23 +61,8 @@ class TmDownloadAction implements NewAction<BaseProperties, ClientTm> {
     }
 
     private TranslationMemory getTranslationMemory(ClientTm client) {
-        if (id != null) {
-            return client.getTm(id)
+        return client.getTm(id)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.not_found_by_id")));
-        } else if (name != null) {
-            List<TranslationMemory> foundTranslationMemories = client.listTms().stream()
-                .filter(gl -> gl.getName() != null && gl.getName().equals(name))
-                .collect(Collectors.toList());
-            if (foundTranslationMemories.isEmpty()) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.not_found_by_name"));
-            } else if (foundTranslationMemories.size() == 1) {
-                return foundTranslationMemories.get(0);
-            } else {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.more_than_one_tm_by_that_name"));
-            }
-        } else {
-            throw new RuntimeException("Unexpected error: " + RESOURCE_BUNDLE.getString("error.tm.no_identifiers"));
-        }
     }
 
     private TranslationMemoryExportStatus buildTranslationMemory(Outputter out, ClientTm client, Long tmId, TranslationMemoryExportRequest request) {

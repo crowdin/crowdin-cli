@@ -160,10 +160,10 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<BaseProperties, ClientTm> tmDownload(
-        Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,
+        Long id, TranslationMemoryFormat format, String sourceLanguageId,
         String targetLanguageId, boolean noProgress, File to, FilesInterface files
     ) {
-        return new TmDownloadAction(id, name, format, sourceLanguageId, targetLanguageId, noProgress, to, files);
+        return new TmDownloadAction(id, format, sourceLanguageId, targetLanguageId, noProgress, to, files);
     }
 
     @Override
