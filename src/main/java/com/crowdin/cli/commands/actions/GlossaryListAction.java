@@ -29,7 +29,7 @@ class GlossaryListAction implements NewAction<BaseProperties, ClientGlossary> {
         for (Glossary glossary : glossaries) {
             if (!plainView) {
                 out.println(OK.withIcon(
-                    String.format(RESOURCE_BUNDLE.getString("message.glossary.list"), glossary.getName(), glossary.getId(), glossary.getTerms())));
+                    String.format(RESOURCE_BUNDLE.getString("message.glossary.list"), glossary.getId(), glossary.getName(), glossary.getTerms())));
                 if (isVerbose && mayHaveTerms(glossary)) {
                     try {
                         List<Term> terms = client.listTerms(glossary.getId());
