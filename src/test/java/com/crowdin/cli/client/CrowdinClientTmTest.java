@@ -102,7 +102,7 @@ public class CrowdinClientTmTest {
         when(httpClientMock.get(eq(getTmUrl), any(), eq(TranslationMemoryResponseObject.class)))
             .thenThrow(new RuntimeException("any"));
 
-        client.getTm(tmId);
+        assertThrows(RuntimeException.class, () -> client.getTm(tmId));
 
         verify(httpClientMock).get(eq(getTmUrl), any(), eq(TranslationMemoryResponseObject.class));
         verifyNoMoreInteractions(httpClientMock);

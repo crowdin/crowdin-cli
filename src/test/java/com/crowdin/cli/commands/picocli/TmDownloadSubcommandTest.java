@@ -12,17 +12,17 @@ public class TmDownloadSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testGlossaryDownload() {
-        this.execute(CommandNames.TM, CommandNames.TM_DOWNLOAD, "--id", "42", "--debug");
+        this.execute(CommandNames.TM, CommandNames.TM_DOWNLOAD, "42", "--debug");
         verify(actionsMock)
-            .tmDownload(eq(42L), isNull(), isNull(), isNull(), isNull(), eq(false), isNull(), any());
+            .tmDownload(eq(42L), isNull(), isNull(), isNull(), eq(false), isNull(), any());
         this.check(true);
     }
 
     @Test
     public void testGlossaryDownload_withExt() {
-        this.execute(CommandNames.TM, CommandNames.TM_DOWNLOAD, "--id", "42", "--debug", "--to", "file.tmx");
+        this.execute(CommandNames.TM, CommandNames.TM_DOWNLOAD, "42", "--debug", "--to", "file.tmx");
         verify(actionsMock)
-            .tmDownload(eq(42L), isNull(), eq(TranslationMemoryFormat.TMX), isNull(), isNull(), eq(false), any(), any());
+            .tmDownload(eq(42L), eq(TranslationMemoryFormat.TMX), isNull(), isNull(), eq(false), any(), any());
         this.check(true);
     }
 

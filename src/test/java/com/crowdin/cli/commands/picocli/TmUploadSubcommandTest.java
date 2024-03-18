@@ -13,7 +13,7 @@ public class TmUploadSubcommandTest extends PicocliTestUtils {
     public void testTmUpload() {
         this.execute(CommandNames.TM, CommandNames.TM_UPLOAD, "file.tmx", "--id", "42", "--debug");
         verify(actionsMock)
-            .tmUpload(any(), eq(42L), isNull(), isNull(), isNull(), isNull());
+            .tmUpload(any(), eq(42L), isNull(), isNull(), isNull());
         this.check(true);
     }
 

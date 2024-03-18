@@ -134,16 +134,16 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<BaseProperties, ClientGlossary> glossaryUpload(
-        java.io.File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
+        java.io.File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
     ) {
-        return new GlossaryUploadAction(file, id, name, languageId, scheme, firstLineContainsHeader);
+        return new GlossaryUploadAction(file, id, languageId, scheme, firstLineContainsHeader);
     }
 
     @Override
     public NewAction<BaseProperties, ClientGlossary> glossaryDownload(
-        Long id, String name, GlossariesFormat format, boolean noProgress, File to, FilesInterface files
+        Long id, GlossariesFormat format, boolean noProgress, File to, FilesInterface files
     ) {
-        return new GlossaryDownloadAction(id, name, format, noProgress, to, files);
+        return new GlossaryDownloadAction(id, format, noProgress, to, files);
     }
 
     @Override
@@ -153,17 +153,17 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<BaseProperties, ClientTm> tmUpload(
-        File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
+        File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
     ) {
-        return new TmUploadAction(file, id, name, languageId, scheme, firstLineContainsHeader);
+        return new TmUploadAction(file, id, languageId, scheme, firstLineContainsHeader);
     }
 
     @Override
     public NewAction<BaseProperties, ClientTm> tmDownload(
-        Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,
+        Long id, TranslationMemoryFormat format, String sourceLanguageId,
         String targetLanguageId, boolean noProgress, File to, FilesInterface files
     ) {
-        return new TmDownloadAction(id, name, format, sourceLanguageId, targetLanguageId, noProgress, to, files);
+        return new TmDownloadAction(id, format, sourceLanguageId, targetLanguageId, noProgress, to, files);
     }
 
     @Override
