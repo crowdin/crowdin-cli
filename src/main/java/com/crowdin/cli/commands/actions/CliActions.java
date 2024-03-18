@@ -259,8 +259,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientScreenshot> screenshotDelete(String name) {
-        return new ScreenshotDeleteAction(name);
+    public NewAction<ProjectProperties, ClientScreenshot> screenshotDelete(Long id) {
+        return new ScreenshotDeleteAction(id);
     }
 
     @Override
