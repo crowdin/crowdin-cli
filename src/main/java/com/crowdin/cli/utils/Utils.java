@@ -178,4 +178,8 @@ public class Utils {
             throw new RuntimeException(e);
         }
     }
+
+    public static String toSingleLineString(String str) {
+        return str.replaceAll("[\r\n]+", " ");
+    }
 }
