@@ -88,16 +88,16 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
             return;
         }
 
+        if (!plainView && !properties.getPreserveHierarchy()) {
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.download_sources.preserve_hierarchy_warning")));
+        }
+
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
                 this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
 
         if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
-        }
-
-        if (!plainView && !properties.getPreserveHierarchy()) {
-            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.download_sources.preserve_hierarchy_warning")));
         }
 
         Long branchId = Optional.ofNullable(project.getBranch())
