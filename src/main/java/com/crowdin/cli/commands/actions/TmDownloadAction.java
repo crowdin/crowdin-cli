@@ -16,8 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
@@ -61,8 +59,7 @@ class TmDownloadAction implements NewAction<BaseProperties, ClientTm> {
     }
 
     private TranslationMemory getTranslationMemory(ClientTm client) {
-        return client.getTm(id)
-                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.tm.not_found_by_id")));
+        return client.getTm(id);
     }
 
     private TranslationMemoryExportStatus buildTranslationMemory(Outputter out, ClientTm client, Long tmId, TranslationMemoryExportRequest request) {

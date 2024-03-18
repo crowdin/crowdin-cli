@@ -153,9 +153,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<BaseProperties, ClientTm> tmUpload(
-        File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
+        File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
     ) {
-        return new TmUploadAction(file, id, name, languageId, scheme, firstLineContainsHeader);
+        return new TmUploadAction(file, id, languageId, scheme, firstLineContainsHeader);
     }
 
     @Override

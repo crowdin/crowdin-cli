@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
@@ -28,7 +27,6 @@ public class TmDownloadActionTest {
     private final Long tmIdNotExist = 45L;
     private final String tmNameValid = "42";
     private final String tmNameRepeats = "43";
-    private final String tmNameNotExist = "45";
     private final String exportIdentifier = "exportIdentifier";
     private final File to = new File("somewhere.tmx");
 
@@ -52,11 +50,11 @@ public class TmDownloadActionTest {
             }};
 //        client.getTm
         when(clientMock.getTm(eq(tmIdValid)))
-            .thenReturn(Optional.of(tmValid));
+            .thenReturn(tmValid);
         when(clientMock.getTm(eq(tmIdRepeats)))
-            .thenReturn(Optional.of(tmRepeats));
+            .thenReturn(tmRepeats);
         when(clientMock.getTm(eq(tmIdNotExist)))
-            .thenReturn(Optional.empty());
+            .thenThrow(new RuntimeException());
 //        client.listTms
         when(clientMock.listTms())
             .thenReturn(Arrays.asList(tmValid, tmRepeats, tmRepeats));

@@ -99,7 +99,7 @@ public class CliActionsTest {
 
     @Test
     public void testTmUpload() {
-        assertNotNull(actions.tmUpload(null, null, null, null, null, null));
+        assertNotNull(actions.tmUpload(null, null, null, null, null));
     }
 
     @Test

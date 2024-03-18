@@ -134,7 +134,7 @@ public class PicocliTestUtils {
                 .thenReturn(actionMock);
         when(actionsMock.commentList(anyBoolean(), anyBoolean(),any(),any(),any(),any()))
                 .thenReturn(actionMock);
-        when(actionsMock.tmUpload(any(), any(), any(), any(), any(), any()))
+        when(actionsMock.tmUpload(any(), any(), any(), any(), any()))
             .thenReturn(actionMock);
         when(actionsMock.checkNewVersion())
             .thenReturn(actionMock);

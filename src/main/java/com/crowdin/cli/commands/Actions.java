@@ -81,7 +81,7 @@ public interface Actions {
     NewAction<BaseProperties, ClientTm> tmList(boolean plainView);
 
     NewAction<BaseProperties, ClientTm> tmUpload(
-        File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
+        File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
 
     NewAction<BaseProperties, ClientTm> tmDownload(
         Long id, TranslationMemoryFormat format, String sourceLanguageId,

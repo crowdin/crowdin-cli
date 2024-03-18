@@ -25,9 +25,6 @@ class TmUploadSubcommand extends ActCommandTm {
     @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
     private Long id;
 
-    @CommandLine.Option(names = {"--name"}, paramLabel = "...", order = -2)
-    private String name;
-
     @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.tm.upload.language-id", order = -2)
     private String languageId;
 
@@ -39,7 +36,7 @@ class TmUploadSubcommand extends ActCommandTm {
 
     @Override
     protected NewAction<BaseProperties, ClientTm> getAction(Actions actions) {
-        return actions.tmUpload(file, id, name, languageId, scheme, firstLineContainsHeader);
+        return actions.tmUpload(file, id, languageId, scheme, firstLineContainsHeader);
     }
 
     @Override
@@ -55,7 +52,7 @@ class TmUploadSubcommand extends ActCommandTm {
         if (!equalsAny(FilenameUtils.getExtension(file.getName()), "csv", "xls", "xlsx") && firstLineContainsHeader != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.tm.first_line_contains_header_and_wrong_format"));
         }
-        if (id == null && name == null && languageId == null) {
+        if (id == null && languageId == null) {
             errors.add(RESOURCE_BUNDLE.getString("error.tm.no_language_id"));
         }
         return errors;
