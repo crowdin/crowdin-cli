@@ -11,6 +11,8 @@ import java.net.PasswordAuthentication;
 
 public final class Clients {
 
+    private static final int TIMEOUT = 30 * 60 * 1000; //30 min˚
+
     private Clients() {}
 
     public static NoClient noClient() {
@@ -65,7 +67,7 @@ public final class Clients {
         return new CrowdinProjectClient(client, projectId);
     }
 
-    public static com.crowdin.client.Client prepareClient(String apiToken, String baseUrl) {
+    private static com.crowdin.client.Client prepareClient(String apiToken, String baseUrl) {
         boolean isTesting = PropertiesBeanUtils.isUrlForTesting(baseUrl);
         String organization = PropertiesBeanUtils.getOrganization(baseUrl);
         Credentials credentials = (isTesting)
@@ -74,6 +76,7 @@ public final class Clients {
         ClientConfig clientConfig = ClientConfig.builder()
             .jsonTransformer(new JacksonJsonTransformer())
             .userAgent(Utils.buildUserAgent())
+            .httpTimeoutMs(TIMEOUT)
             .build();
         Utils.proxyHost()
             .map(pair -> new ClientConfig.Host(pair.getKey(), pair.getValue()))
