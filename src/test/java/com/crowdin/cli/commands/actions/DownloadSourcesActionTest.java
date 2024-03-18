@@ -84,6 +84,42 @@ public class DownloadSourcesActionTest {
     }
 
     @Test
+    public void testDest_doubleAsterisks() throws IOException {
+        PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(
+                Utils.normalizePath("/values/**/res/strings.xml"), Utils.normalizePath("/values/**/%two_letters_code%/%original_file_name%"),
+                null, Utils.normalizePath("/common/**/%original_file_name%"))
+            .setBasePath(project.getBasePath())
+            .setPreserveHierarchy(true)
+            .build();
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject(null))
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                .addDirectory("common", 201L, null, null)
+                .addDirectory("values", 202L, 201L, null)
+                .addDirectory("first", 203L, 202L, null)
+                .addDirectory("second", 204L, 203L, null)
+                .addFile("strings.xml", "gettext", 101L, 204L, null, Utils.normalizePath("/values/first/second/%two_letters_code%/%original_file_name%")).build());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
+        when(client.downloadFile(eq(101L)))
+            .thenReturn(urlMock);
+
+        FilesInterface files = mock(FilesInterface.class);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadSourcesAction(files, false, false, null, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(null);
+        verify(client).downloadFile(eq(101L));
+        verifyNoMoreInteractions(client);
+
+        verify(files).writeToFile(eq(Utils.joinPaths(project.getBasePath(), "values/first/second/res/strings.xml")), any());
+        verifyNoMoreInteractions(files);
+    }
+
+    @Test
     public void testDestAndUnaryAsterisk() throws IOException {
         PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean(
