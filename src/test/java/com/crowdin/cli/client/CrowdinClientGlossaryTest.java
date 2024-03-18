@@ -21,9 +21,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
-import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -39,8 +37,6 @@ public class CrowdinClientGlossaryTest {
 
     private static final String preUrl = "https://testme.crowdin.com";
     private static final String url = "https://testme.crowdin.com/api/v2";
-
-    private static final String downloadUrl = "https://downloadme.crowdin.com";
     private static final String downloadUrlMalformed = "https";
     private static final long glossaryId = 92;
     private static final String exportGlossaryId = "9-2";
@@ -107,9 +103,8 @@ public class CrowdinClientGlossaryTest {
         when(httpClientMock.get(eq(getGlossaryUrl), any(), eq(GlossaryResponseObject.class)))
             .thenThrow(new RuntimeException("any"));
 
-        Optional<Glossary> result = client.getGlossary(glossaryId);
+        assertThrows(RuntimeException.class, () -> client.getGlossary(glossaryId));
 
-        assertFalse(result.isPresent());
         verify(httpClientMock).get(eq(getGlossaryUrl), any(), eq(GlossaryResponseObject.class));
         verifyNoMoreInteractions(httpClientMock);
     }

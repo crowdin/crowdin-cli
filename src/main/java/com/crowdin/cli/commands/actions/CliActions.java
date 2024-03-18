@@ -134,9 +134,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<BaseProperties, ClientGlossary> glossaryUpload(
-        java.io.File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
+        java.io.File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
     ) {
-        return new GlossaryUploadAction(file, id, name, languageId, scheme, firstLineContainsHeader);
+        return new GlossaryUploadAction(file, id, languageId, scheme, firstLineContainsHeader);
     }
 
     @Override

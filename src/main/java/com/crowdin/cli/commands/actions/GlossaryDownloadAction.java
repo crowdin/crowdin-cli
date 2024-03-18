@@ -16,8 +16,6 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.List;
-import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
@@ -49,8 +47,7 @@ class GlossaryDownloadAction implements NewAction<BaseProperties, ClientGlossary
     }
 
     private Glossary getGlossary(ClientGlossary client) {
-        return client.getGlossary(id)
-                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.glossary.not_found_by_id")));
+        return client.getGlossary(id);
     }
 
     private GlossaryExportStatus buildGlossary(Outputter out, ClientGlossary client, Long glossaryId, ExportGlossaryRequest request) {

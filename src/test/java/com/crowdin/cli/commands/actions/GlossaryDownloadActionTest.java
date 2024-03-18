@@ -15,7 +15,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -44,11 +43,10 @@ public class GlossaryDownloadActionTest {
         File to = new File("nowhere.tbx");
         GlossariesFormat format = GlossariesFormat.TBX;
 
-        Optional<Glossary> targetGlossary = Optional.of(new Glossary() {{
+        Glossary targetGlossary = new Glossary() {{
                 setId(glossaryId);
                 setName(glossaryName);
-            }}
-        );
+            }};
         GlossaryExportStatus buildingGlossary1 = new GlossaryExportStatus() {{
                 setIdentifier(exportId);
                 setStatus("Is building");
@@ -99,11 +97,10 @@ public class GlossaryDownloadActionTest {
         File to = new File("nowhere.tbx");
         GlossariesFormat format = GlossariesFormat.TBX;
 
-        Optional<Glossary> targetGlossary = Optional.of(new Glossary() {{
+        Glossary targetGlossary = new Glossary() {{
                 setId(glossaryId);
                 setName(glossaryName);
-            }}
-        );
+            }};
         GlossaryExportStatus buildingGlossary1 = new GlossaryExportStatus() {{
                 setIdentifier(exportId);
                 setStatus("Is building");

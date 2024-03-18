@@ -88,7 +88,7 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.glossaryList(anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.glossaryUpload(any(), any(), any(), any(), any(), any()))
+        when(actionsMock.glossaryUpload(any(), any(), any(), any(), any()))
             .thenReturn(actionMock);
         when(actionsMock.glossaryDownload(any(), any(), anyBoolean(), any(), any()))
             .thenReturn(actionMock);
