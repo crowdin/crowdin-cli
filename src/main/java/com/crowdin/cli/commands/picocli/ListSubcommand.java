@@ -8,7 +8,6 @@ import picocli.CommandLine;
         ListProjectSubcommand.class,
         ListSourcesSubcommand.class,
         ListTranslationsSubcommand.class,
-        ListBranchesSubcommand.class,
         ListLanguagesSubcommand.class
     })
 class ListSubcommand extends HelpCommand {

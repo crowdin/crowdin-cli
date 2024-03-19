@@ -80,7 +80,6 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
-            'commands/crowdin-list-branches',
             'commands/crowdin-list-languages',
             'commands/crowdin-list-sources',
             'commands/crowdin-list-translations',
@@ -97,6 +96,7 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
+            'commands/crowdin-branch-list',
             'commands/crowdin-branch-add',
             'commands/crowdin-branch-delete',
           ]

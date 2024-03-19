@@ -9,7 +9,7 @@ public class GlossaryListSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testGlossaryList() {
-        this.execute(CommandNames.GLOSSARY, CommandNames.GLOSSARY_LIST);
+        this.execute(CommandNames.GLOSSARY, CommandNames.LIST);
         verify(actionsMock)
             .glossaryList(anyBoolean(), anyBoolean());
         check(true);

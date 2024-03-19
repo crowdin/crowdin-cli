@@ -7,7 +7,7 @@ import com.crowdin.cli.properties.BaseProperties;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = CommandNames.GLOSSARY_LIST
+    name = CommandNames.LIST
 )
 class GlossaryListSubcommand extends ActCommandGlossary {
 

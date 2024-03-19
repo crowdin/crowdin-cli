@@ -7,7 +7,7 @@ import com.crowdin.cli.properties.BaseProperties;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = CommandNames.TM_LIST
+    name = CommandNames.LIST
 )
 class TmListSubcommand extends ActCommandTm {
 

@@ -8,7 +8,7 @@ import picocli.CommandLine;
 
 @CommandLine.Command(
         sortOptions = false,
-        name = CommandNames.DISTRIBUTION_LIST
+        name = CommandNames.LIST
 )
 class DistributionListSubcommand extends ActCommandDistribution {
 

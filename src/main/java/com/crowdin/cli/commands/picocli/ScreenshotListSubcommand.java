@@ -8,7 +8,7 @@ import picocli.CommandLine;
 
 @CommandLine.Command(
     sortOptions = false,
-    name = CommandNames.SCREENSHOT_LIST
+    name = CommandNames.LIST
 )
 class ScreenshotListSubcommand extends ActCommandScreenshot {
 

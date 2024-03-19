@@ -12,7 +12,7 @@ import java.util.Collections;
 import java.util.List;
 
 @CommandLine.Command(
-    name = CommandNames.STRING_LIST,
+    name = CommandNames.LIST,
     sortOptions = false
 )
 class StringListSubcommand extends ActCommandProject {
