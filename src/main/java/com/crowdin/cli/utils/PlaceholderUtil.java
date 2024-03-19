@@ -64,7 +64,7 @@ public class PlaceholderUtil {
     private static final String ESCAPE_ASTERISK = isWindows() ? "^*" : "\\*";
     private static final String ESCAPE_ASTERISK_REGEX = "\\*";
     private static final String ESCAPE_ASTERISK_PLACEHOLDER = "{ESCAPE_ASTERISK}";
-    private static final String ESCAPE_ASTERISK_REPLACEMENT_FROM = ".+" + Utils.PATH_SEPARATOR;
+    private static final String ESCAPE_ASTERISK_REPLACEMENT_FROM = ".+" + Utils.PATH_SEPARATOR_REGEX;
     private static final String ESCAPE_ASTERISK_REPLACEMENT_TO = "(.+" + Utils.PATH_SEPARATOR_REGEX + ")?";
 
     private List<Language> supportedLanguages;
@@ -193,10 +193,12 @@ public class PlaceholderUtil {
         toFormat = toFormat.replace("/", File.separator);
 
         if (toFormat.contains("**")) {
-            String prefix = StringUtils.substringBefore(toFormat, "**");
-            prefix = prefix.length() > 1 && file.getPath().contains(prefix) ? StringUtils.substringBefore(fileParent, Utils.noSepAtStart(prefix)) : "";
+            String prefixFormat = StringUtils.substringBefore(toFormat, "**");
+            String postfix = Utils.getParentDirectory(StringUtils.substringAfter(toFormat, "**"));
+            String prefix = prefixFormat.length() > 1 && file.getPath().contains(prefixFormat) ? StringUtils.substringBefore(fileParent, Utils.noSepAtStart(prefixFormat)) : "";
             String doubleAsterisks =
-                    StringUtils.removeStart(Utils.noSepAtStart(StringUtils.removeStart(fileParent, prefix)), Utils.noSepAtEnd(Utils.noSepAtStart(StringUtils.substringBefore(toFormat, "**"))));
+                StringUtils.removeStart(Utils.noSepAtStart(StringUtils.removeStart(fileParent, prefix)), Utils.noSepAtEnd(Utils.noSepAtStart(prefixFormat)));
+            doubleAsterisks = postfix.length() > 1 ? StringUtils.removeEnd(doubleAsterisks, Utils.noSepAtEnd(postfix)) : doubleAsterisks;
             toFormat = toFormat.replace("**", doubleAsterisks);
         }
 

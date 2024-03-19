@@ -1,5 +1,24 @@
 # Changelog
 
+# [3.19.0](https://github.com/crowdin/crowdin-cli/compare/3.18.0...3.19.0) (2024-03-19)
+
+
+### Bug Fixes
+
+* double asterisks in paths ([#733](https://github.com/crowdin/crowdin-cli/issues/733)) ([aa99d5e](https://github.com/crowdin/crowdin-cli/commit/aa99d5e55d1150bb91003b165b812ef7bc5eae7d))
+* label descriptions ([#723](https://github.com/crowdin/crowdin-cli/issues/723)) ([04a76c8](https://github.com/crowdin/crowdin-cli/commit/04a76c8e033aa9f7235ef67c2655ef2dfc906ffe))
+* message for strings based project when download ([#729](https://github.com/crowdin/crowdin-cli/issues/729)) ([c280608](https://github.com/crowdin/crowdin-cli/commit/c280608b0b7e8605b3107102b19200b377b29cbe))
+* preserve hierarchy output ([#738](https://github.com/crowdin/crowdin-cli/issues/738)) ([976f01d](https://github.com/crowdin/crowdin-cli/commit/976f01dff43cd4f5b9e66852665914da4d6d3940))
+
+
+### Features
+
+* label option for screenshot upload command ([#721](https://github.com/crowdin/crowdin-cli/issues/721)) ([bb57d11](https://github.com/crowdin/crowdin-cli/commit/bb57d1164f7bf7d72848d27065dfea286ac6bee5))
+* label option for string list command ([#722](https://github.com/crowdin/crowdin-cli/issues/722)) ([369ef8d](https://github.com/crowdin/crowdin-cli/commit/369ef8d5fdff14da2bf82b2eafdd9a07030b43b6))
+* multilingual option ([#725](https://github.com/crowdin/crowdin-cli/issues/725)) ([31e2053](https://github.com/crowdin/crowdin-cli/commit/31e20536da54562b9dbfc68d28ba887051e6968c))
+* plural strings ([#731](https://github.com/crowdin/crowdin-cli/issues/731)) ([503a974](https://github.com/crowdin/crowdin-cli/commit/503a974bc037521a9f34f0d25f465535f36e7fc6))
+* set http timeout ([#734](https://github.com/crowdin/crowdin-cli/issues/734)) ([690cb22](https://github.com/crowdin/crowdin-cli/commit/690cb22b59460154278cf59fd5c595b70b2c0107))
+
 # [3.18.0](https://github.com/crowdin/crowdin-cli/compare/3.17.0...3.18.0) (2024-02-07)
 
 
