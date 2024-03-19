@@ -66,6 +66,13 @@ public class PlaceholderUtilTest {
                 new File[] {new File("resources/messages.xml")},
                 Utils.normalizePath("/**/%two_letters_code%_%original_file_name%"),
                 new String[] {Utils.normalizePath("resources/en_messages.xml")}
+            ),
+            arguments(// How to treat double asterisks in the middle
+                new Language[] {LanguageBuilder.ENG.build()},
+                new Language[] {LanguageBuilder.ENG.build()},
+                new File[] {new File("resources/main/settings/default/messages.xml")},
+                Utils.normalizePath("app/**/default/%two_letters_code%_%original_file_name%"),
+                new String[] {Utils.normalizePath("app/resources/main/settings/default/en_messages.xml")}
             )
         );
     }
