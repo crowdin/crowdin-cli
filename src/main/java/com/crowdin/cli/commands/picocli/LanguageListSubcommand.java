@@ -8,10 +8,10 @@ import com.crowdin.cli.properties.ProjectProperties;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = CommandNames.LIST_LANGUAGES,
+    name = CommandNames.LIST,
     sortOptions = false
 )
-class ListLanguagesSubcommand extends ActCommandProject {
+class LanguageListSubcommand extends ActCommandProject {
 
     @CommandLine.Option(names = {"--code"}, paramLabel = "...", order = -2)
     protected BaseCli.LanguageCode code;

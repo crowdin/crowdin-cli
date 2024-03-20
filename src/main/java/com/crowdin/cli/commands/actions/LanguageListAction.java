@@ -20,13 +20,13 @@ import static com.crowdin.cli.utils.PlaceholderUtil.PLACEHOLDER_TWO_LETTERS_CODE
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
-class ListLanguagesAction implements NewAction<ProjectProperties, ProjectClient> {
+class LanguageListAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private BaseCli.LanguageCode code;
     private boolean noProgress;
     private boolean plainView;
 
-    public ListLanguagesAction(BaseCli.LanguageCode code, boolean noProgress,  boolean plainView) {
+    public LanguageListAction(BaseCli.LanguageCode code, boolean noProgress, boolean plainView) {
         this.code = code;
         this.noProgress = noProgress || plainView;
         this.plainView = plainView;
@@ -49,7 +49,7 @@ class ListLanguagesAction implements NewAction<ProjectProperties, ProjectClient>
         LanguageMapping langMapping = project.getLanguageMapping();
         if (!plainView) {
             project.getProjectLanguages(true).stream()
-                .map(lang -> String.format(RESOURCE_BUNDLE.getString("message.description"), lang.getName(), this.getCode(langMapping, lang)))
+                .map(lang -> String.format(RESOURCE_BUNDLE.getString("message.language.list"), this.getCode(langMapping, lang), lang.getName()))
                 .map(OK::withIcon)
                 .forEach(out::println);
         } else {

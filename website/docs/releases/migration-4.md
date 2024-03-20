@@ -65,3 +65,18 @@ Before:
 After:
 
 - `crowdin branch list`
+
+### Language updates
+
+* removed `crowdin list languages` command
+* create new command `crowdin language list` command
+* updated `list` cmd output
+* added new param `--all` to get all languages for current account
+
+Before:
+
+- `crowdin list languages`
+
+After:
+
+- `crowdin language list`

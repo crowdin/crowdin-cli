@@ -80,7 +80,6 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
-            'commands/crowdin-list-languages',
             'commands/crowdin-list-sources',
             'commands/crowdin-list-translations',
             'commands/crowdin-list-project',
@@ -99,6 +98,19 @@ const sidebars = {
             'commands/crowdin-branch-list',
             'commands/crowdin-branch-add',
             'commands/crowdin-branch-delete',
+          ]
+        },
+        {
+          type: 'category',
+          label: 'crowdin language',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-language'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-language-list',
           ]
         },
         {

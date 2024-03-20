@@ -19,7 +19,6 @@ public final class CommandNames {
     public static final String LIST_PROJECT = "project";
     public static final String LIST_SOURCES = "sources";
     public static final String LIST_TRANSLATIONS = "translations";
-    public static final String LIST_LANGUAGES = "languages";
 
     public static final String STATUS = "status";
     public static final String STATUS_TRANSLATION = "translation";
@@ -74,4 +73,5 @@ public final class CommandNames {
     public static final String FILE_UPLOAD = "upload";
     public static final String FILE_DOWNLOAD = "download";
     public static final String FILE_DELETE = "delete";
+    public static final String LANGUAGE = "language";
 }

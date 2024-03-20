@@ -15,7 +15,7 @@ import java.util.Collections;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
-public class ListLanguagesActionTest {
+public class LanguageListActionTest {
 
     ProjectClient client;
     CrowdinProjectInfo projectInfo;
@@ -45,7 +45,7 @@ public class ListLanguagesActionTest {
     @Test
     public void testActWithNoManagerAccess() {
         when(projectInfo.isManagerAccess()).thenReturn(false);
-        ListLanguagesAction action = new ListLanguagesAction(BaseCli.LanguageCode.id, false, false);
+        LanguageListAction action = new LanguageListAction(BaseCli.LanguageCode.id, false, false);
         action.act(out, properties, client);
         verify(out, times(2)).println(anyString());
     }
@@ -58,7 +58,7 @@ public class ListLanguagesActionTest {
         lang.setTwoLettersCode("en");
         when(projectInfo.getProjectLanguages(true)).thenReturn(Collections.singletonList(lang));
 
-        ListLanguagesAction action = new ListLanguagesAction(BaseCli.LanguageCode.id, false, true);
+        LanguageListAction action = new LanguageListAction(BaseCli.LanguageCode.id, false, true);
         action.act(out, properties, client);
         verify(out).println("en");
     }
@@ -69,7 +69,7 @@ public class ListLanguagesActionTest {
         lang.setThreeLettersCode("eng");
         when(projectInfo.getProjectLanguages(true)).thenReturn(Collections.singletonList(lang));
 
-        ListLanguagesAction action = new ListLanguagesAction(BaseCli.LanguageCode.three_letters_code, false, false);
+        LanguageListAction action = new LanguageListAction(BaseCli.LanguageCode.three_letters_code, false, false);
         action.act(out, properties, client);
         verify(out).println(contains("eng"));
     }
@@ -80,7 +80,7 @@ public class ListLanguagesActionTest {
         lang.setAndroidCode("en-rUS");
         when(projectInfo.getProjectLanguages(true)).thenReturn(Collections.singletonList(lang));
 
-        ListLanguagesAction action = new ListLanguagesAction(BaseCli.LanguageCode.android_code, false, false);
+        LanguageListAction action = new LanguageListAction(BaseCli.LanguageCode.android_code, false, false);
         action.act(out, properties, client);
         verify(out).println(contains("en-rUS"));
     }
@@ -91,7 +91,7 @@ public class ListLanguagesActionTest {
         lang.setOsxCode("en");
         when(projectInfo.getProjectLanguages(true)).thenReturn(Collections.singletonList(lang));
 
-        ListLanguagesAction action = new ListLanguagesAction(BaseCli.LanguageCode.osx_code, false, false);
+        LanguageListAction action = new LanguageListAction(BaseCli.LanguageCode.osx_code, false, false);
         action.act(out, properties, client);
         verify(out).println(contains("en"));
     }
@@ -102,7 +102,7 @@ public class ListLanguagesActionTest {
         lang.setOsxLocale("en_US");
         when(projectInfo.getProjectLanguages(true)).thenReturn(Collections.singletonList(lang));
 
-        ListLanguagesAction action = new ListLanguagesAction(BaseCli.LanguageCode.osx_locale, false, false);
+        LanguageListAction action = new LanguageListAction(BaseCli.LanguageCode.osx_locale, false, false);
         action.act(out, properties, client);
         verify(out).println(contains("en_US"));
     }
@@ -113,7 +113,7 @@ public class ListLanguagesActionTest {
         lang.setLocale("en_US");
         when(projectInfo.getProjectLanguages(true)).thenReturn(Collections.singletonList(lang));
 
-        ListLanguagesAction action = new ListLanguagesAction(BaseCli.LanguageCode.locale, false, false);
+        LanguageListAction action = new LanguageListAction(BaseCli.LanguageCode.locale, false, false);
         action.act(out, properties, client);
         verify(out).println(contains("en_US"));
     }
@@ -122,7 +122,7 @@ public class ListLanguagesActionTest {
     public void testActWithoutManagerAccessPlainView() {
         when(projectInfo.isManagerAccess()).thenReturn(false);
 
-        ListLanguagesAction action = new ListLanguagesAction(BaseCli.LanguageCode.id, false, true);
+        LanguageListAction action = new LanguageListAction(BaseCli.LanguageCode.id, false, true);
         assertThrows(RuntimeException.class, () -> action.act(out, properties, client));
     }
 }
