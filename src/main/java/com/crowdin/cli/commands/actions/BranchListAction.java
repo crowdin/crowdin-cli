@@ -10,12 +10,12 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-class ListBranchesAction implements NewAction<ProjectProperties, ProjectClient> {
+class BranchListAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private final boolean noProgress;
     private final boolean plainView;
 
-    public ListBranchesAction(boolean noProgress, boolean plainView) {
+    public BranchListAction(boolean noProgress, boolean plainView) {
         this.noProgress = noProgress || plainView;
         this.plainView = plainView;
     }

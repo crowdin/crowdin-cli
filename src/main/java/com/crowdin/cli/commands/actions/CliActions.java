@@ -42,7 +42,7 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<ProjectProperties, ProjectClient> listBranches(boolean noProgress, boolean plainView) {
-        return new ListBranchesAction(noProgress, plainView);
+        return new BranchListAction(noProgress, plainView);
     }
 
     @Override

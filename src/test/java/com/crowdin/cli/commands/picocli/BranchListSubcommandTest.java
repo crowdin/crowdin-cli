@@ -5,7 +5,7 @@ import org.junit.jupiter.api.Test;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.verify;
 
-public class ListBranchesSubcommandTest extends PicocliTestUtils {
+public class BranchListSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testListBranches() {

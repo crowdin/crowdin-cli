@@ -7,7 +7,7 @@ import picocli.CommandLine;
     subcommands = {
         BranchAddSubcommand.class,
         BranchDeleteSubcommand.class,
-        ListBranchesSubcommand.class
+        BranchListSubcommand.class
     }
 )
 class BranchSubcommand extends HelpCommand {
