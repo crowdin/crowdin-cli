@@ -7,7 +7,7 @@ import com.crowdin.cli.properties.ProjectProperties;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = CommandNames.BUNDLE_LIST
+    name = CommandNames.LIST
 )
 class BundleListSubcommand extends ActCommandBundle {
 

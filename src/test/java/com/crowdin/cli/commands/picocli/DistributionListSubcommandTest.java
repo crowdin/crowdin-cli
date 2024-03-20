@@ -9,7 +9,7 @@ public class DistributionListSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testDistributionList() {
-        this.execute(CommandNames.DISTRIBUTION, CommandNames.DISTRIBUTION_LIST);
+        this.execute(CommandNames.DISTRIBUTION, CommandNames.LIST);
         verify(actionsMock)
             .distributionList(anyBoolean());
         this.check(true);

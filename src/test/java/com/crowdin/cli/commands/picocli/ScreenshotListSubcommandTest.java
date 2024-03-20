@@ -10,7 +10,7 @@ public class ScreenshotListSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testScreenshotList() {
-        this.execute(CommandNames.SCREENSHOT, CommandNames.SCREENSHOT_LIST);
+        this.execute(CommandNames.SCREENSHOT, CommandNames.LIST);
         verify(actionsMock).screenshotList(any(), anyBoolean());
         this.check(true);
     }

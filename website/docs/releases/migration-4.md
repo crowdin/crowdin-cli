@@ -51,3 +51,17 @@ After:
 (Use `list` command to get id)
 
 - `crowdin screenshot delete <id>`
+
+### Branch updates
+
+* removed `crowdin list branches` command
+* create new command `crowdin branch list` command
+* updated `list` cmd output
+
+Before:
+
+- `crowdin list branches`
+
+After:
+
+- `crowdin branch list`
