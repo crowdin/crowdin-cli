@@ -67,8 +67,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean noProgress, boolean plainView) {
-        return new LanguageListAction(code, noProgress, plainView);
+    public NewAction<ProjectProperties, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean all, boolean noProgress, boolean plainView) {
+        return new LanguageListAction(code, all, noProgress, plainView);
     }
 
     @Override

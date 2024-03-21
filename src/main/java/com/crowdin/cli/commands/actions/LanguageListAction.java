@@ -10,6 +10,8 @@ import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.languages.model.Language;
 
+import java.util.List;
+
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.PlaceholderUtil.PLACEHOLDER_ANDROID_CODE;
 import static com.crowdin.cli.utils.PlaceholderUtil.PLACEHOLDER_LOCALE;
@@ -23,11 +25,13 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 class LanguageListAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private BaseCli.LanguageCode code;
+    private boolean all;
     private boolean noProgress;
     private boolean plainView;
 
-    public LanguageListAction(BaseCli.LanguageCode code, boolean noProgress, boolean plainView) {
+    public LanguageListAction(BaseCli.LanguageCode code, boolean all, boolean noProgress, boolean plainView) {
         this.code = code;
+        this.all = all;
         this.noProgress = noProgress || plainView;
         this.plainView = plainView;
     }
@@ -47,13 +51,15 @@ class LanguageListAction implements NewAction<ProjectProperties, ProjectClient> 
         }
 
         LanguageMapping langMapping = project.getLanguageMapping();
+        List<Language> languages = this.all ? client.listSupportedLanguages() : project.getProjectLanguages(true);
+
         if (!plainView) {
-            project.getProjectLanguages(true).stream()
+            languages.stream()
                 .map(lang -> String.format(RESOURCE_BUNDLE.getString("message.language.list"), this.getCode(langMapping, lang), lang.getName()))
                 .map(OK::withIcon)
                 .forEach(out::println);
         } else {
-            project.getProjectLanguages(true).stream()
+            languages.stream()
                 .map(lang -> this.getCode(langMapping, lang))
                 .forEach(out::println);
         }

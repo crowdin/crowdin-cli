@@ -5,6 +5,7 @@ import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.distributions.model.DistributionRelease;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
+import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.sourcefiles.model.*;
 import com.crowdin.client.sourcestrings.model.*;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
@@ -21,6 +22,8 @@ public interface ProjectClient extends Client {
     default CrowdinProjectFull downloadFullProject() {
         return this.downloadFullProject(null);
     }
+
+    List<Language> listSupportedLanguages();
 
     CrowdinProjectFull downloadFullProject(String branchName);
 
