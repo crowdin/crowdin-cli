@@ -42,7 +42,7 @@ public interface Actions {
     NewAction<PropertiesWithFiles, ProjectClient> listTranslations(
         boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang);
 
-    NewAction<ProjectProperties, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean noProgress, boolean plainView);
+    NewAction<ProjectProperties, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean all, boolean noProgress, boolean plainView);
 
     NewAction<ProjectProperties, ProjectClient> status(
         boolean noProgress, String branchName, String languageId, String file, String directory, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failIfIncomplete);
