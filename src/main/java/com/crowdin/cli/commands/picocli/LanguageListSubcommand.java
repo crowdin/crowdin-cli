@@ -16,7 +16,7 @@ class LanguageListSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--code"}, paramLabel = "...", order = -2)
     protected BaseCli.LanguageCode code;
 
-    @CommandLine.Option(names = {"--all"}, descriptionKey = "crowdin.language.list.all")
+    @CommandLine.Option(names = {"--all"}, descriptionKey = "crowdin.language.list.all", order = -2)
     protected boolean all;
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
