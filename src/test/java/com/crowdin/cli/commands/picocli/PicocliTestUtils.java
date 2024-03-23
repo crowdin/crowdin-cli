@@ -64,7 +64,7 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.listBranches(anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.listFiles(anyBoolean(), any(), anyBoolean(), anyBoolean()))
+        when(actionsMock.listFiles(anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.listSources(anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);

@@ -48,7 +48,7 @@ public class FileListActionTest {
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.po", "gettext", 101L, null, null).build());
 
-        action = new FileListAction(false, null, true, false);
+        action = new FileListAction(false, null, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(null);
@@ -66,7 +66,7 @@ public class FileListActionTest {
                 .addFile("first.po", "gettext", 101L, null, null)
                 .addBranches(1L, "existentBranch").build());
 
-        action = new FileListAction(false, "existentBranch", false, false);
+        action = new FileListAction(false, "existentBranch", false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject("existentBranch");

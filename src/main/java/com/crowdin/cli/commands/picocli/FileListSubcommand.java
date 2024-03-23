@@ -23,7 +23,7 @@ class FileListSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.listFiles(this.noProgress, this.branch, this.treeView, this.plainView);
+        return actions.listFiles(this.noProgress, this.branch, this.treeView, this.plainView, this.isVerbose);
     }
 
     @Override

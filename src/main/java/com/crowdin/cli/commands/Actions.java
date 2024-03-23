@@ -34,7 +34,7 @@ public interface Actions {
     NewAction<ProjectProperties, ProjectClient> listBranches(boolean noProgress, boolean plainView);
 
     NewAction<ProjectProperties, ProjectClient> listFiles(
-        boolean noProgress, String branchName, boolean treeView, boolean plainView);
+        boolean noProgress, String branchName, boolean treeView, boolean plainView, boolean isVerbose);
 
     NewAction<PropertiesWithFiles, ProjectClient> listSources(
         boolean deleteObsolete, String branchName, boolean noProgress, boolean treeView, boolean plainView);

@@ -12,7 +12,7 @@ public class FileListSubcommandTest extends PicocliTestUtils {
     public void testListProject() {
         this.execute(CommandNames.FILE, CommandNames.LIST);
         verify(actionsMock)
-            .listFiles(anyBoolean(), any(), anyBoolean(), anyBoolean());
+            .listFiles(anyBoolean(), any(), anyBoolean(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 }
