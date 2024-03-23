@@ -7,10 +7,10 @@ import com.crowdin.cli.properties.ProjectProperties;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = CommandNames.LIST_PROJECT,
+    name = CommandNames.LIST,
     sortOptions = false
 )
-class ListProjectSubcommand extends ActCommandProject {
+class FileListSubcommand extends ActCommandProject {
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
     protected String branch;
@@ -23,7 +23,7 @@ class ListProjectSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.listProject(this.noProgress, this.branch, this.treeView, this.plainView);
+        return actions.listFiles(this.noProgress, this.branch, this.treeView, this.plainView);
     }
 
     @Override

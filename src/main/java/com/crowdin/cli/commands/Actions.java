@@ -33,7 +33,7 @@ public interface Actions {
 
     NewAction<ProjectProperties, ProjectClient> listBranches(boolean noProgress, boolean plainView);
 
-    NewAction<ProjectProperties, ProjectClient> listProject(
+    NewAction<ProjectProperties, ProjectClient> listFiles(
         boolean noProgress, String branchName, boolean treeView, boolean plainView);
 
     NewAction<PropertiesWithFiles, ProjectClient> listSources(

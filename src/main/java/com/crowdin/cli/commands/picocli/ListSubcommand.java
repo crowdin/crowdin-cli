@@ -5,7 +5,6 @@ import picocli.CommandLine;
 @CommandLine.Command(
     name = CommandNames.LIST,
     subcommands = {
-        ListProjectSubcommand.class,
         ListSourcesSubcommand.class,
         ListTranslationsSubcommand.class
     })

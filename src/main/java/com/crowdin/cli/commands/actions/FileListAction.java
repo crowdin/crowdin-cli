@@ -11,14 +11,14 @@ import com.crowdin.client.sourcefiles.model.Branch;
 
 import java.util.Optional;
 
-class ListProjectAction implements NewAction<ProjectProperties, ProjectClient> {
+class FileListAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private boolean noProgress;
     private String branchName;
     private boolean treeView;
     private boolean plainView;
 
-    public ListProjectAction(boolean noProgress, String branchName, boolean treeView, boolean plainView) {
+    public FileListAction(boolean noProgress, String branchName, boolean treeView, boolean plainView) {
         this.noProgress = noProgress || plainView;
         this.branchName = branchName;
         this.treeView = treeView;

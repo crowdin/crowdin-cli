@@ -6,13 +6,13 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyBoolean;
 import static org.mockito.Mockito.verify;
 
-public class ListProjectSubcommandTest extends PicocliTestUtils {
+public class FileListSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testListProject() {
-        this.execute(CommandNames.LIST, CommandNames.LIST_PROJECT);
+        this.execute(CommandNames.FILE, CommandNames.LIST);
         verify(actionsMock)
-            .listProject(anyBoolean(), any(), anyBoolean(), anyBoolean());
+            .listFiles(anyBoolean(), any(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 }

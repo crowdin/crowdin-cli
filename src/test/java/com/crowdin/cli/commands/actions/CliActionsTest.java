@@ -29,7 +29,7 @@ public class CliActionsTest {
 
     @Test
     public void testListProject() {
-        assertNotNull(actions.listProject(false, null, false, false));
+        assertNotNull(actions.listFiles(false, null, false, false));
     }
 
     @Test
