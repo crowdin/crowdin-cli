@@ -24,7 +24,7 @@ const sidebars = {
       collapsed: false,
       items: [
         'commands/crowdin',
-        'commands/crowdin-generate',
+        'commands/crowdin-init',
         'commands/crowdin-lint',
         {
           type: 'category',

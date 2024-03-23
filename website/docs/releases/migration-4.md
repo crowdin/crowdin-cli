@@ -95,3 +95,15 @@ Before:
 After:
 
 - `crowdin file list`
+
+### Init command
+
+* `generate` alias was removed
+
+Before:
+
+- `crowdin init` or `crowdin generate`
+
+After:
+
+- `crowdin init`
