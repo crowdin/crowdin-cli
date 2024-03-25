@@ -26,7 +26,7 @@ crowdin string add Home --file src/values/strings.xml --identifier "app.home"
 Add a new string with the `app.download` key to the `src/values/strings.xml` file (branch `main`):
 
 ----
-crowdin string add Download --file main/src/values/strings.xml --identifier "app.download"
+crowdin string add Download --file src/values/strings.xml --identifier "app.download" --branch main
 ----
 
 Add a new string with the `app.hello` key to the `strings.xml` file, with labels `app` and `home`:

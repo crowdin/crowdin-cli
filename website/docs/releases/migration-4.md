@@ -107,3 +107,15 @@ Before:
 After:
 
 - `crowdin init`
+
+### String updates
+
+* added `branch` param support instead of branch in file path
+
+Before:
+
+- `crowdin string add Download --file main/src/values/strings.xml --identifier "app.download"`
+
+After:
+
+- `crowdin string add Download --file src/values/strings.xml --identifier "app.download" --branch main`
