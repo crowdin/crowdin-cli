@@ -49,71 +49,80 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, false, client::downloadFullProject);
+                this.noProgress, false, client::downloadFullProject);
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
         boolean isPluralString = one != null || two != null || few != null || many != null || zero != null;
 
         List<Long> labelIds = (labelNames != null && !labelNames.isEmpty()) ? this.prepareLabelIds(client) : null;
+        Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, false);
+
         if (isStringsBasedProject) {
             if (files != null && !files.isEmpty()) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
             }
-            Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, false);
             if (Objects.isNull(branch)) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
             }
             if (isPluralString) {
                 AddSourcePluralStringStringsBasedRequest request = RequestBuilder.addPluralStringStringsBased(
-                    this.text, this.identifier, this.maxLength, this.context, branch.getId(), this.hidden, labelIds, one, two, few, many, zero);
+                        this.text, this.identifier, this.maxLength, this.context, branch.getId(), this.hidden, labelIds, one, two, few, many, zero);
                 client.addSourcePluralStringStringsBased(request);
             } else {
                 AddSourceStringStringsBasedRequest request = RequestBuilder.addStringStringsBased(this.text, this.identifier, this.maxLength, this.context, branch.getId(), this.hidden, labelIds);
                 client.addSourceStringStringsBased(request);
             }
             out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.source_string_uploaded")));
-        } else {
-            if (files == null || files.isEmpty()) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.file_required"));
-            }
-            Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
-            boolean containsError = false;
-            for (String file : files) {
-                if (!paths.containsKey(file)) {
-                    if (files.size() > 1) {
-                        containsError = true;
-                        out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
-                        continue;
-                    } else {
-                        throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
-                    }
-                }
-                Long fileId = paths.get(file).getId();
+            return;
+        }
 
-                if (isPluralString) {
-                    AddSourcePluralStringRequest request = RequestBuilder.addPluralString(
-                        this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden, labelIds, one, two, few, many, zero);
-                    client.addSourcePluralString(request);
+        if (files == null || files.isEmpty()) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.file_required"));
+        }
+
+        List<FileInfo> fileInfos = project
+                .getFileInfos()
+                .stream().filter(f -> Objects.isNull(branch) || branch.getId().equals(f.getBranchId()))
+                .collect(Collectors.toList());
+        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), fileInfos);
+        boolean containsError = false;
+
+        for (String file : files) {
+            if (!paths.containsKey(file)) {
+                if (files.size() > 1) {
+                    containsError = true;
+                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
+                    continue;
                 } else {
-                    AddSourceStringRequest request =
-                        RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden, labelIds);
-                    client.addSourceString(request);
+                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
                 }
-                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_for_file_uploaded"), file)));
             }
-            if (containsError) {
-                throw new RuntimeException();
+            Long fileId = paths.get(file).getId();
+
+            if (isPluralString) {
+                AddSourcePluralStringRequest request = RequestBuilder.addPluralString(
+                        this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden, labelIds, one, two, few, many, zero);
+                client.addSourcePluralString(request);
+            } else {
+                AddSourceStringRequest request =
+                        RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden, labelIds);
+                client.addSourceString(request);
             }
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_for_file_uploaded"), file)));
+        }
+
+        if (containsError) {
+            throw new RuntimeException();
         }
     }
 
     private List<Long> prepareLabelIds(ProjectClient client) {
         Map<String, Long> labels = client.listLabels().stream()
-            .collect(Collectors.toMap(Label::getTitle, Label::getId));
+                .collect(Collectors.toMap(Label::getTitle, Label::getId));
         labelNames.stream()
-            .distinct()
-            .forEach(labelName -> labels.computeIfAbsent(labelName, (title) -> client.addLabel(RequestBuilder.addLabel(title)).getId()));
+                .distinct()
+                .forEach(labelName -> labels.computeIfAbsent(labelName, (title) -> client.addLabel(RequestBuilder.addLabel(title)).getId()));
         return labelNames.stream()
-            .map(labels::get)
-            .collect(Collectors.toList());
+                .map(labels::get)
+                .collect(Collectors.toList());
     }
 }
