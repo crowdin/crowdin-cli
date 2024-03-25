@@ -9,14 +9,11 @@ public final class CommandNames {
 
     public static final String DOWNLOAD_TARGETS = "targets";
 
-    public static final String GENERATE = "generate";
-
-    public static final String ALIAS_GENERATE = "init";
+    public static final String INIT = "init";
 
     public static final String LINT = "lint";
 
     public static final String LIST = "list";
-    public static final String LIST_PROJECT = "project";
     public static final String LIST_SOURCES = "sources";
     public static final String LIST_TRANSLATIONS = "translations";
 

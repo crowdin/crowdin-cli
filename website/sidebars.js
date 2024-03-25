@@ -24,7 +24,7 @@ const sidebars = {
       collapsed: false,
       items: [
         'commands/crowdin',
-        'commands/crowdin-generate',
+        'commands/crowdin-init',
         'commands/crowdin-lint',
         {
           type: 'category',
@@ -65,6 +65,7 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
+            'commands/crowdin-file-list',
             'commands/crowdin-file-upload',
             'commands/crowdin-file-download',
             'commands/crowdin-file-delete',
@@ -82,7 +83,6 @@ const sidebars = {
           items: [
             'commands/crowdin-list-sources',
             'commands/crowdin-list-translations',
-            'commands/crowdin-list-project',
           ]
         },
         {

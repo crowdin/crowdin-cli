@@ -9,7 +9,7 @@ import picocli.CommandLine;
         DownloadSubcommand.class,
         ListSubcommand.class,
         LintSubcommand.class,
-        GenerateSubcommand.class,
+        InitSubcommand.class,
         StatusSubcommand.class,
         StringSubcommand.class,
         GlossarySubcommand.class,

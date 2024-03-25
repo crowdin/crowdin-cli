@@ -46,10 +46,10 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> listProject(
-        boolean noProgress, String branchName, boolean treeView, boolean plainView
+    public NewAction<ProjectProperties, ProjectClient> listFiles(
+        boolean noProgress, String branchName, boolean treeView, boolean plainView, boolean isVerbose
     ) {
-        return new ListProjectAction(noProgress, branchName, treeView, plainView);
+        return new FileListAction(noProgress, branchName, treeView, plainView, isVerbose);
     }
 
     @Override

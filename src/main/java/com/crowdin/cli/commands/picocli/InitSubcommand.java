@@ -13,11 +13,10 @@ import picocli.CommandLine;
 import java.nio.file.Path;
 
 @CommandLine.Command(
-    name = CommandNames.GENERATE,
-    aliases = CommandNames.ALIAS_GENERATE,
+    name = CommandNames.INIT,
     sortOptions = false
 )
-public class GenerateSubcommand extends GenericActCommand<NoProperties, NoClient> {
+public class InitSubcommand extends GenericActCommand<NoProperties, NoClient> {
 
     @CommandLine.Option(names = {"-d", "--destination"}, paramLabel = "...", descriptionKey = "crowdin.generate.destination", defaultValue = "crowdin.yml", order = -2)
     private Path destinationPath;
