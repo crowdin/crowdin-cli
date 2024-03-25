@@ -22,6 +22,7 @@ import lombok.Data;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -54,12 +55,12 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
         boolean isPluralString = one != null || two != null || few != null || many != null || zero != null;
 
         List<Long> labelIds = (labelNames != null && !labelNames.isEmpty()) ? this.prepareLabelIds(client) : null;
-        Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, false);
 
         if (isStringsBasedProject) {
             if (files != null && !files.isEmpty()) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
             }
+            Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, false);
             if (Objects.isNull(branch)) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
             }
@@ -79,9 +80,15 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.file_required"));
         }
 
+        Optional<Branch> branch = Optional.ofNullable(branchName).flatMap(project::findBranchByName);
+
+        if (!branch.isPresent() && branchName != null) {
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.branch_does_not_exist"), branchName));
+        }
+
         List<FileInfo> fileInfos = project
                 .getFileInfos()
-                .stream().filter(f -> Objects.isNull(branch) || branch.getId().equals(f.getBranchId()))
+                .stream().filter(f -> !branch.isPresent() || branch.get().getId().equals(f.getBranchId()))
                 .collect(Collectors.toList());
         Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), fileInfos);
         boolean containsError = false;
