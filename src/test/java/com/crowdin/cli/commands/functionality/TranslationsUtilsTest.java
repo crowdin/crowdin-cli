@@ -64,6 +64,16 @@ public class TranslationsUtilsTest {
                 Utils.normalizePath("en/here/file.po"),
                 Utils.normalizePath("/%two_letters_code%/here/%original_file_name%")),
             arguments(
+                Utils.normalizePath("/en/**/folder/*.po"),
+                Utils.normalizePath("/%two_letters_code%/**/%original_file_name%"),
+                Utils.normalizePath("en/folder/file.po"),
+                Utils.normalizePath("/%two_letters_code%/%original_file_name%")),
+            arguments(
+                Utils.normalizePath("/en/**/folder/*.po"),
+                Utils.normalizePath("/%two_letters_code%/**/folder/%original_file_name%"),
+                Utils.normalizePath("en/here/folder/file.po"),
+                Utils.normalizePath("/%two_letters_code%/here/folder/%original_file_name%")),
+            arguments(
                 Utils.normalizePath("/*/**/*.po"),
                 Utils.normalizePath("/%two_letters_code%/**/%original_file_name%"),
                 Utils.normalizePath("hmm/here/file.po"),
