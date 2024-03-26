@@ -43,6 +43,8 @@ public class TranslationsUtils {
                             } else {
                                 sourceFile = "";
                             }
+                        } else if (Utils.noSepAtStart(s).length() > 0 && sourceFile.startsWith(Utils.noSepAtStart(s))) {
+                            sourceFile = "";
                         }
                     }
                 } else if (sourceFile.contains(".")) {
