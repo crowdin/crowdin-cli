@@ -14,25 +14,25 @@ import java.util.List;
 )
 class UploadSourcesCommand extends ActCommandWithFiles {
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -3)
     protected String branch;
 
     @CommandLine.Option(names = {"--delete-obsolete"}, descriptionKey = "crowdin.upload.sources.delete-obsolete", order = -2)
     protected boolean deleteObsolete;
 
-    @CommandLine.Option(names = {"--no-auto-update"}, negatable = true, order = -2)
+    @CommandLine.Option(names = {"--no-auto-update"}, descriptionKey = "crowdin.upload.sources.no-auto-update", negatable = true, order = -2)
     protected boolean autoUpdate = true;
 
-    @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun", order = -2)
-    protected boolean treeView;
-
-    @CommandLine.Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...", order = -3)
     protected List<String> labels;
 
     @CommandLine.Option(names = {"--excluded-language"}, descriptionKey = "params.excluded-languages", paramLabel = "...", order = -2)
     protected List<String> excludedLanguages;
 
-    @CommandLine.Option(names = {"--dryrun"})
+    @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
+    protected boolean treeView;
+
+    @CommandLine.Option(names = {"--dryrun"}, descriptionKey = "dryrun")
     protected boolean dryrun;
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
