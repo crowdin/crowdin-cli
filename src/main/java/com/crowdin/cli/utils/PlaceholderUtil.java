@@ -86,12 +86,23 @@ public class PlaceholderUtil {
         }
         List<String> res = new ArrayList<>();
         for (String str : toFormat) {
-            res.addAll(this.format(sources, str, onProjectLangs));
+            res.addAll(this.format(sources, str, onProjectLangs, null));
         }
         return res;
     }
 
-    public Set<String> format(List<File> sources, String toFormat, boolean onProjectLangs) {
+    public List<String> format(List<File> sources, List<String> toFormat, boolean onProjectLangs, LanguageMapping languageMapping) {
+        if (sources == null || toFormat == null) {
+            return new ArrayList<>();
+        }
+        List<String> res = new ArrayList<>();
+        for (String str : toFormat) {
+            res.addAll(this.format(sources, str, onProjectLangs, languageMapping));
+        }
+        return res;
+    }
+
+    public Set<String> format(List<File> sources, String toFormat, boolean onProjectLangs, LanguageMapping languageMapping) {
         if (sources == null || toFormat == null) {
             return new HashSet<>();
         }
@@ -99,10 +110,16 @@ public class PlaceholderUtil {
         List<Language> languages = (onProjectLangs ? projectLanguages : supportedLanguages);
 
         return languages.stream()
-            .map(lang -> this.replaceLanguageDependentPlaceholders(toFormat, lang))
+            .map(lang -> languageMapping == null
+                ? this.replaceLanguageDependentPlaceholders(toFormat, lang)
+                : this.replaceLanguageDependentPlaceholders(toFormat, languageMapping, lang))
             .flatMap(changedToFormat -> sources.stream()
                     .map(source -> this.replaceFileDependentPlaceholders(changedToFormat, source)))
             .collect(Collectors.toSet());
+    }
+
+    public Set<String> format(List<File> sources, String toFormat, boolean onProjectLangs) {
+        return this.format(sources, toFormat, onProjectLangs, null);
     }
 
     public String replaceLanguageDependentPlaceholders(String toFormat, Language lang) {

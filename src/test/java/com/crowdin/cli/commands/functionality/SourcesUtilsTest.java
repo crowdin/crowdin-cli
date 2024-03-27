@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.PlaceholderUtilBuilder;
 import com.crowdin.cli.utils.Utils;
@@ -16,9 +17,7 @@ import org.junit.jupiter.params.provider.MethodSource;
 import java.io.File;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -89,6 +88,27 @@ public class SourcesUtilsTest {
             arguments("**/*", Collections.singletonList("folder" + Utils.PATH_SEPARATOR), 2),
             arguments("**/*", Collections.singletonList("f*"), 2)
         );
+    }
+
+    @Test
+    public void testGetFiles_LanguageMapping() {
+        tempProject.addFile("folder/first.xml");
+        tempProject.addFile("folder/second.eng.txt");
+        tempProject.addFile("folder/second.xml");
+        HashMap<String, Map<String, String>> mapping = new HashMap<String, Map<String, String>>() {{
+            put("two_letters_code", new HashMap<String, String>() {{
+                    put("en", "eng");
+                }}
+            );
+        }};
+        LanguageMapping languageMapping = LanguageMapping.fromConfigFileLanguageMapping(mapping);
+        Stream<File> sources = SourcesUtils.getFiles(
+            tempProject.getBasePath(),
+            "/folder/*",
+            Collections.singletonList("/folder/**/*.%two_letters_code%.*"),
+            PlaceholderUtilBuilder.STANDART.build(tempProject.getBasePath()),
+            languageMapping);
+        assertEquals(2, sources.count());
     }
 
     @ParameterizedTest
