@@ -80,29 +80,44 @@ public class PlaceholderUtil {
         this.basePath = basePath;
     }
 
-    public List<String> format(List<File> sources, List<String> toFormat, boolean onProjectLangs) {
+    public List<String> format(List<File> sources, List<String> toFormat) {
         if (sources == null || toFormat == null) {
             return new ArrayList<>();
         }
         List<String> res = new ArrayList<>();
         for (String str : toFormat) {
-            res.addAll(this.format(sources, str, onProjectLangs));
+            res.addAll(this.format(sources, str, null));
         }
         return res;
     }
 
-    public Set<String> format(List<File> sources, String toFormat, boolean onProjectLangs) {
+    public List<String> format(List<File> sources, List<String> toFormat, LanguageMapping languageMapping) {
+        if (sources == null || toFormat == null) {
+            return new ArrayList<>();
+        }
+        List<String> res = new ArrayList<>();
+        for (String str : toFormat) {
+            res.addAll(this.format(sources, str, languageMapping));
+        }
+        return res;
+    }
+
+    public Set<String> format(List<File> sources, String toFormat, LanguageMapping languageMapping) {
         if (sources == null || toFormat == null) {
             return new HashSet<>();
         }
 
-        List<Language> languages = (onProjectLangs ? projectLanguages : supportedLanguages);
-
-        return languages.stream()
-            .map(lang -> this.replaceLanguageDependentPlaceholders(toFormat, lang))
+        return supportedLanguages.stream()
+            .map(lang -> languageMapping == null
+                ? this.replaceLanguageDependentPlaceholders(toFormat, lang)
+                : this.replaceLanguageDependentPlaceholders(toFormat, languageMapping, lang))
             .flatMap(changedToFormat -> sources.stream()
                     .map(source -> this.replaceFileDependentPlaceholders(changedToFormat, source)))
             .collect(Collectors.toSet());
+    }
+
+    public Set<String> format(List<File> sources, String toFormat) {
+        return this.format(sources, toFormat, null);
     }
 
     public String replaceLanguageDependentPlaceholders(String toFormat, Language lang) {
@@ -206,18 +221,17 @@ public class PlaceholderUtil {
         return StringUtils.removeStart(toFormat, Utils.PATH_SEPARATOR);
     }
 
-    public List<String> formatForRegex(List<String> toFormat, boolean onProjectLangs) {
-        List<Language> langs = (onProjectLangs) ? this.projectLanguages : this.supportedLanguages;
-        String langIds = langs.stream().map(Language::getId).collect(Collectors.joining("|", "(", ")"));
-        String langNames = langs.stream().map(Language::getName).collect(Collectors.joining("|", "(", ")"));
-        String langLocales = langs.stream().map(Language::getLocale).collect(Collectors.joining("|", "(", ")"));
-        String langLocalesWithUnderscore = langs.stream().map(Language::getLocale).map(s -> s.replace("-", "_"))
+    public List<String> formatForRegex(List<String> toFormat) {
+        String langIds = supportedLanguages.stream().map(Language::getId).collect(Collectors.joining("|", "(", ")"));
+        String langNames = supportedLanguages.stream().map(Language::getName).collect(Collectors.joining("|", "(", ")"));
+        String langLocales = supportedLanguages.stream().map(Language::getLocale).collect(Collectors.joining("|", "(", ")"));
+        String langLocalesWithUnderscore = supportedLanguages.stream().map(Language::getLocale).map(s -> s.replace("-", "_"))
             .collect(Collectors.joining("|", "(", ")"));
-        String langTwoLettersCodes = langs.stream().map(Language::getTwoLettersCode).collect(Collectors.joining("|", "(", ")"));
-        String langThreeLettersCodes = langs.stream().map(Language::getThreeLettersCode).collect(Collectors.joining("|", "(", ")"));
-        String langAndroidCodes = langs.stream().map(Language::getAndroidCode).collect(Collectors.joining("|", "(", ")"));
-        String langOsxLocales = langs.stream().map(Language::getOsxLocale).collect(Collectors.joining("|", "(", ")"));
-        String langOsxCodes = langs.stream().map(Language::getOsxCode).collect(Collectors.joining("|", "(", ")"));
+        String langTwoLettersCodes = supportedLanguages.stream().map(Language::getTwoLettersCode).collect(Collectors.joining("|", "(", ")"));
+        String langThreeLettersCodes = supportedLanguages.stream().map(Language::getThreeLettersCode).collect(Collectors.joining("|", "(", ")"));
+        String langAndroidCodes = supportedLanguages.stream().map(Language::getAndroidCode).collect(Collectors.joining("|", "(", ")"));
+        String langOsxLocales = supportedLanguages.stream().map(Language::getOsxLocale).collect(Collectors.joining("|", "(", ")"));
+        String langOsxCodes = supportedLanguages.stream().map(Language::getOsxCode).collect(Collectors.joining("|", "(", ")"));
         return toFormat.stream()
             .map(PlaceholderUtil::formatSourcePatternForRegex)
             .map(s -> s

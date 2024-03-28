@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.properties.helper.FileHelper;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
@@ -19,17 +20,21 @@ import java.util.stream.Stream;
 import static java.util.Arrays.asList;
 
 public class SourcesUtils {
-    public static Stream<File> getFiles(String basePath, String sourcePattern, List<String> ignorePattern, PlaceholderUtil placeholderUtil) {
+    public static Stream<File> getFiles(String basePath, String sourcePattern, List<String> ignorePattern, PlaceholderUtil placeholderUtil, LanguageMapping languageMapping) {
         if (basePath == null || sourcePattern == null || placeholderUtil == null) {
             throw new NullPointerException("null args in SourceUtils.getFiles");
         }
         FileHelper fileHelper = new FileHelper(basePath);
         String relativePath = StringUtils.removeStart(sourcePattern, basePath);
         List<File> sources = fileHelper.getFiles(relativePath);
-        List<String> formattedIgnores = placeholderUtil.format(sources, ignorePattern, false);
+        List<String> formattedIgnores = placeholderUtil.format(sources, ignorePattern, languageMapping);
         return fileHelper.filterOutIgnoredFiles(sources, formattedIgnores)
             .stream()
             .filter(File::isFile);
+    }
+
+    public static Stream<File> getFiles(String basePath, String sourcePattern, List<String> ignorePattern, PlaceholderUtil placeholderUtil) {
+        return SourcesUtils.getFiles(basePath, sourcePattern, ignorePattern, placeholderUtil, null);
     }
 
     public static List<String> filterProjectFiles(
@@ -44,7 +49,7 @@ public class SourcesUtils {
         Predicate<String> ignorePredicate;
         if (preserveHierarchy) {
             sourcePredicate = Pattern.compile("^" + PlaceholderUtil.formatSourcePatternForRegex(sourcePattern) + "$").asPredicate();
-            ignorePredicate = placeholderUtil.formatForRegex(ignorePatterns, false).stream()
+            ignorePredicate = placeholderUtil.formatForRegex(ignorePatterns).stream()
                 .map(Pattern::compile)
                 .map(Pattern::asPredicate)
                 .map(Predicate::negate)
@@ -71,7 +76,7 @@ public class SourcesUtils {
             };
             ignorePredicate = ignorePatterns.stream()
                 .map(ignorePattern -> {
-                    List<String> ignorePatternPaths = placeholderUtil.formatForRegex(asList(ignorePattern.split(Pattern.quote(File.separator))), false);
+                    List<String> ignorePatternPaths = placeholderUtil.formatForRegex(asList(ignorePattern.split(Pattern.quote(File.separator))));
                     Collections.reverse(ignorePatternPaths);
                     return ignorePatternPaths;
                 })
