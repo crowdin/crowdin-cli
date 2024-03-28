@@ -39,7 +39,7 @@ public class PlaceholderUtilTest {
             "/proj/path/"
         );
 
-        Set<String> result = placeholderUtil.format(Arrays.asList(sources), toFormat, true);
+        Set<String> result = placeholderUtil.format(Arrays.asList(sources), toFormat);
 
         assertEquals(new HashSet<>(Arrays.asList(expected)), result);
     }
@@ -52,13 +52,6 @@ public class PlaceholderUtilTest {
                 new File[] {new File("resources/messages.xml")},
                 Utils.normalizePath("resources/%two_letters_code%_%original_file_name%"),
                 new String[] {Utils.normalizePath("resources/ua_messages.xml"), Utils.normalizePath("resources/ru_messages.xml")}
-            ),
-            arguments(// Must be only de_messages
-                new Language[] { LanguageBuilder.DEU.build(), LanguageBuilder.ENG.build() },
-                new Language[] { LanguageBuilder.DEU.build() },
-                new File[] {new File("resources/messages.xml")},
-                Utils.normalizePath("resources/%two_letters_code%_%original_file_name%"),
-                new String[] {Utils.normalizePath("resources/de_messages.xml")}
             ),
             arguments(// How to treat double asterisks
                 new Language[] {LanguageBuilder.ENG.build()},
@@ -92,7 +85,7 @@ public class PlaceholderUtilTest {
             "/proj/path/"
         );
 
-        List<String> result = placeholderUtil.format(Arrays.asList(sources), Arrays.asList(toFormat), true);
+        List<String> result = placeholderUtil.format(Arrays.asList(sources), Arrays.asList(toFormat));
 
         assertEquals(new HashSet<>(Arrays.asList(expected)), new HashSet<>(result));
     }
@@ -122,8 +115,8 @@ public class PlaceholderUtilTest {
         assertThrows(NullPointerException.class, () -> new PlaceholderUtil(null, null, null));
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(new ArrayList<>(), new ArrayList<>(), "/here/it/goes/");
 
-        assertEquals(new ArrayList<String>(), placeholderUtil.format(null, new ArrayList<>(), false));
-        assertEquals(new HashSet<>(), placeholderUtil.format(null, "", false));
+        assertEquals(new ArrayList<String>(), placeholderUtil.format(null, new ArrayList<>()));
+        assertEquals(new HashSet<>(), placeholderUtil.format(null, ""));
 
         assertThrows(NullPointerException.class, () -> placeholderUtil.replaceLanguageDependentPlaceholders(null, new Language()));
         assertThrows(NullPointerException.class, () -> placeholderUtil.replaceLanguageDependentPlaceholders(null, null, null));
