@@ -10,7 +10,7 @@ public class CommentListSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testCommentList() {
-        this.execute(CommandNames.COMMENT, CommandNames.COMMENT_LIST);
+        this.execute(CommandNames.COMMENT, CommandNames.LIST);
         verify(actionsMock)
             .commentList(anyBoolean(), anyBoolean(), any(), any(), any(), any());
         this.check(true);

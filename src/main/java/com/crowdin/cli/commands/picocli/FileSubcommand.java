@@ -6,6 +6,7 @@ import picocli.CommandLine.Command;
 @Command(
     name = CommandNames.FILE,
     subcommands = {
+        FileListSubcommand.class,
         FileUploadSubcommand.class,
         FileDownloadSubcommand.class,
         FileDeleteSubcommand.class

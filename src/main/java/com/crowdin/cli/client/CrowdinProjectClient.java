@@ -3,6 +3,7 @@ package com.crowdin.cli.client;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
+import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.*;
@@ -29,6 +30,12 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     public CrowdinProjectClient(com.crowdin.client.Client client, long projectId) {
         this.client = client;
         this.projectId = projectId;
+    }
+
+    @Override
+    public List<Language> listSupportedLanguages() {
+        return executeRequestFullList((limit, offset) -> this.client.getLanguagesApi()
+                .listSupportedLanguages(limit, offset));
     }
 
     @Override
@@ -75,8 +82,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     private void populateProjectWithLangs(CrowdinProject project) {
-        project.setSupportedLanguages(executeRequestFullList((limit, offset) -> this.client.getLanguagesApi()
-            .listSupportedLanguages(limit, offset)));
+        project.setSupportedLanguages(this.listSupportedLanguages());
     }
 
     private void populateProjectWithInfo(CrowdinProjectInfo project) {

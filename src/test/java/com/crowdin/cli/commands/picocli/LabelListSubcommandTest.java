@@ -9,7 +9,7 @@ class LabelListSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testLabelList() {
-        this.execute(CommandNames.LABEL, CommandNames.LABEL_LIST);
+        this.execute(CommandNames.LABEL, CommandNames.LIST);
         verify(actionsMock).labelList(anyBoolean(), anyBoolean());
         this.check(true);
     }

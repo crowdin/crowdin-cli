@@ -42,14 +42,14 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<ProjectProperties, ProjectClient> listBranches(boolean noProgress, boolean plainView) {
-        return new ListBranchesAction(noProgress, plainView);
+        return new BranchListAction(noProgress, plainView);
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> listProject(
-        boolean noProgress, String branchName, boolean treeView, boolean plainView
+    public NewAction<ProjectProperties, ProjectClient> listFiles(
+        boolean noProgress, String branchName, boolean treeView, boolean plainView, boolean isVerbose
     ) {
-        return new ListProjectAction(noProgress, branchName, treeView, plainView);
+        return new FileListAction(noProgress, branchName, treeView, plainView, isVerbose);
     }
 
     @Override
@@ -67,8 +67,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean noProgress, boolean plainView) {
-        return new ListLanguagesAction(code, noProgress, plainView);
+    public NewAction<ProjectProperties, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean all, boolean noProgress, boolean plainView) {
+        return new LanguageListAction(code, all, noProgress, plainView);
     }
 
     @Override
@@ -134,16 +134,16 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<BaseProperties, ClientGlossary> glossaryUpload(
-        java.io.File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
+        java.io.File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
     ) {
-        return new GlossaryUploadAction(file, id, name, languageId, scheme, firstLineContainsHeader);
+        return new GlossaryUploadAction(file, id, languageId, scheme, firstLineContainsHeader);
     }
 
     @Override
     public NewAction<BaseProperties, ClientGlossary> glossaryDownload(
-        Long id, String name, GlossariesFormat format, boolean noProgress, File to, FilesInterface files
+        Long id, GlossariesFormat format, boolean noProgress, File to, FilesInterface files
     ) {
-        return new GlossaryDownloadAction(id, name, format, noProgress, to, files);
+        return new GlossaryDownloadAction(id, format, noProgress, to, files);
     }
 
     @Override
@@ -153,17 +153,17 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<BaseProperties, ClientTm> tmUpload(
-        File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
+        File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
     ) {
-        return new TmUploadAction(file, id, name, languageId, scheme, firstLineContainsHeader);
+        return new TmUploadAction(file, id, languageId, scheme, firstLineContainsHeader);
     }
 
     @Override
     public NewAction<BaseProperties, ClientTm> tmDownload(
-        Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,
+        Long id, TranslationMemoryFormat format, String sourceLanguageId,
         String targetLanguageId, boolean noProgress, File to, FilesInterface files
     ) {
-        return new TmDownloadAction(id, name, format, sourceLanguageId, targetLanguageId, noProgress, to, files);
+        return new TmDownloadAction(id, format, sourceLanguageId, targetLanguageId, noProgress, to, files);
     }
 
     @Override
@@ -259,8 +259,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientScreenshot> screenshotDelete(String name) {
-        return new ScreenshotDeleteAction(name);
+    public NewAction<ProjectProperties, ClientScreenshot> screenshotDelete(Long id) {
+        return new ScreenshotDeleteAction(id);
     }
 
     @Override

@@ -8,20 +8,23 @@ import com.crowdin.cli.properties.ProjectProperties;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = CommandNames.LIST_LANGUAGES,
+    name = CommandNames.LIST,
     sortOptions = false
 )
-class ListLanguagesSubcommand extends ActCommandProject {
+class LanguageListSubcommand extends ActCommandProject {
 
     @CommandLine.Option(names = {"--code"}, paramLabel = "...", order = -2)
     protected BaseCli.LanguageCode code;
+
+    @CommandLine.Option(names = {"--all"}, descriptionKey = "crowdin.language.list.all", order = -2)
+    protected boolean all;
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.listLanguages(code, noProgress, plainView);
+        return actions.listLanguages(code, all, noProgress, plainView);
     }
 
     @Override

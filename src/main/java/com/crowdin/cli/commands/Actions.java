@@ -33,8 +33,8 @@ public interface Actions {
 
     NewAction<ProjectProperties, ProjectClient> listBranches(boolean noProgress, boolean plainView);
 
-    NewAction<ProjectProperties, ProjectClient> listProject(
-        boolean noProgress, String branchName, boolean treeView, boolean plainView);
+    NewAction<ProjectProperties, ProjectClient> listFiles(
+        boolean noProgress, String branchName, boolean treeView, boolean plainView, boolean isVerbose);
 
     NewAction<PropertiesWithFiles, ProjectClient> listSources(
         boolean deleteObsolete, String branchName, boolean noProgress, boolean treeView, boolean plainView);
@@ -42,7 +42,7 @@ public interface Actions {
     NewAction<PropertiesWithFiles, ProjectClient> listTranslations(
         boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang);
 
-    NewAction<ProjectProperties, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean noProgress, boolean plainView);
+    NewAction<ProjectProperties, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean all, boolean noProgress, boolean plainView);
 
     NewAction<ProjectProperties, ProjectClient> status(
         boolean noProgress, String branchName, String languageId, String file, String directory, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failIfIncomplete);
@@ -73,18 +73,18 @@ public interface Actions {
     NewAction<BaseProperties, ClientGlossary> glossaryList(boolean plainView, boolean isVerbose);
 
     NewAction<BaseProperties, ClientGlossary> glossaryUpload(
-        java.io.File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
+        java.io.File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
 
     NewAction<BaseProperties, ClientGlossary> glossaryDownload(
-        Long id, String name, GlossariesFormat format, boolean noProgress, File to, FilesInterface files);
+        Long id, GlossariesFormat format, boolean noProgress, File to, FilesInterface files);
 
     NewAction<BaseProperties, ClientTm> tmList(boolean plainView);
 
     NewAction<BaseProperties, ClientTm> tmUpload(
-        File file, Long id, String name, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
+        File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader);
 
     NewAction<BaseProperties, ClientTm> tmDownload(
-        Long id, String name, TranslationMemoryFormat format, String sourceLanguageId,
+        Long id, TranslationMemoryFormat format, String sourceLanguageId,
         String targetLanguageId, boolean noProgress, File to, FilesInterface files);
 
     NewAction<ProjectProperties, ClientTask> taskList(boolean plainView, boolean isVerbose, String status, Long assigneeId);
@@ -126,7 +126,7 @@ public interface Actions {
 
     NewAction<ProjectProperties, ClientScreenshot> screenshotUpload(File file, String branchName, List<String> labelNames, String directoryPath, String filePath, boolean autoTag, boolean plainView, boolean noProgress, ProjectClient projectClient);
 
-    NewAction<ProjectProperties, ClientScreenshot> screenshotDelete(String name);
+    NewAction<ProjectProperties, ClientScreenshot> screenshotDelete(Long id);
 
     NewAction<ProjectProperties, ClientLabel> labelList(boolean plainView, boolean isVerbose);
 

@@ -47,15 +47,15 @@ public class ProjectFilesUtils {
 
     public static Map<Long, String> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, Branch> branches) {
         Map<Long, String> directoryPaths = new HashMap<>();
-        directories.forEach((k, dir) ->
-            directoryPaths.put(k, buildBranchPath(dir.getBranchId(), branches) + buildDirectoryPath(dir.getId(), directories)));
+        directories.forEach((dirId, dir) ->
+            directoryPaths.put(dirId, buildBranchPath(dir.getBranchId(), branches) + buildDirectoryPath(dir.getId(), directories)));
         branches.keySet().forEach(brId -> directoryPaths.put(brId, buildBranchPath(brId, branches)));
         return directoryPaths;
     }
 
     public static Map<Long, String> buildDirectoryPaths(Map<Long, Directory> directories) {
         Map<Long, String> directoryPaths = new HashMap<>();
-        directories.forEach((k, dir) -> directoryPaths.put(k, buildDirectoryPath(dir.getId(), directories)));
+        directories.forEach((dirId, dir) -> directoryPaths.put(dirId, buildDirectoryPath(dir.getId(), directories)));
         return directoryPaths;
     }
 

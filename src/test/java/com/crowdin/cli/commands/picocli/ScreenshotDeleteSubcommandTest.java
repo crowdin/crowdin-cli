@@ -9,7 +9,7 @@ public class ScreenshotDeleteSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testScreenshotDelete() {
-        this.execute(CommandNames.SCREENSHOT, CommandNames.SCREENSHOT_DELETE, "screenshot.png");
+        this.execute(CommandNames.SCREENSHOT, CommandNames.SCREENSHOT_DELETE, "123");
         verify(actionsMock).screenshotDelete(any());
         this.check(true);
     }

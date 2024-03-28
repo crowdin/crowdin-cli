@@ -17,7 +17,7 @@ public interface ClientGlossary extends Client {
 
     List<Glossary> listGlossaries();
 
-    Optional<Glossary> getGlossary(Long glossaryId);
+    Glossary getGlossary(Long glossaryId);
 
     Glossary addGlossary(AddGlossaryRequest request);
 

@@ -7,9 +7,9 @@ import com.crowdin.cli.properties.ProjectProperties;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = CommandNames.LIST_BRANCHES
+    name = CommandNames.LIST
 )
-class ListBranchesSubcommand extends ActCommandProject {
+class BranchListSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {

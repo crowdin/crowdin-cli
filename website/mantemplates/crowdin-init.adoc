@@ -1,5 +1,5 @@
 :includedir: ../generated-picocli-docs
-:command: crowdin-generate
+:command: crowdin-init
 
 == crowdin init
 

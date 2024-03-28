@@ -9,7 +9,7 @@ public class TmListSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testTmList() {
-        this.execute(CommandNames.TM, CommandNames.TM_LIST);
+        this.execute(CommandNames.TM, CommandNames.LIST);
         verify(actionsMock).tmList(eq(false));
         this.check(true);
     }

@@ -25,9 +25,6 @@ class GlossaryUploadSubcommand extends ActCommandGlossary {
     @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
     private Long id;
 
-    @CommandLine.Option(names = {"--name"}, paramLabel = "...", order = -2)
-    private String name;
-
     @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.glossary.upload.language-id", order = -2)
     private String languageId;
 
@@ -39,7 +36,7 @@ class GlossaryUploadSubcommand extends ActCommandGlossary {
 
     @Override
     protected NewAction<BaseProperties, ClientGlossary> getAction(Actions actions) {
-        return actions.glossaryUpload(file, id, name, languageId, scheme, firstLineContainsHeader);
+        return actions.glossaryUpload(file, id, languageId, scheme, firstLineContainsHeader);
     }
 
     @Override
@@ -59,10 +56,7 @@ class GlossaryUploadSubcommand extends ActCommandGlossary {
         if (!equalsAny(FilenameUtils.getExtension(file.getName()), "csv", "xls", "xlsx") && firstLineContainsHeader != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.first_line_contains_header_and_wrong_format"));
         }
-        if (id != null && name != null) {
-            errors.add(RESOURCE_BUNDLE.getString("error.glossary.id_and_name"));
-        }
-        if (id == null && name == null && languageId == null) {
+        if (id == null && languageId == null) {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.no_language_id"));
         }
         return errors;

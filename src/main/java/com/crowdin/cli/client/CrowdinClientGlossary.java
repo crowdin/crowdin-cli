@@ -14,7 +14,6 @@ import java.net.URL;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 import java.util.function.BiPredicate;
 
 public class CrowdinClientGlossary extends CrowdinClientCore implements ClientGlossary {
@@ -32,14 +31,10 @@ public class CrowdinClientGlossary extends CrowdinClientCore implements ClientGl
     }
 
     @Override
-    public Optional<Glossary> getGlossary(Long glossaryId) {
-        try {
-            return Optional.of(executeRequest(() -> this.client.getGlossariesApi()
+    public Glossary getGlossary(Long glossaryId) {
+        return executeRequest(() -> this.client.getGlossariesApi()
                 .getGlossary(glossaryId)
-                .getData()));
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+                .getData());
     }
 
     @Override

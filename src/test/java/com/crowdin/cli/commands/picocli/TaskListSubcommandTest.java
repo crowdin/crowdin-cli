@@ -11,7 +11,7 @@ public class TaskListSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testTaskList() {
-        this.execute(CommandNames.TASK, CommandNames.TASK_LIST);
+        this.execute(CommandNames.TASK, CommandNames.LIST);
         verify(actionsMock)
             .taskList(anyBoolean(), anyBoolean(), any(), any());
         this.check(true);

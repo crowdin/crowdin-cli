@@ -5,11 +5,8 @@ import picocli.CommandLine;
 @CommandLine.Command(
     name = CommandNames.LIST,
     subcommands = {
-        ListProjectSubcommand.class,
         ListSourcesSubcommand.class,
-        ListTranslationsSubcommand.class,
-        ListBranchesSubcommand.class,
-        ListLanguagesSubcommand.class
+        ListTranslationsSubcommand.class
     })
 class ListSubcommand extends HelpCommand {
     @Override

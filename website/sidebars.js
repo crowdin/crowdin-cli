@@ -24,7 +24,7 @@ const sidebars = {
       collapsed: false,
       items: [
         'commands/crowdin',
-        'commands/crowdin-generate',
+        'commands/crowdin-init',
         'commands/crowdin-lint',
         {
           type: 'category',
@@ -65,6 +65,7 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
+            'commands/crowdin-file-list',
             'commands/crowdin-file-upload',
             'commands/crowdin-file-download',
             'commands/crowdin-file-delete',
@@ -80,11 +81,8 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
-            'commands/crowdin-list-branches',
-            'commands/crowdin-list-languages',
             'commands/crowdin-list-sources',
             'commands/crowdin-list-translations',
-            'commands/crowdin-list-project',
           ]
         },
         {
@@ -97,8 +95,22 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
+            'commands/crowdin-branch-list',
             'commands/crowdin-branch-add',
             'commands/crowdin-branch-delete',
+          ]
+        },
+        {
+          type: 'category',
+          label: 'crowdin language',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-language'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-language-list',
           ]
         },
         {
@@ -264,6 +276,11 @@ const sidebars = {
     'ci-cd',
     'advanced',
     'faq',
+    {
+      type: "category",
+      label: "Releases",
+      items: ["releases/migration-4"],
+    },
   ],
 };
 

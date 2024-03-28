@@ -10,7 +10,7 @@ public class BundleListSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testBundleList() {
-        this.execute(CommandNames.BUNDLE, CommandNames.BUNDLE_LIST);
+        this.execute(CommandNames.BUNDLE, CommandNames.LIST);
         verify(actionsMock)
             .bundleList(anyBoolean(), anyBoolean());
         this.check(true);

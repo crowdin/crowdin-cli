@@ -80,7 +80,7 @@ public class TaskAddActionTest {
             put("second.txt", 52L);
         }};
         List<String> files = new ArrayList<String>() {{
-            add("52");
+            add("second.txt");
             add("first.txt");
         }};
         return Stream.of(arguments("My title", 1, "es", filesMap, files, "It's description", false, false, false, null));

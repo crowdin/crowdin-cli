@@ -113,4 +113,16 @@ public class UtilsTest {
     public void testEncodeURL() {
         assertEquals("Hello+World", Utils.encodeURL("Hello World"));
     }
+
+    @Test
+    public void testToSingleLineString() {
+        assertEquals("", Utils.toSingleLineString(""));
+        assertEquals("TesT", Utils.toSingleLineString("TesT"));
+        String multiline = "line 1" +
+                System.lineSeparator() +
+                "line 2" +
+                System.lineSeparator() +
+                "line 3";
+        assertEquals("line 1 line 2 line 3", Utils.toSingleLineString(multiline));
+    }
 }

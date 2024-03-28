@@ -11,7 +11,6 @@ import com.crowdin.client.translationmemory.model.TranslationMemoryImportStatus;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
-import java.util.Optional;
 
 public class CrowdinClientTm extends CrowdinClientCore implements ClientTm {
 
@@ -28,14 +27,10 @@ public class CrowdinClientTm extends CrowdinClientCore implements ClientTm {
     }
 
     @Override
-    public Optional<TranslationMemory> getTm(Long tmId) {
-        try {
-            return Optional.of(executeRequest(() -> this.client.getTranslationMemoryApi()
+    public TranslationMemory getTm(Long tmId) {
+        return executeRequest(() -> this.client.getTranslationMemoryApi()
                 .getTm(tmId)
-                .getData()));
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+                .getData());
     }
 
     @Override
