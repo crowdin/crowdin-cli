@@ -6,7 +6,6 @@ import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.NoProperties;
-import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.client.core.model.Priority;
 import com.crowdin.client.distributions.model.ExportMode;
@@ -107,10 +106,6 @@ public interface Actions {
     NewAction<ProjectProperties, ClientBundle> bundleList(boolean plainView, boolean isVerbose);
 
     NewAction<ProjectProperties, ClientBundle> bundleAdd(String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView);
-
-    NewAction<PropertiesWithTargets, ProjectClient> downloadTargets(
-        List<String> targetNames, FilesInterface files, boolean noProgress,
-        List<String> langIds, boolean isVerbose, boolean plainView, boolean debug, String branchName);
 
     NewAction<NoProperties, NoClient> checkNewVersion();
 

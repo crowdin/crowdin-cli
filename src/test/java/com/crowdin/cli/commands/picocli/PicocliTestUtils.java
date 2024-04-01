@@ -6,7 +6,6 @@ import com.crowdin.cli.properties.NewBasePropertiesUtilBuilder;
 import com.crowdin.cli.properties.NewProjectPropertiesUtilBuilder;
 import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
-import com.crowdin.cli.properties.NewPropertiesWithTargetsUtilBuilder;
 import com.crowdin.cli.properties.PropertiesBuilders;
 import org.junit.jupiter.api.BeforeEach;
 
@@ -148,8 +147,6 @@ public class PicocliTestUtils {
             .thenReturn(new NoProperties());
         when(propertiesBuildersMock.buildPropertiesWithFiles(any(), any(), any(), any()))
             .thenReturn(NewPropertiesWithFilesUtilBuilder.minimalBuiltPropertiesBean().build());
-        when(propertiesBuildersMock.buildPropertiesWithTargets(any(), any(), any(), any()))
-            .thenReturn(NewPropertiesWithTargetsUtilBuilder.minimalBuilt().build());
         when(propertiesBuildersMock.buildProjectProperties(any(), any(), any(), any()))
             .thenReturn(NewProjectPropertiesUtilBuilder.minimalBuilt().build());
     }

@@ -119,3 +119,8 @@ Before:
 After:
 
 - `crowdin string add Download --file src/values/strings.xml --identifier "app.download" --branch main`
+
+### Download targets
+
+* removed `crowdin download targets` command
+* removed `targets` from configuration file

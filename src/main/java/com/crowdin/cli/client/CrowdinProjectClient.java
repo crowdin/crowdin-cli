@@ -383,13 +383,6 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
-    public URL exportProjectTranslation(ExportProjectTranslationRequest request) {
-        return url(executeRequest(() -> this.client.getTranslationsApi()
-            .exportProjectTranslation(this.projectId, request)
-            .getData()));
-    }
-
-    @Override
     public List<Label> listLabels() {
         return executeRequestFullList((limit, offset) -> this.client.getLabelsApi()
             .listLabels(this.projectId, limit, offset, null));

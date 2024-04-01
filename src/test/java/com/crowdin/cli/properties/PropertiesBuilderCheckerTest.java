@@ -18,15 +18,15 @@ import static org.mockito.ArgumentMatchers.any;
 class PropertiesBuilderCheckerTest {
     private TempProject tempProject;
     private final Outputter out = Outputter.getDefault();
-    private PropertiesBuilderChecker propertiesBuilderChecker = new PropertiesBuilderChecker(out);
+    private final PropertiesBuilderChecker propertiesBuilderChecker = new PropertiesBuilderChecker(out);
 
     @BeforeEach
-    private void initFolder() {
+    public void initFolder() {
         tempProject = new TempProject(PropertiesBuilderTest.class);
     }
 
     @AfterEach
-    private void removeFolder() {
+    public void removeFolder() {
         tempProject.delete();
     }
 
@@ -45,17 +45,11 @@ class PropertiesBuilderCheckerTest {
         fileMap.put("dest","computer");
         fileList.add(fileMap);
 
-        HashMap tMap = new HashMap();
-        ArrayList tList = new ArrayList();
-        tMap.put("name","crowdin");
-        tList.add(tMap);
-
         Map <String, Object> map = new HashMap<String, Object>();
         map.put("project_id","123");
         map.put("preserve_hierarchy", true);
         map.put("files", fileList);
         map.put("pseudoLocalization","123");
-        map.put("targets",tList);
 
         new PropertiesBuilderChecker(out).populateWithIdentityFileParams(allProperties, map);
 
@@ -77,24 +71,17 @@ class PropertiesBuilderCheckerTest {
         fileMap.put("dest","computer");
         fileList.add(fileMap);
 
-        HashMap tMap = new HashMap();
-        ArrayList tList = new ArrayList();
-        tMap.put("name","crowdin");
-        tList.add(tMap);
-
         Map <String, Object> map = new HashMap<String, Object>();
         map.put("project_id","123");
         map.put("preserve_hierarchy", true);
         map.put("files", fileList);
         map.put("pseudoLocalization","123");
-        map.put("targets",tList);
 
         new PropertiesBuilderChecker(out).populateWithConfigFileParams(allProperties, map);
 
         assertEquals(allProperties.getProjectProperties().getProjectId(), "123");
         assertEquals(allProperties.getPropertiesWithFiles().getFiles().get(0).getSource(), "internet");
         assertEquals(allProperties.getPropertiesWithFiles().getFiles().get(0).getDest(), "computer");
-        assertEquals(allProperties.getPropertiesWithTargets().getTargets().get(0).getName(), "crowdin");
     }
 
     @Test

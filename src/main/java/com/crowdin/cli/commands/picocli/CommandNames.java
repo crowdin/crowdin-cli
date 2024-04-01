@@ -7,8 +7,6 @@ public final class CommandNames {
     public static final String DOWNLOAD = "download";
     public static final String ALIAS_DOWNLOAD = "pull";
 
-    public static final String DOWNLOAD_TARGETS = "targets";
-
     public static final String INIT = "init";
 
     public static final String LINT = "lint";

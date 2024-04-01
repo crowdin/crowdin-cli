@@ -19,14 +19,6 @@ public class PropertiesBuilders {
             .build();
     }
 
-    public PropertiesWithTargets buildPropertiesWithTargets(Outputter out, File configFile, File identityFile, ParamsWithTargets params) {
-        return new PropertiesWithTargetsBuilder(out)
-            .addConfigParams((configFile != null) ? readConfigFile(configFile, isParamsContainBasePath(params)) : null)
-            .addIdentityParams((identityFile != null) ? FileUtils.readYamlFile(identityFile) : null)
-            .addParams(params)
-            .build();
-    }
-
     public ProjectProperties buildProjectProperties(Outputter out, File configFile, File identityFile, ProjectParams params) {
         return new ProjectPropertiesBuilder(out)
             .addConfigParams((fileExists(configFile)) ? readConfigFile(configFile, isParamsContainBasePath(params)) : null)
