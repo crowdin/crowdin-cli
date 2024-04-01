@@ -8,7 +8,6 @@ import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.NoProperties;
-import com.crowdin.cli.properties.PropertiesWithTargets;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.client.core.model.Priority;
 import com.crowdin.client.distributions.model.ExportMode;
@@ -219,14 +218,6 @@ public class CliActions implements Actions {
     @Override
     public NewAction<NoProperties, NoClient> checkNewVersion() {
         return new CheckNewVersionAction();
-    }
-
-    @Override
-    public NewAction<PropertiesWithTargets, ProjectClient> downloadTargets(
-        List<String> targetNames, FilesInterface files, boolean noProgress,
-        List<String> langIds, boolean isVerbose, boolean plainView, boolean debug, String branchName
-    ) {
-        return new DownloadTargetsAction(targetNames, files, noProgress, langIds, isVerbose, plainView, debug, branchName);
     }
 
     @Override

@@ -1,8 +1,6 @@
 package com.crowdin.cli.client;
 
-import com.crowdin.client.core.model.DownloadLink;
 import com.crowdin.client.core.model.PatchRequest;
-import com.crowdin.client.distributions.model.DistributionRelease;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
@@ -96,8 +94,6 @@ public interface ProjectClient extends Client {
     StringComment commentString(AddStringCommentRequest request);
 
     SourceString editSourceString(Long sourceId, List<PatchRequest> requests);
-
-    URL exportProjectTranslation(ExportProjectTranslationRequest request);
 
     List<Label> listLabels();
 

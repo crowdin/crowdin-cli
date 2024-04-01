@@ -86,18 +86,6 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String TRANSLATION_REPLACE = "translation_replace";
 
-    public static final String TARGETS = "targets";
-
-    public static final String NAME = "name";
-
-    public static final String FILE = "file";
-
-    public static final String SOURCES = "sources";
-
-    public static final String DIRECTORIES = "directories";
-
-    public static final String BRANCHES = "branches";
-
     public static final String LABELS = "labels";
 
     public static final String PSEUDO_LOCALIZATION = "pseudo_localization";

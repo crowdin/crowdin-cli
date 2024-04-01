@@ -26,11 +26,6 @@ public class BaseCli {
         System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yaml"
     ));
 
-    public static final Map<String, String> PLACEHOLDER_MAPPING_FOR_SERVER = Collections.unmodifiableMap(new HashMap<String, String>() {{
-                put("name", "language");
-        }}
-    );
-
     /**
      * File format -> Export File Format (see https://support.crowdin.com/api/v2/#operation/api.projects.translations.exports.post)
      */

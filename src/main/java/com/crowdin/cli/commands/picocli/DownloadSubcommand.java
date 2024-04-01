@@ -16,7 +16,6 @@ import java.util.List;
     sortOptions = false,
     aliases = CommandNames.ALIAS_DOWNLOAD,
     subcommands = {
-        DownloadTargetsSubcommand.class,
         DownloadBundleSubcommand.class,
         DownloadSourcesSubcommand.class
     }

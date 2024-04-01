@@ -1,6 +1,5 @@
 package com.crowdin.cli.utils.file;
 
-import com.crowdin.cli.utils.Utils;
 import org.apache.commons.io.IOUtils;
 import org.yaml.snakeyaml.Yaml;
 
@@ -33,7 +32,7 @@ public class FileUtils {
 
         Yaml yaml = new Yaml();
         try (InputStream inputStream = new FileInputStream(fileCfg)) {
-            return (Map<String, Object>) yaml.load(inputStream);
+            return yaml.load(inputStream);
         } catch (FileNotFoundException e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
         } catch (Exception e) {
@@ -50,9 +49,5 @@ public class FileUtils {
         IOUtils.copy(data, fileOutputStream);
         fileOutputStream.flush();
         fileOutputStream.close();
-    }
-
-    public static String joinPaths(String... paths) {
-        return Utils.normalizePath(String.join(Utils.PATH_SEPARATOR, paths));
     }
 }
