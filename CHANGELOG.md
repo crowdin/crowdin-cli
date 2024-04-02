@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.19.2](https://github.com/crowdin/crowdin-cli/compare/3.19.1...3.19.2) (2024-04-02)
+
+
+### Bug Fixes
+
+* ignore pattern with language mapping in config ([#753](https://github.com/crowdin/crowdin-cli/issues/753)) ([bd66a66](https://github.com/crowdin/crowdin-cli/commit/bd66a668256513df6e57c202663f5429ab1bf94a))
+
 ## [3.19.1](https://github.com/crowdin/crowdin-cli/compare/3.19.0...3.19.1) (2024-03-27)
 
 
