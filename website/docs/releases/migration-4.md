@@ -124,3 +124,8 @@ After:
 
 * removed `crowdin download targets` command
 * removed `targets` from configuration file
+
+### Pre-translate
+
+* added `file` parameter (required for file-based projects)
+* now `file` value(s) determines which files to pre-translate

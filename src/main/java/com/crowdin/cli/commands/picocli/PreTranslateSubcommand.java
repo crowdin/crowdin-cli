@@ -5,8 +5,10 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.translations.model.AutoApproveOption;
 import com.crowdin.client.translations.model.Method;
+import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
 import java.util.ArrayList;
@@ -24,6 +26,9 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
 
     @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", defaultValue = BaseCli.ALL, order = -2)
     protected List<String> languageIds;
+
+    @CommandLine.Option(names = {"--file"}, paramLabel = "...", order = -2)
+    protected List<String> files;
 
     @CommandLine.Option(names = {"--method"}, paramLabel = "...", required = true, order = -2)
     protected Method method;
@@ -68,6 +73,7 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return actions.preTranslate(
             languageIds,
+            files,
             method,
             engineId,
             branch,
@@ -76,8 +82,6 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
             translateUntranslatedOnly,
             translateWithPerfectMatchOnly,
             noProgress,
-            debug,
-            isVerbose,
             plainView,
             labelNames
         );
@@ -104,6 +108,12 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
         }
         if (autoApproveOption != null && !autoApproveOptionWrapper.containsKey(autoApproveOption)) {
             errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.auto_approve_option"));
+        }
+        if (files != null) {
+            for (int i = 0; i < files.size(); i++) {
+                String normalizedFile = StringUtils.removeStart(Utils.normalizePath(files.get(i)), Utils.PATH_SEPARATOR);
+                files.set(i, normalizedFile);
+            }
         }
         return errors;
     }
