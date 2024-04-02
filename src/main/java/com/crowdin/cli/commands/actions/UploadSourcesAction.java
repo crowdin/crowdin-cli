@@ -117,7 +117,10 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                     throw e;
                 }
 
-                List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
+                LanguageMapping localLanguageMapping = LanguageMapping.fromConfigFileLanguageMapping(file.getLanguagesMapping());
+                LanguageMapping serverLanguageMapping = project.getLanguageMapping();
+                LanguageMapping languageMapping = LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
+                List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil, languageMapping)
                     .map(File::getAbsolutePath)
                     .collect(Collectors.toList());
                 String commonPath =

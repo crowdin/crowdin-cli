@@ -55,3 +55,4 @@ jobs:
 ## Further Reading
 
 - [Commands](/commands/crowdin)
+- [Exit Codes](/exit-codes)

@@ -18,6 +18,15 @@ const sidebars = {
     'installation',
     'configuration',
     {
+        type: 'category',
+        label: 'Tutorials',
+        collapsible: true,
+        collapsed: false,
+        items: [
+            'tutorials/files-management',
+        ]
+    },
+    {
       type: 'category',
       label: 'Commands',
       collapsible: true,
@@ -264,17 +273,9 @@ const sidebars = {
         'commands/crowdin-pre-translate',
       ],
     },
-    {
-        type: 'category',
-        label: 'Tutorials',
-        collapsible: true,
-        collapsed: false,
-        items: [
-            'tutorials/files-management',
-        ]
-    },
     'ci-cd',
     'advanced',
+    'exit-codes',
     'faq',
     {
       type: "category",
