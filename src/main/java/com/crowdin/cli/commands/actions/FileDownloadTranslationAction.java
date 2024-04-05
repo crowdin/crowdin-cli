@@ -19,6 +19,9 @@ import lombok.AllArgsConstructor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -49,8 +52,15 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
             return;
         }
 
-        Language language = project.findLanguageById(languageId, true)
-            .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)));
+        List<Language> languagesToDownload;
+
+        if (Objects.equals(languageId, "all")) {
+            languagesToDownload = project.getProjectLanguages(false);
+        } else {
+            Language languageToDownload = project.findLanguageById(languageId, true)
+                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)));
+            languagesToDownload = Collections.singletonList(languageToDownload);
+        }
 
         String branchPrefix = nonNull(branch) ? branch + Utils.PATH_SEPARATOR : "";
         String sourcePath = Utils.toUnixPath(Utils.sepAtStart(branchPrefix + file));
@@ -63,22 +73,24 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
             project.getProjectLanguages(true),
             properties.getBasePath()
         );
-        BuildProjectFileTranslationRequest request = new BuildProjectFileTranslationRequest();
-        request.setTargetLanguageId(language.getId());
 
-        URL url = ConsoleSpinner.execute(
-            out,
-            "message.spinner.building_translation",
-            "error.building_translation",
-            false,
-            false,
-            () -> client.buildProjectFileTranslation(sourceFileInfo.getId(), request)
-        );
-        String destPath = nonNull(dest)
-            ? placeholderUtil.replaceLanguageDependentPlaceholders(dest + Utils.PATH_SEPARATOR + sourceFileInfo.getName(), language)
-            : languageId + sourcePath;
-        saveToFile(Utils.normalizePath(Utils.joinPaths(properties.getBasePath(), destPath)), url, out);
-        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), destPath)));
+        for (Language lang: languagesToDownload) {
+            BuildProjectFileTranslationRequest request = new BuildProjectFileTranslationRequest();
+            request.setTargetLanguageId(lang.getId());
+            URL url = ConsoleSpinner.execute(
+                out,
+                "message.spinner.building_translation",
+                "error.building_translation",
+                false,
+                false,
+                () -> client.buildProjectFileTranslation(sourceFileInfo.getId(), request)
+            );
+            String destPath = nonNull(dest)
+                ? placeholderUtil.replaceLanguageDependentPlaceholders(dest + Utils.PATH_SEPARATOR + sourceFileInfo.getName(), lang)
+                : lang.getId() + sourcePath;
+            saveToFile(Utils.normalizePath(Utils.joinPaths(properties.getBasePath(), destPath)), url, out);
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), destPath)));
+        }
         out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.experimental_command")));
     }
 

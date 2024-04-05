@@ -87,6 +87,7 @@ After:
 * create new command `crowdin file list` command
 * updated `list` cmd output
 * added verbose (`--verbose`) output
+* to download translations for all project languages `-l all` can be used
 
 Before:
 
@@ -129,3 +130,7 @@ After:
 
 * added `file` parameter (required for file-based projects)
 * now `file` value(s) determines which files to pre-translate
+
+### Task updates
+
+* removed backward compatibility for file ids in task add command
