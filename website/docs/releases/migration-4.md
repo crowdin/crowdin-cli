@@ -148,3 +148,16 @@ After:
 
 - `crowdin config sources`
 - `crowdin config translations`
+
+
+### Lint
+
+* command was moved under `config` namespace
+
+Before:
+
+- `crowdin lint`
+
+After:
+
+- `crowdin config lint`

@@ -6,11 +6,11 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
 
-public class LintSubcommandTest extends PicocliTestUtils {
+public class ConfigLintSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testLint() {
-        this.execute(CommandNames.LINT);
+        this.execute(CommandNames.CONFIG, CommandNames.LINT);
         verifyNoMoreInteractions(actionsMock);
     }
 }

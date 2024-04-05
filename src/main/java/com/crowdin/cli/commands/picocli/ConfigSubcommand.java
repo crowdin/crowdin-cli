@@ -6,7 +6,8 @@ import picocli.CommandLine;
     name = CommandNames.CONFIG,
     subcommands = {
         ConfigSourcesSubcommand.class,
-        ConfigTranslationsSubcommand.class
+        ConfigTranslationsSubcommand.class,
+        ConfigLintSubcommand.class
     }
 )
 class ConfigSubcommand extends HelpCommand {

@@ -34,7 +34,6 @@ const sidebars = {
       items: [
         'commands/crowdin',
         'commands/crowdin-init',
-        'commands/crowdin-lint',
         {
           type: 'category',
           label: 'crowdin upload',
@@ -92,6 +91,7 @@ const sidebars = {
           items: [
             'commands/crowdin-config-sources',
             'commands/crowdin-config-translations',
+            'commands/crowdin-config-lint',
           ]
         },
         {

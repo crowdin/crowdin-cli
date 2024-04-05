@@ -7,7 +7,6 @@ import picocli.CommandLine;
     subcommands = {
         UploadSubcommand.class,
         DownloadSubcommand.class,
-        LintSubcommand.class,
         InitSubcommand.class,
         StatusSubcommand.class,
         StringSubcommand.class,
