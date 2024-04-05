@@ -30,7 +30,7 @@ class LanguageListAction implements NewAction<ProjectProperties, ProjectClient> 
     private boolean plainView;
 
     public LanguageListAction(BaseCli.LanguageCode code, boolean all, boolean noProgress, boolean plainView) {
-        this.code = code;
+        this.code = code != null ? code : BaseCli.LanguageCode.id;
         this.all = all;
         this.noProgress = noProgress || plainView;
         this.plainView = plainView;
@@ -66,12 +66,7 @@ class LanguageListAction implements NewAction<ProjectProperties, ProjectClient> 
     }
 
     private String getCode(LanguageMapping langMapping, Language language) {
-        if (code == null) {
-            return language.getTwoLettersCode();
-        }
         switch (code) {
-            case id:
-                return language.getId();
             case three_letters_code:
                 return langMapping.getValueOrDefault(language.getId(),
                     PLACEHOLDER_THREE_LETTERS_CODE.replaceAll("%", ""), language.getThreeLettersCode());
@@ -84,9 +79,10 @@ class LanguageListAction implements NewAction<ProjectProperties, ProjectClient> 
             case osx_locale:
                 return langMapping.getValueOrDefault(language.getId(), PLACEHOLDER_OSX_LOCALE.replaceAll("%", ""), language.getOsxLocale());
             case two_letters_code:
-            default:
                 return langMapping.getValueOrDefault(language.getId(),
                     PLACEHOLDER_TWO_LETTERS_CODE.replaceAll("%", ""), language.getTwoLettersCode());
+            default:
+                return language.getId();
         }
     }
 }
