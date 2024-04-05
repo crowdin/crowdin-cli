@@ -9,8 +9,6 @@ public final class CommandNames {
 
     public static final String INIT = "init";
 
-    public static final String LINT = "lint";
-
     public static final String LIST = "list";
 
     public static final String STATUS = "status";
@@ -71,4 +69,5 @@ public final class CommandNames {
     public static final String CONFIG = "config";
     public static final String SOURCES = "sources";
     public static final String TRANSLATIONS = "translations";
+    public static final String LINT = "lint";
 }
