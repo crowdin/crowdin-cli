@@ -72,6 +72,7 @@ After:
 * create new command `crowdin language list` command
 * updated `list` cmd output
 * added new param `--all` to get all languages for current account
+* changed default `code` for list command. Now it's `id` instead of `two_letters_code`
 
 Before:
 
