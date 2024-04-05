@@ -8,10 +8,7 @@ import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.Arrays;
-import java.util.HashSet;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
@@ -33,8 +30,10 @@ public class BranchUtils {
             }
             return branchOpt.get();
         } else {
+            String normalizedName = normalizeBranchName(branchName);
             AddBranchRequest request = new AddBranchRequest();
-            request.setName(branchName);
+            request.setName(normalizedName);
+            request.setTitle(branchName);
             Branch newBranch = client.addBranch(request);
             if (!plainView) {
                 out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branchName)));
@@ -42,6 +41,13 @@ public class BranchUtils {
             project.addBranchToLocalList(newBranch);
             return newBranch;
         }
+    }
+
+    public static Optional<Branch> getBranch(String branchName, List<Branch> branches) {
+        String normalizedName = BranchUtils.normalizeBranchName(branchName);
+        return branches.stream()
+                .filter(branch -> normalizedName.equals(branch.getName()))
+                .findFirst();
     }
 
     public static String normalizeBranchName(String branch) {

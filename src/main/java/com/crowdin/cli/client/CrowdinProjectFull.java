@@ -1,5 +1,6 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.cli.commands.functionality.BranchUtils;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.sourcefiles.model.File;
@@ -53,10 +54,7 @@ public class CrowdinProjectFull extends CrowdinProject {
     }
 
     public Optional<Branch> findBranchByName(String branchName) {
-        return branches
-            .stream()
-            .filter(branch -> branch.getName().equals(branchName))
-            .findFirst();
+        return BranchUtils.getBranch(branchName, branches);
     }
 
     public Map<Long, Directory> getDirectories() {

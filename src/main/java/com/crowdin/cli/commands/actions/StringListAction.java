@@ -4,6 +4,7 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchUtils;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
@@ -73,7 +74,7 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         String encodedFilter = nonNull(filter) ? Utils.encodeURL(filter) : null;
         String encodedCroql = nonNull(croql) ? Utils.encodeURL(croql) : null;
         String labelIds = nonNull(labelNames) ? prepareLabelIds(labels) : null;
-        String fullPath = nonNull(branchName) ? (branchName  + Utils.PATH_SEPARATOR + file) : file;
+        String fullPath = nonNull(branchName) ? (BranchUtils.normalizeBranchName(branchName)  + Utils.PATH_SEPARATOR + file) : file;
 
         List<SourceString> sourceStrings;
         if (StringUtils.isEmpty(file)) {
