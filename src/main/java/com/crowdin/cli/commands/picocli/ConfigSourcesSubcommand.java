@@ -7,10 +7,10 @@ import com.crowdin.cli.properties.PropertiesWithFiles;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = CommandNames.LIST_SOURCES,
+    name = CommandNames.SOURCES,
     sortOptions = false
 )
-class ListSourcesSubcommand extends ActCommandWithFiles {
+class ConfigSourcesSubcommand extends ActCommandWithFiles {
 
     @CommandLine.Option(names = {"-b", "--branch"}, order = -2)
     protected String branch;

@@ -12,7 +12,7 @@ import picocli.CommandLine;
 
 @CommandLine.Command(
     name = CommandNames.LINT)
-class LintSubcommand extends GenericActCommand<AllProperties, NoClient> {
+class ConfigLintSubcommand extends GenericActCommand<AllProperties, NoClient> {
 
     @CommandLine.Mixin
     private ConfigurationFilesProperties properties;

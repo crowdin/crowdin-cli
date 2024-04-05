@@ -1,7 +1,7 @@
 :includedir: ../generated-picocli-docs
-:command: crowdin-list-sources
+:command: crowdin-config-lint
 
-== crowdin list sources
+== crowdin config lint
 
 include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
 

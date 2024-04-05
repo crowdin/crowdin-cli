@@ -1,7 +1,7 @@
 :includedir: ../generated-picocli-docs
-:command: crowdin-list-translations
+:command: crowdin-config-translations
 
-== crowdin list translations
+== crowdin config translations
 
 include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
 
