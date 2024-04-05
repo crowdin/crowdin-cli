@@ -7,10 +7,10 @@ import com.crowdin.cli.properties.PropertiesWithFiles;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = CommandNames.LIST_TRANSLATIONS,
+    name = CommandNames.TRANSLATIONS,
     sortOptions = false
 )
-class ListTranslationsSubcommand extends ActCommandWithFiles {
+class ConfigTranslationsSubcommand extends ActCommandWithFiles {
 
     @CommandLine.Option(names = {"--tree"}, order = -2)
     protected boolean treeView;

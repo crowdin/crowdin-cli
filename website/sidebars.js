@@ -82,16 +82,16 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: 'crowdin list',
+          label: 'crowdin config',
           link: {
             type: 'doc',
-            id: 'commands/crowdin-list'
+            id: 'commands/crowdin-config'
           },
           collapsible: true,
           collapsed: true,
           items: [
-            'commands/crowdin-list-sources',
-            'commands/crowdin-list-translations',
+            'commands/crowdin-config-sources',
+            'commands/crowdin-config-translations',
           ]
         },
         {

@@ -134,3 +134,17 @@ After:
 ### Task updates
 
 * removed backward compatibility for file ids in task add command
+
+### Crowdin List => Crowdin Config
+
+* renamed `crowdin list` to `crowdin config`
+
+Before:
+
+- `crowdin list sources`
+- `crowdin list translations`
+-
+After:
+
+- `crowdin config sources`
+- `crowdin config translations`

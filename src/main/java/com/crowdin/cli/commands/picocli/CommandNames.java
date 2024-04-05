@@ -12,8 +12,6 @@ public final class CommandNames {
     public static final String LINT = "lint";
 
     public static final String LIST = "list";
-    public static final String LIST_SOURCES = "sources";
-    public static final String LIST_TRANSLATIONS = "translations";
 
     public static final String STATUS = "status";
     public static final String STATUS_TRANSLATION = "translation";
@@ -69,4 +67,8 @@ public final class CommandNames {
     public static final String FILE_DOWNLOAD = "download";
     public static final String FILE_DELETE = "delete";
     public static final String LANGUAGE = "language";
+
+    public static final String CONFIG = "config";
+    public static final String SOURCES = "sources";
+    public static final String TRANSLATIONS = "translations";
 }
