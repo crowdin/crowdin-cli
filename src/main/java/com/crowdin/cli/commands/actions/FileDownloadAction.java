@@ -65,7 +65,6 @@ class FileDownloadAction implements NewAction<ProjectProperties, ProjectClient> 
             }
         );
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));
-        out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.experimental_command")));
     }
 
     private void saveToFile(String destPath, URL url) {

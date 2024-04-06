@@ -191,7 +191,6 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         } else {
             out.println(fileFullPath);
         }
-        out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.experimental_command")));
     }
 
     private List<String> filterExcludedLanguages(List<String> excludedLanguages, CrowdinProjectFull project) {

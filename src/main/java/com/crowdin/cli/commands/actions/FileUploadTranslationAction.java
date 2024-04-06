@@ -89,7 +89,6 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
         } else {
             out.println(file.getPath());
         }
-        out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.experimental_command")));
     }
 
     private Long getStorageId(ProjectClient client) {
