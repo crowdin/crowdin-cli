@@ -312,6 +312,7 @@ public class UploadSourcesActionTest {
             .setIdentifiers("newBranch", 201L).build();
         AddBranchRequest addBranchRequest = new AddBranchRequest() {{
                 setName("newBranch");
+                setTitle("newBranch");
             }};
         when(client.addBranch(addBranchRequest))
             .thenReturn(branch);

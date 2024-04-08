@@ -4,6 +4,7 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchUtils;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -50,10 +51,9 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
             project.findLanguageById(languageId, true)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)));
         }
+
         List<Branch> branches = client.listBranches();
-        Long branchId = (branchName == null) ? null : branches.stream()
-            .filter(branch -> branchName.equals(branch.getName()))
-            .findFirst()
+        Long branchId = (branchName == null) ? null : BranchUtils.getBranch(branchName, branches)
             .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
             .getId();
 
