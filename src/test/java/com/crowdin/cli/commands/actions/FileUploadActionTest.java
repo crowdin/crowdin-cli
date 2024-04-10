@@ -105,7 +105,7 @@ class FileUploadActionTest {
         when(client.addSourceStringsBased(any())).thenReturn(progress);
         when(client.getUploadStringsStatus(any())).thenReturn(progressFinished);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, "branch", false, null, null, null, null,false, false, null, false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, "branch", false, null, null, null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -298,7 +298,7 @@ class FileUploadActionTest {
             .thenReturn(directory);
         when(client.uploadStorage(eq("save.po"), any()))
             .thenReturn(1L);
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, "path/to/save.po", null, null,false, false, null, false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, "path/to/save.po", null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();

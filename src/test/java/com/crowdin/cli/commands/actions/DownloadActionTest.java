@@ -136,7 +136,7 @@ public class DownloadActionTest {
             }));
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadAction(files, false, null, null,false, null, false, false, false, false, false);
+            new DownloadAction(files, false, null, null, false, null, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(null);
@@ -552,7 +552,7 @@ public class DownloadActionTest {
                 }));
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-                new DownloadAction(files, false, null, null,false, null, false, false, false, false, false);
+                new DownloadAction(files, false, null, null, false, null, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(null);
