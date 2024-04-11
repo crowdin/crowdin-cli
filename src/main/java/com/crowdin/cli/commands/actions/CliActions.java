@@ -270,8 +270,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> fileUpload(File file, String branch, boolean autoUpdate, List<String> labels, String destination, List<String> excludedLanguages, boolean plainView, boolean cleanupMode, boolean updateStrings) {
-        return new FileUploadAction(file, branch, autoUpdate, labels, destination, cleanupMode, updateStrings, excludedLanguages, plainView);
+    public NewAction<ProjectProperties, ProjectClient> fileUpload(File file, String branch, boolean autoUpdate, List<String> labels, String destination, String type, Integer parserVersion, List<String> excludedLanguages, boolean plainView, boolean cleanupMode, boolean updateStrings) {
+        return new FileUploadAction(file, branch, autoUpdate, labels, destination, type, parserVersion, cleanupMode, updateStrings, excludedLanguages, plainView);
     }
 
     @Override

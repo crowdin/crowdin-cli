@@ -9,6 +9,7 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 import java.io.File;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -31,7 +32,13 @@ class FileUploadSubcommand extends ActCommandProject {
     protected List<String> labels;
 
     @Option(names = {"-d", "--dest"}, paramLabel = "...", descriptionKey = "crowdin.file.upload.dest", order = -2)
-    private String destination;
+    protected String destination;
+
+    @Option(names = {"--type"}, descriptionKey = "crowdin.file.upload.type", paramLabel = "...", order = -2)
+    protected String type;
+
+    @Option(names = {"--parser-version"}, descriptionKey = "crowdin.file.upload.parser", paramLabel = "...", order = -2)
+    protected Integer parserVersion;
 
     @Option(names = {"--excluded-language"}, descriptionKey = "params.excluded-languages", paramLabel = "...", order = -2)
     protected List<String> excludedLanguages;
@@ -49,10 +56,19 @@ class FileUploadSubcommand extends ActCommandProject {
     protected boolean plainView;
 
     @Override
+    protected List<String> checkOptions() {
+        List<String> errors = new ArrayList<>();
+        if (parserVersion != null && type == null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.file.type_required"));
+        }
+        return errors;
+    }
+
+    @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
         if (Objects.nonNull(languageId)) {
             return actions.fileUploadTranslation(file, branch, destination, languageId, plainView);
         }
-        return actions.fileUpload(file, branch, autoUpdate, labels, destination, excludedLanguages, plainView, cleanupMode, updateStrings);
+        return actions.fileUpload(file, branch, autoUpdate, labels, destination, type, parserVersion, excludedLanguages, plainView, cleanupMode, updateStrings);
     }
 }

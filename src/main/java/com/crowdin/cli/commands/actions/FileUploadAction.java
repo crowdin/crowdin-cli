@@ -39,6 +39,8 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
     private final boolean autoUpdate;
     private final List<String> labels;
     private final String dest;
+    private final String type;
+    private final Integer parserVersion;
     private final boolean cleanupMode;
     private final boolean updateStrings;
     private final List<String> excludedLanguages;
@@ -137,6 +139,12 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             AddFileRequest request = new AddFileRequest();
             request.setName(fileDestName);
             request.setStorageId(storageId);
+            if (nonNull(type)) {
+                request.setType(type);
+            }
+            if (nonNull(parserVersion)) {
+                request.setParserVersion(parserVersion);
+            }
 
             Optional<Long> directoryId = getOrCreateDirectoryId(out, client, project, properties, branch.orElse(null));
             directoryId.ifPresent(request::setDirectoryId);
