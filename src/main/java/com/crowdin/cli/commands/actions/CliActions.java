@@ -97,9 +97,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<ProjectProperties, ProjectClient> stringEdit(
-        boolean isVerbose, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden
+            boolean noProgress, boolean isVerbose, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden
     ) {
-        return new StringEditAction(isVerbose, id, identifier, newText, newContext, newMaxLength, labelNames, isHidden);
+        return new StringEditAction(noProgress, isVerbose, id, identifier, newText, newContext, newMaxLength, labelNames, isHidden);
     }
 
     @Override

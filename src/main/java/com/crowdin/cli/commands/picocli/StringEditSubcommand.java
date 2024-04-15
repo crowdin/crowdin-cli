@@ -47,6 +47,6 @@ class StringEditSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.stringEdit(isVerbose, id, identifier, newText, newContext, newMaxLength, labelNames, newIsHidden);
+        return actions.stringEdit(noProgress, isVerbose, id, identifier, newText, newContext, newMaxLength, labelNames, newIsHidden);
     }
 }

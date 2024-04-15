@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.actions;
 
+import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.commands.NewAction;
@@ -12,6 +13,7 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.core.model.PatchOperation;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.Label;
+import com.crowdin.client.sourcestrings.model.SourceString;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
@@ -43,20 +45,25 @@ public class StringEditActionTest {
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(Utils.PATH_SEPARATOR);
         pb = pbBuilder.build();
+        when(client.downloadFullProject())
+                .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                        .addFile("first.csv", "csv", 101L, null, null).build());
 
+        List<Label> labels = new ArrayList<>();
         if (newLabels != null) {
-            List<Label> labels = new ArrayList<>();
             for (Long labelId : newLabels.keySet()) {
                 labels.add(new Label() {{
                     setId(labelId);
                     setTitle(newLabels.get(labelId));
                 }});
             }
-            when(client.listLabels())
-                .thenReturn(labels);
         }
+        when(client.listLabels())
+                .thenReturn(labels);
 
-        action = new StringEditAction(true, id, identifier, newText, newContext, newMaxLength, labelNames, newIsHidden);
+        when(client.editSourceString(any(), any())).thenReturn(new SourceString());
+
+        action = new StringEditAction(true, false, id, identifier, newText, newContext, newMaxLength, labelNames, newIsHidden);
         action.act(Outputter.getDefault(), pb, client);
 
         List<PatchRequest> patches = new ArrayList<PatchRequest>() {{
@@ -80,10 +87,7 @@ public class StringEditActionTest {
                 }
             }};
         verify(client).editSourceString(801L, patches);
-        if (newLabels != null) {
-            verify(client).listLabels();
-        }
-        verifyNoMoreInteractions(client);
+        verify(client, times(newLabels != null ? 2 : 1)).listLabels();
     }
 
     public static Stream<Arguments> testStringList() {

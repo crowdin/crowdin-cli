@@ -97,39 +97,49 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         if (sourceStrings.isEmpty()) {
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.source_string_list_not_found")));
         }
-        sourceStrings.forEach(ss -> {
-            String labelsString = (ss.getLabelIds() != null)
-                ? ss.getLabelIds().stream().map(labelsMap::get).map(s -> String.format("[@|cyan %s|@]", s)).collect(Collectors.joining(" "))
+        sourceStrings.forEach(ss -> printSourceString(ss, labelsMap, out, isStringsBasedProject, finalReversePaths, isVerbose));
+    }
+
+    public static void printSourceString(
+            SourceString ss,
+            Map<Long, String> labelsMap,
+            Outputter out,
+            boolean isStringsBasedProject,
+            Map<Long, String> finalReversePaths,
+            boolean isVerbose
+    ) {
+        String labelsString = (ss.getLabelIds() != null)
+                ? ss.getLabelIds().stream().map(labelsMap::get).map(s -> String.format("@|cyan %s|@", s)).collect(Collectors.joining(", "))
                 : "";
-            StringBuilder text = new StringBuilder();
-            if (ss.getText() instanceof HashMap<?, ?>) {
-                HashMap<?, ?> map = (HashMap<?, ?>) ss.getText();
-                for (Map.Entry<?, ?> entry : map.entrySet()) {
-                    text.append(entry.getKey()).append(": ").append(entry.getValue()).append(" | ");
-                }
-                if (text.length() > 0) {
-                    text.delete(text.length() - 3, text.length());
-                }
-            } else {
-                text.append((String) ss.getText());
+        StringBuilder text = new StringBuilder();
+        if (ss.getText() instanceof HashMap<?, ?>) {
+            HashMap<?, ?> map = (HashMap<?, ?>) ss.getText();
+            for (Map.Entry<?, ?> entry : map.entrySet()) {
+                text.append(entry.getKey()).append(": ").append(entry.getValue()).append(" | ");
             }
-            out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), text, labelsString));
-            if (isVerbose) {
-                if (ss.getIdentifier() != null) {
-                    out.println(String.format("\t- @|bold identifier|@: '%s'", ss.getIdentifier()));
-                }
-                if (ss.getContext() != null) {
-                    out.println(String.format(
+            if (text.length() > 0) {
+                text.delete(text.length() - 3, text.length());
+            }
+        } else {
+            text.append((String) ss.getText());
+        }
+        if (ss.getIdentifier() == null) {
+            out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text_short"), ss.getId(), text));
+        } else {
+            out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getIdentifier(), text));
+        }
+        if (isVerbose) {
+            if (!isStringsBasedProject && (ss.getFileId() != null)) {
+                out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_file"), finalReversePaths.get(ss.getFileId())));
+            }
+            if (!StringUtils.isEmpty(labelsString)) {
+                out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_labels"), labelsString));
+            }
+            if (ss.getContext() != null) {
+                out.println(String.format(
                         RESOURCE_BUNDLE.getString("message.source_string_list_context"), ss.getContext().trim().replaceAll("\n", "\n\t\t")));
-                }
-                if (!isStringsBasedProject && (ss.getFileId() != null)) {
-                    out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_file"), finalReversePaths.get(ss.getFileId())));
-                }
-                if (ss.getMaxLength() != null && ss.getMaxLength() != 0) {
-                    out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_max_length"), ss.getMaxLength()));
-                }
             }
-        });
+        }
     }
 
     private String prepareLabelIds(List<Label> labels) {

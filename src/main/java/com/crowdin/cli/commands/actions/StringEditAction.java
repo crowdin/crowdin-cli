@@ -1,20 +1,25 @@
 package com.crowdin.cli.commands.actions;
 
+import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
+import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.core.model.PatchOperation;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.Label;
+import com.crowdin.client.projectsgroups.model.Type;
+import com.crowdin.client.sourcefiles.model.FileInfo;
+import com.crowdin.client.sourcestrings.model.SourceString;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.commands.actions.StringListAction.printSourceString;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 class StringEditAction implements NewAction<ProjectProperties, ProjectClient> {
@@ -27,9 +32,10 @@ class StringEditAction implements NewAction<ProjectProperties, ProjectClient> {
     private final List<String> labelNames;
     private final Boolean isHidden;
     private final boolean isVerbose;
+    private final boolean noProgress;
 
     public StringEditAction(
-        boolean isVerbose, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden
+            boolean noProgress, boolean isVerbose, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden
     ) {
         this.id = id;
         this.identifier = identifier;
@@ -39,10 +45,23 @@ class StringEditAction implements NewAction<ProjectProperties, ProjectClient> {
         this.labelNames = labelNames;
         this.isHidden = isHidden;
         this.isVerbose = isVerbose;
+        this.noProgress = noProgress;
     }
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
+        CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+                this.noProgress, false, client::downloadFullProject);
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
+
+        Map<Long, String> reversePaths = null;
+        if (!isStringsBasedProject) {
+            Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
+            reversePaths = paths.entrySet()
+                    .stream()
+                    .collect(Collectors.toMap((entry) -> entry.getValue().getId(), Map.Entry::getKey));
+        }
+        Map<Long, String> finalReversePaths = reversePaths;
 
         List<Long> labelIds = (labelNames != null && !labelNames.isEmpty()) ? this.prepareLabelIds(client) : null;
 
@@ -72,8 +91,12 @@ class StringEditAction implements NewAction<ProjectProperties, ProjectClient> {
             requests.add(request);
         }
 
-        client.editSourceString(this.id, requests);
+        SourceString updatedString = client.editSourceString(this.id, requests);
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_updated"), this.id)));
+
+        Map<Long, String> labelsMap = client.listLabels().stream()
+                .collect(Collectors.toMap(Label::getId, Label::getTitle));
+        printSourceString(updatedString, labelsMap, out, isStringsBasedProject, finalReversePaths, isVerbose);
     }
 
     private List<Long> prepareLabelIds(ProjectClient client) {

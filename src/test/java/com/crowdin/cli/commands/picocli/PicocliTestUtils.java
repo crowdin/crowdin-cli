@@ -77,7 +77,7 @@ public class PicocliTestUtils {
                 .thenReturn(actionMock);
         when(actionsMock.stringDelete(any()))
             .thenReturn(actionMock);
-        when(actionsMock.stringEdit(anyBoolean(), any(), any(), any(), any(), any(), any(), any()))
+        when(actionsMock.stringEdit(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(actionMock);
         when(actionsMock.stringList(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any()))
             .thenReturn(actionMock);

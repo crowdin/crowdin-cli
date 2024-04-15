@@ -56,7 +56,7 @@ public interface Actions {
     NewAction<ProjectProperties, ProjectClient> stringDelete(Long id);
 
     NewAction<ProjectProperties, ProjectClient> stringEdit(
-        boolean isVerbose, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden);
+            boolean noProgress, boolean isVerbose, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden);
 
     NewAction<ProjectProperties, ProjectClient> stringList(
         boolean noProgress, boolean isVerbose, String file, String filter, String branchName, List<String> labelNames, String croql, Long directory, String scope);

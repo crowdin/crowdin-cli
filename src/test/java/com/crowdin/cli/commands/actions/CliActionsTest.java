@@ -59,7 +59,7 @@ public class CliActionsTest {
 
     @Test
     public void testStringEdit() {
-        assertNotNull(actions.stringEdit(false, null, null, null, null, null, null, null));
+        assertNotNull(actions.stringEdit(false, false, null, null, null, null, null, null, null));
     }
 
     @Test
