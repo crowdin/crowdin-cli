@@ -53,11 +53,10 @@ public interface Actions {
     NewAction<ProjectProperties, ProjectClient> stringComment(boolean plainView,
         boolean noProgress, String text, String stringId, String language, String type, String issueType);
 
-    NewAction<ProjectProperties, ProjectClient> stringDelete(
-        boolean noProgress, List<Long> ids, List<String> texts, List<String> identifiers);
+    NewAction<ProjectProperties, ProjectClient> stringDelete(Long id);
 
     NewAction<ProjectProperties, ProjectClient> stringEdit(
-        boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden);
+        boolean isVerbose, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden);
 
     NewAction<ProjectProperties, ProjectClient> stringList(
         boolean noProgress, boolean isVerbose, String file, String filter, String branchName, List<String> labelNames, String croql);

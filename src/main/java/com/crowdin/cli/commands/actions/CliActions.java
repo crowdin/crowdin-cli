@@ -91,17 +91,15 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> stringDelete(
-        boolean noProgress, List<Long> ids, List<String> texts, List<String> identifiers
-    ) {
-        return new StringDeleteAction(noProgress, ids, texts, identifiers);
+    public NewAction<ProjectProperties, ProjectClient> stringDelete(Long id) {
+        return new StringDeleteAction(id);
     }
 
     @Override
     public NewAction<ProjectProperties, ProjectClient> stringEdit(
-        boolean noProgress, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden
+        boolean isVerbose, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden
     ) {
-        return new StringEditAction(noProgress, id, identifier, newText, newContext, newMaxLength, labelNames, isHidden);
+        return new StringEditAction(isVerbose, id, identifier, newText, newContext, newMaxLength, labelNames, isHidden);
     }
 
     @Override

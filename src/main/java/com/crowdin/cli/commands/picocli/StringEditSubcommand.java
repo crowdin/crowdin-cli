@@ -15,7 +15,7 @@ import java.util.List;
 )
 class StringEditSubcommand extends ActCommandProject {
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
+    @CommandLine.Parameters(descriptionKey = "crowdin.string.edit.id")
     protected Long id;
 
     @CommandLine.Option(names = {"--identifier"}, paramLabel = "...", order = -2)
@@ -39,11 +39,6 @@ class StringEditSubcommand extends ActCommandProject {
     @Override
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
-        if (id == null && identifier == null) {
-            errors.add(RESOURCE_BUNDLE.getString("error.source_string_id_not_specified"));
-        } else if (id != null && identifier != null) {
-            errors.add("You can't use both identifiers");
-        }
         if (newText == null && newContext == null && newMaxLength == null && newIsHidden == null && (labelNames == null || labelNames.isEmpty())) {
             errors.add(RESOURCE_BUNDLE.getString("error.source_string_no_edit"));
         }
@@ -52,6 +47,6 @@ class StringEditSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.stringEdit(noProgress, id, identifier, newText, newContext, newMaxLength, labelNames, newIsHidden);
+        return actions.stringEdit(isVerbose, id, identifier, newText, newContext, newMaxLength, labelNames, newIsHidden);
     }
 }

@@ -112,15 +112,27 @@ After:
 
 ### String updates
 
-* added `branch` param support instead of branch in file path
+* in `add` command added `branch` param support instead of branch in file path
+* `edit` command rework
+  * moved `id` to parameter
+  * now `identifier` is used as an option to edit and not to find needed string
+  * output updates
+* `delete` command rework
+  * moved `id` to parameter. Now only 1 string can be removed at time
+  * removed `text` and `identifier` options. Only `id` is used as a string identifier
+  * output updates
 
 Before:
 
 - `crowdin string add Download --file main/src/values/strings.xml --identifier "app.download"`
+- `crowdin string edit --id 12 --text new`
+- `crowdin string delete --id 12`
 
 After:
 
 - `crowdin string add Download --file src/values/strings.xml --identifier "app.download" --branch main`
+- `crowdin string edit 12 --text new`
+- `crowdin string delete 12`
 
 ### Download targets
 

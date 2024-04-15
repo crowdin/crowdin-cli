@@ -54,7 +54,7 @@ public class CliActionsTest {
 
     @Test
     public void testStringDelete() {
-        assertNotNull(actions.stringDelete(false, null, null, null));
+        assertNotNull(actions.stringDelete(null));
     }
 
     @Test
