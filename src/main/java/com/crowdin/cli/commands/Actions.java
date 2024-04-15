@@ -59,7 +59,7 @@ public interface Actions {
             boolean noProgress, boolean isVerbose, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden);
 
     NewAction<ProjectProperties, ProjectClient> stringList(
-        boolean noProgress, boolean isVerbose, String file, String filter, String branchName, List<String> labelNames, String croql, Long directory, String scope);
+        boolean noProgress, boolean isVerbose, String file, String filter, String branchName, List<String> labelNames, String croql, String directory, String scope);
 
     NewAction<PropertiesWithFiles, ProjectClient> uploadSources(
         String branchName, boolean deleteObsolete, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView);

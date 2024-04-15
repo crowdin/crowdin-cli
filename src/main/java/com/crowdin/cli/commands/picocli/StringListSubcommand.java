@@ -35,8 +35,8 @@ class StringListSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--croql"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.string.list.croql")
     protected String croql;
 
-    @CommandLine.Option(names = {"--directory"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.string.list.directory")
-    protected Long directory;
+    @CommandLine.Option(names = {"--directory"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.string.list.directory-path")
+    protected String directory;
 
     @CommandLine.Option(names = {"--scope"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.string.list.scope")
     protected String scope;
