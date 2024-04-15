@@ -121,6 +121,7 @@ After:
   * moved `id` to parameter. Now only 1 string can be removed at time
   * removed `text` and `identifier` options. Only `id` is used as a string identifier
   * output updates
+* in `list` command added `--directory` and `--scope` options
 
 Before:
 

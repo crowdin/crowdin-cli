@@ -8,8 +8,11 @@ import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+
+import static java.util.Objects.nonNull;
 
 @CommandLine.Command(
     name = CommandNames.LIST,
@@ -32,16 +35,26 @@ class StringListSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--croql"}, paramLabel = "...", order = -2)
     protected String croql;
 
+    @CommandLine.Option(names = {"--directory"}, paramLabel = "...", order = -2)
+    protected Long directory;
+
+    @CommandLine.Option(names = {"--scope"}, paramLabel = "...", order = -2)
+    protected String scope;
+
     @Override
     protected List<String> checkOptions() {
+        List<String> errors = new ArrayList<>();
         if (file != null) {
             file = StringUtils.removeStart(Utils.normalizePath(file), Utils.PATH_SEPARATOR);
         }
-        return Collections.emptyList();
+        if (nonNull(directory) && nonNull(file)) {
+            errors.add(RESOURCE_BUNDLE.getString("error.status.only_one_allowed"));
+        }
+        return errors;
     }
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.stringList(noProgress, isVerbose, file, filter, branchName, labelNames, croql);
+        return actions.stringList(noProgress, isVerbose, file, filter, branchName, labelNames, croql, directory, scope);
     }
 }

@@ -36,8 +36,10 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
     private final String branchName;
     private final List<String> labelNames;
     private final String croql;
+    private final Long directory;
+    private final String scope;
 
-    public StringListAction(boolean noProgress, boolean isVerbose, String file, String filter, String branchName, List<String> labelNames, String croql) {
+    public StringListAction(boolean noProgress, boolean isVerbose, String file, String filter, String branchName, List<String> labelNames, String croql, Long directory, String scope) {
         this.noProgress = noProgress;
         this.isVerbose = isVerbose;
         this.file = file;
@@ -45,6 +47,8 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         this.branchName = branchName;
         this.labelNames = labelNames;
         this.croql = croql;
+        this.directory = directory;
+        this.scope = scope;
     }
 
     @Override
@@ -76,15 +80,16 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         String labelIds = nonNull(labelNames) ? prepareLabelIds(labels) : null;
         String fullPath = nonNull(branchName) ? (BranchUtils.normalizeBranchName(branchName)  + Utils.PATH_SEPARATOR + file) : file;
 
+        if ((!StringUtils.isEmpty(file) || Objects.nonNull(directory)) && isStringsBasedProject) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
+        }
+
         List<SourceString> sourceStrings;
         if (StringUtils.isEmpty(file)) {
-            sourceStrings = client.listSourceString(null, branchId, labelIds, encodedFilter, encodedCroql);
+            sourceStrings = client.listSourceString(null, branchId, labelIds, encodedFilter, encodedCroql, directory, scope);
         } else {
-            if (isStringsBasedProject) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
-            }
             if (paths.containsKey(fullPath)) {
-                sourceStrings = client.listSourceString(paths.get(fullPath).getId(), branchId, labelIds, encodedFilter, encodedCroql);
+                sourceStrings = client.listSourceString(paths.get(fullPath).getId(), branchId, labelIds, encodedFilter, encodedCroql, directory, scope);
             } else {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), fullPath));
             }

@@ -87,7 +87,7 @@ public interface ProjectClient extends Client {
 
     SourceString addSourcePluralStringStringsBased(AddSourcePluralStringStringsBasedRequest request);
 
-    List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql);
+    List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql, Long directory, String scope);
 
     void deleteSourceString(Long id);
 
