@@ -54,17 +54,17 @@ public class CliActionsTest {
 
     @Test
     public void testStringDelete() {
-        assertNotNull(actions.stringDelete(false, null, null, null));
+        assertNotNull(actions.stringDelete(null));
     }
 
     @Test
     public void testStringEdit() {
-        assertNotNull(actions.stringEdit(false, null, null, null, null, null, null, null));
+        assertNotNull(actions.stringEdit(false, false, null, null, null, null, null, null, null));
     }
 
     @Test
     public void testStringList() {
-        assertNotNull(actions.stringList(false, false, null, null, null, null, null));
+        assertNotNull(actions.stringList(false, false, null, null, null, null, null, null, null));
     }
 
     @Test

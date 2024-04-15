@@ -10,9 +10,9 @@ public class StringDeleteSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testStringDelete() {
-        this.execute(CommandNames.STRING, CommandNames.STRING_DELETE, "--id", "42");
+        this.execute(CommandNames.STRING, CommandNames.STRING_DELETE, "42");
         verify(actionsMock)
-            .stringDelete(anyBoolean(), any(), any(), any());
+            .stringDelete(any());
         this.check(true);
     }
 
