@@ -18,22 +18,22 @@ class StringEditSubcommand extends ActCommandProject {
     @CommandLine.Parameters(descriptionKey = "crowdin.string.edit.id")
     protected Long id;
 
-    @CommandLine.Option(names = {"--identifier"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--identifier"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.string.edit.identifier")
     protected String identifier;
 
-    @CommandLine.Option(names = {"--text"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--text"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.string.edit.text")
     protected String newText;
 
-    @CommandLine.Option(names = {"--context"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--context"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.string.edit.context")
     protected String newContext;
 
-    @CommandLine.Option(names = {"--max-length"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--max-length"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.string.edit.max-length")
     protected Integer newMaxLength;
 
     @CommandLine.Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...", order = -2)
     protected List<String> labelNames;
 
-    @CommandLine.Option(names = {"--hidden"}, negatable = true, order = -2)
+    @CommandLine.Option(names = {"--hidden"}, negatable = true, order = -2, descriptionKey = "crowdin.string.edit.hidden")
     protected Boolean newIsHidden;
 
     @Override
