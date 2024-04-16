@@ -36,6 +36,19 @@ const sidebars = {
         'commands/crowdin-init',
         {
           type: 'category',
+          label: 'crowdin project',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-project'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-project-browse',
+          ]
+        },
+        {
+          type: 'category',
           label: 'crowdin upload',
           link: {
             type: 'doc',

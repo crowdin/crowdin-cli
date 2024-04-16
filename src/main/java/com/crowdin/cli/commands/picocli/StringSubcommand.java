@@ -15,6 +15,6 @@ import picocli.CommandLine;
 class StringSubcommand extends HelpCommand {
     @Override
     protected CommandLine getCommand(CommandLine rootCommand) {
-        return rootCommand.getSubcommands().get("string");
+        return rootCommand.getSubcommands().get(CommandNames.STRING);
     }
 }

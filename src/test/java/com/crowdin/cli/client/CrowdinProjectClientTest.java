@@ -130,7 +130,7 @@ public class CrowdinProjectClientTest {
             .httpClient(httpClientMock)
             .build();
         com.crowdin.client.Client internalClient = new com.crowdin.client.Client(creds, clientConfig);
-        client = new CrowdinProjectClient(internalClient, 42);
+        client = new CrowdinProjectClient(internalClient, 42, preUrl);
     }
 
     @Test

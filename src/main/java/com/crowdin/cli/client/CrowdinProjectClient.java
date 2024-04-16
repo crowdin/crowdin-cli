@@ -1,9 +1,11 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.projectsgroups.model.Project;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.*;
@@ -26,10 +28,12 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
 
     private final com.crowdin.client.Client client;
     private final long projectId;
+    private final String baseUrl;
 
-    public CrowdinProjectClient(com.crowdin.client.Client client, long projectId) {
+    public CrowdinProjectClient(com.crowdin.client.Client client, long projectId, String baseUrl) {
         this.client = client;
         this.projectId = projectId;
+        this.baseUrl = baseUrl;
     }
 
     @Override
@@ -429,5 +433,16 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return executeRequest(() -> this.client.getTranslationsApi()
             .preTranslationStatus(this.projectId, preTranslationId)
             .getData());
+    }
+
+    @Override
+    public String getProjectUrl() {
+        if (PropertiesBeanUtils.isOrganization(this.baseUrl)) {
+            String organization = PropertiesBeanUtils.getOrganization(baseUrl);
+            return "https://" + organization +".crowdin.com/u/projects/" + this.projectId;
+        } else {
+            Project project = this.getProject();
+            return "https://crowdin.com/project/" + project.getIdentifier();
+        }
     }
 }

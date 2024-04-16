@@ -106,4 +106,6 @@ public interface ProjectClient extends Client {
     PreTranslationStatus startPreTranslationStringsBased(ApplyPreTranslationStringsBasedRequest request);
 
     PreTranslationStatus checkPreTranslation(String preTranslationId);
+
+    String getProjectUrl();
 }

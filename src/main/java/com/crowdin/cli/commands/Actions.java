@@ -137,4 +137,6 @@ public interface Actions {
     NewAction<ProjectProperties, ProjectClient> fileDownloadTranslation(String file, String languageId, String branch, String destParam);
 
     NewAction<ProjectProperties, ProjectClient> fileDelete(String file, String branch);
+
+    NewAction<ProjectProperties, ProjectClient> projectBrowse();
 }
