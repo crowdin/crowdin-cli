@@ -70,4 +70,7 @@ public final class CommandNames {
     public static final String SOURCES = "sources";
     public static final String TRANSLATIONS = "translations";
     public static final String LINT = "lint";
+
+    public static final String PROJECT = "project";
+    public static final String BROWSE = "browse";
 }

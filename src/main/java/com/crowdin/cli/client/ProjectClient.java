@@ -4,6 +4,7 @@ import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.projectsgroups.model.Project;
 import com.crowdin.client.sourcefiles.model.*;
 import com.crowdin.client.sourcestrings.model.*;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
@@ -106,4 +107,8 @@ public interface ProjectClient extends Client {
     PreTranslationStatus startPreTranslationStringsBased(ApplyPreTranslationStringsBasedRequest request);
 
     PreTranslationStatus checkPreTranslation(String preTranslationId);
+
+    String getProjectUrl();
+
+    List<? extends Project> listProjects();
 }

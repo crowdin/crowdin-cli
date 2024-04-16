@@ -12,10 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class PicocliTestUtils {
 
@@ -137,6 +134,8 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.checkNewVersion())
             .thenReturn(actionMock);
+        when(actionsMock.projectBrowse()).thenReturn(actionMock);
+        when(actionsMock.projectList(anyBoolean())).thenReturn(actionMock);
     }
 
     private void mockBuilders() {

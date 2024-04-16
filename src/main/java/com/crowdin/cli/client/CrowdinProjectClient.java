@@ -4,6 +4,7 @@ import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.projectsgroups.model.Project;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.*;
@@ -429,5 +430,16 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return executeRequest(() -> this.client.getTranslationsApi()
             .preTranslationStatus(this.projectId, preTranslationId)
             .getData());
+    }
+
+    @Override
+    public String getProjectUrl() {
+        return this.getProject().getWebUrl();
+    }
+
+    @Override
+    public List<? extends Project> listProjects() {
+        return executeRequestFullList((limit, offset) -> this.client.getProjectsGroupsApi()
+                .listProjects(null, 1, limit, offset));
     }
 }
