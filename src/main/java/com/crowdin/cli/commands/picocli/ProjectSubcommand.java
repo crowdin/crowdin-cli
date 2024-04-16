@@ -5,7 +5,8 @@ import picocli.CommandLine;
 @CommandLine.Command(
     name = CommandNames.PROJECT,
     subcommands = {
-        ProjectBrowseSubcommand.class
+        ProjectBrowseSubcommand.class,
+        ProjectListSubcommand.class
     }
 )
 class ProjectSubcommand extends HelpCommand {

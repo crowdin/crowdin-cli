@@ -135,6 +135,7 @@ public class PicocliTestUtils {
         when(actionsMock.checkNewVersion())
             .thenReturn(actionMock);
         when(actionsMock.projectBrowse()).thenReturn(actionMock);
+        when(actionsMock.projectList(anyBoolean())).thenReturn(actionMock);
     }
 
     private void mockBuilders() {

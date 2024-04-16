@@ -1,6 +1,5 @@
 package com.crowdin.cli.client;
 
-import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
@@ -28,12 +27,10 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
 
     private final com.crowdin.client.Client client;
     private final long projectId;
-    private final String baseUrl;
 
-    public CrowdinProjectClient(com.crowdin.client.Client client, long projectId, String baseUrl) {
+    public CrowdinProjectClient(com.crowdin.client.Client client, long projectId) {
         this.client = client;
         this.projectId = projectId;
-        this.baseUrl = baseUrl;
     }
 
     @Override
@@ -437,12 +434,12 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
 
     @Override
     public String getProjectUrl() {
-        if (PropertiesBeanUtils.isOrganization(this.baseUrl)) {
-            String organization = PropertiesBeanUtils.getOrganization(baseUrl);
-            return "https://" + organization +".crowdin.com/u/projects/" + this.projectId;
-        } else {
-            Project project = this.getProject();
-            return "https://crowdin.com/project/" + project.getIdentifier();
-        }
+        return this.getProject().getWebUrl();
+    }
+
+    @Override
+    public List<? extends Project> listProjects() {
+        return executeRequestFullList((limit, offset) -> this.client.getProjectsGroupsApi()
+                .listProjects(null, 1, limit, offset));
     }
 }

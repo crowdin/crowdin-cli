@@ -139,4 +139,6 @@ public interface Actions {
     NewAction<ProjectProperties, ProjectClient> fileDelete(String file, String branch);
 
     NewAction<ProjectProperties, ProjectClient> projectBrowse();
+
+    NewAction<ProjectProperties, ProjectClient> projectList(boolean isVerbose);
 }

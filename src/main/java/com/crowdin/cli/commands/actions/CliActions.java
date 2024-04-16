@@ -296,4 +296,9 @@ public class CliActions implements Actions {
     public NewAction<ProjectProperties, ProjectClient> projectBrowse() {
         return new ProjectBrowseAction();
     }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> projectList(boolean isVerbose) {
+        return new ProjectListAction(isVerbose);
+    }
 }

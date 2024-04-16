@@ -44,6 +44,7 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
+            'commands/crowdin-project-list',
             'commands/crowdin-project-browse',
           ]
         },
