@@ -25,8 +25,8 @@ class BundleListAction implements NewAction<ProjectProperties, ClientBundle> {
         for (Bundle bundle : bundles) {
             if (!plainView) {
                 out.println(String.format(RESOURCE_BUNDLE.getString("message.bundle.list"), bundle.getId(),
-                                      bundle.getName(),
-                                      bundle.getFormat(), bundle.getExportPattern()));
+                                      bundle.getFormat(),
+                                      bundle.getExportPattern(), bundle.getName()));
             } else {
                 out.println(bundle.getId() + " " + bundle.getName());
             }

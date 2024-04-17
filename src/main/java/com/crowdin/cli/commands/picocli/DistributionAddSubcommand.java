@@ -17,7 +17,7 @@ import static com.crowdin.client.distributions.model.ExportMode.BUNDLE;
 import static com.crowdin.client.distributions.model.ExportMode.DEFAULT;
 
 @CommandLine.Command(
-    name = CommandNames.DISTRIBUTION_ADD,
+    name = CommandNames.ADD,
     sortOptions = false
 )
 class DistributionAddSubcommand extends ActCommandDistribution {

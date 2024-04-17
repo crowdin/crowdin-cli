@@ -18,7 +18,7 @@ public class TaskAddSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testTaskAddInvalidOptions() {
-        this.executeInvalidParams(CommandNames.TASK, CommandNames.TASK_ADD, "Test Task1", "--language", "unk-Unk", "--file", "stringId", "--type", "unrecognizedType");
+        this.executeInvalidParams(CommandNames.TASK, CommandNames.ADD, "Test Task1", "--language", "unk-Unk", "--file", "stringId", "--type", "unrecognizedType");
     }
 
     @ParameterizedTest

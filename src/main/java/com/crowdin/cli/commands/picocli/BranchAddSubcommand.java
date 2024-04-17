@@ -9,7 +9,7 @@ import picocli.CommandLine;
 
 @CommandLine.Command(
     sortOptions = false,
-    name = CommandNames.BRANCH_ADD
+    name = CommandNames.ADD
 )
 class BranchAddSubcommand extends ActCommandProject {
 

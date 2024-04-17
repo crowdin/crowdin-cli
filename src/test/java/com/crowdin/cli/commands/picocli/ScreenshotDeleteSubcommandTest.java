@@ -9,13 +9,13 @@ public class ScreenshotDeleteSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testScreenshotDelete() {
-        this.execute(CommandNames.SCREENSHOT, CommandNames.SCREENSHOT_DELETE, "123");
+        this.execute(CommandNames.SCREENSHOT, CommandNames.DELETE, "123");
         verify(actionsMock).screenshotDelete(any());
         this.check(true);
     }
 
     @Test
     public void testScreenshotDeleteInvalidOptions() {
-        this.executeInvalidParams(CommandNames.SCREENSHOT, CommandNames.SCREENSHOT_DELETE);
+        this.executeInvalidParams(CommandNames.SCREENSHOT, CommandNames.DELETE);
     }
 }

@@ -10,7 +10,7 @@ public class StringDeleteSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testStringDelete() {
-        this.execute(CommandNames.STRING, CommandNames.STRING_DELETE, "42");
+        this.execute(CommandNames.STRING, CommandNames.DELETE, "42");
         verify(actionsMock)
             .stringDelete(any());
         this.check(true);
@@ -18,6 +18,6 @@ public class StringDeleteSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testStringDeleteInvalidOptions() {
-        this.executeInvalidParams(CommandNames.STRING, CommandNames.STRING_DELETE);
+        this.executeInvalidParams(CommandNames.STRING, CommandNames.DELETE);
     }
 }

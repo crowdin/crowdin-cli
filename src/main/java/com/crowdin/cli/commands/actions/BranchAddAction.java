@@ -34,8 +34,8 @@ class BranchAddAction implements NewAction<ProjectProperties, ProjectClient> {
         Map<String, Long> branches = client.listBranches().stream()
             .collect(Collectors.toMap(Branch::getName, Branch::getId));
         if (!branches.containsKey(name)) {
-            client.addBranch(RequestBuilder.addBranch(name, title, exportPattern, priority));
-            out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), name)));
+            Branch branch = client.addBranch(RequestBuilder.addBranch(name, title, exportPattern, priority));
+            out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch.list"), branch.getId(), branch.getName())));
         } else {
             out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch_already_exists"), name)));
         }

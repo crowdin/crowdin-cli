@@ -9,13 +9,13 @@ class LabelDeleteSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testLabelDelete() {
-        this.execute(CommandNames.LABEL, CommandNames.LABEL_DELETE, "label");
+        this.execute(CommandNames.LABEL, CommandNames.DELETE, "label");
         verify(actionsMock).labelDelete(any());
         this.check(true);
     }
 
     @Test
     public void testLabelDeleteInvalidOptions() {
-        this.executeInvalidParams(CommandNames.LABEL, CommandNames.LABEL_DELETE);
+        this.executeInvalidParams(CommandNames.LABEL, CommandNames.DELETE);
     }
 }

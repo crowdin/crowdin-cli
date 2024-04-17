@@ -7,7 +7,7 @@ import com.crowdin.cli.properties.ProjectProperties;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = CommandNames.STRING_DELETE,
+    name = CommandNames.DELETE,
     sortOptions = false
 )
 class StringDeleteSubcommand extends ActCommandProject {

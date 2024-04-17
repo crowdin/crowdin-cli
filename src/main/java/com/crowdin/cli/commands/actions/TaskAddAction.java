@@ -22,7 +22,6 @@ import java.util.*;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
-import static java.util.Objects.nonNull;
 
 @AllArgsConstructor
 class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
@@ -103,15 +102,6 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
             out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.task.added"), task.getTitle())));
         } catch (Exception e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.task_is_not_added"), addTaskRequest), e);
-        }
-    }
-
-    private boolean isConvertibleToLong(String str) {
-        try {
-            Long.parseLong(str);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
         }
     }
 }

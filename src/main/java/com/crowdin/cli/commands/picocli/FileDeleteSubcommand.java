@@ -9,7 +9,7 @@ import picocli.CommandLine.Command;
 import picocli.CommandLine.Parameters;
 
 @Command(
-    name = CommandNames.FILE_DELETE,
+    name = CommandNames.DELETE,
     sortOptions = false
 )
 class FileDeleteSubcommand extends ActCommandProject {

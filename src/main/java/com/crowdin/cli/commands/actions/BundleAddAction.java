@@ -50,7 +50,9 @@ class BundleAddAction implements NewAction<ProjectProperties, ClientBundle> {
         }
 
         if (!plainView) {
-            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.bundle.added"), bundle.getId(), bundle.getName())));
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.bundle.list"), bundle.getId(),
+                    bundle.getFormat(),
+                    bundle.getExportPattern(), bundle.getName())));
         } else {
             out.println(String.valueOf(bundle.getId()));
         }

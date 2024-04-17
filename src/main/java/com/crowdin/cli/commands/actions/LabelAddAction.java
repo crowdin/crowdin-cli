@@ -31,7 +31,7 @@ class LabelAddAction implements NewAction<ProjectProperties, ClientLabel> {
             Label label = client.addLabel(request);
             if (!plainView) {
                 out.println(ExecutionStatus.OK.withIcon(
-                    String.format(RESOURCE_BUNDLE.getString("message.label.added"), label.getId(), label.getTitle())
+                    String.format(RESOURCE_BUNDLE.getString("message.label.list"), label.getId(), label.getTitle())
                 ));
             } else {
                 out.println(title);

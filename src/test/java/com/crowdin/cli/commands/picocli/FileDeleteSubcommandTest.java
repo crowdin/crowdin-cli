@@ -9,13 +9,13 @@ class FileDeleteSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testFileDelete() {
-        this.execute(CommandNames.FILE, CommandNames.FILE_DELETE, "file.txt");
+        this.execute(CommandNames.FILE, CommandNames.DELETE, "file.txt");
         verify(actionsMock).fileDelete(any(), any());
         this.check(true);
     }
 
     @Test
     public void testFileDeleteInvalidOptions() {
-        this.executeInvalidParams(CommandNames.FILE, CommandNames.FILE_DELETE);
+        this.executeInvalidParams(CommandNames.FILE, CommandNames.DELETE);
     }
 }

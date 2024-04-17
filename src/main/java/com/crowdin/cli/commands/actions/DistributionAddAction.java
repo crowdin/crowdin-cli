@@ -116,7 +116,7 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
         }
 
         if (!plainView) {
-            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.distribution.added"), distribution.getName())));
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.distribution.list"), distribution.getHash(), distribution.getName(), distribution.getExportMode())));
         } else {
             out.println(String.valueOf(distribution.getName()));
         }

@@ -40,7 +40,8 @@ After:
 
 ### Screenshots updates
 
-Replaced `name` parameter with `id` to delete screenshot
+* updated `list` cmd output
+* replaced `name` parameter with `id` to `delete` cmd
 
 Before:
 
@@ -56,7 +57,7 @@ After:
 
 * removed `crowdin list branches` command
 * create new command `crowdin branch list` command
-* updated `list` cmd output
+* updated `list`, `add` cmd output
 
 Before:
 
@@ -147,6 +148,7 @@ After:
 
 ### Task updates
 
+* updated `add` cmd output
 * removed backward compatibility for file ids in task add command
 
 ### Crowdin List => Crowdin Config
@@ -163,7 +165,6 @@ After:
 - `crowdin config sources`
 - `crowdin config translations`
 
-
 ### Lint
 
 * command was moved under `config` namespace
@@ -175,3 +176,19 @@ Before:
 After:
 
 - `crowdin config lint`
+
+### Bundle
+
+* updated `list`, `add` cmd output
+
+### Comment
+
+* updated `list` cmd output
+
+### Distribution
+
+* updated `add` cmd output
+
+### Label
+
+* updated `add` cmd output
