@@ -103,9 +103,9 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
+            'commands/crowdin-config-lint',
             'commands/crowdin-config-sources',
             'commands/crowdin-config-translations',
-            'commands/crowdin-config-lint',
           ]
         },
         {

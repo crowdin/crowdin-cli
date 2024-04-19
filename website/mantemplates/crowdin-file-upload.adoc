@@ -14,3 +14,7 @@ include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-commands]
 include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-options]
 
 include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
+
+=== See also
+
+* link:https://developer.crowdin.com/api/v2/#operation/api.projects.files.post[List of file types]

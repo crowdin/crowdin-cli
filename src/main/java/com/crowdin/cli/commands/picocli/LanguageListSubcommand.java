@@ -13,7 +13,7 @@ import picocli.CommandLine;
 )
 class LanguageListSubcommand extends ActCommandProject {
 
-    @CommandLine.Option(names = {"--code"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--code"}, descriptionKey = "crowdin.language.list.code", paramLabel = "...", order = -2)
     protected BaseCli.LanguageCode code;
 
     @CommandLine.Option(names = {"--all"}, descriptionKey = "crowdin.language.list.all", order = -2)

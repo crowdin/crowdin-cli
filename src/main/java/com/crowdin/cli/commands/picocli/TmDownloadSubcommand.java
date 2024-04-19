@@ -22,16 +22,16 @@ class TmDownloadSubcommand extends ActCommandTm {
     @CommandLine.Parameters(descriptionKey = "crowdin.tm.download.id")
     protected Long id;
 
-    @CommandLine.Option(names = {"--source-language-id"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--source-language-id"}, paramLabel = "...", descriptionKey = "crowdin.tm.download.source-language-id", order = -2)
     private String sourceLanguageId;
 
-    @CommandLine.Option(names = {"--target-language-id"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--target-language-id"}, paramLabel = "...", descriptionKey = "crowdin.tm.download.target-language-id", order = -2)
     private String targetLanguageId;
 
-    @CommandLine.Option(names = {"--format"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--format"}, paramLabel = "...", descriptionKey = "crowdin.tm.download.format", order = -2)
     private TranslationMemoryFormat format;
 
-    @CommandLine.Option(names = "--to", paramLabel = "...", order = -2)
+    @CommandLine.Option(names = "--to", paramLabel = "...", descriptionKey = "crowdin.tm.download.to", order = -2)
     private File to;
 
     @Override

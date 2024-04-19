@@ -22,16 +22,16 @@ class FileUploadSubcommand extends ActCommandProject {
     @Parameters(descriptionKey = "crowdin.file.upload.file")
     protected File file;
 
-    @Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
+    @Option(names = {"-b", "--branch"}, paramLabel = "...", order = -3)
     protected String branch;
 
-    @Option(names = {"--no-auto-update"}, descriptionKey = "crowdin.file.upload.auto-update", negatable = true, order = -2)
+    @Option(names = {"--no-auto-update"}, descriptionKey = "crowdin.file.upload.auto-update", negatable = true, order = -3)
     protected boolean autoUpdate = true;
 
-    @Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...", order = -2)
+    @Option(names = {"--label"}, descriptionKey = "params.label", paramLabel = "...", order = -3)
     protected List<String> labels;
 
-    @Option(names = {"-d", "--dest"}, paramLabel = "...", descriptionKey = "crowdin.file.upload.dest", order = -2)
+    @Option(names = {"-d", "--dest"}, paramLabel = "...", descriptionKey = "crowdin.file.upload.dest", order = -3)
     protected String destination;
 
     @Option(names = {"--type"}, descriptionKey = "crowdin.file.upload.type", paramLabel = "...", order = -2)
@@ -40,16 +40,16 @@ class FileUploadSubcommand extends ActCommandProject {
     @Option(names = {"--parser-version"}, descriptionKey = "crowdin.file.upload.parser", paramLabel = "...", order = -2)
     protected Integer parserVersion;
 
-    @Option(names = {"--excluded-language"}, descriptionKey = "params.excluded-languages", paramLabel = "...", order = -2)
+    @Option(names = {"--excluded-language"}, descriptionKey = "params.excluded-languages", paramLabel = "...", order = -3)
     protected List<String> excludedLanguages;
 
-    @Option(names = {"--cleanup-mode"}, negatable = true, descriptionKey = "crowdin.file.upload.cleanup-mode", order = -2)
+    @Option(names = {"--cleanup-mode"}, negatable = true, descriptionKey = "crowdin.file.upload.cleanup-mode", order = -3)
     protected boolean cleanupMode = false;
 
-    @Option(names = {"--update-strings"}, negatable = true, descriptionKey = "crowdin.file.upload.update-strings", order = -2)
+    @Option(names = {"--update-strings"}, negatable = true, descriptionKey = "crowdin.file.upload.update-strings", order = -3)
     protected boolean updateStrings = false;
 
-    @Option(names = {"-l", "--language"}, paramLabel = "...", descriptionKey = "crowdin.file.language", order = -2)
+    @Option(names = {"-l", "--language"}, paramLabel = "...", descriptionKey = "crowdin.file.language", order = -3)
     protected String languageId;
 
     @Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
