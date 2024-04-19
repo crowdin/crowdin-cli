@@ -22,10 +22,10 @@ class GlossaryDownloadSubcommand extends ActCommandGlossary {
     @CommandLine.Parameters(descriptionKey = "crowdin.glossary.download.id")
     protected Long id;
 
-    @CommandLine.Option(names = {"--format"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--format"}, paramLabel = "...", descriptionKey = "crowdin.glossary.download.format", order = -2)
     private GlossariesFormat format;
 
-    @CommandLine.Option(names = "--to", paramLabel = "...", order = -2)
+    @CommandLine.Option(names = "--to", paramLabel = "...", descriptionKey = "crowdin.glossary.download.to", order = -2)
     private File to;
 
     @Override

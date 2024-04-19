@@ -22,16 +22,16 @@ class GlossaryUploadSubcommand extends ActCommandGlossary {
     @CommandLine.Parameters(descriptionKey = "crowdin.glossary.upload.file")
     private File file;
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--id"}, paramLabel = "...", descriptionKey = "crowdin.glossary.upload.id", order = -2)
     private Long id;
 
     @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.glossary.upload.language-id", order = -2)
     private String languageId;
 
-    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...", descriptionKey = "crowdin.glossary.upload.scheme", order = -2)
     private Map<String, Integer> scheme;
 
-    @CommandLine.Option(names = {"--first-line-contains-header"}, order = -2)
+    @CommandLine.Option(names = {"--first-line-contains-header"}, descriptionKey = "crowdin.glossary.upload.first-line-contains-header", order = -2)
     private Boolean firstLineContainsHeader;
 
     @Override

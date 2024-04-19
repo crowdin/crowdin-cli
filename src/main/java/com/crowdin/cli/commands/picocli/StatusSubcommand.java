@@ -21,7 +21,7 @@ import static java.util.Objects.nonNull;
 )
 class StatusSubcommand extends ActCommandProject {
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", descriptionKey = "crowdin.status.language", order = -2)
     protected String languageId;
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
@@ -33,7 +33,7 @@ class StatusSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"-d", "--directory"}, paramLabel = "...", descriptionKey = "crowdin.status.directory-path", order = -2)
     protected String directory;
 
-    @CommandLine.Option(names = {"--fail-if-incomplete"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--fail-if-incomplete"}, paramLabel = "...", descriptionKey = "crowdin.status.fail-if-incomplete", order = -2)
     protected boolean failIfIncomplete;
 
     @Override

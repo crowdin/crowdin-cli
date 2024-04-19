@@ -24,31 +24,31 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 )
 public class PreTranslateSubcommand extends ActCommandWithFiles {
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", defaultValue = BaseCli.ALL, order = -2)
+    @CommandLine.Option(names = {"-l", "--language"}, descriptionKey = "crowdin.pre-translate.language", paramLabel = "...", defaultValue = BaseCli.ALL, order = -2)
     protected List<String> languageIds;
 
-    @CommandLine.Option(names = {"--file"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--file"}, descriptionKey = "crowdin.pre-translate.file", paramLabel = "...", order = -2)
     protected List<String> files;
 
-    @CommandLine.Option(names = {"--method"}, paramLabel = "...", required = true, order = -2)
+    @CommandLine.Option(names = {"--method"}, descriptionKey = "crowdin.pre-translate.method", paramLabel = "...", required = true, order = -2)
     protected Method method;
 
-    @CommandLine.Option(names = {"--engine-id"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--engine-id"}, descriptionKey = "crowdin.pre-translate.engine-id", paramLabel = "...", order = -2)
     protected Long engineId;
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", descriptionKey = "branch", order = -2)
     protected String branch;
 
-    @CommandLine.Option(names = {"--auto-approve-option"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--auto-approve-option"}, descriptionKey = "crowdin.pre-translate.auto-approve-option", paramLabel = "...", order = -2)
     protected String autoApproveOption;
 
-    @CommandLine.Option(names = {"--duplicate-translations"}, negatable = true, order = -2)
+    @CommandLine.Option(names = {"--duplicate-translations"}, descriptionKey = "crowdin.pre-translate.duplicate-translations", negatable = true, order = -2)
     protected Boolean duplicateTranslations;
 
-    @CommandLine.Option(names = {"--translate-untranslated-only"}, negatable = true, order = -2)
+    @CommandLine.Option(names = {"--translate-untranslated-only"}, descriptionKey = "crowdin.pre-translate.translate-untranslated-only", negatable = true, order = -2)
     protected Boolean translateUntranslatedOnly;
 
-    @CommandLine.Option(names = {"--translate-with-perfect-match-only"}, negatable = true, order = -2)
+    @CommandLine.Option(names = {"--translate-with-perfect-match-only"}, descriptionKey = "crowdin.pre-translate.translate-with-perfect-match-only", negatable = true, order = -2)
     protected Boolean translateWithPerfectMatchOnly;
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")

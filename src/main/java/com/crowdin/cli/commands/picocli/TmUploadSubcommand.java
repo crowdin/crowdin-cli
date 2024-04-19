@@ -19,19 +19,19 @@ import java.util.Map;
 )
 class TmUploadSubcommand extends ActCommandTm {
 
-    @CommandLine.Parameters(descriptionKey = "crowdin.glossary.upload.file")
+    @CommandLine.Parameters(descriptionKey = "crowdin.tm.upload.file")
     private File file;
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--id"}, paramLabel = "...", descriptionKey = "crowdin.tm.upload.id", order = -2)
     private Long id;
 
     @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.tm.upload.language-id", order = -2)
     private String languageId;
 
-    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...", descriptionKey = "crowdin.tm.upload.scheme", order = -2)
     private Map<String, Integer> scheme;
 
-    @CommandLine.Option(names = {"--first-line-contains-header"}, order = -2)
+    @CommandLine.Option(names = {"--first-line-contains-header"}, descriptionKey = "crowdin.tm.upload.first-line-contains-header", order = -2)
     private Boolean firstLineContainsHeader;
 
     @Override
