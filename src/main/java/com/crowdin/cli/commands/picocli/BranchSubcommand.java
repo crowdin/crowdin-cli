@@ -6,6 +6,7 @@ import picocli.CommandLine;
     name = CommandNames.BRANCH,
     subcommands = {
         BranchAddSubcommand.class,
+        BranchCloneSubcommand.class,
         BranchDeleteSubcommand.class,
         BranchListSubcommand.class
     }
