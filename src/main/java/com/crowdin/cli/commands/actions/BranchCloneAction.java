@@ -7,8 +7,10 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
+import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.client.branches.model.BranchCloneStatus;
 import com.crowdin.client.branches.model.CloneBranchRequest;
+import com.crowdin.client.branches.model.ClonedBranch;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import lombok.AllArgsConstructor;
@@ -21,8 +23,8 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 @AllArgsConstructor
 class BranchCloneAction implements NewAction<ProjectProperties, ProjectClient> {
 
-    private final String name;
-    private final String newBranch;
+    private final String source;
+    private final String target;
     private final boolean noProgress;
 
     @Override
@@ -32,18 +34,23 @@ class BranchCloneAction implements NewAction<ProjectProperties, ProjectClient> {
 
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
         if (!isStringsBasedProject) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch.clone_files_based"));
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.string_based_only"));
         }
 
-        Optional<Branch> branch = project.findBranchByName(name);
+        Optional<Branch> branch = project.findBranchByName(source);
         if (!branch.isPresent()) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.branch_not_exists"), name));
+            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.branch_not_exists"), source));
         }
         Long branchId = branch.get().getId();
         CloneBranchRequest request = new CloneBranchRequest();
-        request.setName(newBranch);
+        request.setName(target);
+        BranchCloneStatus status = cloneBranch(out, client, branchId, request);
+        ClonedBranch clonedBranch = client.getClonedBranch(branchId, status.getIdentifier());
+        out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch.clone"), clonedBranch.getId(), target)));
+    }
 
-        ConsoleSpinner.execute(
+    private BranchCloneStatus cloneBranch(Outputter out, ProjectClient client, Long branchId, CloneBranchRequest request) {
+        return ConsoleSpinner.execute(
             out,
             "message.spinner.cloning_branch",
             "error.branch.clone",
@@ -54,7 +61,7 @@ class BranchCloneAction implements NewAction<ProjectProperties, ProjectClient> {
                 try {
                     status = client.cloneBranch(branchId, request);
                 } catch (ExistsResponseException e) {
-                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.branch.clone.exists"), newBranch));
+                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.branch.clone.exists"), target));
                 }
 
                 while (!status.getStatus().equalsIgnoreCase("finished")) {
@@ -72,6 +79,5 @@ class BranchCloneAction implements NewAction<ProjectProperties, ProjectClient> {
                 return status;
             }
         );
-        out.println(String.format(RESOURCE_BUNDLE.getString("message.branch.clone_success"), newBranch, name));
     }
 }

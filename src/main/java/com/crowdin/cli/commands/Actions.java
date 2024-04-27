@@ -114,7 +114,7 @@ public interface Actions {
 
     NewAction<ProjectProperties, ProjectClient> branchAdd(String name, String title, String exportPattern, Priority priority);
 
-    NewAction<ProjectProperties, ProjectClient> branchClone(String name, String newBranch, boolean noProgress);
+    NewAction<ProjectProperties, ProjectClient> branchClone(String source, String target, boolean noProgress);
 
     NewAction<ProjectProperties, ProjectClient> branchDelete(String name);
 

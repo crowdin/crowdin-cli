@@ -9,6 +9,7 @@ import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.branches.model.BranchCloneStatus;
 import com.crowdin.client.branches.model.CloneBranchRequest;
+import com.crowdin.client.branches.model.ClonedBranch;
 import com.crowdin.client.projectsgroups.model.Type;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -42,24 +43,29 @@ class BranchCloneActionTest {
             .addBranches(14L, "main").build();
         build.setType(Type.STRINGS_BASED);
 
-        when(client.downloadFullProject()).thenReturn(build);
+        CloneBranchRequest cloned = new CloneBranchRequest() {{
+            setName("cloned");
+        }};
         BranchCloneStatus initStatus = new BranchCloneStatus(){{
             setIdentifier("50fb3506-4127-4ba8-8296-f97dc7e3e0c3");
             setStatus("created");
             setProgress(0);
         }};
-
         BranchCloneStatus status = new BranchCloneStatus(){{
+            setIdentifier("50fb3506-4127-4ba8-8296-f97dc7e3e0c3");
             setStatus("finished");
             setProgress(100);
         }};
+        ClonedBranch clonedBranch = new ClonedBranch(){{
+            setId(20L);
+        }};
 
-        when(client.cloneBranch(eq(14L), eq(new CloneBranchRequest() {{
-            setName("cloned");
-        }}))).thenReturn(initStatus);
-
+        when(client.downloadFullProject()).thenReturn(build);
+        when(client.cloneBranch(eq(14L), eq(cloned))).thenReturn(initStatus);
         when(client.checkCloneBranchStatus(eq(14L),  eq("50fb3506-4127-4ba8-8296-f97dc7e3e0c3")))
             .thenReturn(status);
+        when(client.getClonedBranch(eq(14L),  eq("50fb3506-4127-4ba8-8296-f97dc7e3e0c3")))
+            .thenReturn(clonedBranch);
 
         CloneBranchRequest request = new CloneBranchRequest();
         request.setName("cloned");
@@ -68,6 +74,7 @@ class BranchCloneActionTest {
         verify(client).downloadFullProject();
         verify(client).cloneBranch(eq(14L), eq(request));
         verify(client).checkCloneBranchStatus(eq(14L), eq("50fb3506-4127-4ba8-8296-f97dc7e3e0c3"));
+        verify(client).getClonedBranch(eq(14L), eq("50fb3506-4127-4ba8-8296-f97dc7e3e0c3"));
         verifyNoMoreInteractions(client);
     }
 

@@ -2,6 +2,7 @@ package com.crowdin.cli.client;
 
 import com.crowdin.client.branches.model.BranchCloneStatus;
 import com.crowdin.client.branches.model.CloneBranchRequest;
+import com.crowdin.client.branches.model.ClonedBranch;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
@@ -162,6 +163,13 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     public BranchCloneStatus checkCloneBranchStatus(Long branchId, String cloneId) {
         return executeRequest(() -> this.client.getBranchesApi()
             .checkCloneBranchStatus(projectId, branchId, cloneId)
+            .getData());
+    }
+
+    @Override
+    public ClonedBranch getClonedBranch(Long branchId, String cloneId) {
+        return executeRequest(() -> this.client.getBranchesApi()
+            .getClonedBranch(this.projectId, branchId, cloneId)
             .getData());
     }
 

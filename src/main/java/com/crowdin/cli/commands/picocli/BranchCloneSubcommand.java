@@ -13,14 +13,14 @@ import picocli.CommandLine.Parameters;
 )
 class BranchCloneSubcommand extends ActCommandProject {
 
-    @Parameters(descriptionKey = "crowdin.branch.clone.original_branch")
-    protected String name;
+    @Parameters(descriptionKey = "crowdin.branch.clone.source")
+    protected String source;
 
-    @Parameters(descriptionKey = "crowdin.branch.clone.new_branch")
-    protected String newBranch;
+    @Parameters(descriptionKey = "crowdin.branch.clone.target")
+    protected String target;
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.branchClone(name, newBranch, noProgress);
+        return actions.branchClone(source, target, noProgress);
     }
 }

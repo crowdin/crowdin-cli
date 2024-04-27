@@ -233,8 +233,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> branchClone(String name, String newBranch, boolean noProgress) {
-        return new BranchCloneAction(name, newBranch, noProgress);
+    public NewAction<ProjectProperties, ProjectClient> branchClone(String source, String target, boolean noProgress) {
+        return new BranchCloneAction(source, target, noProgress);
     }
 
     @Override
