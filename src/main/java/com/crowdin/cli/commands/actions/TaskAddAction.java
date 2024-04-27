@@ -99,7 +99,10 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
 
         try {
             task = client.addTask(addTaskRequest);
-            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.task.added"), task.getTitle())));
+            String deadline = task.getDeadline() == null ? "NoDueDate" : task.getDeadline().toString();
+            out.println(OK.withIcon(
+                    String.format(RESOURCE_BUNDLE.getString("message.task.list"), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), deadline))
+            );
         } catch (Exception e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.task_is_not_added"), addTaskRequest), e);
         }

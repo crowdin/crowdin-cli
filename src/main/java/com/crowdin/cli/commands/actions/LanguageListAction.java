@@ -56,7 +56,6 @@ class LanguageListAction implements NewAction<ProjectProperties, ProjectClient> 
         if (!plainView) {
             languages.stream()
                 .map(lang -> String.format(RESOURCE_BUNDLE.getString("message.language.list"), this.getCode(langMapping, lang), lang.getName()))
-                .map(OK::withIcon)
                 .forEach(out::println);
         } else {
             languages.stream()

@@ -44,7 +44,7 @@ public interface ProjectClient extends Client {
 
     void updateSource(Long sourceId, UpdateFileRequest request) throws ResponseException;
 
-    void addSource(AddFileRequest request) throws ResponseException;
+    FileInfo addSource(AddFileRequest request) throws ResponseException;
 
     UploadStringsProgress addSourceStringsBased(UploadStringsRequest request);
 

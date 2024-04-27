@@ -40,7 +40,7 @@ After:
 
 ### Screenshots updates
 
-* updated `list` cmd output
+* updated `list`, `upload` cmd output
 * replaced `name` parameter with `id` to `delete` cmd
 
 Before:
@@ -87,7 +87,7 @@ After:
 
 * removed `crowdin list project` command
 * create new command `crowdin file list` command
-* updated `list` cmd output
+* updated `list`, `upload` cmd output
 * added verbose (`--verbose`) output
 * to download translations for all project languages `-l all` can be used
 
@@ -123,6 +123,7 @@ After:
   * removed `text` and `identifier` options. Only `id` is used as a string identifier
   * output updates
 * in `list` command added `--directory` and `--scope` options. Output updates
+  * `add` cmd output update 
 
 Before:
 
@@ -154,6 +155,7 @@ After:
 ### Crowdin List => Crowdin Config
 
 * renamed `crowdin list` to `crowdin config`
+* `sources`, `translations` cmd output update
 
 Before:
 

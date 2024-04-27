@@ -13,10 +13,7 @@ import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
-import com.crowdin.client.sourcestrings.model.AddSourcePluralStringRequest;
-import com.crowdin.client.sourcestrings.model.AddSourcePluralStringStringsBasedRequest;
-import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
-import com.crowdin.client.sourcestrings.model.AddSourceStringStringsBasedRequest;
+import com.crowdin.client.sourcestrings.model.*;
 import lombok.Data;
 
 import java.util.List;
@@ -64,15 +61,21 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
             if (Objects.isNull(branch)) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
             }
+            SourceString ss;
             if (isPluralString) {
                 AddSourcePluralStringStringsBasedRequest request = RequestBuilder.addPluralStringStringsBased(
                         this.text, this.identifier, this.maxLength, this.context, branch.getId(), this.hidden, labelIds, one, two, few, many, zero);
-                client.addSourcePluralStringStringsBased(request);
+                ss = client.addSourcePluralStringStringsBased(request);
             } else {
                 AddSourceStringStringsBasedRequest request = RequestBuilder.addStringStringsBased(this.text, this.identifier, this.maxLength, this.context, branch.getId(), this.hidden, labelIds);
-                client.addSourceStringStringsBased(request);
+                ss = client.addSourceStringStringsBased(request);
             }
-            out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.source_string_uploaded")));
+
+            if (ss.getIdentifier() == null) {
+                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text_short"), ss.getId(), this.text)));
+            } else {
+                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getIdentifier(), this.text)));
+            }
             return;
         }
 
@@ -105,16 +108,22 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
             }
             Long fileId = paths.get(file).getId();
 
+            SourceString ss;
             if (isPluralString) {
                 AddSourcePluralStringRequest request = RequestBuilder.addPluralString(
                         this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden, labelIds, one, two, few, many, zero);
-                client.addSourcePluralString(request);
+                ss = client.addSourcePluralString(request);
             } else {
                 AddSourceStringRequest request =
                         RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden, labelIds);
-                client.addSourceString(request);
+                ss = client.addSourceString(request);
             }
-            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_for_file_uploaded"), file)));
+
+            if (ss.getIdentifier() == null) {
+                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text_short"), ss.getId(), this.text)));
+            } else {
+                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getIdentifier(), this.text)));
+            }
         }
 
         if (containsError) {
