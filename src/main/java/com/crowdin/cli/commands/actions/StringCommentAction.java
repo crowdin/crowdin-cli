@@ -40,12 +40,17 @@ class StringCommentAction implements NewAction<ProjectProperties, ProjectClient>
             StringComment stringComment = client.commentString(request);
 
             if (!plainView) {
-                out.println(
-                        OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.comment.added"),
-                                                  stringComment.getStringId(), stringComment.getText())));
+                out.println(OK.withIcon(
+                        String.format(
+                                RESOURCE_BUNDLE.getString("message.comment.list"),
+                                stringComment.getId(),
+                                stringComment.getText()
+                        ))
+                );
             } else {
-                out.println(stringComment.getStringId().toString());
+                out.println(stringComment.getId().toString());
             }
+
         } catch (Exception e) {
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.comment_is_not_added")), e);
         }

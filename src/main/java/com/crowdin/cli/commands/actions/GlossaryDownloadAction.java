@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 class GlossaryDownloadAction implements NewAction<BaseProperties, ClientGlossary> {
 
@@ -43,7 +44,7 @@ class GlossaryDownloadAction implements NewAction<BaseProperties, ClientGlossary
         }
         GlossaryExportStatus status = this.buildGlossary(out, client, targetGlossary.getId(), RequestBuilder.exportGlossary(format));
         downloadGlossary(client, targetGlossary.getId(), status.getIdentifier());
-        out.println(String.format(RESOURCE_BUNDLE.getString("message.glossary.download_success"), to));
+        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.glossary.download_success"), to)));
     }
 
     private Glossary getGlossary(ClientGlossary client) {

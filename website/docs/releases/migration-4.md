@@ -123,7 +123,7 @@ After:
   * removed `text` and `identifier` options. Only `id` is used as a string identifier
   * output updates
 * in `list` command added `--directory` and `--scope` options. Output updates
-  * `add` cmd output update 
+* `add`, `comment` cmd output update 
 
 Before:
 
@@ -195,3 +195,7 @@ After:
 ### Label
 
 * updated `add` cmd output
+
+### Other
+
+* success messages updates

@@ -38,6 +38,8 @@ public class StringCommentActionTest {
         ProjectClient client = mock(ProjectClient.class);
         when(client.commentString(request))
                 .thenReturn(new StringComment() {{
+                    setId(123L);
+                    setStringId(123L);
                     setType(request.getType());
                     setText(request.getText());
                     setLanguageId(request.getTargetLanguageId());

@@ -18,6 +18,7 @@ import java.io.InputStream;
 import java.net.URL;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 class TmDownloadAction implements NewAction<BaseProperties, ClientTm> {
 
@@ -55,7 +56,7 @@ class TmDownloadAction implements NewAction<BaseProperties, ClientTm> {
             this.buildTranslationMemory(out, client, targetTm.getId(), RequestBuilder.exportTranslationMemory(sourceLanguageId, targetLanguageId, format));
         downloadTm(client, targetTm.getId(), status.getIdentifier());
 
-        out.println(String.format(RESOURCE_BUNDLE.getString("message.tm.download_success"), to));
+        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.tm.download_success"), to)));
     }
 
     private TranslationMemory getTranslationMemory(ClientTm client) {
