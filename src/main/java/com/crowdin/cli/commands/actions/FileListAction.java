@@ -16,7 +16,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 class FileListAction implements NewAction<ProjectProperties, ProjectClient> {
 
@@ -80,12 +79,12 @@ class FileListAction implements NewAction<ProjectProperties, ProjectClient> {
                 if (isVerbose) {
                     if (entry.getValue() instanceof File) {
                         File file = (File) entry.getValue();
-                        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.file.list_verbose_full"), entry.getValue().getId(), entry.getKey(), entry.getValue().getType(), file.getParserVersion(), file.getRevisionId())));
+                        out.println(String.format(RESOURCE_BUNDLE.getString("message.file.list_verbose_full"), entry.getValue().getId(), entry.getKey(), entry.getValue().getType(), file.getParserVersion(), file.getRevisionId()));
                     } else {
-                        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.file.list_verbose"), entry.getValue().getId(), entry.getKey(), entry.getValue().getType())));
+                        out.println(String.format(RESOURCE_BUNDLE.getString("message.file.list_verbose"), entry.getValue().getId(), entry.getKey(), entry.getValue().getType()));
                     }
                 } else {
-                    out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.file.list"), entry.getValue().getId(), entry.getKey())));
+                    out.println(String.format(RESOURCE_BUNDLE.getString("message.file.list"), entry.getValue().getId(), entry.getKey()));
                 }
             }
         }

@@ -168,6 +168,7 @@ After:
 ### Lint
 
 * command was moved under `config` namespace
+* `lint` command output update
 
 Before:
 
