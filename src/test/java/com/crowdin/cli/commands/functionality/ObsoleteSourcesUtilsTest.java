@@ -5,6 +5,7 @@ import com.crowdin.client.sourcefiles.model.File;
 
 import org.junit.jupiter.api.Test;
 
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,10 +24,10 @@ public class ObsoleteSourcesUtilsTest {
             }
         };
         boolean preserveHierarchy = true;
-        List<String> filesToUpload = List.of("test/en/test.md", "test/en/help.md");
+        List<String> filesToUpload = Arrays.asList("test/en/test.md", "test/en/help.md");
         String pattern = "/test/en/*.md";
         String exportPattern = "/test/%two_letters_code%/%original_path%/%original_file_name%";
-        List<String> ignorePattern = List.of("**/.*");
+        List<String> ignorePattern = Arrays.asList("**/.*");
 
         Map<String, File> obsoleteFiles = ObsoleteSourcesUtils.findObsoleteProjectFiles(projectFiles, preserveHierarchy,
                 filesToUpload, pattern, exportPattern, ignorePattern);
