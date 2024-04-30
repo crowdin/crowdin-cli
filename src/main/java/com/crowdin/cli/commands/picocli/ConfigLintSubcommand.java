@@ -10,6 +10,9 @@ import com.crowdin.cli.properties.NoParams;
 import com.crowdin.cli.properties.PropertiesBuilders;
 import picocli.CommandLine;
 
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+
 @CommandLine.Command(
     name = CommandNames.LINT)
 class ConfigLintSubcommand extends GenericActCommand<AllProperties, NoClient> {
@@ -19,7 +22,7 @@ class ConfigLintSubcommand extends GenericActCommand<AllProperties, NoClient> {
 
     protected NewAction<AllProperties, NoClient> getAction(Actions actions) {
         return (out, pb, client) ->
-            out.println(CommandLine.Help.Ansi.AUTO.string(RESOURCE_BUNDLE.getString("message.configuration_ok")));
+            out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.configuration_ok")));
     }
 
     @Override

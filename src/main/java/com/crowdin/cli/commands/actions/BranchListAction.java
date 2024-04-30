@@ -8,7 +8,6 @@ import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 class BranchListAction implements NewAction<ProjectProperties, ProjectClient> {
 
@@ -30,7 +29,7 @@ class BranchListAction implements NewAction<ProjectProperties, ProjectClient> {
                 .forEach((key, value) -> {
                     String name = value.getName().replaceAll("^[/\\\\]+", "");
                     if (!plainView) {
-                        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch.list"), key, name)));
+                        out.println(String.format(RESOURCE_BUNDLE.getString("message.branch.list"), key, name));
                     } else {
                         out.println(name);
                     }

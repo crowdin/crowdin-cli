@@ -8,7 +8,7 @@ import picocli.CommandLine;
 
 @CommandLine.Command(
     sortOptions = false,
-    name = CommandNames.LABEL_DELETE
+    name = CommandNames.DELETE
 )
 public class LabelDeleteSubcommand extends ActCommandLabel {
 

@@ -8,7 +8,7 @@ import picocli.CommandLine;
 
 @CommandLine.Command(
     sortOptions = false,
-    name = CommandNames.BRANCH_DELETE
+    name = CommandNames.DELETE
 )
 class BranchDeleteSubcommand extends ActCommandProject {
 

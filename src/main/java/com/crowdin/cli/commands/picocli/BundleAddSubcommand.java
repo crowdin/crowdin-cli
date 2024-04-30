@@ -11,7 +11,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
-        name = CommandNames.BUNDLE_ADD
+        name = CommandNames.ADD
 )
 class BundleAddSubcommand extends ActCommandBundle {
 

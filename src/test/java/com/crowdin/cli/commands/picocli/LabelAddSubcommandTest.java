@@ -10,13 +10,13 @@ class LabelAddSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testLabelAdd() {
-        this.execute(CommandNames.LABEL, CommandNames.LABEL_ADD, "label");
+        this.execute(CommandNames.LABEL, CommandNames.ADD, "label");
         verify(actionsMock).labelAdd(any(), anyBoolean());
         this.check(true);
     }
 
     @Test
     public void testLabelAddInvalidOptions() {
-        this.executeInvalidParams(CommandNames.LABEL, CommandNames.LABEL_ADD);
+        this.executeInvalidParams(CommandNames.LABEL, CommandNames.ADD);
     }
 }

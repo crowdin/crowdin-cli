@@ -27,7 +27,7 @@ class ScreenshotListAction implements NewAction<ProjectProperties, ClientScreens
         for (Screenshot screenshot : screenshots) {
             if (!plainView) {
                 out.println(String.format(RESOURCE_BUNDLE.getString("message.screenshot.list"),
-                    screenshot.getId(), screenshot.getName(), screenshot.getTagsCount()));
+                    screenshot.getId(), screenshot.getTagsCount(), screenshot.getName()));
             } else {
                 out.println(screenshot.getId() + " " + screenshot.getName());
             }

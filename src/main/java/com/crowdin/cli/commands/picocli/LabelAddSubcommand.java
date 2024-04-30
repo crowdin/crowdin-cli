@@ -8,7 +8,7 @@ import picocli.CommandLine;
 
 @CommandLine.Command(
     sortOptions = false,
-    name = CommandNames.LABEL_ADD
+    name = CommandNames.ADD
 )
 public class LabelAddSubcommand extends ActCommandLabel {
 

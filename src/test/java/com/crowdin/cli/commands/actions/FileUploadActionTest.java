@@ -14,10 +14,7 @@ import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.projectsgroups.model.Type;
-import com.crowdin.client.sourcefiles.model.AddFileRequest;
-import com.crowdin.client.sourcefiles.model.Branch;
-import com.crowdin.client.sourcefiles.model.Directory;
-import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
+import com.crowdin.client.sourcefiles.model.*;
 import com.crowdin.client.sourcestrings.model.UploadStringsProgress;
 import com.crowdin.client.sourcestrings.model.UploadStringsRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -60,6 +57,7 @@ class FileUploadActionTest {
             .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
+        when(client.addSource(any())).thenReturn(new FileInfo());
 
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, null, "po", 3, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
@@ -193,6 +191,7 @@ class FileUploadActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
         when(client.addBranch(any())).thenReturn(branch);
+        when(client.addSource(any())).thenReturn(new FileInfo());
 
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, "main", false, null, null, null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
@@ -230,6 +229,7 @@ class FileUploadActionTest {
             .thenReturn(1L);
         when(client.listLabels()).thenReturn(Collections.emptyList());
         when(client.addLabel(any())).thenReturn(label);
+        when(client.addSource(any())).thenReturn(new FileInfo());
 
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, Collections.singletonList("main_label"), null, null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
@@ -263,6 +263,7 @@ class FileUploadActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
         when(client.listLabels()).thenReturn(Collections.emptyList());
+        when(client.addSource(any())).thenReturn(new FileInfo());
 
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, null, null, null, false, false, Arrays.asList("ua", "fr"), false);
         action.act(Outputter.getDefault(), pb, client);
@@ -298,6 +299,7 @@ class FileUploadActionTest {
             .thenReturn(directory);
         when(client.uploadStorage(eq("save.po"), any()))
             .thenReturn(1L);
+        when(client.addSource(any())).thenReturn(new FileInfo());
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, "path/to/save.po", null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
 

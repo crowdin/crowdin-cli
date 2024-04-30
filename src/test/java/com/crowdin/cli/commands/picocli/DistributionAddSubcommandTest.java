@@ -21,7 +21,7 @@ public class DistributionAddSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testDistributionAddInvalidOptions() {
-        this.executeInvalidParams(CommandNames.DISTRIBUTION, CommandNames.DISTRIBUTION_ADD, "Test Distribution1", "--file", null);
+        this.executeInvalidParams(CommandNames.DISTRIBUTION, CommandNames.ADD, "Test Distribution1", "--file", null);
     }
 
     @ParameterizedTest

@@ -10,20 +10,18 @@ public final class CommandNames {
     public static final String INIT = "init";
 
     public static final String LIST = "list";
+    public static final String ADD = "add";
+    public static final String DELETE = "delete";
 
     public static final String STATUS = "status";
     public static final String STATUS_TRANSLATION = "translation";
     public static final String STATUS_PROOFREADING = "proofreading";
 
     public static final String STRING = "string";
-    public static final String STRING_ADD = "add";
-    public static final String STRING_DELETE = "delete";
     public static final String STRING_EDIT = "edit";
     public static final String STRING_COMMENT = "comment";
 
     public static final String BRANCH = "branch";
-    public static final String BRANCH_ADD = "add";
-    public static final String BRANCH_DELETE = "delete";
 
     public static final String GLOSSARY = "glossary";
     public static final String GLOSSARY_UPLOAD = "upload";
@@ -41,29 +39,22 @@ public final class CommandNames {
     public static final String PRE_TRANSLATE = "pre-translate";
 
     public static final String TASK = "task";
-    public static final String TASK_ADD = "add";
     public static final String BUNDLE = "bundle";
-    public static final String BUNDLE_ADD = "add";
 
     public static final String COMMENT = "comment";
     public static final String COMMENT_RESOLVE = "resolve";
 
     public static final String DISTRIBUTION = "distribution";
-    public static final String DISTRIBUTION_ADD = "add";
     public static final String DISTRIBUTION_RELEASE = "release";
 
     public static final String SCREENSHOT = "screenshot";
     public static final String SCREENSHOT_UPLOAD = "upload";
-    public static final String SCREENSHOT_DELETE = "delete";
 
     public static final String LABEL = "label";
-    public static final String LABEL_ADD = "add";
-    public static final String LABEL_DELETE = "delete";
 
     public static final String FILE = "file";
     public static final String FILE_UPLOAD = "upload";
     public static final String FILE_DOWNLOAD = "download";
-    public static final String FILE_DELETE = "delete";
     public static final String LANGUAGE = "language";
 
     public static final String CONFIG = "config";

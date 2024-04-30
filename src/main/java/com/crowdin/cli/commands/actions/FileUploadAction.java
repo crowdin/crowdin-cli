@@ -4,7 +4,6 @@ import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.*;
-import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
@@ -153,7 +152,12 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             branch.ifPresent(b -> request.setBranchId(b.getId()));
             excludedLanguageNames.ifPresent(request::setExcludedTargetLanguages);
             try {
-                client.addSource(request);
+                FileInfo fileInfo = client.addSource(request);
+                if (!plainView) {
+                    out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.file.list"), fileInfo.getId(), fileFullPath)));
+                } else {
+                    out.println(fileFullPath);
+                }
             } catch (ExistsResponseException e) {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_already_exists"), fileFullPath));
             } catch (Exception e) {
@@ -193,11 +197,11 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
                     ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.uploading_strings_percents"), 100));
                     return uploadStrings;
                 });
-        }
-        if (!plainView) {
-            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
-        } else {
-            out.println(fileFullPath);
+            if (!plainView) {
+                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
+            } else {
+                out.println(fileFullPath);
+            }
         }
     }
 

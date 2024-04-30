@@ -61,6 +61,7 @@ class CommentListAction implements NewAction<ProjectProperties, ClientComment> {
                             RESOURCE_BUNDLE.getString("message.comment.list.verbose"),
                             comment.getId(),
                             commentText,
+                            comment.getLanguageId(),
                             Objects.toString(comment.getIssueType(), StringUtils.EMPTY),
                             Objects.toString(comment.getIssueStatus(), StringUtils.EMPTY).toLowerCase()
                     )
