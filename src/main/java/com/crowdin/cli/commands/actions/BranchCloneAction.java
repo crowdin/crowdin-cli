@@ -46,7 +46,7 @@ class BranchCloneAction implements NewAction<ProjectProperties, ProjectClient> {
         request.setName(target);
         BranchCloneStatus status = cloneBranch(out, client, branchId, request);
         ClonedBranch clonedBranch = client.getClonedBranch(branchId, status.getIdentifier());
-        out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch.clone"), clonedBranch.getId(), target)));
+        out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch.list"), clonedBranch.getId(), target)));
     }
 
     private BranchCloneStatus cloneBranch(Outputter out, ProjectClient client, Long branchId, CloneBranchRequest request) {
@@ -61,7 +61,7 @@ class BranchCloneAction implements NewAction<ProjectProperties, ProjectClient> {
                 try {
                     status = client.cloneBranch(branchId, request);
                 } catch (ExistsResponseException e) {
-                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.branch.clone.exists"), target));
+                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.branch_already_exists"), target));
                 }
 
                 while (!status.getStatus().equalsIgnoreCase("finished")) {
@@ -72,7 +72,7 @@ class BranchCloneAction implements NewAction<ProjectProperties, ProjectClient> {
                     status = client.checkCloneBranchStatus(branchId, status.getIdentifier());
 
                     if (status.getStatus().equalsIgnoreCase("failed")) {
-                        throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.clone_failed"));
+                        throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch.clone"));
                     }
                 }
                 ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.cloning_branch_percents"), 100));
