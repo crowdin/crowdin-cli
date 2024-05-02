@@ -8,6 +8,8 @@ interface PropertiesConfigurator<P extends Properties> {
 
     void populateWithDefaultValues(P props);
 
+    void populateWithEnvValues(P props);
+
     PropertiesBuilder.Messages checkProperties(P props, CheckType checkType);
 
     enum CheckType {

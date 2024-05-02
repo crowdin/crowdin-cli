@@ -81,6 +81,68 @@ Here are the common config options for all CLI commands:
 
 Some commands have their own config options.
 
+## Environment Variables
+
+Configuration can be specified using Environment Variables. They have the lowest priority and are used in case any of the parameters are missed.
+
+Here are Environment Variables that  can be used:
+
+| <div style={{width:170 + 'px'}}>Option</div> | Description                                                                                                                                                             |
+|----------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| CROWDIN_PERSONAL_TOKEN                       | Personal Access Token required for authentication                                                                                                                       |
+| CROWDIN_BASE_URL                             | Base URL of Crowdin server for API requests execution (`https://api.crowdin.com` for crowdin.com, `https://{organization-name}.api.crowdin.com` for Crowdin Enterprise) |
+| CROWDIN_BASE_PATH                            | Path to your project directory on a local machine (default: `.`)                                                                                                        |
+| CROWDIN_PROJECT_ID                           | Numerical ID of the Crowdin project                                                                                                                                     |
+
+
+You can also map the Environment Variable in the configuration file, for example:
+
+```ini
+"project_id_env": "CROWDIN_PROJECT_ID"
+"api_token_env": "CROWDIN_PERSONAL_TOKEN"
+"base_path_env": "CROWDIN_BASE_PATH"
+"base_url_env": "CROWDIN_BASE_URL"
+```
+
+If mixed, api_token and project_id are prioritized:
+
+```ini
+"project_id_env": "CROWDIN_PROJECT_ID"      # Low priority
+"api_token_env": "CROWDIN_PERSONAL_TOKEN"   # Low priority
+"base_path_env": "CROWDIN_BASE_PATH"        # Low priority
+"base_url_env": "CROWDIN_BASE_PATH"         # Low priority
+"project_id": "projectId"                   # High priority
+"api_token": "personal-access-token"        # High priority
+"base_path": "/project-base-path"           # High priority
+"base_url": "https://api.crowdin.com"       # High priority
+```
+
+## Bash completion script
+
+The bash completion script provided by Crowdin CLI is a utility that provides auto-completion suggestions for Crowdin CLI commands and options within the bash terminal. This script can significantly improve the productivity of users who frequently work with Crowdin CLI by reducing the need to manually type commands and options.
+
+In order to use the Crowdin CLI bash completion script, the user needs to run it in their bash shell. This can be done by running the following command in a terminal:
+
+```bash
+source crowdin_completion
+```
+
+Once the script is sourced, the user can start typing a Crowdin CLI command, and then hit the Tab key to get a list of possible completions. The list will include all valid options and arguments for the command, based on the user's input.
+
+Here's an example how to download the bash completion script from the latest release of a Crowdin CLI GitHub repository:
+
+```bash
+wget https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin_completion
+```
+
+Also, you can find the CLI completion script in the [Standalone version zip archive](/installation#standalone-version).
+
+:::info
+
+For [DEB](/installation#debian), [RPM](/installation#rpm), and [ArchLinux](/installation#arch-linux) packages of Crowdin CLI, the bash completion script will be automatically installed along with the main package during the installation process.
+
+:::
+
 ## Requirements
 
 Check that you have Java 8 or newer installed. Type `java -version` command in the terminal (Command Prompt on Windows) to check Java version. For example, java version "1.8.0_212" means that you have Java 8 Update 212 installed.

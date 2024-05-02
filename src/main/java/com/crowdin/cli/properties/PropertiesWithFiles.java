@@ -62,6 +62,11 @@ public class PropertiesWithFiles extends ProjectProperties {
         }
 
         @Override
+        public void populateWithEnvValues(PropertiesWithFiles props) {
+//          do nothing
+        }
+
+        @Override
         public PropertiesBuilder.Messages checkProperties(PropertiesWithFiles props, CheckType checkType) {
             PropertiesBuilder.Messages messages = new PropertiesBuilder.Messages();
             if (props.getFiles() == null || props.getFiles().isEmpty()) {

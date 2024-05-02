@@ -66,6 +66,14 @@ public class BasePropertiesBuilder extends PropertiesBuilder<BaseProperties, Bas
     }
 
     @Override
+    protected void populateWithEnvValues(BaseProperties props) {
+        if (props == null) {
+            return;
+        }
+        BaseProperties.CONFIGURATOR.populateWithEnvValues(props);
+    }
+
+    @Override
     protected void populateWithDefaultValues(BaseProperties props) {
         if (props == null) {
             return;

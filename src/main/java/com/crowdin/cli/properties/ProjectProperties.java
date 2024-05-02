@@ -9,6 +9,7 @@ import java.util.Map;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.properties.PropertiesBuilder.PROJECT_ID;
 import static com.crowdin.cli.properties.PropertiesBuilder.PROJECT_ID_ENV;
+import static com.crowdin.cli.properties.PropertiesBuilder.CROWDIN_PROJECT_ID;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -32,6 +33,14 @@ public class ProjectProperties extends BaseProperties {
         @Override
         public void populateWithDefaultValues(ProjectProperties props) {
 //            do nothing
+        }
+
+        @Override
+        public void populateWithEnvValues(ProjectProperties props) {
+            if (props == null) {
+                return;
+            }
+            PropertiesBuilder.setEnvIfExists(props::setProjectId, CROWDIN_PROJECT_ID);
         }
 
         @Override
