@@ -1,5 +1,8 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.client.branches.model.BranchCloneStatus;
+import com.crowdin.client.branches.model.CloneBranchRequest;
+import com.crowdin.client.branches.model.ClonedBranch;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
@@ -142,6 +145,31 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     public Branch addBranch(AddBranchRequest request) {
         return executeRequest(() -> this.client.getSourceFilesApi()
             .addBranch(this.projectId, request)
+            .getData());
+    }
+
+    @Override
+    public BranchCloneStatus cloneBranch(Long branchId, CloneBranchRequest request) throws ResponseException {
+        Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
+            put((code, message) -> StringUtils.containsAny(message, "Name must be unique"), new ExistsResponseException());
+        }};
+        return executeRequest(errorHandlers,
+            () -> this.client.getBranchesApi()
+                .cloneBranch(projectId, branchId, request)
+                .getData());
+    }
+
+    @Override
+    public BranchCloneStatus checkCloneBranchStatus(Long branchId, String cloneId) {
+        return executeRequest(() -> this.client.getBranchesApi()
+            .checkCloneBranchStatus(projectId, branchId, cloneId)
+            .getData());
+    }
+
+    @Override
+    public ClonedBranch getClonedBranch(Long branchId, String cloneId) {
+        return executeRequest(() -> this.client.getBranchesApi()
+            .getClonedBranch(this.projectId, branchId, cloneId)
             .getData());
     }
 

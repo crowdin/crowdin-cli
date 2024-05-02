@@ -181,4 +181,9 @@ public class CliActionsTest {
     void testFileDelete() {
         assertNotNull(actions.fileDelete(null, null));
     }
+
+    @Test
+    void testBranchClone() {
+        assertNotNull(actions.branchClone(null, null, false));
+    }
 }

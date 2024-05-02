@@ -1,5 +1,8 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.client.branches.model.BranchCloneStatus;
+import com.crowdin.client.branches.model.CloneBranchRequest;
+import com.crowdin.client.branches.model.ClonedBranch;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
@@ -31,6 +34,12 @@ public interface ProjectClient extends Client {
     CrowdinProjectInfo downloadProjectInfo();
 
     Branch addBranch(AddBranchRequest request);
+
+    BranchCloneStatus cloneBranch(Long branchId, CloneBranchRequest request) throws ResponseException;
+
+    BranchCloneStatus checkCloneBranchStatus(Long branchId, String cloneId);
+
+    ClonedBranch getClonedBranch(Long branchId, String cloneId);
 
     void deleteBranch(Long branchId);
 
