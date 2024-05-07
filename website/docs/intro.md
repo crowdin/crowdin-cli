@@ -81,38 +81,6 @@ Here are the common config options for all CLI commands:
 
 Some commands have their own config options.
 
-## Bash completion script
-
-The bash completion script provided by Crowdin CLI is a utility that provides auto-completion suggestions for Crowdin CLI commands and options within the bash terminal. This script can significantly improve the productivity of users who frequently work with Crowdin CLI by reducing the need to manually type commands and options.
-
-In order to use the Crowdin CLI bash completion script, the user needs to run it in their bash shell. This can be done by running the following command in a terminal:
-
-```bash
-source crowdin_completion
-```
-
-Once the script is sourced, the user can start typing a Crowdin CLI command, and then hit the Tab key to get a list of possible completions. The list will include all valid options and arguments for the command, based on the user's input.
-
-Here's an example how to download the bash completion script from the latest release of a Crowdin CLI GitHub repository:
-
-```bash
-wget https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin_completion
-```
-
-Also, you can find the CLI completion script in the [Standalone version zip archive](/installation#standalone-version).
-
-:::info
-
-For [DEB](/installation#debian), [RPM](/installation#rpm), and [ArchLinux](/installation#arch-linux) packages of Crowdin CLI, the bash completion script will be automatically installed along with the main package during the installation process.
-
-:::
-
-However, Crowdin CLI also comes with built-in subcommand to generate completion script for you:
-
-```bash
-crowdin completion
-```
-
 ## Requirements
 
 Check that you have Java 8 or newer installed. Type `java -version` command in the terminal (Command Prompt on Windows) to check Java version. For example, java version "1.8.0_212" means that you have Java 8 Update 212 installed.
@@ -123,4 +91,6 @@ If you don’t have Java installed, download it from [Oracle’s website](https:
 
 - [Installation](/installation)
 - [Configuration](/configuration)
+- [Autocompletion](/autocompletion)
+- [Exit Codes](/exit-codes)
 - [Commands](/commands/crowdin)
