@@ -15,7 +15,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ObsoleteSourcesUtilsTest {
 
     @Test
-    public void testCreatePath_PathExists() {
+    public void testFindObsoleteProjectFiles() {
         Map<String, File> projectFiles = new HashMap<String, File>() {
             {
                 put(Utils.normalizePath("test/en/test.md"), new File());
@@ -33,6 +33,7 @@ public class ObsoleteSourcesUtilsTest {
                 filesToUpload, pattern, exportPattern, ignorePattern);
 
         assertEquals(1, obsoleteFiles.size());
+        assertEquals(true, obsoleteFiles.containsKey(Utils.normalizePath("test/en/support.md")));
     }
 
 }

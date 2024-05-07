@@ -22,9 +22,17 @@ public class ObsoleteSourcesUtils {
         Predicate<String> patternCheck =
             ProjectFilesUtils.isProjectFilePathSatisfiesPatterns(pattern, ignorePattern, preserveHierarchy);
         return projectFiles.entrySet().stream()
-            .filter(entry -> patternCheck.test(entry.getKey()))
+            .filter(entry -> patternCheck.test(entry.getKey()) && checkExportPattern(exportPattern, entry.getValue()))
             .filter(entry -> isFileDontHaveUpdate(filesToUpload, entry.getKey(), preserveHierarchy))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+    }
+
+    private static boolean checkExportPattern(String exportPattern, File file) {
+        String fileExportPattern = ProjectFilesUtils.getExportPattern(file.getExportOptions());
+        if (fileExportPattern == null) {
+            return true;
+        }
+        return exportPattern.equals(Utils.normalizePath(fileExportPattern));
     }
 
     public static SortedMap<String, Long> findObsoleteProjectDirectories(
