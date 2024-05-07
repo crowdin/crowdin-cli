@@ -107,6 +107,12 @@ For [DEB](/installation#debian), [RPM](/installation#rpm), and [ArchLinux](/inst
 
 :::
 
+However, Crowdin CLI also comes with built-in subcommand to generate completion script for you:
+
+```bash
+crowdin completion
+```
+
 ## Requirements
 
 Check that you have Java 8 or newer installed. Type `java -version` command in the terminal (Command Prompt on Windows) to check Java version. For example, java version "1.8.0_212" means that you have Java 8 Update 212 installed.
