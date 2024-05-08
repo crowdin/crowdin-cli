@@ -16,7 +16,7 @@ public class ObsoleteSourcesUtilsTest {
 
     @Test
     public void testFindObsoleteProjectFiles() {
-        Map<String, File> projectFiles = new HashMap<String, File>() {
+        Map<String, File> projectFilesFromApi = new HashMap<String, File>() {
             {
                 put(Utils.normalizePath("test/en/test.md"), new File());
                 put(Utils.normalizePath("test/en/support.md"), new File());
@@ -26,12 +26,13 @@ public class ObsoleteSourcesUtilsTest {
         boolean preserveHierarchy = true;
         List<String> filesToUpload = Arrays.asList(Utils.normalizePath("test/en/test.md"),
                 Utils.normalizePath("test/en/help.md"));
-        String pattern = "/test/en/*.md";
-        String exportPattern = "/test/%two_letters_code%/%original_path%/%original_file_name%";
-        List<String> ignorePattern = Arrays.asList("**/.*");
+        String sourcePattern = Utils.normalizePath("/test/en/*.md");
+        String exportPattern = Utils.normalizePath("/test/%two_letters_code%/%original_path%/%original_file_name%");
+        List<String> ignorePatterns = Arrays.asList(Utils.normalizePath("**/.*"));
 
-        Map<String, File> obsoleteFiles = ObsoleteSourcesUtils.findObsoleteProjectFiles(projectFiles, preserveHierarchy,
-                filesToUpload, pattern, exportPattern, ignorePattern);
+        Map<String, File> obsoleteFiles = ObsoleteSourcesUtils.findObsoleteProjectFiles(projectFilesFromApi,
+                preserveHierarchy,
+                filesToUpload, sourcePattern, exportPattern, ignorePatterns);
 
         assertEquals(1, obsoleteFiles.size());
         assertEquals(true, obsoleteFiles.containsKey(Utils.normalizePath("test/en/support.md")));

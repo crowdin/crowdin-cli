@@ -17,13 +17,14 @@ public class ObsoleteSourcesUtils {
 
     public static Map<String, File> findObsoleteProjectFiles(
         @NonNull Map<String, File> projectFiles, boolean preserveHierarchy,
-        @NonNull List<String> filesToUpload, @NonNull String pattern, @NonNull String exportPattern, List<String> ignorePattern
+        @NonNull List<String> filesToUpload, @NonNull String sourcePattern, @NonNull String exportPattern, List<String> ignorePatterns
     ) {
         Predicate<String> patternCheck =
-            ProjectFilesUtils.isProjectFilePathSatisfiesPatterns(pattern, ignorePattern, preserveHierarchy);
+            ProjectFilesUtils.isProjectFilePathSatisfiesPatterns(sourcePattern, ignorePatterns, preserveHierarchy);
         return projectFiles.entrySet().stream()
-            .filter(entry -> patternCheck.test(entry.getKey()) && checkExportPattern(exportPattern, entry.getValue()))
-            .filter(entry -> isFileDontHaveUpdate(filesToUpload, entry.getKey(), preserveHierarchy))
+            .filter(entry -> patternCheck.test(entry.getKey()))
+            .filter(entry -> checkExportPattern(exportPattern, entry.getValue()))
+            .filter(entry -> isFileNotInList(filesToUpload, entry.getKey(), preserveHierarchy))
             .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
@@ -74,7 +75,7 @@ public class ObsoleteSourcesUtils {
         return obsoleteDirs;
     }
 
-    private static boolean isFileDontHaveUpdate(List<String> filesToUpload, String filePath, boolean preserveHierarchy) {
+    private static boolean isFileNotInList(List<String> filesToUpload, String filePath, boolean preserveHierarchy) {
         String filePathRegex = "^" + (preserveHierarchy ? "" : Utils.PRESERVE_HIERARCHY_REGEX_PART) + Utils.regexPath(filePath) + "$";
         return filesToUpload.stream()
             .noneMatch(Pattern.compile(filePathRegex).asPredicate());
