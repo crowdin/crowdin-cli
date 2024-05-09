@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.19.3](https://github.com/crowdin/crowdin-cli/compare/3.19.2...3.19.3) (2024-05-09)
+
+
+### Bug Fixes
+
+* correct detection of obsolete files ([#776](https://github.com/crowdin/crowdin-cli/issues/776)) ([94fb3bf](https://github.com/crowdin/crowdin-cli/commit/94fb3bf279455cdf8203b8bc16b1e081b2b63495))
+
 ## [3.19.2](https://github.com/crowdin/crowdin-cli/compare/3.19.1...3.19.2) (2024-04-02)
 
 
