@@ -84,6 +84,13 @@ const config = {
           }
         ],
       },
+      announcementBar: {
+        id: "cli_v4",
+        content:
+          '🎉 <a target="_blank" rel="noopener noreferrer" href="/crowdin-cli/releases/migration-4">Crowdin CLI v4</a> is out! 🥳',
+        backgroundColor: "#029e87",
+        textColor: "#ffffff",
+      },
       footer: {
         style: 'dark',
         links: [
