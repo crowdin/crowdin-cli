@@ -5,6 +5,7 @@ import com.crowdin.cli.client.ExistsResponseException;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
@@ -34,12 +35,12 @@ class BranchCloneAction implements NewAction<ProjectProperties, ProjectClient> {
 
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
         if (!isStringsBasedProject) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.string_based_only"));
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.string_based_only"));
         }
 
         Optional<Branch> branch = project.findBranchByName(source);
         if (!branch.isPresent()) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.branch_not_exists"), source));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.branch_not_exists"), source));
         }
         Long branchId = branch.get().getId();
         CloneBranchRequest request = new CloneBranchRequest();

@@ -7,6 +7,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -64,7 +65,7 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
                     out.println(file.getName());
                 }
             } catch (Exception e) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.screenshot.not_updated"), request), e);
+                throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.screenshot.not_updated"), request));
             }
             return;
         }
@@ -118,7 +119,7 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
                 out.println(String.format(RESOURCE_BUNDLE.getString("message.screenshot.not_auto-tagged"), file.getName()));
             }
         } catch (Exception e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.screenshot.not_uploaded"), request), e);
+            throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.screenshot.not_uploaded"), request));
         }
     }
 
@@ -127,7 +128,7 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
         try (InputStream fileStream = Files.newInputStream(fileToUpload.toPath())) {
             storageId = this.projectClient.uploadStorage(fileToUpload.getName(), fileStream);
         } catch (Exception e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), fileToUpload.getName()), e);
+            throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), fileToUpload.getName()));
         }
         return storageId;
     }

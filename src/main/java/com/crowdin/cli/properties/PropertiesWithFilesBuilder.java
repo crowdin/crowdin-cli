@@ -2,6 +2,7 @@ package com.crowdin.cli.properties;
 
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
@@ -37,7 +38,7 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
     @Override
     protected void populateWithConfigFileParams(PropertiesWithFiles props, @NonNull Map<String, Object> configFileParams) {
         if (configFileParams.isEmpty()) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.empty_properties_file"));
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.empty_properties_file"));
         }
         BaseProperties.CONFIGURATOR.populateWithValues(props, configFileParams);
         ProjectProperties.CONFIGURATOR.populateWithValues(props, configFileParams);

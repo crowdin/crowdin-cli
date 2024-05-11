@@ -16,7 +16,6 @@ public class PicocliRunner {
     private static PicocliRunner INSTANCE;
 
     private CommandLine commandLine;
-    private RootCommand rootCommand;
 
     private PicocliRunner() {
         init();
@@ -52,13 +51,14 @@ public class PicocliRunner {
     }
 
     private void init() {
-        rootCommand = new RootCommand();
+        RootCommand rootCommand = new RootCommand();
         CommandLine.Help.ColorScheme colorScheme = buildColorScheme();
         CommandLine.IExecutionExceptionHandler executionExceptionHandler = buildExecutionExceptionHandler();
         this.commandLine = new CommandLine(rootCommand)
             .setExecutionExceptionHandler(executionExceptionHandler)
             .setColorScheme(colorScheme)
-            .setCaseInsensitiveEnumValuesAllowed(true);
+            .setCaseInsensitiveEnumValuesAllowed(true)
+            .setExitCodeExceptionMapper(ExitCodeExceptionMapper::getExitCode);
         HelpCommand.setOptions(commandLine, System.out, colorScheme);
     }
 
@@ -75,9 +75,7 @@ public class PicocliRunner {
         return (ex, cmd, pr) -> {
             boolean isDebug = pr.originalArgs().contains("--debug");
             OutputUtil.fancyErr(ex, cmd.getErr(), isDebug);
-            return cmd.getExitCodeExceptionMapper() != null
-                ? cmd.getExitCodeExceptionMapper().getExitCode(ex)
-                : cmd.getCommandSpec().exitCodeOnExecutionException();
+            return ExitCodeExceptionMapper.getExitCode(ex);
         };
     }
 

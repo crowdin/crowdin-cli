@@ -1,6 +1,7 @@
 package com.crowdin.cli.utils.console;
 
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import lombok.NonNull;
 
 import java.util.concurrent.Callable;
@@ -26,7 +27,7 @@ public class ConsoleSpinner {
             return result;
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
-            throw new RuntimeException(RESOURCE_BUNDLE.getString(errorMessageKey), e);
+            throw ExitCodeExceptionMapper.remap(e, RESOURCE_BUNDLE.getString(errorMessageKey));
         }
     }
 

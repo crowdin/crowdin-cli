@@ -9,6 +9,7 @@ import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.commands.functionality.TranslationsUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.PseudoLocalization;
@@ -87,7 +88,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
 
         if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
         }
 
         if (!project.isManagerAccess()) {
@@ -95,7 +96,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
                 return;
             } else {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+                throw new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
             }
         }
 

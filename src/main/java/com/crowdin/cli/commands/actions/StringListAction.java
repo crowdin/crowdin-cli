@@ -6,6 +6,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.BranchUtils;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -77,7 +78,7 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         String fullPath = nonNull(branchName) ? (BranchUtils.normalizeBranchName(branchName) + Utils.PATH_SEPARATOR + file) : file;
 
         if ((!StringUtils.isEmpty(file) || Objects.nonNull(directory)) && isStringsBasedProject) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
         }
 
         Long directoryId = null;
@@ -98,7 +99,7 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
             if (paths.containsKey(fullPath)) {
                 sourceStrings = client.listSourceString(paths.get(fullPath).getId(), branchId, labelIds, encodedFilter, encodedCroql, directoryId, scope);
             } else {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), fullPath));
+                throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), fullPath));
             }
         }
         if (sourceStrings.isEmpty()) {

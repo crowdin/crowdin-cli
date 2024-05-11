@@ -6,6 +6,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.BranchUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -46,17 +47,17 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
                 out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
                 return;
             } else {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+                throw new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
             }
         }
 
         if (!project.findLanguageById(languageId, true).isPresent()) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId));
         }
 
         if (!isStringsBasedProject) {
             if (Objects.isNull(dest))
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file.dest_required"), languageId));
+                throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.file.dest_required"), languageId));
             String sourcePath = Utils.toUnixPath(Utils.sepAtStart(dest));
             FileInfo sourceFileInfo = project.getFileInfos().stream()
                 .filter(fi -> Objects.equals(sourcePath, fi.getPath()))
@@ -70,8 +71,8 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
             try {
                 client.uploadTranslations(languageId, request);
             } catch (Exception e) {
-                throw new RuntimeException(String.format(
-                    RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()), e);
+                throw ExitCodeExceptionMapper.remap(e, String.format(
+                    RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()));
             }
         } else {
             UploadTranslationsStringsRequest request = new UploadTranslationsStringsRequest();
@@ -95,12 +96,12 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
         try (InputStream fileStream = Files.newInputStream(file.toPath())) {
             return client.uploadStorage(file.getName(), fileStream);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.local_file_not_found"), file.getAbsolutePath()));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.local_file_not_found"), file.getAbsolutePath()));
         } catch (EmptyFileException e){
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped"), file.getAbsolutePath()));
+            throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped"), file.getAbsolutePath()));
         } catch (Exception e) {
-            throw new RuntimeException(
-                String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), file.getAbsolutePath()), e);
+            throw ExitCodeExceptionMapper.remap(e,
+                String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), file.getAbsolutePath()));
         }
     }
 }

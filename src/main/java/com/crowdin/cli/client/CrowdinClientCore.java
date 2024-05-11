@@ -1,5 +1,6 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.client.core.http.exceptions.HttpBadRequestException;
 import com.crowdin.client.core.http.exceptions.HttpException;
 import com.crowdin.client.core.model.DownloadLink;
@@ -28,15 +29,17 @@ abstract class CrowdinClientCore {
     private static final Map<BiPredicate<String, String>, RuntimeException> standardErrorHandlers =
         new LinkedHashMap<BiPredicate<String, String>, RuntimeException>() {{
             put((code, message) -> code.equals("401"),
-                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.401")));
+                new ExitCodeExceptionMapper.AuthorizationException(RESOURCE_BUNDLE.getString("error.response.401")));
             put((code, message) -> code.equals("403") && message.contains("upgrade your subscription plan to upload more file formats"),
-                    new RuntimeException(RESOURCE_BUNDLE.getString("error.response.403_upgrade_subscription")));
+                    new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403_upgrade_subscription")));
             put((code, message) -> code.equals("403"),
-                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.403")));
+                new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403")));
             put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Project Not Found"),
-                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.404_project_not_found")));
+                new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_project_not_found")));
             put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Organization Not Found"),
-                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found")));
+                new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found")));
+            put((code, message) -> code.equals("429"),
+                    new ExitCodeExceptionMapper.RateLimitException(RESOURCE_BUNDLE.getString("error.response.429")));
             put((code, message) -> StringUtils.containsAny(message,
                 "PKIX path building failed",
                 "sun.security.provider.certpath.SunCertPathBuilderException",

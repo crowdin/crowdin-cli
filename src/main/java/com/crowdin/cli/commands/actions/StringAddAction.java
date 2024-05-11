@@ -7,6 +7,7 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.BranchUtils;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.labels.model.Label;
@@ -55,11 +56,11 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
 
         if (isStringsBasedProject) {
             if (files != null && !files.isEmpty()) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
+                throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
             }
             Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, false);
             if (Objects.isNull(branch)) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
+                throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
             }
             SourceString ss;
             if (isPluralString) {
@@ -80,13 +81,13 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
         }
 
         if (files == null || files.isEmpty()) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.file_required"));
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.file_required"));
         }
 
         Optional<Branch> branch = Optional.ofNullable(branchName).flatMap(project::findBranchByName);
 
         if (!branch.isPresent() && branchName != null) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.branch_does_not_exist"), branchName));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("message.branch_does_not_exist"), branchName));
         }
 
         List<FileInfo> fileInfos = project
@@ -103,7 +104,7 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
                     out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
                     continue;
                 } else {
-                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
+                    throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
                 }
             }
             Long fileId = paths.get(file).getId();

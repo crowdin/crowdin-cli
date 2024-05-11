@@ -7,6 +7,7 @@ import com.crowdin.cli.client.WrongLanguageException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.*;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
@@ -70,7 +71,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                 out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
                 return;
             } else {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+                throw new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
             }
         }
 
@@ -160,10 +161,10 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                             }
                         } catch (Exception e) {
                             containsErrors.set(true);
-                            throw new RuntimeException(String.format(
+                            throw ExitCodeExceptionMapper.remap(e, String.format(
                                 RESOURCE_BUNDLE.getString("error.upload_translation"),
                                 StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
-                            ), e);
+                            ));
                         }
                         if (!plainView) {
                             out.println(OK.withIcon(String.format(
@@ -210,10 +211,10 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                             }
                         } catch (Exception e) {
                             containsErrors.set(true);
-                            throw new RuntimeException(String.format(
+                            throw ExitCodeExceptionMapper.remap(e, String.format(
                                 RESOURCE_BUNDLE.getString("error.upload_translation"),
                                 StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
-                            ), e);
+                            ));
                         }
                         if (!plainView) {
                             out.println(OK.withIcon(String.format(
@@ -239,10 +240,10 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
             return storageId;
         } catch (Exception e) {
             containsErrors.set(true);
-            throw new RuntimeException(String.format(
+            throw ExitCodeExceptionMapper.remap(e, String.format(
                 RESOURCE_BUNDLE.getString("error.upload_translation_to_storage"),
                 StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
-            ), e);
+            ));
         }
     }
 

@@ -4,6 +4,7 @@ import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.*;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
@@ -56,7 +57,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
                 out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
                 return;
             } else {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+                throw new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
             }
         }
 
@@ -114,7 +115,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
                         out.println(RESOURCE_BUNDLE.getString("message.file_being_updated"));
                     }
                 } catch (Exception e) {
-                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
+                    throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath));
                 }
                 return;
             }
@@ -124,7 +125,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         if (StringUtils.isNotEmpty(branchName)) {
             branch = Optional.ofNullable(BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView));
         } else if (isStringsBasedProject) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
         }
 
         Long storageId = getStorageId(client, fileDestName);
@@ -161,7 +162,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             } catch (ExistsResponseException e) {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_already_exists"), fileFullPath));
             } catch (Exception e) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
+                throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath));
             }
 
         }
@@ -241,7 +242,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         try {
             directoryId = Optional.ofNullable(ProjectUtils.createPath(out, client, directoryPaths, filePath, branch, this.plainView));
         } catch (Exception e) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.creating_directories"), e);
+            throw ExitCodeExceptionMapper.remap(e, RESOURCE_BUNDLE.getString("error.creating_directories"));
         }
         return directoryId;
     }
@@ -250,12 +251,12 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         try (InputStream fileStream = Files.newInputStream(file.toPath())) {
             return client.uploadStorage(fileName, fileStream);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.local_file_not_found"), file.getAbsolutePath()));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.local_file_not_found"), file.getAbsolutePath()));
         } catch (EmptyFileException e){
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped"), file.getAbsolutePath()));
         } catch (Exception e) {
-            throw new RuntimeException(
-                String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), file.getAbsolutePath()), e);
+            throw ExitCodeExceptionMapper.remap(e,
+                String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), file.getAbsolutePath()));
         }
     }
 }

@@ -9,6 +9,7 @@ import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.commands.functionality.TranslationsUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
@@ -97,7 +98,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                 this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
 
         if (Objects.equals(project.getType(), Type.STRINGS_BASED)) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
         }
 
         Long branchId = Optional.ofNullable(project.getBranch())
