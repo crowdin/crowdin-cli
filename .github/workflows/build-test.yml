@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 8
+          java-version: 21
           cache: 'gradle'
 
       - name: Setup Gradle
@@ -55,7 +55,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 8
+          java-version: 21
           cache: 'gradle'
 
       - name: Setup Gradle
@@ -97,7 +97,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 8
+          java-version: 21
           cache: 'gradle'
 
       - name: Install asciidoctor and pandoc
@@ -129,7 +129,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 8
+          java-version: 21
           cache: 'gradle'
 
       - name: Prepare distribution

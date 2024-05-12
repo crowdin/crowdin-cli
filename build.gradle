@@ -12,7 +12,7 @@ plugins {
 group 'com.crowdin'
 version '3.19.2'
 
-sourceCompatibility = 1.8
+sourceCompatibility = '21'
 
 if (!hasProperty('mainClass')) {
     ext.mainClass = 'com.crowdin.cli.Cli'
@@ -60,6 +60,10 @@ dependencies {
 dependencies {
     implementation "info.picocli:picocli:_"
     annotationProcessor "info.picocli:picocli-codegen:_"
+}
+
+wrapper {
+    gradleVersion = '8.5'
 }
 
 jar {
