@@ -142,3 +142,7 @@ Removed backward compatibility for file numeric id in the [`task add`](/commands
 ## Command output updates
 
 In this release, we've also reviewed and improved the output of many commands to make them more informative and user-friendly. Changes include `list`, `add`, `upload`, `download`, `delete`, and other commands for various resources.
+
+## Exit codes updates
+
+This release also includes more exit codes (previously we had only `0` for success and `1` for failure) for failures. Please refer to official documentation page to find more details.
