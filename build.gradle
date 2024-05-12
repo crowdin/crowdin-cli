@@ -3,7 +3,7 @@ import static de.fayard.refreshVersions.core.Versions.versionFor
 
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow'
+    id 'io.github.goooler.shadow' //TODO find alternative
     id 'jacoco'
     id 'com.github.spotbugs'
     id 'org.asciidoctor.jvm.convert'
