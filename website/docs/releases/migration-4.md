@@ -142,3 +142,7 @@ Removed backward compatibility for file numeric id in the [`task add`](/commands
 ## Command output updates
 
 In this release, we've also reviewed and improved the output of many commands to make them more informative and user-friendly. Changes include `list`, `add`, `upload`, `download`, `delete`, and other commands for various resources.
+
+## Java version upgrade
+
+Within this release Java was also upgraded to latest LTS version 21.

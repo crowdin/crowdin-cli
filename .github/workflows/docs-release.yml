@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 8
+          java-version: 21
           cache: 'gradle'
 
       - name: Install asciidoctor and pandoc
