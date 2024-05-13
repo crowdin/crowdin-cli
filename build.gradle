@@ -12,7 +12,7 @@ plugins {
 group 'com.crowdin'
 version '3.19.2'
 
-sourceCompatibility = '21'
+sourceCompatibility = '17'
 
 if (!hasProperty('mainClass')) {
     ext.mainClass = 'com.crowdin.cli.Cli'

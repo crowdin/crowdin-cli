@@ -15,7 +15,7 @@
   },
   "jdeploy": {
     "jar": "dist/crowdin-cli.jar",
-    "javaVersion": "21"
+    "javaVersion": "17"
   },
   "dependencies": {
     "command-exists-promise": "^2.0.2",

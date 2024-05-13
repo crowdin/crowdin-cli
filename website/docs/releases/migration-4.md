@@ -145,7 +145,7 @@ In this release, we've also reviewed and improved the output of many commands to
 
 ## Java version upgrade
 
-Within this release Java was also upgraded to latest LTS version 21.
+Within this release Java was also upgraded to latest LTS version 17.
 
 ## Exit codes updates
 
