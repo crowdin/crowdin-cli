@@ -1,6 +1,6 @@
 FROM alpine
 
-RUN apk --no-cache add sudo openjdk11-jre --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community;
+RUN apk --no-cache add sudo openjdk17-jre --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community;
 
 ADD https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin-cli.zip /usr/
 
