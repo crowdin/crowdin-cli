@@ -23,7 +23,7 @@ public class ConfigurationFilesProperties {
         if (configFile == null) {
             configFile = this.getDefaultConfigFile();
         } else if (!configFile.exists()) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
+            throw new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
         }
         return configFile;
     }
@@ -32,14 +32,14 @@ public class ConfigurationFilesProperties {
         if (identityFile == null) {
             identityFile = this.getDefaultIdentityFile();
         } else if (!identityFile.exists()) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.identity_file_not_exist"), identityFile.getAbsolutePath()));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.identity_file_not_exist"), identityFile.getAbsolutePath()));
         }
         return identityFile;
     }
 
     private File getDefaultConfigFile() {
         if (DEFAULT_CONFIGS == null || DEFAULT_CONFIGS.isEmpty()) {
-            throw new RuntimeException("Array of default values for config file is empty");
+            throw new ExitCodeExceptionMapper.ValidationException("Array of default values for config file is empty");
         }
         return DEFAULT_CONFIGS.stream()
             .map(Paths::get)
@@ -51,7 +51,7 @@ public class ConfigurationFilesProperties {
 
     private File getDefaultIdentityFile() {
         if (DEFAULT_IDENTITY_FILES == null || DEFAULT_IDENTITY_FILES.isEmpty()) {
-            throw new RuntimeException("Array of default values for config file is empty");
+            throw new ExitCodeExceptionMapper.ValidationException("Array of default values for config file is empty");
         }
         return DEFAULT_IDENTITY_FILES.stream()
             .map(Paths::get)

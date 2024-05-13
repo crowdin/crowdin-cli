@@ -5,6 +5,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemory;
@@ -42,7 +43,7 @@ class TmUploadAction implements NewAction<BaseProperties, ClientTm> {
         try (InputStream fileStream = new FileInputStream(file)) {
             storageId = client.uploadStorage(file.getName(), fileStream);
         } catch (Exception e) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.upload_to_storage"), e);
+            throw ExitCodeExceptionMapper.remap(e, RESOURCE_BUNDLE.getString("error.upload_to_storage"));
         }
         client.importTm(targetTm.getId(), RequestBuilder.importTranslationMemory(storageId, scheme, firstLineContainsHeader));
         out.println(OK.withIcon(

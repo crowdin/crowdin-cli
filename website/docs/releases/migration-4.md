@@ -146,3 +146,7 @@ In this release, we've also reviewed and improved the output of many commands to
 ## Java version upgrade
 
 Within this release Java was also upgraded to latest LTS version 21.
+
+## Exit codes updates
+
+This release also includes more exit codes (previously we had only `0` for success and `1` for failure) for failures. Please refer to official documentation page to find more details.

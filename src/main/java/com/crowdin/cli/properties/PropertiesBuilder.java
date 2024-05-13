@@ -1,6 +1,7 @@
 package com.crowdin.cli.properties;
 
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
@@ -176,7 +177,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
             String errorsInOne = messages.getErrors().stream()
                 .map(error -> String.format(RESOURCE_BUNDLE.getString("message.item_list"), error))
                 .collect(Collectors.joining("\n"));
-            throw new RuntimeException(text + "\n" + errorsInOne);
+            throw new ExitCodeExceptionMapper.ValidationException(text + "\n" + errorsInOne);
         }
     }
 
@@ -198,7 +199,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
         List<?> list = PropertiesBuilder.checkProperty(map, key, List.class, Collections.emptyList());
         for (Object obj : list) {
             if (!(obj instanceof Map)) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param_list_type"), key, typeName(obj.getClass()), typeName(Map.class)));
+                throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.cast_param_list_type"), key, typeName(obj.getClass()), typeName(Map.class)));
             }
         }
         @SuppressWarnings("unchecked")
@@ -229,7 +230,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
                 dotenv = Dotenv.configure().ignoreIfMissing().load();
             } catch (IllegalStateException e) {
                 if (e.getMessage() != null && e.getMessage().contains("Duplicate key")) {
-                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.duplicate_environment_variable"), e);
+                    throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.duplicate_environment_variable"), e);
                 } else {
                     throw e;
                 }
@@ -262,13 +263,13 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
             if (param != null && !clazz.isAssignableFrom(param.getClass())) {
                 String desiredType = typeName(clazz);
                 String presentType = typeName(param.getClass());
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param_type"), key, presentType, desiredType));
+                throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.cast_param_type"), key, presentType, desiredType));
             }
             @SuppressWarnings("unchecked")
             T paramWithType = (T) param;
             return paramWithType;
         } catch (ClassCastException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param"), key), e);
+            throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.cast_param"), key), e);
         }
     }
 
@@ -295,9 +296,9 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
                 setter.accept(param);
             }
         } catch (ClassCastException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.config.enum_class_exception"), key, acceptableValuesEnum));
+            throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.config.enum_class_exception"), key, acceptableValuesEnum));
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.config.enum_wrong_value"), key, acceptableValuesEnum));
+            throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.config.enum_wrong_value"), key, acceptableValuesEnum));
         }
     }
 

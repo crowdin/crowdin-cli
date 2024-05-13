@@ -1,6 +1,7 @@
 package com.crowdin.cli.properties;
 
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.utils.Utils;
 import lombok.Data;
 import lombok.NonNull;
@@ -89,7 +90,7 @@ public class BaseProperties implements Properties {
             if (props.getApiToken() == null) {
                 String confFilePath = props.getConfigFilePath();
                 if (confFilePath == null || !(new File(confFilePath).exists())) {
-                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
+                    throw new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
                 }
             }
             if (StringUtils.isEmpty(props.getApiToken())) {

@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.actions.subactions;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ObsoleteSourcesUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.sourcefiles.model.File;
 import lombok.NonNull;
@@ -58,7 +59,7 @@ public class DeleteObsoleteProjectFilesSubAction {
             .map(Utils::noSepAtStart)
             .collect(Collectors.toList());
         if (this.projectFiles == null || directoryIds == null || preserveHierarchy == null) {
-            throw new IllegalStateException("Unexpected error: DeleteObsoleteProjectFilesSubAction is not properly set");
+            throw new ExitCodeExceptionMapper.ValidationException("Unexpected error: DeleteObsoleteProjectFilesSubAction is not properly set");
         }
         Map<String, File> obsoleteProjectFiles = ObsoleteSourcesUtils.findObsoleteProjectFiles(this.projectFiles, this.preserveHierarchy, filesToUpload, sourcePattern, exportPattern, ignorePatterns);
         Map<String, Long> obsoleteDirs = ObsoleteSourcesUtils.findObsoleteProjectDirectories(this.projectFiles, this.directoryIds, filesToUpload, obsoleteProjectFiles);

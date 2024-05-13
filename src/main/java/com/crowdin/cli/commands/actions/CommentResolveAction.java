@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.ClientComment;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.client.stringcomments.model.StringComment;
 import lombok.AllArgsConstructor;
@@ -22,7 +23,7 @@ class CommentResolveAction implements NewAction<ProjectProperties, ClientComment
         try {
             stringComment = client.resolve(id);
         } catch (Exception e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.comment_is_not_resolved"), id), e);
+            throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.comment_is_not_resolved"), id));
         }
 
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.comment.resolved"),

@@ -8,6 +8,7 @@ import com.crowdin.cli.commands.Outputter;
 
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 
 import com.crowdin.cli.utils.Utils;
@@ -71,7 +72,7 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
             }
         }
         if (fileIds.isEmpty()) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.task.no_valid_file")));
+            throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.task.no_valid_file")));
         }
 
         if (isOrganization) {
@@ -104,7 +105,7 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
                     String.format(RESOURCE_BUNDLE.getString("message.task.list"), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), deadline))
             );
         } catch (Exception e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.task_is_not_added"), addTaskRequest), e);
+            throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.task_is_not_added"), addTaskRequest));
         }
     }
 }

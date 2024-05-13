@@ -8,6 +8,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.labels.model.Label;
@@ -67,7 +68,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
 
         if (isStringsBasedProject) {
             if (files != null && !files.isEmpty()) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
+                throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
             }
             Branch branch = project.findBranchByName(branchName)
                     .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project")));
@@ -79,13 +80,13 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         }
 
         if (files == null || files.isEmpty()) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.file_required"));
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.file_required"));
         }
 
         Optional<Branch> branch = Optional.ofNullable(branchName).flatMap(project::findBranchByName);
 
         if (!branch.isPresent() && branchName != null) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.branch_does_not_exist"), branchName));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("message.branch_does_not_exist"), branchName));
         }
 
         List<FileInfo> fileInfos = project
@@ -104,7 +105,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                     out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
                     continue;
                 } else {
-                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
+                    throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
                 }
             }
             Long fileId = paths.get(file).getId();
@@ -112,7 +113,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         }
 
         if (fileIds.isEmpty()) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.no_files_found_for_pre_translate")));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.no_files_found_for_pre_translate")));
         }
 
         ApplyPreTranslationRequest request = RequestBuilder.applyPreTranslation(
@@ -137,7 +138,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                     .map(id -> "'" + id + "'")
                     .collect(Collectors.joining(", "));
             if (!wrongLanguageIds.isEmpty()) {
-                throw new RuntimeException(
+                throw new ExitCodeExceptionMapper.NotFoundException(
                         String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), wrongLanguageIds));
             }
             return languageIds;
