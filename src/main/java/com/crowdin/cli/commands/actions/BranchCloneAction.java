@@ -27,11 +27,12 @@ class BranchCloneAction implements NewAction<ProjectProperties, ProjectClient> {
     private final String source;
     private final String target;
     private final boolean noProgress;
+    private final boolean plainView;
 
     @Override
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, false, client::downloadFullProject);
+            this.noProgress, plainView, client::downloadFullProject);
 
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
         if (!isStringsBasedProject) {
@@ -47,7 +48,11 @@ class BranchCloneAction implements NewAction<ProjectProperties, ProjectClient> {
         request.setName(target);
         BranchCloneStatus status = cloneBranch(out, client, branchId, request);
         ClonedBranch clonedBranch = client.getClonedBranch(branchId, status.getIdentifier());
-        out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch.list"), clonedBranch.getId(), target)));
+        if (!plainView) {
+            out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch.list"), clonedBranch.getId(), target)));
+        } else {
+            out.println(clonedBranch.getName());
+        }
     }
 
     private BranchCloneStatus cloneBranch(Outputter out, ProjectClient client, Long branchId, CloneBranchRequest request) {

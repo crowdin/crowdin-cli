@@ -13,7 +13,7 @@ public class StringCommentSubcommandTest extends PicocliTestUtils {
         this.execute(CommandNames.STRING, CommandNames.STRING_COMMENT, "\"My Comment\"", "--string-id", "1",
                      "--language", "en", "--type", "comment");
         verify(actionsMock)
-            .stringComment(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any());
+            .stringComment(anyBoolean(), any(), any(), any(), any(), any());
         this.check(true);
     }
 

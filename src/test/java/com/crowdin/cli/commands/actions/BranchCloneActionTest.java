@@ -69,7 +69,7 @@ class BranchCloneActionTest {
 
         CloneBranchRequest request = new CloneBranchRequest();
         request.setName("cloned");
-        BranchCloneAction action = new BranchCloneAction("main", "cloned", false);
+        BranchCloneAction action = new BranchCloneAction("main", "cloned", false, false);
         action.act(Outputter.getDefault(), pb, client);
         verify(client).downloadFullProject();
         verify(client).cloneBranch(eq(14L), eq(request));
@@ -97,7 +97,7 @@ class BranchCloneActionTest {
 
         CloneBranchRequest request = new CloneBranchRequest();
         request.setName("cloned");
-        BranchCloneAction action = new BranchCloneAction("main", "cloned", false);
+        BranchCloneAction action = new BranchCloneAction("main", "cloned", false, false);
 
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
@@ -116,7 +116,7 @@ class BranchCloneActionTest {
         CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
             .addBranches(14L, "main").build();
         build.setType(Type.FILES_BASED);
-        BranchCloneAction action = new BranchCloneAction("main", "cloned", false);
+        BranchCloneAction action = new BranchCloneAction("main", "cloned", false, false);
 
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 

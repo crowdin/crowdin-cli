@@ -25,8 +25,11 @@ class BranchAddSubcommand extends ActCommandProject {
     @CommandLine.Option(names = "--priority", descriptionKey = "crowdin.branch.add.priority", paramLabel = "...", order = -2)
     protected Priority priority;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.branchAdd(name, title, exportPattern, priority);
+        return actions.branchAdd(name, title, exportPattern, priority, plainView);
     }
 }

@@ -44,11 +44,12 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
     private final String few;
     private final String many;
     private final String zero;
+    private final boolean plainView;
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress, false, client::downloadFullProject);
+                this.noProgress, this.plainView, client::downloadFullProject);
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
         boolean isPluralString = one != null || two != null || few != null || many != null || zero != null;
 
@@ -58,7 +59,7 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
             if (files != null && !files.isEmpty()) {
                 throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
             }
-            Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, false);
+            Branch branch = BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView);
             if (Objects.isNull(branch)) {
                 throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
             }
@@ -72,11 +73,7 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
                 ss = client.addSourceStringStringsBased(request);
             }
 
-            if (ss.getIdentifier() == null) {
-                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text_short"), ss.getId(), this.text)));
-            } else {
-                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getIdentifier(), this.text)));
-            }
+            printResult(out, ss);
             return;
         }
 
@@ -101,7 +98,11 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
             if (!paths.containsKey(file)) {
                 if (files.size() > 1) {
                     containsError = true;
-                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
+                    if (!plainView) {
+                        out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
+                    } else {
+                        out.println(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
+                    }
                     continue;
                 } else {
                     throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
@@ -119,16 +120,22 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
                         RequestBuilder.addString(this.text, this.identifier, this.maxLength, this.context, fileId, this.hidden, labelIds);
                 ss = client.addSourceString(request);
             }
+            printResult(out, ss);
+        }
+        if (containsError) {
+            throw new RuntimeException();
+        }
+    }
 
+    private void printResult(Outputter out, SourceString ss) {
+        if (!plainView) {
             if (ss.getIdentifier() == null) {
                 out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text_short"), ss.getId(), this.text)));
             } else {
                 out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getIdentifier(), this.text)));
             }
-        }
-
-        if (containsError) {
-            throw new RuntimeException();
+        } else {
+            out.println(ss.getId().toString());
         }
     }
 

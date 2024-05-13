@@ -33,9 +33,11 @@ class StringEditAction implements NewAction<ProjectProperties, ProjectClient> {
     private final Boolean isHidden;
     private final boolean isVerbose;
     private final boolean noProgress;
+    private final boolean plainView;
 
     public StringEditAction(
-            boolean noProgress, boolean isVerbose, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden
+            boolean noProgress, boolean isVerbose, Long id, String identifier, String newText, String newContext,
+            Integer newMaxLength, List<String> labelNames, Boolean isHidden, boolean plainView
     ) {
         this.id = id;
         this.identifier = identifier;
@@ -46,12 +48,13 @@ class StringEditAction implements NewAction<ProjectProperties, ProjectClient> {
         this.isHidden = isHidden;
         this.isVerbose = isVerbose;
         this.noProgress = noProgress;
+        this.plainView = plainView;
     }
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress, false, client::downloadFullProject);
+                this.noProgress, this.plainView, client::downloadFullProject);
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
         Map<Long, String> reversePaths = null;
@@ -92,11 +95,15 @@ class StringEditAction implements NewAction<ProjectProperties, ProjectClient> {
         }
 
         SourceString updatedString = client.editSourceString(this.id, requests);
-        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_updated"), this.id)));
+        if (!plainView) {
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_updated"), this.id)));
+        } else {
+            out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_updated"), this.id));
+        }
 
         Map<Long, String> labelsMap = client.listLabels().stream()
                 .collect(Collectors.toMap(Label::getId, Label::getTitle));
-        printSourceString(updatedString, labelsMap, out, isStringsBasedProject, finalReversePaths, isVerbose);
+        printSourceString(updatedString, labelsMap, out, isStringsBasedProject, finalReversePaths, isVerbose, plainView);
     }
 
     private List<Long> prepareLabelIds(ProjectClient client) {

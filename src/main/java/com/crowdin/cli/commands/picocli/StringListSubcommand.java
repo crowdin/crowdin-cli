@@ -41,6 +41,9 @@ class StringListSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--scope"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.string.list.scope")
     protected String scope;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
     @Override
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
@@ -55,6 +58,6 @@ class StringListSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.stringList(noProgress, isVerbose, file, filter, branchName, labelNames, croql, directory, scope);
+        return actions.stringList(noProgress, isVerbose, file, filter, branchName, labelNames, croql, directory, scope, plainView);
     }
 }

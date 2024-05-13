@@ -66,6 +66,6 @@ class StringCommentSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.stringComment(plainView, noProgress, text, stringId, languageId, type, issueType);
+        return actions.stringComment(plainView, text, stringId, languageId, type, issueType);
     }
 }

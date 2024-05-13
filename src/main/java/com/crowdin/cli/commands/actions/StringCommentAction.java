@@ -8,30 +8,20 @@ import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.StringComment;
+import lombok.AllArgsConstructor;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
+@AllArgsConstructor
 class StringCommentAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private final boolean plainView;
-    private final boolean noProgress;
     private final String text;
     private final String stringId;
     private final String language;
     private final String type;
     private final String issueType;
-
-    public StringCommentAction(boolean plainView, boolean noProgress, String text, String stringId, String language,
-                               String type, String issueType) {
-        this.plainView = plainView;
-        this.noProgress = noProgress;
-        this.text = text;
-        this.stringId = stringId;
-        this.language = language;
-        this.type = type;
-        this.issueType = issueType;
-    }
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {

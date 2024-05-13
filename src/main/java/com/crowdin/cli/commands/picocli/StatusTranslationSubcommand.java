@@ -32,9 +32,12 @@ class StatusTranslationSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--fail-if-incomplete"}, paramLabel = "...", descriptionKey = "crowdin.status.translation.fail-if-incomplete", order = -2)
     protected boolean failIfIncomplete;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.status(noProgress, branchName, languageId, file, directory, isVerbose, true, false, failIfIncomplete);
+        return actions.status(noProgress, branchName, languageId, file, directory, isVerbose, true, false, failIfIncomplete, plainView);
     }
 
     @Override

@@ -10,6 +10,7 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
+import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -18,6 +19,7 @@ import java.util.stream.Stream;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
+@AllArgsConstructor
 class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private boolean noProgress;
@@ -29,23 +31,12 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
     private boolean showTranslated;
     private boolean showApproved;
     private boolean failIfIncomplete;
-
-    public StatusAction(boolean noProgress, String branchName, String languageId, String file, String directory, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failIfIncomplete) {
-        this.noProgress = noProgress;
-        this.branchName = branchName;
-        this.languageId = languageId;
-        this.file = file;
-        this.directory = directory;
-        this.isVerbose = isVerbose;
-        this.showTranslated = showTranslated;
-        this.showApproved = showApproved;
-        this.failIfIncomplete = failIfIncomplete;
-    }
+    private boolean plainView;
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, false, () -> client.downloadFullProject(branchName));
+            this.noProgress, this.plainView, () -> client.downloadFullProject(branchName));
 
         if (languageId != null) {
             project.findLanguageById(languageId, true)
@@ -108,15 +99,27 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 out.println(RESOURCE_BUNDLE.getString("message.translation"));
             }
             if (showTranslated) {
-                progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
-                    pr.getLanguageId(), pr.getTranslationProgress())));
+                progresses.forEach(pr -> {
+                    if (!plainView) {
+                        out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
+                            pr.getLanguageId(), pr.getTranslationProgress()));
+                    } else {
+                        out.println(pr.getLanguageId() + " " + pr.getTranslationProgress());
+                    }
+                });
             }
             if (showTranslated && showApproved) {
                 out.println(RESOURCE_BUNDLE.getString("message.approval"));
             }
             if (showApproved) {
-                progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
-                    pr.getLanguageId(), pr.getApprovalProgress())));
+                progresses.forEach(pr -> {
+                    if (!plainView) {
+                        out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
+                            pr.getLanguageId(), pr.getApprovalProgress()));
+                    } else {
+                        out.println(pr.getLanguageId() + " " + pr.getApprovalProgress());
+                    }
+                });
             }
             throwExceptionIfIncomplete(progresses.stream());
         }

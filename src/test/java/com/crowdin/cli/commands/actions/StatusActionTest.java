@@ -50,7 +50,7 @@ class StatusActionTest {
 
         when(projectClient.downloadFullProject("TestBranch"))
                 .thenReturn(projectBuilder.build());
-        statusAction = new StatusAction(noProgress, branchName, languageId, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete);
+        statusAction = new StatusAction(noProgress, branchName, languageId, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete, false);
         when(languageProgress.getApprovalProgress()).thenReturn(99);
         when(languageProgress.getLanguageId()).thenReturn("ua");
         when(branch.getId()).thenReturn(123L);
@@ -92,7 +92,7 @@ class StatusActionTest {
 
         when(projectClient.downloadFullProject(branchName))
                 .thenReturn(projectBuilder.build());
-        statusAction = new StatusAction(noProgress, branchName, languageId, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete);
+        statusAction = new StatusAction(noProgress, branchName, languageId, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete, false);
         when(languageProgress.getApprovalProgress()).thenReturn(99);
         when(projectClient.getProjectProgress(null))
                 .thenReturn(Collections.singletonList(languageProgress));
@@ -131,7 +131,7 @@ class StatusActionTest {
         ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject(branchName))
                 .thenReturn(projectBuilder.build());
-        statusAction = new StatusAction(noProgress, branchName, null, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete);
+        statusAction = new StatusAction(noProgress, branchName, null, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete, false);
         when(client.listBranches()).thenReturn(Collections.emptyList());
 
         assertThrows(
@@ -158,7 +158,7 @@ class StatusActionTest {
         ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject(null))
                 .thenReturn(projectBuilder.build());
-        statusAction = new StatusAction(noProgress, null, languageId, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete);
+        statusAction = new StatusAction(noProgress, null, languageId, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete, false);
         when(client.listBranches()).thenReturn(Collections.emptyList());
 
         assertThrows(
@@ -190,7 +190,7 @@ class StatusActionTest {
         when(languageProgress.getWords()).thenReturn(getWords());
         when(languageProgress.getPhrases()).thenReturn(getWords());
 
-        statusAction = new StatusAction(true, null, null, file, null, true, true, true, true);
+        statusAction = new StatusAction(true, null, null, file, null, true, true, true, true, true);
         statusAction.act(Outputter.getDefault(), projectProperties, projectClient);
 
         verify(projectClient).downloadFullProject(null);
@@ -222,7 +222,7 @@ class StatusActionTest {
         when(languageProgress.getWords()).thenReturn(getWords());
         when(languageProgress.getPhrases()).thenReturn(getWords());
 
-        statusAction = new StatusAction(true, null, null, null, directoryPath, true, true, true, true);
+        statusAction = new StatusAction(true, null, null, null, directoryPath, true, true, true, true, true);
         statusAction.act(Outputter.getDefault(), projectProperties, projectClient);
 
         verify(projectClient).downloadFullProject(null);

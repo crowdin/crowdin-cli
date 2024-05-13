@@ -63,7 +63,7 @@ public class StringEditActionTest {
 
         when(client.editSourceString(any(), any())).thenReturn(new SourceString());
 
-        action = new StringEditAction(true, false, id, identifier, newText, newContext, newMaxLength, labelNames, newIsHidden);
+        action = new StringEditAction(true, false, id, identifier, newText, newContext, newMaxLength, labelNames, newIsHidden, false);
         action.act(Outputter.getDefault(), pb, client);
 
         List<PatchRequest> patches = new ArrayList<PatchRequest>() {{

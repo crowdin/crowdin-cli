@@ -2,9 +2,7 @@ package com.crowdin.cli.commands.picocli;
 
 import org.junit.jupiter.api.Test;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.ArgumentMatchers.isNull;
+import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.verify;
 
 public class TmUploadSubcommandTest extends PicocliTestUtils {
@@ -13,7 +11,7 @@ public class TmUploadSubcommandTest extends PicocliTestUtils {
     public void testTmUpload() {
         this.execute(CommandNames.TM, CommandNames.TM_UPLOAD, "file.tmx", "--id", "42", "--debug");
         verify(actionsMock)
-            .tmUpload(any(), eq(42L), isNull(), isNull(), isNull());
+            .tmUpload(any(), eq(42L), isNull(), isNull(), isNull(), anyBoolean());
         this.check(true);
     }
 

@@ -17,6 +17,7 @@ import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.translations.model.*;
+import lombok.AllArgsConstructor;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
+@AllArgsConstructor
 class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private final List<String> languageIds;
@@ -38,24 +40,6 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
     private final boolean noProgress;
     private final boolean plainView;
     private final List<String> labelNames;
-
-    public PreTranslateAction(
-            List<String> languageIds, List<String> files, Method method, Long engineId, String branchName, AutoApproveOption autoApproveOption, Boolean duplicateTranslations,
-            Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress, boolean plainView, List<String> labelNames
-    ) {
-        this.languageIds = languageIds;
-        this.files = files;
-        this.method = method;
-        this.engineId = engineId;
-        this.branchName = branchName;
-        this.autoApproveOption = autoApproveOption;
-        this.duplicateTranslations = duplicateTranslations;
-        this.translateUntranslatedOnly = translateUntranslatedOnly;
-        this.translateWithPerfectMatchOnly = translateWithPerfectMatchOnly;
-        this.noProgress = noProgress;
-        this.plainView = plainView;
-        this.labelNames = labelNames;
-    }
 
     @Override
     public void act(Outputter out, PropertiesWithFiles properties, ProjectClient client) {
@@ -102,7 +86,11 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
             if (!paths.containsKey(file)) {
                 if (files.size() > 1) {
                     containsError = true;
-                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
+                    if (!plainView) {
+                        out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
+                    } else {
+                        out.println(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
+                    }
                     continue;
                 } else {
                     throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
@@ -153,7 +141,11 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                     .distinct()
                     .forEach(labelName -> {
                                 if (!labels.containsKey(labelName)) {
-                                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.pre_translate.missing_label"), labelName)));
+                                    if (!plainView) {
+                                        out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.pre_translate.missing_label"), labelName)));
+                                    } else {
+                                        out.println(String.format(RESOURCE_BUNDLE.getString("message.pre_translate.missing_label"), labelName));
+                                    }
                                 }
                             }
                     );

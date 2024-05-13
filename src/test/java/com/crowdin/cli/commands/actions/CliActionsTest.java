@@ -44,12 +44,12 @@ public class CliActionsTest {
 
     @Test
     public void testStatus() {
-        assertNotNull(actions.status(false, null, null, null, null, false, false, false, false));
+        assertNotNull(actions.status(false, null, null, null, null, false, false, false, false, false));
     }
 
     @Test
     public void testStringAdd() {
-        assertNotNull(actions.stringAdd(false, null, null, null, null, null, null, null, null, null, null, null, null, null));
+        assertNotNull(actions.stringAdd(false, null, null, null, null, null, null, null, null, null, null, null, null, null, false));
     }
 
     @Test
@@ -59,12 +59,12 @@ public class CliActionsTest {
 
     @Test
     public void testStringEdit() {
-        assertNotNull(actions.stringEdit(false, false, null, null, null, null, null, null, null));
+        assertNotNull(actions.stringEdit(false, false, null, null, null, null, null, null, null, false));
     }
 
     @Test
     public void testStringList() {
-        assertNotNull(actions.stringList(false, false, null, null, null, null, null, null, null));
+        assertNotNull(actions.stringList(false, false, null, null, null, null, null, null, null, false));
     }
 
     @Test
@@ -84,7 +84,7 @@ public class CliActionsTest {
 
     @Test
     public void testGlossaryUpload() {
-        assertNotNull(actions.glossaryUpload(new File("nowhere.txt"), null, null, null, null));
+        assertNotNull(actions.glossaryUpload(new File("nowhere.txt"), null, null, null, null, false));
     }
 
     @Test
@@ -99,7 +99,7 @@ public class CliActionsTest {
 
     @Test
     public void testTmUpload() {
-        assertNotNull(actions.tmUpload(null, null, null, null, null));
+        assertNotNull(actions.tmUpload(null, null, null, null, null, false));
     }
 
     @Test
@@ -184,6 +184,6 @@ public class CliActionsTest {
 
     @Test
     void testBranchClone() {
-        assertNotNull(actions.branchClone(null, null, false));
+        assertNotNull(actions.branchClone(null, null, false, false));
     }
 }

@@ -28,30 +28,19 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
 
     private boolean noProgress;
-
     private String title;
-
     private Integer type;
-
     private String language;
-
     private List<String> files;
-
     private String branch;
-
     private Long workflowStep;
-
     private String description;
-
     private boolean skipAssignedStrings;
-
     private boolean skipUntranslatedStrings;
-
     private boolean includePreTranslatedStringsOnly;
-
     private List<Long> labels;
-
     private ProjectClient projectClient;
+    private boolean plainView;
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientTask client) {
@@ -59,7 +48,7 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
         Task task;
         AddTaskRequest addTaskRequest;
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, false, () -> this.projectClient.downloadFullProject(this.branch));
+            this.noProgress, this.plainView, () -> this.projectClient.downloadFullProject(this.branch));
 
         List<Long> fileIds = new ArrayList<>();
         Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
@@ -68,7 +57,11 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
             if (paths.containsKey(path)) {
                 fileIds.add(paths.get(path).getId());
             } else {
-                out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), path)));
+                if (!plainView) {
+                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), path)));
+                } else {
+                    out.println(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), path));
+                }
             }
         }
         if (fileIds.isEmpty()) {
@@ -101,9 +94,13 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
         try {
             task = client.addTask(addTaskRequest);
             String deadline = task.getDeadline() == null ? "NoDueDate" : task.getDeadline().toString();
-            out.println(OK.withIcon(
+            if (!plainView) {
+                out.println(OK.withIcon(
                     String.format(RESOURCE_BUNDLE.getString("message.task.list"), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), deadline))
-            );
+                );
+            } else {
+                out.println(task.getTitle());
+            }
         } catch (Exception e) {
             throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.task_is_not_added"), addTaskRequest));
         }

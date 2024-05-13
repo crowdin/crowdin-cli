@@ -52,7 +52,7 @@ public class StringListActionTest {
                 .setProjectId(Long.parseLong(pb.getProjectId()))
                 .setIdentifiers(701L, "7-0-1", "seven-o-one", "7.0.1", 101L).build()));
 
-        action = new StringListAction(true, true, file, filter, "main", null, null, null, null);
+        action = new StringListAction(true, true, file, filter, "main", null, null, null, null, true);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(eq("main"));
@@ -82,7 +82,7 @@ public class StringListActionTest {
         when(client.downloadFullProject(null))
             .thenThrow(new RuntimeException("Whoops"));
 
-        action = new StringListAction(true, true, null, null, null, null, null, null, null);
+        action = new StringListAction(true, true, null, null, null, null, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject(null);
@@ -100,7 +100,7 @@ public class StringListActionTest {
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("first.csv", "csv", 101L, null, null).build());
 
-        action = new StringListAction(true, true, "nonexistent.csv", null, null, null, null, null, null);
+        action = new StringListAction(true, true, "nonexistent.csv", null, null, null, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject(null);
@@ -124,7 +124,7 @@ public class StringListActionTest {
                 .setProjectId(Long.parseLong(pb.getProjectId()))
                 .setIdentifiers(701L, "7-0-1", "seven-o-one", "7.0.1", 101L).build()));
 
-        action = new StringListAction(true, true, null, null, null, null,  null, null, null);
+        action = new StringListAction(true, true, null, null, null, null,  null, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(null);
@@ -160,7 +160,7 @@ public class StringListActionTest {
         when(client.listLabels()).thenReturn(Arrays.asList(label1, label2));
 
         action = new StringListAction(
-            true, true, "first.csv", null, null, Arrays.asList("l1", "l2"), null, null, null);
+            true, true, "first.csv", null, null, Arrays.asList("l1", "l2"), null, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(null);

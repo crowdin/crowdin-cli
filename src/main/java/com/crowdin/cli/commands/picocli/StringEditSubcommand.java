@@ -36,6 +36,9 @@ class StringEditSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--hidden"}, negatable = true, order = -2, descriptionKey = "crowdin.string.edit.hidden")
     protected Boolean newIsHidden;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
     @Override
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
@@ -47,6 +50,6 @@ class StringEditSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.stringEdit(noProgress, isVerbose, id, identifier, newText, newContext, newMaxLength, labelNames, newIsHidden);
+        return actions.stringEdit(noProgress, isVerbose, id, identifier, newText, newContext, newMaxLength, labelNames, newIsHidden, plainView);
     }
 }
