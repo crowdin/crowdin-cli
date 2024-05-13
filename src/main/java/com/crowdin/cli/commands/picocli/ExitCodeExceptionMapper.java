@@ -1,17 +1,16 @@
 package com.crowdin.cli.commands.picocli;
 
-import java.util.HashMap;
 import java.util.Map;
 
 public class ExitCodeExceptionMapper {
 
-    private static final Map<Class<? extends Throwable>, Integer> MAPPING = new HashMap<Class<? extends Throwable>, Integer>() {{
-        put(ValidationException.class, 2);
-        put(AuthorizationException.class, 101);
-        put(NotFoundException.class, 102);
-        put(ForbiddenException.class, 103);
-        put(RateLimitException.class, 129);
-    }};
+    private static final Map<Class<? extends Throwable>, Integer> MAPPING = Map.of(
+            ValidationException.class, 2,
+            AuthorizationException.class, 101,
+            NotFoundException.class, 102,
+            ForbiddenException.class, 103,
+            RateLimitException.class, 129
+    );
 
     public static RuntimeException remap(Throwable throwable, String message) {
         if (isApplicable(throwable)) {
