@@ -145,6 +145,44 @@ const config = {
         darkTheme: darkCodeTheme,
       },
     }),
+
+  plugins: [
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        redirects: [
+          {
+            from: '/commands/crowdin-generate',
+            to: '/commands/crowdin-init',
+          },
+          {
+            from: '/commands/crowdin-list-branches',
+            to: '/commands/crowdin-branch-list',
+          },
+          {
+            from: '/commands/crowdin-list-languages',
+            to: '/commands/crowdin-language-list',
+          },
+          {
+            from: '/commands/crowdin-list-sources',
+            to: '/commands/crowdin-config-sources',
+          },
+          {
+            from: '/commands/crowdin-list-translations',
+            to: '/commands/crowdin-config-translations',
+          },
+          {
+            from: '/commands/crowdin-list-project',
+            to: '/commands/crowdin-file-list',
+          },
+          {
+            from: '/commands/crowdin-lint',
+            to: '/commands/crowdin-config-lint',
+          }
+        ],
+      },
+    ]
+  ],
 };
 
 module.exports = config;

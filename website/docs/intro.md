@@ -83,7 +83,7 @@ Some commands have their own config options.
 
 ## Requirements
 
-Check that you have Java 8 or newer installed. Type `java -version` command in the terminal (Command Prompt on Windows) to check Java version. For example, java version "1.8.0_212" means that you have Java 8 Update 212 installed.
+Check that you have **Java 17** or newer installed. Type `java -version` command in the terminal (Command Prompt on Windows) to check Java version.
 
 If you don’t have Java installed, download it from [Oracle’s website](https://www.java.com/en/).
 

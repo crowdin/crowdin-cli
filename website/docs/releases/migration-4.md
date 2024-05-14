@@ -6,6 +6,18 @@ This guide is intended to highlight the most important changes in Crowdin CLI v4
 Need help or have questions? [Let's discuss it](https://github.com/crowdin/crowdin-cli/discussions/781)!
 :::
 
+## Requirements
+
+As part of this release, Java has also been updated to the version 17 LTS.
+
+## New commands
+
+- [`crowdin config`](/commands/crowdin-config)
+- [`crowdin project`](/commands/crowdin-project)
+- [`crowdin language`](/commands/crowdin-language)
+- [`crowdin branch clone`](/commands/crowdin-branch-clone)
+- [`crowdin completion`](/autocompletion)
+
 ## Command updates
 
 ### Pre-translate
@@ -124,6 +136,10 @@ The `lint` command has been replaced with the [`config lint`](/commands/crowdin-
 + crowdin config lint
 ```
 
+## Exit codes
+
+This release also includes more exit codes (previously we only had `0` for success and `1` for failure). See the [official documentation](/exit-codes) for more details.
+
 ## Deprecations and backward compatibility
 
 ### Download targets
@@ -142,11 +158,3 @@ Removed backward compatibility for file numeric id in the [`task add`](/commands
 ## Command output updates
 
 In this release, we've also reviewed and improved the output of many commands to make them more informative and user-friendly. Changes include `list`, `add`, `upload`, `download`, `delete`, and other commands for various resources.
-
-## Java version upgrade
-
-Within this release Java was also upgraded to latest LTS version 17.
-
-## Exit codes updates
-
-This release also includes more exit codes (previously we had only `0` for success and `1` for failure) for failures. Please refer to official documentation page to find more details.
