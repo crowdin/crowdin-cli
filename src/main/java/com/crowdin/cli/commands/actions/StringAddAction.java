@@ -98,9 +98,7 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
             if (!paths.containsKey(file)) {
                 if (files.size() > 1) {
                     containsError = true;
-                    if (!plainView) {
-                        out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
-                    }
+                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
                     continue;
                 } else {
                     throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));

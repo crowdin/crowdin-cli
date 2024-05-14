@@ -94,9 +94,7 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
             }
         }
         if (sourceStrings.isEmpty()) {
-            if (!plainView) {
-                out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.source_string_list_not_found")));
-            }
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.source_string_list_not_found")));
         }
         sourceStrings.forEach(ss -> printSourceString(ss, labelsMap, out, isStringsBasedProject, finalReversePaths, isVerbose, plainView));
     }

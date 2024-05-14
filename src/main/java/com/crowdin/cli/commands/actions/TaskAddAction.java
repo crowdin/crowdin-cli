@@ -57,9 +57,7 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
             if (paths.containsKey(path)) {
                 fileIds.add(paths.get(path).getId());
             } else {
-                if (!plainView) {
-                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), path)));
-                }
+                out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), path)));
             }
         }
         if (fileIds.isEmpty()) {
