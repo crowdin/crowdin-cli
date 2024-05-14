@@ -33,25 +33,25 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String PROJECT_ID_ENV = "project_id_env";
 
-    public static final String CROWDIN_PROJECT_ID = "crowdin_project_id";
+    public static final String CROWDIN_PROJECT_ID = "CROWDIN_PROJECT_ID";
 
     public static final String API_TOKEN = "api_token";
 
     public static final String API_TOKEN_ENV = "api_token_env";
 
-    public static final String CROWDIN_PERSONAL_TOKEN = "crowdin_personal_token";
+    public static final String CROWDIN_PERSONAL_TOKEN = "CROWDIN_PERSONAL_TOKEN";
 
     public static final String BASE_PATH = "base_path";
 
     public static final String BASE_PATH_ENV = "base_path_env";
 
-    public static final String CROWDIN_BASE_PATH = "crowdin_base_path";
+    public static final String CROWDIN_BASE_PATH = "CROWDIN_BASE_PATH";
 
     public static final String BASE_URL = "base_url";
 
     public static final String BASE_URL_ENV = "base_url_env";
 
-    public static final String CROWDIN_BASE_URL = "crowdin_base_url";
+    public static final String CROWDIN_BASE_URL = "CROWDIN_BASE_URL";
 
     public static final String PRESERVE_HIERARCHY = "preserve_hierarchy";
 
@@ -236,7 +236,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
     }
 
     static void setEnvIfExists(Consumer<String> setter, String envKey) {
-        String param = System.getenv(envKey);
+        String param = getDotenv().get(envKey);
         if (param != null) {
             setter.accept(param);
         }
