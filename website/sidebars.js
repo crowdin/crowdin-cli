@@ -280,24 +280,10 @@ const sidebars = {
         'commands/crowdin-pre-translate',
       ],
     },
-    {
-      type: 'category',
-      label: 'Tutorials',
-      collapsible: true,
-      collapsed: false,
-      items: [
-        'tutorials/files-management',
-      ]
-    },
     'ci-cd',
     'advanced',
     'exit-codes',
-    'faq',
-    {
-      type: "category",
-      label: "Releases",
-      items: ["releases/migration-4"],
-    },
+    'faq'
   ],
 };
 

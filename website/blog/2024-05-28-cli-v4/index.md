@@ -1,14 +1,23 @@
-# Crowdin CLI v4
+---
+title: Crowdin CLI 4.0
+description: Learn how to manage your project's localization files from the command line. Synchronize your source language files and translations with your Crowdin project.
+authors: [andrii-bodnar, yevheniyJ]
+tags: [release]
+---
 
-This guide is intended to highlight the most important changes in Crowdin CLI v4 and help you migrate from CLI v3 with ease. It is not a comprehensive guide, but rather a list of the most important changes.
+Today we are happy to announce Crowdin CLI 4.0! 🥳
 
-:::tip
-Need help or have questions? [Let's discuss it](https://github.com/crowdin/crowdin-cli/discussions/781)!
-:::
+Almost 5 years have passed since the release of Crowdin CLI 3.0. During this time we've received a lot of feedback from our users and worked hard to improve the tool. We've made many changes and improvements.
+
+The new version of Crowdin CLI brings a lot of new features and improvements. We've added new commands, updated existing commands and improved the overall user experience.
+
+This post is intended to highlight the most important changes and help you migrate from CLI v3 with ease. It is not a comprehensive guide, but rather a list of the most important changes.
+
+<!--truncate-->
 
 ## Requirements
 
-As part of this release, Java has also been updated to the version 17 LTS.
+As part of this release, the minimum Java version has been updated to **17 LTS**.
 
 ## New commands
 
@@ -22,7 +31,7 @@ As part of this release, Java has also been updated to the version 17 LTS.
 
 ### Pre-translate
 
-We've made significant changes to the [`pre-translate`](/commands/crowdin-pre-translate) command. The command now requires the `file` parameter for file-based projects. The `file` parameter determines which files to pre-translate. Previously, the command relied on the current configuration, and it was only possible to pre-translate the files that matched the configuration patterns. Now you can specify any file(s) in the Crowdin project to pre-translate.
+We've made significant changes to the [`pre-translate`](/commands/crowdin-pre-translate) command. The command now requires the `--file` parameter for file-based projects. The `--file` parameter determines which files to pre-translate. Previously, the command relied on the current configuration, and it was only possible to pre-translate the files that matched the configuration patterns. Now you can specify any file(s) in the Crowdin project to pre-translate.
 
 Tip: Use the [`file list`](/commands/crowdin-file-list) command to get the file paths in the current project.
 
@@ -31,10 +40,10 @@ Tip: Use the [`file list`](/commands/crowdin-file-list) command to get the file 
 * Added the `--branch` parameter support instead of specifying a branch in the file path in the [`string add`](/commands/crowdin-string-add) command.
 * The [`string edit`](/commands/crowdin-string-edit) command changes:
   * Moved `id` to parameter.
-  * Now `identifier` is used as an option to edit and not to find the needed string.
+  * Now `--identifier` is used as an option to edit and not to find the needed string.
 * The [`string delete`](/commands/crowdin-string-delete) command changes:
   * Moved `id` to parameter. Now only 1 string can be removed at a time.
-  * Removed `text` and `identifier` options. Only `id` is used as a string identifier.
+  * Removed the `--text` and `--identifier` options. Only `id` is used as a string identifier.
 * Added `--directory` and `--scope` options to the [`string list`](/commands/crowdin-string-list) command.
 
 ```diff
@@ -90,7 +99,7 @@ The `name` property has been removed from the `upload` and `download` commands:
 +crowdin glossary upload <file> --id <id>
 ```
 
-Tip: Use the [`list`](/commands/crowdin-glossary-list) command to get the `id`.
+Tip: Use the [`glossary list`](/commands/crowdin-glossary-list) command to get the `id`.
 
 ### TM
 
@@ -105,7 +114,7 @@ The `name` property has been removed from `upload` and `download` commands:
 +crowdin tm upload <file> --id <id>
 ```
 
-Tip: Use the [`list`](/commands/crowdin-tm-list) command to get the `id`.
+Tip: Use the [`tm list`](/commands/crowdin-tm-list) command to get the `id`.
 
 ### Screenshot
 
@@ -116,7 +125,7 @@ The `name` parameter has been replaced with the `id` for the `delete` command be
 +crowdin screenshot delete <id>
 ```
 
-Tip: Use the [`list`](/commands/crowdin-screenshot-list) command to get the `id`.
+Tip: Use the [`screenshot list`](/commands/crowdin-screenshot-list) command to get the `id`.
 
 ### Init
 
@@ -129,7 +138,7 @@ The `generate` alias has been removed:
 
 ### Lint
 
-The `lint` command has been replaced with the [`config lint`](/commands/crowdin-config-lint) command.
+The `lint` command has been replaced with the [`config lint`](/commands/crowdin-config-lint) command:
 
 ```diff
 - crowdin lint
@@ -138,7 +147,24 @@ The `lint` command has been replaced with the [`config lint`](/commands/crowdin-
 
 ## Exit codes
 
-This release also includes more exit codes (previously we only had `0` for success and `1` for failure). See the [official documentation](/exit-codes) for more details.
+This release also includes more exit codes (previously we only had `0` for success and `1` for failure).
+
+See the [official documentation](/exit-codes) for more details.
+
+## Environment variables
+
+Previously, it was necessary to specify the environment variables in the configuration file in order to load the configuration from them.
+
+Now the CLI can automatically pick up the environment variables if they are set in the shell. The supported environment variables are:
+
+- `CROWDIN_PROJECT_ID`
+- `CROWDIN_PERSONAL_TOKEN`
+- `CROWDIN_BASE_PATH`
+- `CROWDIN_BASE_URL`
+
+Thanks to this change, it's now easier to work with the CLI in CI/CD environments, especially in the no-configuration-file use case.
+
+Visit the [Configuration File](/configuration#environment-variables) article for more details.
 
 ## Deprecations and backward compatibility
 
@@ -158,3 +184,7 @@ Removed backward compatibility for file numeric id in the [`task add`](/commands
 ## Command output updates
 
 In this release, we've also reviewed and improved the output of many commands to make them more informative and user-friendly. Changes include `list`, `add`, `upload`, `download`, `delete`, and other commands for various resources.
+
+:::tip
+Need help or have questions? [Let's discuss it](https://github.com/crowdin/crowdin-cli/discussions/781)!
+:::
