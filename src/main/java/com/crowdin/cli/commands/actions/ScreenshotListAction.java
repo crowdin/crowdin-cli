@@ -29,7 +29,7 @@ class ScreenshotListAction implements NewAction<ProjectProperties, ClientScreens
                 out.println(String.format(RESOURCE_BUNDLE.getString("message.screenshot.list"),
                     screenshot.getId(), screenshot.getTagsCount(), screenshot.getName()));
             } else {
-                out.println(screenshot.getId() + " " + screenshot.getName());
+                out.println(String.format("%d %s", screenshot.getId(), screenshot.getName()));
             }
         }
         if (screenshots.isEmpty()) {

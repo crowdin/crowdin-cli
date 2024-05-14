@@ -29,7 +29,7 @@ class DistributionListAction implements NewAction<ProjectProperties, ClientDistr
                                           distribution.getName(),
                                           distribution.getExportMode()));
             } else {
-                out.println(distribution.getHash() + " " + distribution.getName());
+                out.println(String.format("%s %s", distribution.getHash(), distribution.getName()));
             }
         }
 

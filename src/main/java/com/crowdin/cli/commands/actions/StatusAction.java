@@ -104,7 +104,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                         out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                             pr.getLanguageId(), pr.getTranslationProgress()));
                     } else {
-                        out.println(pr.getLanguageId() + " " + pr.getTranslationProgress());
+                        out.println(String.format("%s %d", pr.getLanguageId(), pr.getTranslationProgress()));
                     }
                 });
             }
@@ -117,7 +117,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                         out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
                             pr.getLanguageId(), pr.getApprovalProgress()));
                     } else {
-                        out.println(pr.getLanguageId() + " " + pr.getApprovalProgress());
+                        out.println(String.format("%s %d", pr.getLanguageId(), pr.getApprovalProgress()));
                     }
                 });
             }
