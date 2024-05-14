@@ -59,8 +59,6 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
             } else {
                 if (!plainView) {
                     out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), path)));
-                } else {
-                    out.println(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), path));
                 }
             }
         }
@@ -99,7 +97,7 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
                     String.format(RESOURCE_BUNDLE.getString("message.task.list"), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), deadline))
                 );
             } else {
-                out.println(task.getTitle());
+                out.println(String.format("%d %s", task.getId(), task.getTitle()));
             }
         } catch (Exception e) {
             throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.task_is_not_added"), addTaskRequest));

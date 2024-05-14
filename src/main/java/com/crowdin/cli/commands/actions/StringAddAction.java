@@ -100,8 +100,6 @@ class StringAddAction implements NewAction<ProjectProperties, ProjectClient> {
                     containsError = true;
                     if (!plainView) {
                         out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
-                    } else {
-                        out.println(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
                     }
                     continue;
                 } else {

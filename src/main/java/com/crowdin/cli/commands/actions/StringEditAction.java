@@ -97,8 +97,6 @@ class StringEditAction implements NewAction<ProjectProperties, ProjectClient> {
         SourceString updatedString = client.editSourceString(this.id, requests);
         if (!plainView) {
             out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.source_string_updated"), this.id)));
-        } else {
-            out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_updated"), this.id));
         }
 
         Map<Long, String> labelsMap = client.listLabels().stream()

@@ -28,7 +28,7 @@ class BundleListAction implements NewAction<ProjectProperties, ClientBundle> {
                                       bundle.getFormat(),
                                       bundle.getExportPattern(), bundle.getName()));
             } else {
-                out.println(bundle.getId() + " " + bundle.getName());
+                out.println(String.format("%d %s", bundle.getId(), bundle.getName()));
             }
         }
         if (bundles.isEmpty()) {

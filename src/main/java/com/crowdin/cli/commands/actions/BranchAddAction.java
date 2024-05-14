@@ -39,8 +39,6 @@ class BranchAddAction implements NewAction<ProjectProperties, ProjectClient> {
         } else {
             if (!plainView) {
                 out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch_already_exists"), name)));
-            } else {
-                out.println(String.format(RESOURCE_BUNDLE.getString("message.branch_already_exists"), name));
             }
         }
     }

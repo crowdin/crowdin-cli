@@ -88,8 +88,6 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                     containsError = true;
                     if (!plainView) {
                         out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
-                    } else {
-                        out.println(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
                     }
                     continue;
                 } else {
@@ -143,8 +141,6 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                                 if (!labels.containsKey(labelName)) {
                                     if (!plainView) {
                                         out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.pre_translate.missing_label"), labelName)));
-                                    } else {
-                                        out.println(String.format(RESOURCE_BUNDLE.getString("message.pre_translate.missing_label"), labelName));
                                     }
                                 }
                             }

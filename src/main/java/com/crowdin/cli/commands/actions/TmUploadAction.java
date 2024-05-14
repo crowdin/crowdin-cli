@@ -45,7 +45,7 @@ class TmUploadAction implements NewAction<BaseProperties, ClientTm> {
             out.println(OK.withIcon(
                 String.format(RESOURCE_BUNDLE.getString("message.tm.import_success"), targetTm.getId(), targetTm.getName())));
         } else {
-            out.println(targetTm.getName());
+            out.println(targetTm.getId().toString());
         }
     }
 

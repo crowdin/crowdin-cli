@@ -60,7 +60,7 @@ class GlossaryUploadAction implements NewAction<BaseProperties, ClientGlossary> 
             out.println(OK.withIcon(
                 String.format(RESOURCE_BUNDLE.getString("message.glossary.import_success"), targetGlossary.getId(), targetGlossary.getName())));
         } else {
-            out.println(targetGlossary.getName());
+            out.println(targetGlossary.getId().toString());
         }
     }
 }
