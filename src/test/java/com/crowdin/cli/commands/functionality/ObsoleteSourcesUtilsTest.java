@@ -30,12 +30,12 @@ public class ObsoleteSourcesUtilsTest {
             {
                 put(Utils.normalizePath(projectFile1Path), FileBuilder.standard()
                         .setProjectId(projectId)
-                        .setIdentifiers("test.md", "md", fileId1, directoryId1, null)
+                        .setIdentifiers("file1.md", "md", fileId1, directoryId1, null)
                         .setExportPattern(null)
                         .build());
                 put(Utils.normalizePath(projectFile2Path), FileBuilder.standard()
                         .setProjectId(projectId)
-                        .setIdentifiers("test.md", "md", fileId2, directoryId1, null)
+                        .setIdentifiers("file2.md", "md", fileId2, directoryId1, null)
                         .setExportPattern(null)
                         .build());
             }
