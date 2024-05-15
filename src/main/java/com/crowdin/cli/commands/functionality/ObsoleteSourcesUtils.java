@@ -34,10 +34,8 @@ public class ObsoleteSourcesUtils {
             return true;
         }
 
-        Predicate<String> patternPred = ProjectFilesUtils.isProjectFilePathSatisfiesPatterns(fileExportPattern, Collections.emptyList(), preserveHierarchy);
-
-        // return exportPattern.equals(Utils.normalizePath(fileExportPattern));
-        return patternPred.test(fileExportPattern);
+        Predicate<String> patternPred = ProjectFilesUtils.isProjectFilePathSatisfiesPatterns(exportPattern, Collections.emptyList(), preserveHierarchy);
+        return patternPred.test(Utils.normalizePath(fileExportPattern));
     }
 
     public static SortedMap<String, Long> findObsoleteProjectDirectories(
