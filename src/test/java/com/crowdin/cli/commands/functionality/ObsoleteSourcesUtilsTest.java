@@ -26,7 +26,7 @@ public class ObsoleteSourcesUtilsTest {
         boolean preserveHierarchy = true;
         List<String> filesToUpload = Arrays.asList(Utils.normalizePath("test/en/test.md"),
                 Utils.normalizePath("test/en/help.md"));
-        String sourcePattern = Utils.normalizePath("/test/en/*.md");
+        String sourcePattern = Utils.normalizePath("/test/en/**/*.md");
         String exportPattern = Utils.normalizePath("/test/%two_letters_code%/%original_path%/%original_file_name%");
         List<String> ignorePatterns = Arrays.asList(Utils.normalizePath("**/.*"));
 

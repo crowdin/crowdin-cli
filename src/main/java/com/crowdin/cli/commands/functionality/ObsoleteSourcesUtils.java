@@ -16,37 +16,41 @@ import java.util.stream.Collectors;
 public class ObsoleteSourcesUtils {
 
     public static Map<String, File> findObsoleteProjectFiles(
-        @NonNull Map<String, File> projectFiles, boolean preserveHierarchy,
-        @NonNull List<String> filesToUpload, @NonNull String sourcePattern, @NonNull String exportPattern, List<String> ignorePatterns
-    ) {
-        Predicate<String> patternCheck =
-            ProjectFilesUtils.isProjectFilePathSatisfiesPatterns(sourcePattern, ignorePatterns, preserveHierarchy);
+            @NonNull Map<String, File> projectFiles, boolean preserveHierarchy,
+            @NonNull List<String> filesToUpload, @NonNull String sourcePattern, @NonNull String exportPattern,
+            List<String> ignorePatterns) {
+        Predicate<String> patternCheck = ProjectFilesUtils.isProjectFilePathSatisfiesPatterns(sourcePattern,
+                ignorePatterns, preserveHierarchy);
         return projectFiles.entrySet().stream()
-            .filter(entry -> patternCheck.test(entry.getKey()))
-            .filter(entry -> checkExportPattern(exportPattern, entry.getValue()))
-            .filter(entry -> isFileNotInList(filesToUpload, entry.getKey(), preserveHierarchy))
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                .filter(entry -> patternCheck.test(entry.getKey()))
+                .filter(entry -> checkExportPattern(exportPattern, entry.getValue(), preserveHierarchy))
+                .filter(entry -> isFileNotInList(filesToUpload, entry.getKey(), preserveHierarchy))
+                .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
     }
 
-    private static boolean checkExportPattern(String exportPattern, File file) {
+    private static boolean checkExportPattern(String exportPattern, File file, boolean preserveHierarchy) {
         String fileExportPattern = ProjectFilesUtils.getExportPattern(file.getExportOptions());
         if (fileExportPattern == null) {
             return true;
         }
-        return exportPattern.equals(Utils.normalizePath(fileExportPattern));
+
+        Predicate<String> patternPred = ProjectFilesUtils.isProjectFilePathSatisfiesPatterns(fileExportPattern,
+                Collections.emptyList(), preserveHierarchy);
+
+        // return exportPattern.equals(Utils.normalizePath(fileExportPattern));
+        return patternPred.test(fileExportPattern);
     }
 
     public static SortedMap<String, Long> findObsoleteProjectDirectories(
-        @NonNull Map<String, File> projectFiles, @NonNull Map<String, Long> directoryIds,
-        @NonNull List<String> filesToUpload, @NonNull Map<String, File> obsoleteDeletedProjectFiles
-    ) {
+            @NonNull Map<String, File> projectFiles, @NonNull Map<String, Long> directoryIds,
+            @NonNull List<String> filesToUpload, @NonNull Map<String, File> obsoleteDeletedProjectFiles) {
         List<String> upToDateDirs = filesToUpload.stream()
-            .map(Utils::getParentDirectory)
-            .collect(Collectors.toList());
+                .map(Utils::getParentDirectory)
+                .collect(Collectors.toList());
         upToDateDirs.addAll(projectFiles.keySet().stream()
-            .filter(projectFile -> !obsoleteDeletedProjectFiles.containsKey(projectFile))
-            .map(Utils::getParentDirectory)
-            .collect(Collectors.toSet()));
+                .filter(projectFile -> !obsoleteDeletedProjectFiles.containsKey(projectFile))
+                .map(Utils::getParentDirectory)
+                .collect(Collectors.toSet()));
         for (int i = 0; i < upToDateDirs.size(); i++) {
             String parentDir = Utils.getParentDirectory(upToDateDirs.get(i));
             if (!upToDateDirs.contains(parentDir)) {
@@ -55,9 +59,9 @@ public class ObsoleteSourcesUtils {
         }
 
         List<String> obsoleteDirPaths = obsoleteDeletedProjectFiles.keySet().stream()
-            .map(Utils::getParentDirectory)
-            .distinct()
-            .collect(Collectors.toList());
+                .map(Utils::getParentDirectory)
+                .distinct()
+                .collect(Collectors.toList());
         for (int i = 0; i < obsoleteDirPaths.size(); i++) {
             String parentDir = Utils.getParentDirectory(obsoleteDirPaths.get(i));
             if (!obsoleteDirPaths.contains(parentDir)) {
@@ -76,8 +80,9 @@ public class ObsoleteSourcesUtils {
     }
 
     private static boolean isFileNotInList(List<String> filesToUpload, String filePath, boolean preserveHierarchy) {
-        String filePathRegex = "^" + (preserveHierarchy ? "" : Utils.PRESERVE_HIERARCHY_REGEX_PART) + Utils.regexPath(filePath) + "$";
+        String filePathRegex = "^" + (preserveHierarchy ? "" : Utils.PRESERVE_HIERARCHY_REGEX_PART)
+                + Utils.regexPath(filePath) + "$";
         return filesToUpload.stream()
-            .noneMatch(Pattern.compile(filePathRegex).asPredicate());
+                .noneMatch(Pattern.compile(filePathRegex).asPredicate());
     }
 }
