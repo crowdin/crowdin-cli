@@ -56,7 +56,7 @@ public class ObsoleteSourcesUtilsTest {
 
     // Issue: https://github.com/crowdin/crowdin-cli/issues/790
     @Test
-    public void testFind() {
+    public void testFindObsoleteProjectFileWithDoubleAsteriskExportPattern() {
         String projectFilePath = Utils.normalizePath("someFeature/sources/file1.strings");
         Map<String, File> projectFilesFromApi = new HashMap<String, File>() {
             {
