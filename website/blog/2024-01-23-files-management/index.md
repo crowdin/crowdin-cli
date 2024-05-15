@@ -1,10 +1,9 @@
 ---
+title: Files Management
 description: Learn how to manage your project's localization files from the command line. Synchronize your source language files and translations with your Crowdin project.
+authors: andrii-bodnar
+tags: [tutorial]
 ---
-
-# Files management
-
-## Introduction
 
 Crowdin CLI allows you to manage your project's localization files from the command line. You can easily synchronize your source language files and translations with your Crowdin project.
 
@@ -13,6 +12,8 @@ There are several commands you can use to manage your files. The CLI provides hi
 The high level commands are [`crowdin upload`](/commands/crowdin-upload) and [`crowdin download`](/commands/crowdin-download). These commands are easy to use and they rely mostly on the configuration file.
 
 The low-level commands include [`crowdin file upload`](/commands/crowdin-file-upload), [`crowdin file download`](/commands/crowdin-file-download), and [`crowdin file delete`](/commands/crowdin-file-delete). These commands are more like a lightweight wrapper over the [Crowdin API](https://developer.crowdin.com/api/v2/). They give you more flexibility and control over the file management process.
+
+<!--truncate-->
 
 ## The `upload` and `download` commands
 
