@@ -22,7 +22,7 @@ crowdin upload sources --config /path/to/your/config/file
 
 ### Sample configuration file
 
-```yaml
+```yml title="crowdin.yml"
 "project_id": "12"
 "api_token": "54e01--your-personal-token--2724a"
 "base_path": "."
@@ -47,10 +47,42 @@ crowdin upload sources --config /path/to/your/config/file
 | `base_url`   | Crowdin API base URL. Can be omitted for crowdin.com. For Crowdin Enterprise use the `https://{organization-name}.api.crowdin.com` |
 
 :::info
-
 For more information how to configure Crowdin CLI, check the [Configuration File](https://developer.crowdin.com/configuration-file/) article.
-
 :::
+
+## Environment Variables
+
+Crowdin CLI supports the use of environment variables for configuration. For example, you can load the API credentials from an environment variable:
+
+```yml title="crowdin.yml"
+"project_id_env": "CROWDIN_PROJECT_ID"
+"api_token_env": "CROWDIN_PERSONAL_TOKEN"
+"base_path_env": "CROWDIN_BASE_PATH"
+"base_url_env": "CROWDIN_BASE_URL"
+```
+
+Environment variables have lower priority and will be used if any of the parameters are missing:
+
+```yml title="crowdin.yml"
+"project_id_env": "CROWDIN_PROJECT_ID"      # Low priority
+"api_token_env": "CROWDIN_PERSONAL_TOKEN"   # Low priority
+"base_path_env": "CROWDIN_BASE_PATH"        # Low priority
+"base_url_env": "CROWDIN_BASE_PATH"         # Low priority
+
+"project_id": "project-id"                  # High priority
+"api_token": "personal-access-token"        # High priority
+"base_path": "/project-base-path"           # High priority
+"base_url": "https://api.crowdin.com"       # High priority
+```
+
+The CLI will also **automatically** pick up the environment variables if they are set in the shell. The supported environment variables are:
+
+| Variable Name            | Description                                                                                                                                                             |
+|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `CROWDIN_PERSONAL_TOKEN` | Personal Access Token required for authentication                                                                                                                       |
+| `CROWDIN_PROJECT_ID`     | Numerical ID of the Crowdin project                                                                                                                                     |
+| `CROWDIN_BASE_URL`       | Base URL of Crowdin server for API requests execution (`https://api.crowdin.com` for crowdin.com, `https://{organization-name}.api.crowdin.com` for Crowdin Enterprise) |
+| `CROWDIN_BASE_PATH`      | Path to your project directory on a local machine (default: `.`)                                                                                                        |
 
 ## Further Reading
 

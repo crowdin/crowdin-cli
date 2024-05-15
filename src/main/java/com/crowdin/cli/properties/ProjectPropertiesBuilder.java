@@ -71,6 +71,15 @@ public class ProjectPropertiesBuilder extends PropertiesBuilder<ProjectPropertie
     }
 
     @Override
+    protected void populateWithEnvValues(ProjectProperties props) {
+        if (props == null) {
+            return;
+        }
+        BaseProperties.CONFIGURATOR.populateWithEnvValues(props);
+        ProjectProperties.CONFIGURATOR.populateWithEnvValues(props);
+    }
+
+    @Override
     protected void populateWithDefaultValues(ProjectProperties props) {
         if (props == null) {
             return;

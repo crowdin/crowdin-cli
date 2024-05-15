@@ -48,6 +48,19 @@ public class PropertiesBuilderChecker extends PropertiesBuilder<AllProperties, N
     }
 
     @Override
+    protected void populateWithEnvValues(AllProperties props) {
+        if (props == null) {
+            return;
+        }
+        BaseProperties.CONFIGURATOR.populateWithEnvValues(props.getProjectProperties());
+        ProjectProperties.CONFIGURATOR.populateWithEnvValues(props.getProjectProperties());
+
+        BaseProperties.CONFIGURATOR.populateWithEnvValues(props.getPropertiesWithFiles());
+        ProjectProperties.CONFIGURATOR.populateWithEnvValues(props.getPropertiesWithFiles());
+        PropertiesWithFiles.CONFIGURATOR.populateWithEnvValues(props.getPropertiesWithFiles());
+    }
+
+    @Override
     protected void populateWithDefaultValues(AllProperties props) {
         if (props == null) {
             return;

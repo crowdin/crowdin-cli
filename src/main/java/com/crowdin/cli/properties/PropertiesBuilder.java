@@ -33,17 +33,25 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String PROJECT_ID_ENV = "project_id_env";
 
+    public static final String CROWDIN_PROJECT_ID = "CROWDIN_PROJECT_ID";
+
     public static final String API_TOKEN = "api_token";
 
     public static final String API_TOKEN_ENV = "api_token_env";
+
+    public static final String CROWDIN_PERSONAL_TOKEN = "CROWDIN_PERSONAL_TOKEN";
 
     public static final String BASE_PATH = "base_path";
 
     public static final String BASE_PATH_ENV = "base_path_env";
 
+    public static final String CROWDIN_BASE_PATH = "CROWDIN_BASE_PATH";
+
     public static final String BASE_URL = "base_url";
 
     public static final String BASE_URL_ENV = "base_url_env";
+
+    public static final String CROWDIN_BASE_URL = "CROWDIN_BASE_URL";
 
     public static final String PRESERVE_HIERARCHY = "preserve_hierarchy";
 
@@ -161,6 +169,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
             this.throwErrorIfNeeded(this.checkArgParams(params), RESOURCE_BUNDLE.getString("error.params_are_invalid"));
             this.populateWithArgParams(props, params);
         }
+        this.populateWithEnvValues(props);
         this.populateWithDefaultValues(props);
         String errorTitle = (configFileParams == null && identityFileParams == null)
             ? RESOURCE_BUNDLE.getString("error.configuration_is_invalid")
@@ -191,6 +200,8 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     protected abstract void populateWithArgParams(T props, @NonNull P params);
 
+    protected abstract void populateWithEnvValues(T props);
+
     protected abstract void populateWithDefaultValues(T props);
 
     protected abstract Messages checkProperties(T props);
@@ -219,6 +230,13 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
             : (properties.containsKey(key))
             ? (properties.get(key) != null) ? properties.get(key).toString() : null
             : null;
+        if (param != null) {
+            setter.accept(param);
+        }
+    }
+
+    static void setEnvIfExists(Consumer<String> setter, String envKey) {
+        String param = getDotenv().get(envKey);
         if (param != null) {
             setter.accept(param);
         }

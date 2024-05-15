@@ -153,6 +153,16 @@ public class PropertiesWithFilesBuilder extends PropertiesBuilder<PropertiesWith
     }
 
     @Override
+    protected void populateWithEnvValues(PropertiesWithFiles props) {
+        if (props == null) {
+            return;
+        }
+        BaseProperties.CONFIGURATOR.populateWithEnvValues(props);
+        ProjectProperties.CONFIGURATOR.populateWithEnvValues(props);
+        PropertiesWithFiles.CONFIGURATOR.populateWithEnvValues(props);
+    }
+
+    @Override
     protected void populateWithDefaultValues(PropertiesWithFiles props) {
         if (props == null) {
             return;
