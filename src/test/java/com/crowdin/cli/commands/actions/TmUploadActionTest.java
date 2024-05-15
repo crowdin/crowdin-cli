@@ -72,7 +72,7 @@ public class TmUploadActionTest {
 
     @Test
     public void test_findById() {
-        action = new TmUploadAction(file, tmIdExists, null, null, null);
+        action = new TmUploadAction(file, tmIdExists, null, null, null, false);
         action.act(out, pb, clientMock);
 
         verify(clientMock).getTm(eq(tmIdExists));
@@ -83,7 +83,7 @@ public class TmUploadActionTest {
 
     @Test
     public void test_findById_throwsNotExists() {
-        action = new TmUploadAction(file, tmIdNotExists, null, null, null);
+        action = new TmUploadAction(file, tmIdNotExists, null, null, null, true);
         assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
 
         verify(clientMock).getTm(eq(tmIdNotExists));
@@ -92,7 +92,7 @@ public class TmUploadActionTest {
 
     @Test
     public void test_noIdentifiers() {
-        action = new TmUploadAction(file, null, null, null, null);
+        action = new TmUploadAction(file, null, null, null, null, false);
         action.act(out, pb, clientMock);
 
         verify(clientMock).addTm(any());
@@ -105,7 +105,7 @@ public class TmUploadActionTest {
     public void test_throwsUploadStorage() {
         when(clientMock.uploadStorage(anyString(), any()))
             .thenThrow(new RuntimeException());
-        action = new TmUploadAction(file, tmIdExists, null, null, null);
+        action = new TmUploadAction(file, tmIdExists, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
 
         verify(clientMock).getTm(eq(tmIdExists));

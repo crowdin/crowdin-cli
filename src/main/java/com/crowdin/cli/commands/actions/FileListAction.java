@@ -70,10 +70,10 @@ class FileListAction implements NewAction<ProjectProperties, ProjectClient> {
                                 file.getRevisionId();
                         out.println(str);
                     } else {
-                        out.println(entry.getValue().getId() + " " + entry.getKey() + " " + entry.getValue().getType());
+                        out.println(String.format("%d %s %s", entry.getValue().getId(), entry.getKey(), entry.getValue().getType()));
                     }
                 } else {
-                    out.println(entry.getValue().getId() + " " + entry.getKey());
+                    out.println(String.format("%d %s", entry.getValue().getId(), entry.getKey()));
                 }
             } else {
                 if (isVerbose) {

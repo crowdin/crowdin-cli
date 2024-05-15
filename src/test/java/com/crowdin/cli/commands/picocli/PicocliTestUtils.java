@@ -66,17 +66,17 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.listTranslations(anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.status(anyBoolean(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
+        when(actionsMock.status(anyBoolean(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any()))
+        when(actionsMock.stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.stringComment(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any()))
+        when(actionsMock.stringComment(anyBoolean(), any(), any(), any(), any(), any()))
                 .thenReturn(actionMock);
         when(actionsMock.stringDelete(any()))
             .thenReturn(actionMock);
-        when(actionsMock.stringEdit(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any()))
+        when(actionsMock.stringEdit(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.stringList(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any()))
+        when(actionsMock.stringList(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.uploadSources(any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
@@ -84,7 +84,7 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.glossaryList(anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.glossaryUpload(any(), any(), any(), any(), any()))
+        when(actionsMock.glossaryUpload(any(), any(), any(), any(), any(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.glossaryDownload(any(), any(), anyBoolean(), any(), any()))
             .thenReturn(actionMock);
@@ -94,7 +94,7 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.taskList(anyBoolean(), anyBoolean(), any(), any()))
             .thenReturn(actionMock);
-        when(actionsMock.taskAdd(anyBoolean(), any(), any(), any(), any(), any(), anyLong(), any(), anyBoolean(), anyBoolean(), anyBoolean(), any(), any()))
+        when(actionsMock.taskAdd(anyBoolean(), any(), any(), any(), any(), any(), anyLong(), any(), anyBoolean(), anyBoolean(), anyBoolean(), any(), any(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.distributionList(anyBoolean()))
                 .thenReturn(actionMock);
@@ -130,13 +130,13 @@ public class PicocliTestUtils {
                 .thenReturn(actionMock);
         when(actionsMock.commentList(anyBoolean(), anyBoolean(),any(),any(),any(),any()))
                 .thenReturn(actionMock);
-        when(actionsMock.tmUpload(any(), any(), any(), any(), any()))
+        when(actionsMock.tmUpload(any(), any(), any(), any(), any(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.checkNewVersion())
             .thenReturn(actionMock);
         when(actionsMock.projectBrowse()).thenReturn(actionMock);
         when(actionsMock.projectList(anyBoolean())).thenReturn(actionMock);
-        when(actionsMock.branchClone(any(), any(), anyBoolean()))
+        when(actionsMock.branchClone(any(), any(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
     }
 

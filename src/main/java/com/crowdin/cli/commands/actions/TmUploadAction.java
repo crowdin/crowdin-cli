@@ -9,6 +9,7 @@ import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.BaseProperties;
 import com.crowdin.client.translationmemory.model.AddTranslationMemoryRequest;
 import com.crowdin.client.translationmemory.model.TranslationMemory;
+import lombok.AllArgsConstructor;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -19,6 +20,7 @@ import static com.crowdin.cli.BaseCli.DEFAULT_TM_NAME;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
+@AllArgsConstructor
 class TmUploadAction implements NewAction<BaseProperties, ClientTm> {
 
     private final File file;
@@ -26,14 +28,7 @@ class TmUploadAction implements NewAction<BaseProperties, ClientTm> {
     private final String languageId;
     private final Map<String, Integer> scheme;
     private final Boolean firstLineContainsHeader;
-
-    public TmUploadAction(File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
-        this.file = file;
-        this.id = id;
-        this.languageId = languageId;
-        this.scheme = scheme;
-        this.firstLineContainsHeader = firstLineContainsHeader;
-    }
+    private final boolean plainView;
 
     @Override
     public void act(Outputter out, BaseProperties pb, ClientTm client) {
@@ -46,8 +41,12 @@ class TmUploadAction implements NewAction<BaseProperties, ClientTm> {
             throw ExitCodeExceptionMapper.remap(e, RESOURCE_BUNDLE.getString("error.upload_to_storage"));
         }
         client.importTm(targetTm.getId(), RequestBuilder.importTranslationMemory(storageId, scheme, firstLineContainsHeader));
-        out.println(OK.withIcon(
-            String.format(RESOURCE_BUNDLE.getString("message.tm.import_success"), targetTm.getId(), targetTm.getName())));
+        if (!plainView) {
+            out.println(OK.withIcon(
+                String.format(RESOURCE_BUNDLE.getString("message.tm.import_success"), targetTm.getId(), targetTm.getName())));
+        } else {
+            out.println(targetTm.getId().toString());
+        }
     }
 
     private TranslationMemory getTm(ClientTm client, boolean isEnterprise) {

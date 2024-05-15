@@ -56,6 +56,9 @@ class StringAddSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--zero"}, descriptionKey = "crowdin.string.add.zero", paramLabel = "...", order = -2)
     protected String zero;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
     @Override
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
@@ -74,6 +77,6 @@ class StringAddSubcommand extends ActCommandProject {
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
         return actions.stringAdd(noProgress, text, identifier, maxLength, context, files, labelNames, branch, isHidden,
-            one, two, few, many, zero);
+            one, two, few, many, zero, plainView);
     }
 }

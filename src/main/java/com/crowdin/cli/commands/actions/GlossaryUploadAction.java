@@ -26,13 +26,15 @@ class GlossaryUploadAction implements NewAction<BaseProperties, ClientGlossary> 
     private final String languageId;
     private final Map<String, Integer> scheme;
     private final Boolean firstLineContainsHeader;
+    private final boolean plainView;
 
-    public GlossaryUploadAction(@NonNull java.io.File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader) {
+    public GlossaryUploadAction(@NonNull java.io.File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader, boolean plainView) {
         this.file = file;
         this.id = id;
         this.languageId = languageId;
         this.scheme = scheme;
         this.firstLineContainsHeader = firstLineContainsHeader;
+        this.plainView = plainView;
     }
 
     @Override
@@ -54,7 +56,11 @@ class GlossaryUploadAction implements NewAction<BaseProperties, ClientGlossary> 
             throw ExitCodeExceptionMapper.remap(e, RESOURCE_BUNDLE.getString("error.upload_to_storage"));
         }
         client.importGlossary(targetGlossary.getId(), RequestBuilder.importGlossary(storageId, scheme, firstLineContainsHeader));
-        out.println(OK.withIcon(
+        if (!plainView) {
+            out.println(OK.withIcon(
                 String.format(RESOURCE_BUNDLE.getString("message.glossary.import_success"), targetGlossary.getId(), targetGlossary.getName())));
+        } else {
+            out.println(targetGlossary.getId().toString());
+        }
     }
 }

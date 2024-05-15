@@ -34,9 +34,12 @@ class GlossaryUploadSubcommand extends ActCommandGlossary {
     @CommandLine.Option(names = {"--first-line-contains-header"}, descriptionKey = "crowdin.glossary.upload.first-line-contains-header", order = -2)
     private Boolean firstLineContainsHeader;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
     @Override
     protected NewAction<BaseProperties, ClientGlossary> getAction(Actions actions) {
-        return actions.glossaryUpload(file, id, languageId, scheme, firstLineContainsHeader);
+        return actions.glossaryUpload(file, id, languageId, scheme, firstLineContainsHeader, plainView);
     }
 
     @Override

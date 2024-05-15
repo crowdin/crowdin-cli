@@ -12,7 +12,7 @@ public class StringListSubcommandTest extends PicocliTestUtils {
     public void testStringList() {
         this.execute(CommandNames.STRING, CommandNames.LIST);
         verify(actionsMock)
-            .stringList(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any());
+            .stringList(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any(), anyBoolean());
         this.check(true);
     }
 
@@ -20,7 +20,7 @@ public class StringListSubcommandTest extends PicocliTestUtils {
     public void testStringList2() {
         this.execute(CommandNames.STRING, CommandNames.LIST, "--file", "some/path/to/file.txt");
         verify(actionsMock)
-            .stringList(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any());
+            .stringList(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any(), anyBoolean());
         this.check(true);
     }
 }

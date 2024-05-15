@@ -6,6 +6,7 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.client.stringcomments.model.IssueStatus;
 import com.crowdin.client.stringcomments.model.StringComment;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.List;
@@ -16,6 +17,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.client.stringcomments.model.Type.ISSUE;
 
+@AllArgsConstructor
 class CommentListAction implements NewAction<ProjectProperties, ClientComment> {
 
     private final boolean plainView;
@@ -25,24 +27,11 @@ class CommentListAction implements NewAction<ProjectProperties, ClientComment> {
     private final com.crowdin.client.issues.model.Type issueType;
     private final IssueStatus status;
 
-    public CommentListAction(boolean plainView, boolean isVerbose, String stringId,
-                             com.crowdin.client.stringcomments.model.Type type,
-                             com.crowdin.client.issues.model.Type issueType,
-                             IssueStatus status) {
-        this.plainView = plainView;
-        this.isVerbose = isVerbose;
-        this.stringId = stringId;
-        this.type = type;
-        this.issueType = issueType;
-        this.status = status;
-    }
-
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientComment client) {
         if (status != null && type == null) {
             type = ISSUE;
         }
-
         List<StringComment> comments = client.listComment(stringId, type, issueType, status);
 
         for (StringComment comment : comments) {

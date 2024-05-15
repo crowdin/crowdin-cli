@@ -78,7 +78,7 @@ public class GlossaryUploadActionTest {
 
     @Test
     public void test_withId() {
-        action = new GlossaryUploadAction(file, glossaryId, null, null, null);
+        action = new GlossaryUploadAction(file, glossaryId, null, null, null, true);
         action.act(Outputter.getDefault(), pb, clientMock);
 
         verify(clientMock).getGlossary(eq(glossaryId));
@@ -89,7 +89,7 @@ public class GlossaryUploadActionTest {
 
     @Test
     public void test_noIdentifiers_createNew() {
-        action = new GlossaryUploadAction(file, null, null, null, null);
+        action = new GlossaryUploadAction(file, null, null, null, null, false);
         action.act(Outputter.getDefault(), pb, clientMock);
 
         verify(clientMock).addGlossary(any());
@@ -100,7 +100,7 @@ public class GlossaryUploadActionTest {
 
     @Test
     public void test_withId_throwsNotFound() {
-        action = new GlossaryUploadAction(file, glossaryIdNotExist, null, null, null);
+        action = new GlossaryUploadAction(file, glossaryIdNotExist, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, clientMock));
 
         verify(clientMock).getGlossary(eq(glossaryIdNotExist));
@@ -109,7 +109,7 @@ public class GlossaryUploadActionTest {
 
     @Test
     public void test_standard_throwsFileNotFound() {
-        action = new GlossaryUploadAction(fileNotExist, glossaryId, null, null, null);
+        action = new GlossaryUploadAction(fileNotExist, glossaryId, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, clientMock));
 
         verify(clientMock).getGlossary(eq(glossaryId));

@@ -15,6 +15,7 @@ import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.sourcestrings.model.SourceString;
+import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
@@ -24,6 +25,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 import static java.util.Objects.nonNull;
 
+@AllArgsConstructor
 class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private final boolean noProgress;
@@ -35,23 +37,12 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
     private final String croql;
     private final String directory;
     private final String scope;
-
-    public StringListAction(boolean noProgress, boolean isVerbose, String file, String filter, String branchName, List<String> labelNames, String croql, String directory, String scope) {
-        this.noProgress = noProgress;
-        this.isVerbose = isVerbose;
-        this.file = file;
-        this.filter = filter;
-        this.branchName = branchName;
-        this.labelNames = labelNames;
-        this.croql = croql;
-        this.directory = directory;
-        this.scope = scope;
-    }
+    private final boolean plainView;
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress, false, () -> client.downloadFullProject(this.branchName));
+                this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
         Long branchId = Optional.ofNullable(project.getBranch())
@@ -105,7 +96,7 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         if (sourceStrings.isEmpty()) {
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.source_string_list_not_found")));
         }
-        sourceStrings.forEach(ss -> printSourceString(ss, labelsMap, out, isStringsBasedProject, finalReversePaths, isVerbose));
+        sourceStrings.forEach(ss -> printSourceString(ss, labelsMap, out, isStringsBasedProject, finalReversePaths, isVerbose, plainView));
     }
 
     public static void printSourceString(
@@ -114,7 +105,8 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
             Outputter out,
             boolean isStringsBasedProject,
             Map<Long, String> finalReversePaths,
-            boolean isVerbose
+            boolean isVerbose,
+            boolean plainView
     ) {
         String labelsString = (ss.getLabelIds() != null)
                 ? ss.getLabelIds().stream().map(labelsMap::get).map(s -> String.format("@|cyan %s|@", s)).collect(Collectors.joining(", "))
@@ -131,10 +123,14 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         } else {
             text.append((String) ss.getText());
         }
-        if (ss.getIdentifier() == null) {
-            out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text_short"), ss.getId(), text));
+        if (!plainView) {
+            if (ss.getIdentifier() == null) {
+                out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text_short"), ss.getId(), text));
+            } else {
+                out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getIdentifier(), text));
+            }
         } else {
-            out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text"), ss.getId(), ss.getIdentifier(), text));
+            out.println(ss.getId().toString());
         }
         if (isVerbose) {
             if (!isStringsBasedProject && (ss.getFileId() != null)) {

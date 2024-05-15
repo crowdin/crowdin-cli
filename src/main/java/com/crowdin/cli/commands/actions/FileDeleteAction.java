@@ -29,7 +29,7 @@ class FileDeleteAction implements NewAction<ProjectProperties, ProjectClient> {
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                true, true, client::downloadFullProject);
+                false, false, client::downloadFullProject);
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
         if (isStringsBasedProject) {
             out.println(SKIPPED.withIcon(RESOURCE_BUNDLE.getString("message.no_file_string_project")));

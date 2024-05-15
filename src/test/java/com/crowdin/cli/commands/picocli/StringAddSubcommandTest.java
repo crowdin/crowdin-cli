@@ -12,7 +12,7 @@ public class StringAddSubcommandTest extends PicocliTestUtils {
     public void testStringAdd() {
         this.execute(CommandNames.STRING, CommandNames.ADD, "\"Text\"", "--debug");
         verify(actionsMock)
-            .stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
+            .stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean());
         this.check(true);
     }
 
@@ -25,7 +25,7 @@ public class StringAddSubcommandTest extends PicocliTestUtils {
     public void testStringAdd2() {
         this.execute(CommandNames.STRING, CommandNames.ADD, "\"Text\"", "--file", "path/to/file.txt");
         verify(actionsMock)
-            .stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
+            .stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean());
         this.check(true);
     }
 }

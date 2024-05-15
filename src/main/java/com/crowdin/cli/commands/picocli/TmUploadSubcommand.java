@@ -34,9 +34,12 @@ class TmUploadSubcommand extends ActCommandTm {
     @CommandLine.Option(names = {"--first-line-contains-header"}, descriptionKey = "crowdin.tm.upload.first-line-contains-header", order = -2)
     private Boolean firstLineContainsHeader;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
     @Override
     protected NewAction<BaseProperties, ClientTm> getAction(Actions actions) {
-        return actions.tmUpload(file, id, languageId, scheme, firstLineContainsHeader);
+        return actions.tmUpload(file, id, languageId, scheme, firstLineContainsHeader, plainView);
     }
 
     @Override

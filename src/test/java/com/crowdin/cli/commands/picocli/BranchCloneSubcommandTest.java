@@ -11,7 +11,7 @@ class BranchCloneSubcommandTest extends PicocliTestUtils {
     @Test
     public void testBranchClone() {
         this.execute(CommandNames.BRANCH, CommandNames.BRANCH_CLONE, "main", "clone");
-        verify(actionsMock).branchClone(any(), any(), anyBoolean());
+        verify(actionsMock).branchClone(any(), any(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 }

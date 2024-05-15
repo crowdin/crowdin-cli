@@ -17,6 +17,7 @@ import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.translations.model.*;
+import lombok.AllArgsConstructor;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,6 +25,7 @@ import java.util.stream.Collectors;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
+@AllArgsConstructor
 class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private final List<String> languageIds;
@@ -38,24 +40,6 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
     private final boolean noProgress;
     private final boolean plainView;
     private final List<String> labelNames;
-
-    public PreTranslateAction(
-            List<String> languageIds, List<String> files, Method method, Long engineId, String branchName, AutoApproveOption autoApproveOption, Boolean duplicateTranslations,
-            Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress, boolean plainView, List<String> labelNames
-    ) {
-        this.languageIds = languageIds;
-        this.files = files;
-        this.method = method;
-        this.engineId = engineId;
-        this.branchName = branchName;
-        this.autoApproveOption = autoApproveOption;
-        this.duplicateTranslations = duplicateTranslations;
-        this.translateUntranslatedOnly = translateUntranslatedOnly;
-        this.translateWithPerfectMatchOnly = translateWithPerfectMatchOnly;
-        this.noProgress = noProgress;
-        this.plainView = plainView;
-        this.labelNames = labelNames;
-    }
 
     @Override
     public void act(Outputter out, PropertiesWithFiles properties, ProjectClient client) {

@@ -12,7 +12,7 @@ public class StringEditSubcommandTest extends PicocliTestUtils {
     public void testStringEdit() {
         this.execute(CommandNames.STRING, CommandNames.STRING_EDIT, "42", "--text", "NeW tExT");
         verify(actionsMock)
-            .stringEdit(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any());
+            .stringEdit(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any(), anyBoolean());
         this.check(true);
     }
 

@@ -72,22 +72,22 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<ProjectProperties, ProjectClient> status(
-        boolean noProgress, String branchName, String languageId, String file, String directory, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failIfIncomplete
+        boolean noProgress, String branchName, String languageId, String file, String directory, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failIfIncomplete, boolean plainView
     ) {
-        return new StatusAction(noProgress, branchName, languageId, file, directory, isVerbose, showTranslated, showApproved, failIfIncomplete);
+        return new StatusAction(noProgress, branchName, languageId, file, directory, isVerbose, showTranslated, showApproved, failIfIncomplete, plainView);
     }
 
     @Override
     public NewAction<ProjectProperties, ProjectClient> stringAdd(
         boolean noProgress, String text, String identifier, Integer maxLength, String context, List<String> files, List<String> labelNames, String branch, Boolean hidden,
-        String one, String two, String few, String many, String zero
+        String one, String two, String few, String many, String zero, boolean plainView
     ) {
-        return new StringAddAction(noProgress, text, identifier, maxLength, context, files, labelNames, branch, hidden, one, two, few, many, zero);
+        return new StringAddAction(noProgress, text, identifier, maxLength, context, files, labelNames, branch, hidden, one, two, few, many, zero, plainView);
     }
+
     @Override
-    public NewAction<ProjectProperties, ProjectClient> stringComment(boolean plainView,
-            boolean noProgress, String text, String stringId, String language, String type, String issueType) {
-        return new StringCommentAction(plainView, noProgress, text, stringId, language, type, issueType);
+    public NewAction<ProjectProperties, ProjectClient> stringComment(boolean plainView, String text, String stringId, String language, String type, String issueType) {
+        return new StringCommentAction(plainView, text, stringId, language, type, issueType);
     }
 
     @Override
@@ -97,16 +97,17 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<ProjectProperties, ProjectClient> stringEdit(
-            boolean noProgress, boolean isVerbose, Long id, String identifier, String newText, String newContext, Integer newMaxLength, List<String> labelNames, Boolean isHidden
+            boolean noProgress, boolean isVerbose, Long id, String identifier, String newText, String newContext,
+            Integer newMaxLength, List<String> labelNames, Boolean isHidden, boolean plainView
     ) {
-        return new StringEditAction(noProgress, isVerbose, id, identifier, newText, newContext, newMaxLength, labelNames, isHidden);
+        return new StringEditAction(noProgress, isVerbose, id, identifier, newText, newContext, newMaxLength, labelNames, isHidden, plainView);
     }
 
     @Override
     public NewAction<ProjectProperties, ProjectClient> stringList(
-        boolean noProgress, boolean isVerbose, String file, String filter, String branchName, List<String> labelNames, String croql, String directory, String scope
+        boolean noProgress, boolean isVerbose, String file, String filter, String branchName, List<String> labelNames, String croql, String directory, String scope, boolean plainView
     ) {
-        return new StringListAction(noProgress, isVerbose, file, filter, branchName, labelNames, croql, directory, scope);
+        return new StringListAction(noProgress, isVerbose, file, filter, branchName, labelNames, croql, directory, scope, plainView);
     }
 
     @Override
@@ -131,9 +132,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<BaseProperties, ClientGlossary> glossaryUpload(
-        java.io.File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
+        java.io.File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader, boolean plainView
     ) {
-        return new GlossaryUploadAction(file, id, languageId, scheme, firstLineContainsHeader);
+        return new GlossaryUploadAction(file, id, languageId, scheme, firstLineContainsHeader, plainView);
     }
 
     @Override
@@ -150,9 +151,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<BaseProperties, ClientTm> tmUpload(
-        File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader
+        File file, Long id, String languageId, Map<String, Integer> scheme, Boolean firstLineContainsHeader, boolean plainView
     ) {
-        return new TmUploadAction(file, id, languageId, scheme, firstLineContainsHeader);
+        return new TmUploadAction(file, id, languageId, scheme, firstLineContainsHeader, plainView);
     }
 
     @Override
@@ -171,9 +172,10 @@ public class CliActions implements Actions {
     @Override
     public NewAction<ProjectProperties, ClientTask> taskAdd(boolean noProgress, String title, Integer type, String language,
         List<String> files, String branch, Long workflowStep, String description, boolean skipAssignedStrings,
-        boolean skipUntranslatedStrings, boolean includePreTranslatedStringsOnly, List<Long> labels, ProjectClient projectClient
+        boolean skipUntranslatedStrings, boolean includePreTranslatedStringsOnly, List<Long> labels, ProjectClient projectClient, boolean plainView
     ) {
-        return new TaskAddAction(noProgress, title, type, language, files, branch, workflowStep, description, skipAssignedStrings, skipUntranslatedStrings, includePreTranslatedStringsOnly, labels, projectClient);
+        return new TaskAddAction(noProgress, title, type, language, files, branch, workflowStep, description, skipAssignedStrings,
+            skipUntranslatedStrings, includePreTranslatedStringsOnly, labels, projectClient, plainView);
     }
 
     @Override
@@ -228,13 +230,13 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> branchAdd(String name, String title, String exportPattern, Priority priority) {
-        return new BranchAddAction(name, title, exportPattern, priority);
+    public NewAction<ProjectProperties, ProjectClient> branchAdd(String name, String title, String exportPattern, Priority priority, boolean plainView) {
+        return new BranchAddAction(name, title, exportPattern, priority, plainView);
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> branchClone(String source, String target, boolean noProgress) {
-        return new BranchCloneAction(source, target, noProgress);
+    public NewAction<ProjectProperties, ProjectClient> branchClone(String source, String target, boolean noProgress, boolean plainView) {
+        return new BranchCloneAction(source, target, noProgress, plainView);
     }
 
     @Override

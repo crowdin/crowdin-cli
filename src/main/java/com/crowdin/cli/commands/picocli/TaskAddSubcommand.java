@@ -55,6 +55,9 @@ class TaskAddSubcommand extends ActCommandTask {
     @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "crowdin.task.add.label", order = -2)
     protected List<Long> labels;
 
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
+
     @Override
     protected NewAction<ProjectProperties, ClientTask> getAction(Actions actions) {
         int intType = TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) ? 0 : 1;
@@ -74,7 +77,8 @@ class TaskAddSubcommand extends ActCommandTask {
             skipUntranslatedStrings,
             includePreTranslatedStringsOnly,
             labels,
-            projectClient
+            projectClient,
+            plainView
         );
     }
 
