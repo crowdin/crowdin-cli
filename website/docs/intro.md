@@ -81,42 +81,6 @@ Here are the common config options for all CLI commands:
 
 Some commands have their own config options.
 
-## Environment Variables
-
-Configuration can be specified using Environment Variables. They have the lowest priority and are used in case any of the parameters are missed.
-
-Here are Environment Variables that  can be used:
-
-| <div style={{width:170 + 'px'}}>Option</div> | Description                                                                                                                                                             |
-|----------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| CROWDIN_PERSONAL_TOKEN                       | Personal Access Token required for authentication                                                                                                                       |
-| CROWDIN_BASE_URL                             | Base URL of Crowdin server for API requests execution (`https://api.crowdin.com` for crowdin.com, `https://{organization-name}.api.crowdin.com` for Crowdin Enterprise) |
-| CROWDIN_BASE_PATH                            | Path to your project directory on a local machine (default: `.`)                                                                                                        |
-| CROWDIN_PROJECT_ID                           | Numerical ID of the Crowdin project                                                                                                                                     |
-
-
-You can also map the Environment Variable in the configuration file, for example:
-
-```ini
-"project_id_env": "CROWDIN_PROJECT_ID"
-"api_token_env": "CROWDIN_PERSONAL_TOKEN"
-"base_path_env": "CROWDIN_BASE_PATH"
-"base_url_env": "CROWDIN_BASE_URL"
-```
-
-If mixed, api_token and project_id are prioritized:
-
-```ini
-"project_id_env": "CROWDIN_PROJECT_ID"      # Low priority
-"api_token_env": "CROWDIN_PERSONAL_TOKEN"   # Low priority
-"base_path_env": "CROWDIN_BASE_PATH"        # Low priority
-"base_url_env": "CROWDIN_BASE_PATH"         # Low priority
-"project_id": "projectId"                   # High priority
-"api_token": "personal-access-token"        # High priority
-"base_path": "/project-base-path"           # High priority
-"base_url": "https://api.crowdin.com"       # High priority
-```
-
 ## Requirements
 
 Check that you have Java 8 or newer installed. Type `java -version` command in the terminal (Command Prompt on Windows) to check Java version. For example, java version "1.8.0_212" means that you have Java 8 Update 212 installed.
