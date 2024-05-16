@@ -136,6 +136,8 @@ The `generate` alias has been removed:
 +crowdin init
 ```
 
+New `quite` option was added to not ask for interactive input prompts.
+
 ### Lint
 
 The `lint` command has been replaced with the [`config lint`](/commands/crowdin-config-lint) command:
