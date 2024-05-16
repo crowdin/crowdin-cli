@@ -6,7 +6,8 @@ import picocli.CommandLine;
     name = CommandNames.BUNDLE,
     subcommands = {
         BundleListSubcommand.class,
-        BundleAddSubcommand.class
+        BundleAddSubcommand.class,
+        BundleDownloadSubcommand.class,
     }
 )
 class BundleSubcommand extends HelpCommand {
