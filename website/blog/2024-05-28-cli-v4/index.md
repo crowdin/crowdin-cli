@@ -145,6 +145,10 @@ The `lint` command has been replaced with the [`config lint`](/commands/crowdin-
 + crowdin config lint
 ```
 
+### Bundle
+
+The `download bundle` command has been replaced with the [`bundle download`](/commands/crowdin-bundle-download) command.
+
 ## Exit codes
 
 This release also includes more exit codes (previously we only had `0` for success and `1` for failure).

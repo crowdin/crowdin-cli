@@ -66,7 +66,6 @@ const sidebars = {
           items: [
             'commands/crowdin-download-translations',
             'commands/crowdin-download-sources',
-            'commands/crowdin-download-bundle',
           ]
         },
         {
@@ -172,6 +171,7 @@ const sidebars = {
           items: [
             'commands/crowdin-bundle-list',
             'commands/crowdin-bundle-add',
+            'commands/crowdin-bundle-download',
           ]
         },
         {

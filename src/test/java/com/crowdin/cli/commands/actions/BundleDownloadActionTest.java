@@ -20,13 +20,13 @@ import java.util.Optional;
 
 import static org.mockito.Mockito.*;
 
-public class DownloadBundleActionTest {
+public class BundleDownloadActionTest {
 
     TempProject project;
 
     @BeforeEach
     public void createProj() {
-        project = new TempProject(DownloadBundleActionTest.class);
+        project = new TempProject(BundleDownloadActionTest.class);
     }
 
     @AfterEach
@@ -63,7 +63,7 @@ public class DownloadBundleActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<ProjectProperties, ClientBundle> action =
-                new DownloadBundleAction(bundle.getId(), files, false, false, false, false);
+                new BundleDownloadAction(bundle.getId(), files, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).getBundle(bundle.getId());
@@ -101,7 +101,7 @@ public class DownloadBundleActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<ProjectProperties, ClientBundle> action =
-                new DownloadBundleAction(bundle.getId(), files, false, false, false, true);
+                new BundleDownloadAction(bundle.getId(), files, false, false, false, true);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).getBundle(bundle.getId());

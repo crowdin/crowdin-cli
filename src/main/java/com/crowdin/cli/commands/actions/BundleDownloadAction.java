@@ -22,7 +22,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
-public class DownloadBundleAction implements NewAction<ProjectProperties, ClientBundle> {
+public class BundleDownloadAction implements NewAction<ProjectProperties, ClientBundle> {
 
     private final Long id;
     private final FilesInterface files;
@@ -34,7 +34,7 @@ public class DownloadBundleAction implements NewAction<ProjectProperties, Client
 
     private Outputter out;
 
-    public DownloadBundleAction(Long id, FilesInterface files, boolean plainView, boolean keepArchive, boolean noProgress, boolean dryrun) {
+    public BundleDownloadAction(Long id, FilesInterface files, boolean plainView, boolean keepArchive, boolean noProgress, boolean dryrun) {
         this.id = id;
         this.files = files;
         this.plainView = plainView;
