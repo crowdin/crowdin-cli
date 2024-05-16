@@ -5,13 +5,13 @@ authors: [andrii-bodnar, yevheniyJ]
 tags: [release]
 ---
 
-Today we are happy to announce Crowdin CLI 4.0! 🥳
+Today we are happy to announce Crowdin CLI **4.0**! 🥳
 
-Almost 5 years have passed since the release of Crowdin CLI 3.0. During this time we've received a lot of feedback from our users and worked hard to improve the tool. We've made many changes and improvements.
+It has been almost five years since the release of Crowdin CLI 3.0. During this time, we have received extensive feedback from our users and worked diligently to improve the tool. As a result, we've made many changes and improvements.
 
-The new version of Crowdin CLI brings a lot of new features and improvements. We've added new commands, updated existing commands and improved the overall user experience.
+The new version of Crowdin CLI introduces a lot of new features and enhancements. We've added new commands, updated existing ones, and significantly improved the overall user experience.
 
-This post is intended to highlight the most important changes and help you migrate from CLI v3 with ease. It is not a comprehensive guide, but rather a list of the most important changes.
+This post is intended to highlight the most important changes and help you migrate from CLI 3.x with ease. It is not a comprehensive guide, but rather a list of the most important changes.
 
 <!--truncate-->
 
@@ -28,25 +28,37 @@ As part of this release, the minimum Java version has been updated to **17 LTS**
 - [`crowdin branch merge`](/commands/crowdin-branch-merge)
 - [`crowdin completion`](/autocompletion)
 
+## New command options
+
+| <div style={{width:150 + 'px'}}>Command</div> | Option/Description                                                                                                 |
+|-----------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
+| `init`                                        | <kbd>--quiet</kbd> option to skip interactive input prompts                                                        |
+| `string add`                                  | <kbd>--branch</kbd> option to specify the branch to which the new string should be added                           |
+| `string list`                                 | <kbd>--directory</kbd> and <kbd>--scope</kbd> options to filter strings by directory and scope                     |
+| `pre-translate`                               | <kbd>--file</kbd> option to specify the file(s) in the Crowdin project to pre-translate                            |
+| `pre-translate`                               | <kbd>ai</kbd> method and <kbd>--ai-prompt</kbd> parameter to allow pre-translation via AI                          |
+| `file upload`                                 | <kbd>--type</kbd> and <kbd>--parser-version</kbd> options to specify the file type and parser version respectively |
+| `file upload`                                 | <kbd>--context</kbd> option to provide a context about the whole file                                              |
+| `file list`                                   | <kbd>--verbose</kbd> option to show more information about the files                                               |
+| `language list`                               | <kbd>--all</kbd> option to list all languages for the current account                                              |
+
 ## Command updates
 
 ### Pre-translate
 
-We've made significant changes to the [`pre-translate`](/commands/crowdin-pre-translate) command. The command now requires the `--file` parameter for file-based projects. The `--file` parameter determines which files to pre-translate. Previously, the command relied on the current configuration, and it was only possible to pre-translate the files that matched the configuration patterns. Now you can specify any file(s) in the Crowdin project to pre-translate.
+We've made significant changes to the [`pre-translate`](/commands/crowdin-pre-translate) command. The command now requires the <kbd>--file</kbd> parameter for file-based projects. The <kbd>--file</kbd> parameter determines which files to pre-translate. Previously, the command relied on the current configuration, and it was only possible to pre-translate the files that matched the configuration patterns. Now you can specify any file(s) in the Crowdin project to pre-translate.
 
 Tip: Use the [`file list`](/commands/crowdin-file-list) command to get the file paths in the current project.
 
 ### String
 
-* Added the `--branch` parameter support instead of specifying a branch in the file path in the [`string add`](/commands/crowdin-string-add) command.
 * The [`string edit`](/commands/crowdin-string-edit) command changes:
-  * Moved `id` to parameter.
-  * Now `--identifier` is used as an option to edit and not to find the needed string.
+  * Moved <kbd>id</kbd> to a parameter instead of a command option.
+  * Now <kbd>--identifier</kbd> is used as an option to edit and not to find the needed string.
 * The [`string delete`](/commands/crowdin-string-delete) command changes:
-  * Moved `id` to parameter. Now only 1 string can be removed at a time.
-  * Removed the `--text` and `--identifier` options. Only `id` is used as a string identifier.
-* Added `--directory` and `--scope` options to the [`string list`](/commands/crowdin-string-list) command.
-* `comment` command was moved to [`comment add`](/commands/crowdin-comment-add) command.
+  * Moved <kbd>id</kbd> to a parameter instead of a command option. Now only 1 string can be removed at a time.
+  * Removed the <kbd>--text</kbd> and <kbd>--identifier</kbd> options. Only <kbd>id</kbd> is used as a string identifier.
+* The `comment` command has been replaced with the [`comment add`](/commands/crowdin-comment-add) command.
 
 ```diff
 -crowdin string add Download --file main/src/strings.xml --identifier "download"
@@ -65,11 +77,7 @@ Tip: Use the [`file list`](/commands/crowdin-file-list) command to get the file 
 * The `list sources` command has been replaced with the [`config sources`](/commands/crowdin-config-sources) command.
 * The `list translations` command has been replaced with the [`config translations`](/commands/crowdin-config-translations) command.
 * The `list project` command has been replaced with the [`file list`](/commands/crowdin-file-list) command.
-  * Added verbose (`--verbose`) output.
-  * Added a possibility to download translations for all project languages (`-l all`).
 * The `list languages` command has been replaced with the [`language list`](/commands/crowdin-language-list) command.
-  * Changed default `code` for list command. Now it's `id` instead of `two_letters_code`. It's more convenient since the `id` is used for the `--language` parameter in various commands.
-  * Added a new parameter `--all` which allows to list all languages for the current account.
 
 ```diff
 -crowdin list branches
@@ -88,9 +96,15 @@ Tip: Use the [`file list`](/commands/crowdin-file-list) command to get the file 
 +crowdin language list
 ```
 
+:::info
+The default language code for the `language list` command output has been changed from `two_letters_code` to `id`.
+
+This change makes it more convenient, as the `id` is used consistently for the `--language` parameter across various commands.
+:::
+
 ### Glossary
 
-The `name` property has been removed from the `upload` and `download` commands:
+The <kbd>--name</kbd> option has been removed from the `upload` and `download` commands, and the <kbd><id\></kbd> parameter is now used instead:
 
 ```diff
 -crowdin glossary download --id <id>
@@ -105,7 +119,7 @@ Tip: Use the [`glossary list`](/commands/crowdin-glossary-list) command to get t
 
 ### TM
 
-The `name` property has been removed from `upload` and `download` commands:
+The <kbd>--name</kbd> option has been removed from `upload` and `download` commands, and the <kbd><id\></kbd> parameter is now used instead:
 
 ```diff
 -crowdin tm download --id <id>
@@ -120,7 +134,7 @@ Tip: Use the [`tm list`](/commands/crowdin-tm-list) command to get the `id`.
 
 ### Screenshot
 
-The `name` parameter has been replaced with the `id` for the `delete` command because there can be multiple screenshots with the same name:
+The <kbd>--name</kbd> option has been replaced with the <kbd><id\></kbd> parameter for the `delete` command because there can be multiple screenshots with the same name:
 
 ```diff
 -crowdin screenshot delete <name>
@@ -137,8 +151,6 @@ The `generate` alias has been removed:
 -crowdin generate
 +crowdin init
 ```
-
-New `quiet` option was added to not ask for interactive input prompts.
 
 ### Lint
 
