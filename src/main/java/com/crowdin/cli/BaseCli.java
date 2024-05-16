@@ -2,11 +2,7 @@ package com.crowdin.cli;
 
 import com.crowdin.cli.utils.Utils;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.ResourceBundle;
 
 /**
@@ -14,34 +10,14 @@ import java.util.ResourceBundle;
  */
 public class BaseCli {
 
-    public static final List<String> DEFAULT_CONFIGS = Collections.unmodifiableList(Arrays.asList("crowdin.yml", "crowdin.yaml"));
+    public static final List<String> DEFAULT_CONFIGS = List.of("crowdin.yml", "crowdin.yaml");
 
     public static final String DEFAULT_GLOSSARY_NAME = "Created in Crowdin CLI (%s)";
     public static final String DEFAULT_TM_NAME = "Created in Crowdin CLI (%s)";
 
     public static final String ALL = "ALL";
 
-    public static final List<String> DEFAULT_IDENTITY_FILES = Collections.unmodifiableList(Arrays.asList(
-        System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yml",
-        System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yaml"
-    ));
-
-    /**
-     * File format -> Export File Format (see https://support.crowdin.com/api/v2/#operation/api.projects.translations.exports.post)
-     */
-    public static final Map<String, String> FILE_FORMAT_MAPPER = Collections.unmodifiableMap(new HashMap<String, String>() {{
-                put("xliff", "xliff");
-                put("xml", "android");
-                put("strings", "macosx");
-                put("yml", "yaml-export");
-                put("resx", "crowdin-resx");
-                put("csv", "crowdin-csv");
-                put("properties", "crowdin-properties");
-                put("arb", "arb-export");
-                put("stringsdict", "stringsdict-export");
-                put("po", "po-export");
-        }}
-    );
+    public static final List<String> DEFAULT_IDENTITY_FILES = List.of(System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yml", System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yaml");
 
     public static final ResourceBundle RESOURCE_BUNDLE = ResourceBundle.getBundle("messages/messages");
 

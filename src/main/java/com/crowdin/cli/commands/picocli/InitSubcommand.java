@@ -42,7 +42,7 @@ public class InitSubcommand extends GenericActCommand<NoProperties, NoClient> {
     @CommandLine.Option(names = {"--preserve-hierarchy"}, negatable = true, paramLabel = "...", descriptionKey = "params.preserve-hierarchy", order = -2)
     private Boolean preserveHierarchy;
 
-    @CommandLine.Option(names = "--skip-generate-description", hidden = true)
+    @CommandLine.Option(names = "--quite", descriptionKey = "params.quite", order = -2)
     private boolean skipGenerateDescription;
 
     protected NewAction<NoProperties, NoClient> getAction(Actions actions) {
