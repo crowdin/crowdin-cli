@@ -1,5 +1,12 @@
 # Changelog
 
+## [3.19.4](https://github.com/crowdin/crowdin-cli/compare/3.19.3...3.19.4) (2024-05-16)
+
+
+### Bug Fixes
+
+* correct detection of obsolete files with double asterisk pattern ([#794](https://github.com/crowdin/crowdin-cli/issues/794)) ([2359e90](https://github.com/crowdin/crowdin-cli/commit/2359e900736d9f32b784a513d48465990a9be867))
+
 ## [3.19.3](https://github.com/crowdin/crowdin-cli/compare/3.19.2...3.19.3) (2024-05-09)
 
 
