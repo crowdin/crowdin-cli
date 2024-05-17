@@ -87,7 +87,7 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<ProjectProperties, ProjectClient> stringComment(boolean plainView, String text, String stringId, String language, String type, String issueType) {
-        return new StringCommentAction(plainView, text, stringId, language, type, issueType);
+        return new CommentAddAction(plainView, text, stringId, language, type, issueType);
     }
 
     @Override

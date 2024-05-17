@@ -1,7 +1,7 @@
 :includedir: ../generated-picocli-docs
-:command: crowdin-string-comment
+:command: crowdin-comment-add
 
-== crowdin string comment
+== crowdin comment add
 
 include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
 

@@ -156,7 +156,6 @@ const sidebars = {
             'commands/crowdin-string-add',
             'commands/crowdin-string-edit',
             'commands/crowdin-string-delete',
-            'commands/crowdin-string-comment',
           ]
         },
         {
@@ -216,6 +215,7 @@ const sidebars = {
           items: [
             'commands/crowdin-comment-list',
             'commands/crowdin-comment-resolve',
+            'commands/crowdin-comment-add',
           ]
         },
         {

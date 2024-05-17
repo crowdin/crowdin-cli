@@ -21,7 +21,7 @@ import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 import static org.mockito.Mockito.*;
 
-public class StringCommentActionTest {
+public class CommentAddActionTest {
 
     NewAction<ProjectProperties, ProjectClient> action;
 
@@ -46,7 +46,7 @@ public class StringCommentActionTest {
                     setIssueType(request.getIssueType());
                     setStringId(request.getStringId());
                 }});
-        action = new StringCommentAction(true, text, stringId, languageId, type, issueType);
+        action = new CommentAddAction(true, text, stringId, languageId, type, issueType);
         action.act(Outputter.getDefault(), pb, client);
         verify(client).commentString(request);
         verifyNoMoreInteractions(client);
@@ -71,7 +71,7 @@ public class StringCommentActionTest {
         when(client.commentString(request))
                 .thenThrow(new RuntimeException("Whoops"));
 
-        action = new StringCommentAction(true, null, null, null, "comment", null);
+        action = new CommentAddAction(true, null, null, null, "comment", null);
 
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
