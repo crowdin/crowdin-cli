@@ -45,6 +45,7 @@ Tip: Use the [`file list`](/commands/crowdin-file-list) command to get the file 
   * Moved `id` to parameter. Now only 1 string can be removed at a time.
   * Removed the `--text` and `--identifier` options. Only `id` is used as a string identifier.
 * Added `--directory` and `--scope` options to the [`string list`](/commands/crowdin-string-list) command.
+* `comment` command was moved to [`comment add`](/commands/crowdin-comment-add) command.
 
 ```diff
 -crowdin string add Download --file main/src/strings.xml --identifier "download"

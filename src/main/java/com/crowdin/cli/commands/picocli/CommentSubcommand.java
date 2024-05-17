@@ -6,7 +6,8 @@ import picocli.CommandLine;
     name = CommandNames.COMMENT,
     subcommands = {
         CommentListSubcommand.class,
-        CommentResolveSubcommand.class
+        CommentResolveSubcommand.class,
+        CommentAddSubcommand.class
     }
 )
 class CommentSubcommand extends HelpCommand {

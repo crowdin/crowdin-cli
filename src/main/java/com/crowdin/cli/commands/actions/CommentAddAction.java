@@ -14,7 +14,7 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 @AllArgsConstructor
-class StringCommentAction implements NewAction<ProjectProperties, ProjectClient> {
+class CommentAddAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private final boolean plainView;
     private final String text;

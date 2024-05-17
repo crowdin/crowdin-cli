@@ -17,23 +17,23 @@ import static com.crowdin.client.stringcomments.model.Type.COMMENT;
 
 @CommandLine.Command(
         sortOptions = false,
-        name = CommandNames.STRING_COMMENT
+        name = CommandNames.ADD
 )
-class StringCommentSubcommand extends ActCommandProject {
+class CommentAddSubcommand extends ActCommandProject {
 
-    @CommandLine.Parameters(descriptionKey = "crowdin.string.comment.text")
+    @CommandLine.Parameters(descriptionKey = "crowdin.comment.add.text")
     protected String text;
 
-    @CommandLine.Option(names = {"--string-id"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.string-id", order = -2)
+    @CommandLine.Option(names = {"--string-id"}, paramLabel = "...", descriptionKey = "crowdin.comment.add.string-id", order = -2)
     protected String stringId;
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.language", order = -2)
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", descriptionKey = "crowdin.comment.add.language", order = -2)
     protected String languageId;
 
-    @CommandLine.Option(names = {"--type"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.type", order = -2)
+    @CommandLine.Option(names = {"--type"}, paramLabel = "...", descriptionKey = "crowdin.comment.add.type", order = -2)
     protected String type;
 
-    @CommandLine.Option(names = {"--issue-type"}, paramLabel = "...", descriptionKey = "crowdin.string.comment.issue-type", order = -2)
+    @CommandLine.Option(names = {"--issue-type"}, paramLabel = "...", descriptionKey = "crowdin.comment.add.issue-type", order = -2)
     protected String issueType;
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")

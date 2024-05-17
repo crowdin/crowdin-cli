@@ -7,7 +7,6 @@ import picocli.CommandLine;
     subcommands = {
         StringListSubcommand.class,
         StringAddSubcommand.class,
-        StringCommentSubcommand.class,
         StringDeleteSubcommand.class,
         StringEditSubcommand.class
     }
