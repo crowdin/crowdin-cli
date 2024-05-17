@@ -34,6 +34,9 @@ class FileUploadSubcommand extends ActCommandProject {
     @Option(names = {"-d", "--dest"}, paramLabel = "...", descriptionKey = "crowdin.file.upload.dest", order = -3)
     protected String destination;
 
+    @Option(names = {"--context"}, descriptionKey = "crowdin.file.upload.context", paramLabel = "...", order = -2)
+    protected String context;
+
     @Option(names = {"--type"}, descriptionKey = "crowdin.file.upload.type", paramLabel = "...", order = -2)
     protected String type;
 
@@ -69,6 +72,6 @@ class FileUploadSubcommand extends ActCommandProject {
         if (Objects.nonNull(languageId)) {
             return actions.fileUploadTranslation(file, branch, destination, languageId, plainView);
         }
-        return actions.fileUpload(file, branch, autoUpdate, labels, destination, type, parserVersion, excludedLanguages, plainView, cleanupMode, updateStrings);
+        return actions.fileUpload(file, branch, autoUpdate, labels, destination, context, type, parserVersion, excludedLanguages, plainView, cleanupMode, updateStrings);
     }
 }

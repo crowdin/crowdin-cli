@@ -39,6 +39,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
     private final boolean autoUpdate;
     private final List<String> labels;
     private final String dest;
+    private final String context;
     private final String type;
     private final Integer parserVersion;
     private final boolean cleanupMode;
@@ -51,6 +52,10 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.plainView, this.plainView, client::downloadFullProject);
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
+
+        if (isStringsBasedProject && nonNull(context)) {
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.file.context_file_based_only"));
+        }
 
         if (!project.isManagerAccess()) {
             if (!plainView) {
@@ -144,6 +149,9 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             }
             if (nonNull(parserVersion)) {
                 request.setParserVersion(parserVersion);
+            }
+            if (nonNull(context)) {
+                request.setContext(context);
             }
 
             Optional<Long> directoryId = getOrCreateDirectoryId(out, client, project, properties, branch.orElse(null));
