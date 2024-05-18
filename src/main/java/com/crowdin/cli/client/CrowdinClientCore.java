@@ -27,29 +27,29 @@ abstract class CrowdinClientCore {
     private static final long defaultMillisToRetry = 100;
 
     private static final Map<BiPredicate<String, String>, RuntimeException> standardErrorHandlers =
-        new LinkedHashMap<BiPredicate<String, String>, RuntimeException>() {{
-            put((code, message) -> code.equals("401"),
-                new ExitCodeExceptionMapper.AuthorizationException(RESOURCE_BUNDLE.getString("error.response.401")));
-            put((code, message) -> code.equals("403") && message.contains("upgrade your subscription plan to upload more file formats"),
-                    new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403_upgrade_subscription")));
-            put((code, message) -> code.equals("403"),
-                new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403")));
-            put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Project Not Found"),
-                new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_project_not_found")));
-            put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Organization Not Found"),
-                new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found")));
-            put((code, message) -> code.equals("429"),
-                    new ExitCodeExceptionMapper.RateLimitException(RESOURCE_BUNDLE.getString("error.response.429")));
-            put((code, message) -> StringUtils.containsAny(message,
-                "PKIX path building failed",
-                "sun.security.provider.certpath.SunCertPathBuilderException",
-                "unable to find valid certification path to requested target"),
-                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.certificate")));
-            put((code, message) -> message.equals("Name or service not known"),
-                new RuntimeException(RESOURCE_BUNDLE.getString("error.response.url_not_known")));
-            put((code, message) -> code.equals("<empty_code>") && message.equals("<empty_message>"),
-                new RuntimeException("Empty error message from server"));
-        }};
+            new LinkedHashMap<>() {{
+                put((code, message) -> code.equals("401"),
+                        new ExitCodeExceptionMapper.AuthorizationException(RESOURCE_BUNDLE.getString("error.response.401")));
+                put((code, message) -> code.equals("403") && message.contains("upgrade your subscription plan to upload more file formats"),
+                        new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403_upgrade_subscription")));
+                put((code, message) -> code.equals("403") && !message.contains("Merge is possible only into main branch"),
+                        new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403")));
+                put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Project Not Found"),
+                        new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_project_not_found")));
+                put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Organization Not Found"),
+                        new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found")));
+                put((code, message) -> code.equals("429"),
+                        new ExitCodeExceptionMapper.RateLimitException(RESOURCE_BUNDLE.getString("error.response.429")));
+                put((code, message) -> StringUtils.containsAny(message,
+                                "PKIX path building failed",
+                                "sun.security.provider.certpath.SunCertPathBuilderException",
+                                "unable to find valid certification path to requested target"),
+                        new RuntimeException(RESOURCE_BUNDLE.getString("error.response.certificate")));
+                put((code, message) -> message.equals("Name or service not known"),
+                        new RuntimeException(RESOURCE_BUNDLE.getString("error.response.url_not_known")));
+                put((code, message) -> code.equals("<empty_code>") && message.equals("<empty_message>"),
+                        new RuntimeException("Empty error message from server"));
+            }};
 
     /**
      * Util logic for downloading full lists.
@@ -122,7 +122,7 @@ abstract class CrowdinClientCore {
         }
     }
 
-    private static <T, R extends Exception> void searchErrorHandler(Map<BiPredicate<String, String>, R> errorHandlers, String code, String message) throws R {
+    private static <R extends Exception> void searchErrorHandler(Map<BiPredicate<String, String>, R> errorHandlers, String code, String message) throws R {
         for (Map.Entry<BiPredicate<String, String>, R> errorHandler : errorHandlers.entrySet()) {
             if (errorHandler.getKey().test(code, message)) {
                 throw errorHandler.getValue();

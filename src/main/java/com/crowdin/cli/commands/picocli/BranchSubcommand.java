@@ -8,7 +8,8 @@ import picocli.CommandLine;
         BranchAddSubcommand.class,
         BranchCloneSubcommand.class,
         BranchDeleteSubcommand.class,
-        BranchListSubcommand.class
+        BranchListSubcommand.class,
+        BranchMergeSubcommand.class
     }
 )
 class BranchSubcommand extends HelpCommand {

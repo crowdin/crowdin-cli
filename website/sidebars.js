@@ -113,6 +113,7 @@ const sidebars = {
             'commands/crowdin-branch-add',
             'commands/crowdin-branch-delete',
             'commands/crowdin-branch-clone',
+            'commands/crowdin-branch-merge',
           ]
         },
         {

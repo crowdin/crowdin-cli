@@ -19,10 +19,10 @@ public final class CommandNames {
 
     public static final String STRING = "string";
     public static final String STRING_EDIT = "edit";
-    public static final String STRING_COMMENT = "comment";
 
     public static final String BRANCH = "branch";
     public static final String BRANCH_CLONE = "clone";
+    public static final String BRANCH_MERGE = "merge";
 
     public static final String GLOSSARY = "glossary";
     public static final String GLOSSARY_UPLOAD = "upload";

@@ -25,6 +25,7 @@ As part of this release, the minimum Java version has been updated to **17 LTS**
 - [`crowdin project`](/commands/crowdin-project)
 - [`crowdin language`](/commands/crowdin-language)
 - [`crowdin branch clone`](/commands/crowdin-branch-clone)
+- [`crowdin branch merge`](/commands/crowdin-branch-merge)
 - [`crowdin completion`](/autocompletion)
 
 ## Command updates
