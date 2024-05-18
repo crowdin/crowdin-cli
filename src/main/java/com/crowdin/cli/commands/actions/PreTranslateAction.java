@@ -40,6 +40,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
     private final boolean noProgress;
     private final boolean plainView;
     private final List<String> labelNames;
+    private final Long aiPrompt;
 
     @Override
     public void act(Outputter out, PropertiesWithFiles properties, ProjectClient client) {
@@ -102,7 +103,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
 
         ApplyPreTranslationRequest request = RequestBuilder.applyPreTranslation(
                 languages, fileIds, method, engineId, autoApproveOption,
-                duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds);
+                duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds, aiPrompt);
         this.applyPreTranslation(out, client, request);
 
         if (containsError) {
