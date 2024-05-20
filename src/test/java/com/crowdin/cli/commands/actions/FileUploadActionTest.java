@@ -6,6 +6,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
@@ -25,6 +26,7 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -59,7 +61,7 @@ class FileUploadActionTest {
             .thenReturn(1L);
         when(client.addSource(any())).thenReturn(new FileInfo());
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, null, "po", 3, false, false, null, false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, null, "context", "po", 3, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -68,6 +70,7 @@ class FileUploadActionTest {
             setName("first.po");
             setStorageId(1L);
             setType("po");
+            setContext("context");
             setParserVersion(3);
         }};
         verify(client).addSource(eq(addFileRequest));
@@ -103,7 +106,7 @@ class FileUploadActionTest {
         when(client.addSourceStringsBased(any())).thenReturn(progress);
         when(client.getUploadStringsStatus(any())).thenReturn(progressFinished);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, "branch", false, null, null, null, null, false, false, null, false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, "branch", false, null, null, null, null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -137,7 +140,7 @@ class FileUploadActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, true, null, null, null, null, false, false, null, false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, true, null, null, null, null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -164,7 +167,7 @@ class FileUploadActionTest {
         when(client.downloadFullProject())
             .thenReturn(build);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, null, null, null, false, false, null, false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, null, null, null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -193,7 +196,7 @@ class FileUploadActionTest {
         when(client.addBranch(any())).thenReturn(branch);
         when(client.addSource(any())).thenReturn(new FileInfo());
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, "main", false, null, null, null, null, false, false, null, false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, "main", false, null, null, null, null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -231,7 +234,7 @@ class FileUploadActionTest {
         when(client.addLabel(any())).thenReturn(label);
         when(client.addSource(any())).thenReturn(new FileInfo());
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, Collections.singletonList("main_label"), null, null, null, false, false, null, false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, Collections.singletonList("main_label"), null, null, null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -265,7 +268,7 @@ class FileUploadActionTest {
         when(client.listLabels()).thenReturn(Collections.emptyList());
         when(client.addSource(any())).thenReturn(new FileInfo());
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, null, null, null, false, false, Arrays.asList("ua", "fr"), false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, null, null, null, null, false, false, Arrays.asList("ua", "fr"), false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -300,7 +303,7 @@ class FileUploadActionTest {
         when(client.uploadStorage(eq("save.po"), any()))
             .thenReturn(1L);
         when(client.addSource(any())).thenReturn(new FileInfo());
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, "path/to/save.po", null, null, false, false, null, false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, null, false, null, "path/to/save.po", null, null, null, false, false, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -344,7 +347,7 @@ class FileUploadActionTest {
         when(client.addSourceStringsBased(any())).thenReturn(progress);
         when(client.getUploadStringsStatus(any())).thenReturn(progressFinished);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, "branch", false, null, null, null, null, true, true, null, false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, "branch", false, null, null, null, null, null, true, true, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -358,6 +361,25 @@ class FileUploadActionTest {
             setUpdateStrings(true);
         }};
         verify(client).addSourceStringsBased(eq(addFileRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testThrowsUploadWithContext_StringBasedProject() {
+        File fileToUpload = new File(project.getBasePath() + "first.po");
+        project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.STRINGS_BASED);
+        when(client.downloadFullProject()).thenReturn(build);
+
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, "branch", false, null, null, "context", null, null, true, true, null, false);
+        assertThrows(ExitCodeExceptionMapper.ValidationException.class, () -> action.act(Outputter.getDefault(), pb, client));
+        verify(client).downloadFullProject();
         verifyNoMoreInteractions(client);
     }
 }

@@ -11,7 +11,7 @@ class FileUploadSubcommandTest extends PicocliTestUtils {
     @Test
     public void testFileUpload() {
         this.execute(CommandNames.FILE, CommandNames.FILE_UPLOAD, "file.txt");
-        verify(actionsMock).fileUpload(any(), any(), anyBoolean(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean());
+        verify(actionsMock).fileUpload(any(), any(), anyBoolean(), any(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 

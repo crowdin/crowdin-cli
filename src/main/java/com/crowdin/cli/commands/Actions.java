@@ -130,7 +130,7 @@ public interface Actions {
 
     NewAction<ProjectProperties, ClientLabel> labelDelete(String title);
 
-    NewAction<ProjectProperties, ProjectClient> fileUpload(File file, String branch, boolean autoUpdate, List<String> labels, String destination, String type, Integer parserVersion, List<String> excludedLanguages,  boolean plainView, boolean cleanupMode, boolean updateString);
+    NewAction<ProjectProperties, ProjectClient> fileUpload(File file, String branch, boolean autoUpdate, List<String> labels, String destination, String context, String type, Integer parserVersion, List<String> excludedLanguages,  boolean plainView, boolean cleanupMode, boolean updateString);
 
     NewAction<ProjectProperties, ProjectClient> fileUploadTranslation(File file, String branch, String dest, String languageId, boolean plainView);
 
