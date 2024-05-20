@@ -57,6 +57,9 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--label"}, descriptionKey = "crowdin.pre-translate.label", paramLabel = "...", order = -2)
     protected List<String> labelNames;
 
+    @CommandLine.Option(names = {"--ai-prompt"}, descriptionKey = "crowdin.pre-translate.ai-prompt", paramLabel = "...", order = -2)
+    protected Long aiPrompt;
+
     private final Map<String, AutoApproveOption> autoApproveOptionWrapper = new HashMap<String, AutoApproveOption>() {{
         put("all", AutoApproveOption.ALL);
         put("except-auto-substituted", AutoApproveOption.EXCEPT_AUTO_SUBSTITUTED);
@@ -83,14 +86,15 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
             translateWithPerfectMatchOnly,
             noProgress,
             plainView,
-            labelNames
+            labelNames,
+            aiPrompt
         );
     }
 
     @Override
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
-        if ((Method.MT == method) == (engineId == null)) {
+        if ((Method.MT == method) && (engineId == null)) {
             errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.engine_id"));
         }
         if ((Method.MT == method) && duplicateTranslations != null) {
@@ -108,6 +112,9 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
         }
         if (autoApproveOption != null && !autoApproveOptionWrapper.containsKey(autoApproveOption)) {
             errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.auto_approve_option"));
+        }
+        if ((Method.AI == method) && (aiPrompt == null)) {
+            errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.ai_prompt"));
         }
         if (files != null) {
             for (int i = 0; i < files.size(); i++) {
