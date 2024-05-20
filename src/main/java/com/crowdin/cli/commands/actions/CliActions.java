@@ -240,6 +240,11 @@ public class CliActions implements Actions {
     }
 
     @Override
+    public NewAction<ProjectProperties, ProjectClient> branchMerge(String source, String target, boolean dryrun, boolean deleteAfterMerge, boolean noProgress, boolean plainView) {
+        return new BranchMergeAction(source, target, noProgress, plainView, dryrun, deleteAfterMerge);
+    }
+
+    @Override
     public NewAction<ProjectProperties, ProjectClient> branchDelete(String name) {
         return new BranchDeleteAction(name);
     }

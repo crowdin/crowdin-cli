@@ -1,8 +1,6 @@
 package com.crowdin.cli.client;
 
-import com.crowdin.client.branches.model.BranchCloneStatus;
-import com.crowdin.client.branches.model.CloneBranchRequest;
-import com.crowdin.client.branches.model.ClonedBranch;
+import com.crowdin.client.branches.model.*;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
@@ -150,7 +148,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
 
     @Override
     public BranchCloneStatus cloneBranch(Long branchId, CloneBranchRequest request) throws ResponseException {
-        Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
+        Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<>() {{
             put((code, message) -> StringUtils.containsAny(message, "Name must be unique"), new ExistsResponseException());
         }};
         return executeRequest(errorHandlers,
@@ -170,6 +168,27 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     public ClonedBranch getClonedBranch(Long branchId, String cloneId) {
         return executeRequest(() -> this.client.getBranchesApi()
             .getClonedBranch(this.projectId, branchId, cloneId)
+            .getData());
+    }
+
+    @Override
+    public BranchMergeStatus mergeBranch(Long branchId, MergeBranchRequest request) {
+        return executeRequest(() -> this.client.getBranchesApi()
+            .mergeBranch(projectId, branchId, request)
+            .getData());
+    }
+
+    @Override
+    public BranchMergeStatus checkMergeBranchStatus(Long branchId, String mergeId) {
+        return executeRequest(() -> this.client.getBranchesApi()
+            .checkMergeBranchStatus(projectId, branchId, mergeId)
+            .getData());
+    }
+
+    @Override
+    public BranchMergeSummary getBranchMergeSummary(Long branchId, String mergeId) {
+        return executeRequest(() -> this.client.getBranchesApi()
+            .getMergeBranchSummary(this.projectId, branchId, mergeId)
             .getData());
     }
 

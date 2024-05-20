@@ -116,6 +116,8 @@ public interface Actions {
 
     NewAction<ProjectProperties, ProjectClient> branchClone(String source, String target, boolean noProgress, boolean plainView);
 
+    NewAction<ProjectProperties, ProjectClient> branchMerge(String source, String target, boolean dryrun, boolean deleteAfterMerge, boolean noProgress, boolean plainView);
+
     NewAction<ProjectProperties, ProjectClient> branchDelete(String name);
 
     NewAction<ProjectProperties, ClientScreenshot> screenshotList(Long stringId, boolean plainView);
