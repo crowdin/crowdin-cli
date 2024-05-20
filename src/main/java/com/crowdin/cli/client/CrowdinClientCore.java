@@ -26,7 +26,7 @@ abstract class CrowdinClientCore {
 
     private static final long defaultMillisToRetry = 100;
 
-    private static final Map<BiPredicate<String, String>, RuntimeException> standardErrorHandlers =
+    protected static final Map<BiPredicate<String, String>, RuntimeException> standardErrorHandlers =
             new LinkedHashMap<>() {{
                 put((code, message) -> code.equals("401"),
                         new ExitCodeExceptionMapper.AuthorizationException(RESOURCE_BUNDLE.getString("error.response.401")));
@@ -38,6 +38,10 @@ abstract class CrowdinClientCore {
                         new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_project_not_found")));
                 put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Organization Not Found"),
                         new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found")));
+                put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Bundle Not Found"),
+                        new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.bundle.not_found_by_id")));
+                put((code, message) -> code.equals("404"),
+                        new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_not_found")));
                 put((code, message) -> code.equals("429"),
                         new ExitCodeExceptionMapper.RateLimitException(RESOURCE_BUNDLE.getString("error.response.429")));
                 put((code, message) -> StringUtils.containsAny(message,

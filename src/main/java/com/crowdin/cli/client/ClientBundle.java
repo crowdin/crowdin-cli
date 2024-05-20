@@ -6,7 +6,6 @@ import com.crowdin.client.bundles.model.BundleExport;
 
 import java.net.URL;
 import java.util.List;
-import java.util.Optional;
 
 public interface ClientBundle extends Client {
 
@@ -14,7 +13,7 @@ public interface ClientBundle extends Client {
 
     Bundle addBundle(AddBundleRequest addBundleRequest);
 
-    Optional<Bundle> getBundle(Long id);
+    Bundle getBundle(Long id);
 
     URL downloadBundle(Long id, String exportId);
 

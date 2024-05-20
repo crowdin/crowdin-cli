@@ -55,7 +55,7 @@ public class BundleDownloadActionTest {
         when(client.downloadBundle(bundle.getId(), null))
                 .thenReturn(urlMock);
         when(client.getBundle(bundle.getId()))
-                .thenReturn(Optional.of(bundle));
+                .thenReturn(bundle);
 
         when(client.startExportingBundle(bundle.getId()))
                 .thenReturn(export);
@@ -93,7 +93,7 @@ public class BundleDownloadActionTest {
         when(client.downloadBundle(bundle.getId(), null))
                 .thenReturn(urlMock);
         when(client.getBundle(bundle.getId()))
-                .thenReturn(Optional.of(bundle));
+                .thenReturn(bundle);
 
         when(client.startExportingBundle(bundle.getId()))
                 .thenReturn(export);
