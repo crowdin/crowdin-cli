@@ -83,8 +83,7 @@ public class BundleDownloadAction implements NewAction<ProjectProperties, Client
     }
 
     private Bundle getBundle(ClientBundle client) {
-        return client.getBundle(id)
-                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.bundle.not_found_by_id")));
+        return client.getBundle(id);
     }
 
     private BundleExport buildBundle(Outputter out, ClientBundle client, Long bundleId) {

@@ -17,6 +17,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 import java.util.function.BiPredicate;
+import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 
@@ -26,29 +27,35 @@ abstract class CrowdinClientCore {
 
     private static final long defaultMillisToRetry = 100;
 
-    private static final Map<BiPredicate<String, String>, RuntimeException> standardErrorHandlers =
+    protected static final Map<BiPredicate<String, String>, Function<String, RuntimeException>> standardErrorHandlers =
             new LinkedHashMap<>() {{
                 put((code, message) -> code.equals("401"),
-                        new ExitCodeExceptionMapper.AuthorizationException(RESOURCE_BUNDLE.getString("error.response.401")));
+                        (msg) -> new ExitCodeExceptionMapper.AuthorizationException(RESOURCE_BUNDLE.getString("error.response.401")));
                 put((code, message) -> code.equals("403") && message.contains("upgrade your subscription plan to upload more file formats"),
-                        new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403_upgrade_subscription")));
+                        (msg) -> new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403_upgrade_subscription")));
                 put((code, message) -> code.equals("403") && !message.contains("Merge is possible only into main branch"),
-                        new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403")));
+                        (msg) -> new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403")));
                 put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Project Not Found"),
-                        new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_project_not_found")));
+                        (msg) -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_project_not_found")));
                 put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Organization Not Found"),
-                        new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found")));
+                        (msg) -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found")));
+                put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Bundle Not Found"),
+                        (msg) -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.bundle.not_found_by_id")));
                 put((code, message) -> code.equals("429"),
-                        new ExitCodeExceptionMapper.RateLimitException(RESOURCE_BUNDLE.getString("error.response.429")));
+                        (msg) -> new ExitCodeExceptionMapper.RateLimitException(RESOURCE_BUNDLE.getString("error.response.429")));
                 put((code, message) -> StringUtils.containsAny(message,
                                 "PKIX path building failed",
                                 "sun.security.provider.certpath.SunCertPathBuilderException",
                                 "unable to find valid certification path to requested target"),
-                        new RuntimeException(RESOURCE_BUNDLE.getString("error.response.certificate")));
+                        (msg) -> new RuntimeException(RESOURCE_BUNDLE.getString("error.response.certificate")));
                 put((code, message) -> message.equals("Name or service not known"),
-                        new RuntimeException(RESOURCE_BUNDLE.getString("error.response.url_not_known")));
+                        (msg) -> new RuntimeException(RESOURCE_BUNDLE.getString("error.response.url_not_known")));
                 put((code, message) -> code.equals("<empty_code>") && message.equals("<empty_message>"),
-                        new RuntimeException("Empty error message from server"));
+                        (msg) -> new RuntimeException("Empty error message from server"));
+                put((code, message) -> code.equals("404"),
+                        ExitCodeExceptionMapper.NotFoundException::new);
+                put((code, message) -> code.equals("403"),
+                        ExitCodeExceptionMapper.ForbiddenException::new);
             }};
 
     /**
@@ -128,9 +135,9 @@ abstract class CrowdinClientCore {
                 throw errorHandler.getValue();
             }
         }
-        for (Map.Entry<BiPredicate<String, String>, RuntimeException> errorHandler : standardErrorHandlers.entrySet()) {
+        for (Map.Entry<BiPredicate<String, String>, Function<String, RuntimeException>> errorHandler : standardErrorHandlers.entrySet()) {
             if (errorHandler.getKey().test(code, message)) {
-                throw errorHandler.getValue();
+                throw errorHandler.getValue().apply(message);
             }
         }
     }

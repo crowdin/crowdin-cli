@@ -1,13 +1,12 @@
 package com.crowdin.cli.client;
 
-
 import com.crowdin.client.bundles.model.AddBundleRequest;
 import com.crowdin.client.bundles.model.Bundle;
 import com.crowdin.client.bundles.model.BundleExport;
+import lombok.SneakyThrows;
 
 import java.net.URL;
 import java.util.List;
-import java.util.Optional;
 
 public class CrowdinClientBundle extends CrowdinClientCore implements ClientBundle {
 
@@ -31,15 +30,12 @@ public class CrowdinClientBundle extends CrowdinClientCore implements ClientBund
                 .getData());
     }
 
+    @SneakyThrows
     @Override
-    public Optional<Bundle> getBundle(Long bundleId) {
-        try {
-            return Optional.of(executeRequest(() -> this.client.getBundlesApi()
-                    .getBundle(Long.valueOf(projectId), bundleId))
-                    .getData());
-        } catch (Exception e) {
-            return Optional.empty();
-        }
+    public Bundle getBundle(Long bundleId) {
+        return executeRequest(() -> this.client.getBundlesApi()
+                .getBundle(Long.valueOf(projectId), bundleId))
+                .getData();
     }
 
     @Override
