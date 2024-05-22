@@ -93,6 +93,7 @@ abstract class CrowdinClientCore {
             } catch (InterruptedException ie) {
 //              ignore
             }
+            System.out.printf("Attempting to retry the request due to the error: %s%n", e.getMessage());
             return executeRequestWithPossibleRetries(errorHandlers, request, maxAttempts - 1, millisToRetry);
         }
     }
