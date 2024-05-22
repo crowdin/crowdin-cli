@@ -182,4 +182,14 @@ public class Utils {
     public static String toSingleLineString(String str) {
         return str.replaceAll("[\r\n]+", " ");
     }
+
+    public static boolean isServerErrorCode(String code) {
+        int statusCode;
+        try {
+            statusCode = Integer.parseInt(code);
+        } catch (NumberFormatException e) {
+            return false;
+        }
+        return statusCode >= 500 && statusCode < 600;
+    }
 }

@@ -77,10 +77,6 @@ abstract class CrowdinClientCore {
         return directories;
     }
 
-    protected static <T> T executeRequestWithPossibleRetry(Map<BiPredicate<String, String>, ResponseException> errorHandlers, Supplier<T> request) throws ResponseException {
-        return executeRequestWithPossibleRetries(errorHandlers, request, 2, defaultMillisToRetry);
-    }
-
     protected static <T> T executeRequestWithPossibleRetries(Map<BiPredicate<String, String>, ResponseException> errorHandlers, Supplier<T> request, int maxAttempts, long millisToRetry) throws ResponseException {
         if (maxAttempts < 1) {
             throw new MaxNumberOfRetriesException();
@@ -93,6 +89,7 @@ abstract class CrowdinClientCore {
             } catch (InterruptedException ie) {
 //              ignore
             }
+            System.out.printf("Attempting to retry the request due to the error: %s%n", e.getMessage());
             return executeRequestWithPossibleRetries(errorHandlers, request, maxAttempts - 1, millisToRetry);
         }
     }
