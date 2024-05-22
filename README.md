@@ -13,9 +13,10 @@ Crowdin CLI is a command line tool that allows you to manage and synchronize you
 - automate the process of updating your source files in your Crowdin project
 - download translations from Crowdin and automatically save them in the correct locations
 - upload all your existing translations to Crowdin in minutes
-- integrate Crowdin with GIT, SVN, Mercurial, and other software
+- manage your localization resources without leaving the terminal
+- integrate Crowdin CLI with GitHub, GitLab, Jenkins, CircleCI, and other software
 
-This is a cross-platform and it runs in a terminal on Linux based and macOS operating systems or in Command Prompt on Windows.
+It is cross-platform and runs in a terminal on Linux-based and macOS operating systems, or in the command prompt on Windows.
 
 <div align="center">
 
@@ -45,17 +46,12 @@ This is a cross-platform and it runs in a terminal on Linux based and macOS oper
 
 Visit the [documentation](https://crowdin.github.io/crowdin-cli/) for more details.
 
-## Seeking Assistance
+## Seeking Assistance and Contributing
 
 If you find any problems or would like to suggest a feature, please read the [How can I contribute](/CONTRIBUTING.md#how-can-i-contribute) section in our contributing guidelines.
 
-Need help working with Crowdin CLI or have a question? Visit our [Community Forum](https://community.crowdin.com/) or contact [Customer Success Service](https://crowdin.com/contacts).
-
-## Contributing
-
-If you would like to contribute, please read the [Contributing Guidelines](/CONTRIBUTING.md).
-
 ## License
+
 <pre>
 The Crowdin CLI is licensed under the MIT License. 
 See the LICENSE file distributed with this work for additional 
