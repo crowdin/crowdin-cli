@@ -6,6 +6,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.FsFiles;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
@@ -67,7 +68,7 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
         FileInfo sourceFileInfo = project.getFileInfos().stream()
             .filter(fi -> Objects.equals(sourcePath, fi.getPath()))
             .findFirst()
-            .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), sourcePath)));
+            .orElseThrow(() -> new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), sourcePath)));
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(
             project.getSupportedLanguages(),
             project.getProjectLanguages(true),

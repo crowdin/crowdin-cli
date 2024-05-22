@@ -5,6 +5,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.BranchUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -45,7 +46,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
 
         List<Branch> branches = client.listBranches();
         Long branchId = (branchName == null) ? null : BranchUtils.getBranch(branchName, branches)
-            .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
+            .orElseThrow(() -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
             .getId();
 
         List<LanguageProgress> progresses;

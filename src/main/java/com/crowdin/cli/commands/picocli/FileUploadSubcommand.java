@@ -60,9 +60,15 @@ class FileUploadSubcommand extends ActCommandProject {
 
     @Override
     protected List<String> checkOptions() {
+        if (!file.exists()) {
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), file));
+        }
         List<String> errors = new ArrayList<>();
         if (parserVersion != null && type == null) {
             errors.add(RESOURCE_BUNDLE.getString("error.file.type_required"));
+        }
+        if (file.isDirectory()) {
+            errors.add(RESOURCE_BUNDLE.getString("error.file.is_folder"));
         }
         return errors;
     }

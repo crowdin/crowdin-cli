@@ -24,6 +24,8 @@ public class ConfigurationFilesProperties {
             configFile = this.getDefaultConfigFile();
         } else if (!configFile.exists()) {
             throw new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
+        } else if (configFile.isDirectory()) {
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.file.is_folder"));
         }
         return configFile;
     }
@@ -33,6 +35,8 @@ public class ConfigurationFilesProperties {
             identityFile = this.getDefaultIdentityFile();
         } else if (!identityFile.exists()) {
             throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.identity_file_not_exist"), identityFile.getAbsolutePath()));
+        } else if (configFile.isDirectory()) {
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.file.is_folder"));
         }
         return identityFile;
     }

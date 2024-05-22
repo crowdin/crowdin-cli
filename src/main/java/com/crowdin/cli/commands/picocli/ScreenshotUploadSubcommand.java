@@ -52,6 +52,9 @@ class ScreenshotUploadSubcommand extends ActCommandScreenshot{
 
     @Override
     protected List<String> checkOptions() {
+        if (!file.exists()) {
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), file));
+        }
         List<String> errors = new ArrayList<>();
         String extension = FilenameUtils.getExtension(file.getName());
         if (!equalsAny(extension, "jpeg", "jpg", "png", "gif")) {

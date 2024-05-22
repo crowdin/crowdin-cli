@@ -16,6 +16,7 @@ import static com.crowdin.cli.commands.picocli.GenericCommand.RESOURCE_BUNDLE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.Mockito.*;
 
 public class ScreenshotUploadSubcommandTest extends PicocliTestUtils {
 
@@ -28,14 +29,21 @@ public class ScreenshotUploadSubcommandTest extends PicocliTestUtils {
     @MethodSource
     public void testSubCommandCheckValidOptions(File file, boolean autoTag, String filePath, String branchName, String directoryPath) {
         ScreenshotUploadSubcommand screenshotUploadSubcommand = new ScreenshotUploadSubcommand();
-        screenshotUploadSubcommand.file = file;
+        var mockedFile = mock(File.class);
+        screenshotUploadSubcommand.file = mockedFile;
         screenshotUploadSubcommand.autoTag = autoTag;
         screenshotUploadSubcommand.filePath = filePath;
         screenshotUploadSubcommand.branchName = branchName;
         screenshotUploadSubcommand.directoryPath = directoryPath;
 
+        when(mockedFile.exists()).thenReturn(true);
+        when(mockedFile.getName()).thenReturn(file.getName());
+
         List<String> errors = screenshotUploadSubcommand.checkOptions();
         assertEquals(Collections.emptyList(), errors);
+
+        verify(mockedFile).exists();
+        verify(mockedFile).getName();
     }
 
     public static Stream<Arguments> testSubCommandCheckValidOptions() {
@@ -50,14 +58,21 @@ public class ScreenshotUploadSubcommandTest extends PicocliTestUtils {
     @MethodSource
     public void testSubCommandCheckInvalidOptions(File file, boolean autoTag, String filePath, String branchName, String directoryPath, List<String> expErrors) {
         ScreenshotUploadSubcommand screenshotUploadSubcommand = new ScreenshotUploadSubcommand();
-        screenshotUploadSubcommand.file = file;
+        var mockedFile = mock(File.class);
+        screenshotUploadSubcommand.file = mockedFile;
         screenshotUploadSubcommand.autoTag = autoTag;
         screenshotUploadSubcommand.filePath = filePath;
         screenshotUploadSubcommand.branchName = branchName;
         screenshotUploadSubcommand.directoryPath = directoryPath;
 
+        when(mockedFile.exists()).thenReturn(true);
+        when(mockedFile.getName()).thenReturn(file.getName());
+
         List<String> errors = screenshotUploadSubcommand.checkOptions();
         assertThat(errors, Matchers.equalTo(expErrors));
+
+        verify(mockedFile).exists();
+        verify(mockedFile).getName();
     }
 
     public static Stream<Arguments> testSubCommandCheckInvalidOptions() {

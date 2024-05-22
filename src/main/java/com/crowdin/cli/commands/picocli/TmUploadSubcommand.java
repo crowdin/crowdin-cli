@@ -46,6 +46,12 @@ class TmUploadSubcommand extends ActCommandTm {
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
         String extension = FilenameUtils.getExtension(file.getName());
+        if (!file.exists()) {
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), file));
+        }
+        if (file.isDirectory()) {
+            errors.add(RESOURCE_BUNDLE.getString("error.file.is_folder"));
+        }
         if (scheme == null && ("csv".equalsIgnoreCase(extension) || "xslx".equalsIgnoreCase(extension))) {
             errors.add(RESOURCE_BUNDLE.getString("error.tm.scheme_is_required"));
         }

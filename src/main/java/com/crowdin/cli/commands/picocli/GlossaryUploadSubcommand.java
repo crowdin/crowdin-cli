@@ -46,7 +46,10 @@ class GlossaryUploadSubcommand extends ActCommandGlossary {
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
         if (!file.exists()) {
-            errors.add(String.format("File '%s' doesn't exist", file));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), file));
+        }
+        if (file.isDirectory()) {
+            errors.add(RESOURCE_BUNDLE.getString("error.file.is_folder"));
         }
         if (!equalsAny(FilenameUtils.getExtension(file.getName()), "tbx", "csv", "xls", "xlsx")) {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.wrong_format"));

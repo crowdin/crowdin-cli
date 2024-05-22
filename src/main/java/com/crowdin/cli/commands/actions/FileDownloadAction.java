@@ -6,6 +6,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.FsFiles;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -50,7 +51,7 @@ class FileDownloadAction implements NewAction<ProjectProperties, ProjectClient> 
         FileInfo foundFile = project.getFileInfos().stream()
             .filter(f -> Objects.equals(filePath, f.getPath()))
             .findFirst()
-            .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), filePath)));
+            .orElseThrow(() -> new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), filePath)));
         ConsoleSpinner.execute(
             out,
             "message.spinner.downloading_file",
