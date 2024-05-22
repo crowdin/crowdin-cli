@@ -221,7 +221,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             errorHandlers,
             () -> this.client.getStorageApi().addStorage(fileName, content).getData(),
             3,
-            6 * 1000
+            2 * 1000
         );
         return storage.getId();
     }
@@ -258,10 +258,12 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             put((code, message) -> StringUtils.contains(message, "Invalid SRX specified"), new ResponseException("Invalid SRX file specified"));
             put((code, message) -> code.equals("409"), new FileInUpdateException());
         }};
-        executeRequestWithPossibleRetry(
+        executeRequestWithPossibleRetries(
             errorHandlers,
-            () -> this.client.getSourceFilesApi()
-                .updateOrRestoreFile(this.projectId, sourceId, request));
+            () -> this.client.getSourceFilesApi().updateOrRestoreFile(this.projectId, sourceId, request),
+            3,
+            2 * 1000
+        );
     }
 
     @Override
@@ -275,10 +277,12 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             put((code, message) -> StringUtils.contains(message, "Invalid SRX specified"), new ResponseException("Invalid SRX file specified"));
             put((code, message) -> StringUtils.containsAny(message, "isEmpty", "Value is required and can't be empty"), new EmptyFileException("Value is required and can't be empty"));
         }};
-        return executeRequestWithPossibleRetry(
+        return executeRequestWithPossibleRetries(
             errorHandlers,
-            () -> this.client.getSourceFilesApi()
-                .addFile(this.projectId, request).getData());
+            () -> this.client.getSourceFilesApi().addFile(this.projectId, request).getData(),
+            3,
+            2 * 1000
+        );
     }
 
     @Override
@@ -325,7 +329,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             errorhandlers,
             () -> this.client.getTranslationsApi().uploadTranslations(this.projectId, languageId, request),
             3,
-            6 * 1000
+            2 * 1000
         );
     }
 
