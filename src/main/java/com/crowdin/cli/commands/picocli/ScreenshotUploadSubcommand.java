@@ -57,6 +57,9 @@ class ScreenshotUploadSubcommand extends ActCommandScreenshot{
         }
         List<String> errors = new ArrayList<>();
         String extension = FilenameUtils.getExtension(file.getName());
+        if (file.isDirectory()) {
+            errors.add(RESOURCE_BUNDLE.getString("error.file.is_folder"));
+        }
         if (!equalsAny(extension, "jpeg", "jpg", "png", "gif")) {
             errors.add(RESOURCE_BUNDLE.getString("error.screenshot.wrong_format"));
         }
