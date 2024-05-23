@@ -36,7 +36,7 @@ public class BranchUtils {
             request.setTitle(branchName);
             Branch newBranch = client.addBranch(request);
             if (!plainView) {
-                out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch.list"), newBranch.getId(), newBranch.getName())));
+                out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch"), branchName)));
             }
             project.addBranchToLocalList(newBranch);
             return newBranch;
