@@ -1,5 +1,6 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.branches.model.*;
 import com.crowdin.client.core.model.PatchRequest;
@@ -69,7 +70,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         project.setBranches(this.listBranches());
         Optional.ofNullable(branchName)
                 .map(name -> project.findBranchByName(name)
-                        .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
+                        .orElseThrow(() -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
                 )
                 .ifPresent(project::setBranch);
         Long branchId = Optional.ofNullable(project.getBranch()).map(Branch::getId).orElse(null);

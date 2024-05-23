@@ -62,7 +62,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
             FileInfo sourceFileInfo = project.getFileInfos().stream()
                 .filter(fi -> Objects.equals(sourcePath, fi.getPath()))
                 .findFirst()
-                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), sourcePath)));
+                .orElseThrow(() -> new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), sourcePath)));
 
             UploadTranslationsRequest request = new UploadTranslationsRequest();
             Long storageId = getStorageId(client);

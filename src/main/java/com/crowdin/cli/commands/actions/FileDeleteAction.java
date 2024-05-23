@@ -4,6 +4,7 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -41,7 +42,7 @@ class FileDeleteAction implements NewAction<ProjectProperties, ProjectClient> {
         FileInfo foundFile = projectFiles.stream()
             .filter(f -> Objects.equals(filePath, f.getPath()))
             .findFirst()
-            .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), filePath)));
+            .orElseThrow(() -> new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), filePath)));
         client.deleteSource(foundFile.getId());
         out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.file_deleted"), filePath)));
     }
