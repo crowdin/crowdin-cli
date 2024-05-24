@@ -200,7 +200,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
 
                         if (downloaded || dryrun) {
                             if (!plainView) {
-                                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), filePath)));
+                                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.file_path"), filePath)));
                             } else {
                                 out.println(filePath);
                             }

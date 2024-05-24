@@ -250,7 +250,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     if (!plainView) {
                         out.println(OK.withIcon(
                             String.format(
-                                RESOURCE_BUNDLE.getString("message.extracted_file"),
+                                RESOURCE_BUNDLE.getString("message.file_path"),
                                 StringUtils.removeStart(toFile.getAbsolutePath(), pb.getBasePath()))));
                     } else {
                         out.println(StringUtils.removeStart(toFile.getAbsolutePath(), pb.getBasePath()));

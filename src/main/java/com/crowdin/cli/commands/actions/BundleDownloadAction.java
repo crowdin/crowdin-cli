@@ -64,7 +64,7 @@ public class BundleDownloadAction implements NewAction<ProjectProperties, Client
 
         for (String file: extractedPaths) {
             String filePath = Utils.noSepAtStart(StringUtils.removeStart(file, baseTempDir.getAbsolutePath()));
-            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.extracted_file"), filePath)));
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.file_path"), filePath)));
         }
 
         if (!keepArchive) {

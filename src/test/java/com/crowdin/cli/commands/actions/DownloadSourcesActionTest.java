@@ -338,7 +338,7 @@ public class DownloadSourcesActionTest {
         action.act(Outputter.getDefault(), pb, client);
 
         String outMessage1 = OK.withIcon("Fetching project info");
-        String outMessage2 = OK.withIcon(String.format("@|green File 'common%sstrings.xml'|@", File.separator));
+        String outMessage2 = OK.withIcon(String.format("common%sstrings.xml", File.separator));
 
         client.downloadFullProject(null);
         client.downloadFile(101L);
