@@ -22,7 +22,6 @@ public class DryrunObsoleteSources extends Dryrun {
     private List<File> files;
 
     public DryrunObsoleteSources(@NonNull PropertiesWithFiles pb, @NonNull PlaceholderUtil placeholderUtil, @NonNull Map<Long, Directory> directories, @NonNull List<File> files) {
-        super("message.uploading_file");
         this.pb = pb;
         this.placeholderUtil = placeholderUtil;
         this.directories = directories;
