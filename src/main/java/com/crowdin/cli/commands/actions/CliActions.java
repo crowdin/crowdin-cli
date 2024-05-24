@@ -60,9 +60,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<PropertiesWithFiles, ProjectClient> listTranslations(
-        boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang
+        boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang, boolean isUpload
     ) {
-        return new ListTranslationsAction(noProgress, treeView, isLocal, plainView, useServerSources, withInContextLang);
+        return new ListTranslationsAction(noProgress, treeView, isLocal, plainView, useServerSources, withInContextLang, isUpload);
     }
 
     @Override
