@@ -86,7 +86,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
 
         if (!plainView) {
             out.println(OK.withIcon(String.format(
-                RESOURCE_BUNDLE.getString("message.translation_uploaded"), file.getPath())));
+                RESOURCE_BUNDLE.getString("message.uploading_file"), file.getPath())));
         } else {
             out.println(file.getPath());
         }

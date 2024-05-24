@@ -168,7 +168,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         }
                         if (!plainView) {
                             out.println(OK.withIcon(String.format(
-                                RESOURCE_BUNDLE.getString("message.translation_uploaded"),
+                                RESOURCE_BUNDLE.getString("message.uploading_file"),
                                 StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()))));
                         } else {
                             out.println(StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()));
@@ -218,7 +218,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         }
                         if (!plainView) {
                             out.println(OK.withIcon(String.format(
-                                RESOURCE_BUNDLE.getString("message.translation_uploaded"),
+                                RESOURCE_BUNDLE.getString("message.uploading_file"),
                                 StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()))));
                         } else {
                             out.println(StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()));
