@@ -184,7 +184,7 @@ jobs:
 
       - name: install local package
         run: |
-          choco install temurin
+          choco install temurin17
           choco install crowdin-cli -s . -y
 
       - name: Choco publish
