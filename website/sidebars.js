@@ -26,20 +26,7 @@ const sidebars = {
       items: [
         'commands/crowdin',
         'commands/crowdin-init',
-        {
-          type: 'category',
-          label: 'crowdin project',
-          link: {
-            type: 'doc',
-            id: 'commands/crowdin-project'
-          },
-          collapsible: true,
-          collapsed: true,
-          items: [
-            'commands/crowdin-project-list',
-            'commands/crowdin-project-browse',
-          ]
-        },
+        'commands/crowdin-pre-translate',
         {
           type: 'category',
           label: 'crowdin upload',
@@ -70,6 +57,20 @@ const sidebars = {
         },
         {
           type: 'category',
+          label: 'crowdin status',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-status'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-status-translation',
+            'commands/crowdin-status-proofreading',
+          ]
+        },
+        {
+          type: 'category',
           label: 'crowdin file',
           link: {
             type: 'doc',
@@ -86,21 +87,6 @@ const sidebars = {
         },
         {
           type: 'category',
-          label: 'crowdin config',
-          link: {
-            type: 'doc',
-            id: 'commands/crowdin-config'
-          },
-          collapsible: true,
-          collapsed: true,
-          items: [
-            'commands/crowdin-config-lint',
-            'commands/crowdin-config-sources',
-            'commands/crowdin-config-translations',
-          ]
-        },
-        {
-          type: 'category',
           label: 'crowdin branch',
           link: {
             type: 'doc',
@@ -111,36 +97,9 @@ const sidebars = {
           items: [
             'commands/crowdin-branch-list',
             'commands/crowdin-branch-add',
-            'commands/crowdin-branch-delete',
             'commands/crowdin-branch-clone',
             'commands/crowdin-branch-merge',
-          ]
-        },
-        {
-          type: 'category',
-          label: 'crowdin language',
-          link: {
-            type: 'doc',
-            id: 'commands/crowdin-language'
-          },
-          collapsible: true,
-          collapsed: true,
-          items: [
-            'commands/crowdin-language-list',
-          ]
-        },
-        {
-          type: 'category',
-          label: 'crowdin status',
-          link: {
-            type: 'doc',
-            id: 'commands/crowdin-status'
-          },
-          collapsible: true,
-          collapsed: true,
-          items: [
-            'commands/crowdin-status-translation',
-            'commands/crowdin-status-proofreading',
+            'commands/crowdin-branch-delete',
           ]
         },
         {
@@ -172,6 +131,49 @@ const sidebars = {
             'commands/crowdin-bundle-list',
             'commands/crowdin-bundle-add',
             'commands/crowdin-bundle-download',
+          ]
+        },
+
+        {
+          type: 'category',
+          label: 'crowdin config',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-config'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-config-lint',
+            'commands/crowdin-config-sources',
+            'commands/crowdin-config-translations',
+          ]
+        },
+        {
+          type: 'category',
+          label: 'crowdin project',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-project'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-project-list',
+            'commands/crowdin-project-browse',
+          ]
+        },
+        {
+          type: 'category',
+          label: 'crowdin language',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-language'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-language-list',
           ]
         },
         {
@@ -215,8 +217,8 @@ const sidebars = {
           collapsed: true,
           items: [
             'commands/crowdin-comment-list',
-            'commands/crowdin-comment-resolve',
             'commands/crowdin-comment-add',
+            'commands/crowdin-comment-resolve',
           ]
         },
         {
@@ -229,8 +231,8 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
-            'commands/crowdin-task-add',
             'commands/crowdin-task-list',
+            'commands/crowdin-task-add',
           ]
         },
         {
@@ -243,8 +245,8 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
-            'commands/crowdin-distribution-add',
             'commands/crowdin-distribution-list',
+            'commands/crowdin-distribution-add',
             'commands/crowdin-distribution-release',
           ]
         },
@@ -258,8 +260,8 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
-            'commands/crowdin-screenshot-upload',
             'commands/crowdin-screenshot-list',
+            'commands/crowdin-screenshot-upload',
             'commands/crowdin-screenshot-delete',
           ]
         },
@@ -273,12 +275,11 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
-            'commands/crowdin-label-add',
             'commands/crowdin-label-list',
+            'commands/crowdin-label-add',
             'commands/crowdin-label-delete',
           ]
-        },
-        'commands/crowdin-pre-translate',
+        }
       ],
     },
     'ci-cd',

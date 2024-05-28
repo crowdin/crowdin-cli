@@ -57,7 +57,7 @@ Tip: Use the [`file list`](/commands/crowdin-file-list) command to get the file 
   * Now <kbd>--identifier</kbd> is used as an option to edit and not to find the needed string.
 * The [`string delete`](/commands/crowdin-string-delete) command changes:
   * Moved <kbd>id</kbd> to a parameter instead of a command option. Now only 1 string can be removed at a time.
-  * Removed the <kbd>--text</kbd> and <kbd>--identifier</kbd> options. Only <kbd>id</kbd> is used as a string identifier.
+  * Removed the <kbd>--text</kbd> and <kbd>--identifier</kbd> options. Only ID is used as a string identifier.
 * The `comment` command has been replaced with the [`comment add`](/commands/crowdin-comment-add) command.
 
 ```diff

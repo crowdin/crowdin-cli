@@ -6,7 +6,8 @@ description: |
   - automate the process of updating your source files in your Crowdin project
   - download translations from Crowdin and automatically save them in the correct locations
   - upload all your existing translations to Crowdin in minutes
-  - integrate Crowdin with GIT, SVN, Mercurial, and other software
+  - manage your localization resources without leaving the terminal
+  - integrate Crowdin CLI with GitHub, GitLab, Jenkins, CircleCI, and other software
 
   ## Usage
 
