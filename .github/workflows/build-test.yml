@@ -10,7 +10,7 @@ on:
       - 'CONTRIBUTING.md'
       - 'LICENSE'
   pull_request:
-    branches: [ 'main', 'next-v4' ]
+    branches: [ 'main' ]
 
 jobs:
   build:
