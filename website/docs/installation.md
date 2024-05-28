@@ -67,13 +67,13 @@ echo "deb https://artifacts.crowdin.com/repo/deb/ /" > /etc/apt/sources.list.d/c
 And your repository is ready for use. You can install the Crowdin CLI Debian package with:
 
 ```bash
-sudo apt-get update && sudo apt-get install crowdin3
+sudo apt-get update && sudo apt-get install crowdin
 ```
 
 To install the Crowdin CLI manually:
 
 ```bash
-wget https://artifacts.crowdin.com/repo/deb/crowdin3.deb -O crowdin.deb
+wget https://artifacts.crowdin.com/repo/deb/crowdin.deb -O crowdin.deb
 sudo dpkg -i crowdin.deb
 ```
 
@@ -104,14 +104,14 @@ autorefresh=1
 And your repository is ready for use. You can now install Crowdin CLI with one of the following commands:
 
 ```bash
-sudo yum install crowdin3
-sudo dnf install crowdin3
+sudo yum install crowdin
+sudo dnf install crowdin
 ```
 
 To install the Crowdin CLI manually:
 
 ```bash
-wget https://artifacts.crowdin.com/repo/rpm/crowdin3.rpm -O crowdin.rpm
+wget https://artifacts.crowdin.com/repo/rpm/crowdin.rpm -O crowdin.rpm
 sudo rpm -U crowdin.rpm
 ```
 
