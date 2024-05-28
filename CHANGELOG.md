@@ -1,5 +1,9 @@
 # Changelog
 
+## [4.0.0](https://github.com/crowdin/crowdin-cli/compare/3.19.4...4.0.0) (2024-05-28)
+
+* [Release Notes](https://crowdin.github.io/crowdin-cli/blog/2024/05/28/cli-v4)
+
 ## [3.19.4](https://github.com/crowdin/crowdin-cli/compare/3.19.3...3.19.4) (2024-05-16)
 
 
