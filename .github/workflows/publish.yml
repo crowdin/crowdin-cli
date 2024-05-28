@@ -141,7 +141,7 @@ jobs:
 
   homebrew:
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event.inputs.package == 'homebrew'
+    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'homebrew'
     needs: assets
     steps:
       - uses: actions/checkout@v4

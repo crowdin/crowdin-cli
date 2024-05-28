@@ -13,7 +13,7 @@ brew tap crowdin/crowdin
 ```
 
 ```bash
-brew install crowdin@3
+brew install crowdin@4
 ```
 
 [Homebrew Tap Reference](https://github.com/crowdin/homebrew-crowdin).
