@@ -7,6 +7,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.NoProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -76,7 +77,7 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
 
             out.println(String.format(RESOURCE_BUNDLE.getString("message.generate_successful")));
         } catch (Exception e) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.create_file"), e);
+            throw ExitCodeExceptionMapper.remap(e, RESOURCE_BUNDLE.getString("error.create_file"));
         }
     }
 

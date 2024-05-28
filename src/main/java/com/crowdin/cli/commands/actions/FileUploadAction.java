@@ -4,7 +4,7 @@ import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.*;
-import com.crowdin.cli.properties.FileBean;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
@@ -39,6 +39,9 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
     private final boolean autoUpdate;
     private final List<String> labels;
     private final String dest;
+    private final String context;
+    private final String type;
+    private final Integer parserVersion;
     private final boolean cleanupMode;
     private final boolean updateStrings;
     private final List<String> excludedLanguages;
@@ -50,12 +53,16 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             this.plainView, this.plainView, client::downloadFullProject);
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
+        if (isStringsBasedProject && nonNull(context)) {
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.file.context_file_based_only"));
+        }
+
         if (!project.isManagerAccess()) {
             if (!plainView) {
                 out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
                 return;
             } else {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+                throw new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
             }
         }
 
@@ -113,7 +120,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
                         out.println(RESOURCE_BUNDLE.getString("message.file_being_updated"));
                     }
                 } catch (Exception e) {
-                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
+                    throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath));
                 }
                 return;
             }
@@ -123,7 +130,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         if (StringUtils.isNotEmpty(branchName)) {
             branch = Optional.ofNullable(BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView));
         } else if (isStringsBasedProject) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
         }
 
         Long storageId = getStorageId(client, fileDestName);
@@ -137,6 +144,15 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             AddFileRequest request = new AddFileRequest();
             request.setName(fileDestName);
             request.setStorageId(storageId);
+            if (nonNull(type)) {
+                request.setType(type);
+            }
+            if (nonNull(parserVersion)) {
+                request.setParserVersion(parserVersion);
+            }
+            if (nonNull(context)) {
+                request.setContext(context);
+            }
 
             Optional<Long> directoryId = getOrCreateDirectoryId(out, client, project, properties, branch.orElse(null));
             directoryId.ifPresent(request::setDirectoryId);
@@ -145,11 +161,16 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             branch.ifPresent(b -> request.setBranchId(b.getId()));
             excludedLanguageNames.ifPresent(request::setExcludedTargetLanguages);
             try {
-                client.addSource(request);
+                FileInfo fileInfo = client.addSource(request);
+                if (!plainView) {
+                    out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.file.list"), fileInfo.getId(), fileFullPath)));
+                } else {
+                    out.println(fileFullPath);
+                }
             } catch (ExistsResponseException e) {
                 throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_already_exists"), fileFullPath));
             } catch (Exception e) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
+                throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath));
             }
 
         }
@@ -185,13 +206,12 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
                     ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.uploading_strings_percents"), 100));
                     return uploadStrings;
                 });
+            if (!plainView) {
+                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
+            } else {
+                out.println(fileFullPath);
+            }
         }
-        if (!plainView) {
-            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
-        } else {
-            out.println(fileFullPath);
-        }
-        out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.experimental_command")));
     }
 
     private List<String> filterExcludedLanguages(List<String> excludedLanguages, CrowdinProjectFull project) {
@@ -230,7 +250,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         try {
             directoryId = Optional.ofNullable(ProjectUtils.createPath(out, client, directoryPaths, filePath, branch, this.plainView));
         } catch (Exception e) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.creating_directories"), e);
+            throw ExitCodeExceptionMapper.remap(e, RESOURCE_BUNDLE.getString("error.creating_directories"));
         }
         return directoryId;
     }
@@ -239,12 +259,12 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         try (InputStream fileStream = Files.newInputStream(file.toPath())) {
             return client.uploadStorage(fileName, fileStream);
         } catch (FileNotFoundException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.local_file_not_found"), file.getAbsolutePath()));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.local_file_not_found"), file.getAbsolutePath()));
         } catch (EmptyFileException e){
             throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped"), file.getAbsolutePath()));
         } catch (Exception e) {
-            throw new RuntimeException(
-                String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), file.getAbsolutePath()), e);
+            throw ExitCodeExceptionMapper.remap(e,
+                String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), file.getAbsolutePath()));
         }
     }
 }

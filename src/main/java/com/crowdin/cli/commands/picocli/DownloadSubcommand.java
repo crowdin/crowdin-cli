@@ -16,8 +16,6 @@ import java.util.List;
     sortOptions = false,
     aliases = CommandNames.ALIAS_DOWNLOAD,
     subcommands = {
-        DownloadTargetsSubcommand.class,
-        DownloadBundleSubcommand.class,
         DownloadSourcesSubcommand.class
     }
 )
@@ -65,7 +63,7 @@ class DownloadSubcommand extends ActCommandWithFiles {
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
-            ? actions.listTranslations(noProgress, treeView, false, plainView, all, true)
+            ? actions.listTranslations(noProgress, treeView, false, plainView, all, true, false)
             : actions.download(new FsFiles(), noProgress, languageIds, excludeLanguageIds, pseudo, branchName, ignoreMatch, isVerbose, plainView, all, keepArchive);
     }
 

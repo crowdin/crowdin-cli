@@ -7,9 +7,7 @@ import picocli.CommandLine;
     subcommands = {
         UploadSubcommand.class,
         DownloadSubcommand.class,
-        ListSubcommand.class,
-        LintSubcommand.class,
-        GenerateSubcommand.class,
+        InitSubcommand.class,
         StatusSubcommand.class,
         StringSubcommand.class,
         GlossarySubcommand.class,
@@ -24,6 +22,10 @@ import picocli.CommandLine;
         ScreenshotSubcommand.class,
         LabelSubcommand.class,
         FileSubcommand.class,
+        LanguageSubcommand.class,
+        ConfigSubcommand.class,
+        ProjectSubcommand.class,
+        CompletionSubCommand.class
     })
 class RootCommand extends HelpCommand {
     @Override

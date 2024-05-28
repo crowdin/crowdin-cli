@@ -19,21 +19,18 @@ import java.util.List;
 )
 class GlossaryDownloadSubcommand extends ActCommandGlossary {
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
-    private Long id;
+    @CommandLine.Parameters(descriptionKey = "crowdin.glossary.download.id")
+    protected Long id;
 
-    @CommandLine.Option(names = {"--name"}, paramLabel = "...", order = -2)
-    private String name;
-
-    @CommandLine.Option(names = {"--format"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--format"}, paramLabel = "...", descriptionKey = "crowdin.glossary.download.format", order = -2)
     private GlossariesFormat format;
 
-    @CommandLine.Option(names = "--to", paramLabel = "...", order = -2)
+    @CommandLine.Option(names = "--to", paramLabel = "...", descriptionKey = "crowdin.glossary.download.to", order = -2)
     private File to;
 
     @Override
     protected NewAction<BaseProperties, ClientGlossary> getAction(Actions actions) {
-        return actions.glossaryDownload(id, name, format, noProgress, to, new FsFiles());
+        return actions.glossaryDownload(id, format, noProgress, to, new FsFiles());
     }
 
     @Override
@@ -46,11 +43,6 @@ class GlossaryDownloadSubcommand extends ActCommandGlossary {
             } catch (IllegalArgumentException e) {
                 errors.add(RESOURCE_BUNDLE.getString("error.glossary.wrong_format"));
             }
-        }
-        if (id != null && name != null) {
-            errors.add(RESOURCE_BUNDLE.getString("error.glossary.id_and_name"));
-        } else if (id == null && name == null) {
-            errors.add(RESOURCE_BUNDLE.getString("error.glossary.no_id_and_no_name"));
         }
         return errors;
     }

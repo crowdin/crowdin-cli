@@ -10,12 +10,12 @@ public class WorkWithProjectTestPart {
     protected TempProject tempProject;
 
     @BeforeEach
-    private void initFolder() {
+    public void initFolder() {
         tempProject = new TempProject(PropertiesBuilderTest.class);
     }
 
     @AfterEach
-    private void removeFolder() {
+    public void removeFolder() {
         tempProject.delete();
     }
 }

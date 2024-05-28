@@ -12,19 +12,19 @@ import picocli.CommandLine;
 )
 class UploadTranslationsSubcommand extends ActCommandWithFiles {
 
-    @CommandLine.Option(names = {"--auto-approve-imported"}, negatable = true, order = -2)
+    @CommandLine.Option(names = {"--auto-approve-imported"}, descriptionKey = "crowdin.upload.translations.auto-approve-imported", negatable = true, order = -2)
     protected boolean autoApproveImported;
 
-    @CommandLine.Option(names = {"--import-eq-suggestions"}, negatable = true, order = -2)
+    @CommandLine.Option(names = {"--import-eq-suggestions"}, descriptionKey = "crowdin.upload.translations.import-eq-suggestions", negatable = true, order = -2)
     protected boolean importEqSuggestions;
 
-    @CommandLine.Option(names = {"--translate-hidden"}, negatable = true, order = -2)
+    @CommandLine.Option(names = {"--translate-hidden"}, descriptionKey = "crowdin.upload.translations.translate-hidden", negatable = true, order = -2)
     protected boolean translateHidden;
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
     protected String branch;
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", order = -4)
+    @CommandLine.Option(names = {"-l", "--language"}, descriptionKey = "crowdin.upload.translations.language", paramLabel = "...", order = -4)
     protected String languageId;
 
     @CommandLine.Option(names = {"--dryrun"})
@@ -39,7 +39,7 @@ class UploadTranslationsSubcommand extends ActCommandWithFiles {
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
-            ? actions.listTranslations(noProgress, treeView, true, plainView, false, false)
+            ? actions.listTranslations(noProgress, treeView, true, plainView, false, false, true)
             : actions.uploadTranslations(noProgress, languageId, branch, importEqSuggestions, autoApproveImported, translateHidden, debug, plainView);
     }
 

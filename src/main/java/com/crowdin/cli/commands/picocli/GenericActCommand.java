@@ -31,7 +31,7 @@ public abstract class GenericActCommand<P extends Properties, C extends Client> 
             String errorsInOne = errors.stream()
                 .map(error -> String.format(RESOURCE_BUNDLE.getString("message.item_list"), error))
                 .collect(Collectors.joining("\n"));
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.params_are_invalid") + "\n" + errorsInOne);
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.params_are_invalid") + "\n" + errorsInOne);
         }
         NewAction<P, C> action = this.getAction(actions);
         C client = this.getClient(properties);

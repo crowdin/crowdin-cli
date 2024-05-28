@@ -6,6 +6,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.DryrunTranslations;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -24,14 +25,16 @@ class ListTranslationsAction implements NewAction<PropertiesWithFiles, ProjectCl
     private boolean plainView;
     private boolean useServerSources;
     private boolean withInContextLang;
+    private boolean isUpload;
 
-    public ListTranslationsAction(boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang) {
+    public ListTranslationsAction(boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang, boolean isUpload) {
         this.noProgress = noProgress;
         this.treeView = treeView;
         this.isLocal = isLocal;
         this.plainView = plainView;
         this.useServerSources = useServerSources;
         this.withInContextLang = withInContextLang;
+        this.isUpload = isUpload;
     }
 
     @Override
@@ -44,7 +47,7 @@ class ListTranslationsAction implements NewAction<PropertiesWithFiles, ProjectCl
                 System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access")));
                 return;
             } else {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+                throw new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
             }
         }
 
@@ -53,7 +56,7 @@ class ListTranslationsAction implements NewAction<PropertiesWithFiles, ProjectCl
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(
             project.getSupportedLanguages(), project.getProjectLanguages(!isLocal), pb.getBasePath());
 
-        (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, project.getProjectLanguages(withInContextLang), false, files, useServerSources))
+        (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, project.getProjectLanguages(withInContextLang), false, files, useServerSources, isUpload))
             .run(out, treeView, plainView);
     }
 }

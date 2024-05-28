@@ -1,6 +1,7 @@
 package com.crowdin.cli.properties;
 
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import io.github.cdimascio.dotenv.Dotenv;
 import lombok.NonNull;
 import org.apache.commons.lang3.StringUtils;
@@ -32,17 +33,25 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String PROJECT_ID_ENV = "project_id_env";
 
+    public static final String CROWDIN_PROJECT_ID = "CROWDIN_PROJECT_ID";
+
     public static final String API_TOKEN = "api_token";
 
     public static final String API_TOKEN_ENV = "api_token_env";
+
+    public static final String CROWDIN_PERSONAL_TOKEN = "CROWDIN_PERSONAL_TOKEN";
 
     public static final String BASE_PATH = "base_path";
 
     public static final String BASE_PATH_ENV = "base_path_env";
 
+    public static final String CROWDIN_BASE_PATH = "CROWDIN_BASE_PATH";
+
     public static final String BASE_URL = "base_url";
 
     public static final String BASE_URL_ENV = "base_url_env";
+
+    public static final String CROWDIN_BASE_URL = "CROWDIN_BASE_URL";
 
     public static final String PRESERVE_HIERARCHY = "preserve_hierarchy";
 
@@ -85,18 +94,6 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
     public static final String SCHEME = "scheme";
 
     public static final String TRANSLATION_REPLACE = "translation_replace";
-
-    public static final String TARGETS = "targets";
-
-    public static final String NAME = "name";
-
-    public static final String FILE = "file";
-
-    public static final String SOURCES = "sources";
-
-    public static final String DIRECTORIES = "directories";
-
-    public static final String BRANCHES = "branches";
 
     public static final String LABELS = "labels";
 
@@ -172,6 +169,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
             this.throwErrorIfNeeded(this.checkArgParams(params), RESOURCE_BUNDLE.getString("error.params_are_invalid"));
             this.populateWithArgParams(props, params);
         }
+        this.populateWithEnvValues(props);
         this.populateWithDefaultValues(props);
         String errorTitle = (configFileParams == null && identityFileParams == null)
             ? RESOURCE_BUNDLE.getString("error.configuration_is_invalid")
@@ -188,7 +186,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
             String errorsInOne = messages.getErrors().stream()
                 .map(error -> String.format(RESOURCE_BUNDLE.getString("message.item_list"), error))
                 .collect(Collectors.joining("\n"));
-            throw new RuntimeException(text + "\n" + errorsInOne);
+            throw new ExitCodeExceptionMapper.ValidationException(text + "\n" + errorsInOne);
         }
     }
 
@@ -202,6 +200,8 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     protected abstract void populateWithArgParams(T props, @NonNull P params);
 
+    protected abstract void populateWithEnvValues(T props);
+
     protected abstract void populateWithDefaultValues(T props);
 
     protected abstract Messages checkProperties(T props);
@@ -210,7 +210,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
         List<?> list = PropertiesBuilder.checkProperty(map, key, List.class, Collections.emptyList());
         for (Object obj : list) {
             if (!(obj instanceof Map)) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param_list_type"), key, typeName(obj.getClass()), typeName(Map.class)));
+                throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.cast_param_list_type"), key, typeName(obj.getClass()), typeName(Map.class)));
             }
         }
         @SuppressWarnings("unchecked")
@@ -235,13 +235,20 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
         }
     }
 
+    static void setEnvIfExists(Consumer<String> setter, String envKey) {
+        String param = getDotenv().get(envKey);
+        if (param != null) {
+            setter.accept(param);
+        }
+    }
+
     private static Dotenv getDotenv() {
         if (dotenv == null) {
             try {
                 dotenv = Dotenv.configure().ignoreIfMissing().load();
             } catch (IllegalStateException e) {
                 if (e.getMessage() != null && e.getMessage().contains("Duplicate key")) {
-                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.duplicate_environment_variable"), e);
+                    throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.duplicate_environment_variable"), e);
                 } else {
                     throw e;
                 }
@@ -274,13 +281,13 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
             if (param != null && !clazz.isAssignableFrom(param.getClass())) {
                 String desiredType = typeName(clazz);
                 String presentType = typeName(param.getClass());
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param_type"), key, presentType, desiredType));
+                throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.cast_param_type"), key, presentType, desiredType));
             }
             @SuppressWarnings("unchecked")
             T paramWithType = (T) param;
             return paramWithType;
         } catch (ClassCastException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.cast_param"), key), e);
+            throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.cast_param"), key), e);
         }
     }
 
@@ -307,9 +314,9 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
                 setter.accept(param);
             }
         } catch (ClassCastException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.config.enum_class_exception"), key, acceptableValuesEnum));
+            throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.config.enum_class_exception"), key, acceptableValuesEnum));
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.config.enum_wrong_value"), key, acceptableValuesEnum));
+            throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.config.enum_wrong_value"), key, acceptableValuesEnum));
         }
     }
 

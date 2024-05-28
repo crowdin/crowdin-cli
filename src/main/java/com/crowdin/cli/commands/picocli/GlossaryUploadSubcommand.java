@@ -22,31 +22,34 @@ class GlossaryUploadSubcommand extends ActCommandGlossary {
     @CommandLine.Parameters(descriptionKey = "crowdin.glossary.upload.file")
     private File file;
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--id"}, paramLabel = "...", descriptionKey = "crowdin.glossary.upload.id", order = -2)
     private Long id;
-
-    @CommandLine.Option(names = {"--name"}, paramLabel = "...", order = -2)
-    private String name;
 
     @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.glossary.upload.language-id", order = -2)
     private String languageId;
 
-    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...", descriptionKey = "crowdin.glossary.upload.scheme", order = -2)
     private Map<String, Integer> scheme;
 
-    @CommandLine.Option(names = {"--first-line-contains-header"}, order = -2)
+    @CommandLine.Option(names = {"--first-line-contains-header"}, descriptionKey = "crowdin.glossary.upload.first-line-contains-header", order = -2)
     private Boolean firstLineContainsHeader;
+
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
 
     @Override
     protected NewAction<BaseProperties, ClientGlossary> getAction(Actions actions) {
-        return actions.glossaryUpload(file, id, name, languageId, scheme, firstLineContainsHeader);
+        return actions.glossaryUpload(file, id, languageId, scheme, firstLineContainsHeader, plainView);
     }
 
     @Override
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
         if (!file.exists()) {
-            errors.add(String.format("File '%s' doesn't exist", file));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), file));
+        }
+        if (file.isDirectory()) {
+            errors.add(RESOURCE_BUNDLE.getString("error.file.is_folder"));
         }
         if (!equalsAny(FilenameUtils.getExtension(file.getName()), "tbx", "csv", "xls", "xlsx")) {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.wrong_format"));
@@ -59,10 +62,7 @@ class GlossaryUploadSubcommand extends ActCommandGlossary {
         if (!equalsAny(FilenameUtils.getExtension(file.getName()), "csv", "xls", "xlsx") && firstLineContainsHeader != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.first_line_contains_header_and_wrong_format"));
         }
-        if (id != null && name != null) {
-            errors.add(RESOURCE_BUNDLE.getString("error.glossary.id_and_name"));
-        }
-        if (id == null && name == null && languageId == null) {
+        if (id == null && languageId == null) {
             errors.add(RESOURCE_BUNDLE.getString("error.glossary.no_language_id"));
         }
         return errors;

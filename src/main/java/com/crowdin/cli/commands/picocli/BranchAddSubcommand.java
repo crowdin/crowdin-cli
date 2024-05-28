@@ -9,24 +9,27 @@ import picocli.CommandLine;
 
 @CommandLine.Command(
     sortOptions = false,
-    name = CommandNames.BRANCH_ADD
+    name = CommandNames.ADD
 )
 class BranchAddSubcommand extends ActCommandProject {
 
     @CommandLine.Parameters(descriptionKey = "crowdin.branch.add.name")
     protected String name;
 
-    @CommandLine.Option(names = "--title", paramLabel = "...", order = -2)
+    @CommandLine.Option(names = "--title", descriptionKey = "crowdin.branch.add.title", paramLabel = "...", order = -2)
     protected String title;
 
-    @CommandLine.Option(names = "--export-pattern", paramLabel = "...", order = -2)
+    @CommandLine.Option(names = "--export-pattern", descriptionKey = "crowdin.branch.add.export-pattern", paramLabel = "...", order = -2)
     protected String exportPattern;
 
-    @CommandLine.Option(names = "--priority", paramLabel = "...", order = -2)
+    @CommandLine.Option(names = "--priority", descriptionKey = "crowdin.branch.add.priority", paramLabel = "...", order = -2)
     protected Priority priority;
+
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.branchAdd(name, title, exportPattern, priority);
+        return actions.branchAdd(name, title, exportPattern, priority, plainView);
     }
 }

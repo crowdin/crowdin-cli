@@ -8,6 +8,7 @@ import com.crowdin.cli.commands.Outputter;
 
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 
 import com.crowdin.cli.utils.Utils;
@@ -22,36 +23,24 @@ import java.util.*;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
-import static java.util.Objects.nonNull;
 
 @AllArgsConstructor
 class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
 
     private boolean noProgress;
-
     private String title;
-
     private Integer type;
-
     private String language;
-
     private List<String> files;
-
     private String branch;
-
     private Long workflowStep;
-
     private String description;
-
     private boolean skipAssignedStrings;
-
     private boolean skipUntranslatedStrings;
-
     private boolean includePreTranslatedStringsOnly;
-
     private List<Long> labels;
-
     private ProjectClient projectClient;
+    private boolean plainView;
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientTask client) {
@@ -59,37 +48,20 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
         Task task;
         AddTaskRequest addTaskRequest;
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, false, () -> this.projectClient.downloadFullProject(this.branch));
+            this.noProgress, this.plainView, () -> this.projectClient.downloadFullProject(this.branch));
 
         List<Long> fileIds = new ArrayList<>();
-        boolean isIdUsed = false;
         Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
         for (String file : files) {
-            // TODO: Remove backward compatibility with file ids
-            if (isConvertibleToLong(file)) {
-                isIdUsed = true;
-                Long id = Long.parseLong(file);
-                boolean isFileExist = paths.values().stream().anyMatch(p -> p.getId().equals(id));
-                if (isFileExist) {
-                    fileIds.add(id);
-                } else {
-                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_id_not_exists"), file)));
-                }
+            final String path = Utils.normalizePath(Utils.noSepAtStart(file));
+            if (paths.containsKey(path)) {
+                fileIds.add(paths.get(path).getId());
             } else {
-                final String path = Utils.normalizePath(Utils.noSepAtStart(file));
-                if (paths.containsKey(path)) {
-                    fileIds.add(paths.get(path).getId());
-                } else {
-                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), path)));
-                }
+                out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), path)));
             }
         }
-        // TODO: Remove backward compatibility with file ids
-        if (isIdUsed) {
-            out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.file_id_deprecated"))));
-        }
         if (fileIds.isEmpty()) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.task.no_valid_file")));
+            throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.task.no_valid_file")));
         }
 
         if (isOrganization) {
@@ -117,18 +89,16 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
 
         try {
             task = client.addTask(addTaskRequest);
+            String deadline = task.getDeadline() == null ? "NoDueDate" : task.getDeadline().toString();
+            if (!plainView) {
+                out.println(OK.withIcon(
+                    String.format(RESOURCE_BUNDLE.getString("message.task.list"), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), deadline))
+                );
+            } else {
+                out.println(String.format("%d %s", task.getId(), task.getTitle()));
+            }
         } catch (Exception e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.task_is_not_added"), addTaskRequest), e);
-        }
-        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.task.added"), task.getTitle())));
-    }
-
-    private boolean isConvertibleToLong(String str) {
-        try {
-            Long.parseLong(str);
-            return true;
-        } catch (NumberFormatException e) {
-            return false;
+            throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.task_is_not_added"), addTaskRequest));
         }
     }
 }

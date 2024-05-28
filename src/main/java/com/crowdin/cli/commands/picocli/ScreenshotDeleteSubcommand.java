@@ -7,15 +7,15 @@ import com.crowdin.cli.properties.ProjectProperties;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = CommandNames.SCREENSHOT_DELETE
+    name = CommandNames.DELETE
 )
 class ScreenshotDeleteSubcommand extends ActCommandScreenshot {
 
-    @CommandLine.Parameters(descriptionKey = "crowdin.screenshot.delete.name")
-    protected String name;
+    @CommandLine.Parameters(descriptionKey = "crowdin.screenshot.delete.id")
+    protected Long id;
 
     @Override
     protected NewAction<ProjectProperties, ClientScreenshot> getAction(Actions actions) {
-        return actions.screenshotDelete(name);
+        return actions.screenshotDelete(id);
     }
 }

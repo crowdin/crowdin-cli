@@ -16,7 +16,6 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
@@ -47,15 +46,15 @@ public class ProjectFilesUtils {
 
     public static Map<Long, String> buildDirectoryPaths(Map<Long, Directory> directories, Map<Long, Branch> branches) {
         Map<Long, String> directoryPaths = new HashMap<>();
-        directories.forEach((k, dir) ->
-            directoryPaths.put(k, buildBranchPath(dir.getBranchId(), branches) + buildDirectoryPath(dir.getId(), directories)));
+        directories.forEach((dirId, dir) ->
+            directoryPaths.put(dirId, buildBranchPath(dir.getBranchId(), branches) + buildDirectoryPath(dir.getId(), directories)));
         branches.keySet().forEach(brId -> directoryPaths.put(brId, buildBranchPath(brId, branches)));
         return directoryPaths;
     }
 
     public static Map<Long, String> buildDirectoryPaths(Map<Long, Directory> directories) {
         Map<Long, String> directoryPaths = new HashMap<>();
-        directories.forEach((k, dir) -> directoryPaths.put(k, buildDirectoryPath(dir.getId(), directories)));
+        directories.forEach((dirId, dir) -> directoryPaths.put(dirId, buildDirectoryPath(dir.getId(), directories)));
         return directoryPaths;
     }
 
@@ -108,12 +107,6 @@ public class ProjectFilesUtils {
 
     public static String buildBranchPath(Long branchId, Map<Long, Branch> branchNames) {
         return ((branchId != null) ? branchNames.get(branchId).getName() + Utils.PATH_SEPARATOR : "");
-    }
-
-    public static <T extends FileInfo> List<T> filterFilesByBranch(List<T> files, Long branchId) {
-        return files.stream()
-            .filter(f -> Objects.equals(branchId, f.getBranchId()))
-            .collect(Collectors.toList());
     }
 
     private static Optional<Long> getParentId(FileInfo fe) {

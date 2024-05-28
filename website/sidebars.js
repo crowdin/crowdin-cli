@@ -17,15 +17,7 @@ const sidebars = {
     'intro',
     'installation',
     'configuration',
-    {
-        type: 'category',
-        label: 'Tutorials',
-        collapsible: true,
-        collapsed: false,
-        items: [
-            'tutorials/files-management',
-        ]
-    },
+    'autocompletion',
     {
       type: 'category',
       label: 'Commands',
@@ -33,8 +25,8 @@ const sidebars = {
       collapsed: false,
       items: [
         'commands/crowdin',
-        'commands/crowdin-generate',
-        'commands/crowdin-lint',
+        'commands/crowdin-init',
+        'commands/crowdin-pre-translate',
         {
           type: 'category',
           label: 'crowdin upload',
@@ -61,53 +53,6 @@ const sidebars = {
           items: [
             'commands/crowdin-download-translations',
             'commands/crowdin-download-sources',
-            'commands/crowdin-download-bundle',
-          ]
-        },
-        {
-          type: 'category',
-          label: 'crowdin file',
-          link: {
-            type: 'doc',
-            id: 'commands/crowdin-file'
-          },
-          collapsible: true,
-          collapsed: true,
-          items: [
-            'commands/crowdin-file-upload',
-            'commands/crowdin-file-download',
-            'commands/crowdin-file-delete',
-          ]
-        },
-        {
-          type: 'category',
-          label: 'crowdin list',
-          link: {
-            type: 'doc',
-            id: 'commands/crowdin-list'
-          },
-          collapsible: true,
-          collapsed: true,
-          items: [
-            'commands/crowdin-list-branches',
-            'commands/crowdin-list-languages',
-            'commands/crowdin-list-sources',
-            'commands/crowdin-list-translations',
-            'commands/crowdin-list-project',
-          ]
-        },
-        {
-          type: 'category',
-          label: 'crowdin branch',
-          link: {
-            type: 'doc',
-            id: 'commands/crowdin-branch'
-          },
-          collapsible: true,
-          collapsed: true,
-          items: [
-            'commands/crowdin-branch-add',
-            'commands/crowdin-branch-delete',
           ]
         },
         {
@@ -126,6 +71,39 @@ const sidebars = {
         },
         {
           type: 'category',
+          label: 'crowdin file',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-file'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-file-list',
+            'commands/crowdin-file-upload',
+            'commands/crowdin-file-download',
+            'commands/crowdin-file-delete',
+          ]
+        },
+        {
+          type: 'category',
+          label: 'crowdin branch',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-branch'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-branch-list',
+            'commands/crowdin-branch-add',
+            'commands/crowdin-branch-clone',
+            'commands/crowdin-branch-merge',
+            'commands/crowdin-branch-delete',
+          ]
+        },
+        {
+          type: 'category',
           label: 'crowdin string',
           link: {
             type: 'doc',
@@ -138,7 +116,6 @@ const sidebars = {
             'commands/crowdin-string-add',
             'commands/crowdin-string-edit',
             'commands/crowdin-string-delete',
-            'commands/crowdin-string-comment',
           ]
         },
         {
@@ -153,6 +130,50 @@ const sidebars = {
           items: [
             'commands/crowdin-bundle-list',
             'commands/crowdin-bundle-add',
+            'commands/crowdin-bundle-download',
+          ]
+        },
+
+        {
+          type: 'category',
+          label: 'crowdin config',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-config'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-config-lint',
+            'commands/crowdin-config-sources',
+            'commands/crowdin-config-translations',
+          ]
+        },
+        {
+          type: 'category',
+          label: 'crowdin project',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-project'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-project-list',
+            'commands/crowdin-project-browse',
+          ]
+        },
+        {
+          type: 'category',
+          label: 'crowdin language',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-language'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-language-list',
           ]
         },
         {
@@ -196,6 +217,7 @@ const sidebars = {
           collapsed: true,
           items: [
             'commands/crowdin-comment-list',
+            'commands/crowdin-comment-add',
             'commands/crowdin-comment-resolve',
           ]
         },
@@ -209,8 +231,8 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
-            'commands/crowdin-task-add',
             'commands/crowdin-task-list',
+            'commands/crowdin-task-add',
           ]
         },
         {
@@ -223,8 +245,8 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
-            'commands/crowdin-distribution-add',
             'commands/crowdin-distribution-list',
+            'commands/crowdin-distribution-add',
             'commands/crowdin-distribution-release',
           ]
         },
@@ -238,8 +260,8 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
-            'commands/crowdin-screenshot-upload',
             'commands/crowdin-screenshot-list',
+            'commands/crowdin-screenshot-upload',
             'commands/crowdin-screenshot-delete',
           ]
         },
@@ -253,18 +275,17 @@ const sidebars = {
           collapsible: true,
           collapsed: true,
           items: [
-            'commands/crowdin-label-add',
             'commands/crowdin-label-list',
+            'commands/crowdin-label-add',
             'commands/crowdin-label-delete',
           ]
-        },
-        'commands/crowdin-pre-translate',
+        }
       ],
     },
     'ci-cd',
     'advanced',
     'exit-codes',
-    'faq',
+    'faq'
   ],
 };
 

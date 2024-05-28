@@ -29,7 +29,7 @@ public class CliActionsTest {
 
     @Test
     public void testListProject() {
-        assertNotNull(actions.listProject(false, null, false, false));
+        assertNotNull(actions.listFiles(false, null, false, false, false));
     }
 
     @Test
@@ -39,32 +39,32 @@ public class CliActionsTest {
 
     @Test
     public void testListTranslations() {
-        assertNotNull(actions.listTranslations(false, false, false, false, false, false));
+        assertNotNull(actions.listTranslations(false, false, false, false, false, false, false));
     }
 
     @Test
     public void testStatus() {
-        assertNotNull(actions.status(false, null, null, null, null, false, false, false, false));
+        assertNotNull(actions.status(false, null, null, null, null, false, false, false, false, false));
     }
 
     @Test
     public void testStringAdd() {
-        assertNotNull(actions.stringAdd(false, null, null, null, null, null, null, null, null, null, null, null, null, null));
+        assertNotNull(actions.stringAdd(false, null, null, null, null, null, null, null, null, null, null, null, null, null, false));
     }
 
     @Test
     public void testStringDelete() {
-        assertNotNull(actions.stringDelete(false, null, null, null));
+        assertNotNull(actions.stringDelete(null));
     }
 
     @Test
     public void testStringEdit() {
-        assertNotNull(actions.stringEdit(false, null, null, null, null, null, null, null));
+        assertNotNull(actions.stringEdit(false, false, null, null, null, null, null, null, null, false));
     }
 
     @Test
     public void testStringList() {
-        assertNotNull(actions.stringList(false, false, null, null, null, null, null));
+        assertNotNull(actions.stringList(false, false, null, null, null, null, null, null, null, false));
     }
 
     @Test
@@ -84,12 +84,12 @@ public class CliActionsTest {
 
     @Test
     public void testGlossaryUpload() {
-        assertNotNull(actions.glossaryUpload(new File("nowhere.txt"), null, null, null, null, null));
+        assertNotNull(actions.glossaryUpload(new File("nowhere.txt"), null, null, null, null, false));
     }
 
     @Test
     public void testGlossaryDownload() {
-        assertNotNull(actions.glossaryDownload(null, null, null, false, null, null));
+        assertNotNull(actions.glossaryDownload(null, null, false, null, null));
     }
 
     @Test
@@ -99,12 +99,12 @@ public class CliActionsTest {
 
     @Test
     public void testTmUpload() {
-        assertNotNull(actions.tmUpload(null, null, null, null, null, null));
+        assertNotNull(actions.tmUpload(null, null, null, null, null, false));
     }
 
     @Test
     public void testTmDownload() {
-        assertNotNull(actions.tmDownload(null, null, null, null, null, false, null, null));
+        assertNotNull(actions.tmDownload(null, null, null, null, false, null, null));
     }
 
     @Test
@@ -159,7 +159,7 @@ public class CliActionsTest {
 
     @Test
     void testFileUpload() {
-        assertNotNull(actions.fileUpload(null, null, false, null, null, null,false, true, false));
+        assertNotNull(actions.fileUpload(null, null, false, null, null, null, null, null, null, false, true, false));
     }
 
     @Test
@@ -180,5 +180,10 @@ public class CliActionsTest {
     @Test
     void testFileDelete() {
         assertNotNull(actions.fileDelete(null, null));
+    }
+
+    @Test
+    void testBranchClone() {
+        assertNotNull(actions.branchClone(null, null, false, false));
     }
 }

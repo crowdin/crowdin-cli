@@ -10,9 +10,9 @@ public class StringEditSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testStringEdit() {
-        this.execute(CommandNames.STRING, CommandNames.STRING_EDIT, "--id", "42", "--text", "NeW tExT");
+        this.execute(CommandNames.STRING, CommandNames.STRING_EDIT, "42", "--text", "NeW tExT");
         verify(actionsMock)
-            .stringEdit(anyBoolean(), any(), any(), any(), any(), any(), any(), any());
+            .stringEdit(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any(), anyBoolean());
         this.check(true);
     }
 

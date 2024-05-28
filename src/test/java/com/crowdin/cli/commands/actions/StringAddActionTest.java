@@ -13,10 +13,7 @@ import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.projectsgroups.model.Type;
-import com.crowdin.client.sourcestrings.model.AddSourcePluralStringRequest;
-import com.crowdin.client.sourcestrings.model.AddSourcePluralStringStringsBasedRequest;
-import com.crowdin.client.sourcestrings.model.AddSourceStringRequest;
-import com.crowdin.client.sourcestrings.model.AddSourceStringStringsBasedRequest;
+import com.crowdin.client.sourcestrings.model.*;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -32,6 +29,7 @@ import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.verifyNoMoreInteractions;
@@ -76,9 +74,10 @@ public class StringAddActionTest {
         build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
             .thenReturn(build);
+        when(client.addSourceString(any())).thenReturn(new SourceString());
 
         action =
-            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, null, hidden, null, null, null, null, null);
+            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, null, hidden, null, null, null, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -141,9 +140,10 @@ public class StringAddActionTest {
         build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
             .thenReturn(build);
+        when(client.addSourceString(any())).thenReturn(new SourceString());
 
         action =
-            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, null, hidden, null, null, null, null, null);
+            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), labelNames, null, hidden, null, null, null, null, null, true);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -165,7 +165,7 @@ public class StringAddActionTest {
         when(client.downloadFullProject())
             .thenThrow(new RuntimeException("Whoops"));
 
-        action = new StringAddAction(false, null, null, null, null, null, null, null, null,  null, null, null, null, null);
+        action = new StringAddAction(false, null, null, null, null, null, null, null, null,  null, null, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject();
@@ -222,10 +222,11 @@ public class StringAddActionTest {
             .collect(Collectors.toList());
         when(client.listLabels())
             .thenReturn(labelsResponse);
+        when(client.addSourceString(any())).thenReturn(new SourceString());
 
 
         action =
-            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), new ArrayList<>(labels.values()), null, hidden,  null, null, null, null, null);
+            new StringAddAction(true, text, identifier, maxLength, context, Arrays.asList(stringFiles), new ArrayList<>(labels.values()), null, hidden,  null, null, null, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -261,9 +262,10 @@ public class StringAddActionTest {
         build.setType(Type.FILES_BASED);
         when(client.downloadFullProject())
             .thenReturn(build);
+        when(client.addSourcePluralString(any())).thenReturn(new SourceString() {{ setId(12L); }});
 
         action =
-            new StringAddAction(true, "strings", "1.1", 42, "It's first text", Arrays.asList("file.csv"), null, null, false, "string", null, null, null, null);
+            new StringAddAction(true, "strings", "1.1", 42, "It's first text", Arrays.asList("file.csv"), null, null, false, "string", null, null, null, null, true);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -288,9 +290,10 @@ public class StringAddActionTest {
         build.setType(Type.STRINGS_BASED);
         when(client.downloadFullProject())
             .thenReturn(build);
+        when(client.addSourceStringStringsBased(any())).thenReturn(new SourceString());
 
         action =
-            new StringAddAction(true, "first text", "1.1", 42, "It's first text", null, null, "main", false, null, null, null, null, null);
+            new StringAddAction(true, "first text", "1.1", 42, "It's first text", null, null, "main", false, null, null, null, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -315,9 +318,10 @@ public class StringAddActionTest {
         build.setType(Type.STRINGS_BASED);
         when(client.downloadFullProject())
             .thenReturn(build);
+        when(client.addSourcePluralStringStringsBased(any())).thenReturn(new SourceString());
 
         action =
-            new StringAddAction(true, "strings", "1.1", 42, "It's first text", null, null, "main", false, "string", null, null, null, null);
+            new StringAddAction(true, "strings", "1.1", 42, "It's first text", null, null, "main", false, "string", null, null, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();

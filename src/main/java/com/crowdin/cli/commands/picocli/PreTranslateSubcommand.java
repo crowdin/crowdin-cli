@@ -5,8 +5,10 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.translations.model.AutoApproveOption;
 import com.crowdin.client.translations.model.Method;
+import org.apache.commons.lang3.StringUtils;
 import picocli.CommandLine;
 
 import java.util.ArrayList;
@@ -22,28 +24,31 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 )
 public class PreTranslateSubcommand extends ActCommandWithFiles {
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", defaultValue = BaseCli.ALL, order = -2)
+    @CommandLine.Option(names = {"-l", "--language"}, descriptionKey = "crowdin.pre-translate.language", paramLabel = "...", defaultValue = BaseCli.ALL, order = -2)
     protected List<String> languageIds;
 
-    @CommandLine.Option(names = {"--method"}, paramLabel = "...", required = true, order = -2)
+    @CommandLine.Option(names = {"--file"}, descriptionKey = "crowdin.pre-translate.file", paramLabel = "...", order = -2)
+    protected List<String> files;
+
+    @CommandLine.Option(names = {"--method"}, descriptionKey = "crowdin.pre-translate.method", paramLabel = "...", required = true, order = -2)
     protected Method method;
 
-    @CommandLine.Option(names = {"--engine-id"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--engine-id"}, descriptionKey = "crowdin.pre-translate.engine-id", paramLabel = "...", order = -2)
     protected Long engineId;
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", descriptionKey = "branch", order = -2)
     protected String branch;
 
-    @CommandLine.Option(names = {"--auto-approve-option"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--auto-approve-option"}, descriptionKey = "crowdin.pre-translate.auto-approve-option", paramLabel = "...", order = -2)
     protected String autoApproveOption;
 
-    @CommandLine.Option(names = {"--duplicate-translations"}, negatable = true, order = -2)
+    @CommandLine.Option(names = {"--duplicate-translations"}, descriptionKey = "crowdin.pre-translate.duplicate-translations", negatable = true, order = -2)
     protected Boolean duplicateTranslations;
 
-    @CommandLine.Option(names = {"--translate-untranslated-only"}, negatable = true, order = -2)
+    @CommandLine.Option(names = {"--translate-untranslated-only"}, descriptionKey = "crowdin.pre-translate.translate-untranslated-only", negatable = true, order = -2)
     protected Boolean translateUntranslatedOnly;
 
-    @CommandLine.Option(names = {"--translate-with-perfect-match-only"}, negatable = true, order = -2)
+    @CommandLine.Option(names = {"--translate-with-perfect-match-only"}, descriptionKey = "crowdin.pre-translate.translate-with-perfect-match-only", negatable = true, order = -2)
     protected Boolean translateWithPerfectMatchOnly;
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
@@ -51,6 +56,9 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
 
     @CommandLine.Option(names = {"--label"}, descriptionKey = "crowdin.pre-translate.label", paramLabel = "...", order = -2)
     protected List<String> labelNames;
+
+    @CommandLine.Option(names = {"--ai-prompt"}, descriptionKey = "crowdin.pre-translate.ai-prompt", paramLabel = "...", order = -2)
+    protected Long aiPrompt;
 
     private final Map<String, AutoApproveOption> autoApproveOptionWrapper = new HashMap<String, AutoApproveOption>() {{
         put("all", AutoApproveOption.ALL);
@@ -68,6 +76,7 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return actions.preTranslate(
             languageIds,
+            files,
             method,
             engineId,
             branch,
@@ -76,17 +85,16 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
             translateUntranslatedOnly,
             translateWithPerfectMatchOnly,
             noProgress,
-            debug,
-            isVerbose,
             plainView,
-            labelNames
+            labelNames,
+            aiPrompt
         );
     }
 
     @Override
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
-        if ((Method.MT == method) == (engineId == null)) {
+        if ((Method.MT == method) && (engineId == null)) {
             errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.engine_id"));
         }
         if ((Method.MT == method) && duplicateTranslations != null) {
@@ -104,6 +112,15 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
         }
         if (autoApproveOption != null && !autoApproveOptionWrapper.containsKey(autoApproveOption)) {
             errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.auto_approve_option"));
+        }
+        if ((Method.AI == method) && (aiPrompt == null)) {
+            errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.ai_prompt"));
+        }
+        if (files != null) {
+            for (int i = 0; i < files.size(); i++) {
+                String normalizedFile = StringUtils.removeStart(Utils.normalizePath(files.get(i)), Utils.PATH_SEPARATOR);
+                files.set(i, normalizedFile);
+            }
         }
         return errors;
     }

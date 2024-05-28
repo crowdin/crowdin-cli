@@ -1,6 +1,7 @@
 package com.crowdin.cli.properties;
 
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.utils.Utils;
 import lombok.Data;
 import lombok.NonNull;
@@ -14,16 +15,7 @@ import java.nio.file.Paths;
 import java.util.Map;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.properties.PropertiesBuilder.API_TOKEN;
-import static com.crowdin.cli.properties.PropertiesBuilder.API_TOKEN_ENV;
-import static com.crowdin.cli.properties.PropertiesBuilder.BASE_PATH;
-import static com.crowdin.cli.properties.PropertiesBuilder.BASE_PATH_ENV;
-import static com.crowdin.cli.properties.PropertiesBuilder.BASE_URL;
-import static com.crowdin.cli.properties.PropertiesBuilder.BASE_URL_ENV;
-import static com.crowdin.cli.properties.PropertiesBuilder.CONFIG_FILE_PATH;
-import static com.crowdin.cli.properties.PropertiesBuilder.SETTINGS;
-import static com.crowdin.cli.properties.PropertiesBuilder.checkBasePathExists;
-import static com.crowdin.cli.properties.PropertiesBuilder.checkBasePathIsDir;
+import static com.crowdin.cli.properties.PropertiesBuilder.*;
 
 @Data
 public class BaseProperties implements Properties {
@@ -50,6 +42,19 @@ public class BaseProperties implements Properties {
             PropertiesBuilder.setEnvOrPropertyIfExists(props::setBaseUrl, map, BASE_URL_ENV, BASE_URL);
             PropertiesBuilder.setPropertyIfExists(props::setConfigFilePath, map, CONFIG_FILE_PATH, String.class);
             props.setSettings(SettingsBean.CONFIGURATOR.buildFromMap(PropertiesBuilder.getMap(map, SETTINGS)));
+        }
+
+        @Override
+        public void populateWithEnvValues(BaseProperties props) {
+            if (props.getApiToken() == null) {
+                PropertiesBuilder.setEnvIfExists(props::setApiToken, CROWDIN_PERSONAL_TOKEN);
+            }
+            if (props.getBasePath() == null) {
+                PropertiesBuilder.setEnvIfExists(props::setBasePath, CROWDIN_BASE_PATH);
+            }
+            if (props.getBaseUrl() == null) {
+                PropertiesBuilder.setEnvIfExists(props::setBaseUrl, CROWDIN_BASE_URL);
+            }
         }
 
         @Override
@@ -89,7 +94,7 @@ public class BaseProperties implements Properties {
             if (props.getApiToken() == null) {
                 String confFilePath = props.getConfigFilePath();
                 if (confFilePath == null || !(new File(confFilePath).exists())) {
-                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
+                    throw new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
                 }
             }
             if (StringUtils.isEmpty(props.getApiToken())) {

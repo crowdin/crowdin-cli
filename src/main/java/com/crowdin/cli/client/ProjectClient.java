@@ -1,10 +1,11 @@
 package com.crowdin.cli.client;
 
-import com.crowdin.client.core.model.DownloadLink;
+import com.crowdin.client.branches.model.*;
 import com.crowdin.client.core.model.PatchRequest;
-import com.crowdin.client.distributions.model.DistributionRelease;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
+import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.projectsgroups.model.Project;
 import com.crowdin.client.sourcefiles.model.*;
 import com.crowdin.client.sourcestrings.model.*;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
@@ -22,6 +23,8 @@ public interface ProjectClient extends Client {
         return this.downloadFullProject(null);
     }
 
+    List<Language> listSupportedLanguages();
+
     CrowdinProjectFull downloadFullProject(String branchName);
 
     CrowdinProject downloadProjectWithLanguages();
@@ -29,6 +32,18 @@ public interface ProjectClient extends Client {
     CrowdinProjectInfo downloadProjectInfo();
 
     Branch addBranch(AddBranchRequest request);
+
+    BranchCloneStatus cloneBranch(Long branchId, CloneBranchRequest request) throws ResponseException;
+
+    BranchCloneStatus checkCloneBranchStatus(Long branchId, String cloneId);
+
+    ClonedBranch getClonedBranch(Long branchId, String cloneId);
+
+    BranchMergeStatus mergeBranch(Long branchId, MergeBranchRequest request) throws ResponseException;
+
+    BranchMergeStatus checkMergeBranchStatus(Long branchId, String mergeId);
+
+    BranchMergeSummary getBranchMergeSummary(Long branchId, String mergeId);
 
     void deleteBranch(Long branchId);
 
@@ -42,7 +57,7 @@ public interface ProjectClient extends Client {
 
     void updateSource(Long sourceId, UpdateFileRequest request) throws ResponseException;
 
-    void addSource(AddFileRequest request) throws ResponseException;
+    FileInfo addSource(AddFileRequest request) throws ResponseException;
 
     UploadStringsProgress addSourceStringsBased(UploadStringsRequest request);
 
@@ -86,15 +101,13 @@ public interface ProjectClient extends Client {
 
     SourceString addSourcePluralStringStringsBased(AddSourcePluralStringStringsBasedRequest request);
 
-    List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql);
+    List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql, Long directory, String scope);
 
     void deleteSourceString(Long id);
 
     StringComment commentString(AddStringCommentRequest request);
 
     SourceString editSourceString(Long sourceId, List<PatchRequest> requests);
-
-    URL exportProjectTranslation(ExportProjectTranslationRequest request);
 
     List<Label> listLabels();
 
@@ -107,4 +120,8 @@ public interface ProjectClient extends Client {
     PreTranslationStatus startPreTranslationStringsBased(ApplyPreTranslationStringsBasedRequest request);
 
     PreTranslationStatus checkPreTranslation(String preTranslationId);
+
+    String getProjectUrl();
+
+    List<? extends Project> listProjects();
 }

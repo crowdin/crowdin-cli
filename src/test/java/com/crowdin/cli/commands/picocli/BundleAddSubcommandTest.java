@@ -20,7 +20,7 @@ public class BundleAddSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testBundleAddInvalidOptions() {
-        this.executeInvalidParams(CommandNames.BUNDLE, CommandNames.BUNDLE_ADD, "Test Bundle1");
+        this.executeInvalidParams(CommandNames.BUNDLE, CommandNames.ADD, "Test Bundle1");
     }
 
     @ParameterizedTest

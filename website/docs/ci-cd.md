@@ -46,13 +46,13 @@ jobs:
 ```
 
 :::tip
-
 - You can use the `--keep-archive` option with the [`crowdin download`](/commands/crowdin-download) command if you need to process the translations archive in some way (for example, upload it to the pipeline artifacts).
 - It's recommended to use the `--no-progress` flag for the CLI execution in CI/CD environment. It will keep the execution logs cleaner and more readable.
-
+- The CLI can automatically pick up the credentials from the [Environment Variables](/configuration#environment-variables) if they are set in the shell.
 :::
 
 ## Further Reading
 
+- [Configuration](/configuration)
 - [Commands](/commands/crowdin)
 - [Exit Codes](/exit-codes)

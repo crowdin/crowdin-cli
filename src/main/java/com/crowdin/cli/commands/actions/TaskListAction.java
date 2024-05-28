@@ -6,6 +6,7 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.client.tasks.model.Status;
 import com.crowdin.client.tasks.model.Task;
+import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -13,6 +14,7 @@ import java.util.stream.Collectors;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
+@AllArgsConstructor
 class TaskListAction implements NewAction<ProjectProperties, ClientTask> {
 
     private final boolean plainView;
@@ -21,13 +23,6 @@ class TaskListAction implements NewAction<ProjectProperties, ClientTask> {
     private final String status;
 
     private final Long assigneeId;
-
-    public TaskListAction(boolean plainView, boolean isVerbose, String status, Long assigneeId) {
-        this.plainView = plainView;
-        this.isVerbose = isVerbose;
-        this.status = status;
-        this.assigneeId = assigneeId;
-    }
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientTask client) {
@@ -46,7 +41,7 @@ class TaskListAction implements NewAction<ProjectProperties, ClientTask> {
                 out.println(String.format(RESOURCE_BUNDLE.getString(okMessage), task.getId(),
                             task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), deadline));
             } else {
-                out.println(String.format(RESOURCE_BUNDLE.getString(okMessage), task.getId(), task.getTargetLanguageId(), task.getTitle(), task.getStatus(), task.getWordsCount(), deadline));
+                out.println(String.format("%d %s", task.getId(), task.getTitle()));
             }
         }
         if (tasks.isEmpty()) {

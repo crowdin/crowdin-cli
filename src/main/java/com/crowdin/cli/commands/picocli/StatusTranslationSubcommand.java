@@ -17,7 +17,7 @@ import static java.util.Objects.nonNull;
 )
 class StatusTranslationSubcommand extends ActCommandProject {
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", descriptionKey = "crowdin.status.translation.language", order = -2)
     protected String languageId;
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
@@ -29,12 +29,15 @@ class StatusTranslationSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"-d", "--directory"}, paramLabel = "...", descriptionKey = "crowdin.status.directory-path", order = -2)
     protected String directory;
 
-    @CommandLine.Option(names = {"--fail-if-incomplete"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--fail-if-incomplete"}, paramLabel = "...", descriptionKey = "crowdin.status.translation.fail-if-incomplete", order = -2)
     protected boolean failIfIncomplete;
+
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.status(noProgress, branchName, languageId, file, directory, isVerbose, true, false, failIfIncomplete);
+        return actions.status(noProgress, branchName, languageId, file, directory, isVerbose, true, false, failIfIncomplete, plainView);
     }
 
     @Override

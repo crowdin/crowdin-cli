@@ -10,6 +10,7 @@ import com.crowdin.client.glossaries.model.Term;
 import java.util.List;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.Utils.toSingleLineString;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
@@ -28,13 +29,12 @@ class GlossaryListAction implements NewAction<BaseProperties, ClientGlossary> {
         List<Glossary> glossaries = client.listGlossaries();
         for (Glossary glossary : glossaries) {
             if (!plainView) {
-                out.println(OK.withIcon(
-                    String.format(RESOURCE_BUNDLE.getString("message.glossary.list"), glossary.getName(), glossary.getId(), glossary.getTerms())));
+                out.println(String.format(RESOURCE_BUNDLE.getString("message.glossary.list"), glossary.getId(), glossary.getName(), glossary.getTerms()));
                 if (isVerbose && mayHaveTerms(glossary)) {
                     try {
                         List<Term> terms = client.listTerms(glossary.getId());
                         for (Term term : terms) {
-                            String description = (term.getDescription() != null) ? term.getDescription() : "";
+                            String description = toSingleLineString((term.getDescription() != null) ? term.getDescription() : "");
                             out.println(String.format(
                                 RESOURCE_BUNDLE.getString("message.glossary.list_term"), term.getId(), term.getText(), description));
                         }

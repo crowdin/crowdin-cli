@@ -5,6 +5,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.actions.subactions.DeleteObsoleteProjectFilesSubAction;
 import com.crowdin.cli.commands.functionality.*;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.PlaceholderUtil;
@@ -66,7 +67,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                 out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access_in_upload_sources")));
                 return;
             } else {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access_in_upload_sources"));
+                throw new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("message.no_manager_access_in_upload_sources"));
             }
         }
 
@@ -140,7 +141,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                 if (sources.isEmpty()) {
                     if (!plainView) {
                         errorsPresented.set(true);
-                        throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.no_sources"), file.getSource()));
+                        throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.no_sources"), file.getSource()));
                     } else {
                         return;
                     }
@@ -152,8 +153,8 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                         customSegmentationFileId = client.uploadStorage(customSegmentation.getName(), customSegmentationFileStream);
                     } catch (Exception e) {
                         errorsPresented.set(true);
-                        throw new RuntimeException(
-                            String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), customSegmentation.getAbsolutePath(), e));
+                        throw ExitCodeExceptionMapper.remap(e,
+                            String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), customSegmentation.getAbsolutePath()));
                     }
                 }
                 Long srxStorageId = customSegmentationFileId;
@@ -164,7 +165,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                         final String filePath = (file.getDest() != null)
                                 ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil)
                                 : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
-                        final String fileFullPath = (branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + filePath;
+                        final String fileFullPath = (branchName != null ? BranchUtils.normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "") + filePath;
                         final String fileName = fileFullPath.substring(fileFullPath.lastIndexOf(Utils.PATH_SEPARATOR) + 1);
 
                         synchronized (uploadedSources) {
@@ -197,8 +198,8 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     request.setStorageId(client.uploadStorage(source.substring(source.lastIndexOf(Utils.PATH_SEPARATOR) + 1), fileStream));
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
-                                    throw new RuntimeException(
-                                        String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()), e);
+                                    throw ExitCodeExceptionMapper.remap(e,
+                                        String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }
 
                                 try {
@@ -225,7 +226,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     }
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
-                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
+                                    throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath));
                                 }
                             };
                         } else if (projectFile == null && !isStringsBasedProject) {
@@ -250,7 +251,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     directoryId = ProjectUtils.createPath(out, client, finalDirectoryPaths, filePath, branch, plainView);
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
-                                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.creating_directories"), e);
+                                    throw ExitCodeExceptionMapper.remap(e, RESOURCE_BUNDLE.getString("error.creating_directories"));
                                 }
 
                                 if (directoryId != null) {
@@ -267,17 +268,17 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     return;
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
-                                    throw new RuntimeException(
-                                        String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()), e);
+                                    throw ExitCodeExceptionMapper.remap(e,
+                                        String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }
                                 try {
                                     client.addSource(request);
                                 } catch (ExistsResponseException e) {
                                     errorsPresented.set(true);
-                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_already_exists"), fileFullPath));
+                                    throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.file_already_exists"), fileFullPath));
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
-                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
+                                    throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath));
                                 }
                                 if (!plainView) {
                                     out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
@@ -299,7 +300,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
                             return (Runnable) () -> {
                                 if (branch == null) {
-                                    throw new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
+                                    throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.branch_required_string_project"));
                                 }
                                 request.setBranchId(branch.getId());
 
@@ -311,14 +312,14 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     return;
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
-                                    throw new RuntimeException(
-                                        String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()), e);
+                                    throw ExitCodeExceptionMapper.remap(e,
+                                        String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }
                                 try {
                                     client.addSourceStringsBased(request);
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
-                                    throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath), e);
+                                    throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath));
                                 }
                                 if (!plainView) {
                                     out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
@@ -442,14 +443,14 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                 .map(lang -> "'" + lang + "'")
                 .collect(Collectors.joining(", "));
             if (notSupportedLangs.length() > 0) {
-                throw new RuntimeException(String.format("Crowdin doesn't support %s language code(s)", notSupportedLangs));
+                throw new ExitCodeExceptionMapper.ValidationException(String.format("Crowdin doesn't support %s language code(s)", notSupportedLangs));
             }
             String notInProjectLangs = excludedTargetLanguages.stream()
                 .filter(lang -> !projectLanguageIds.contains(lang))
                 .map(lang -> "'" + lang + "'")
                 .collect(Collectors.joining(", "));
             if (notInProjectLangs.length() > 0) {
-                throw new RuntimeException(String.format("Project doesn't have %s language(s)", notInProjectLangs));
+                throw new ExitCodeExceptionMapper.NotFoundException(String.format("Project doesn't have %s language(s)", notInProjectLangs));
             }
         }
     }

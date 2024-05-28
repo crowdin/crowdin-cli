@@ -10,7 +10,7 @@ on:
       - 'CONTRIBUTING.md'
       - 'LICENSE'
   pull_request:
-    branches: [ 'main' ]
+    branches: [ 'main', 'next-v4' ]
 
 jobs:
   build:
@@ -20,11 +20,8 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 8
+          java-version: 17
           cache: 'gradle'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
 
       - name: Execute Gradle build
         run: ./gradlew build
@@ -55,11 +52,8 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 8
+          java-version: 17
           cache: 'gradle'
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
 
       - name: Run Tests
         run: ./gradlew test
@@ -97,7 +91,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 8
+          java-version: 17
           cache: 'gradle'
 
       - name: Install asciidoctor and pandoc
@@ -129,7 +123,7 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
-          java-version: 8
+          java-version: 17
           cache: 'gradle'
 
       - name: Prepare distribution
@@ -147,7 +141,7 @@ jobs:
 
       - name: Build and install the package
         run: |
-          sudo npm install --location=global jdeploy@4.0.22
+          sudo npm install --location=global jdeploy@4.0.43
           npm install
           jdeploy install
 

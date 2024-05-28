@@ -18,9 +18,6 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
 public class PropertiesBuilderTest {
-    public static final String TEST_API_TOKEN = "123abc456";
-    public static final String TEST_BASE_URL = "https://crowdin.com";
-    public static final String TEST_BASE_PATH = ".";
 
     private TempProject tempProject;
 
@@ -28,12 +25,12 @@ public class PropertiesBuilderTest {
     private Outputter out = Outputter.getDefault();
 
     @BeforeEach
-    private void initFolder() {
+    public void initFolder() {
         tempProject = new TempProject(PropertiesBuilderTest.class);
     }
 
     @AfterEach
-    private void removeFolder() {
+    public void removeFolder() {
         tempProject.delete();
     }
 
@@ -156,17 +153,6 @@ public class PropertiesBuilderTest {
     }
 
     @Test
-    public void testBuildNoTargets() {
-        assertThrows(RuntimeException.class, () -> propertiesBuilders.buildPropertiesWithTargets(out, null, null, null));
-    }
-
-    @Test
-    public void testBuildNoConfigFileTargets() {
-        ParamsWithTargets okParams = new ParamsWithTargets();
-        assertThrows(NullPointerException.class, () -> propertiesBuilders.buildPropertiesWithTargets(out, null, null, okParams));
-    }
-
-    @Test
     public void testBuildNoConfigFileAndNoToken() {
         ParamsWithFiles params = new ParamsWithFiles() {{
             setBasePathParam(null);
@@ -195,35 +181,6 @@ public class PropertiesBuilderTest {
             propertiesBuilders.buildPropertiesWithFiles(out, null, null, params));
 
         assertTrue(actualException.getMessage().contains(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders")));
-    }
-
-    @Test
-    public void testPropertiesWithTarget() {
-        File configFile = new File("folder/crowdinTest.yml");
-        String minimalConfigFileText = NewPropertiesWithTargetsUtilBuilder
-                .minimalBuilt().buildToString();
-        configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
-
-        ParamsWithTargets okParams = new ParamsWithTargets();
-        okParams.setSkipTranslatedOnly(true);
-
-        System.out.println("configText = " + minimalConfigFileText);
-        PropertiesWithTargets pb = propertiesBuilders.buildPropertiesWithTargets(out, configFile, null, okParams);
-
-        assertEquals(pb.getTargets().size(), 1);
-        assertEquals(pb.getTargets().get(0).getName(), "android");
-        assertEquals(pb.getProjectId(), "666");
-    }
-
-    @Test
-    public void testMockPropBuildersWithTargets() {
-        PropertiesBuilders pb = mock(PropertiesBuilders.class);
-        when(pb.buildPropertiesWithTargets(null,null,null,null)).thenThrow(NullPointerException.class);
-    }
-    @Test
-    public void testMockPropWithTargets() {
-        PropertiesWithTargets pt = mock(PropertiesWithTargets.class);
-        when(pt.getTargets().isEmpty()).thenThrow(NullPointerException.class);
     }
 
     @Test
@@ -274,37 +231,4 @@ public class PropertiesBuilderTest {
         when(pp.getBaseUrl()).thenReturn(url);
     }
 
-    @Test
-    public void testMockPropBuilderBasePropUrl() {
-        PropertiesBuilders pb = mock(PropertiesBuilders.class);
-        File configFile = new File("folder/crowdinTest.yml");
-        String minimalConfigFileText = NewPropertiesWithTargetsUtilBuilder
-                .minimalBuilt().buildToString();
-        configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
-
-        ParamsWithTargets okParams = new ParamsWithTargets();
-        okParams.setBaseUrlParam("https://crowdin.com");
-
-        BaseProperties bp = mock(BaseProperties.class);
-        pb.buildBaseProperties(out, configFile,null, okParams);
-
-        when(bp.getBaseUrl()).thenReturn( "https://crowdin.com");
-    }
-
-    @Test
-    public void testMockPropBuilderBasePropIdParam() {
-        PropertiesBuilders pb = mock(PropertiesBuilders.class);
-        File configFile = new File("folder/crowdinTest.yml");
-        String minimalConfigFileText = NewPropertiesWithTargetsUtilBuilder
-                .minimalBuilt().buildToString();
-        configFile = tempProject.addFile(configFile.getPath(), minimalConfigFileText);
-
-        ParamsWithTargets okParams = new ParamsWithTargets();
-        okParams.setIdParam("123");
-
-        BaseProperties bp = mock(BaseProperties.class);
-        pb.buildBaseProperties(out, configFile,null, okParams);
-
-        when(bp.getApiToken()).thenReturn( "123");
-    }
 }

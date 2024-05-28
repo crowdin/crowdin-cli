@@ -18,4 +18,4 @@ include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
 === See also
 
 * link:https://support.crowdin.com/bundles/[Target File Bundles]
-* link:/crowdin-cli/commands/crowdin-download-bundle[`crowdin download bundle` command]
+* link:/crowdin-cli/commands/crowdin-bundle-download[`crowdin bundle download` command]

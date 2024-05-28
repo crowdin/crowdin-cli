@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -16,13 +17,13 @@ public class TranslationsUtils {
      */
     public static String replaceDoubleAsterisk(String sourcePattern, String translationPattern, String sourceFile) {
         if (StringUtils.isAnyEmpty(translationPattern, sourceFile)) {
-            throw new RuntimeException("No sources and/or translations");
+            throw new ExitCodeExceptionMapper.ValidationException("No sources and/or translations");
         }
         if (!translationPattern.contains("**")) {
             return translationPattern;
         }
         if (!sourcePattern.contains("**")) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.config.double_asterisk"));
         }
         sourcePattern = StringUtils.removeStart(sourcePattern, Utils.PATH_SEPARATOR);
         String[] sourceNodes = sourcePattern.split("\\*\\*");

@@ -1,5 +1,7 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.cli.commands.functionality.BranchUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.Directory;
 import com.crowdin.client.sourcefiles.model.File;
@@ -53,10 +55,7 @@ public class CrowdinProjectFull extends CrowdinProject {
     }
 
     public Optional<Branch> findBranchByName(String branchName) {
-        return branches
-            .stream()
-            .filter(branch -> branch.getName().equals(branchName))
-            .findFirst();
+        return BranchUtils.getBranch(branchName, branches);
     }
 
     public Map<Long, Directory> getDirectories() {
@@ -84,7 +83,7 @@ public class CrowdinProjectFull extends CrowdinProject {
             if (first instanceof File) {
                 return (List<File>) files;
             } else {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
+                throw new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("message.no_manager_access"));
             }
         }
     }

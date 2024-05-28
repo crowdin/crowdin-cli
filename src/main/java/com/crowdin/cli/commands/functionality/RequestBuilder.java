@@ -218,45 +218,6 @@ public class RequestBuilder {
         return request;
     }
 
-    public static ExportProjectTranslationRequest exportProjectTranslation(
-        String format, Boolean skipUntranslatedStrings, Boolean skipUntranslatedFiles, Boolean exportApprovedOnly
-    ) {
-        ExportProjectTranslationRequest request = new ExportProjectTranslationRequest();
-        request.setFormat(format);
-        request.setSkipUntranslatedStrings(skipUntranslatedStrings);
-        request.setSkipUntranslatedFiles(skipUntranslatedFiles);
-        request.setExportApprovedOnly(exportApprovedOnly);
-        return request;
-    }
-
-    public static ExportProjectTranslationRequest exportProjectTranslation(
-        String format, Boolean skipUntranslatedStrings, Boolean skipUntranslatedFiles, Integer exportWithMinApprovalsCount, Boolean exportStringsThatPassedWorkflow
-    ) {
-        ExportProjectTranslationRequest request = new ExportProjectTranslationRequest();
-        request.setFormat(format);
-        request.setSkipUntranslatedStrings(skipUntranslatedStrings);
-        request.setSkipUntranslatedFiles(skipUntranslatedFiles);
-        request.setExportWithMinApprovalsCount(exportWithMinApprovalsCount);
-        request.setExportStringsThatPassedWorkflow(exportStringsThatPassedWorkflow);
-        return request;
-    }
-
-    public static ExportProjectTranslationRequest exportProjectTranslation(ExportProjectTranslationRequest request) {
-        ExportProjectTranslationRequest copy = new ExportProjectTranslationRequest();
-        copy.setTargetLanguageId(request.getTargetLanguageId());
-        copy.setFormat(request.getFormat());
-        copy.setLabelIds(request.getLabelIds());
-        copy.setBranchIds(request.getBranchIds());
-        copy.setDirectoryIds(request.getDirectoryIds());
-        copy.setFileIds(request.getFileIds());
-        copy.setSkipUntranslatedStrings(request.getSkipUntranslatedStrings());
-        copy.setSkipUntranslatedFiles(request.getSkipUntranslatedFiles());
-        copy.setExportApprovedOnly(request.getExportApprovedOnly());
-        copy.setExportWithMinApprovalsCount(request.getExportWithMinApprovalsCount());
-        copy.setExportStringsThatPassedWorkflow(request.getExportStringsThatPassedWorkflow());
-        return copy;
-    }
-
     public static CrowdinTranslationCraeteProjectPseudoBuildForm crowdinTranslationCreateProjectPseudoBuildForm(
         long branchId, Boolean pseudo, Integer lengthCorrection, String prefix, String suffix, CharTransformation charTransformation
     ) {
@@ -312,7 +273,7 @@ public class RequestBuilder {
 
     public static ApplyPreTranslationRequest applyPreTranslation(
         List<String> languageIds, List<Long> fileIds, Method method, Long engineId, AutoApproveOption autoApproveOption,
-        Boolean duplicateTranslations, Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, List<Long> labelIds
+        Boolean duplicateTranslations, Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, List<Long> labelIds, Long aiPrompt
     ) {
         ApplyPreTranslationRequest request = new ApplyPreTranslationRequest();
         request.setLanguageIds(languageIds);
@@ -324,6 +285,7 @@ public class RequestBuilder {
         request.setTranslateUntranslatedOnly(translateUntranslatedOnly);
         request.setTranslateWithPerfectMatchOnly(translateWithPerfectMatchOnly);
         request.setLabelIds(labelIds);
+        request.setAiPromptId(aiPrompt);
         return request;
     }
 

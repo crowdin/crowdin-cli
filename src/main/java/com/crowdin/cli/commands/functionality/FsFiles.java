@@ -1,5 +1,6 @@
 package com.crowdin.cli.commands.functionality;
 
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.utils.file.FileUtils;
 import net.lingala.zip4j.ZipFile;
 import net.lingala.zip4j.model.FileHeader;
@@ -40,7 +41,7 @@ public class FsFiles implements FilesInterface {
         try {
             zipFile = new ZipFile(zipArchive);
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.archive_not_exist"), zipArchive.getAbsolutePath()));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.archive_not_exist"), zipArchive.getAbsolutePath()));
         }
         if (!dir.exists()) {
             try {
@@ -80,7 +81,7 @@ public class FsFiles implements FilesInterface {
         try {
             zipFile = new ZipFile(zipArchive);
         } catch (IllegalArgumentException e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.archive_not_exist"), zipArchive.getAbsolutePath()));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.archive_not_exist"), zipArchive.getAbsolutePath()));
         }
         try {
             List<FileHeader> fileHeaders = zipFile.getFileHeaders();

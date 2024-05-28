@@ -35,7 +35,10 @@ const config = {
           sidebarPath: require.resolve('./sidebars.js'),
           editUrl: 'https://github.com/crowdin/crowdin-cli/tree/main/website/',
         },
-        blog: false,
+        blog: {
+          showReadingTime: true,
+          editUrl: 'https://github.com/lingui/js-lingui/tree/main/website/',
+        },
         sitemap: {
           changefreq: "weekly",
           priority: 0.5,
@@ -55,7 +58,8 @@ const config = {
       ({
         hashed: true,
         docsRouteBasePath: '/',
-        indexBlog: false,
+        blogRouteBasePath: '/blog',
+        indexBlog: true,
       }),
     ]
   ],
@@ -73,6 +77,11 @@ const config = {
         },
         items: [
           {
+            to: '/blog',
+            label: 'Blog',
+            position: 'left',
+          },
+          {
             href: 'https://github.com/crowdin/crowdin-cli',
             label: 'GitHub',
             position: 'right',
@@ -83,6 +92,13 @@ const config = {
             position: 'right',
           }
         ],
+      },
+      announcementBar: {
+        id: "cli_v4",
+        content:
+          '🎉 <a target="_blank" rel="noopener noreferrer" href="/crowdin-cli/blog/2024/05/28/cli-v4">Crowdin CLI v4</a> is out! 🥳',
+        backgroundColor: "#029e87",
+        textColor: "#ffffff",
       },
       footer: {
         style: 'dark',
@@ -125,6 +141,10 @@ const config = {
                 href: 'https://developer.crowdin.com/configuration-file/',
               },
               {
+                label: 'Blog',
+                to: '/blog',
+              },
+              {
                 label: 'GitHub',
                 href: 'https://github.com/crowdin/crowdin-cli',
               },
@@ -138,6 +158,48 @@ const config = {
         darkTheme: darkCodeTheme,
       },
     }),
+
+  plugins: [
+    [
+      '@docusaurus/plugin-client-redirects',
+      {
+        redirects: [
+          {
+            from: '/commands/crowdin-generate',
+            to: '/commands/crowdin-init',
+          },
+          {
+            from: '/commands/crowdin-list-branches',
+            to: '/commands/crowdin-branch-list',
+          },
+          {
+            from: '/commands/crowdin-list-languages',
+            to: '/commands/crowdin-language-list',
+          },
+          {
+            from: '/commands/crowdin-list-sources',
+            to: '/commands/crowdin-config-sources',
+          },
+          {
+            from: '/commands/crowdin-list-translations',
+            to: '/commands/crowdin-config-translations',
+          },
+          {
+            from: '/commands/crowdin-list-project',
+            to: '/commands/crowdin-file-list',
+          },
+          {
+            from: '/commands/crowdin-lint',
+            to: '/commands/crowdin-config-lint',
+          },
+          {
+            from: '/tutorials/files-management',
+            to: '/blog/2024/01/23/files-management'
+          }
+        ],
+      },
+    ]
+  ],
 };
 
 module.exports = config;

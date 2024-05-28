@@ -4,11 +4,14 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchUtils;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
+import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -17,6 +20,7 @@ import java.util.stream.Stream;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
+@AllArgsConstructor
 class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
 
     private boolean noProgress;
@@ -28,33 +32,21 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
     private boolean showTranslated;
     private boolean showApproved;
     private boolean failIfIncomplete;
-
-    public StatusAction(boolean noProgress, String branchName, String languageId, String file, String directory, boolean isVerbose, boolean showTranslated, boolean showApproved, boolean failIfIncomplete) {
-        this.noProgress = noProgress;
-        this.branchName = branchName;
-        this.languageId = languageId;
-        this.file = file;
-        this.directory = directory;
-        this.isVerbose = isVerbose;
-        this.showTranslated = showTranslated;
-        this.showApproved = showApproved;
-        this.failIfIncomplete = failIfIncomplete;
-    }
+    private boolean plainView;
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, false, () -> client.downloadFullProject(branchName));
+            this.noProgress, this.plainView, () -> client.downloadFullProject(branchName));
 
         if (languageId != null) {
             project.findLanguageById(languageId, true)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)));
         }
+
         List<Branch> branches = client.listBranches();
-        Long branchId = (branchName == null) ? null : branches.stream()
-            .filter(branch -> branchName.equals(branch.getName()))
-            .findFirst()
-            .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
+        Long branchId = (branchName == null) ? null : BranchUtils.getBranch(branchName, branches)
+            .orElseThrow(() -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
             .getId();
 
         List<LanguageProgress> progresses;
@@ -108,15 +100,27 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 out.println(RESOURCE_BUNDLE.getString("message.translation"));
             }
             if (showTranslated) {
-                progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
-                    pr.getLanguageId(), pr.getTranslationProgress())));
+                progresses.forEach(pr -> {
+                    if (!plainView) {
+                        out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
+                            pr.getLanguageId(), pr.getTranslationProgress()));
+                    } else {
+                        out.println(String.format("%s %d", pr.getLanguageId(), pr.getTranslationProgress()));
+                    }
+                });
             }
             if (showTranslated && showApproved) {
                 out.println(RESOURCE_BUNDLE.getString("message.approval"));
             }
             if (showApproved) {
-                progresses.forEach(pr -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
-                    pr.getLanguageId(), pr.getApprovalProgress())));
+                progresses.forEach(pr -> {
+                    if (!plainView) {
+                        out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
+                            pr.getLanguageId(), pr.getApprovalProgress()));
+                    } else {
+                        out.println(String.format("%s %d", pr.getLanguageId(), pr.getApprovalProgress()));
+                    }
+                });
             }
             throwExceptionIfIncomplete(progresses.stream());
         }

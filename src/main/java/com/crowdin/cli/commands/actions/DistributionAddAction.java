@@ -6,6 +6,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -56,7 +57,7 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
         List<Long> fileIds = null;
         if (files != null) {
             if (isStringsBasedProject) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
+                throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
             }
             Map<String, Long> projectBranches = project.getBranches().values().stream()
                                                        .collect(Collectors.toMap(Branch::getName, Branch::getId));
@@ -70,7 +71,7 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
                                                  .filter(file -> !projectFiles.contains(file))
                                                  .collect(Collectors.toList());
             if (!notExistingFiles.isEmpty()) {
-                throw new RuntimeException(notExistingFiles.stream().map(Utils::noSepAtStart)
+                throw new ExitCodeExceptionMapper.NotFoundException(notExistingFiles.stream().map(Utils::noSepAtStart)
                      .map(file -> String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), file))
                      .collect(Collectors.joining("\n\u274C ")));
             }
@@ -84,7 +85,7 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
                     .map(FileInfo::getId)
                     .collect(Collectors.toList());
         } else if (exportMode == DEFAULT && !isStringsBasedProject) {
-            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.distribution.empty_file"));
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.distribution.empty_file"));
         }
 
         Distribution distribution = null;
@@ -98,25 +99,25 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
             try {
                 distribution = client.addDistribution(addDistributionRequest);
             } catch (Exception e) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.distribution_is_not_added"), addDistributionRequest), e);
+                throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.distribution_is_not_added"), addDistributionRequest));
             }
         } else if (isStringsBasedProject) {
             AddDistributionStringsBasedRequest addDistributionRequest = new AddDistributionStringsBasedRequest();
             addDistributionRequest.setName(name);
             if (Objects.isNull(bundleIds)) {
-                throw new RuntimeException(RESOURCE_BUNDLE.getString("error.distribution.empty_bundle_ids"));
+                throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.distribution.empty_bundle_ids"));
             }
             addDistributionRequest.setBundleIds(bundleIds);
 
             try {
                 distribution = client.addDistributionStringsBased(addDistributionRequest);
             } catch (Exception e) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.distribution_is_not_added"), addDistributionRequest), e);
+                throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.distribution_is_not_added"), addDistributionRequest));
             }
         }
 
         if (!plainView) {
-            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.distribution.added"), distribution.getName())));
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.distribution.list"), distribution.getHash(), distribution.getName(), distribution.getExportMode())));
         } else {
             out.println(String.valueOf(distribution.getName()));
         }

@@ -10,22 +10,22 @@ public class StringAddSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testStringAdd() {
-        this.execute(CommandNames.STRING, CommandNames.STRING_ADD, "\"Text\"", "--debug");
+        this.execute(CommandNames.STRING, CommandNames.ADD, "\"Text\"", "--debug");
         verify(actionsMock)
-            .stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
+            .stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean());
         this.check(true);
     }
 
     @Test
     public void testStringAddInvalidOptions() {
-        this.executeInvalidParams(CommandNames.STRING, CommandNames.STRING_ADD, "\"Text\"", "--max-length", "-100");
+        this.executeInvalidParams(CommandNames.STRING, CommandNames.ADD, "\"Text\"", "--max-length", "-100");
     }
 
     @Test
     public void testStringAdd2() {
-        this.execute(CommandNames.STRING, CommandNames.STRING_ADD, "\"Text\"", "--file", "path/to/file.txt");
+        this.execute(CommandNames.STRING, CommandNames.ADD, "\"Text\"", "--file", "path/to/file.txt");
         verify(actionsMock)
-            .stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any());
+            .stringAdd(anyBoolean(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean());
         this.check(true);
     }
 }

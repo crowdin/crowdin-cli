@@ -12,7 +12,6 @@ import org.junit.jupiter.api.Test;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -57,9 +56,9 @@ public class TmUploadActionTest {
             }};
 //        client.getTm()
         when(clientMock.getTm(eq(tmIdExists)))
-            .thenReturn(Optional.of(tmExists));
+            .thenReturn(tmExists);
         when(clientMock.getTm(eq(tmIdNotExists)))
-            .thenReturn(Optional.empty());
+            .thenThrow(new RuntimeException());
 //        client.listTms()
         when(clientMock.listTms())
             .thenReturn(Arrays.asList(tmExists, tmRepeats, tmRepeats));
@@ -73,7 +72,7 @@ public class TmUploadActionTest {
 
     @Test
     public void test_findById() {
-        action = new TmUploadAction(file, tmIdExists, null, null, null, null);
+        action = new TmUploadAction(file, tmIdExists, null, null, null, false);
         action.act(out, pb, clientMock);
 
         verify(clientMock).getTm(eq(tmIdExists));
@@ -84,7 +83,7 @@ public class TmUploadActionTest {
 
     @Test
     public void test_findById_throwsNotExists() {
-        action = new TmUploadAction(file, tmIdNotExists, null, null, null, null);
+        action = new TmUploadAction(file, tmIdNotExists, null, null, null, true);
         assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
 
         verify(clientMock).getTm(eq(tmIdNotExists));
@@ -92,37 +91,8 @@ public class TmUploadActionTest {
     }
 
     @Test
-    public void test_findByName() {
-        action = new TmUploadAction(file, null, tmNameExists, null, null, null);
-        action.act(out, pb, clientMock);
-
-        verify(clientMock).listTms();
-        verify(clientMock).uploadStorage(anyString(), any());
-        verify(clientMock).importTm(eq(tmIdExists), any());
-        verifyNoMoreInteractions(clientMock);
-    }
-
-    @Test
-    public void test_findByName_notExists_throws() {
-        action = new TmUploadAction(file, null, tmNameNotExists, null, null, null);
-        assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
-
-        verify(clientMock).listTms();
-        verifyNoMoreInteractions(clientMock);
-    }
-
-    @Test
-    public void test_findByName_throwsToManyTms() {
-        action = new TmUploadAction(file, null, tmNameRepeats, null, null, null);
-        assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
-
-        verify(clientMock).listTms();
-        verifyNoMoreInteractions(clientMock);
-    }
-
-    @Test
     public void test_noIdentifiers() {
-        action = new TmUploadAction(file, null, null, null, null, null);
+        action = new TmUploadAction(file, null, null, null, null, false);
         action.act(out, pb, clientMock);
 
         verify(clientMock).addTm(any());
@@ -135,7 +105,7 @@ public class TmUploadActionTest {
     public void test_throwsUploadStorage() {
         when(clientMock.uploadStorage(anyString(), any()))
             .thenThrow(new RuntimeException());
-        action = new TmUploadAction(file, tmIdExists, null, null, null, null);
+        action = new TmUploadAction(file, tmIdExists, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(out, pb, clientMock));
 
         verify(clientMock).getTm(eq(tmIdExists));

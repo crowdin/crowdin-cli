@@ -1,8 +1,13 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
+import com.crowdin.cli.utils.Utils;
+import com.crowdin.client.branches.model.*;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
+import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.projectsgroups.model.Project;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.*;
@@ -29,6 +34,12 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     public CrowdinProjectClient(com.crowdin.client.Client client, long projectId) {
         this.client = client;
         this.projectId = projectId;
+    }
+
+    @Override
+    public List<Language> listSupportedLanguages() {
+        return executeRequestFullList((limit, offset) -> this.client.getLanguagesApi()
+                .listSupportedLanguages(limit, offset));
     }
 
     @Override
@@ -59,7 +70,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         project.setBranches(this.listBranches());
         Optional.ofNullable(branchName)
                 .map(name -> project.findBranchByName(name)
-                        .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
+                        .orElseThrow(() -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.not_found_branch")))
                 )
                 .ifPresent(project::setBranch);
         Long branchId = Optional.ofNullable(project.getBranch()).map(Branch::getId).orElse(null);
@@ -75,8 +86,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     private void populateProjectWithLangs(CrowdinProject project) {
-        project.setSupportedLanguages(executeRequestFullList((limit, offset) -> this.client.getLanguagesApi()
-            .listSupportedLanguages(limit, offset)));
+        project.setSupportedLanguages(this.listSupportedLanguages());
     }
 
     private void populateProjectWithInfo(CrowdinProjectInfo project) {
@@ -139,6 +149,52 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public BranchCloneStatus cloneBranch(Long branchId, CloneBranchRequest request) throws ResponseException {
+        Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<>() {{
+            put((code, message) -> StringUtils.containsAny(message, "Name must be unique"), new ExistsResponseException());
+        }};
+        return executeRequest(errorHandlers,
+            () -> this.client.getBranchesApi()
+                .cloneBranch(projectId, branchId, request)
+                .getData());
+    }
+
+    @Override
+    public BranchCloneStatus checkCloneBranchStatus(Long branchId, String cloneId) {
+        return executeRequest(() -> this.client.getBranchesApi()
+            .checkCloneBranchStatus(projectId, branchId, cloneId)
+            .getData());
+    }
+
+    @Override
+    public ClonedBranch getClonedBranch(Long branchId, String cloneId) {
+        return executeRequest(() -> this.client.getBranchesApi()
+            .getClonedBranch(this.projectId, branchId, cloneId)
+            .getData());
+    }
+
+    @Override
+    public BranchMergeStatus mergeBranch(Long branchId, MergeBranchRequest request) {
+        return executeRequest(() -> this.client.getBranchesApi()
+            .mergeBranch(projectId, branchId, request)
+            .getData());
+    }
+
+    @Override
+    public BranchMergeStatus checkMergeBranchStatus(Long branchId, String mergeId) {
+        return executeRequest(() -> this.client.getBranchesApi()
+            .checkMergeBranchStatus(projectId, branchId, mergeId)
+            .getData());
+    }
+
+    @Override
+    public BranchMergeSummary getBranchMergeSummary(Long branchId, String mergeId) {
+        return executeRequest(() -> this.client.getBranchesApi()
+            .getMergeBranchSummary(this.projectId, branchId, mergeId)
+            .getData());
+    }
+
+    @Override
     public void deleteBranch(Long branchId) {
         executeRequest(() -> {
             this.client.getSourceFilesApi()
@@ -158,10 +214,16 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
             put((code, message) -> StringUtils.containsAny(message, "streamIsEmpty", "Stream size is null. Not empty content expected"),
                     new EmptyFileException("Not empty content expected"));
+            put((code, message) -> Utils.isServerErrorCode(code), new RepeatException("Server Error"));
+            put((code, message) -> message.contains("Request aborted"), new RepeatException("Request aborted"));
+            put((code, message) -> message.contains("Connection reset"), new RepeatException("Connection reset"));
         }};
-        Storage storage = executeRequest(errorHandlers, () -> this.client.getStorageApi()
-            .addStorage(fileName, content)
-            .getData());
+        Storage storage = executeRequestWithPossibleRetries(
+            errorHandlers,
+            () -> this.client.getStorageApi().addStorage(fileName, content).getData(),
+            3,
+            2 * 1000
+        );
         return storage.getId();
     }
 
@@ -190,28 +252,38 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     @Override
     public void updateSource(Long sourceId, UpdateFileRequest request) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
-            put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"), new RepeatException());
+            put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"), new RepeatException("File not found in the storage"));
+            put((code, message) -> Utils.isServerErrorCode(code), new RepeatException("Server Error"));
+            put((code, message) -> message.contains("Request aborted"), new RepeatException("Request aborted"));
+            put((code, message) -> message.contains("Connection reset"), new RepeatException("Connection reset"));
             put((code, message) -> StringUtils.contains(message, "Invalid SRX specified"), new ResponseException("Invalid SRX file specified"));
             put((code, message) -> code.equals("409"), new FileInUpdateException());
         }};
-        executeRequestWithPossibleRetry(
+        executeRequestWithPossibleRetries(
             errorHandlers,
-            () -> this.client.getSourceFilesApi()
-                .updateOrRestoreFile(this.projectId, sourceId, request));
+            () -> this.client.getSourceFilesApi().updateOrRestoreFile(this.projectId, sourceId, request),
+            3,
+            2 * 1000
+        );
     }
 
     @Override
-    public void addSource(AddFileRequest request) throws ResponseException {
+    public FileInfo addSource(AddFileRequest request) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorHandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
-            put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"), new RepeatException());
+            put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"), new RepeatException("File not found in the storage"));
+            put((code, message) -> Utils.isServerErrorCode(code), new RepeatException("Server Error"));
+            put((code, message) -> message.contains("Request aborted"), new RepeatException("Request aborted"));
+            put((code, message) -> message.contains("Connection reset"), new RepeatException("Connection reset"));
             put((code, message) -> StringUtils.contains(message, "Name must be unique"), new ExistsResponseException());
             put((code, message) -> StringUtils.contains(message, "Invalid SRX specified"), new ResponseException("Invalid SRX file specified"));
             put((code, message) -> StringUtils.containsAny(message, "isEmpty", "Value is required and can't be empty"), new EmptyFileException("Value is required and can't be empty"));
         }};
-        executeRequestWithPossibleRetry(
+        return executeRequestWithPossibleRetries(
             errorHandlers,
-            () -> this.client.getSourceFilesApi()
-                .addFile(this.projectId, request));
+            () -> this.client.getSourceFilesApi().addFile(this.projectId, request).getData(),
+            3,
+            2 * 1000
+        );
     }
 
     @Override
@@ -249,12 +321,17 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             put((code, message) -> code.equals("0") && message.equals("File is not allowed for language"),
                 new WrongLanguageException());
             put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"),
-                new RepeatException());
+                new RepeatException("File not found in the storage"));
+            put((code, message) -> Utils.isServerErrorCode(code), new RepeatException("Server Error"));
+            put((code, message) -> message.contains("Request aborted"), new RepeatException("Request aborted"));
+            put((code, message) -> message.contains("Connection reset"), new RepeatException("Connection reset"));
         }};
-        executeRequestWithPossibleRetry(
+        executeRequestWithPossibleRetries(
             errorhandlers,
-            () -> this.client.getTranslationsApi()
-                .uploadTranslations(this.projectId, languageId, request));
+            () -> this.client.getTranslationsApi().uploadTranslations(this.projectId, languageId, request),
+            3,
+            2 * 1000
+        );
     }
 
     @Override
@@ -267,13 +344,16 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     public ProjectBuild startBuildingTranslation(BuildProjectTranslationRequest request) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorHandler = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
             put((code, message) -> code.equals("409") && message.contains("Another build is currently in progress"),
-                new RepeatException());
+                new RepeatException("Another build is currently in progress"));
+            put((code, message) -> Utils.isServerErrorCode(code), new RepeatException("Server Error"));
+            put((code, message) -> message.contains("Request aborted"), new RepeatException("Request aborted"));
+            put((code, message) -> message.contains("Connection reset"), new RepeatException("Connection reset"));
         }};
         return executeRequestWithPossibleRetries(
             errorHandler,
             () -> this.client.getTranslationsApi().buildProjectTranslation(this.projectId, request).getData(),
             3,
-            60 * 100
+            6 * 1000
         );
     }
 
@@ -348,9 +428,17 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
-    public List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql) {
+    public List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql, Long directory, String scope) {
+        ListSourceStringsParams.ListSourceStringsParamsBuilder builder = ListSourceStringsParams.builder()
+                .fileId(fileId)
+                .branchId(branchId)
+                .labelIds(labelIds)
+                .filter(filter)
+                .croql(croql)
+                .directoryId(directory)
+                .scope(scope);
         return executeRequestFullList((limit, offset) -> this.client.getSourceStringsApi()
-            .listSourceStrings(this.projectId, fileId, null, branchId, labelIds, croql, filter, null, limit, offset));
+            .listSourceStrings(this.projectId, builder.limit(limit).offset(offset).build()));
     }
 
     @Override
@@ -374,13 +462,6 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return executeRequest(() -> this.client.getSourceStringsApi()
             .editSourceString(this.projectId, sourceId, requests)
             .getData());
-    }
-
-    @Override
-    public URL exportProjectTranslation(ExportProjectTranslationRequest request) {
-        return url(executeRequest(() -> this.client.getTranslationsApi()
-            .exportProjectTranslation(this.projectId, request)
-            .getData()));
     }
 
     @Override
@@ -422,5 +503,16 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return executeRequest(() -> this.client.getTranslationsApi()
             .preTranslationStatus(this.projectId, preTranslationId)
             .getData());
+    }
+
+    @Override
+    public String getProjectUrl() {
+        return this.getProject().getWebUrl();
+    }
+
+    @Override
+    public List<? extends Project> listProjects() {
+        return executeRequestFullList((limit, offset) -> this.client.getProjectsGroupsApi()
+                .listProjects(null, 1, limit, offset));
     }
 }

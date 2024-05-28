@@ -6,6 +6,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.FsFiles;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
@@ -19,6 +20,9 @@ import lombok.AllArgsConstructor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 import java.util.Objects;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -49,37 +53,45 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
             return;
         }
 
-        Language language = project.findLanguageById(languageId, true)
-            .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)));
+        List<Language> languagesToDownload;
+
+        if (Objects.equals(languageId, "all")) {
+            languagesToDownload = project.getProjectLanguages(false);
+        } else {
+            Language languageToDownload = project.findLanguageById(languageId, true)
+                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)));
+            languagesToDownload = Collections.singletonList(languageToDownload);
+        }
 
         String branchPrefix = nonNull(branch) ? branch + Utils.PATH_SEPARATOR : "";
         String sourcePath = Utils.toUnixPath(Utils.sepAtStart(branchPrefix + file));
         FileInfo sourceFileInfo = project.getFileInfos().stream()
             .filter(fi -> Objects.equals(sourcePath, fi.getPath()))
             .findFirst()
-            .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), sourcePath)));
+            .orElseThrow(() -> new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), sourcePath)));
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(
             project.getSupportedLanguages(),
             project.getProjectLanguages(true),
             properties.getBasePath()
         );
-        BuildProjectFileTranslationRequest request = new BuildProjectFileTranslationRequest();
-        request.setTargetLanguageId(language.getId());
 
-        URL url = ConsoleSpinner.execute(
-            out,
-            "message.spinner.building_translation",
-            "error.building_translation",
-            false,
-            false,
-            () -> client.buildProjectFileTranslation(sourceFileInfo.getId(), request)
-        );
-        String destPath = nonNull(dest)
-            ? placeholderUtil.replaceLanguageDependentPlaceholders(dest + Utils.PATH_SEPARATOR + sourceFileInfo.getName(), language)
-            : languageId + sourcePath;
-        saveToFile(Utils.normalizePath(Utils.joinPaths(properties.getBasePath(), destPath)), url, out);
-        out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), destPath)));
-        out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.experimental_command")));
+        for (Language lang: languagesToDownload) {
+            BuildProjectFileTranslationRequest request = new BuildProjectFileTranslationRequest();
+            request.setTargetLanguageId(lang.getId());
+            URL url = ConsoleSpinner.execute(
+                out,
+                "message.spinner.building_translation",
+                "error.building_translation",
+                false,
+                false,
+                () -> client.buildProjectFileTranslation(sourceFileInfo.getId(), request)
+            );
+            String destPath = nonNull(dest)
+                ? placeholderUtil.replaceLanguageDependentPlaceholders(dest + Utils.PATH_SEPARATOR + sourceFileInfo.getName(), lang)
+                : lang.getId() + sourcePath;
+            saveToFile(Utils.normalizePath(Utils.joinPaths(properties.getBasePath(), destPath)), url, out);
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.downloaded_file"), destPath)));
+        }
     }
 
     private void saveToFile(String destPath, URL url, Outputter out) {

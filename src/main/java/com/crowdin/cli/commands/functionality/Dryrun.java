@@ -16,7 +16,7 @@ public abstract class Dryrun {
     private String messageKey;
 
     protected Dryrun() {
-        this("message.uploading_file");
+        this("message.file_path");
     }
 
     protected Dryrun(String messageKey) {

@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.ClientBundle;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.client.bundles.model.AddBundleRequest;
 import com.crowdin.client.bundles.model.Bundle;
@@ -46,11 +47,13 @@ class BundleAddAction implements NewAction<ProjectProperties, ClientBundle> {
         try {
             bundle = client.addBundle(addBundleRequest);
         } catch (Exception e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.bundle_is_not_added"), addBundleRequest), e);
+            throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.bundle_is_not_added"), addBundleRequest));
         }
 
         if (!plainView) {
-            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.bundle.added"), bundle.getId(), bundle.getName())));
+            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.bundle.list"), bundle.getId(),
+                    bundle.getFormat(),
+                    bundle.getExportPattern(), bundle.getName())));
         } else {
             out.println(String.valueOf(bundle.getId()));
         }

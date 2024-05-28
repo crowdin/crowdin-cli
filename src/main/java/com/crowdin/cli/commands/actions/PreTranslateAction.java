@@ -6,10 +6,10 @@ import com.crowdin.cli.client.CrowdinProjectInfo;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
-import com.crowdin.cli.commands.functionality.*;
+import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
+import com.crowdin.cli.commands.functionality.RequestBuilder;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.PropertiesWithFiles;
-import com.crowdin.cli.utils.PlaceholderUtil;
-import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
@@ -17,134 +17,117 @@ import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.translations.model.*;
-import org.apache.commons.lang3.StringUtils;
+import lombok.AllArgsConstructor;
 
-import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
+@AllArgsConstructor
 class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
-    private List<String> languageIds;
-    private Method method;
-    private Long engineId;
-    private String branchName;
-    private AutoApproveOption autoApproveOption;
-    private Boolean duplicateTranslations;
-    private Boolean translateUntranslatedOnly;
-    private Boolean translateWithPerfectMatchOnly;
-    private boolean noProgress;
-    private boolean debug;
-    private boolean verbose;
-    private boolean plainView;
-    private List<String> labelNames;
-
-    public PreTranslateAction(
-        List<String> languageIds, Method method, Long engineId, String branchName, AutoApproveOption autoApproveOption, Boolean duplicateTranslations,
-        Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress, boolean debug, boolean verbose, boolean plainView, List<String> labelNames
-    ) {
-        this.languageIds = languageIds;
-        this.method = method;
-        this.engineId = engineId;
-        this.branchName = branchName;
-        this.autoApproveOption = autoApproveOption;
-        this.duplicateTranslations = duplicateTranslations;
-        this.translateUntranslatedOnly = translateUntranslatedOnly;
-        this.translateWithPerfectMatchOnly = translateWithPerfectMatchOnly;
-        this.noProgress = noProgress;
-        this.debug = debug;
-        this.verbose = verbose;
-        this.plainView = plainView;
-        this.labelNames = labelNames;
-    }
+    private final List<String> languageIds;
+    private final List<String> files;
+    private final Method method;
+    private final Long engineId;
+    private final String branchName;
+    private final AutoApproveOption autoApproveOption;
+    private final Boolean duplicateTranslations;
+    private final Boolean translateUntranslatedOnly;
+    private final Boolean translateWithPerfectMatchOnly;
+    private final boolean noProgress;
+    private final boolean plainView;
+    private final List<String> labelNames;
+    private final Long aiPrompt;
 
     @Override
     public void act(Outputter out, PropertiesWithFiles properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
+                this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
         List<String> languages = this.prepareLanguageIds(project);
         List<Long> labelIds = this.prepareLabelIds(out, client);
 
-        if (!isStringsBasedProject) {
-            List<Long> fileIds = this.prepareFileIds(out, properties, project);
-            if (fileIds == null || fileIds.isEmpty()) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.no_files_found_for_pre_translate")));
+        if (isStringsBasedProject) {
+            if (files != null && !files.isEmpty()) {
+                throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
             }
-            ApplyPreTranslationRequest request = RequestBuilder.applyPreTranslation(
-                languages, fileIds, method, engineId, autoApproveOption,
-                duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds);
-            this.applyPreTranslation(out, client, request);
-        } else {
             Branch branch = project.findBranchByName(branchName)
-                .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project")));
+                    .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project")));
             ApplyPreTranslationStringsBasedRequest request = RequestBuilder.applyPreTranslationStringsBased(
-                languages, Collections.singletonList(branch.getId()), method, engineId, autoApproveOption,
-                duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds);
+                    languages, Collections.singletonList(branch.getId()), method, engineId, autoApproveOption,
+                    duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds);
             this.applyPreTranslationStringsBased(out, client, request);
+            return;
+        }
+
+        if (files == null || files.isEmpty()) {
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.file_required"));
+        }
+
+        Optional<Branch> branch = Optional.ofNullable(branchName).flatMap(project::findBranchByName);
+
+        if (!branch.isPresent() && branchName != null) {
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("message.branch_does_not_exist"), branchName));
+        }
+
+        List<FileInfo> fileInfos = project
+                .getFileInfos()
+                .stream().filter(f -> !branch.isPresent() || branch.get().getId().equals(f.getBranchId()))
+                .collect(Collectors.toList());
+        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), fileInfos);
+        boolean containsError = false;
+
+        List<Long> fileIds = new ArrayList<>();
+
+        for (String file : files) {
+            if (!paths.containsKey(file)) {
+                if (files.size() > 1) {
+                    containsError = true;
+                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
+                    continue;
+                } else {
+                    throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
+                }
+            }
+            Long fileId = paths.get(file).getId();
+            fileIds.add(fileId);
+        }
+
+        if (fileIds.isEmpty()) {
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.no_files_found_for_pre_translate")));
+        }
+
+        ApplyPreTranslationRequest request = RequestBuilder.applyPreTranslation(
+                languages, fileIds, method, engineId, autoApproveOption,
+                duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds, aiPrompt);
+        this.applyPreTranslation(out, client, request);
+
+        if (containsError) {
+            throw new RuntimeException();
         }
     }
 
     private List<String> prepareLanguageIds(CrowdinProjectInfo projectInfo) {
         List<String> projectLanguages = projectInfo.getProjectLanguages(false).stream()
-            .map(Language::getId)
-            .collect(Collectors.toList());
+                .map(Language::getId)
+                .collect(Collectors.toList());
         if (languageIds.size() == 1 && BaseCli.ALL.equalsIgnoreCase(languageIds.get(0))) {
             return projectLanguages;
         } else {
             String wrongLanguageIds = languageIds.stream()
-                .filter(langId -> !projectLanguages.contains(langId))
-                .map(id -> "'" + id + "'")
-                .collect(Collectors.joining(", "));
+                    .filter(langId -> !projectLanguages.contains(langId))
+                    .map(id -> "'" + id + "'")
+                    .collect(Collectors.joining(", "));
             if (!wrongLanguageIds.isEmpty()) {
-                throw new RuntimeException(
-                    String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), wrongLanguageIds));
+                throw new ExitCodeExceptionMapper.NotFoundException(
+                        String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), wrongLanguageIds));
             }
             return languageIds;
         }
-    }
-
-    private List<Long> prepareFileIds(Outputter out, PropertiesWithFiles pb, CrowdinProjectFull project) {
-        Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
-        List<String> sourcePaths = pb.getFiles().stream()
-            .flatMap(file -> {
-                List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
-                    .map(File::getAbsolutePath)
-                    .collect(Collectors.toList());
-                String commonPath = (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
-                return sources.stream()
-                    .map(source -> (file.getDest() != null)
-                        ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil) : StringUtils.removeStart(source, pb.getBasePath() + commonPath))
-                    .map(source -> (branchName != null ? branchName + Utils.PATH_SEPARATOR : "") + source);
-            })
-            .distinct()
-            .collect(Collectors.toList());
-        List<String> onlyLocalSources = new ArrayList<>();
-        List<String> foundSources = new ArrayList<>();
-        for (String sourcePath : sourcePaths) {
-            if (paths.containsKey(sourcePath)) {
-                foundSources.add(sourcePath);
-            } else {
-                onlyLocalSources.add(sourcePath);
-            }
-        }
-        if (!onlyLocalSources.isEmpty()) {
-            if (verbose) {
-                out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.pre_translate.local_files_message_verbose"), sourcePaths.size(), onlyLocalSources.size())));
-                onlyLocalSources.forEach(source -> out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), source)));
-            } else {
-                out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.pre_translate.local_files_message"), sourcePaths.size(), onlyLocalSources.size())));
-            }
-        }
-        return foundSources.stream()
-            .map(paths::get)
-            .map(FileInfo::getId)
-            .collect(Collectors.toList());
     }
 
     private List<Long> prepareLabelIds(Outputter out, ProjectClient client) {
@@ -170,37 +153,37 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
 
     private void applyPreTranslation(Outputter out, ProjectClient client, ApplyPreTranslationRequest request) {
         ConsoleSpinner.execute(
-            out,
-            "message.spinner.pre_translate",
-            "error.spinner.pre_translate",
-            this.noProgress,
-            this.plainView,
-            () -> {
-                PreTranslationStatus preTranslationStatus = client.startPreTranslation(request);
-                preTranslationStatus = handlePreTranslationStatus(client, preTranslationStatus);
+                out,
+                "message.spinner.pre_translate",
+                "error.spinner.pre_translate",
+                this.noProgress,
+                this.plainView,
+                () -> {
+                    PreTranslationStatus preTranslationStatus = client.startPreTranslation(request);
+                    preTranslationStatus = handlePreTranslationStatus(client, preTranslationStatus);
 
-                ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_done"), 100));
+                    ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_done"), 100));
 
-                return preTranslationStatus;
-            }
+                    return preTranslationStatus;
+                }
         );
     }
 
     private void applyPreTranslationStringsBased(Outputter out, ProjectClient client, ApplyPreTranslationStringsBasedRequest request) {
         ConsoleSpinner.execute(
-            out,
-            "message.spinner.pre_translate",
-            "error.spinner.pre_translate",
-            this.noProgress,
-            this.plainView,
-            () -> {
-                PreTranslationStatus preTranslationStatus = client.startPreTranslationStringsBased(request);
-                preTranslationStatus = handlePreTranslationStatus(client, preTranslationStatus);
+                out,
+                "message.spinner.pre_translate",
+                "error.spinner.pre_translate",
+                this.noProgress,
+                this.plainView,
+                () -> {
+                    PreTranslationStatus preTranslationStatus = client.startPreTranslationStringsBased(request);
+                    preTranslationStatus = handlePreTranslationStatus(client, preTranslationStatus);
 
-                ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_done"), 100));
+                    ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_done"), 100));
 
-                return preTranslationStatus;
-            }
+                    return preTranslationStatus;
+                }
         );
     }
 

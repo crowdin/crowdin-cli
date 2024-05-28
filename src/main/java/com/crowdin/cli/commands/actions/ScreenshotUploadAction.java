@@ -7,6 +7,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -48,26 +49,27 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
 
     @Override
     public void act(Outputter out, ProjectProperties properties, ClientScreenshot client) {
-        Screenshot screenshot;
         List<Screenshot> screenshotList = client.listScreenshots(null);
         Optional<Screenshot> existingScreenshot = screenshotList.stream()
-            .filter((s) -> file.getName().equals(s.getName())).findFirst();
+                .filter((s) -> file.getName().equals(s.getName())).findFirst();
         if (existingScreenshot.isPresent()) {
             UpdateScreenshotRequest request = new UpdateScreenshotRequest();
             request.setStorageId(uploadToStorage(file));
             request.setName(file.getName());
             try {
-                screenshot = client.updateScreenshot(existingScreenshot.get().getId(), request);
+                Screenshot screenshot = client.updateScreenshot(existingScreenshot.get().getId(), request);
+                if (!plainView) {
+                    out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.screenshot.list"),
+                            screenshot.getId(), screenshot.getTagsCount(), screenshot.getName())));
+                } else {
+                    out.println(file.getName());
+                }
             } catch (Exception e) {
-                throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.screenshot.not_updated"), request), e);
-            }
-            if (!plainView) {
-                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.screenshot.updated"), screenshot.getName())));
-            } else {
-                out.println(String.valueOf(screenshot.getName()));
+                throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.screenshot.not_updated"), request));
             }
             return;
         }
+
         AddScreenshotRequest request = new AddScreenshotRequest();
         CrowdinProjectFull project = ConsoleSpinner.execute(
                 out,
@@ -77,32 +79,39 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
                 () -> this.projectClient.downloadFullProject());
         if (nonNull(branchName)) {
             Branch branch = project.findBranchByName(branchName)
-                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.branch_not_exists"), branchName)));
+                    .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.branch_not_exists"), branchName)));
             request.setBranchId(branch.getId());
         }
         if (nonNull(pathToSourceFile)) {
             final String normalizedPath = Utils.toUnixPath(Utils.sepAtStart(pathToSourceFile));
             FileInfo fileInfo = project.getFileInfos().stream()
-                .filter(f -> normalizedPath.equals(f.getPath())).findFirst()
-                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), pathToSourceFile)));
+                    .filter(f -> normalizedPath.equals(f.getPath())).findFirst()
+                    .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), pathToSourceFile)));
             request.setFileId(fileInfo.getId());
         }
         if (nonNull(directoryPath)) {
             final String normalizedPath = Utils.toUnixPath(Utils.sepAtStart(directoryPath));
             Directory directory = project.getDirectories().values().stream()
-                .filter(d -> normalizedPath.equals(d.getPath())).findFirst()
-                .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.dir_not_exists"), directoryPath)));
+                    .filter(d -> normalizedPath.equals(d.getPath())).findFirst()
+                    .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.dir_not_exists"), directoryPath)));
             request.setDirectoryId(directory.getId());
         }
         if (nonNull(labelNames) && !labelNames.isEmpty()) {
             request.setLabelIds(prepareLabelIds());
         }
+
         request.setStorageId(uploadToStorage(file));
         request.setName(file.getName());
         request.setAutoTag(autoTag);
 
         try {
-            client.uploadScreenshot(request);
+            Screenshot screenshot = client.uploadScreenshot(request);
+            if (!plainView) {
+                out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.screenshot.list"),
+                        screenshot.getId(), screenshot.getTagsCount(), screenshot.getName())));
+            } else {
+                out.println(file.getName());
+            }
         } catch (AutoTagInProgressException e) {
             if (!plainView) {
                 out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("message.screenshot.not_auto-tagged"), file.getName())));
@@ -110,12 +119,7 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
                 out.println(String.format(RESOURCE_BUNDLE.getString("message.screenshot.not_auto-tagged"), file.getName()));
             }
         } catch (Exception e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.screenshot.not_uploaded"), request), e);
-        }
-        if (!plainView) {
-            out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.screenshot.uploaded"), file.getName())));
-        } else {
-            out.println(file.getName());
+            throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.screenshot.not_uploaded"), request));
         }
     }
 
@@ -124,19 +128,19 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
         try (InputStream fileStream = Files.newInputStream(fileToUpload.toPath())) {
             storageId = this.projectClient.uploadStorage(fileToUpload.getName(), fileStream);
         } catch (Exception e) {
-            throw new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), fileToUpload.getName()), e);
+            throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), fileToUpload.getName()));
         }
         return storageId;
     }
 
     private Long[] prepareLabelIds() {
         Map<String, Long> labels = projectClient.listLabels().stream()
-            .collect(Collectors.toMap(Label::getTitle, Label::getId));
+                .collect(Collectors.toMap(Label::getTitle, Label::getId));
         labelNames.stream()
-            .distinct()
-            .forEach(labelName -> labels.computeIfAbsent(labelName, (title) -> projectClient.addLabel(RequestBuilder.addLabel(title)).getId()));
+                .distinct()
+                .forEach(labelName -> labels.computeIfAbsent(labelName, (title) -> projectClient.addLabel(RequestBuilder.addLabel(title)).getId()));
         return labelNames.stream()
-            .map(labels::get)
-            .toArray(Long[]::new);
+                .map(labels::get)
+                .toArray(Long[]::new);
     }
 }

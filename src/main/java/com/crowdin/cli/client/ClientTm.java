@@ -16,7 +16,7 @@ public interface ClientTm extends Client {
 
     List<TranslationMemory> listTms();
 
-    Optional<TranslationMemory> getTm(Long tmId);
+    TranslationMemory getTm(Long tmId);
 
     TranslationMemory addTm(AddTranslationMemoryRequest request);
 

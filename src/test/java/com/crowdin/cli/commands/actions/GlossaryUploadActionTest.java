@@ -13,7 +13,6 @@ import org.junit.jupiter.api.Test;
 import java.io.File;
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -30,7 +29,6 @@ public class GlossaryUploadActionTest {
     private static final Long storageId = 52L;
     private static final String glossaryNameUnique = "uniqueGlossary";
     private static final String glossaryNameRepeated = "twoGlossariesWithSameName";
-    private static final String glossaryNameNotExist = "notExistentGlossary";
     BaseProperties pb = NewBasePropertiesUtilBuilder
         .minimalBuilt()
         .build();
@@ -62,10 +60,11 @@ public class GlossaryUploadActionTest {
                 setId(glossaryId);
                 setName("New glossary");
             }};
+
         when(clientMock.getGlossary(eq(glossaryIdNotExist)))
-            .thenReturn(Optional.empty());
+            .thenThrow(new RuntimeException());
         when(clientMock.getGlossary(eq(glossaryId)))
-            .thenReturn(Optional.of(glossary));
+            .thenReturn(glossary);
         when(clientMock.listGlossaries())
             .thenReturn(glossaries);
         when(clientMock.uploadStorage(any(), any()))
@@ -79,7 +78,7 @@ public class GlossaryUploadActionTest {
 
     @Test
     public void test_withId() {
-        action = new GlossaryUploadAction(file, glossaryId, null, null, null, null);
+        action = new GlossaryUploadAction(file, glossaryId, null, null, null, true);
         action.act(Outputter.getDefault(), pb, clientMock);
 
         verify(clientMock).getGlossary(eq(glossaryId));
@@ -89,19 +88,8 @@ public class GlossaryUploadActionTest {
     }
 
     @Test
-    public void test_withName() {
-        action = new GlossaryUploadAction(file, null, glossaryNameUnique, null, null, null);
-        action.act(Outputter.getDefault(), pb, clientMock);
-
-        verify(clientMock).listGlossaries();
-        verify(clientMock).uploadStorage(any(), any());
-        verify(clientMock).importGlossary(eq(glossaryId), any());
-        verifyNoMoreInteractions(clientMock);
-    }
-
-    @Test
     public void test_noIdentifiers_createNew() {
-        action = new GlossaryUploadAction(file, null, null, null, null, null);
+        action = new GlossaryUploadAction(file, null, null, null, null, false);
         action.act(Outputter.getDefault(), pb, clientMock);
 
         verify(clientMock).addGlossary(any());
@@ -111,17 +99,8 @@ public class GlossaryUploadActionTest {
     }
 
     @Test
-    public void test_withName_notFound_createNew() {
-        action = new GlossaryUploadAction(file, null, glossaryNameNotExist, null, null, null);
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, clientMock));
-
-        verify(clientMock).listGlossaries();
-        verifyNoMoreInteractions(clientMock);
-    }
-
-    @Test
     public void test_withId_throwsNotFound() {
-        action = new GlossaryUploadAction(file, glossaryIdNotExist, null, null, null, null);
+        action = new GlossaryUploadAction(file, glossaryIdNotExist, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, clientMock));
 
         verify(clientMock).getGlossary(eq(glossaryIdNotExist));
@@ -129,17 +108,8 @@ public class GlossaryUploadActionTest {
     }
 
     @Test
-    public void test_withName_throwsTooManyWithTargetName() {
-        action = new GlossaryUploadAction(file, null, glossaryNameRepeated, null, null, null);
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, clientMock));
-
-        verify(clientMock).listGlossaries();
-        verifyNoMoreInteractions(clientMock);
-    }
-
-    @Test
     public void test_standard_throwsFileNotFound() {
-        action = new GlossaryUploadAction(fileNotExist, glossaryId, null, null, null, null);
+        action = new GlossaryUploadAction(fileNotExist, glossaryId, null, null, null, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, clientMock));
 
         verify(clientMock).getGlossary(eq(glossaryId));

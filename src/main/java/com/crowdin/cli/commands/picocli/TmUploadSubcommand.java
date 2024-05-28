@@ -19,33 +19,39 @@ import java.util.Map;
 )
 class TmUploadSubcommand extends ActCommandTm {
 
-    @CommandLine.Parameters(descriptionKey = "crowdin.glossary.upload.file")
+    @CommandLine.Parameters(descriptionKey = "crowdin.tm.upload.file")
     private File file;
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--id"}, paramLabel = "...", descriptionKey = "crowdin.tm.upload.id", order = -2)
     private Long id;
-
-    @CommandLine.Option(names = {"--name"}, paramLabel = "...", order = -2)
-    private String name;
 
     @CommandLine.Option(names = {"--language"}, paramLabel = "...", descriptionKey = "crowdin.tm.upload.language-id", order = -2)
     private String languageId;
 
-    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--scheme"}, paramLabel = "...", descriptionKey = "crowdin.tm.upload.scheme", order = -2)
     private Map<String, Integer> scheme;
 
-    @CommandLine.Option(names = {"--first-line-contains-header"}, order = -2)
+    @CommandLine.Option(names = {"--first-line-contains-header"}, descriptionKey = "crowdin.tm.upload.first-line-contains-header", order = -2)
     private Boolean firstLineContainsHeader;
+
+    @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
+    protected boolean plainView;
 
     @Override
     protected NewAction<BaseProperties, ClientTm> getAction(Actions actions) {
-        return actions.tmUpload(file, id, name, languageId, scheme, firstLineContainsHeader);
+        return actions.tmUpload(file, id, languageId, scheme, firstLineContainsHeader, plainView);
     }
 
     @Override
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
         String extension = FilenameUtils.getExtension(file.getName());
+        if (!file.exists()) {
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), file));
+        }
+        if (file.isDirectory()) {
+            errors.add(RESOURCE_BUNDLE.getString("error.file.is_folder"));
+        }
         if (scheme == null && ("csv".equalsIgnoreCase(extension) || "xslx".equalsIgnoreCase(extension))) {
             errors.add(RESOURCE_BUNDLE.getString("error.tm.scheme_is_required"));
         }
@@ -55,7 +61,7 @@ class TmUploadSubcommand extends ActCommandTm {
         if (!equalsAny(FilenameUtils.getExtension(file.getName()), "csv", "xls", "xlsx") && firstLineContainsHeader != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.tm.first_line_contains_header_and_wrong_format"));
         }
-        if (id == null && name == null && languageId == null) {
+        if (id == null && languageId == null) {
             errors.add(RESOURCE_BUNDLE.getString("error.tm.no_language_id"));
         }
         return errors;

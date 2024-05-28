@@ -66,7 +66,7 @@ public class TaskAddActionTest {
                     setTitle(request.getTitle());
                 }});
 
-        action = new TaskAddAction(true, title, type, languageId, files, null, null, description, skipAssignedStrings, skipUntranslatedStrings, includePreTranslatedStringsOnly, labelIds, projectClient);
+        action = new TaskAddAction(true, title, type, languageId, files, null, null, description, skipAssignedStrings, skipUntranslatedStrings, includePreTranslatedStringsOnly, labelIds, projectClient, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).addTask(request);
@@ -80,7 +80,7 @@ public class TaskAddActionTest {
             put("second.txt", 52L);
         }};
         List<String> files = new ArrayList<String>() {{
-            add("52");
+            add("second.txt");
             add("first.txt");
         }};
         return Stream.of(arguments("My title", 1, "es", filesMap, files, "It's description", false, false, false, null));
@@ -118,7 +118,7 @@ public class TaskAddActionTest {
                     setTitle(request.getTitle());
                 }});
 
-        action = new TaskAddAction(false, title, null, languageId, files, null, workflowStepId, description, skipAssignedStrings, false, false, labelIds, projectClient);
+        action = new TaskAddAction(false, title, null, languageId, files, null, workflowStepId, description, skipAssignedStrings, false, false, labelIds, projectClient, true);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).addTask(request);
@@ -153,7 +153,7 @@ public class TaskAddActionTest {
         when(client.addTask(request))
                 .thenThrow(new RuntimeException("Whoops"));
 
-        action = new TaskAddAction(false, null, null, null, Arrays.asList("file.txt"), null, null, null, false, false, false, null, projectClient);
+        action = new TaskAddAction(false, null, null, null, Arrays.asList("file.txt"), null, null, null, false, false, false, null, projectClient, false);
 
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 

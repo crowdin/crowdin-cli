@@ -19,27 +19,24 @@ import java.util.List;
 )
 class TmDownloadSubcommand extends ActCommandTm {
 
-    @CommandLine.Option(names = {"--id"}, paramLabel = "...", order = -2)
-    private Long id;
+    @CommandLine.Parameters(descriptionKey = "crowdin.tm.download.id")
+    protected Long id;
 
-    @CommandLine.Option(names = {"--name"}, paramLabel = "...", order = -2)
-    private String name;
-
-    @CommandLine.Option(names = {"--source-language-id"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--source-language-id"}, paramLabel = "...", descriptionKey = "crowdin.tm.download.source-language-id", order = -2)
     private String sourceLanguageId;
 
-    @CommandLine.Option(names = {"--target-language-id"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--target-language-id"}, paramLabel = "...", descriptionKey = "crowdin.tm.download.target-language-id", order = -2)
     private String targetLanguageId;
 
-    @CommandLine.Option(names = {"--format"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"--format"}, paramLabel = "...", descriptionKey = "crowdin.tm.download.format", order = -2)
     private TranslationMemoryFormat format;
 
-    @CommandLine.Option(names = "--to", paramLabel = "...", order = -2)
+    @CommandLine.Option(names = "--to", paramLabel = "...", descriptionKey = "crowdin.tm.download.to", order = -2)
     private File to;
 
     @Override
     protected NewAction<BaseProperties, ClientTm> getAction(Actions actions) {
-        return actions.tmDownload(id, name, format, sourceLanguageId, targetLanguageId, noProgress, to, new FsFiles());
+        return actions.tmDownload(id, format, sourceLanguageId, targetLanguageId, noProgress, to, new FsFiles());
     }
 
     @Override
@@ -52,11 +49,6 @@ class TmDownloadSubcommand extends ActCommandTm {
             } catch (IllegalArgumentException e) {
                 errors.add(RESOURCE_BUNDLE.getString("error.tm.wrong_format"));
             }
-        }
-        if (id != null && name != null) {
-            errors.add(RESOURCE_BUNDLE.getString("error.tm.id_and_name"));
-        } else if (id == null && name == null) {
-            errors.add(RESOURCE_BUNDLE.getString("error.tm.no_id_and_no_name"));
         }
         if (sourceLanguageId != null && targetLanguageId == null) {
             errors.add(RESOURCE_BUNDLE.getString("error.tm.target_language_id_is_null"));

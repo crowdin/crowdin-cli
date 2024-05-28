@@ -9,7 +9,7 @@ import picocli.CommandLine;
 
 @CommandLine.Command(
         sortOptions = false,
-        name = CommandNames.COMMENT_LIST
+        name = CommandNames.LIST
 )
 class CommentListSubcommand extends ActCommandComment {
 

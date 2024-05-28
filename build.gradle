@@ -3,16 +3,16 @@ import static de.fayard.refreshVersions.core.Versions.versionFor
 
 plugins {
     id 'java'
-    id 'com.github.johnrengelman.shadow'
+    id 'io.github.goooler.shadow' //TODO find alternative
     id 'jacoco'
     id 'com.github.spotbugs'
     id 'org.asciidoctor.jvm.convert'
 }
 
 group 'com.crowdin'
-version '3.19.4'
+version '4.0.0'
 
-sourceCompatibility = 1.8
+sourceCompatibility = '17'
 
 if (!hasProperty('mainClass')) {
     ext.mainClass = 'com.crowdin.cli.Cli'
@@ -60,6 +60,10 @@ dependencies {
 dependencies {
     implementation "info.picocli:picocli:_"
     annotationProcessor "info.picocli:picocli-codegen:_"
+}
+
+wrapper {
+    gradleVersion = '8.5'
 }
 
 jar {

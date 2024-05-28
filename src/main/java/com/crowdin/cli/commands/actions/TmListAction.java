@@ -24,8 +24,8 @@ class TmListAction implements NewAction<BaseProperties, ClientTm> {
         List<TranslationMemory> tms = client.listTms();
         for (TranslationMemory tm : tms) {
             if (!plainView) {
-                out.println(OK.withIcon(
-                    String.format(RESOURCE_BUNDLE.getString("message.tm.list"), tm.getName(), tm.getId(), tm.getSegmentsCount())));
+                out.println(
+                    String.format(RESOURCE_BUNDLE.getString("message.tm.list"), tm.getId(), tm.getName(), tm.getSegmentsCount()));
             } else {
                 out.println(tm.getName());
             }
