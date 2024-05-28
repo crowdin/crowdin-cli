@@ -39,7 +39,7 @@ public class CliActionsTest {
 
     @Test
     public void testListTranslations() {
-        assertNotNull(actions.listTranslations(false, false, false, false, false, false));
+        assertNotNull(actions.listTranslations(false, false, false, false, false, false, false));
     }
 
     @Test

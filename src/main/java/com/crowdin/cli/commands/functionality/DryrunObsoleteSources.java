@@ -22,7 +22,7 @@ public class DryrunObsoleteSources extends Dryrun {
     private List<File> files;
 
     public DryrunObsoleteSources(@NonNull PropertiesWithFiles pb, @NonNull PlaceholderUtil placeholderUtil, @NonNull Map<Long, Directory> directories, @NonNull List<File> files) {
-        super("message.obsolete_file");
+        super("message.delete_obsolete.obsolete_file_delete");
         this.pb = pb;
         this.placeholderUtil = placeholderUtil;
         this.directories = directories;

@@ -16,7 +16,7 @@ public abstract class Dryrun {
     private String messageKey;
 
     protected Dryrun() {
-        this("message.uploading_file");
+        this("message.file_path");
     }
 
     protected Dryrun(String messageKey) {
@@ -37,7 +37,7 @@ public abstract class Dryrun {
             DrawTree.draw(files).forEach(out::println);
         } else {
             if (!plainView) {
-                files.forEach(file -> out.println(String.format(RESOURCE_BUNDLE.getString(messageKey), file)));
+                files.forEach(file -> out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString(messageKey), file))));
             } else {
                 files.forEach(out::println);
             }

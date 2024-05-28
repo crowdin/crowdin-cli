@@ -25,9 +25,10 @@ public class DryrunTranslations extends Dryrun {
 
     public DryrunTranslations(
         PropertiesWithFiles pb, LanguageMapping projectLanguageMapping, PlaceholderUtil placeholderUtil,
-        List<Language> languages, boolean filesMustExist, Map<String, File> projectSources, boolean useServerSources
+        List<Language> languages, boolean filesMustExist, Map<String, File> projectSources, boolean useServerSources, boolean isUpload
     ) {
-        super("message.file_path");
+
+        super(isUpload ? "message.uploading_file" : "message.file_path");
         this.pb = pb;
         this.placeholderUtil = placeholderUtil;
         this.filesMustExist = filesMustExist;

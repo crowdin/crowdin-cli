@@ -39,7 +39,7 @@ public interface Actions {
         boolean deleteObsolete, String branchName, boolean noProgress, boolean treeView, boolean plainView);
 
     NewAction<PropertiesWithFiles, ProjectClient> listTranslations(
-        boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang);
+        boolean noProgress, boolean treeView, boolean isLocal, boolean plainView, boolean useServerSources, boolean withInContextLang, boolean isUpload);
 
     NewAction<ProjectProperties, ProjectClient> listLanguages(BaseCli.LanguageCode code, boolean all, boolean noProgress, boolean plainView);
 

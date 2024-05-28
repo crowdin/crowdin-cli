@@ -20,7 +20,7 @@ class ConfigTranslationsSubcommand extends ActCommandWithFiles {
 
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
-        return actions.listTranslations(this.noProgress, this.treeView, false, this.plainView, false, true);
+        return actions.listTranslations(this.noProgress, this.treeView, false, this.plainView, false, true, false);
     }
 
     @Override

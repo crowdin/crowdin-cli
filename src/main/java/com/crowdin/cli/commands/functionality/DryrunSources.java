@@ -14,7 +14,7 @@ public class DryrunSources extends Dryrun {
     private PlaceholderUtil placeholderUtil;
 
     public DryrunSources(PropertiesWithFiles pb, PlaceholderUtil placeholderUtil) {
-        super("message.file_path");
+        super("message.uploading_file");
         this.pb = pb;
         this.placeholderUtil = placeholderUtil;
     }
