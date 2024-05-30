@@ -2,10 +2,13 @@
 title: Crowdin CLI 4.0
 description: Learn how to manage your project's localization files from the command line. Synchronize your source language files and translations with your Crowdin project.
 authors: [andrii-bodnar, yevheniyJ]
+image: ./img/social-card.png
 tags: [release]
 ---
 
 Today we are happy to announce Crowdin CLI **4.0**! 🥳
+
+![social-card image](./img/social-card.png)
 
 It has been almost five years since the release of Crowdin CLI 3.0. During this time, we have received extensive feedback from our users and worked diligently to improve the tool. As a result, we've made many changes and improvements.
 
