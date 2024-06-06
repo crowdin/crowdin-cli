@@ -9,11 +9,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.properties.PropertiesBuilder.*;
-import static com.crowdin.cli.utils.language.LangCodesUtil.isValidCode;
 
 @Data
 public class FileBean {
@@ -170,18 +168,6 @@ public class FileBean {
 
                 if (hasRelativePaths(bean.getTranslation())) {
                     errors.add(RESOURCE_BUNDLE.getString("error.config.translation_contains_relative_paths"));
-                }
-            }
-
-            Map<String, Map<String, String>> languagesMapping = bean.getLanguagesMapping();
-
-            if (languagesMapping != null) {
-                Optional<String> invalidCode = languagesMapping.values().stream()
-                    .flatMap(innerMap -> innerMap.keySet().stream())
-                    .filter(code -> !isValidCode(code))
-                    .findFirst();
-                if (invalidCode.isPresent()) {
-                    errors.add(RESOURCE_BUNDLE.getString("error.config.languages_mapping"));
                 }
             }
 
