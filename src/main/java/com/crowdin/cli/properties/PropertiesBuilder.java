@@ -236,7 +236,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
     }
 
     static void setEnvIfExists(Consumer<String> setter, String envKey) {
-        String param = getDotenv().get(envKey);
+        String param = System.getenv(envKey);
         if (param != null) {
             setter.accept(param);
         }
