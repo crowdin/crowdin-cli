@@ -26,6 +26,7 @@ class CrowdinClientScreenshotTest {
     private static final String url = "https://testme.crowdin.com/api/v2";
 
     private static final String listScreenshotUrl = String.format("%s/projects/%d/screenshots", url, projectId);
+    private static final String getScreenshotUrl = String.format("%s/projects/%d/screenshots/%d", url, projectId, screenshotId);
     private static final String deleteScreenshotUrl = String.format("%s/projects/%d/screenshots/%d", url, projectId, screenshotId);
     private static final String uploadScreenshotUrl = String.format("%s/projects/%d/screenshots", url, projectId);
     private static final String updateScreenshotUrl = String.format("%s/projects/%d/screenshots/%d", url, projectId, screenshotId);
@@ -53,6 +54,20 @@ class CrowdinClientScreenshotTest {
         client.listScreenshots(null);
 
         verify(httpClientMock).get(eq(listScreenshotUrl), any(), eq(ScreenshotResponseList.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
+    @Test
+    public void testGetScreenshot() {
+        ScreenshotResponseObject response = new ScreenshotResponseObject() {{
+            setData(new Screenshot());
+        }};
+        when(httpClientMock.get(eq(getScreenshotUrl), any(), eq(ScreenshotResponseObject.class)))
+            .thenReturn(response);
+
+        client.getScreenshot(screenshotId);
+
+        verify(httpClientMock).get(eq(getScreenshotUrl), any(), eq(ScreenshotResponseObject.class));
         verifyNoMoreInteractions(httpClientMock);
     }
 

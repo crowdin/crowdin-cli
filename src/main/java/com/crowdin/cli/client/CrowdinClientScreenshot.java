@@ -26,6 +26,13 @@ public class CrowdinClientScreenshot extends CrowdinClientCore implements Client
     }
 
     @Override
+    public Screenshot getScreenshot(Long id) {
+        return executeRequest(() -> this.client.getScreenshotsApi()
+            .getScreenshot(parseLong(this.projectId), id)
+            .getData());
+    }
+
+    @Override
     public Screenshot uploadScreenshot(AddScreenshotRequest request) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorHandler = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
             put((code, message) -> code.equals("409") && message.contains("Auto tag is currently in progress"),
