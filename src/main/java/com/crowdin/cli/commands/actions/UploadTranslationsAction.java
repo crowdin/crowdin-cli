@@ -226,7 +226,11 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                     })
                     .collect(Collectors.toList());
             }
-            ConcurrencyUtil.executeAndWait(tasks, debug);
+            if (isStringsBasedProject) {
+                ConcurrencyUtil.executeAndWaitSingleThread(tasks, debug);
+            } else {
+                ConcurrencyUtil.executeAndWait(tasks, debug);
+            }
 
             if (containsErrors.get()) {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.execution_contains_errors"));
