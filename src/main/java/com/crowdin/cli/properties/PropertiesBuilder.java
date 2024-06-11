@@ -245,7 +245,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
     private static Dotenv getDotenv() {
         if (dotenv == null) {
             try {
-                dotenv = Dotenv.configure().ignoreIfMissing().load();
+                dotenv = Dotenv.configure().ignoreIfMissing().ignoreIfMalformed().load();
             } catch (IllegalStateException e) {
                 if (e.getMessage() != null && e.getMessage().contains("Duplicate key")) {
                     throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.duplicate_environment_variable"), e);
