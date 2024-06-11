@@ -41,6 +41,8 @@ abstract class CrowdinClientCore {
                         (msg) -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_organization_not_found")));
                 put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Bundle Not Found"),
                         (msg) -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.bundle.not_found_by_id")));
+                put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Screenshot Not Found"),
+                        (msg) -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.screenshot.not_found_by_id")));
                 put((code, message) -> code.equals("429"),
                         (msg) -> new ExitCodeExceptionMapper.RateLimitException(RESOURCE_BUNDLE.getString("error.response.429")));
                 put((code, message) -> StringUtils.containsAny(message,

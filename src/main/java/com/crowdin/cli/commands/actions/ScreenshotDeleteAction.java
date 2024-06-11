@@ -5,6 +5,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ExecutionStatus;
+import com.crowdin.client.screenshots.model.Screenshot;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
@@ -18,7 +19,10 @@ class ScreenshotDeleteAction implements NewAction<ProjectProperties, ClientScree
 
     @Override
     public void act(Outputter out, ProjectProperties properties, ClientScreenshot client) {
-        client.deleteScreenshot(id);
-        out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.screenshot.deleted"), id)));
+        Screenshot screenshot = client.getScreenshot(id);
+        if (screenshot != null) {
+            client.deleteScreenshot(id);
+            out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.screenshot.deleted"), id, screenshot.getName())));
+        }
     }
 }

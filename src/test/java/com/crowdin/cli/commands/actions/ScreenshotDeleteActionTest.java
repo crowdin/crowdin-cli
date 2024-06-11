@@ -7,6 +7,7 @@ import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.client.screenshots.model.Screenshot;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -27,12 +28,16 @@ public class ScreenshotDeleteActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
 
         ClientScreenshot client = mock(ClientScreenshot.class);
+        Screenshot screenshot = mock(Screenshot.class);
 
+        when(screenshot.getName()).thenReturn("sample.gif");
+        when(client.getScreenshot(SCREENSHOT_ID)).thenReturn(screenshot);
         doNothing().when(client).deleteScreenshot(SCREENSHOT_ID);
 
         action = new ScreenshotDeleteAction(SCREENSHOT_ID);
         action.act(Outputter.getDefault(), pb, client);
 
+        verify(client).getScreenshot(SCREENSHOT_ID);
         verify(client).deleteScreenshot(SCREENSHOT_ID);
         verifyNoMoreInteractions(client);
     }
@@ -48,13 +53,13 @@ public class ScreenshotDeleteActionTest {
 
         when(client.listScreenshots(null))
                 .thenReturn(new ArrayList<>());
-        doThrow(new RuntimeException("Not found")).when(client).deleteScreenshot(SCREENSHOT_ID);
+        doThrow(new RuntimeException("Not found")).when(client).getScreenshot(SCREENSHOT_ID);
 
         action = new ScreenshotDeleteAction(SCREENSHOT_ID);
 
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).deleteScreenshot(SCREENSHOT_ID);
+        verify(client).getScreenshot(SCREENSHOT_ID);
         verifyNoMoreInteractions(client);
     }
 }
