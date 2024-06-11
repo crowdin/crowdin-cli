@@ -1,12 +1,13 @@
 package com.crowdin.cli.properties;
 
+import com.crowdin.cli.client.Clients;
+import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.client.languages.model.Language;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.IGNORE_HIDDEN_FILES_PATTERN;
@@ -76,6 +77,21 @@ public class PropertiesWithFiles extends ProjectProperties {
                     messages.addAllErrors(FileBean.CONFIGURATOR.checkProperties(fileBean));
                     if (StringUtils.isNotEmpty(fileBean.getDest()) && !props.getPreserveHierarchy()) {
                         messages.addError(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
+                    }
+                    if (fileBean.getLanguagesMapping() != null) {
+                        ProjectClient projectClient = Clients.getProjectClient(props.getApiToken(), props.getBaseUrl(), Long.parseLong(props.getProjectId()));
+                        List<Language> languages = projectClient.listSupportedLanguages();
+
+                        if (languages != null) {
+                            Set<String> langCodes = languages.stream().map(lang -> lang.getId().toLowerCase()).collect(Collectors.toSet());
+
+                            boolean hasInvalidCode = fileBean.getLanguagesMapping().values().stream()
+                                .flatMap(innerMap -> innerMap.keySet().stream())
+                                .anyMatch(langCode -> !langCodes.contains(langCode.toLowerCase()));
+                            if (hasInvalidCode) {
+                                messages.addError(RESOURCE_BUNDLE.getString("error.config.languages_mapping"));
+                            }
+                        }
                     }
                 }
             }
