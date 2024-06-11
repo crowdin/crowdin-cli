@@ -338,7 +338,11 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
                     })
                     .collect(Collectors.toList());
-                ConcurrencyUtil.executeAndWait(taskss, debug);
+                if (isStringsBasedProject) {
+                    ConcurrencyUtil.executeAndWaitSingleThread(taskss, debug);
+                } else {
+                    ConcurrencyUtil.executeAndWait(taskss, debug);
+                }
             })
             .collect(Collectors.toList());
         ConcurrencyUtil.executeAndWaitSingleThread(tasks, debug);

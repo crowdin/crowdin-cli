@@ -20,7 +20,6 @@ public class ConcurrencyUtil {
      */
     public static void executeAndWait(List<Runnable> tasks, boolean debug) {
         run(tasks, CROWDIN_API_MAX_CONCURRENT_REQUESTS, tasks.size() * 2, debug);
-
     }
 
     public static void executeAndWaitSingleThread(List<Runnable> tasks, boolean debug) {
@@ -28,7 +27,7 @@ public class ConcurrencyUtil {
     }
 
     private static void run(List<Runnable> tasks, int threadQnt, int minutesWait, boolean debug) {
-        if (Objects.isNull(tasks) || tasks.size() == 0) {
+        if (Objects.isNull(tasks) || tasks.isEmpty()) {
             return;
         }
         ExecutorService executor = CrowdinExecutorService.newFixedThreadPool(threadQnt, debug);
