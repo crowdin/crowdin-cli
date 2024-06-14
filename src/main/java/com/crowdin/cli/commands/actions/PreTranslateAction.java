@@ -18,6 +18,7 @@ import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.translations.model.*;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -33,6 +34,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
     private final Method method;
     private final Long engineId;
     private final String branchName;
+    private final String directory;
     private final AutoApproveOption autoApproveOption;
     private final Boolean duplicateTranslations;
     private final Boolean translateUntranslatedOnly;
@@ -52,7 +54,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         List<Long> labelIds = this.prepareLabelIds(out, client);
 
         if (isStringsBasedProject) {
-            if (files != null && !files.isEmpty()) {
+            if ((files != null && !files.isEmpty()) || directory != null) {
                 throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("message.no_file_string_project"));
             }
             Branch branch = project.findBranchByName(branchName)
@@ -64,8 +66,8 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
             return;
         }
 
-        if (files == null || files.isEmpty()) {
-            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.file_required"));
+        if ((files == null || files.isEmpty()) && StringUtils.isEmpty(directory)) {
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.file_or_directory_required"));
         }
 
         Optional<Branch> branch = Optional.ofNullable(branchName).flatMap(project::findBranchByName);
@@ -75,26 +77,36 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         }
 
         List<FileInfo> fileInfos = project
-                .getFileInfos()
-                .stream().filter(f -> !branch.isPresent() || branch.get().getId().equals(f.getBranchId()))
-                .collect(Collectors.toList());
+            .getFileInfos()
+            .stream()
+            .filter(f -> (branch.isEmpty() && f.getBranchId() == null)
+                || (branch.isPresent() && branch.get().getId().equals(f.getBranchId())))
+            .collect(Collectors.toList());
         Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), fileInfos);
         boolean containsError = false;
 
         List<Long> fileIds = new ArrayList<>();
 
-        for (String file : files) {
-            if (!paths.containsKey(file)) {
-                if (files.size() > 1) {
-                    containsError = true;
-                    out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
-                    continue;
-                } else {
-                    throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
+        if ((files != null && !files.isEmpty())) {
+            for (String file : files) {
+                if (!paths.containsKey(file)) {
+                    if (files.size() > 1) {
+                        containsError = true;
+                        out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file)));
+                        continue;
+                    } else {
+                        throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), file));
+                    }
+                }
+                Long fileId = paths.get(file).getId();
+                fileIds.add(fileId);
+            }
+        } else if (!StringUtils.isEmpty(directory)) {
+            for (Map.Entry<String, FileInfo> entry : paths.entrySet()) {
+                if (entry.getKey().startsWith(directory)) {
+                    fileIds.add(entry.getValue().getId());
                 }
             }
-            Long fileId = paths.get(file).getId();
-            fileIds.add(fileId);
         }
 
         if (fileIds.isEmpty()) {

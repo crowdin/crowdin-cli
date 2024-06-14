@@ -128,6 +128,11 @@ public class CliActionsTest {
     }
 
     @Test
+    void testPreTranslate() {
+        assertNotNull(actions.preTranslate(null, null, null, null, null, null, null, null, null, null,false, false, null, null));
+    }
+
+    @Test
     void testScreenshotList() {
         assertNotNull(actions.screenshotList(null, false));
     }
