@@ -39,6 +39,9 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", descriptionKey = "branch", order = -2)
     protected String branch;
 
+    @CommandLine.Option(names = {"--directory"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.pre-translate.directory-path")
+    protected String directory;
+
     @CommandLine.Option(names = {"--auto-approve-option"}, descriptionKey = "crowdin.pre-translate.auto-approve-option", paramLabel = "...", order = -2)
     protected String autoApproveOption;
 
@@ -80,6 +83,7 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
             method,
             engineId,
             branch,
+            directory,
             autoApproveOptionWrapper.get(autoApproveOption),
             duplicateTranslations,
             translateUntranslatedOnly,
@@ -94,6 +98,9 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
     @Override
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
+        if (directory != null && files != null && !files.isEmpty()) {
+            errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.directory_or_file_only"));
+        }
         if ((Method.MT == method) && (engineId == null)) {
             errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.engine_id"));
         }
@@ -121,6 +128,9 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
                 String normalizedFile = StringUtils.removeStart(Utils.normalizePath(files.get(i)), Utils.PATH_SEPARATOR);
                 files.set(i, normalizedFile);
             }
+        }
+        if (directory != null) {
+            directory = StringUtils.removeStart(Utils.normalizePath(directory), Utils.PATH_SEPARATOR);
         }
         return errors;
     }
