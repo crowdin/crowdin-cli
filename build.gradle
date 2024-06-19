@@ -1,11 +1,9 @@
-import com.github.spotbugs.snom.SpotBugsReport
 import static de.fayard.refreshVersions.core.Versions.versionFor
 
 plugins {
     id 'java'
     id 'io.github.goooler.shadow' //TODO find alternative
     id 'jacoco'
-    id 'com.github.spotbugs'
     id 'org.asciidoctor.jvm.convert'
 }
 
@@ -102,39 +100,6 @@ jacocoTestReport {
     }
 
     getExecutionData().setFrom("$buildDir/jacoco/test.exec")
-}
-
-/////////////////////////
-// STATIC ANALYSIS //////
-/////////////////////////
-
-spotbugs {
-    ignoreFailures = false
-    excludeFilter = file("config/spotbugs/excludeFilter.xml")
-}
-spotbugsMain {
-    onlyIf {project.hasProperty('staticAnalysisMarker')}
-    reports(({
-        html {
-            required = true
-            destination = file("$buildDir/reports/staticAnalysis/spotbugs-main.html")
-            stylesheet = 'fancy-hist.xsl'
-        }
-    } as Closure<NamedDomainObjectContainer<? extends SpotBugsReport>>))
-}
-spotbugsTest {
-    onlyIf {project.hasProperty('staticAnalysisMarker')}
-    reports(({
-        html {
-            required = true
-            destination = file("$buildDir/reports/staticAnalysis/spotbugs-test.html")
-            stylesheet = 'fancy-hist.xsl'
-        }
-    } as Closure<NamedDomainObjectContainer<? extends SpotBugsReport>>))
-}
-
-task staticAnalysis(type: GradleBuild) {
-    tasks = ['spotbugsMain', 'spotbugsTest']
 }
 
 task generateManpageAsciiDoc(type: JavaExec) {
