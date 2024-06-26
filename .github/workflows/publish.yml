@@ -209,3 +209,32 @@ jobs:
           docker build --pull -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}" -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest" .
           docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}"
           docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest"
+
+  exe:
+    runs-on: windows-latest
+    if: github.event_name == 'release'
+    needs: assets
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: 'gradle'
+
+      - name: Prepare distribution
+        run: |
+          ./gradlew shadowJar
+          mkdir dist
+          mv build/libs/crowdin-cli-*.jar dist/crowdin-cli.jar
+
+      - name: Compile .ISS to .EXE Installer
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        with:
+          path: packages/exe/CrowdinCLIInstaller.iss
+
+      - name: Upload asset
+        uses: softprops/action-gh-release@v2
+        with:
+          files: crowdin.exe

@@ -97,6 +97,21 @@ module.exports = {
               }
             ],
             "countMatches": true
+          },
+          {
+            "files": [
+              "packages/exe/CrowdinCLIInstaller.iss"
+            ],
+            "from": "#define MyAppVersion \".*\"",
+            "to": "#define MyAppVersion \"${nextRelease.version}\"",
+            "results": [
+              {
+                "file": "packages/exe/CrowdinCLIInstaller.iss",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
           }
         ]
       }
@@ -117,6 +132,7 @@ module.exports = {
           "package-lock.json",
           "packages/aur/pkgbuild/PKGBUILD",
           "packages/chocolatey/*",
+          "packages/exe/*",
           "CHANGELOG.md"
         ],
         "message": "chore(release): version ${nextRelease.version} [skip ci]"
