@@ -7,10 +7,12 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
+import com.crowdin.cli.properties.PseudoLocalization;
 import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectBuildForm;
+import com.crowdin.client.translations.model.CrowdinTranslationCreateProjectPseudoBuildForm;
 import com.crowdin.client.translations.model.ProjectBuild;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -21,6 +23,7 @@ import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -853,4 +856,60 @@ public class DownloadActionTest {
         verify(files).deleteDirectory(tempDir.get());
         verifyNoMoreInteractions(files);
     }
+
+    @Test
+    public void testProjectOneFittingFile_PseudoLocalizationWithMapping() throws IOException, ResponseException {
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        PseudoLocalization pseudoLocalization = new PseudoLocalization();
+        pb.setPseudoLocalization(pseudoLocalization);
+
+        project.addFile("first.po");
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject(null))
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
+        CrowdinTranslationCreateProjectPseudoBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectPseudoBuildForm();
+        buildProjectTranslationRequest.setPseudo(true);
+        long buildId = 42L;
+        when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
+            .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
+        when(client.downloadBuild(eq(buildId)))
+            .thenReturn(urlMock);
+
+        FilesInterface files = mock(FilesInterface.class);
+        AtomicReference<File> zipArchive = new AtomicReference<>();
+        AtomicReference<File> tempDir = new AtomicReference<>();
+        when(files.extractZipArchive(any(), any()))
+            .thenAnswer((invocation -> {
+                zipArchive.set(invocation.getArgument(0));
+                tempDir.set(invocation.getArgument(1));
+                return new ArrayList<File>() {{
+                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-en-GB"));
+                }};
+            }));
+
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, List.of("de"), null, true, null, false, false, false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(null);
+        verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
+        verify(client).downloadBuild(eq(buildId));
+        verifyNoMoreInteractions(client);
+
+        verify(files).writeToFile(any(), any());
+        verify(files).extractZipArchive(any(), any());
+        verify(files).copyFile(
+            new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-en-GB"),
+            new File(pb.getBasePath() + "first.po-CR-de-DE"));
+        verify(files).deleteFile(eq(zipArchive.get()));
+        verify(files).deleteDirectory(tempDir.get());
+        verifyNoMoreInteractions(files);
+    }
+
 }

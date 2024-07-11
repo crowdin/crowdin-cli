@@ -108,11 +108,14 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
             new PlaceholderUtil(
                 project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
 
-        List<Language> languages = languageIds == null ? null : languageIds.stream()
-            .map(lang -> project.findLanguageById(lang, true)
-                .orElseThrow(() -> new RuntimeException(
-                    String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))))
-            .collect(Collectors.toList());
+        List<Language> languages = null;
+        if (!pseudo) {
+            languages = languageIds == null ? null : languageIds.stream()
+                .map(lang -> project.findLanguageById(lang, true)
+                    .orElseThrow(() -> new RuntimeException(
+                        String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))))
+                .collect(Collectors.toList());
+        }
         List<Language> excludeLanguages = excludeLanguageIds == null ? new ArrayList<>() : excludeLanguageIds.stream()
             .map(lang -> project.findLanguageById(lang, true)
                 .orElseThrow(() -> new RuntimeException(
@@ -132,6 +135,14 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         try {
             if (pseudo) {
                 List<Language> forLanguages = project.getSupportedLanguages();
+                Optional<Language> langToMap = Optional.empty();
+                if (languageIds != null) {
+                    Optional<String> langMapping = languageIds.stream().findFirst();
+                    if (langMapping.isPresent()) {
+                        langToMap = forLanguages.stream()
+                            .filter(l -> Objects.equals(l.getId(), langMapping.get())).findFirst();
+                    }
+                }
                 if (!plainView) {
                     out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive_pseudo")));
                 }
@@ -150,9 +161,14 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     : RequestBuilder.crowdinTranslationCreateProjectPseudoBuildForm(true, null, null, null, null);
                 }
 
+                LanguageMapping pseudoLanguageMapping = null;
+                if (langToMap.isPresent() && pl != null) {
+                    pseudoLanguageMapping = LanguageMapping.pseudoLanguageMapping(pl.getCharTransformation(), langToMap.get());
+                }
+
                 Pair<File, List<String>> downloadedFiles = this.download(request, client, pb.getBasePath(), keepArchive);
                 for (FileBean fb : pb.getFiles()) {
-                    Map<String, String> filesWithMapping = this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil, new ArrayList<>(serverSources.keySet()), pb.getPreserveHierarchy());
+                    Map<String, String> filesWithMapping = this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, pseudoLanguageMapping, forLanguages, placeholderUtil, new ArrayList<>(serverSources.keySet()), pb.getPreserveHierarchy());
                     fileBeansWithDownloadedFiles.putIfAbsent(downloadedFiles.getLeft(), new ArrayList<>());
                     fileBeansWithDownloadedFiles.get(downloadedFiles.getLeft()).add(filesWithMapping);
                 }
@@ -212,7 +228,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                                 && fb.getExportStringsThatPassedWorkflow() == downloadConfiguration.getRight().getRight()) {
 
                                 Map<String, String> filesWithMapping =
-                                    this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, forLanguages, placeholderUtil, new ArrayList<>(serverSources.keySet()), pb.getPreserveHierarchy());
+                                    this.getFiles(fb, pb.getBasePath(), serverLanguageMapping, null, forLanguages, placeholderUtil, new ArrayList<>(serverSources.keySet()), pb.getPreserveHierarchy());
                                 fileBeansWithDownloadedFiles.putIfAbsent(downloadedFiles.getLeft(), new ArrayList<>());
                                 fileBeansWithDownloadedFiles.get(downloadedFiles.getLeft()).add(filesWithMapping);
                             }
@@ -383,7 +399,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
     }
 
     private Map<String, String> getFiles(
-        FileBean fb, String basePath, LanguageMapping serverLanguageMapping, List<Language> forLanguages, PlaceholderUtil placeholderUtil, List<String> allServerSources, boolean preserveHierarchy
+        FileBean fb, String basePath, LanguageMapping serverLanguageMapping, LanguageMapping pseudoLanguageMapping, List<Language> forLanguages, PlaceholderUtil placeholderUtil, List<String> allServerSources, boolean preserveHierarchy
     ) {
         List<String> sources =
             SourcesUtils.getFiles(basePath, fb.getSource(), fb.getIgnore(), placeholderUtil)
@@ -400,6 +416,9 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         }
         LanguageMapping localLanguageMapping = LanguageMapping.fromConfigFileLanguageMapping(fb.getLanguagesMapping());
         LanguageMapping languageMapping = LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
+        if (pseudoLanguageMapping != null) {
+            languageMapping = LanguageMapping.populate(pseudoLanguageMapping, languageMapping);
+        }
         Map<String, String> translationReplace =
             fb.getTranslationReplace() != null ? fb.getTranslationReplace() : new HashMap<>();
 
@@ -503,6 +522,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         boolean preserveHierarchy
     ) {
         Map<String, String> mapping = new HashMap<>();
+        Map<String, String> mappedCodes = new HashMap<>();
 
         for (Language language : languages) {
 
@@ -527,9 +547,14 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
                 translationFile2 = PropertiesBeanUtils.useTranslationReplace(translationFile2, translationReplace);
 
-                mapping.put(translationProject2, translationFile2);
+                if (!languageMapping.hasMappingForLangCode(language.getId())) {
+                    mapping.put(translationProject2, translationFile2);
+                } else {
+                    mappedCodes.put(translationProject2, translationFile2);
+                }
             }
         }
+        mapping.putAll(mappedCodes);
         return mapping;
     }
 

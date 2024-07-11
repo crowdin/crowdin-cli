@@ -1,10 +1,16 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.translations.model.CharTransformation;
 import lombok.NonNull;
 import lombok.ToString;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.Supplier;
+
+import static com.crowdin.cli.utils.PlaceholderUtil.*;
 
 @ToString
 public class LanguageMapping {
@@ -15,7 +21,11 @@ public class LanguageMapping {
     }
 
     public boolean containsValue(String langCode, String placeholder) {
-        return languageMapping.containsKey(langCode) && languageMapping.get(langCode).containsKey(placeholder);
+        return hasMappingForLangCode(langCode) && languageMapping.get(langCode).containsKey(placeholder);
+    }
+
+    public boolean hasMappingForLangCode(String langCode) {
+        return languageMapping.containsKey(langCode);
     }
 
     public String getValue(String langCode, String placeholder) {
@@ -69,6 +79,28 @@ public class LanguageMapping {
         return (fileLanguageMapping == null)
             ? new LanguageMapping()
             : new LanguageMapping(reverse(fileLanguageMapping));
+    }
+
+    public static LanguageMapping pseudoLanguageMapping(CharTransformation charTransformation, Language language) {
+        String standardCode = languageCodeByCharTransformation(charTransformation);
+        Map<String, Map<String, String>> languageMapping = new HashMap<>();
+        Map<String, String> placeholderMapping = new HashMap<>();
+
+        Map<String, Supplier<String>> codeMappings = Map.of(
+            PLACEHOLDER_NAME_TWO_LETTERS_CODE, language::getTwoLettersCode,
+            PLACEHOLDER_NAME_THREE_LETTERS_CODE, language::getThreeLettersCode,
+            PLACEHOLDER_NAME_LOCALE, language::getLocale,
+            PLACEHOLDER_NAME_ANDROID_CODE, language::getAndroidCode,
+            PLACEHOLDER_NAME_OSX_CODE, language::getOsxCode,
+            PLACEHOLDER_NAME_OSX_LOCALE, language::getOsxLocale
+        );
+        codeMappings.forEach((placeholder, codeSupplier) ->
+            Optional.ofNullable(codeSupplier.get()).ifPresent(code ->
+                placeholderMapping.put(placeholder, code)
+            )
+        );
+        languageMapping.put(standardCode, placeholderMapping);
+        return new LanguageMapping(languageMapping);
     }
 
     public static LanguageMapping populate(@NonNull LanguageMapping from, @NonNull LanguageMapping to) {

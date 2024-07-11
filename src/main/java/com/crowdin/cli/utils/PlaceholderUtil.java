@@ -2,6 +2,7 @@ package com.crowdin.cli.utils;
 
 import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.translations.model.CharTransformation;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
@@ -66,6 +67,12 @@ public class PlaceholderUtil {
     private static final String ESCAPE_ASTERISK_PLACEHOLDER = "{ESCAPE_ASTERISK}";
     private static final String ESCAPE_ASTERISK_REPLACEMENT_FROM = ".+" + Utils.PATH_SEPARATOR_REGEX;
     private static final String ESCAPE_ASTERISK_REPLACEMENT_TO = "(.+" + Utils.PATH_SEPARATOR_REGEX + ")?";
+
+    private static final String ASIAN_LANGUAGE_CODE = "zh-TW";
+    private static final String CYRILLIC_LANGUAGE_CODE = "uk";
+    private static final String EUROPEAN_LANGUAGE_CODE = "fr";
+    private static final String ARABIC_LANGUAGE_CODE = "ar";
+    private static final String DEFAULT_LANGUAGE_CODE = "en";
 
     private List<Language> supportedLanguages;
     private List<Language> projectLanguages;
@@ -307,5 +314,17 @@ public class PlaceholderUtil {
             PLACEHOLDER_ANDROID_CODE,
             PLACEHOLDER_OSX_CODE,
             PLACEHOLDER_OSX_LOCALE);
+    }
+
+    public static String languageCodeByCharTransformation(CharTransformation transformation) {
+        if (transformation == null) {
+            return DEFAULT_LANGUAGE_CODE;
+        }
+        return switch (transformation) {
+            case ASIAN -> ASIAN_LANGUAGE_CODE;
+            case CYRILLIC -> CYRILLIC_LANGUAGE_CODE;
+            case EUROPEAN -> EUROPEAN_LANGUAGE_CODE;
+            case ARABIC -> ARABIC_LANGUAGE_CODE;
+        };
     }
 }
