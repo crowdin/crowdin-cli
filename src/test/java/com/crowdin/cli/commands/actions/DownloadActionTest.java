@@ -5,6 +5,7 @@ import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
@@ -87,7 +88,8 @@ public class DownloadActionTest {
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
             new DownloadAction(files, false, null, null, false, null, false, false, false, false, false);
-        action.act(Outputter.getDefault(), pb, client);
+
+        assertThrows(ExitCodeExceptionMapper.ValidationException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));

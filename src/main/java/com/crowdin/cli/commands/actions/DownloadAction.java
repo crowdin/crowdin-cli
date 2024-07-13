@@ -281,14 +281,6 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 omittedFilesNoSources.add(allOmittedFilesNoSources);
             }
 
-            if (!anyFileDownloaded.get()) {
-                if (project.getSkipUntranslatedFiles() || skipUntranslatedFiles.get()) {
-                    out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download_skipuntranslated")));
-                } else {
-                    out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download")));
-                }
-            }
-
             if (!ignoreMatch && !plainView) {
                 totalOmittedFiles = totalOmittedFiles.entrySet().stream()
                     .filter(entry -> !entry.getValue().isEmpty())
@@ -320,6 +312,14 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                         out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list"), file)));
 
                     out.println(EMPTY.withIcon(RESOURCE_BUNDLE.getString("message.faq_link")));
+                }
+            }
+
+            if (!anyFileDownloaded.get()) {
+                if (project.getSkipUntranslatedFiles() || skipUntranslatedFiles.get()) {
+                    throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download_skipuntranslated"));
+                } else {
+                    throw new ExitCodeExceptionMapper.ValidationException(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download")));
                 }
             }
         } catch (ProjectBuildFailedException e) {
