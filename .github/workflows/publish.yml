@@ -206,9 +206,9 @@ jobs:
       - name: Build Docker image
         run: |
           docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}" docker.io
-          docker build --pull -t "crowdin-cli:${{ github.ref_name }}" -t "crowdin-cli:latest" .
-          docker push "crowdin-cli:${{ github.ref_name }}"
-          docker push "crowdin-cli:latest"
+          docker build --pull -t "cli:${{ github.ref_name }}" -t "cli:latest" .
+          docker push "cli:${{ github.ref_name }}"
+          docker push "cli:latest"
 
   docker-github-action:
     runs-on: ubuntu-latest
@@ -224,9 +224,9 @@ jobs:
       - name: Build Docker image
         run: |
           docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}" docker.io
-          docker build --pull -t "crowdin-github-action:${{ github.ref_name }}" -t "crowdin-github-action:latest" .
-          docker push "crowdin-github-action:${{ github.ref_name }}"
-          docker push "crowdin-github-action:latest"
+          docker build --pull -t "github-action:${{ github.ref_name }}" -t "github-action:latest" .
+          docker push "github-action:${{ github.ref_name }}"
+          docker push "github-action:latest"
 
   exe:
     runs-on: windows-latest

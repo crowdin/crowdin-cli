@@ -15,9 +15,8 @@ RUN echo -e '#!/bin/sh\njava -jar /usr/local/bin/crowdin-cli.jar "$@"' > /usr/lo
 WORKDIR /usr/crowdin-project
 
 RUN apk --no-cache add curl git git-lfs jq gnupg;
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
 
 
 CMD ["sh"]
-
-COPY entrypoint.sh /entrypoint.sh
-ENTRYPOINT ["/entrypoint.sh"]
