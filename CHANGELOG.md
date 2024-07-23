@@ -1,5 +1,21 @@
 # Changelog
 
+# [4.1.0](https://github.com/crowdin/crowdin-cli/compare/4.0.0...4.1.0) (2024-07-23)
+
+
+### Bug Fixes
+
+* read only system variables for properties ([#813](https://github.com/crowdin/crowdin-cli/issues/813)) ([e091e22](https://github.com/crowdin/crowdin-cli/commit/e091e22f25260903893ced2e642e1fd154e67e0c))
+* screenshot delete message ([#814](https://github.com/crowdin/crowdin-cli/issues/814)) ([31a7fe1](https://github.com/crowdin/crowdin-cli/commit/31a7fe1fbc9b4c637389401a7e28dd177277a6c7))
+* sequential upload for sb projects ([#815](https://github.com/crowdin/crowdin-cli/issues/815)) ([19d2654](https://github.com/crowdin/crowdin-cli/commit/19d26545c73ee5f73e75a5500a0f47d345e9d850))
+* throw error if no translations were found ([#824](https://github.com/crowdin/crowdin-cli/issues/824)) ([fd62985](https://github.com/crowdin/crowdin-cli/commit/fd62985af7986463080f15a70341579d676f3bc3))
+
+
+### Features
+
+* directory parameter for pre-translate command ([#816](https://github.com/crowdin/crowdin-cli/issues/816)) ([08209dd](https://github.com/crowdin/crowdin-cli/commit/08209dd412f1456482d85e3a165ea504e952bf3a))
+* validate language code ([#810](https://github.com/crowdin/crowdin-cli/issues/810)) ([84f8410](https://github.com/crowdin/crowdin-cli/commit/84f8410e7ff90a7d6a4c656b66d8b2cfad4ea1e6))
+
 ## [4.0.0](https://github.com/crowdin/crowdin-cli/compare/3.19.4...4.0.0) (2024-05-28)
 
 * [Release Notes](https://crowdin.github.io/crowdin-cli/blog/2024/05/28/cli-v4)
