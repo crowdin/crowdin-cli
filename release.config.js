@@ -102,7 +102,7 @@ module.exports = {
             "files": [
               "packages/exe/CrowdinCLIInstaller.iss"
             ],
-            "from": "#define MyAppVersion \".*\"",
+            "from": "#define MyAppVersion \"4..*\"",
             "to": "#define MyAppVersion \"${nextRelease.version}\"",
             "results": [
               {
@@ -132,7 +132,7 @@ module.exports = {
           "package-lock.json",
           "packages/aur/pkgbuild/PKGBUILD",
           "packages/chocolatey/*",
-          "packages/exe/*",
+          "packages/exe/CrowdinCLIInstaller.iss",
           "CHANGELOG.md"
         ],
         "message": "chore(release): version ${nextRelease.version} [skip ci]"
