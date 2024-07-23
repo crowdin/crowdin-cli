@@ -18,3 +18,6 @@ RUN apk --no-cache add curl git git-lfs jq gnupg;
 
 
 CMD ["sh"]
+
+COPY entrypoint.sh /entrypoint.sh
+ENTRYPOINT ["/entrypoint.sh"]
