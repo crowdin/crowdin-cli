@@ -102,7 +102,7 @@ module.exports = {
             "files": [
               "packages/exe/CrowdinCLIInstaller.iss"
             ],
-            "from": "#define MyAppVersion \"4..*\"",
+            "from": "#define MyAppVersion \".*\"",
             "to": "#define MyAppVersion \"${nextRelease.version}\"",
             "results": [
               {
@@ -112,6 +112,7 @@ module.exports = {
                 "numReplacements": 1
               }
             ],
+            "countMatches": true
           }
         ]
       }
