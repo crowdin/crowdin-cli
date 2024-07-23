@@ -206,9 +206,27 @@ jobs:
       - name: Build Docker image
         run: |
           docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}" docker.io
-          docker build --pull -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}" -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest" .
-          docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}"
-          docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest"
+          docker build --pull -t "crowdin-cli:${{ github.ref_name }}" -t "crowdin-cli:latest" .
+          docker push "crowdin-cli:${{ github.ref_name }}"
+          docker push "crowdin-cli:latest"
+
+  docker-github-action:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'docker'
+    needs: assets
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Copy Dockerfile
+        run: |
+          cp packages/docker-github-action/Dockerfile Dockerfile
+
+      - name: Build Docker image
+        run: |
+          docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}" docker.io
+          docker build --pull -t "crowdin-github-action:${{ github.ref_name }}" -t "crowdin-github-action:latest" .
+          docker push "crowdin-github-action:${{ github.ref_name }}"
+          docker push "crowdin-github-action:latest"
 
   exe:
     runs-on: windows-latest
