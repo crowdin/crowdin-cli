@@ -317,7 +317,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
             if (!anyFileDownloaded.get()) {
                 if (project.getSkipUntranslatedFiles() || skipUntranslatedFiles.get()) {
-                    throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download_skipuntranslated"));
+                    out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download_skipuntranslated")));
                 } else {
                     throw new ExitCodeExceptionMapper.ValidationException(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.warning.no_file_to_download")));
                 }
