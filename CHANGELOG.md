@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.1](https://github.com/crowdin/crowdin-cli/compare/4.1.0...4.1.1) (2024-07-26)
+
+
+### Bug Fixes
+
+* do not throw error exit code in case of "skip untranslated files" is enabled ([#829](https://github.com/crowdin/crowdin-cli/issues/829)) ([7bce965](https://github.com/crowdin/crowdin-cli/commit/7bce9659dbce072e13eff14dc82f96b50ddb0351))
+
 # [4.1.0](https://github.com/crowdin/crowdin-cli/compare/4.0.0...4.1.0) (2024-07-23)
 
 
