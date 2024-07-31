@@ -2,6 +2,7 @@ package com.crowdin.cli.utils;
 
 import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.translations.model.CharTransformation;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
@@ -174,5 +175,14 @@ public class PlaceholderUtilTest {
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(suppLangs, projLangs, "");
         String result = placeholderUtil.replaceLanguageDependentPlaceholders(toFormat, languageMapping, language);
         assertEquals(expected, result);
+    }
+
+    @Test
+    public void testLanguageCodeByCharTransformation() {
+        assertEquals("zh-TW", PlaceholderUtil.languageCodeByCharTransformation(CharTransformation.ASIAN));
+        assertEquals("uk", PlaceholderUtil.languageCodeByCharTransformation(CharTransformation.CYRILLIC));
+        assertEquals("fr", PlaceholderUtil.languageCodeByCharTransformation(CharTransformation.EUROPEAN));
+        assertEquals("ar", PlaceholderUtil.languageCodeByCharTransformation(CharTransformation.ARABIC));
+        assertEquals("en", PlaceholderUtil.languageCodeByCharTransformation(null));
     }
 }

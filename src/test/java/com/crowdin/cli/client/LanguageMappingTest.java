@@ -1,5 +1,7 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.translations.model.CharTransformation;
 import org.junit.jupiter.api.Test;
 
 import java.util.HashMap;
@@ -29,6 +31,10 @@ public class LanguageMappingTest {
                     }}
                 );
             }};
+    private static final Language ARAGONESE_LANGUAGE = new Language() {{
+        setId("an");
+        setTwoLettersCode("an");
+    }};
 
     @Test
     public void testLanguageMappingForServer() {
@@ -56,5 +62,11 @@ public class LanguageMappingTest {
         assertTrue(result.containsValue("uk", "two_letters_code"));
         assertTrue(result.containsValue("uk", "three_letters_code"));
         assertEquals(CONFIG_FILE_LANGUAGE_MAPPING.get("name").get("uk"), result.getValue("uk", "name"));
+    }
+
+    @Test
+    public void testPseudoLanguageMapping() {
+        LanguageMapping result = LanguageMapping.pseudoLanguageMapping(CharTransformation.ARABIC, ARAGONESE_LANGUAGE);
+        assertEquals("an", result.getValue("ar", "two_letters_code"));
     }
 }
