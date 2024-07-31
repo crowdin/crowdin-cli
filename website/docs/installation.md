@@ -46,7 +46,7 @@ choco install crowdin-cli
 
 ### Installer
 
-Download and run [installer for Windows](https://downloads.crowdin.com/cli/v3/crowdin.exe).
+Download and run [installer for Windows](https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin.exe).
 
 ## Debian
 
