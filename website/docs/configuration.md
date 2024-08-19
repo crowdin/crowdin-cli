@@ -93,7 +93,7 @@ It means that it's unsafe to commit this file into the code repository because t
 - a description of the resources to manage, residing in the project directory
 - API credentials, probably residing in `$HOME/.crowdin.yml`
 
-:::
+:::note
 API credentials from the `.crowdin.yml` configuration file have higher priority than credentials from the project directory(`crowdin.yml`).
 :::
 
