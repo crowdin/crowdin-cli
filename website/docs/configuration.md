@@ -84,6 +84,31 @@ The CLI will also **automatically** pick up the environment variables if they ar
 | `CROWDIN_BASE_URL`       | Base URL of Crowdin server for API requests execution (`https://api.crowdin.com` for crowdin.com, `https://{organization-name}.api.crowdin.com` for Crowdin Enterprise) |
 | `CROWDIN_BASE_PATH`      | Path to your project directory on a local machine (default: `.`)                                                                                                        |
 
+## Split Project Configuration and API Credentials
+
+The `crowdin.yml` file contains a description of the resources to manage and API credentials (`project_id`, `api_token`, `base_path`, `base_url`).
+
+It means that it's unsafe to commit this file into the code repository because the API key would be accessible to other users. Crowdin CLI supports two types of configuration files:
+
+- a description of the resources to manage, residing in the project directory
+- API credentials, probably residing in `$HOME/.crowdin.yml`
+
+:::
+API credentials from the `.crowdin.yml` configuration file have higher priority than credentials from the project directory(`crowdin.yml`).
+:::
+
+If you need to run a command with user-specific credentials (for example, `upload sources`), run the following command:
+
+```bash
+crowdin upload sources --identity 'path-to-user-credentials-file'
+```
+
+But if user-specific credentials file residing in `$HOME/.crowdin.yml` you can run:
+
+```bash
+crowdin upload sources
+```
+
 ## Further Reading
 
 - [Configuration File](https://developer.crowdin.com/configuration-file/)
