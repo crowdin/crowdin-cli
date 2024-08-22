@@ -1,5 +1,7 @@
 package com.crowdin.cli;
 
+import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.actions.CliActions;
 import com.crowdin.cli.commands.picocli.CommandNames;
@@ -9,6 +11,15 @@ import com.crowdin.cli.properties.PropertiesBuilders;
 public class Cli {
 
     public static void main(String[] args) {
+        // HACK: This works around a bug in picocli where valid options before the subcommand are ignored
+        for (String arg : args) {
+            if (!arg.startsWith("-")) {
+                break;
+            }
+            System.out.println(String.format(RESOURCE_BUNDLE.getString("error.string_based_only"), arg));
+            System.exit(1);
+        }
+
         try {
             PicocliRunner picocliRunner = PicocliRunner.getInstance();
             Actions actions = new CliActions();
