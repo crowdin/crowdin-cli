@@ -27,6 +27,7 @@ import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
 import com.crowdin.client.sourcefiles.model.SpreadsheetFileImportOptions;
 import com.crowdin.client.sourcefiles.model.UpdateFileRequest;
 import com.crowdin.client.sourcestrings.model.ImportOptions;
+import com.crowdin.client.sourcestrings.model.UploadStringsProgress;
 import com.crowdin.client.sourcestrings.model.UploadStringsRequest;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -797,10 +798,20 @@ public class UploadSourcesActionTest {
         ProjectClient client = mock(ProjectClient.class);
         CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).addBranches(2L, "main").build();
         build.setType(Type.STRINGS_BASED);
+        UploadStringsRequest uploadStringsRequest = new UploadStringsRequest() {
+            {
+                setStorageId(1L);
+                setBranchId(2L);
+                setImportOptions(new ImportOptions());
+            }};
+        UploadStringsProgress uploadStringsProgress = new UploadStringsProgress();
+        uploadStringsProgress.setIdentifier("testid");
+        uploadStringsProgress.setStatus("finished");
         when(client.downloadFullProject())
             .thenReturn(build);
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
+        when(client.addSourceStringsBased(eq(uploadStringsRequest))).thenReturn(uploadStringsProgress);
 
         NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("main", false, false, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
@@ -808,12 +819,6 @@ public class UploadSourcesActionTest {
         verify(client).downloadFullProject();
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
-        UploadStringsRequest uploadStringsRequest = new UploadStringsRequest() {
-            {
-                setStorageId(1L);
-                setBranchId(2L);
-                setImportOptions(new ImportOptions());
-        }};
         verify(client).addSourceStringsBased(eq(uploadStringsRequest));
         verifyNoMoreInteractions(client);
     }
