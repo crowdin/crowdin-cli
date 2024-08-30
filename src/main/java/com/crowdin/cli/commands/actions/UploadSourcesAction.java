@@ -317,22 +317,31 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                         String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), sourceFile.getAbsolutePath()));
                                 }
                                 try {
-                                    UploadStringsProgress uploadStrings = client.addSourceStringsBased(request);
-                                    String uploadId = uploadStrings.getIdentifier();
+                                    ConsoleSpinner.execute(
+                                        out,
+                                        "message.spinner.uploading_strings",
+                                        "message.spinner.upload_strings_failed",
+                                        this.plainView,
+                                        this.plainView,
+                                        () -> {
+                                            UploadStringsProgress uploadStrings = client.addSourceStringsBased(request);
+                                            String uploadId = uploadStrings.getIdentifier();
 
-                                    while (!"finished".equalsIgnoreCase(uploadStrings.getStatus())) {
-                                        ConsoleSpinner.update(
-                                                String.format(RESOURCE_BUNDLE.getString("message.spinner.uploading_strings_percents"),
-                                                        uploadStrings.getProgress()));
-                                        Thread.sleep(1000);
+                                            while (!"finished".equalsIgnoreCase(uploadStrings.getStatus())) {
+                                                ConsoleSpinner.update(
+                                                        String.format(RESOURCE_BUNDLE.getString("message.spinner.uploading_strings_percents"),
+                                                                uploadStrings.getProgress()));
+                                                Thread.sleep(1000);
 
-                                        uploadStrings = client.getUploadStringsStatus(uploadId);
+                                                uploadStrings = client.getUploadStringsStatus(uploadId);
 
-                                        if ("failed".equalsIgnoreCase(uploadStrings.getStatus())) {
-                                            throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.upload_strings_failed"));
-                                        }
-                                    }
-                                    ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.uploading_strings_percents"), 100));
+                                                if ("failed".equalsIgnoreCase(uploadStrings.getStatus())) {
+                                                    throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.upload_strings_failed"));
+                                                }
+                                            }
+                                            ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.uploading_strings_percents"), 100));
+                                            return uploadStrings;
+                                        });
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
                                     throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath));
