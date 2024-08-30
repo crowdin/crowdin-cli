@@ -321,7 +321,10 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     String uploadId = uploadStrings.getIdentifier();
 
                                     while (!"finished".equalsIgnoreCase(uploadStrings.getStatus())) {
-                                        Thread.sleep(500);
+                                        ConsoleSpinner.update(
+                                                String.format(RESOURCE_BUNDLE.getString("message.spinner.uploading_strings_percents"),
+                                                        uploadStrings.getProgress()));
+                                        Thread.sleep(1000);
 
                                         uploadStrings = client.getUploadStringsStatus(uploadId);
 
@@ -329,6 +332,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                             throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.upload_strings_failed"));
                                         }
                                     }
+                                    ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.uploading_strings_percents"), 100));
                                 } catch (Exception e) {
                                     errorsPresented.set(true);
                                     throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.uploading_file"), fileFullPath));
