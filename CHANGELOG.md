@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.1.2](https://github.com/crowdin/crowdin-cli/compare/4.1.1...4.1.2) (2024-09-06)
+
+
+### Bug Fixes
+
+* check strings upload status ([#836](https://github.com/crowdin/crowdin-cli/issues/836)) ([e6e1416](https://github.com/crowdin/crowdin-cli/commit/e6e14169f52e73005e9767a0f87eecf43d5ee54f))
+
 ## [4.1.1](https://github.com/crowdin/crowdin-cli/compare/4.1.0...4.1.1) (2024-07-26)
 
 
