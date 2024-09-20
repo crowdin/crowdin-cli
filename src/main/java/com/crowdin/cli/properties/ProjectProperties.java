@@ -40,7 +40,9 @@ public class ProjectProperties extends BaseProperties {
             if (props == null) {
                 return;
             }
-            PropertiesBuilder.setEnvIfExists(props::setProjectId, CROWDIN_PROJECT_ID);
+            if (props.getProjectId() == null) {
+                PropertiesBuilder.setEnvIfExists(props::setProjectId, CROWDIN_PROJECT_ID);
+            }
         }
 
         @Override
