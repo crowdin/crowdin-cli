@@ -100,6 +100,7 @@ const sidebars = {
             'commands/crowdin-branch-clone',
             'commands/crowdin-branch-merge',
             'commands/crowdin-branch-delete',
+            'commands/crowdin-branch-edit',
           ]
         },
         {

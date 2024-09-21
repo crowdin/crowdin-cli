@@ -204,6 +204,13 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public Branch editBranch(Long branchId, List<PatchRequest> requests) {
+        return executeRequest(() -> this.client.getSourceFilesApi()
+                .editBranch(this.projectId, branchId, requests)
+                .getData());
+    }
+
+    @Override
     public List<Branch> listBranches() {
         return executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()
             .listBranches(this.projectId, null, limit, offset));
