@@ -26,16 +26,14 @@ class BranchEditAction implements NewAction<ProjectProperties, ProjectClient> {
     private final String name;
     private final String title;
     private final Priority priority;
-    private final String exportPattern;
     private final boolean noProgress;
     private final boolean plainView;
 
-    BranchEditAction(String branch, String name, String title, Priority priority, String exportPattern, boolean noProgress, boolean plainView) {
+    BranchEditAction(String branch, String name, String title, Priority priority, boolean noProgress, boolean plainView) {
         this.branch = branch;
         this.name = name;
         this.title = title;
         this.priority = priority;
-        this.exportPattern = exportPattern;
         this.noProgress = noProgress;
         this.plainView = plainView;
     }
@@ -61,10 +59,6 @@ class BranchEditAction implements NewAction<ProjectProperties, ProjectClient> {
         }
         if (priority != null) {
             PatchRequest request = RequestBuilder.patch(priority, PatchOperation.REPLACE, "/priority");
-            requests.add(request);
-        }
-        if (exportPattern != null) {
-            PatchRequest request = RequestBuilder.patch(exportPattern, PatchOperation.REPLACE, "/exportPattern");
             requests.add(request);
         }
 

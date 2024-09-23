@@ -28,16 +28,13 @@ class BranchEditSubcommand extends ActCommandProject {
     @CommandLine.Option(names = "--priority", descriptionKey = "crowdin.branch.edit.priority", paramLabel = "...", order = -2)
     protected Priority priority;
 
-    @CommandLine.Option(names = "--export-pattern", descriptionKey = "crowdin.branch.edit.export-pattern", paramLabel = "...", order = -2)
-    protected String exportPattern;
-
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
 
     @Override
     protected List<String> checkOptions() {
         List<String> errors = new ArrayList<>();
-        if (newName == null && title == null && priority == null && exportPattern == null) {
+        if (newName == null && title == null && priority == null) {
             errors.add(RESOURCE_BUNDLE.getString("error.branch_no_edit"));
         }
         return errors;
@@ -45,6 +42,6 @@ class BranchEditSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.branchEdit(name, newName, title, priority, exportPattern, noProgress, plainView);
+        return actions.branchEdit(name, newName, title, priority, noProgress, plainView);
     }
 }

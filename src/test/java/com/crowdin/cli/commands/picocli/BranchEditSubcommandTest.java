@@ -13,7 +13,7 @@ public class BranchEditSubcommandTest extends PicocliTestUtils {
         Priority priority = Priority.HIGH;
         this.execute(CommandNames.BRANCH, CommandNames.EDIT, branchName, "--priority", priority.name());
         verify(actionsMock)
-                .branchEdit(branchName, null, null, priority, null, false, false);
+                .branchEdit(branchName, null, null, priority, false, false);
         this.check(true);
     }
 

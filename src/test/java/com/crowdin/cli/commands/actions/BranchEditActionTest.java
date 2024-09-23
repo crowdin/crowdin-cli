@@ -32,7 +32,7 @@ public class BranchEditActionTest {
 
     @ParameterizedTest
     @MethodSource
-    public void testBranchEdit(String branch, String name, String title, Priority priority, String exportPattern) {
+    public void testBranchEdit(String branch, String name, String title, Priority priority) {
         Long branchId = 1L;
 
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
@@ -45,7 +45,7 @@ public class BranchEditActionTest {
 
         when(client.editBranch(any(), any())).thenReturn(new Branch());
 
-        action = new BranchEditAction(branch, name, title, priority, exportPattern, false, false);
+        action = new BranchEditAction(branch, name, title, priority, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         List<PatchRequest> patches = new ArrayList<>() {{
@@ -58,20 +58,16 @@ public class BranchEditActionTest {
             if (priority != null) {
                 add(RequestBuilder.patch(priority, PatchOperation.REPLACE, "/priority"));
             }
-            if (exportPattern != null) {
-                add(RequestBuilder.patch(exportPattern, PatchOperation.REPLACE, "/exportPattern"));
-            }
         }};
         verify(client).editBranch(branchId, patches);
     }
 
     public static Stream<Arguments> testBranchEdit() {
         return Stream.of(
-                arguments("main", "dev", null, null, null),
-                arguments("main", null, "test", null, null),
-                arguments("main", null, null, Priority.HIGH, null),
-                arguments("main", null, null, null, "%three_letters_code%"),
-                arguments("main", "dev", "test", Priority.HIGH, "%three_letters_code%")
+                arguments("main", "dev", null, null),
+                arguments("main", null, "test", null),
+                arguments("main", null, null, Priority.HIGH),
+                arguments("main", "dev", "test", Priority.HIGH)
         );
     }
 }

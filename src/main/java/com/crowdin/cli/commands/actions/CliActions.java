@@ -250,8 +250,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> branchEdit(String branch, String name, String title, Priority priority, String exportPattern, boolean noProgress, boolean plainView) {
-        return new BranchEditAction(branch, name, title, priority, exportPattern, noProgress, plainView);
+    public NewAction<ProjectProperties, ProjectClient> branchEdit(String branch, String name, String title, Priority priority, boolean noProgress, boolean plainView) {
+        return new BranchEditAction(branch, name, title, priority, noProgress, plainView);
     }
 
     @Override

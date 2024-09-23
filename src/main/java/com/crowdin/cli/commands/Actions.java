@@ -120,7 +120,7 @@ public interface Actions {
 
     NewAction<ProjectProperties, ProjectClient> branchDelete(String name);
 
-    NewAction<ProjectProperties, ProjectClient> branchEdit(String branch, String name, String title, Priority priority, String exportPattern, boolean noProgress, boolean plainView);
+    NewAction<ProjectProperties, ProjectClient> branchEdit(String branch, String name, String title, Priority priority, boolean noProgress, boolean plainView);
 
     NewAction<ProjectProperties, ClientScreenshot> screenshotList(Long stringId, boolean plainView);
 
