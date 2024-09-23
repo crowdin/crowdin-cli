@@ -66,10 +66,6 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
             return;
         }
 
-        if ((files == null || files.isEmpty()) && StringUtils.isEmpty(directory)) {
-            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.file_or_directory_required"));
-        }
-
         Optional<Branch> branch = Optional.ofNullable(branchName).flatMap(project::findBranchByName);
 
         if (!branch.isPresent() && branchName != null) {
@@ -107,6 +103,8 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                     fileIds.add(entry.getValue().getId());
                 }
             }
+        } else {
+            fileIds = paths.values().stream().map(FileInfo::getId).toList();
         }
 
         if (fileIds.isEmpty()) {
