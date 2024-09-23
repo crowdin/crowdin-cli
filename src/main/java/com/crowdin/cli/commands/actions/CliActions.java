@@ -250,6 +250,11 @@ public class CliActions implements Actions {
     }
 
     @Override
+    public NewAction<ProjectProperties, ProjectClient> branchEdit(String branch, String name, String title, Priority priority, boolean noProgress, boolean plainView) {
+        return new BranchEditAction(branch, name, title, priority, noProgress, plainView);
+    }
+
+    @Override
     public NewAction<ProjectProperties, ClientScreenshot> screenshotList(Long stringId, boolean plainView) {
         return new ScreenshotListAction(stringId, plainView);
     }

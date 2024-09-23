@@ -10,7 +10,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
-    name = CommandNames.STRING_EDIT,
+    name = CommandNames.EDIT,
     sortOptions = false
 )
 class StringEditSubcommand extends ActCommandProject {

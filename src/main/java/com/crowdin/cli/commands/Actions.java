@@ -120,6 +120,8 @@ public interface Actions {
 
     NewAction<ProjectProperties, ProjectClient> branchDelete(String name);
 
+    NewAction<ProjectProperties, ProjectClient> branchEdit(String branch, String name, String title, Priority priority, boolean noProgress, boolean plainView);
+
     NewAction<ProjectProperties, ClientScreenshot> screenshotList(Long stringId, boolean plainView);
 
     NewAction<ProjectProperties, ClientScreenshot> screenshotUpload(File file, String branchName, List<String> labelNames, String directoryPath, String filePath, boolean autoTag, boolean plainView, boolean noProgress, ProjectClient projectClient);

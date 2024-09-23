@@ -142,6 +142,8 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.branchMerge(any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
                 .thenReturn(actionMock);
+        when(actionsMock.branchEdit(any(), any(), any(), any(), anyBoolean(), anyBoolean()))
+                .thenReturn(actionMock);
     }
 
     private void mockBuilders() {

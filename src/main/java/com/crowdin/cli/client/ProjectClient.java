@@ -47,6 +47,8 @@ public interface ProjectClient extends Client {
 
     void deleteBranch(Long branchId);
 
+    Branch editBranch(Long branchId, List<PatchRequest> requests);
+
     List<Branch> listBranches();
 
     Long uploadStorage(String fileName, InputStream content) throws ResponseException;

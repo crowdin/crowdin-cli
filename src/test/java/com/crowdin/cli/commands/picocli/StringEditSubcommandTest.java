@@ -10,7 +10,7 @@ public class StringEditSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testStringEdit() {
-        this.execute(CommandNames.STRING, CommandNames.STRING_EDIT, "42", "--text", "NeW tExT");
+        this.execute(CommandNames.STRING, CommandNames.EDIT, "42", "--text", "NeW tExT");
         verify(actionsMock)
             .stringEdit(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any(), any(), anyBoolean());
         this.check(true);
@@ -18,11 +18,11 @@ public class StringEditSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testStringEditInvalidOptions() {
-        this.executeInvalidParams(CommandNames.STRING, CommandNames.STRING_EDIT);
+        this.executeInvalidParams(CommandNames.STRING, CommandNames.EDIT);
     }
 
     @Test
     public void testStringEditInvalidOptions2() {
-        this.executeInvalidParams(CommandNames.STRING, CommandNames.STRING_EDIT, "--id", "42", "--identifier", "4242");
+        this.executeInvalidParams(CommandNames.STRING, CommandNames.EDIT, "--id", "42", "--identifier", "4242");
     }
 }
