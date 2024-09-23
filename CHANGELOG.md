@@ -1,5 +1,18 @@
 # Changelog
 
+# [4.2.0](https://github.com/crowdin/crowdin-cli/compare/4.1.2...4.2.0) (2024-09-23)
+
+
+### Bug Fixes
+
+* project id env priority ([#843](https://github.com/crowdin/crowdin-cli/issues/843)) ([3f2b6db](https://github.com/crowdin/crowdin-cli/commit/3f2b6dbea3c073c91f71082e8fbe656fc405ea8d))
+
+
+### Features
+
+* branch edit ([#844](https://github.com/crowdin/crowdin-cli/issues/844)) ([cb0e8eb](https://github.com/crowdin/crowdin-cli/commit/cb0e8eb02add2095cbeca9df319e1d40c2d448de))
+* pre-translate whole project ([#845](https://github.com/crowdin/crowdin-cli/issues/845)) ([fd5dea8](https://github.com/crowdin/crowdin-cli/commit/fd5dea89346f58dea81cd36e8f6ef39f192101d2))
+
 ## [4.1.2](https://github.com/crowdin/crowdin-cli/compare/4.1.1...4.1.2) (2024-09-06)
 
 
