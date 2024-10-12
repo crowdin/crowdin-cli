@@ -95,7 +95,7 @@ public class ScreenshotUploadActionTest {
         when(projectFull.getDirectories()).thenReturn(nonNull(directoryId) ? directories : new HashMap<>());
 
         when(projectClient.uploadStorage(eq(fileName), any())).thenReturn(1L);
-        when(client.listScreenshots(null)).thenReturn(new ArrayList<>());
+        when(client.listScreenshotsByName(eq(fileName))).thenReturn(new ArrayList<>());
 
         when(client.uploadScreenshot(request))
                 .thenReturn(new Screenshot() {{
@@ -106,7 +106,7 @@ public class ScreenshotUploadActionTest {
         action = new ScreenshotUploadAction(fileToUpload, branchName, labelNames, sourceFilePath, directoryPath, autoTag, false, false, projectClient);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).listScreenshots(null);
+        verify(client).listScreenshotsByName(eq(fileName));
         verify(client).uploadScreenshot(request);
         verifyNoMoreInteractions(client);
     }
@@ -134,11 +134,12 @@ public class ScreenshotUploadActionTest {
 
         when(screenshot.getName()).thenReturn(fileName);
         when(screenshot.getId()).thenReturn(123L);
-        when(client.listScreenshots(null)).thenReturn(Arrays.asList(screenshot));
+        when(client.listScreenshotsByName(eq(fileName))).thenReturn(Arrays.asList(screenshot));
 
         UpdateScreenshotRequest request = new UpdateScreenshotRequest();
         request.setStorageId(1L);
         request.setName(fileName);
+        request.setUsePreviousTags(true);
 
         ProjectClient projectClient = mock(ProjectClient.class);
         when(projectClient.uploadStorage(eq(fileName), any())).thenReturn(1L);
@@ -152,7 +153,7 @@ public class ScreenshotUploadActionTest {
         action = new ScreenshotUploadAction(fileToUpload, null, null, null, null, false, false, false, projectClient);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).listScreenshots(null);
+        verify(client).listScreenshotsByName(eq(fileName));
         verify(client).updateScreenshot(123L, request);
         verifyNoMoreInteractions(client);
     }
@@ -165,7 +166,7 @@ public class ScreenshotUploadActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
 
         ClientScreenshot client = mock(ClientScreenshot.class);
-        when(client.listScreenshots(null)).thenReturn(new ArrayList<>());
+        when(client.listScreenshotsByName(eq("screenshot.png"))).thenReturn(new ArrayList<>());
 
         ProjectClient projectClient = mock(ProjectClient.class);
         CrowdinProjectFull projectFull = mock(CrowdinProjectFull.class);
@@ -185,7 +186,7 @@ public class ScreenshotUploadActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
 
         ClientScreenshot client = mock(ClientScreenshot.class);
-        when(client.listScreenshots(null)).thenReturn(new ArrayList<>());
+        when(client.listScreenshotsByName("screenshot.png")).thenReturn(new ArrayList<>());
 
         ProjectClient projectClient = mock(ProjectClient.class);
         CrowdinProjectFull projectFull = mock(CrowdinProjectFull.class);
@@ -205,7 +206,7 @@ public class ScreenshotUploadActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
 
         ClientScreenshot client = mock(ClientScreenshot.class);
-        when(client.listScreenshots(null)).thenReturn(new ArrayList<>());
+        when(client.listScreenshotsByName("screenshot.png")).thenReturn(new ArrayList<>());
 
         ProjectClient projectClient = mock(ProjectClient.class);
         CrowdinProjectFull projectFull = mock(CrowdinProjectFull.class);
@@ -251,7 +252,7 @@ public class ScreenshotUploadActionTest {
 
         when(projectClient.uploadStorage(eq("screenshot.png"), any())).thenReturn(1L);
         when(projectClient.listLabels()).thenReturn(Arrays.asList(label1, label2));
-        when(client.listScreenshots(null)).thenReturn(new ArrayList<>());
+        when(client.listScreenshotsByName(eq(fileToUpload.getName()))).thenReturn(new ArrayList<>());
 
         when(client.uploadScreenshot(request))
             .thenReturn(new Screenshot() {{
@@ -262,7 +263,7 @@ public class ScreenshotUploadActionTest {
         action = new ScreenshotUploadAction(fileToUpload, null, Arrays.asList("label1", "label2"), null, null, false, false, false, projectClient);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).listScreenshots(null);
+        verify(client).listScreenshotsByName(eq(fileToUpload.getName()));
         verify(client).uploadScreenshot(request);
         verify(projectClient).downloadFullProject();
         verify(projectClient).listLabels();
@@ -303,7 +304,7 @@ public class ScreenshotUploadActionTest {
         when(projectClient.uploadStorage(eq("screenshot.png"), any())).thenReturn(1L);
         when(projectClient.listLabels()).thenReturn(new ArrayList<>());
         when(projectClient.addLabel(any())).thenReturn(label1);
-        when(client.listScreenshots(null)).thenReturn(new ArrayList<>());
+        when(client.listScreenshotsByName(eq(fileToUpload.getName()))).thenReturn(new ArrayList<>());
 
         when(client.uploadScreenshot(request))
             .thenReturn(new Screenshot() {{
@@ -314,7 +315,7 @@ public class ScreenshotUploadActionTest {
         action = new ScreenshotUploadAction(fileToUpload, null, Arrays.asList("label1"), null, null, false, false, false, projectClient);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).listScreenshots(null);
+        verify(client).listScreenshotsByName(eq(fileToUpload.getName()));
         verify(client).uploadScreenshot(request);
         verify(projectClient).downloadFullProject();
         verify(projectClient).listLabels();

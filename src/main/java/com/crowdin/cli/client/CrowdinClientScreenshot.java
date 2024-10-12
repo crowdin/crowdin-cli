@@ -1,9 +1,7 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.client.Client;
-import com.crowdin.client.screenshots.model.AddScreenshotRequest;
-import com.crowdin.client.screenshots.model.Screenshot;
-import com.crowdin.client.screenshots.model.UpdateScreenshotRequest;
+import com.crowdin.client.screenshots.model.*;
 import lombok.AllArgsConstructor;
 
 import java.util.LinkedHashMap;
@@ -23,6 +21,17 @@ public class CrowdinClientScreenshot extends CrowdinClientCore implements Client
     public List<Screenshot> listScreenshots(Long stringId) {
         return executeRequestFullList((limit, offset) -> this.client.getScreenshotsApi()
             .listScreenshots(parseLong(this.projectId), stringId, limit, offset));
+    }
+
+    @Override
+    public List<Screenshot> listScreenshotsByName(String fileName) {
+        return executeRequestFullList((limit, offset) -> {
+            var params = new ListScreenshotsParams();
+            params.setOffset(offset);
+            params.setLimit(limit);
+            params.setSearch(fileName);
+            return this.client.getScreenshotsApi().listScreenshots(parseLong(this.projectId), params);
+        });
     }
 
     @Override
@@ -54,6 +63,14 @@ public class CrowdinClientScreenshot extends CrowdinClientCore implements Client
     public void deleteScreenshot(Long id) {
         executeRequest(() -> {
             this.client.getScreenshotsApi().deleteScreenshot(parseLong(this.projectId), id);
+            return null;
+        });
+    }
+
+    @Override
+    public void replaceTags(Long screenshotId, AutoTagReplaceTagsRequest request) {
+        executeRequest(() -> {
+            this.client.getScreenshotsApi().replaceTags(parseLong(this.projectId), screenshotId, request);
             return null;
         });
     }
