@@ -117,7 +117,6 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
         request.setBranchId(branchId);
         request.setDirectoryId(directoryId);
         request.setFileId(fileId);
-        request.setBranchId(branchId);
         request.setStorageId(uploadToStorage(file));
         request.setName(file.getName());
         request.setAutoTag(autoTag);
