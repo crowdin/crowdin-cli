@@ -27,8 +27,8 @@ public interface Actions {
         boolean ignoreMatch, boolean isVerbose, boolean plainView, boolean userServerSources, boolean keepArchive
     );
 
-    NewAction<NoProperties, NoClient> generate(FilesInterface files, String token, String baseUrl, String basePath,
-        String projectId, String source, String translation, Boolean preserveHierarchy, Path destinationPath, boolean skipGenerateDescription);
+    NewAction<NoProperties, NoClient> init(FilesInterface files, String token, String baseUrl, String basePath,
+        String projectId, String source, String translation, Boolean preserveHierarchy, Path destinationPath, boolean quite);
 
     NewAction<ProjectProperties, ProjectClient> listBranches(boolean noProgress, boolean plainView);
 

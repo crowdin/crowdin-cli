@@ -18,7 +18,7 @@ import java.nio.file.Path;
 )
 public class InitSubcommand extends GenericActCommand<NoProperties, NoClient> {
 
-    @CommandLine.Option(names = {"-d", "--destination"}, paramLabel = "...", descriptionKey = "crowdin.generate.destination", defaultValue = "crowdin.yml", order = -2)
+    @CommandLine.Option(names = {"-d", "--destination"}, paramLabel = "...", descriptionKey = "crowdin.init.destination", defaultValue = "crowdin.yml", order = -2)
     private Path destinationPath;
 
     @CommandLine.Option(names = {"-T", "--token"}, paramLabel = "...", descriptionKey = "params.token", order = -2)
@@ -43,10 +43,10 @@ public class InitSubcommand extends GenericActCommand<NoProperties, NoClient> {
     private Boolean preserveHierarchy;
 
     @CommandLine.Option(names = "--quiet", descriptionKey = "params.quiet", order = -2)
-    private boolean skipGenerateDescription;
+    private boolean quite;
 
     protected NewAction<NoProperties, NoClient> getAction(Actions actions) {
-        return actions.generate(new FsFiles(), token, baseUrl, basePath, projectId, source, translation, preserveHierarchy, destinationPath, skipGenerateDescription);
+        return actions.init(new FsFiles(), token, baseUrl, basePath, projectId, source, translation, preserveHierarchy, destinationPath, quite);
     }
 
     protected NoProperties getProperties(PropertiesBuilders propertiesBuilders, Outputter out) {
