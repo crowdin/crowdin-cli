@@ -16,6 +16,8 @@ import static com.crowdin.cli.properties.PropertiesBuilder.*;
 @Data
 public class FileBean {
 
+    public static final String LANGUAGES_META = "__meta_" + LANGUAGES_MAPPING;
+
     static FileBeanConfigurator CONFIGURATOR = new FileBeanConfigurator();
 
     private String source;
@@ -63,7 +65,27 @@ public class FileBean {
             PropertiesBuilder.setPropertyIfExists(fileBean::setScheme, map, SCHEME, String.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setIgnore, map, IGNORE, List.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setTranslatableElements, map, TRANSLATABLE_ELEMENTS, List.class);
-            PropertiesBuilder.setPropertyIfExists(fileBean::setLanguagesMapping, map, LANGUAGES_MAPPING, Map.class);
+
+            if (map.containsKey(LANGUAGES_META) && map.containsKey(LANGUAGES_MAPPING)) {
+                Map<String, Map<String, String>> languagesRaw = PropertiesBuilder.checkProperty(map, LANGUAGES_META, Map.class, null);
+                var languagesParsed = PropertiesBuilder.checkProperty(map, LANGUAGES_MAPPING, Map.class, null);
+                if (languagesRaw.size() == languagesParsed.size()) {
+                    var equalSize = languagesRaw.entrySet().stream()
+                            .allMatch(entry -> languagesParsed.containsKey(entry.getKey())
+                                    && languagesParsed.get(entry.getKey()) instanceof Map
+                                    && entry.getValue().size() == ((Map<?, ?>) languagesParsed.get(entry.getKey())).size()
+                            );
+                    //if raw languages and parsed are the same in terms of size then let's just use raw data to prevent any parsing failures (e.g. when "no" lang code is used)
+                    if (equalSize) {
+                        fileBean.setLanguagesMapping(languagesRaw);
+                    } else {
+                        PropertiesBuilder.setPropertyIfExists(fileBean::setLanguagesMapping, map, LANGUAGES_MAPPING, Map.class);
+                    }
+                }
+            } else {
+                PropertiesBuilder.setPropertyIfExists(fileBean::setLanguagesMapping, map, LANGUAGES_MAPPING, Map.class);
+            }
+
             PropertiesBuilder.setPropertyIfExists(fileBean::setTranslationReplace, map, TRANSLATION_REPLACE, Map.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setEscapeQuotes, map, ESCAPE_QUOTES, Integer.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setEscapeSpecialCharacters, map, ESCAPE_SPECIAL_CHARACTERS, Integer.class);
@@ -96,8 +118,8 @@ public class FileBean {
             if (bean.getTranslation() != null) {
                 bean.setTranslation(Utils.normalizePath(bean.getTranslation()));
                 if (!PlaceholderUtil.containsLangPlaceholders(bean.getTranslation())
-                    && (bean.getScheme() != null
-                    || (bean.getMultilingual() != null && bean.getMultilingual()))) {
+                        && (bean.getScheme() != null
+                        || (bean.getMultilingual() != null && bean.getMultilingual()))) {
                     bean.setTranslation(Utils.noSepAtStart(bean.getTranslation()));
                 } else {
                     bean.setTranslation(Utils.sepAtStart(bean.getTranslation()));
@@ -161,8 +183,8 @@ public class FileBean {
                 }
 
                 if (!PlaceholderUtil.containsLangPlaceholders(bean.getTranslation())
-                    && bean.getScheme() == null
-                    && (bean.getMultilingual() == null || !bean.getMultilingual())) {
+                        && bean.getScheme() == null
+                        && (bean.getMultilingual() == null || !bean.getMultilingual())) {
                     errors.add(RESOURCE_BUNDLE.getString("error.config.translation_has_no_language_placeholders"));
                 }
 
@@ -196,7 +218,7 @@ public class FileBean {
             }
 
             if (bean.getSkipTranslatedOnly() != null && bean.getSkipUntranslatedFiles() != null
-                && bean.getSkipTranslatedOnly() && bean.getSkipUntranslatedFiles()) {
+                    && bean.getSkipTranslatedOnly() && bean.getSkipUntranslatedFiles()) {
                 errors.add(RESOURCE_BUNDLE.getString("error.skip_untranslated_both_strings_and_files"));
             }
 
@@ -206,10 +228,10 @@ public class FileBean {
 
     private static boolean checkDest(String dest, String source) {
         boolean destContainsPlaceholders = dest.contains(PlaceholderUtil.PLACEHOLDER_FILE_NAME)
-            || dest.contains(PlaceholderUtil.PLACEHOLDER_ORIGINAL_FILE_NAME)
-            || dest.contains(PlaceholderUtil.PLACEHOLDER_ORIGINAL_PATH)
-            || dest.contains(PlaceholderUtil.PLACEHOLDER_FILE_EXTENSION)
-            || dest.contains(PlaceholderUtil.DOUBLED_ASTERISK);
+                || dest.contains(PlaceholderUtil.PLACEHOLDER_ORIGINAL_FILE_NAME)
+                || dest.contains(PlaceholderUtil.PLACEHOLDER_ORIGINAL_PATH)
+                || dest.contains(PlaceholderUtil.PLACEHOLDER_FILE_EXTENSION)
+                || dest.contains(PlaceholderUtil.DOUBLED_ASTERISK);
         boolean sourceContainsPlaceholders = PlaceholderUtil.containsFilePlaceholders(source) || SourcesUtils.containsPattern(source);
         return !sourceContainsPlaceholders || destContainsPlaceholders;
     }

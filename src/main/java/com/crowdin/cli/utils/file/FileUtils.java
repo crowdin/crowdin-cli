@@ -2,13 +2,7 @@ package com.crowdin.cli.utils.file;
 
 import org.apache.commons.io.IOUtils;
 import org.yaml.snakeyaml.Yaml;
-
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -22,6 +16,8 @@ public class FileUtils {
     private static final String YAML_EXTENSION = ".yaml";
     private static final String YML_EXTENSION = ".yml";
 
+    public static final String YML_META = "__yml__meta";
+
     public static Map<String, Object> readYamlFile(File fileCfg) {
         if (fileCfg == null) {
             throw new NullPointerException("FileReader.readCliConfig has null args");
@@ -31,8 +27,12 @@ public class FileUtils {
         }
 
         Yaml yaml = new Yaml();
-        try (InputStream inputStream = new FileInputStream(fileCfg)) {
-            return yaml.load(inputStream);
+
+        try {
+            var content = Files.readString(fileCfg.toPath());
+            Map<String, Object> map = yaml.load(content);
+            map.put(YML_META, yaml.compose(new StringReader(content)));
+            return map;
         } catch (FileNotFoundException e) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.configuration_file_not_exist"));
         } catch (Exception e) {

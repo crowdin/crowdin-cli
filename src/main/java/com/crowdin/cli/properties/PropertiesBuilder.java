@@ -275,7 +275,7 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
         }
     }
 
-    private static <T> T checkProperty(Map<String, Object> properties, String key, Class<T> clazz, T defaultValue) {
+    static <T> T checkProperty(Map<String, Object> properties, String key, Class<T> clazz, T defaultValue) {
         try {
            Object  param = properties.getOrDefault(key, defaultValue);
             if (param != null && !clazz.isAssignableFrom(param.getClass())) {
