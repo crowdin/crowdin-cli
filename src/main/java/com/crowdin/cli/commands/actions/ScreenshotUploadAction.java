@@ -13,6 +13,7 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.screenshots.model.AddScreenshotRequest;
+import com.crowdin.client.screenshots.model.AutoTagReplaceTagsRequest;
 import com.crowdin.client.screenshots.model.Screenshot;
 import com.crowdin.client.screenshots.model.UpdateScreenshotRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
@@ -49,15 +50,53 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
 
     @Override
     public void act(Outputter out, ProjectProperties properties, ClientScreenshot client) {
-        List<Screenshot> screenshotList = client.listScreenshots(null);
-        Optional<Screenshot> existingScreenshot = screenshotList.stream()
-                .filter((s) -> file.getName().equals(s.getName())).findFirst();
+        CrowdinProjectFull project = ConsoleSpinner.execute(
+                out,
+                "message.spinner.fetching_project_info", "error.collect_project_info",
+                this.noProgress,
+                this.plainView,
+                () -> this.projectClient.downloadFullProject());
+
+        Long branchId = null;
+        if (nonNull(branchName)) {
+            Branch branch = project.findBranchByName(branchName)
+                    .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.branch_not_exists"), branchName)));
+            branchId = branch.getId();
+        }
+        Long fileId = null;
+        if (nonNull(pathToSourceFile)) {
+            final String normalizedPath = Utils.toUnixPath(Utils.sepAtStart(pathToSourceFile));
+            FileInfo fileInfo = project.getFileInfos().stream()
+                    .filter(f -> normalizedPath.equals(f.getPath())).findFirst()
+                    .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), pathToSourceFile)));
+            fileId = fileInfo.getId();
+        }
+        Long directoryId = null;
+        if (nonNull(directoryPath)) {
+            final String normalizedPath = Utils.toUnixPath(Utils.sepAtStart(directoryPath));
+            Directory directory = project.getDirectories().values().stream()
+                    .filter(d -> normalizedPath.equals(d.getPath())).findFirst()
+                    .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.dir_not_exists"), directoryPath)));
+            directoryId = directory.getId();
+        }
+
+        List<Screenshot> screenshotList = client.listScreenshotsByName(file.getName());
+        Optional<Screenshot> existingScreenshot = screenshotList.stream().findFirst();
         if (existingScreenshot.isPresent()) {
             UpdateScreenshotRequest request = new UpdateScreenshotRequest();
             request.setStorageId(uploadToStorage(file));
             request.setName(file.getName());
+            request.setUsePreviousTags(!autoTag);
             try {
                 Screenshot screenshot = client.updateScreenshot(existingScreenshot.get().getId(), request);
+                if (autoTag) {
+                    AutoTagReplaceTagsRequest autoTagReplaceTagsRequest = new AutoTagReplaceTagsRequest();
+                    autoTagReplaceTagsRequest.setAutoTag(true);
+                    autoTagReplaceTagsRequest.setBranchId(branchId);
+                    autoTagReplaceTagsRequest.setDirectoryId(directoryId);
+                    autoTagReplaceTagsRequest.setFileId(fileId);
+                    client.replaceTags(existingScreenshot.get().getId(), autoTagReplaceTagsRequest);
+                }
                 if (!plainView) {
                     out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.screenshot.list"),
                             screenshot.getId(), screenshot.getTagsCount(), screenshot.getName())));
@@ -71,35 +110,13 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
         }
 
         AddScreenshotRequest request = new AddScreenshotRequest();
-        CrowdinProjectFull project = ConsoleSpinner.execute(
-                out,
-                "message.spinner.fetching_project_info", "error.collect_project_info",
-                this.noProgress,
-                this.plainView,
-                () -> this.projectClient.downloadFullProject());
-        if (nonNull(branchName)) {
-            Branch branch = project.findBranchByName(branchName)
-                    .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.branch_not_exists"), branchName)));
-            request.setBranchId(branch.getId());
-        }
-        if (nonNull(pathToSourceFile)) {
-            final String normalizedPath = Utils.toUnixPath(Utils.sepAtStart(pathToSourceFile));
-            FileInfo fileInfo = project.getFileInfos().stream()
-                    .filter(f -> normalizedPath.equals(f.getPath())).findFirst()
-                    .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.file_not_exists"), pathToSourceFile)));
-            request.setFileId(fileInfo.getId());
-        }
-        if (nonNull(directoryPath)) {
-            final String normalizedPath = Utils.toUnixPath(Utils.sepAtStart(directoryPath));
-            Directory directory = project.getDirectories().values().stream()
-                    .filter(d -> normalizedPath.equals(d.getPath())).findFirst()
-                    .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.dir_not_exists"), directoryPath)));
-            request.setDirectoryId(directory.getId());
-        }
         if (nonNull(labelNames) && !labelNames.isEmpty()) {
             request.setLabelIds(prepareLabelIds());
         }
 
+        request.setBranchId(branchId);
+        request.setDirectoryId(directoryId);
+        request.setFileId(fileId);
         request.setStorageId(uploadToStorage(file));
         request.setName(file.getName());
         request.setAutoTag(autoTag);
