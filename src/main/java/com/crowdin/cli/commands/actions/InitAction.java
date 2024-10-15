@@ -34,7 +34,7 @@ import static java.util.Objects.isNull;
 import static java.util.Objects.nonNull;
 
 @RequiredArgsConstructor
-class GenerateAction implements NewAction<NoProperties, NoClient> {
+class InitAction implements NewAction<NoProperties, NoClient> {
 
     public static final String BASE_PATH_DEFAULT = ".";
     public static final String BASE_URL_DEFAULT = "https://api.crowdin.com";
@@ -52,7 +52,7 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
     private final String translation;
     private final Boolean preserveHierarchy;
     private final Path destinationPath;
-    private final boolean skipGenerateDescription;
+    private final boolean quiet;
 
     @Override
     public void act(Outputter out, NoProperties noProperties, NoClient noClient) {
@@ -69,7 +69,7 @@ class GenerateAction implements NewAction<NoProperties, NoClient> {
             }
 
             List<String> fileLines = Utils.readResource("/crowdin.yml");
-            if (!skipGenerateDescription) {
+            if (!quiet) {
                 this.updateWithUserInputs(out, asking, fileLines);
             }
             files.writeToFile(
