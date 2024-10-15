@@ -28,7 +28,7 @@ public interface Actions {
     );
 
     NewAction<NoProperties, NoClient> init(FilesInterface files, String token, String baseUrl, String basePath,
-        String projectId, String source, String translation, Boolean preserveHierarchy, Path destinationPath, boolean quite);
+        String projectId, String source, String translation, Boolean preserveHierarchy, Path destinationPath, boolean quiet);
 
     NewAction<ProjectProperties, ProjectClient> listBranches(boolean noProgress, boolean plainView);
 

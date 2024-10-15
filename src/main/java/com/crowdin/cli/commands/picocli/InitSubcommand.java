@@ -43,10 +43,10 @@ public class InitSubcommand extends GenericActCommand<NoProperties, NoClient> {
     private Boolean preserveHierarchy;
 
     @CommandLine.Option(names = "--quiet", descriptionKey = "params.quiet", order = -2)
-    private boolean quite;
+    private boolean quiet;
 
     protected NewAction<NoProperties, NoClient> getAction(Actions actions) {
-        return actions.init(new FsFiles(), token, baseUrl, basePath, projectId, source, translation, preserveHierarchy, destinationPath, quite);
+        return actions.init(new FsFiles(), token, baseUrl, basePath, projectId, source, translation, preserveHierarchy, destinationPath, quiet);
     }
 
     protected NoProperties getProperties(PropertiesBuilders propertiesBuilders, Outputter out) {

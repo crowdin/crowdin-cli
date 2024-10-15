@@ -52,7 +52,7 @@ class InitAction implements NewAction<NoProperties, NoClient> {
     private final String translation;
     private final Boolean preserveHierarchy;
     private final Path destinationPath;
-    private final boolean init;
+    private final boolean quiet;
 
     @Override
     public void act(Outputter out, NoProperties noProperties, NoClient noClient) {
@@ -69,7 +69,7 @@ class InitAction implements NewAction<NoProperties, NoClient> {
             }
 
             List<String> fileLines = Utils.readResource("/crowdin.yml");
-            if (!init) {
+            if (!quiet) {
                 this.updateWithUserInputs(out, asking, fileLines);
             }
             files.writeToFile(
