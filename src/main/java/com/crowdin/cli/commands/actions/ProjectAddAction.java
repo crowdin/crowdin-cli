@@ -31,7 +31,8 @@ class ProjectAddAction implements NewAction<ProjectProperties, ProjectClient> {
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         boolean isOrganization = PropertiesBeanUtils.isOrganization(properties.getBaseUrl());
         String sourceLang = Objects.nonNull(sourceLanguage) ? sourceLanguage : "en";
-        Visibility visibility = isPublic ? Visibility.OPEN : Visibility.PRIVATE;
+        Visibility visibility = isOrganization ? null : isPublic ? Visibility.OPEN : Visibility.PRIVATE;
+
         AddProjectRequest request = RequestBuilder.addProject(name, isStringBased, sourceLang, languages, visibility, isOrganization);
         Project project = client.addProject(request);
         if (!plainView) {
@@ -39,7 +40,7 @@ class ProjectAddAction implements NewAction<ProjectProperties, ProjectClient> {
                 String.format(RESOURCE_BUNDLE.getString("message.project.list"), project.getId(), project.getName())
             ));
         } else {
-            out.println(project.getName());
+            out.println(project.getId().toString());
         }
     }
 }

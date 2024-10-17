@@ -21,7 +21,7 @@ class ProjectAddActionTest {
 
     @Test
     public void testProjectAdd_FileBased() {
-        properties.setBaseUrl("crowdin.com");
+        properties.setBaseUrl("https://api.crowdin.com");
         Project project = new Project();
         project.setName(PROJECT_TITLE);
         project.setId(1L);
@@ -43,7 +43,7 @@ class ProjectAddActionTest {
 
     @Test
     public void testProjectAdd_StringBased() {
-        properties.setBaseUrl("crowdin.com");
+        properties.setBaseUrl("https://api.crowdin.com");
         Project project = new Project();
         project.setName(PROJECT_TITLE);
         project.setId(1L);
@@ -66,19 +66,19 @@ class ProjectAddActionTest {
 
     @Test
     public void testProjectAdd_Enterprise() {
-        properties.setBaseUrl("companyname.crowdin.com");
+        properties.setBaseUrl("https://companyname.crowdin.com");
         Project project = new Project();
         project.setName(PROJECT_TITLE);
         project.setId(1L);
 
-        EnterpriseProjectRequest request = new EnterpriseProjectRequest();
+        FilesBasedProjectRequest request = new FilesBasedProjectRequest();
         request.setName(PROJECT_TITLE);
         request.setTargetLanguageIds(TARGET_LANGUAGE);
         request.setSourceLanguageId("fr");
 
         when(client.addProject(request)).thenReturn(project);
 
-        action = new ProjectAddAction(PROJECT_TITLE, false, "fr", TARGET_LANGUAGE, false, true);
+        action = new ProjectAddAction(PROJECT_TITLE, false, "fr", TARGET_LANGUAGE, true, true);
         action.act(Outputter.getDefault(), properties, client);
 
         verify(client).addProject(request);

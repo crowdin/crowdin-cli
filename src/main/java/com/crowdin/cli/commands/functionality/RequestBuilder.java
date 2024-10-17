@@ -325,26 +325,20 @@ public class RequestBuilder {
     }
 
     public static AddProjectRequest addProject(String name, boolean isStringBased, String sourceLanguage, List<String> languages, Visibility visibility, boolean isOrganization) {
-        if (isOrganization) {
-            EnterpriseProjectRequest request = new EnterpriseProjectRequest();
-            request.setName(name);
-            request.setSourceLanguageId(sourceLanguage);
-            request.setTargetLanguageIds(languages);
-            return request;
-        } else if (isStringBased) {
+        if (isStringBased) {
             StringsBasedProjectRequest request = new StringsBasedProjectRequest();
             request.setName(name);
             request.setType(com.crowdin.client.projectsgroups.model.Type.STRINGS_BASED);
             request.setSourceLanguageId(sourceLanguage);
             request.setTargetLanguageIds(languages);
-            request.setVisibility(visibility.toString());
+            Optional.ofNullable(visibility).ifPresent(v -> request.setVisibility(v.toString()));
             return request;
         } else {
             FilesBasedProjectRequest request = new FilesBasedProjectRequest();
             request.setName(name);
             request.setSourceLanguageId(sourceLanguage);
             request.setTargetLanguageIds(languages);
-            request.setVisibility(visibility.toString());
+            Optional.ofNullable(visibility).ifPresent(v -> request.setVisibility(v.toString()));
             return request;
         }
     }
