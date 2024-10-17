@@ -11,6 +11,7 @@ import com.crowdin.client.core.model.DownloadLinkResponseObject;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.languages.model.LanguageResponseList;
 import com.crowdin.client.languages.model.LanguageResponseObject;
+import com.crowdin.client.projectsgroups.model.AddProjectRequest;
 import com.crowdin.client.projectsgroups.model.Project;
 import com.crowdin.client.projectsgroups.model.ProjectResponseObject;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
@@ -120,6 +121,8 @@ public class CrowdinProjectClientTest {
         String.format("%s/projects/%d/strings/%d", url, projectId, stringId);
     private static final String editSourceStringUrl =
         String.format("%s/projects/%d/strings/%d", url, projectId, stringId);
+    private static final String addProjectUrl =
+        String.format("%s/projects", url);
 
     @BeforeEach
     public void init() {
@@ -552,6 +555,20 @@ public class CrowdinProjectClientTest {
         verifyNoMoreInteractions(httpClientMock);
     }
 
+    @Test
+    public void testAddProject() {
+        AddProjectRequest request = new AddProjectRequest();
+        ProjectResponseObject response = new ProjectResponseObject() {{
+            setData(new Project());
+        }};
+        when(httpClientMock.post(eq(addProjectUrl), eq(request), any(), eq(ProjectResponseObject.class)))
+            .thenReturn(response);
+
+        client.addProject(request);
+
+        verify(httpClientMock).post(eq(addProjectUrl), eq(request), any(), eq(ProjectResponseObject.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
 
 
     @Test

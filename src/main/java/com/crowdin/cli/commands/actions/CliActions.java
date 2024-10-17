@@ -318,4 +318,9 @@ public class CliActions implements Actions {
     public NewAction<ProjectProperties, ProjectClient> projectList(boolean isVerbose) {
         return new ProjectListAction(isVerbose);
     }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> projectAdd(String name, boolean isStringBased, String sourceLanguage, List<String> languages, boolean isPublic, boolean plainView) {
+        return new ProjectAddAction(name, isStringBased, sourceLanguage, languages, isPublic, plainView);
+    }
 }

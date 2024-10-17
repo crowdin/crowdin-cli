@@ -162,6 +162,7 @@ const sidebars = {
           items: [
             'commands/crowdin-project-list',
             'commands/crowdin-project-browse',
+            'commands/crowdin-project-add',
           ]
         },
         {

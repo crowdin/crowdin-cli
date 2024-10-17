@@ -10,6 +10,7 @@ import com.crowdin.client.glossaries.model.ExportGlossaryRequest;
 import com.crowdin.client.glossaries.model.GlossariesFormat;
 import com.crowdin.client.glossaries.model.ImportGlossaryRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
+import com.crowdin.client.projectsgroups.model.*;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcestrings.model.*;
 import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
@@ -22,10 +23,7 @@ import com.crowdin.client.translationmemory.model.TranslationMemoryFormat;
 import com.crowdin.client.translationmemory.model.TranslationMemoryImportRequest;
 import com.crowdin.client.translations.model.*;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public class RequestBuilder {
 
@@ -324,5 +322,30 @@ public class RequestBuilder {
         Optional.ofNullable(many).ifPresent(pluralText::setMany);
         Optional.ofNullable(zero).ifPresent(pluralText::setZero);
         return pluralText;
+    }
+
+    public static AddProjectRequest addProject(String name, boolean isStringBased, String sourceLanguage, List<String> languages, Visibility visibility, boolean isOrganization) {
+        if (isOrganization) {
+            EnterpriseProjectRequest request = new EnterpriseProjectRequest();
+            request.setName(name);
+            request.setSourceLanguageId(sourceLanguage);
+            request.setTargetLanguageIds(languages);
+            return request;
+        } else if (isStringBased) {
+            StringsBasedProjectRequest request = new StringsBasedProjectRequest();
+            request.setName(name);
+            request.setType(com.crowdin.client.projectsgroups.model.Type.STRINGS_BASED);
+            request.setSourceLanguageId(sourceLanguage);
+            request.setTargetLanguageIds(languages);
+            request.setVisibility(visibility.toString());
+            return request;
+        } else {
+            FilesBasedProjectRequest request = new FilesBasedProjectRequest();
+            request.setName(name);
+            request.setSourceLanguageId(sourceLanguage);
+            request.setTargetLanguageIds(languages);
+            request.setVisibility(visibility.toString());
+            return request;
+        }
     }
 }
