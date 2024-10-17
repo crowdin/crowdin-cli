@@ -78,7 +78,7 @@ class ProjectAddActionTest {
 
         when(client.addProject(request)).thenReturn(project);
 
-        action = new ProjectAddAction(PROJECT_TITLE, false, "fr", TARGET_LANGUAGE, false, false);
+        action = new ProjectAddAction(PROJECT_TITLE, false, "fr", TARGET_LANGUAGE, false, true);
         action.act(Outputter.getDefault(), properties, client);
 
         verify(client).addProject(request);
