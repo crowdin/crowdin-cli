@@ -102,7 +102,7 @@ public class PicocliTestUtils {
                 .thenReturn(actionMock);
         when(actionsMock.bundleList(anyBoolean(), anyBoolean()))
                 .thenReturn(actionMock);
-        when(actionsMock.bundleAdd(any(), any(), any(), any(), any(), any(), anyBoolean()))
+        when(actionsMock.bundleAdd(any(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
                 .thenReturn(actionMock);
         when(actionsMock.preTranslate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), any(), any()))
                 .thenReturn(actionMock);

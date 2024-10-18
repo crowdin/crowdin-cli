@@ -211,8 +211,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientBundle> bundleAdd(String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView) {
-        return new BundleAddAction(name, format, source, ignore, translation, labels, plainView);
+    public NewAction<ProjectProperties, ClientBundle> bundleAdd(String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView, boolean includeProjectSourceLanguage, boolean isMultilingual) {
+        return new BundleAddAction(name, format, source, ignore, translation, labels, plainView, includeProjectSourceLanguage, isMultilingual);
     }
 
     @Override
