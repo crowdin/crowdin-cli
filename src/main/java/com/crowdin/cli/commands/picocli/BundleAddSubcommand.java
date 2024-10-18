@@ -36,6 +36,12 @@ class BundleAddSubcommand extends ActCommandBundle {
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
 
+    @CommandLine.Option(names = {"--include-source-language"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.includeProjectSourceLanguage", order = -2)
+    protected boolean includeProjectSourceLanguage;
+
+    @CommandLine.Option(names = {"--multilingual"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.isMultilingual", order = -2)
+    protected boolean isMultilingual;
+
     @Override
     protected final boolean isAnsi() {
         return super.isAnsi() && !plainView;
@@ -43,7 +49,7 @@ class BundleAddSubcommand extends ActCommandBundle {
 
     @Override
     protected NewAction<ProjectProperties, ClientBundle> getAction(Actions actions) {
-        return actions.bundleAdd(name, format, source, ignore, translation, labels, plainView);
+        return actions.bundleAdd(name, format, source, ignore, translation, labels, plainView, includeProjectSourceLanguage, isMultilingual);
     }
 
     @Override

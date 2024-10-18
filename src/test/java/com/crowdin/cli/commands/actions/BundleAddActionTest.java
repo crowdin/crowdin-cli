@@ -44,6 +44,8 @@ public class BundleAddActionTest {
         request.setLabelIds(labels);
         request.setIgnorePatterns(ignore);
         request.setSourcePatterns(source);
+        request.setIncludeProjectSourceLanguage(false);
+        request.setIsMultilingual(false);
 
         ClientBundle client = mock(ClientBundle.class);
         when(client.addBundle(request))
@@ -55,7 +57,7 @@ public class BundleAddActionTest {
                     setIgnorePatterns(request.getIgnorePatterns());
                     setSourcePatterns(request.getSourcePatterns());
                 }});
-        action = new BundleAddAction(name, format, source, ignore, translation, labels, false);
+        action = new BundleAddAction(name, format, source, ignore, translation, labels, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
         verify(client).addBundle(request);
         verifyNoMoreInteractions(client);
@@ -82,11 +84,13 @@ public class BundleAddActionTest {
         request.setLabelIds(null);
         request.setIgnorePatterns(null);
         request.setSourcePatterns(null);
+        request.setIsMultilingual(false);
+        request.setIncludeProjectSourceLanguage(false);
 
         when(client.addBundle(request))
                 .thenThrow(new RuntimeException("Whoops"));
 
-        action = new BundleAddAction("", "", null, null, null, null, false);
+        action = new BundleAddAction("", "", null, null, null, null, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).addBundle(request);
