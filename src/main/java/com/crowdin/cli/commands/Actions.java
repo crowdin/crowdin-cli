@@ -104,7 +104,7 @@ public interface Actions {
 
     NewAction<ProjectProperties, ClientBundle> bundleList(boolean plainView, boolean isVerbose);
 
-    NewAction<ProjectProperties, ClientBundle> bundleAdd(String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView);
+    NewAction<ProjectProperties, ClientBundle> bundleAdd(String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView, boolean includeProjectSourceLanguage, boolean isMultilingual);
 
     NewAction<NoProperties, NoClient> checkNewVersion();
 

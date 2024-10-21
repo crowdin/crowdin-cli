@@ -32,6 +32,10 @@ class BundleAddAction implements NewAction<ProjectProperties, ClientBundle> {
 
     private boolean plainView;
 
+    private boolean includeProjectSourceLanguage;
+
+    private boolean isMultilingual;
+
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientBundle client) {
         Bundle bundle;
@@ -41,6 +45,8 @@ class BundleAddAction implements NewAction<ProjectProperties, ClientBundle> {
         Optional.ofNullable(source).ifPresent(addBundleRequest::setSourcePatterns);
         Optional.ofNullable(ignore).ifPresent(addBundleRequest::setIgnorePatterns);
         Optional.ofNullable(translation).ifPresent(addBundleRequest::setExportPattern);
+        addBundleRequest.setIncludeProjectSourceLanguage(includeProjectSourceLanguage);
+        addBundleRequest.setIsMultilingual(isMultilingual);
 
         Optional.ofNullable(labels).ifPresent(addBundleRequest::setLabelIds);
 
