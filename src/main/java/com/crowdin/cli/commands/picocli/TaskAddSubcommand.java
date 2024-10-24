@@ -13,6 +13,9 @@ import picocli.CommandLine;
 
 import java.util.*;
 
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
+import static java.lang.System.out;
+
 @CommandLine.Command(
     name = CommandNames.ADD,
     sortOptions = false
@@ -46,7 +49,7 @@ class TaskAddSubcommand extends ActCommandTask {
     @CommandLine.Option(names = {"--skip-assigned-strings"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-assigned-strings", order = -2)
     protected boolean skipAssignedStrings;
 
-    @CommandLine.Option(names = {"--skip-untranslated-strings"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-untranslated-strings", order = -2)
+    @CommandLine.Option(names = {"--skip-untranslated-strings"}, hidden = true, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-untranslated-strings", order = -2)
     protected boolean skipUntranslatedStrings;
 
     @CommandLine.Option(names = {"--include-pre-translated-strings-only"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.include-pre-translated-strings-only", order = -2)
@@ -84,7 +87,10 @@ class TaskAddSubcommand extends ActCommandTask {
 
     @Override
     protected List<String> checkOptions() {
-        String url = this.getProperties(propertiesBuilders, new PicocliOutputter(System.out, isAnsi())).getBaseUrl();
+        if (skipUntranslatedStrings) {
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.skip-untranslated-strings_deprecated")));
+        }
+        String url = this.getProperties(propertiesBuilders, new PicocliOutputter(out, isAnsi())).getBaseUrl();
         boolean isEnterprise = PropertiesBeanUtils.isOrganization(url);
         return checkOptions(isEnterprise);
     }
