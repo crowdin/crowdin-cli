@@ -147,4 +147,6 @@ public interface Actions {
     NewAction<ProjectProperties, ProjectClient> projectBrowse();
 
     NewAction<ProjectProperties, ProjectClient> projectList(boolean isVerbose);
+
+    NewAction<ProjectProperties, ProjectClient> projectAdd(String name, boolean isStringBased, String sourceLanguage, List<String> languages, boolean isPublic, boolean plainView);
 }

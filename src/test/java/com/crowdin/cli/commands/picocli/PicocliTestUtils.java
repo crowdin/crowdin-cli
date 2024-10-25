@@ -138,6 +138,7 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.projectBrowse()).thenReturn(actionMock);
         when(actionsMock.projectList(anyBoolean())).thenReturn(actionMock);
+        when(actionsMock.projectAdd(any(), anyBoolean(), any(), any(), anyBoolean(), anyBoolean())).thenReturn(actionMock);
         when(actionsMock.branchClone(any(), any(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.branchMerge(any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))

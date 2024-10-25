@@ -161,6 +161,7 @@ const sidebars = {
           collapsed: true,
           items: [
             'commands/crowdin-project-list',
+            'commands/crowdin-project-add',
             'commands/crowdin-project-browse',
           ]
         },

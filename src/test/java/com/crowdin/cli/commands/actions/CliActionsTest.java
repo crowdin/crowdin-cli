@@ -191,4 +191,9 @@ public class CliActionsTest {
     void testBranchClone() {
         assertNotNull(actions.branchClone(null, null, false, false));
     }
+
+    @Test
+    void testProjectAdd() {
+        assertNotNull(actions.projectAdd(null, false, null, null, false, false));
+    }
 }
