@@ -1,5 +1,22 @@
 # Changelog
 
+# [4.3.0](https://github.com/crowdin/crowdin-cli/compare/4.2.0...4.3.0) (2024-10-28)
+
+
+### Bug Fixes
+
+* **aur:** set & force java-environment=17 ([#848](https://github.com/crowdin/crowdin-cli/issues/848)) ([484d23e](https://github.com/crowdin/crowdin-cli/commit/484d23ea4efe1444064a105560e373e7fc4b9106))
+* renamed init command internals ([#854](https://github.com/crowdin/crowdin-cli/issues/854)) ([ab25e24](https://github.com/crowdin/crowdin-cli/commit/ab25e24a5dc96de4738e53ef87c3c9aaa1184054))
+* simplify the default crowdin.yml configuration file ([#852](https://github.com/crowdin/crowdin-cli/issues/852)) ([af8bd46](https://github.com/crowdin/crowdin-cli/commit/af8bd46c8a0f83ff4f4132126ff5adeb0d8b21b3))
+
+
+### Features
+
+* add bundle extra options ([#858](https://github.com/crowdin/crowdin-cli/issues/858)) ([102c73a](https://github.com/crowdin/crowdin-cli/commit/102c73ad6363c932fc139e7595560ec759bf2933))
+* deprecate skip-untranslated-strings for task add command ([#860](https://github.com/crowdin/crowdin-cli/issues/860)) ([bb43466](https://github.com/crowdin/crowdin-cli/commit/bb4346657800cf7a4eb4f209a6be989ff5b11c1f))
+* project add command ([#857](https://github.com/crowdin/crowdin-cli/issues/857)) ([626301b](https://github.com/crowdin/crowdin-cli/commit/626301b085a9fbd918493df40094c2bc8e471028))
+* upload screenshots improvements ([#853](https://github.com/crowdin/crowdin-cli/issues/853)) ([32ea5f6](https://github.com/crowdin/crowdin-cli/commit/32ea5f68c28c650cdbe459d0bcdb363b0dfe2490))
+
 # [4.2.0](https://github.com/crowdin/crowdin-cli/compare/4.1.2...4.2.0) (2024-09-23)
 
 
