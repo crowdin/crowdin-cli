@@ -1,5 +1,5 @@
 :includedir: ../generated-picocli-docs
-:command: crowdin-download
+:command: crowdin-download-translations
 
 == crowdin download translations
 
@@ -24,12 +24,12 @@ include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
 Download multiple languages:
 
 ----
-crowdin download -l de -l fr -l it
-crowdin download --language=de --language=fr --language=it
+crowdin download translations -l de -l fr -l it
+crowdin download translations --language=de --language=fr --language=it
 ----
 
 Download all translations even if the corresponding source files are missing locally:
 
 ----
-crowdin download --all
+crowdin download translations --all
 ----

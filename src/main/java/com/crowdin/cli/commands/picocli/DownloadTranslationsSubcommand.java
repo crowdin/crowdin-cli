@@ -7,20 +7,16 @@ import com.crowdin.cli.commands.functionality.FsFiles;
 import com.crowdin.cli.properties.ParamsWithFiles;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import picocli.CommandLine;
+import picocli.CommandLine.Command;
 
 import java.util.ArrayList;
 import java.util.List;
 
-@CommandLine.Command(
-    name = CommandNames.DOWNLOAD,
-    sortOptions = false,
-    aliases = CommandNames.ALIAS_DOWNLOAD,
-    subcommands = {
-        DownloadSourcesSubcommand.class,
-        DownloadTranslationsSubcommand.class
-    }
+@Command(
+    name = CommandNames.TRANSLATIONS,
+    sortOptions = false
 )
-class DownloadSubcommand extends ActCommandWithFiles {
+public class DownloadTranslationsSubcommand extends ActCommandWithFiles {
 
     @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
     protected String branchName;
