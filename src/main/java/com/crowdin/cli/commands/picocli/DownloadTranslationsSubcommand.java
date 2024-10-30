@@ -18,16 +18,16 @@ import java.util.List;
 )
 public class DownloadTranslationsSubcommand extends ActCommandWithFiles {
 
-    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"-b", "--branch"}, descriptionKey = "branch", paramLabel = "...", order = -2)
     protected String branchName;
 
-    @CommandLine.Option(names = {"--ignore-match"}, order = -2)
+    @CommandLine.Option(names = {"--ignore-match"}, descriptionKey = "crowdin.download.ignore-match", order = -2)
     protected boolean ignoreMatch;
 
-    @CommandLine.Option(names = {"-l", "--language"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"-l", "--language"}, descriptionKey = "crowdin.download.language", paramLabel = "...", order = -2)
     protected List<String> languageIds;
 
-    @CommandLine.Option(names = {"-e", "--exclude-language"}, paramLabel = "...", order = -2)
+    @CommandLine.Option(names = {"-e", "--exclude-language"}, descriptionKey = "crowdin.download.exclude-language", paramLabel = "...", order = -2)
     protected List<String> excludeLanguageIds;
 
     @CommandLine.Option(names = {"--pseudo"}, descriptionKey = "crowdin.download.pseudo", order = -2)
@@ -45,10 +45,10 @@ public class DownloadTranslationsSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--keep-archive"}, descriptionKey = "params.keepArchive", order = -2)
     protected boolean keepArchive;
 
-    @CommandLine.Option(names = {"--all"}, order = -2)
+    @CommandLine.Option(names = {"--all"}, descriptionKey = "crowdin.download.all", order = -2)
     protected boolean all;
 
-    @CommandLine.Option(names = {"--dryrun"})
+    @CommandLine.Option(names = {"--dryrun"}, descriptionKey = "dryrun")
     protected boolean dryrun;
 
     @CommandLine.Option(names = {"--tree"}, descriptionKey = "tree.dryrun")
