@@ -9,7 +9,7 @@ import com.crowdin.cli.properties.PropertiesWithFiles;
 import picocli.CommandLine;
 
 @CommandLine.Command(
-    name = "sources",
+    name = CommandNames.SOURCES,
     sortOptions = false
 )
 public class DownloadSourcesSubcommand extends ActCommandWithFiles {
