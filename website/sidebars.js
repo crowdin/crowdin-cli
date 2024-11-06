@@ -132,6 +132,7 @@ const sidebars = {
             'commands/crowdin-bundle-list',
             'commands/crowdin-bundle-add',
             'commands/crowdin-bundle-download',
+            'commands/crowdin-bundle-browse',
           ]
         },
 

@@ -8,6 +8,7 @@ import picocli.CommandLine;
         BundleListSubcommand.class,
         BundleAddSubcommand.class,
         BundleDownloadSubcommand.class,
+        BundleBrowseSubcommand.class
     }
 )
 class BundleSubcommand extends HelpCommand {

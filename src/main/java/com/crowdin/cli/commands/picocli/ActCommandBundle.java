@@ -2,6 +2,7 @@ package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.ClientBundle;
 import com.crowdin.cli.client.Clients;
+import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectParams;
 import com.crowdin.cli.properties.ProjectProperties;
@@ -24,5 +25,9 @@ public abstract class ActCommandBundle extends GenericActCommand<ProjectProperti
     @Override
     protected ClientBundle getClient(ProjectProperties properties) {
         return Clients.getClientBundle(properties.getApiToken(), properties.getBaseUrl(), properties.getProjectId());
+    }
+
+    protected ProjectClient getProjectClient(ProjectProperties properties) {
+        return Clients.getProjectClient(properties.getApiToken(), properties.getBaseUrl(), Long.parseLong(properties.getProjectId()));
     }
 }
