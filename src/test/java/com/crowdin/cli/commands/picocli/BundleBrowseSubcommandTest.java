@@ -2,14 +2,10 @@ package com.crowdin.cli.commands.picocli;
 
 import org.junit.jupiter.api.Test;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.verify;
+public class BundleBrowseSubcommandTest extends PicocliTestUtils {
 
-class BundleBrowseSubcommandTest extends PicocliTestUtils {
     @Test
-    public void testProjectBrowse() {
-        this.execute(CommandNames.BUNDLE, CommandNames.BROWSE, "1");
-        verify(actionsMock).bundleBrowse(any(), any());
-        this.check(true);
+    public void testBundleBrowseInvalidOptions() {
+        this.executeInvalidParams(CommandNames.BUNDLE, CommandNames.BROWSE);
     }
 }
