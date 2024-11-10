@@ -61,7 +61,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                     .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project")));
             ApplyPreTranslationStringsBasedRequest request = RequestBuilder.applyPreTranslationStringsBased(
                     languages, Collections.singletonList(branch.getId()), method, engineId, autoApproveOption,
-                    duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds);
+                    duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds, aiPrompt);
             this.applyPreTranslationStringsBased(out, client, request);
             return;
         }
