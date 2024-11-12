@@ -281,6 +281,19 @@ const sidebars = {
             'commands/crowdin-label-add',
             'commands/crowdin-label-delete',
           ]
+        },
+        {
+          type: 'category',
+          label: 'crowdin app',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-app'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-app-list',
+          ]
         }
       ],
     },

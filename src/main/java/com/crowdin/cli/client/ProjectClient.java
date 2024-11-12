@@ -1,5 +1,7 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.client.applications.installations.model.ApplicationInstallation;
+import com.crowdin.client.applications.model.ApplicationDataResponseObject;
 import com.crowdin.client.branches.model.*;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
@@ -129,4 +131,6 @@ public interface ProjectClient extends Client {
     List<? extends Project> listProjects();
 
     Project addProject(AddProjectRequest request);
+
+    List<ApplicationInstallation> listApplications();
 }
