@@ -133,4 +133,6 @@ public interface ProjectClient extends Client {
     Project addProject(AddProjectRequest request);
 
     List<ApplicationInstallation> listApplications();
+
+    void uninstallApplication(String id, boolean force);
 }

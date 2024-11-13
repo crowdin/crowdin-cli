@@ -100,6 +100,13 @@ abstract class CrowdinClientCore {
         return executeRequest(new HashMap<BiPredicate<String, String>, RuntimeException>(), r);
     }
 
+    protected static void executeRequest(Runnable r) {
+        executeRequest(() -> {
+            r.run();
+            return null;
+        });
+    }
+
     protected static <T, R extends Exception> T executeRequest(Map<BiPredicate<String, String>, R> errorHandlers, Supplier<T> r) throws R {
         try {
             return r.get();

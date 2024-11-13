@@ -328,4 +328,9 @@ public class CliActions implements Actions {
     public NewAction<ProjectProperties, ProjectClient> listApps(boolean plainView) {
         return new AppListAction(plainView);
     }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> uninstallApp(String id, Boolean force) {
+        return new AppUninstallAction(id, force);
+    }
 }

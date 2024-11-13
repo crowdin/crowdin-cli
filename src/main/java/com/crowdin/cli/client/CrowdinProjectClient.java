@@ -538,4 +538,9 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
                 this.client.getApplicationsApi().listApplicationInstallations(limit, offset)
         );
     }
+
+    @Override
+    public void uninstallApplication(String id, boolean force) {
+        executeRequest(() -> this.client.getApplicationsApi().deleteApplicationInstallation(id, force));
+    }
 }
