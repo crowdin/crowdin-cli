@@ -293,6 +293,7 @@ const sidebars = {
           collapsed: true,
           items: [
             'commands/crowdin-app-list',
+            'commands/crowdin-app-install',
             'commands/crowdin-app-uninstall',
           ]
         }

@@ -147,6 +147,7 @@ public class PicocliTestUtils {
                 .thenReturn(actionMock);
         when(actionsMock.listApps(anyBoolean())).thenReturn(actionMock);
         when(actionsMock.uninstallApp(anyString(), anyBoolean())).thenReturn(actionMock);
+        when(actionsMock.installApp(anyString())).thenReturn(actionMock);
     }
 
     private void mockBuilders() {

@@ -153,4 +153,6 @@ public interface Actions {
     NewAction<ProjectProperties, ProjectClient> listApps(boolean plainView);
 
     NewAction<ProjectProperties, ProjectClient> uninstallApp(String id, Boolean force);
+
+    NewAction<ProjectProperties, ProjectClient> installApp(String identifier);
 }

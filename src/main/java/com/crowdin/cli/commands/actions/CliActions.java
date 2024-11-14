@@ -333,4 +333,9 @@ public class CliActions implements Actions {
     public NewAction<ProjectProperties, ProjectClient> uninstallApp(String id, Boolean force) {
         return new AppUninstallAction(id, force);
     }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> installApp(String identifier) {
+        return new AppInstallAction(identifier);
+    }
 }

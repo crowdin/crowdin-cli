@@ -6,7 +6,8 @@ import picocli.CommandLine;
         name = CommandNames.APP,
         subcommands = {
                 AppListSubcommand.class,
-                AppUninstallSubcommand.class,
+                AppInstallSubcommand.class,
+                AppUninstallSubcommand.class
         }
 )
 class ApplicationSubcommand extends HelpCommand {

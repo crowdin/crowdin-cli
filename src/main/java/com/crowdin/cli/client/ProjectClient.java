@@ -135,4 +135,6 @@ public interface ProjectClient extends Client {
     List<ApplicationInstallation> listApplications();
 
     void uninstallApplication(String id, boolean force);
+
+    void installApplication(String url);
 }

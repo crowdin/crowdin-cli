@@ -3,6 +3,7 @@ package com.crowdin.cli.client;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.applications.installations.model.ApplicationInstallation;
+import com.crowdin.client.applications.installations.model.InstallApplicationRequest;
 import com.crowdin.client.branches.model.*;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
@@ -542,5 +543,12 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     @Override
     public void uninstallApplication(String id, boolean force) {
         executeRequest(() -> this.client.getApplicationsApi().deleteApplicationInstallation(id, force));
+    }
+
+    @Override
+    public void installApplication(String url) {
+        var req = new InstallApplicationRequest();
+        req.setUrl(url);
+        executeRequest(() -> this.client.getApplicationsApi().installApplication(req));
     }
 }
