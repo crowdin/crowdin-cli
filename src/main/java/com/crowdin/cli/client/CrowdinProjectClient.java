@@ -20,7 +20,10 @@ import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.StringComment;
 import com.crowdin.client.translations.model.*;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -550,5 +553,18 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         var req = new InstallApplicationRequest();
         req.setUrl(url);
         executeRequest(() -> this.client.getApplicationsApi().installApplication(req));
+    }
+
+    @Override
+    @SneakyThrows
+    public Optional<String> findManifestUrl(String id) {
+        var url = new URL("https://developer.app.crowdin.net/items/Item?filter={\"slug\":{\"_eq\":\"" + id + "\"}}&fields=manifest");
+        var res = new String(url.openStream().readAllBytes());
+        JSONObject json = new JSONObject(res);
+        var apps = (JSONArray) json.get("data");
+        if (apps.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(JSONObject.class.cast(apps.get(0)).get("manifest").toString());
     }
 }
