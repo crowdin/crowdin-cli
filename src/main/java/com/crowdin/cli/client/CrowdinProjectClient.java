@@ -27,6 +27,8 @@ import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiPredicate;
 
@@ -558,7 +560,8 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     @Override
     @SneakyThrows
     public Optional<String> findManifestUrl(String id) {
-        var url = new URL("https://developer.app.crowdin.net/items/Item?filter={\"slug\":{\"_eq\":\"" + id + "\"}}&fields=manifest");
+        var query = URLEncoder.encode( "{\"slug\":{\"_eq\":\"" + id + "\"}}", StandardCharsets.UTF_8);
+        var url = new URL("https://developer.app.crowdin.net/items/Item?filter=" + query + "&fields=manifest");
         var res = new String(url.openStream().readAllBytes());
         JSONObject json = new JSONObject(res);
         var apps = (JSONArray) json.get("data");
