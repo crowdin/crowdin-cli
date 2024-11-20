@@ -149,4 +149,10 @@ public interface Actions {
     NewAction<ProjectProperties, ProjectClient> projectList(boolean isVerbose);
 
     NewAction<ProjectProperties, ProjectClient> projectAdd(String name, boolean isStringBased, String sourceLanguage, List<String> languages, boolean isPublic, boolean plainView);
+
+    NewAction<ProjectProperties, ProjectClient> listApps(boolean plainView);
+
+    NewAction<ProjectProperties, ProjectClient> uninstallApp(String id, Boolean force);
+
+    NewAction<ProjectProperties, ProjectClient> installApp(String identifier);
 }

@@ -2,6 +2,8 @@ package com.crowdin.cli.client;
 
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.client.applications.installations.model.ApplicationInstallation;
+import com.crowdin.client.applications.installations.model.InstallApplicationRequest;
 import com.crowdin.client.branches.model.*;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
@@ -18,10 +20,15 @@ import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.StringComment;
 import com.crowdin.client.translations.model.*;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
+import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
+import org.json.JSONArray;
+import org.json.JSONObject;
 
 import java.io.InputStream;
 import java.net.URL;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 import java.util.function.BiPredicate;
 
@@ -529,5 +536,38 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return executeRequest(() -> this.client.getProjectsGroupsApi()
             .addProject(request)
             .getData());
+    }
+
+    @Override
+    public List<ApplicationInstallation> listApplications() {
+        return executeRequestFullList((limit, offset) ->
+                this.client.getApplicationsApi().listApplicationInstallations(limit, offset)
+        );
+    }
+
+    @Override
+    public void uninstallApplication(String id, boolean force) {
+        executeRequest(() -> this.client.getApplicationsApi().deleteApplicationInstallation(id, force));
+    }
+
+    @Override
+    public void installApplication(String url) {
+        var req = new InstallApplicationRequest();
+        req.setUrl(url);
+        executeRequest(() -> this.client.getApplicationsApi().installApplication(req));
+    }
+
+    @Override
+    @SneakyThrows
+    public Optional<String> findManifestUrl(String id) {
+        var query = URLEncoder.encode( "{\"slug\":{\"_eq\":\"" + id + "\"}}", StandardCharsets.UTF_8);
+        var url = new URL("https://developer.app.crowdin.net/items/Item?filter=" + query + "&fields=manifest");
+        var res = new String(url.openStream().readAllBytes());
+        JSONObject json = new JSONObject(res);
+        var apps = (JSONArray) json.get("data");
+        if (apps.isEmpty()) {
+            return Optional.empty();
+        }
+        return Optional.ofNullable(JSONObject.class.cast(apps.get(0)).get("manifest").toString());
     }
 }

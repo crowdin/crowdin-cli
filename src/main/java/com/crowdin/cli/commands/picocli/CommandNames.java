@@ -65,4 +65,7 @@ public final class CommandNames {
 
     public static final String PROJECT = "project";
     public static final String BROWSE = "browse";
+    public static final String APP = "app";
+    public static final String UNINSTALL = "uninstall";
+    public static final String INSTALL = "install";
 }

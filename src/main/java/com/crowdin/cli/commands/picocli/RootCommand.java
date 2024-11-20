@@ -25,7 +25,8 @@ import picocli.CommandLine;
         LanguageSubcommand.class,
         ConfigSubcommand.class,
         ProjectSubcommand.class,
-        CompletionSubCommand.class
+        CompletionSubCommand.class,
+        ApplicationSubcommand.class
     })
 class RootCommand extends HelpCommand {
     @Override

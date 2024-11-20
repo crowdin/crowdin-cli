@@ -1,5 +1,7 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.client.applications.installations.model.ApplicationInstallation;
+import com.crowdin.client.applications.model.ApplicationDataResponseObject;
 import com.crowdin.client.branches.model.*;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
@@ -17,6 +19,7 @@ import com.crowdin.client.translationstatus.model.LanguageProgress;
 import java.io.InputStream;
 import java.net.URL;
 import java.util.List;
+import java.util.Optional;
 
 public interface ProjectClient extends Client {
 
@@ -129,4 +132,12 @@ public interface ProjectClient extends Client {
     List<? extends Project> listProjects();
 
     Project addProject(AddProjectRequest request);
+
+    List<ApplicationInstallation> listApplications();
+
+    void uninstallApplication(String id, boolean force);
+
+    void installApplication(String url);
+
+    Optional<String> findManifestUrl(String id);
 }

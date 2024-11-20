@@ -323,4 +323,19 @@ public class CliActions implements Actions {
     public NewAction<ProjectProperties, ProjectClient> projectAdd(String name, boolean isStringBased, String sourceLanguage, List<String> languages, boolean isPublic, boolean plainView) {
         return new ProjectAddAction(name, isStringBased, sourceLanguage, languages, isPublic, plainView);
     }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> listApps(boolean plainView) {
+        return new AppListAction(plainView);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> uninstallApp(String id, Boolean force) {
+        return new AppUninstallAction(id, force);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> installApp(String identifier) {
+        return new AppInstallAction(identifier);
+    }
 }
