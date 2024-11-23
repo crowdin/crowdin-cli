@@ -216,8 +216,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientBundle> bundleBrowse(Long id, ProjectClient projectClient) {
-        return new BundleBrowseAction(id, projectClient);
+    public NewAction<ProjectProperties, ClientBundle> bundleBrowse(Long id) {
+        return new BundleBrowseAction(id);
     }
 
     @Override

@@ -59,4 +59,9 @@ public class CrowdinClientBundle extends CrowdinClientCore implements ClientBund
                 .getData());
     }
 
+    @Override
+    public String getBundleUrl(Long bundleId) {
+        return this.getBundle(bundleId).getWebUrl();
+    }
+
 }

@@ -26,8 +26,4 @@ public abstract class ActCommandBundle extends GenericActCommand<ProjectProperti
     protected ClientBundle getClient(ProjectProperties properties) {
         return Clients.getClientBundle(properties.getApiToken(), properties.getBaseUrl(), properties.getProjectId());
     }
-
-    protected ProjectClient getProjectClient(ProjectProperties properties) {
-        return Clients.getProjectClient(properties.getApiToken(), properties.getBaseUrl(), Long.parseLong(properties.getProjectId()));
-    }
 }

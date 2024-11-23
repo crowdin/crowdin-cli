@@ -19,8 +19,6 @@ class BundleBrowseSubcommand extends ActCommandBundle {
 
     @Override
     protected NewAction<ProjectProperties, ClientBundle> getAction(Actions actions) {
-        Outputter out = new PicocliOutputter(System.out, isAnsi());
-        ProjectClient projectClient = this.getProjectClient(this.getProperties(propertiesBuilders, out));
-        return actions.bundleBrowse(id, projectClient);
+        return actions.bundleBrowse(id);
     }
 }
