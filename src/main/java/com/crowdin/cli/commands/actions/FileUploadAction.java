@@ -83,7 +83,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             fileFullPath = (nonNull(branchName) ? branchName + Utils.PATH_SEPARATOR : "") + filePath;
             fileDestName = fileFullPath.substring(fileFullPath.lastIndexOf(Utils.PATH_SEPARATOR) + 1);
             Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
-            FileInfo projectFile = paths.get(fileFullPath);
+            FileInfo projectFile = ProjectFilesUtils.fileLookup(fileFullPath, paths);
 
             if (nonNull(projectFile)) {
                 if (!autoUpdate) {

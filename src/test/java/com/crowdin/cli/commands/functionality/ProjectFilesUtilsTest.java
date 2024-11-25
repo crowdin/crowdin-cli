@@ -13,11 +13,10 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class ProjectFilesUtilsTest {
@@ -77,4 +76,14 @@ public class ProjectFilesUtilsTest {
         );
     }
 
+    @Test
+    public void testFileLookup() {
+        String file1 = "path/to/file.json";
+        String file2 = "path/to/file.txt";
+        String file3 = "path/to/test.txt";
+
+        assertEquals(file1, ProjectFilesUtils.fileLookup(file1, Map.of(file1, file1, file2, file2)));
+        assertEquals(file2, ProjectFilesUtils.fileLookup(file1, Map.of(file2, file2, file3, file3)));
+        assertNull(ProjectFilesUtils.fileLookup(file3, Map.of(file1, file1, file2, file2)));
+    }
 }

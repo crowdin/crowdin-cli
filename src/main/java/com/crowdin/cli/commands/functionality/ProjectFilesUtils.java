@@ -35,6 +35,28 @@ public class ProjectFilesUtils {
         return filePathsToId;
     }
 
+    public static <T> T fileLookup(String filePath, Map<String, T> files) {
+        if (files.containsKey(filePath)) {
+            return files.get(filePath);
+        }
+
+        for (var entry : files.entrySet()) {
+            if (ProjectFilesUtils.equalsIgnoreExtension(filePath, entry.getKey())) {
+                return entry.getValue();
+            }
+        }
+
+        return null;
+    }
+
+    public static boolean equalsIgnoreExtension(String file1, String file2) {
+        return removeExtension(file1).equals(removeExtension(file2));
+    }
+
+    public static String removeExtension(String file) {
+        return file.substring(0, file.lastIndexOf('.'));
+    }
+
     public static <T extends FileInfo> Map<String, T> buildFilePaths(
         Map<Long, Directory> directories, List<T> files
     ) {
