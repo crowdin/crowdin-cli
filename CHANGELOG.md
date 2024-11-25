@@ -1,5 +1,20 @@
 # Changelog
 
+# [4.4.0](https://github.com/crowdin/crowdin-cli/compare/4.3.0...4.4.0) (2024-11-25)
+
+
+### Bug Fixes
+
+* api library upgrade & fix tasks creation ([#864](https://github.com/crowdin/crowdin-cli/issues/864)) ([4212244](https://github.com/crowdin/crowdin-cli/commit/4212244c02b4c21027d4233e00abd2c92c2e96d6))
+* pre translate ai prompt id for sb projects ([#867](https://github.com/crowdin/crowdin-cli/issues/867)) ([7b93ceb](https://github.com/crowdin/crowdin-cli/commit/7b93ceb15d99aa0957b2ec425967054b63c73bbb))
+
+
+### Features
+
+* app commands ([#868](https://github.com/crowdin/crowdin-cli/issues/868)) ([e07c17a](https://github.com/crowdin/crowdin-cli/commit/e07c17a1e6a2663dca6ddbd09d2e7045e82b4238))
+* bundle browse command ([#866](https://github.com/crowdin/crowdin-cli/issues/866)) ([d5af295](https://github.com/crowdin/crowdin-cli/commit/d5af295d6508f9b6a61ce0824bb4fb5bac690c40))
+* download translations alias ([#862](https://github.com/crowdin/crowdin-cli/issues/862)) ([3ec7e64](https://github.com/crowdin/crowdin-cli/commit/3ec7e642d59694fdfd37ec204984a6d57661dce1))
+
 # [4.3.0](https://github.com/crowdin/crowdin-cli/compare/4.2.0...4.3.0) (2024-10-28)
 
 
