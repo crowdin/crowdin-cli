@@ -106,6 +106,8 @@ public interface Actions {
 
     NewAction<ProjectProperties, ClientBundle> bundleAdd(String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView, boolean includeProjectSourceLanguage, boolean isMultilingual);
 
+    NewAction<ProjectProperties, ClientBundle> bundleBrowse(Long id);
+
     NewAction<NoProperties, NoClient> checkNewVersion();
 
     NewAction<PropertiesWithFiles, ProjectClient> preTranslate(

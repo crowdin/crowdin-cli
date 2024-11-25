@@ -196,4 +196,9 @@ public class CliActionsTest {
     void testProjectAdd() {
         assertNotNull(actions.projectAdd(null, false, null, null, false, false));
     }
+
+    @Test
+    void testBundleBrowse() {
+        assertNotNull(actions.bundleBrowse(null));
+    }
 }

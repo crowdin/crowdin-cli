@@ -216,6 +216,11 @@ public class CliActions implements Actions {
     }
 
     @Override
+    public NewAction<ProjectProperties, ClientBundle> bundleBrowse(Long id) {
+        return new BundleBrowseAction(id);
+    }
+
+    @Override
     public NewAction<NoProperties, NoClient> checkNewVersion() {
         return new CheckNewVersionAction();
     }

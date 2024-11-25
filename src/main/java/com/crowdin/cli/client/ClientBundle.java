@@ -21,4 +21,5 @@ public interface ClientBundle extends Client {
 
     BundleExport checkExportingBundle(Long tmId, String exportId);
 
+    String getBundleUrl(Long bundleId);
 }
