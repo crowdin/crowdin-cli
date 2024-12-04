@@ -2,7 +2,7 @@
 ; SEE THE DOCUMENTATION FOR DETAILS ON CREATING INNO SETUP SCRIPT FILES!
 
 #define MyAppName "Crowdin"
-#define MyAppVersion "4.4.0"
+#define MyAppVersion "4.4.1"
 #define MyAppPublisher "OU Crowdin"
 #define MyAppURL "https://crowdin.github.io/crowdin-cli"
 #define MyAppExeName "crowdin-cli.jar"

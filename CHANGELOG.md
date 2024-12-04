@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.4.1](https://github.com/crowdin/crowdin-cli/compare/4.4.0...4.4.1) (2024-12-04)
+
+
+### Bug Fixes
+
+* file lookup w/o extension ([#870](https://github.com/crowdin/crowdin-cli/issues/870)) ([e68bec0](https://github.com/crowdin/crowdin-cli/commit/e68bec07d60069ce17fb94c0e5849ca7bd609fc1))
+
 # [4.4.0](https://github.com/crowdin/crowdin-cli/compare/4.3.0...4.4.0) (2024-11-25)
 
 
