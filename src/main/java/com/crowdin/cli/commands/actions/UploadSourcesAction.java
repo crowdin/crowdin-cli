@@ -180,7 +180,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             uploadedSources.add(fileFullPath);
                         }
 
-                        FileInfo projectFile = !isStringsBasedProject ? finalPaths.get(fileFullPath) : null;
+                        FileInfo projectFile = !isStringsBasedProject ? ProjectFilesUtils.fileLookup(fileFullPath, finalPaths) : null;
                         if (!isStringsBasedProject && autoUpdate && projectFile != null) {
                             final UpdateFileRequest request = new UpdateFileRequest();
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));

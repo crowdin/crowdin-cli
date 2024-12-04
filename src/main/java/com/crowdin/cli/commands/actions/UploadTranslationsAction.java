@@ -112,7 +112,8 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil)
                         : StringUtils.removeStart(source, pb.getBasePath() + commonPath));
 
-                    if (!paths.containsKey(filePath)) {
+                    var sourceFile = ProjectFilesUtils.fileLookup(filePath, paths);
+                    if (sourceFile == null) {
                         containsErrors.set(true);
                         if (!plainView) {
                             out.println(ERROR.withIcon(String.format(
@@ -121,7 +122,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         }
                         return;
                     }
-                    Long fileId = paths.get(filePath).getId();
+                    Long fileId = sourceFile.getId();
 
 //                build filePath to each source and project language
                     String fileSource = StringUtils.removeStart(source, pb.getBasePath());
