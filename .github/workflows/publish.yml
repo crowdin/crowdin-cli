@@ -199,14 +199,20 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Copy Dockerfile
-        run: |
-          cp packages/docker/Dockerfile Dockerfile
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: 'gradle'
+
+      # to enable buildx (multiplatform build)
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
 
       - name: Build Docker image
         run: |
           docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}" docker.io
-          docker build --pull -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}" -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest" .
+          docker buildx build --platform linux/amd64,linux/arm64/v8 --pull -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}" -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest" .
           docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}"
           docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest"
 
