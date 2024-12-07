@@ -199,11 +199,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: actions/setup-java@v4
-        with:
-          distribution: temurin
-          java-version: 17
-          cache: 'gradle'
+      - name: Copy Dockerfile
+        run: |
+          cp packages/docker/Dockerfile Dockerfile
 
       # to enable buildx (multiplatform build)
       - uses: docker/setup-qemu-action@v3
