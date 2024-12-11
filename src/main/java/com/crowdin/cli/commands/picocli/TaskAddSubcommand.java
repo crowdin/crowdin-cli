@@ -13,7 +13,6 @@ import picocli.CommandLine;
 
 import java.util.*;
 
-import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 import static java.lang.System.out;
 
 @CommandLine.Command(
@@ -47,13 +46,10 @@ class TaskAddSubcommand extends ActCommandTask {
     protected String description;
 
     @CommandLine.Option(names = {"--skip-assigned-strings"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-assigned-strings", order = -2)
-    protected boolean skipAssignedStrings;
-
-    @CommandLine.Option(names = {"--skip-untranslated-strings"}, hidden = true, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.skip-untranslated-strings", order = -2)
-    protected boolean skipUntranslatedStrings;
+    protected Boolean skipAssignedStrings;
 
     @CommandLine.Option(names = {"--include-pre-translated-strings-only"}, paramLabel = "...", negatable = true, descriptionKey = "crowdin.task.add.include-pre-translated-strings-only", order = -2)
-    protected boolean includePreTranslatedStringsOnly;
+    protected Boolean includePreTranslatedStringsOnly;
 
     @CommandLine.Option(names = {"--label"}, paramLabel = "...", descriptionKey = "crowdin.task.add.label", order = -2)
     protected List<Long> labels;
@@ -77,7 +73,6 @@ class TaskAddSubcommand extends ActCommandTask {
             workflowStep,
             description,
             skipAssignedStrings,
-            skipUntranslatedStrings,
             includePreTranslatedStringsOnly,
             labels,
             projectClient,
@@ -87,9 +82,6 @@ class TaskAddSubcommand extends ActCommandTask {
 
     @Override
     protected List<String> checkOptions() {
-        if (skipUntranslatedStrings) {
-            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.skip-untranslated-strings_deprecated")));
-        }
         String url = this.getProperties(propertiesBuilders, new PicocliOutputter(out, isAnsi())).getBaseUrl();
         boolean isEnterprise = PropertiesBeanUtils.isOrganization(url);
         return checkOptions(isEnterprise);
@@ -106,13 +98,6 @@ class TaskAddSubcommand extends ActCommandTask {
                 errors.add(RESOURCE_BUNDLE.getString("error.task.unsupported.type"));
             }
 
-            if (TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) && skipUntranslatedStrings) {
-                errors.add(RESOURCE_BUNDLE.getString("error.task.translate_type_skip_untranslated_strings"));
-            }
-
-            if (includePreTranslatedStringsOnly && !skipUntranslatedStrings) {
-                errors.add(RESOURCE_BUNDLE.getString("error.task.skip_untranslated_strings_include_pre_translated"));
-            }
         } else {
             if (workflowStep == null) {
                 errors.add(RESOURCE_BUNDLE.getString("error.task.empty_workflow_step"));
@@ -131,7 +116,7 @@ class TaskAddSubcommand extends ActCommandTask {
             errors.add(RESOURCE_BUNDLE.getString("error.task.empty_file"));
         }
 
-        if (TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) && includePreTranslatedStringsOnly) {
+        if (TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) && (includePreTranslatedStringsOnly != null && includePreTranslatedStringsOnly)) {
             errors.add(RESOURCE_BUNDLE.getString("error.task.translate_type_include_pre_translated_strings"));
         }
 

@@ -23,7 +23,7 @@ public class TaskAddSubcommandTest extends PicocliTestUtils {
 
     @ParameterizedTest
     @MethodSource
-    public void testSubCommandCheckValidOptions(boolean isEnterprise, String title, String type, Long workflowStep,  String languageId, List<String> files) {
+    public void testSubCommandCheckValidOptions(boolean isEnterprise, String title, String type, Long workflowStep, String languageId, List<String> files) {
         TaskAddSubcommand taskAddSubcommand = new TaskAddSubcommand();
         taskAddSubcommand.title = title;
         taskAddSubcommand.type = type;
@@ -34,7 +34,6 @@ public class TaskAddSubcommandTest extends PicocliTestUtils {
         taskAddSubcommand.description = "";
         taskAddSubcommand.labels = Arrays.asList(10L);
         taskAddSubcommand.skipAssignedStrings = false;
-        taskAddSubcommand.skipUntranslatedStrings = false;
 
         List<String> errors = taskAddSubcommand.checkOptions(isEnterprise);
         assertTrue(errors.isEmpty());
@@ -61,7 +60,6 @@ public class TaskAddSubcommandTest extends PicocliTestUtils {
         taskAddSubcommand.description = "";
         taskAddSubcommand.labels = Arrays.asList(10L);
         taskAddSubcommand.skipAssignedStrings = false;
-        taskAddSubcommand.skipUntranslatedStrings = false;
         List<String> errors = taskAddSubcommand.checkOptions(isEnterprise);
         assertThat(errors, Matchers.equalTo(expErrors));
     }

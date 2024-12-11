@@ -89,7 +89,7 @@ public interface Actions {
 
     NewAction<ProjectProperties, ClientTask> taskAdd(
         boolean noProgress, String title, Integer type, String language, List<String> files, String branch, Long workflowStep,
-        String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, boolean includePreTranslatedStringsOnly,
+        String description, Boolean skipAssignedStrings, Boolean includePreTranslatedStringsOnly,
         List<Long> labels, ProjectClient projectClient, boolean plainView);
 
     NewAction<ProjectProperties, ClientDistribution> distributionList(boolean plainView);

@@ -35,9 +35,8 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
     private String branch;
     private Long workflowStep;
     private String description;
-    private boolean skipAssignedStrings;
-    private boolean skipUntranslatedStrings;
-    private boolean includePreTranslatedStringsOnly;
+    private Boolean skipAssignedStrings;
+    private Boolean includePreTranslatedStringsOnly;
     private List<Long> labels;
     private ProjectClient projectClient;
     private boolean plainView;
@@ -82,7 +81,6 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
             Optional.ofNullable(fileIds).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setFileIds(value));
             Optional.ofNullable(description).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setDescription(value));
             Optional.ofNullable(skipAssignedStrings).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setSkipAssignedStrings(value));
-            Optional.ofNullable(skipUntranslatedStrings).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setSkipUntranslatedStrings(value));
             Optional.ofNullable(includePreTranslatedStringsOnly).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setIncludePreTranslatedStringsOnly(value));
             Optional.ofNullable(labels).ifPresent(value -> ((CreateTaskRequest) addTaskRequest).setLabelIds(value));
         }
