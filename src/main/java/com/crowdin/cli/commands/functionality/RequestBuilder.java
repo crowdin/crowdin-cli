@@ -99,7 +99,7 @@ public class RequestBuilder {
         return request;
     }
 
-    public static CreateTaskRequest addCrowdinTask(String title, com.crowdin.client.tasks.model.Type type, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, boolean skipUntranslatedStrings, boolean includePreTranslatedStringsOnly, List<Long> labelIds) {
+    public static CreateTaskRequest addCrowdinTask(String title, com.crowdin.client.tasks.model.Type type, String languageId, List<Long> fileId, String description, boolean skipAssignedStrings, boolean includePreTranslatedStringsOnly, List<Long> labelIds) {
         CreateTaskRequest request = new CreateTaskRequest();
         request.setTitle(title);
         request.setType(type);
@@ -107,7 +107,6 @@ public class RequestBuilder {
         request.setFileIds(fileId);
         request.setDescription(description);
         request.setSkipAssignedStrings(skipAssignedStrings);
-        request.setSkipUntranslatedStrings(skipUntranslatedStrings);
         request.setIncludePreTranslatedStringsOnly(includePreTranslatedStringsOnly);
         request.setLabelIds(labelIds);
         return request;

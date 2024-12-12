@@ -171,11 +171,10 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<ProjectProperties, ClientTask> taskAdd(boolean noProgress, String title, Integer type, String language,
-        List<String> files, String branch, Long workflowStep, String description, boolean skipAssignedStrings,
-        boolean skipUntranslatedStrings, boolean includePreTranslatedStringsOnly, List<Long> labels, ProjectClient projectClient, boolean plainView
+        List<String> files, String branch, Long workflowStep, String description, Boolean skipAssignedStrings,
+        Boolean includePreTranslatedStringsOnly, List<Long> labels, ProjectClient projectClient, boolean plainView
     ) {
-        return new TaskAddAction(noProgress, title, type, language, files, branch, workflowStep, description, skipAssignedStrings,
-            skipUntranslatedStrings, includePreTranslatedStringsOnly, labels, projectClient, plainView);
+        return new TaskAddAction(noProgress, title, type, language, files, branch, workflowStep, description, skipAssignedStrings, includePreTranslatedStringsOnly, labels, projectClient, plainView);
     }
 
     @Override
