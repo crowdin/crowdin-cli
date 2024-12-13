@@ -210,9 +210,13 @@ jobs:
       - name: Build Docker image
         run: |
           docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}" docker.io
+          echo "Logged in" 
           docker buildx build --platform linux/amd64,linux/arm64 --output="type=image" --pull -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}" -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest" .
+          echo "Image build successful"
           docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}"
+          echo "First push succeed"
           docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest"
+          echo "Second push succeed"
 
   exe:
     runs-on: windows-latest
