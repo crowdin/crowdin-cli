@@ -210,7 +210,7 @@ jobs:
       - name: Build Docker image
         run: |
           docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}" docker.io
-          docker buildx build --platform linux/amd64,linux/arm64 --load --pull -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}" -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest" .
+          docker buildx build --platform linux/amd64,linux/arm64 --output="type=image" --pull -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}" -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest" .
           docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}"
           docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest"
 
