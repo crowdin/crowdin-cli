@@ -210,8 +210,10 @@ jobs:
       - name: Build Docker image
         run: |
           docker login -u "${{ secrets.DOCKER_USERNAME }}" -p "${{ secrets.DOCKER_PASSWORD }}" docker.io
-          echo "Logged in" 
-          docker buildx build --platform linux/amd64,linux/arm64 --output="type=image" --pull -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}" -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest" .
+          echo "Logged in"
+          docker buildx create --name container --driver=docker-container
+          echo "Created container for build"
+          docker buildx build --builder container --platform linux/amd64,linux/arm64 --output="type=image" --pull -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}" -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest" .
           echo "Image build successful"
           docker image ls
           docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}"
