@@ -1,5 +1,17 @@
 # Changelog
 
+# [4.5.0](https://github.com/crowdin/crowdin-cli/compare/4.4.1...4.5.0) (2024-12-13)
+
+
+### Bug Fixes
+
+* add task command: remove skip untranslated strings option ([#874](https://github.com/crowdin/crowdin-cli/issues/874)) ([6265f98](https://github.com/crowdin/crowdin-cli/commit/6265f984f9c54c389537bb614acc4ca8bfcd82b6))
+
+
+### Features
+
+* multiplatform docker build ([#872](https://github.com/crowdin/crowdin-cli/issues/872)) ([8860da5](https://github.com/crowdin/crowdin-cli/commit/8860da5cbf4d10a5473f7634f2da4023d8d16c77))
+
 ## [4.4.1](https://github.com/crowdin/crowdin-cli/compare/4.4.0...4.4.1) (2024-12-04)
 
 
