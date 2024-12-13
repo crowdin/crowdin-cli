@@ -213,6 +213,7 @@ jobs:
           echo "Logged in" 
           docker buildx build --platform linux/amd64,linux/arm64 --output="type=image" --pull -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}" -t "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest" .
           echo "Image build successful"
+          docker image ls
           docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}"
           echo "First push succeed"
           docker push "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest"
