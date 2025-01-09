@@ -31,7 +31,7 @@ class FileDownloadSubcommand extends ActCommandProject {
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
         if (Objects.nonNull(languageId))
-            return actions.fileDownloadTranslation(file, languageId, branch, destination);
-        return actions.fileDownload(file, branch, destination);
+            return actions.fileDownloadTranslation(file, languageId, branch, noProgress, destination);
+        return actions.fileDownload(file, branch, noProgress, destination);
     }
 }
