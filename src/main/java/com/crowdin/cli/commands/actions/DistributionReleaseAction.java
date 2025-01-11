@@ -2,9 +2,9 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.ClientDistribution;
 import com.crowdin.cli.client.CrowdinProjectInfo;
-import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.picocli.GenericActCommand;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.distributions.model.DistributionRelease;
@@ -24,16 +24,16 @@ class DistributionReleaseAction implements NewAction<ProjectProperties, ClientDi
     private boolean plainView;
     private String hash;
 
-    private ProjectClient projectClient;
-
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientDistribution client) {
+        var projectClient = GenericActCommand.getProjectClient(pb);
+
         CrowdinProjectInfo project = ConsoleSpinner.execute(
             out,
             "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress,
             this.plainView,
-            () -> this.projectClient.downloadProjectInfo()
+            projectClient::downloadProjectInfo
         );
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 

@@ -1,10 +1,8 @@
 package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.ClientScreenshot;
-import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
-import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectProperties;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -45,9 +43,7 @@ class ScreenshotUploadSubcommand extends ActCommandScreenshot{
 
     @Override
     protected NewAction<ProjectProperties, ClientScreenshot> getAction(Actions actions) {
-        Outputter out = new PicocliOutputter(System.out, isAnsi());
-        ProjectClient projectClient = this.getProjectClient(this.getProperties(propertiesBuilders, out));
-        return actions.screenshotUpload(file, branchName, labelNames, directoryPath, filePath, autoTag, plainView, this.noProgress, projectClient);
+        return actions.screenshotUpload(file, branchName, labelNames, directoryPath, filePath, autoTag, plainView, this.noProgress);
     }
 
     @Override

@@ -90,13 +90,13 @@ public interface Actions {
     NewAction<ProjectProperties, ClientTask> taskAdd(
         boolean noProgress, String title, Integer type, String language, List<String> files, String branch, Long workflowStep,
         String description, Boolean skipAssignedStrings, Boolean includePreTranslatedStringsOnly,
-        List<Long> labels, ProjectClient projectClient, boolean plainView);
+        List<Long> labels, boolean plainView);
 
     NewAction<ProjectProperties, ClientDistribution> distributionList(boolean plainView);
 
-    NewAction<ProjectProperties, ClientDistribution> distributionAdd(boolean noProgress, boolean plainView, String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds, String branch, ProjectClient projectClient);
+    NewAction<ProjectProperties, ClientDistribution> distributionAdd(boolean noProgress, boolean plainView, String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds, String branch);
 
-    NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, boolean plainView, String hash, ProjectClient projectClient);
+    NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, boolean plainView, String hash);
 
     NewAction<ProjectProperties, ClientComment> commentList(boolean plainView, boolean isVerbose, String stringId, com.crowdin.client.stringcomments.model.Type type, com.crowdin.client.issues.model.Type issueType, IssueStatus status);
 
@@ -126,7 +126,7 @@ public interface Actions {
 
     NewAction<ProjectProperties, ClientScreenshot> screenshotList(Long stringId, boolean plainView);
 
-    NewAction<ProjectProperties, ClientScreenshot> screenshotUpload(File file, String branchName, List<String> labelNames, String directoryPath, String filePath, boolean autoTag, boolean plainView, boolean noProgress, ProjectClient projectClient);
+    NewAction<ProjectProperties, ClientScreenshot> screenshotUpload(File file, String branchName, List<String> labelNames, String directoryPath, String filePath, boolean autoTag, boolean plainView, boolean noProgress);
 
     NewAction<ProjectProperties, ClientScreenshot> screenshotDelete(Long id);
 

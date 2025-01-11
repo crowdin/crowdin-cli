@@ -2,7 +2,6 @@ package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.ClientTask;
 import com.crowdin.cli.client.Clients;
-import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectParams;
 import com.crowdin.cli.properties.ProjectProperties;
@@ -25,9 +24,5 @@ public abstract class ActCommandTask extends GenericActCommand<ProjectProperties
     @Override
     protected ClientTask getClient(ProjectProperties properties) {
         return Clients.getClientTask(properties.getApiToken(), properties.getBaseUrl(), properties.getProjectId());
-    }
-
-    protected ProjectClient getProjectClient(ProjectProperties properties) {
-        return Clients.getProjectClient(properties.getApiToken(), properties.getBaseUrl(), Long.parseLong(properties.getProjectId()));
     }
 }

@@ -2,13 +2,13 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.ClientTask;
 import com.crowdin.cli.client.CrowdinProjectFull;
-import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
+import com.crowdin.cli.commands.picocli.GenericActCommand;
 import com.crowdin.cli.properties.ProjectProperties;
 
 import com.crowdin.cli.utils.Utils;
@@ -38,16 +38,16 @@ class TaskAddAction implements NewAction<ProjectProperties, ClientTask> {
     private Boolean skipAssignedStrings;
     private Boolean includePreTranslatedStringsOnly;
     private List<Long> labels;
-    private ProjectClient projectClient;
     private boolean plainView;
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientTask client) {
+        var projectClient = GenericActCommand.getProjectClient(pb);
         boolean isOrganization = PropertiesBeanUtils.isOrganization(pb.getBaseUrl());
         Task task;
         AddTaskRequest addTaskRequest;
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, this.plainView, () -> this.projectClient.downloadFullProject(this.branch));
+            this.noProgress, this.plainView, () -> projectClient.downloadFullProject(this.branch));
 
         List<Long> fileIds = new ArrayList<>();
         Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());

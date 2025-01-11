@@ -6,6 +6,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.picocli.GenericActCommand;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
@@ -103,12 +104,16 @@ public class ScreenshotUploadActionTest {
                     setId(1L);
                 }});
 
-        action = new ScreenshotUploadAction(fileToUpload, branchName, labelNames, sourceFilePath, directoryPath, autoTag, false, false, projectClient);
-        action.act(Outputter.getDefault(), pb, client);
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new ScreenshotUploadAction(fileToUpload, branchName, labelNames, sourceFilePath, directoryPath, autoTag, false, false);
+            action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).listScreenshotsByName(eq(fileName));
-        verify(client).uploadScreenshot(request);
-        verifyNoMoreInteractions(client);
+            verify(client).listScreenshotsByName(eq(fileName));
+            verify(client).uploadScreenshot(request);
+            verifyNoMoreInteractions(client);
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 
     public static Stream<Arguments> testUploadScreenshot() {
@@ -150,12 +155,16 @@ public class ScreenshotUploadActionTest {
                     setId(123L);
                 }});
 
-        action = new ScreenshotUploadAction(fileToUpload, null, null, null, null, false, false, false, projectClient);
-        action.act(Outputter.getDefault(), pb, client);
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new ScreenshotUploadAction(fileToUpload, null, null, null, null, false, false, false);
+            action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).listScreenshotsByName(eq(fileName));
-        verify(client).updateScreenshot(123L, request);
-        verifyNoMoreInteractions(client);
+            verify(client).listScreenshotsByName(eq(fileName));
+            verify(client).updateScreenshot(123L, request);
+            verifyNoMoreInteractions(client);
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 
     @Test
@@ -174,8 +183,12 @@ public class ScreenshotUploadActionTest {
 
         when(projectFull.findBranchByName("main")).thenReturn(Optional.empty());
 
-        action = new ScreenshotUploadAction(new File("screenshot.png"), "main", null, null, null, true, false, false, projectClient);
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new ScreenshotUploadAction(new File("screenshot.png"), "main", null, null, null, true, false, false);
+            assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 
     @Test
@@ -194,8 +207,12 @@ public class ScreenshotUploadActionTest {
 
         when(projectFull.getFileInfos()).thenReturn(new ArrayList<>());
 
-        action = new ScreenshotUploadAction(new File("screenshot.png"), null, null, "/path/to/file", null, true, false, false, projectClient);
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new ScreenshotUploadAction(new File("screenshot.png"), null, null, "/path/to/file", null, true, false, false);
+            assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 
     @Test
@@ -214,8 +231,12 @@ public class ScreenshotUploadActionTest {
 
         when(projectFull.getDirectories()).thenReturn(new HashMap<>());
 
-        action = new ScreenshotUploadAction(new File("screenshot.png"), null, null, null, "/path/to/directory", true, false, false, projectClient);
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new ScreenshotUploadAction(new File("screenshot.png"), null, null, null, "/path/to/directory", true, false, false);
+            assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 
     @Test
@@ -260,16 +281,20 @@ public class ScreenshotUploadActionTest {
                 setId(1L);
             }});
 
-        action = new ScreenshotUploadAction(fileToUpload, null, Arrays.asList("label1", "label2"), null, null, false, false, false, projectClient);
-        action.act(Outputter.getDefault(), pb, client);
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new ScreenshotUploadAction(fileToUpload, null, Arrays.asList("label1", "label2"), null, null, false, false, false);
+            action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).listScreenshotsByName(eq(fileToUpload.getName()));
-        verify(client).uploadScreenshot(request);
-        verify(projectClient).downloadFullProject();
-        verify(projectClient).listLabels();
-        verify(projectClient).uploadStorage(any(), any());
-        verifyNoMoreInteractions(client);
-        verifyNoMoreInteractions(projectClient);
+            verify(client).listScreenshotsByName(eq(fileToUpload.getName()));
+            verify(client).uploadScreenshot(request);
+            verify(projectClient).downloadFullProject();
+            verify(projectClient).listLabels();
+            verify(projectClient).uploadStorage(any(), any());
+            verifyNoMoreInteractions(client);
+            verifyNoMoreInteractions(projectClient);
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 
     @Test
@@ -312,16 +337,20 @@ public class ScreenshotUploadActionTest {
                 setId(1L);
             }});
 
-        action = new ScreenshotUploadAction(fileToUpload, null, Arrays.asList("label1"), null, null, false, false, false, projectClient);
-        action.act(Outputter.getDefault(), pb, client);
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new ScreenshotUploadAction(fileToUpload, null, Arrays.asList("label1"), null, null, false, false, false);
+            action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).listScreenshotsByName(eq(fileToUpload.getName()));
-        verify(client).uploadScreenshot(request);
-        verify(projectClient).downloadFullProject();
-        verify(projectClient).listLabels();
-        verify(projectClient).addLabel(any());
-        verify(projectClient).uploadStorage(any(), any());
-        verifyNoMoreInteractions(client);
-        verifyNoMoreInteractions(projectClient);
+            verify(client).listScreenshotsByName(eq(fileToUpload.getName()));
+            verify(client).uploadScreenshot(request);
+            verify(projectClient).downloadFullProject();
+            verify(projectClient).listLabels();
+            verify(projectClient).addLabel(any());
+            verify(projectClient).uploadStorage(any(), any());
+            verifyNoMoreInteractions(client);
+            verifyNoMoreInteractions(projectClient);
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 }

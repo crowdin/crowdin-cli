@@ -1,10 +1,8 @@
 package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.ClientDistribution;
-import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
-import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.client.distributions.model.ExportMode;
 import org.apache.logging.log4j.util.Strings;
@@ -42,10 +40,7 @@ class DistributionAddSubcommand extends ActCommandDistribution {
 
     @Override
     protected NewAction<ProjectProperties, ClientDistribution> getAction(Actions actions) {
-        Outputter out = new PicocliOutputter(System.out, isAnsi());
-        ProjectClient projectClient = this.getProjectClient(this.getProperties(propertiesBuilders, out));
-
-        return actions.distributionAdd(noProgress, plainView, name, exportMode, files, bundleIds, branch, projectClient);
+        return actions.distributionAdd(noProgress, plainView, name, exportMode, files, bundleIds, branch);
     }
 
     @Override

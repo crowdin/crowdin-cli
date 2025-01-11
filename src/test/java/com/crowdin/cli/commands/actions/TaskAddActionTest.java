@@ -6,6 +6,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
+import com.crowdin.cli.commands.picocli.GenericActCommand;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
@@ -60,12 +61,16 @@ public class TaskAddActionTest {
                     setTitle(request.getTitle());
                 }});
 
-        action = new TaskAddAction(true, title, type, languageId, files, null, null, description, skipAssignedStrings, includePreTranslatedStringsOnly, labelIds, projectClient, false);
-        action.act(Outputter.getDefault(), pb, client);
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new TaskAddAction(true, title, type, languageId, files, null, null, description, skipAssignedStrings, includePreTranslatedStringsOnly, labelIds, false);
+            action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).addTask(request);
-        verify(projectClient).downloadFullProject(null);
-        verifyNoMoreInteractions(client);
+            verify(client).addTask(request);
+            verify(projectClient).downloadFullProject(null);
+            verifyNoMoreInteractions(client);
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 
     public static Stream<Arguments> testTaskAdd() {
@@ -112,12 +117,16 @@ public class TaskAddActionTest {
                     setTitle(request.getTitle());
                 }});
 
-        action = new TaskAddAction(false, title, null, languageId, files, null, workflowStepId, description, skipAssignedStrings, false, labelIds, projectClient, true);
-        action.act(Outputter.getDefault(), pb, client);
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new TaskAddAction(false, title, null, languageId, files, null, workflowStepId, description, skipAssignedStrings, false, labelIds, true);
+            action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).addTask(request);
-        verify(projectClient).downloadFullProject(null);
-        verifyNoMoreInteractions(client);
+            verify(client).addTask(request);
+            verify(projectClient).downloadFullProject(null);
+            verifyNoMoreInteractions(client);
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 
     public static Stream<Arguments> testEnterpriseTaskAdd() {
@@ -147,11 +156,15 @@ public class TaskAddActionTest {
         when(client.addTask(request))
                 .thenThrow(new RuntimeException("Whoops"));
 
-        action = new TaskAddAction(false, null, null, null, Arrays.asList("file.txt"), null, null, null, false, false, null, projectClient, false);
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new TaskAddAction(false, null, null, null, Arrays.asList("file.txt"), null, null, null, false, false, null, false);
 
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+            assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verify(client).addTask(request);
-        verifyNoMoreInteractions(client);
+            verify(client).addTask(request);
+            verifyNoMoreInteractions(client);
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 }

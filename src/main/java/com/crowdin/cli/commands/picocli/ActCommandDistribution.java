@@ -2,7 +2,6 @@ package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.ClientDistribution;
 import com.crowdin.cli.client.Clients;
-import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectParams;
 import com.crowdin.cli.properties.ProjectProperties;
@@ -25,9 +24,5 @@ public abstract class ActCommandDistribution extends GenericActCommand<ProjectPr
     @Override
     protected ClientDistribution getClient(ProjectProperties properties) {
         return Clients.getClientDistribution(properties.getApiToken(), properties.getBaseUrl(), properties.getProjectId());
-    }
-
-    protected ProjectClient getProjectClient(ProjectProperties properties) {
-        return Clients.getProjectClient(properties.getApiToken(), properties.getBaseUrl(), Long.parseLong(properties.getProjectId()));
     }
 }

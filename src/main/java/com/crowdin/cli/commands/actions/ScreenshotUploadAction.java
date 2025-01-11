@@ -8,6 +8,7 @@ import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
+import com.crowdin.cli.commands.picocli.GenericActCommand;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -46,16 +47,15 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
     private final boolean plainView;
     private final boolean noProgress;
 
-    private ProjectClient projectClient;
-
     @Override
     public void act(Outputter out, ProjectProperties properties, ClientScreenshot client) {
+        var projectClient = GenericActCommand.getProjectClient(properties);
         CrowdinProjectFull project = ConsoleSpinner.execute(
                 out,
                 "message.spinner.fetching_project_info", "error.collect_project_info",
                 this.noProgress,
                 this.plainView,
-                () -> this.projectClient.downloadFullProject());
+                projectClient::downloadFullProject);
 
         Long branchId = null;
         if (nonNull(branchName)) {
@@ -84,7 +84,7 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
         Optional<Screenshot> existingScreenshot = screenshotList.stream().findFirst();
         if (existingScreenshot.isPresent()) {
             UpdateScreenshotRequest request = new UpdateScreenshotRequest();
-            request.setStorageId(uploadToStorage(file));
+            request.setStorageId(uploadToStorage(projectClient, file));
             request.setName(file.getName());
             request.setUsePreviousTags(!autoTag);
             try {
@@ -111,13 +111,13 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
 
         AddScreenshotRequest request = new AddScreenshotRequest();
         if (nonNull(labelNames) && !labelNames.isEmpty()) {
-            request.setLabelIds(prepareLabelIds());
+            request.setLabelIds(prepareLabelIds(projectClient));
         }
 
         request.setBranchId(branchId);
         request.setDirectoryId(directoryId);
         request.setFileId(fileId);
-        request.setStorageId(uploadToStorage(file));
+        request.setStorageId(uploadToStorage(projectClient, file));
         request.setName(file.getName());
         request.setAutoTag(autoTag);
 
@@ -140,17 +140,17 @@ class ScreenshotUploadAction implements NewAction<ProjectProperties, ClientScree
         }
     }
 
-    private Long uploadToStorage(File fileToUpload) {
+    private Long uploadToStorage(ProjectClient projectClient, File fileToUpload) {
         Long storageId;
         try (InputStream fileStream = Files.newInputStream(fileToUpload.toPath())) {
-            storageId = this.projectClient.uploadStorage(fileToUpload.getName(), fileStream);
+            storageId = projectClient.uploadStorage(fileToUpload.getName(), fileStream);
         } catch (Exception e) {
             throw ExitCodeExceptionMapper.remap(e, String.format(RESOURCE_BUNDLE.getString("error.upload_to_storage"), fileToUpload.getName()));
         }
         return storageId;
     }
 
-    private Long[] prepareLabelIds() {
+    private Long[] prepareLabelIds(ProjectClient projectClient) {
         Map<String, Long> labels = projectClient.listLabels().stream()
                 .collect(Collectors.toMap(Label::getTitle, Label::getId));
         labelNames.stream()

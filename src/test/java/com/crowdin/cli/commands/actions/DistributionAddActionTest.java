@@ -7,6 +7,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
+import com.crowdin.cli.commands.picocli.GenericActCommand;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
@@ -76,10 +77,14 @@ public class DistributionAddActionTest {
         when(projectClient.downloadFullProject(branch))
                 .thenReturn(build);
 
-        action = new DistributionAddAction(true, true, name, exportMode, files, bundleIds, branch, projectClient);
-        action.act(Outputter.getDefault(), pb, client);
-        verify(client).addDistribution(request);
-        verifyNoMoreInteractions(client);
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new DistributionAddAction(true, true, name, exportMode, files, bundleIds, branch);
+            action.act(Outputter.getDefault(), pb, client);
+            verify(client).addDistribution(request);
+            verifyNoMoreInteractions(client);
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 
     public static Stream<Arguments> testDistributionAdd() {
@@ -104,10 +109,14 @@ public class DistributionAddActionTest {
         when(client.addDistribution(request))
                 .thenThrow(new RuntimeException("Whoops"));
 
-        action = new DistributionAddAction(true, false, null, null, null, null, null, null);
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(null);
+            action = new DistributionAddAction(true, false, null, null, null, null, null);
+            assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
-        verifyNoMoreInteractions(client);
+            verifyNoMoreInteractions(client);
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 
     @Test
@@ -138,10 +147,14 @@ public class DistributionAddActionTest {
         when(projectClient.downloadFullProject("main"))
             .thenReturn(build);
 
-        action = new DistributionAddAction(true, true, "My Distribution 1", ExportMode.BUNDLE, null, Arrays.asList(9), "main", projectClient);
-        action.act(Outputter.getDefault(), pb, client);
-        verify(client).addDistributionStringsBased(request);
-        verifyNoMoreInteractions(client);
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new DistributionAddAction(true, true, "My Distribution 1", ExportMode.BUNDLE, null, Arrays.asList(9), "main");
+            action.act(Outputter.getDefault(), pb, client);
+            verify(client).addDistributionStringsBased(request);
+            verifyNoMoreInteractions(client);
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 
 }

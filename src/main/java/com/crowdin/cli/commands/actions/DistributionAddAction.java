@@ -2,11 +2,11 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.ClientDistribution;
 import com.crowdin.cli.client.CrowdinProjectFull;
-import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
+import com.crowdin.cli.commands.picocli.GenericActCommand;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -41,16 +41,15 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
     private List<Integer> bundleIds;
     private String branch;
 
-    private ProjectClient projectClient;
-
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientDistribution client) {
+        var projectClient = GenericActCommand.getProjectClient(pb);
         CrowdinProjectFull project = ConsoleSpinner.execute(
                 out,
                 "message.spinner.fetching_project_info", "error.collect_project_info",
                 this.noProgress,
                 this.plainView,
-                () -> this.projectClient.downloadFullProject(this.branch)
+                () -> projectClient.downloadFullProject(this.branch)
         );
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
@@ -64,12 +63,12 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
             List<String> projectFiles = project.getFiles().stream()
                                                .filter(file -> branch == null || file.getBranchId().equals(projectBranches.get(branch)))
                                                .map(FileInfo::getPath)
-                                               .collect(Collectors.toList());
+                                               .toList();
             List<String> notExistingFiles = files.stream()
                                                  .map(file -> branch == null ? file : Paths.get(branch, file).toString())
                                                  .map(Utils::sepAtStart)
                                                  .filter(file -> !projectFiles.contains(file))
-                                                 .collect(Collectors.toList());
+                                                 .toList();
             if (!notExistingFiles.isEmpty()) {
                 throw new ExitCodeExceptionMapper.NotFoundException(notExistingFiles.stream().map(Utils::noSepAtStart)
                      .map(file -> String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), file))

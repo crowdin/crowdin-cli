@@ -109,7 +109,7 @@ public class CliActionsTest {
 
     @Test
     public void testDistributionAdd() {
-        assertNotNull(actions.distributionAdd(false, false, null, null, null, null, null, null));
+        assertNotNull(actions.distributionAdd(false, false, null, null, null, null, null));
     }
 
     @Test
@@ -119,7 +119,7 @@ public class CliActionsTest {
 
     @Test
     public void testDistributionRelease() {
-        assertNotNull(actions.distributionRelease(false,true,null, null));
+        assertNotNull(actions.distributionRelease(false,true, null));
     }
 
     @Test
@@ -139,7 +139,7 @@ public class CliActionsTest {
 
     @Test
     void testScreenshotUpload() {
-        assertNotNull(actions.screenshotUpload(null, null, null, null, null, false, false, false, null));
+        assertNotNull(actions.screenshotUpload(null, null, null, null, null, false, false, false));
     }
 
     @Test

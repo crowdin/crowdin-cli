@@ -1,7 +1,6 @@
 package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.ClientComment;
-import com.crowdin.cli.client.Clients;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectParams;
 import com.crowdin.cli.properties.ProjectProperties;
@@ -23,6 +22,6 @@ public abstract class ActCommandComment extends GenericActCommand<ProjectPropert
 
     @Override
     protected ClientComment getClient(ProjectProperties properties) {
-        return Clients.getClientComment(properties.getApiToken(), properties.getBaseUrl(), properties.getProjectId());
+        return GenericActCommand.getCommentClient(properties);
     }
 }

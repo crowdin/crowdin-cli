@@ -1,6 +1,5 @@
 package com.crowdin.cli.commands.picocli;
 
-import com.crowdin.cli.client.Clients;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ParamsWithFiles;
@@ -27,7 +26,7 @@ public abstract class ActCommandWithFiles extends GenericActCommand<PropertiesWi
 
     @Override
     protected ProjectClient getClient(PropertiesWithFiles props) {
-        return Clients.getProjectClient(props.getApiToken(), props.getBaseUrl(), Long.parseLong(props.getProjectId()));
+        return GenericActCommand.getProjectClient(props);
     }
 
     protected void updateParams(ParamsWithFiles params) {

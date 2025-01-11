@@ -94,11 +94,11 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.taskList(anyBoolean(), anyBoolean(), any(), any()))
             .thenReturn(actionMock);
-        when(actionsMock.taskAdd(anyBoolean(), any(), any(), any(), any(), any(), anyLong(), any(), anyBoolean(), anyBoolean(), any(), any(), anyBoolean()))
+        when(actionsMock.taskAdd(anyBoolean(), any(), any(), any(), any(), any(), anyLong(), any(), anyBoolean(), anyBoolean(), any(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.distributionList(anyBoolean()))
                 .thenReturn(actionMock);
-        when(actionsMock.distributionAdd(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any(), any()))
+        when(actionsMock.distributionAdd(anyBoolean(), anyBoolean(), any(), any(), any(), any(), any()))
                 .thenReturn(actionMock);
         when(actionsMock.bundleList(anyBoolean(), anyBoolean()))
                 .thenReturn(actionMock);
@@ -110,7 +110,7 @@ public class PicocliTestUtils {
                 .thenReturn(actionMock);
         when(actionsMock.screenshotList(any(), anyBoolean()))
                 .thenReturn(actionMock);
-        when(actionsMock.screenshotUpload(any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), any()))
+        when(actionsMock.screenshotUpload(any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
                 .thenReturn(actionMock);
         when(actionsMock.screenshotDelete(any()))
                 .thenReturn(actionMock);

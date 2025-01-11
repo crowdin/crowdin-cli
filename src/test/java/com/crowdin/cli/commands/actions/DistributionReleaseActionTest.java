@@ -2,10 +2,10 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.ClientDistribution;
 import com.crowdin.cli.client.CrowdinProjectInfo;
-import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.picocli.GenericActCommand;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
@@ -41,9 +41,13 @@ public class DistributionReleaseActionTest {
         distributionRelease.setStatus("success");
         when(client.release(HASH)).thenReturn(distributionRelease);
 
-        action = new DistributionReleaseAction(true, true, HASH, projectClient);
-        action.act(Outputter.getDefault(), pb, client);
-        verify(client).release(HASH);
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new DistributionReleaseAction(true, true, HASH);
+            action.act(Outputter.getDefault(), pb, client);
+            verify(client).release(HASH);
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 
     @Test
@@ -64,10 +68,14 @@ public class DistributionReleaseActionTest {
         when(client.release(any())).thenReturn(distributionRelease);
         when(client.getDistributionRelease(eq(HASH))).thenReturn(distributionRelease);
 
-        action = new DistributionReleaseAction(true, true, HASH, projectClient);
-        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
-        verify(client).release(HASH);
-        verify(client).getDistributionRelease(HASH);
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new DistributionReleaseAction(true, true, HASH);
+            assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+            verify(client).release(HASH);
+            verify(client).getDistributionRelease(HASH);
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 
     @Test
@@ -87,8 +95,12 @@ public class DistributionReleaseActionTest {
         distributionRelease.setStatus("success");
         when(client.releaseStringsBased(HASH)).thenReturn(distributionRelease);
 
-        action = new DistributionReleaseAction(true, true, HASH, projectClient);
-        action.act(Outputter.getDefault(), pb, client);
-        verify(client).releaseStringsBased(HASH);
+        try (var mocked = mockStatic(GenericActCommand.class)) {
+            mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
+            action = new DistributionReleaseAction(true, true, HASH);
+            action.act(Outputter.getDefault(), pb, client);
+            verify(client).releaseStringsBased(HASH);
+            mocked.verify(() -> GenericActCommand.getProjectClient(pb));
+        }
     }
 }

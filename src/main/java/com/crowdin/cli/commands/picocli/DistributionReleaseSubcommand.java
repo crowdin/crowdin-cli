@@ -1,10 +1,8 @@
 package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.ClientDistribution;
-import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
-import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectProperties;
 import picocli.CommandLine;
 
@@ -22,8 +20,6 @@ class DistributionReleaseSubcommand extends ActCommandDistribution {
 
     @Override
     protected NewAction<ProjectProperties, ClientDistribution> getAction(Actions actions) {
-        Outputter out = new PicocliOutputter(System.out, isAnsi());
-        ProjectClient projectClient = this.getProjectClient(this.getProperties(propertiesBuilders, out));
-        return actions.distributionRelease(noProgress, plainView, hash, projectClient);
+        return actions.distributionRelease(noProgress, plainView, hash);
     }
 }
