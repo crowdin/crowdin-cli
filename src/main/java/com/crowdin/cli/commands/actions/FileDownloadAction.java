@@ -32,6 +32,14 @@ class FileDownloadAction implements NewAction<ProjectProperties, ProjectClient> 
     private final boolean noProgress;
     private final String dest;
 
+    public FileDownloadAction(String file, String branch, String dest) {
+        this.file = file;
+        this.branch = branch;
+        this.noProgress = false;
+        this.dest = dest;
+    }
+
+
     @Override
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner
