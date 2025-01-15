@@ -58,7 +58,7 @@ class FileDownloadTranslationActionTest {
         when(client.buildProjectFileTranslation(eq(101L), eq(request)))
             .thenReturn(urlMock);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadTranslationAction("first.po", "ua", null, null);
+        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadTranslationAction("first.po", "ua", null, false, null);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -86,7 +86,7 @@ class FileDownloadTranslationActionTest {
         when(client.buildProjectFileTranslation(eq(101L), eq(request)))
             .thenReturn(urlMock);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadTranslationAction("first.po", "ua", null, "path/to/save");
+        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadTranslationAction("first.po", "ua", null, false, "path/to/save");
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -108,7 +108,7 @@ class FileDownloadTranslationActionTest {
         when(client.downloadFullProject())
             .thenReturn(build);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadTranslationAction("first.po", "ua", null, "path/to/save");
+        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadTranslationAction("first.po", "ua", null, false, "path/to/save");
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -137,7 +137,7 @@ class FileDownloadTranslationActionTest {
         when(client.buildProjectFileTranslation(eq(101L), any()))
             .thenReturn(urlMock);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadTranslationAction("first.po", "all", null, null);
+        NewAction<ProjectProperties, ProjectClient> action = new FileDownloadTranslationAction("first.po", "all", null, false, null);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();

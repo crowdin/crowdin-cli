@@ -299,13 +299,13 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> fileDownload(String file, String branch, String destParam) {
-        return new FileDownloadAction(file, branch, destParam);
+    public NewAction<ProjectProperties, ProjectClient> fileDownload(String file, String branch, boolean noProgress, String destParam) {
+        return new FileDownloadAction(file, branch, noProgress, destParam);
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> fileDownloadTranslation(String file, String languageId, String branch, String destParam) {
-        return new FileDownloadTranslationAction(file, languageId, branch, destParam);
+    public NewAction<ProjectProperties, ProjectClient> fileDownloadTranslation(String file, String languageId, String branch, boolean noProgress, String destParam) {
+        return new FileDownloadTranslationAction(file, languageId, branch, noProgress, destParam);
     }
 
     @Override
