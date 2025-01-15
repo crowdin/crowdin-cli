@@ -179,7 +179,7 @@ public class CliActionsTest {
 
     @Test
     void testFileDownloadTranslation() {
-        assertNotNull(actions.fileDownloadTranslation(null, null,null, false,null));
+        assertNotNull(actions.fileDownloadTranslation(null, null,null, false, null));
     }
 
     @Test

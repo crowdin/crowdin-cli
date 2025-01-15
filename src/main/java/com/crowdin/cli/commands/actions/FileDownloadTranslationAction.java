@@ -43,7 +43,7 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                    noProgress, false, client::downloadFullProject);
+                noProgress, false, client::downloadFullProject);
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
         if (isStringsBasedProject) {
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_file_string_project")));
@@ -83,7 +83,7 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
                 out,
                 "message.spinner.building_translation",
                 "error.building_translation",
-                    noProgress,
+                noProgress,
                 false,
                 () -> client.buildProjectFileTranslation(sourceFileInfo.getId(), request)
             );
@@ -100,7 +100,7 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
             out,
             "message.spinner.downloading_translation",
             "error.write_file",
-                noProgress,
+            noProgress,
             false,
             () -> {
                 FilesInterface files = new FsFiles();
