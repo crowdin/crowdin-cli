@@ -140,9 +140,9 @@ public interface Actions {
 
     NewAction<ProjectProperties, ProjectClient> fileUploadTranslation(File file, String branch, String dest, String languageId, boolean plainView);
 
-    NewAction<ProjectProperties, ProjectClient> fileDownload(String file, String branch, String destParam);
+    NewAction<ProjectProperties, ProjectClient> fileDownload(String file, String branch, boolean noProgress, String destParam);
 
-    NewAction<ProjectProperties, ProjectClient> fileDownloadTranslation(String file, String languageId, String branch, String destParam);
+    NewAction<ProjectProperties, ProjectClient> fileDownloadTranslation(String file, String languageId, String branch, boolean noProgress, String destParam);
 
     NewAction<ProjectProperties, ProjectClient> fileDelete(String file, String branch);
 

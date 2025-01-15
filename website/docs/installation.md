@@ -137,7 +137,7 @@ Crowdin CLI can be installed as a stand-alone Java application. [Download](https
   - Click Start
   - In the *Start Search* box, type `cmd`, and then press `Ctrl`+`Shift`+`Enter`
   - If the *User Account Control* dialog box appears, confirm that the action it displays is what you want, and then click _Continue_
-- Run `setup-crowdin.bat` script in order to add crowdin command to the Command Prompt
+- Run `setup_crowdin.bat` script in order to add crowdin command to the Command Prompt
 - Restart your Command Prompt
 
 ## Nix package manager

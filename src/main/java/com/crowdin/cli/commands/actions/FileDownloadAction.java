@@ -29,13 +29,21 @@ class FileDownloadAction implements NewAction<ProjectProperties, ProjectClient> 
 
     private final String file;
     private final String branch;
+    private final boolean noProgress;
     private final String dest;
+
+    public FileDownloadAction(String file, String branch, String dest) {
+        this.file = file;
+        this.branch = branch;
+        this.noProgress = false;
+        this.dest = dest;
+    }
 
     @Override
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
         CrowdinProjectFull project = ConsoleSpinner
             .execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-                false, false, () -> client.downloadFullProject(branch));
+                noProgress, false, () -> client.downloadFullProject(branch));
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
         if (isStringsBasedProject) {
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_file_string_project")));
@@ -56,7 +64,7 @@ class FileDownloadAction implements NewAction<ProjectProperties, ProjectClient> 
             out,
             "message.spinner.downloading_file",
             "error.downloading_file",
-            false,
+            noProgress,
             false,
             () -> {
                 URL url = client.downloadFile(foundFile.getId());
