@@ -1,9 +1,6 @@
 package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.ClientLabel;
-import com.crowdin.cli.client.ClientScreenshot;
-import com.crowdin.cli.client.Clients;
-import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectParams;
 import com.crowdin.cli.properties.ProjectProperties;
@@ -25,6 +22,6 @@ public abstract class ActCommandLabel extends GenericActCommand<ProjectPropertie
 
     @Override
     protected ClientLabel getClient(ProjectProperties properties) {
-        return Clients.getClientLabel(properties.getApiToken(), properties.getBaseUrl(), properties.getProjectId());
+        return GenericActCommand.getLabelClient(properties);
     }
 }

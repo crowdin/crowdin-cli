@@ -1,10 +1,8 @@
 package com.crowdin.cli.commands.picocli;
 
 import com.crowdin.cli.client.ClientTask;
-import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Actions;
 import com.crowdin.cli.commands.NewAction;
-import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.properties.ProjectProperties;
 
@@ -12,8 +10,6 @@ import org.apache.logging.log4j.util.Strings;
 import picocli.CommandLine;
 
 import java.util.*;
-
-import static java.lang.System.out;
 
 @CommandLine.Command(
     name = CommandNames.ADD,
@@ -60,8 +56,6 @@ class TaskAddSubcommand extends ActCommandTask {
     @Override
     protected NewAction<ProjectProperties, ClientTask> getAction(Actions actions) {
         int intType = TRANSLATE_TASK_TYPE.equalsIgnoreCase(type) ? 0 : 1;
-        Outputter out = new PicocliOutputter(System.out, isAnsi());
-        ProjectClient projectClient = this.getProjectClient(this.getProperties(propertiesBuilders, out));
 
         return actions.taskAdd(
             noProgress,
@@ -75,14 +69,13 @@ class TaskAddSubcommand extends ActCommandTask {
             skipAssignedStrings,
             includePreTranslatedStringsOnly,
             labels,
-            projectClient,
             plainView
         );
     }
 
     @Override
-    protected List<String> checkOptions() {
-        String url = this.getProperties(propertiesBuilders, new PicocliOutputter(out, isAnsi())).getBaseUrl();
+    protected List<String> checkOptions(ProjectProperties properties) {
+        String url = properties.getBaseUrl();
         boolean isEnterprise = PropertiesBeanUtils.isOrganization(url);
         return checkOptions(isEnterprise);
     }

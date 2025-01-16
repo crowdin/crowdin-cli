@@ -1,7 +1,7 @@
 package com.crowdin.cli.properties;
 
-import com.crowdin.cli.client.Clients;
 import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.commands.picocli.GenericActCommand;
 import com.crowdin.client.languages.model.Language;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -79,7 +79,7 @@ public class PropertiesWithFiles extends ProjectProperties {
                         messages.addError(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
                     }
                     if (fileBean.getLanguagesMapping() != null) {
-                        ProjectClient projectClient = Clients.getProjectClient(props.getApiToken(), props.getBaseUrl(), Long.parseLong(props.getProjectId()));
+                        ProjectClient projectClient = GenericActCommand.getProjectClient(props);
                         List<Language> languages = projectClient.listSupportedLanguages();
 
                         if (languages != null) {

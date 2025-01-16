@@ -172,9 +172,9 @@ public class CliActions implements Actions {
     @Override
     public NewAction<ProjectProperties, ClientTask> taskAdd(boolean noProgress, String title, Integer type, String language,
         List<String> files, String branch, Long workflowStep, String description, Boolean skipAssignedStrings,
-        Boolean includePreTranslatedStringsOnly, List<Long> labels, ProjectClient projectClient, boolean plainView
+        Boolean includePreTranslatedStringsOnly, List<Long> labels, boolean plainView
     ) {
-        return new TaskAddAction(noProgress, title, type, language, files, branch, workflowStep, description, skipAssignedStrings, includePreTranslatedStringsOnly, labels, projectClient, plainView);
+        return new TaskAddAction(noProgress, title, type, language, files, branch, workflowStep, description, skipAssignedStrings, includePreTranslatedStringsOnly, labels, plainView);
     }
 
     @Override
@@ -183,13 +183,13 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientDistribution> distributionAdd(boolean noProgress, boolean plainView, String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds, String branch, ProjectClient projectClient) {
-        return new DistributionAddAction(noProgress, plainView, name, exportMode, files, bundleIds, branch, projectClient);
+    public NewAction<ProjectProperties, ClientDistribution> distributionAdd(boolean noProgress, boolean plainView, String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds, String branch) {
+        return new DistributionAddAction(noProgress, plainView, name, exportMode, files, bundleIds, branch);
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, boolean plainView, String hash, ProjectClient projectClient) {
-        return new DistributionReleaseAction(noProgress, plainView, hash, projectClient);
+    public NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, boolean plainView, String hash) {
+        return new DistributionReleaseAction(noProgress, plainView, hash);
     }
 
     @Override
@@ -264,8 +264,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientScreenshot> screenshotUpload(File file, String branchName, List<String> labelNames, String directoryPath, String filePath, boolean autoTag, boolean plainView, boolean noProgress, ProjectClient projectClient) {
-        return new ScreenshotUploadAction(file, branchName, labelNames, filePath, directoryPath, autoTag, plainView, noProgress, projectClient);
+    public NewAction<ProjectProperties, ClientScreenshot> screenshotUpload(File file, String branchName, List<String> labelNames, String directoryPath, String filePath, boolean autoTag, boolean plainView, boolean noProgress) {
+        return new ScreenshotUploadAction(file, branchName, labelNames, filePath, directoryPath, autoTag, plainView, noProgress);
     }
 
     @Override
