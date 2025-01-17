@@ -1,5 +1,15 @@
 # Changelog
 
+## [4.5.1](https://github.com/crowdin/crowdin-cli/compare/4.5.0...4.5.1) (2025-01-17)
+
+
+### Bug Fixes
+
+* creds as args via cmd ([#885](https://github.com/crowdin/crowdin-cli/issues/885)) ([4d48fc6](https://github.com/crowdin/crowdin-cli/commit/4d48fc6a846735180a0e47653a110143baea5f3d))
+* docker build ci ([#876](https://github.com/crowdin/crowdin-cli/issues/876)) ([a0345b8](https://github.com/crowdin/crowdin-cli/commit/a0345b837371288062b4c64d874df03bbdd8cf6d))
+* messages filename ([#887](https://github.com/crowdin/crowdin-cli/issues/887)) ([5331d62](https://github.com/crowdin/crowdin-cli/commit/5331d62c6f628799eef03f4fdd5465a031907d1b))
+* suppress progress output for crowdin file download with --no-progress ([#880](https://github.com/crowdin/crowdin-cli/issues/880)) ([139bc9b](https://github.com/crowdin/crowdin-cli/commit/139bc9bfb9c157c193a490fa5dab7a83c3008fa2))
+
 # [4.5.0](https://github.com/crowdin/crowdin-cli/compare/4.4.1...4.5.0) (2024-12-13)
 
 
