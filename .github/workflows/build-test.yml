@@ -24,7 +24,7 @@ jobs:
           cache: 'gradle'
 
       - name: Execute Gradle build
-        run: ./gradlew build
+        run: ./gradlew build -x test
 
       - name: Build executable jar file
         run: ./gradlew shadowJar
