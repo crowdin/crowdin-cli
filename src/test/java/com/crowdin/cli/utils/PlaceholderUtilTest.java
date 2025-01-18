@@ -108,6 +108,48 @@ public class PlaceholderUtilTest {
                     new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
                     Utils.normalizePath("src/app/**/default/test/%two_letters_code%"),
                     new String[] {Utils.normalizePath("src/app/resources/test/main/settings/default/test/en")}
+            ),
+            arguments(// How to treat double asterisks in the middle
+                    new Language[] {LanguageBuilder.ENG.build()},
+                    new Language[] {LanguageBuilder.ENG.build()},
+                    new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
+                    Utils.normalizePath("src/app/**/"),
+                    new String[] {Utils.normalizePath("src/app/resources/test/main/settings/default/test/en/")}
+            ),
+            arguments(// How to treat double asterisks in the middle
+                    new Language[] {LanguageBuilder.ENG.build()},
+                    new Language[] {LanguageBuilder.ENG.build()},
+                    new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
+                    Utils.normalizePath("src/app/**"),
+                    new String[] {Utils.normalizePath("src/app/resources/test/main/settings/default/test/en")}
+            ),
+            arguments(// How to treat double asterisks in the middle
+                    new Language[] {LanguageBuilder.ENG.build()},
+                    new Language[] {LanguageBuilder.ENG.build()},
+                    new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
+                    Utils.normalizePath("/**/test/en"),
+                    new String[] {Utils.normalizePath("src/app/resources/test/main/settings/default/test/en")}
+            ),
+            arguments(// How to treat double asterisks in the middle
+                    new Language[] {LanguageBuilder.ENG.build()},
+                    new Language[] {LanguageBuilder.ENG.build()},
+                    new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
+                    Utils.normalizePath("/**/test/en/"),
+                    new String[] {Utils.normalizePath("src/app/resources/test/main/settings/default/test/en/")}
+            ),
+            arguments(// How to treat double asterisks in the middle
+                    new Language[] {LanguageBuilder.ENG.build()},
+                    new Language[] {LanguageBuilder.ENG.build()},
+                    new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
+                    Utils.normalizePath("src/**/test/en/"),
+                    new String[] {Utils.normalizePath("src/app/resources/test/main/settings/default/test/en/")}
+            ),
+            arguments(// How to treat double asterisks in the middle
+                    new Language[] {LanguageBuilder.ENG.build()},
+                    new Language[] {LanguageBuilder.ENG.build()},
+                    new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
+                    Utils.normalizePath("src/**/test/en"),
+                    new String[] {Utils.normalizePath("src/app/resources/test/main/settings/default/test/en")}
             )
         );
     }
