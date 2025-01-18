@@ -196,6 +196,7 @@ public class PlaceholderUtil {
             throw new NullPointerException("null args in replaceFileDependentPlaceholders()");
         }
         String fileName = file.getName();
+        String filePath = Utils.toUnixPath(file.getPath());
         String fileNameWithoutExt = FilenameUtils.removeExtension(fileName);
         String fileExt = FilenameUtils.getExtension(fileName);
         String tempBasePath = basePath;
@@ -211,12 +212,12 @@ public class PlaceholderUtil {
             String prefixFormat = StringUtils.substringBefore(toFormat, "**");
             String substringAfter = StringUtils.substringAfter(toFormat, "**");
             //making sure "substringAfter" has full file path part that goes after "**"
-            if (substringAfter.length() > 1 && !file.getPath().endsWith(substringAfter) && file.getPath().contains(substringAfter)) {
-                String[] parts = file.getPath().split(substringAfter);
+            if (substringAfter.length() > 1 && !filePath.endsWith(substringAfter) && filePath.contains(substringAfter)) {
+                String[] parts = filePath.split(substringAfter);
                 substringAfter = Utils.joinPaths(substringAfter, parts[parts.length - 1]);
             }
             String postfix = Utils.getParentDirectory(substringAfter);
-            String prefix = prefixFormat.length() > 1 && file.getPath().contains(prefixFormat) ? StringUtils.substringBefore(fileParent, Utils.noSepAtStart(prefixFormat)) : "";
+            String prefix = prefixFormat.length() > 1 && filePath.contains(prefixFormat) ? StringUtils.substringBefore(fileParent, Utils.noSepAtStart(prefixFormat)) : "";
             String doubleAsterisks =
                 StringUtils.removeStart(Utils.noSepAtStart(StringUtils.removeStart(fileParent, prefix)), Utils.noSepAtEnd(Utils.noSepAtStart(prefixFormat)));
             doubleAsterisks = postfix.length() > 1 ? StringUtils.removeEnd(doubleAsterisks, Utils.noSepAtEnd(postfix)) : doubleAsterisks;
