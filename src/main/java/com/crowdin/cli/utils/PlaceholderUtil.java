@@ -207,35 +207,24 @@ public class PlaceholderUtil {
         toFormat = toFormat.contains(PLACEHOLDER_ORIGINAL_PATH) ? toFormat.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent) : toFormat;
         toFormat = toFormat.replace("/", File.separator);
 
-        System.out.println("[1] " + toFormat);
-
         if (toFormat.contains("**")) {
             String prefixFormat = StringUtils.substringBefore(toFormat, "**");
             String substringAfter = StringUtils.substringAfter(toFormat, "**");
-            System.out.println("[2] " + prefixFormat);
-            System.out.println("[3] " + substringAfter);
-            System.out.println("[4] " + file.getPath());
             //making sure "substringAfter" has full file path part that goes after "**"
             if (substringAfter.length() > 1 && !file.getPath().endsWith(substringAfter) && file.getPath().contains(substringAfter)) {
                 int lastIndexOf = file.getPath().lastIndexOf(substringAfter);
                 String lastPart = file.getPath().substring(lastIndexOf + substringAfter.length());
                 substringAfter = Utils.joinPaths(substringAfter, lastPart);
-                System.out.println("[5] " + substringAfter);
             }
             String postfix = Utils.getParentDirectory(substringAfter);
-            System.out.println("[6] " + postfix);
             String prefix = prefixFormat.length() > 1 && file.getPath().contains(prefixFormat) ? StringUtils.substringBefore(fileParent, Utils.noSepAtStart(prefixFormat)) : "";
             String doubleAsterisks =
                 StringUtils.removeStart(Utils.noSepAtStart(StringUtils.removeStart(fileParent, prefix)), Utils.noSepAtEnd(Utils.noSepAtStart(prefixFormat)));
-            System.out.println("[7] " + doubleAsterisks);
             doubleAsterisks = postfix.length() > 1 ? StringUtils.removeEnd(doubleAsterisks, Utils.noSepAtEnd(postfix)) : doubleAsterisks;
-            System.out.println("[8] " + doubleAsterisks);
             toFormat = toFormat.replace("**", doubleAsterisks);
-            System.out.println("[9] " + toFormat);
         }
 
         toFormat = toFormat.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
-        System.out.println("[10] " + toFormat);
         return StringUtils.removeStart(toFormat, Utils.PATH_SEPARATOR);
     }
 

@@ -24,7 +24,7 @@ jobs:
           cache: 'gradle'
 
       - name: Execute Gradle build
-        run: ./gradlew build -x test
+        run: ./gradlew build
 
       - name: Build executable jar file
         run: ./gradlew shadowJar
@@ -56,7 +56,7 @@ jobs:
           cache: 'gradle'
 
       - name: Run Tests
-        run: ./gradlew test --tests com.crowdin.cli.utils.PlaceholderUtilTest.testMainFunctionality
+        run: ./gradlew test
 
       - name: Test Report
         uses: dorny/test-reporter@v1
