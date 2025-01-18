@@ -217,10 +217,9 @@ public class PlaceholderUtil {
             System.out.println("[4] " + file.getPath());
             //making sure "substringAfter" has full file path part that goes after "**"
             if (substringAfter.length() > 1 && !file.getPath().endsWith(substringAfter) && file.getPath().contains(substringAfter)) {
-                String[] parts = file.getPath().split(substringAfter);
-                System.out.println("[4.5] " + List.of(parts));
-                String lastPart = parts[parts.length - 1];
-                substringAfter = Utils.sepAtEnd(substringAfter) + Utils.noSepAtStart(lastPart);
+                int lastIndexOf = file.getPath().lastIndexOf(substringAfter);
+                String lastPart = file.getPath().substring(lastIndexOf + substringAfter.length());
+                substringAfter = Utils.joinPaths(substringAfter, lastPart);
                 System.out.println("[5] " + substringAfter);
             }
             String postfix = Utils.getParentDirectory(substringAfter);
