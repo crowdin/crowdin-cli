@@ -196,7 +196,7 @@ public class PlaceholderUtil {
             throw new NullPointerException("null args in replaceFileDependentPlaceholders()");
         }
         String fileName = file.getName();
-        String filePath = Utils.toUnixPath(file.getPath());
+        String filePath = Utils.isWindows() ? Utils.toWindowsPath(file.getPath()) : file.getPath();
         String fileNameWithoutExt = FilenameUtils.removeExtension(fileName);
         String fileExt = FilenameUtils.getExtension(fileName);
         String tempBasePath = basePath;
