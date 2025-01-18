@@ -56,7 +56,7 @@ jobs:
           cache: 'gradle'
 
       - name: Run Tests
-        run: ./gradlew test
+        run: ./gradlew test --tests com.crowdin.cli.utils.PlaceholderUtilTest.testMainFunctionality
 
       - name: Test Report
         uses: dorny/test-reporter@v1

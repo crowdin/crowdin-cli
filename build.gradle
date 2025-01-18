@@ -85,6 +85,7 @@ shadowJar {
 
 test {
     useJUnitPlatform()
+    testLogging.showStandardStreams = true
 }
 
 jacoco {

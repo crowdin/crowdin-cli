@@ -196,7 +196,6 @@ public class PlaceholderUtil {
             throw new NullPointerException("null args in replaceFileDependentPlaceholders()");
         }
         String fileName = file.getName();
-        String filePath = Utils.isWindows() ? Utils.toWindowsPath(file.getPath()) : file.getPath();
         String fileNameWithoutExt = FilenameUtils.removeExtension(fileName);
         String fileExt = FilenameUtils.getExtension(fileName);
         String tempBasePath = basePath;
@@ -208,23 +207,34 @@ public class PlaceholderUtil {
         toFormat = toFormat.contains(PLACEHOLDER_ORIGINAL_PATH) ? toFormat.replace(PLACEHOLDER_ORIGINAL_PATH, fileParent) : toFormat;
         toFormat = toFormat.replace("/", File.separator);
 
+        System.out.println("[1] " + toFormat);
+
         if (toFormat.contains("**")) {
             String prefixFormat = StringUtils.substringBefore(toFormat, "**");
             String substringAfter = StringUtils.substringAfter(toFormat, "**");
+            System.out.println("[2] " + prefixFormat);
+            System.out.println("[3] " + substringAfter);
+            System.out.println("[4] " + file.getPath());
             //making sure "substringAfter" has full file path part that goes after "**"
-            if (substringAfter.length() > 1 && !filePath.endsWith(substringAfter) && filePath.contains(substringAfter)) {
-                String[] parts = filePath.split(substringAfter);
+            if (substringAfter.length() > 1 && !file.getPath().endsWith(substringAfter) && file.getPath().contains(substringAfter)) {
+                String[] parts = file.getPath().split(substringAfter);
                 substringAfter = Utils.joinPaths(substringAfter, parts[parts.length - 1]);
+                System.out.println("[5] " + substringAfter);
             }
             String postfix = Utils.getParentDirectory(substringAfter);
-            String prefix = prefixFormat.length() > 1 && filePath.contains(prefixFormat) ? StringUtils.substringBefore(fileParent, Utils.noSepAtStart(prefixFormat)) : "";
+            System.out.println("[6] " + postfix);
+            String prefix = prefixFormat.length() > 1 && file.getPath().contains(prefixFormat) ? StringUtils.substringBefore(fileParent, Utils.noSepAtStart(prefixFormat)) : "";
             String doubleAsterisks =
                 StringUtils.removeStart(Utils.noSepAtStart(StringUtils.removeStart(fileParent, prefix)), Utils.noSepAtEnd(Utils.noSepAtStart(prefixFormat)));
+            System.out.println("[7] " + doubleAsterisks);
             doubleAsterisks = postfix.length() > 1 ? StringUtils.removeEnd(doubleAsterisks, Utils.noSepAtEnd(postfix)) : doubleAsterisks;
+            System.out.println("[8] " + doubleAsterisks);
             toFormat = toFormat.replace("**", doubleAsterisks);
+            System.out.println("[9] " + toFormat);
         }
 
         toFormat = toFormat.replaceAll("[\\\\/]+", Utils.PATH_SEPARATOR_REGEX);
+        System.out.println("[10] " + toFormat);
         return StringUtils.removeStart(toFormat, Utils.PATH_SEPARATOR);
     }
 
