@@ -209,7 +209,13 @@ public class PlaceholderUtil {
 
         if (toFormat.contains("**")) {
             String prefixFormat = StringUtils.substringBefore(toFormat, "**");
-            String postfix = Utils.getParentDirectory(StringUtils.substringAfter(toFormat, "**"));
+            String substringAfter = StringUtils.substringAfter(toFormat, "**");
+            //making sure "substringAfter" has full file path part that goes after "**"
+            if (substringAfter.length() > 1 && !file.getPath().endsWith(substringAfter) && file.getPath().contains(substringAfter)) {
+                String[] parts = file.getPath().split(substringAfter);
+                substringAfter = Utils.joinPaths(substringAfter, parts[parts.length - 1]);
+            }
+            String postfix = Utils.getParentDirectory(substringAfter);
             String prefix = prefixFormat.length() > 1 && file.getPath().contains(prefixFormat) ? StringUtils.substringBefore(fileParent, Utils.noSepAtStart(prefixFormat)) : "";
             String doubleAsterisks =
                 StringUtils.removeStart(Utils.noSepAtStart(StringUtils.removeStart(fileParent, prefix)), Utils.noSepAtEnd(Utils.noSepAtStart(prefixFormat)));
