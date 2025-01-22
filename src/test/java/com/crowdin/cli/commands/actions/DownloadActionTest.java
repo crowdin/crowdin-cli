@@ -855,4 +855,58 @@ public class DownloadActionTest {
         verify(files).deleteDirectory(tempDir.get());
         verifyNoMoreInteractions(files);
     }
+
+    @Test
+    public void testProjectFittingFile_MultilingualWithDest() throws IOException, ResponseException {
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("strings.csv", "strings.csv", null, "dir/strings.csv")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+
+        project.addFile("strings.csv");
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject(null))
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                .addFile("dir/strings.csv", "gettext", 101L, null, null, "strings.csv").build());
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
+        buildProjectTranslationRequest.setTargetLanguageIds(Arrays.asList("ua"));
+        long buildId = 42L;
+        when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
+            .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "finished", 100));
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
+        when(client.downloadBuild(eq(buildId)))
+            .thenReturn(urlMock);
+
+        FilesInterface files = mock(FilesInterface.class);
+        AtomicReference<File> zipArchive = new AtomicReference<>();
+        AtomicReference<File> tempDir = new AtomicReference<>();
+        when(files.extractZipArchive(any(), any()))
+            .thenAnswer((invocation -> {
+                zipArchive.set(invocation.getArgument(0));
+                tempDir.set(invocation.getArgument(1));
+                return new ArrayList<File>() {{
+                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "dir/strings.csv"));
+                    add(new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "first.po-CR-ru-RU"));
+                }};
+            }));
+
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, Arrays.asList("ua"), null,false, null, false, false, false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(null);
+        verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
+        verify(client).downloadBuild(eq(buildId));
+        verifyNoMoreInteractions(client);
+
+        verify(files).writeToFile(any(), any());
+        verify(files).extractZipArchive(any(), any());
+        verify(files).copyFile(
+            new File(tempDir.get().getAbsolutePath() + Utils.PATH_SEPARATOR + "dir/strings.csv"),
+            new File(pb.getBasePath() + "strings.csv"));
+        verify(files).deleteFile(eq(zipArchive.get()));
+        verify(files).deleteDirectory(tempDir.get());
+        verifyNoMoreInteractions(files);
+    }
 }
