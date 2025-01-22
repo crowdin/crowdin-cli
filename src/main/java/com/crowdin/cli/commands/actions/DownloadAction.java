@@ -520,9 +520,13 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 String translationProject2 = TranslationsUtils.replaceDoubleAsterisk(source, translationProject1, file);
                 String translationFile2 = TranslationsUtils.replaceDoubleAsterisk(source, translationFile1, file);
 
-                translationProject2 = (dest == null)
-                    ? placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(projectFile))
-                    : placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(PropertiesBeanUtils.prepareDest(dest, file, placeholderUtil)));
+                if (dest != null && !PlaceholderUtil.containsLangPlaceholders(translation)) {
+                    translationProject2 = placeholderUtil.replaceFileDependentPlaceholders(dest, new File(PropertiesBeanUtils.prepareDest(dest, file, placeholderUtil)));
+                } else {
+                    translationProject2 = (dest == null)
+                        ? placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(projectFile))
+                        : placeholderUtil.replaceFileDependentPlaceholders(translationProject2, new File(PropertiesBeanUtils.prepareDest(dest, file, placeholderUtil)));
+                }
                 translationFile2 = placeholderUtil.replaceFileDependentPlaceholders(translationFile2, new File(projectFile));
 
                 translationFile2 = PropertiesBeanUtils.useTranslationReplace(translationFile2, translationReplace);
