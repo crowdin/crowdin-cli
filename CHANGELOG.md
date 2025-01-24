@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.5.2](https://github.com/crowdin/crowdin-cli/compare/4.5.1...4.5.2) (2025-01-24)
+
+
+### Bug Fixes
+
+* double asterisk ([#888](https://github.com/crowdin/crowdin-cli/issues/888)) ([bf6f855](https://github.com/crowdin/crowdin-cli/commit/bf6f855e52c258cd6aa27c754b3575695f6db6d7))
+* download multilingual files with dest param ([#889](https://github.com/crowdin/crowdin-cli/issues/889)) ([6be2ca8](https://github.com/crowdin/crowdin-cli/commit/6be2ca8fd09aac6c962d9910d06f3f2aa9f64473))
+
 ## [4.5.1](https://github.com/crowdin/crowdin-cli/compare/4.5.0...4.5.1) (2025-01-17)
 
 
