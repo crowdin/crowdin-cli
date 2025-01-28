@@ -100,6 +100,22 @@ module.exports = {
           },
           {
             "files": [
+              "packages/chocolatey/tools/chocolateyinstall.ps1"
+            ],
+            "from": "https://github.com/crowdin/crowdin-cli/releases/download/.*/crowdin-cli.zip",
+            "to": "https://github.com/crowdin/crowdin-cli/releases/download/${nextRelease.version}/crowdin-cli.zip",
+            "results": [
+              {
+                "file": "packages/chocolatey/tools/chocolateyinstall.ps1",
+                "hasChanged": true,
+                "numMatches": 1,
+                "numReplacements": 1
+              }
+            ],
+            "countMatches": true
+          },
+          {
+            "files": [
               "packages/exe/CrowdinCLIInstaller.iss"
             ],
             "from": "#define MyAppVersion \".*\"",
