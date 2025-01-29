@@ -2,6 +2,8 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.MockitoUtils;
 import com.crowdin.cli.client.ClientBundle;
+import com.crowdin.cli.client.MaxNumberOfRetriesException;
+import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
@@ -16,8 +18,8 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.net.URL;
-import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 public class BundleDownloadActionTest {
@@ -35,7 +37,7 @@ public class BundleDownloadActionTest {
     }
 
     @Test
-    public void testDownloadBundle() {
+    public void testDownloadBundle() throws ResponseException {
         PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean(
                         "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
@@ -73,7 +75,7 @@ public class BundleDownloadActionTest {
     }
 
     @Test
-    public void testDryRun() {
+    public void testDryRun() throws ResponseException {
         PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
                 .minimalBuiltPropertiesBean(
                         "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
@@ -107,6 +109,36 @@ public class BundleDownloadActionTest {
         verify(client).getBundle(bundle.getId());
         verify(client).startExportingBundle(bundle.getId());
         verify(client).downloadBundle(bundle.getId(), null);
+
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testDownloadBundle_FailBundleExport() throws ResponseException {
+        PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(
+                "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
+                null, "/common/%original_file_name%")
+            .setBasePath(project.getBasePath())
+            .build();
+
+        Bundle bundle = new Bundle();
+        bundle.setId(1L);
+        ClientBundle client = mock(ClientBundle.class);
+
+        when(client.getBundle(bundle.getId()))
+            .thenReturn(bundle);
+        when(client.startExportingBundle(bundle.getId()))
+            .thenThrow(new MaxNumberOfRetriesException());
+
+        FilesInterface files = mock(FilesInterface.class);
+
+        NewAction<ProjectProperties, ClientBundle> action =
+            new BundleDownloadAction(bundle.getId(), files, false, false, false, true);
+        assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+
+        verify(client).getBundle(bundle.getId());
+        verify(client).startExportingBundle(bundle.getId());
 
         verifyNoMoreInteractions(client);
     }

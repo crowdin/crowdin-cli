@@ -1,6 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.ClientBundle;
+import com.crowdin.cli.client.MaxNumberOfRetriesException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.*;
@@ -19,8 +20,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.*;
 
 public class BundleDownloadAction implements NewAction<ProjectProperties, ClientBundle> {
 
@@ -48,6 +48,9 @@ public class BundleDownloadAction implements NewAction<ProjectProperties, Client
         this.out = out;
         Bundle bundle = getBundle(client);
         BundleExport status = this.buildBundle(out, client, bundle.getId());
+        if (status == null) {
+            throw new RuntimeException(RESOURCE_BUNDLE.getString("error.bundle.build_bundle"));
+        }
         to = new File("bundle-" + status.getIdentifier() + ".zip");
         downloadBundle(client, bundle.getId(), status.getIdentifier());
         out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.bundle.download_success"), bundle.getId(), bundle.getName())));
@@ -94,21 +97,25 @@ public class BundleDownloadAction implements NewAction<ProjectProperties, Client
                 this.noProgress,
                 false,
                 () -> {
-                    BundleExport status = client.startExportingBundle(bundleId);
+                    BundleExport status = null;
+                    try {
+                        status = client.startExportingBundle(bundleId);
 
-                    while (!status.getStatus().equalsIgnoreCase("finished")) {
-                        ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.building_bundle_percents"), status.getProgress()));
-                        Thread.sleep(1000);
+                        while (!status.getStatus().equalsIgnoreCase("finished")) {
+                            ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.building_bundle_percents"), status.getProgress()));
+                            Thread.sleep(1000);
 
-                        status = client.checkExportingBundle(bundleId, status.getIdentifier());
+                            status = client.checkExportingBundle(bundleId, status.getIdentifier());
 
-                        if (status.getStatus().equalsIgnoreCase("failed")) {
-                            throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.build_has_failed"));
+                            if (status.getStatus().equalsIgnoreCase("failed")) {
+                                throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.build_has_failed"));
+                            }
                         }
+
+                        ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.building_bundle_percents"), 100));
+                    } catch (MaxNumberOfRetriesException e) {
+                        ConsoleSpinner.stop(WARNING, RESOURCE_BUNDLE.getString("message.warning.maximum_retries_exceeded"));
                     }
-
-                    ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.building_bundle_percents"), 100));
-
                     return status;
                 }
         );
