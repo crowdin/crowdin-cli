@@ -32,7 +32,7 @@ class DistributionAddSubcommand extends ActCommandDistribution {
     @CommandLine.Option(names = {"--bundle-id"}, paramLabel = "...", descriptionKey = "crowdin.distribution.add.bundle-id", order = -2)
     protected List<Integer> bundleIds;
 
-    @CommandLine.Option(names = {"--b", "--branch"}, paramLabel = "...", descriptionKey = "branch", order = -2)
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", descriptionKey = "branch", order = -2)
     protected String branch;
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
