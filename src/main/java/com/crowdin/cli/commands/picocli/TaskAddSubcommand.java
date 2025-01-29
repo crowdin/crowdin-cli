@@ -32,7 +32,7 @@ class TaskAddSubcommand extends ActCommandTask {
     @CommandLine.Option(names = {"--file"}, paramLabel = "...", descriptionKey = "crowdin.task.add.file", order = -2)
     protected List<String> files;
 
-    @CommandLine.Option(names = {"--b", "--branch"}, paramLabel = "...", descriptionKey = "branch", order = -2)
+    @CommandLine.Option(names = {"-b", "--branch"}, paramLabel = "...", descriptionKey = "branch", order = -2)
     protected String branch;
 
     @CommandLine.Option(names = {"--workflow-step"}, paramLabel = "...", descriptionKey = "crowdin.task.add.workflow-step", order = -2)
