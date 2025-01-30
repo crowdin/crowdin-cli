@@ -17,7 +17,7 @@ public interface ClientBundle extends Client {
 
     URL downloadBundle(Long id, String exportId);
 
-    BundleExport startExportingBundle(Long id);
+    BundleExport startExportingBundle(Long id) throws ResponseException;
 
     BundleExport checkExportingBundle(Long tmId, String exportId);
 

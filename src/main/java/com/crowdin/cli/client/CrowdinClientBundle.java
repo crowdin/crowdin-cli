@@ -1,12 +1,16 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.bundles.model.AddBundleRequest;
 import com.crowdin.client.bundles.model.Bundle;
 import com.crowdin.client.bundles.model.BundleExport;
 import lombok.SneakyThrows;
 
 import java.net.URL;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.function.BiPredicate;
 
 public class CrowdinClientBundle extends CrowdinClientCore implements ClientBundle {
 
@@ -46,10 +50,22 @@ public class CrowdinClientBundle extends CrowdinClientCore implements ClientBund
     }
 
     @Override
-    public BundleExport startExportingBundle(Long id) {
-        return executeRequest(() -> this.client.getBundlesApi()
+    public BundleExport startExportingBundle(Long id) throws ResponseException {
+        Map<BiPredicate<String, String>, ResponseException> errorHandler = new LinkedHashMap<>() {{
+            put((code, message) -> message.contains("Another export is currently in progress. Please wait until it's finished."),
+                new RepeatException("Another export is currently in progress. Please wait until it's finished."));
+            put((code, message) -> Utils.isServerErrorCode(code), new RepeatException("Server Error"));
+            put((code, message) -> message.contains("Request aborted"), new RepeatException("Request aborted"));
+            put((code, message) -> message.contains("Connection reset"), new RepeatException("Connection reset"));
+        }};
+        return executeRequestWithPossibleRetries(
+            errorHandler,
+            () -> this.client.getBundlesApi()
                 .exportBundle(Long.valueOf(projectId), id)
-                .getData());
+                .getData(),
+            3,
+            3 * 1000
+        );
     }
 
     @Override

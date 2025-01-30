@@ -437,7 +437,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                     }
                     ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
                 } catch (MaxNumberOfRetriesException e) {
-                    ConsoleSpinner.stop(WARNING, RESOURCE_BUNDLE.getString("message.warning.another_build_in_progress"));
+                    ConsoleSpinner.stop(WARNING, String.format(RESOURCE_BUNDLE.getString("message.warning.maximum_retries_exceeded"), 3));
                 }
                 return build;
             }
