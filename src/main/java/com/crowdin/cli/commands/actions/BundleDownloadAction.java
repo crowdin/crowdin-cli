@@ -114,7 +114,7 @@ public class BundleDownloadAction implements NewAction<ProjectProperties, Client
 
                         ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.building_bundle_percents"), 100));
                     } catch (MaxNumberOfRetriesException e) {
-                        ConsoleSpinner.stop(WARNING, RESOURCE_BUNDLE.getString("message.warning.maximum_retries_exceeded"));
+                        ConsoleSpinner.stop(WARNING, String.format(RESOURCE_BUNDLE.getString("message.warning.maximum_retries_exceeded"), 3));
                     }
                     return status;
                 }

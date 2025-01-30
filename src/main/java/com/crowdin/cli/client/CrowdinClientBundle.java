@@ -52,6 +52,8 @@ public class CrowdinClientBundle extends CrowdinClientCore implements ClientBund
     @Override
     public BundleExport startExportingBundle(Long id) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorHandler = new LinkedHashMap<>() {{
+            put((code, message) -> message.contains("Another export is currently in progress. Please wait until it's finished."),
+                new RepeatException("Another export is currently in progress. Please wait until it's finished."));
             put((code, message) -> Utils.isServerErrorCode(code), new RepeatException("Server Error"));
             put((code, message) -> message.contains("Request aborted"), new RepeatException("Request aborted"));
             put((code, message) -> message.contains("Connection reset"), new RepeatException("Connection reset"));
