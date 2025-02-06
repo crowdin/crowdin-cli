@@ -6,7 +6,7 @@ description: Discover essential configuration tips and guidelines for the Crowdi
 
 Crowdin CLI uses a YAML configuration file that contains a description of the resources to manage: files to be uploaded into Crowdin and the locations of the corresponding translations.
 
-To use Crowdin CLI, you should first generate your configuration file and then run the tool. By default, Crowdin CLI looks for a configuration file named *crowdin.yaml* or *crowdin.yml* (so you don’t have to specify the file name unless it’s different from *crowdin.yaml*).
+To use Crowdin CLI, you should create your configuration file and then run the tool. By default, Crowdin CLI looks for a configuration file named `crowdin.yaml` or `crowdin.yml`.
 
 To create the configuration file run the following command:
 
@@ -14,10 +14,16 @@ To create the configuration file run the following command:
 crowdin init
 ```
 
-When calling Crowdin CLI in terminal make sure you are in your project root directory. Otherwise, you need to specify a configuration file path using  `--config` option:
+You'll be asked to authenticate with your Crowdin account and select the project you want to work with. The configuration file will then be created in the current directory.
+
+:::info
+Read more about the [crowdin init](commands/crowdin-init) command.
+:::
+
+When running the Crowdin CLI in a terminal, make sure you are in your project root directory. Otherwise you will need to specify a configuration file path using the `--config` option:
 
 ```bash
-crowdin upload sources --config /path/to/your/config/file
+crowdin upload sources --config /path/to/your/config/crowdin.yml
 ```
 
 ### Sample configuration file
@@ -47,7 +53,11 @@ crowdin upload sources --config /path/to/your/config/file
 | `base_url`   | Crowdin API base URL. Can be omitted for crowdin.com. For Crowdin Enterprise use the `https://{organization-name}.api.crowdin.com` |
 
 :::info
-For more information how to configure Crowdin CLI, check the [Configuration File](https://developer.crowdin.com/configuration-file/) article.
+For more information how to configure Crowdin CLI, check the [Configuration File](https://support.crowdin.com/developer/configuration-file/) article.
+:::
+
+:::caution
+If you need to commit the configuration file to the repository, be sure to exclude the `api_token` field from the configuration file and use environment variables instead.
 :::
 
 ## Environment Variables
@@ -86,24 +96,24 @@ The CLI will also **automatically** pick up the environment variables if they ar
 
 ## Split Project Configuration and API Credentials
 
-The `crowdin.yml` file contains a description of the resources to manage and API credentials (`project_id`, `api_token`, `base_path`, `base_url`).
+The `crowdin.yml` file contains a description of the resources to be managed and the API credentials (`project_id`, `api_token`, `base_path`, `base_url`).
 
-It means that it's unsafe to commit this file into the code repository because the API key would be accessible to other users. Crowdin CLI supports two types of configuration files:
+This means that it's **not safe to commit** this file to the code repository because the API key would be accessible to other users. The Crowdin CLI supports two types of configuration files:
 
-- a description of the resources to manage, residing in the project directory
-- API credentials, probably residing in `$HOME/.crowdin.yml`
+- A description of the resources to be managed, located in the project directory.
+- API credentials (default path is `$HOME/.crowdin.yml`).
 
 :::note
-API credentials from the `.crowdin.yml` configuration file have higher priority than credentials from the project directory(`crowdin.yml`).
+API credentials from the `.crowdin.yml` configuration file have priority over credentials from the project directory (`crowdin.yml`).
 :::
 
-If you need to run a command with user-specific credentials (for example, `upload sources`), run the following command:
+If you need to run a command with user-specific credentials file, run the following command:
 
 ```bash
-crowdin upload sources --identity 'path-to-user-credentials-file'
+crowdin upload sources --identity 'path/to/user/credentials/file.yml'
 ```
 
-But if user-specific credentials file residing in `$HOME/.crowdin.yml` you can run:
+But if you have a user-specific credentials file located in `$HOME/.crowdin.yml` you can run:
 
 ```bash
 crowdin upload sources
@@ -111,5 +121,5 @@ crowdin upload sources
 
 ## Further Reading
 
-- [Configuration File](https://developer.crowdin.com/configuration-file/)
+- [Configuration File](https://support.crowdin.com/developer/configuration-file/)
 - [Commands](/commands/crowdin)
