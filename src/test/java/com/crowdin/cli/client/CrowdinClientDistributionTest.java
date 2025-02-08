@@ -22,10 +22,11 @@ public class CrowdinClientDistributionTest {
     private static final long projectId = 42;
     private static final String preUrl = "https://testme.crowdin.com";
     private static final String url = "https://testme.crowdin.com/api/v2";
+    private static final String hash = "hash";
 
     private static final String listDistributionUrl = String.format("%s/projects/%s/distributions", url, projectId);
     private static final String addDistributionUrl = String.format("%s/projects/%s/distributions", url, projectId);
-
+    private static final String editDistributionUrl = String.format("%s/projects/%s/distributions/%s", url, projectId, hash);
 
     @BeforeEach
     public void init() {
@@ -67,4 +68,17 @@ public class CrowdinClientDistributionTest {
         verifyNoMoreInteractions(httpClientMock);
     }
 
+    @Test
+    public void testEditDistribution() {
+        DistributionResponseObject response = new DistributionResponseObject() {{
+            setData(new Distribution());
+        }};
+        when(httpClientMock.patch(eq(editDistributionUrl), any(), any(), eq(DistributionResponseObject.class)))
+                .thenReturn(response);
+
+        client.editDistribution(hash, new ArrayList<>());
+
+        verify(httpClientMock).patch(eq(editDistributionUrl), any(), any(), eq(DistributionResponseObject.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
 }

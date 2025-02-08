@@ -67,6 +67,7 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
             List<String> notExistingFiles = files.stream()
                                                  .map(file -> branch == null ? file : Paths.get(branch, file).toString())
                                                  .map(Utils::sepAtStart)
+                                                 .map(Utils::toUnixPath)
                                                  .filter(file -> !projectFiles.contains(file))
                                                  .toList();
             if (!notExistingFiles.isEmpty()) {
@@ -76,7 +77,7 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
             }
             files = branch != null ? files.stream().map(file -> Paths.get(branch, file).toString())
                                           .collect(Collectors.toList()) : files;
-            files = files.stream().map(Utils::sepAtStart).collect(Collectors.toList());
+            files = files.stream().map(Utils::sepAtStart).map(Utils::toUnixPath).collect(Collectors.toList());
             fileIds = project
                     .getFiles()
                     .stream()

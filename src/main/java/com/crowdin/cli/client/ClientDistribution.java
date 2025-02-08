@@ -1,5 +1,6 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.distributions.model.*;
 
 import java.util.List;
@@ -19,4 +20,6 @@ public interface ClientDistribution extends Client {
     DistributionRelease getDistributionRelease(String hash);
 
     DistributionStringsBasedRelease getDistributionStringsBasedRelease(String hash);
+
+    Distribution editDistribution(String hash, List<PatchRequest> request);
 }

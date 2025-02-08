@@ -250,6 +250,7 @@ const sidebars = {
           items: [
             'commands/crowdin-distribution-list',
             'commands/crowdin-distribution-add',
+            'commands/crowdin-distribution-edit',
             'commands/crowdin-distribution-release',
           ]
         },

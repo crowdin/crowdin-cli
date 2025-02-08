@@ -66,8 +66,8 @@ public class DistributionAddActionTest {
             projectBuilder.addBranches(branchId, branch);
         }
         Optional.ofNullable(fileIds).ifPresent(ids -> new ArrayList<>(ids).forEach(
-                f -> projectBuilder.addFile(Utils.sepAtStart(Paths.get(Optional.ofNullable(branch).orElse(""),
-                                                                       files.get(ids.indexOf(f))).toString()),
+                f -> projectBuilder.addFile(Utils.toUnixPath(Utils.toUnixPath(Utils.sepAtStart(Paths.get(Optional.ofNullable(branch).orElse(""),
+                                                                       files.get(ids.indexOf(f))).toString()))),
                                             "gettext", f, null, branchId,
                                             "/%original_file_name%-CR-%locale%")));
 

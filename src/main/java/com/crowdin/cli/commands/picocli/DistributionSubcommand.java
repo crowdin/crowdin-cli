@@ -7,6 +7,7 @@ import picocli.CommandLine;
     subcommands = {
         DistributionAddSubcommand.class,
         DistributionListSubcommand.class,
+        DistributionEditSubcommand.class,
         DistributionReleaseSubcommand.class
     }
 )

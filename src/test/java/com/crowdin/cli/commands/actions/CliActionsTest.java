@@ -118,6 +118,11 @@ public class CliActionsTest {
     }
 
     @Test
+    public void testDistributionEdit() {
+        assertNotNull(actions.distributionEdit(null, false, false, null, null, null, null, null));
+    }
+
+    @Test
     public void testDistributionRelease() {
         assertNotNull(actions.distributionRelease(false,true, null));
     }

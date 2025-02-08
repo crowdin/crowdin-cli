@@ -188,6 +188,11 @@ public class CliActions implements Actions {
     }
 
     @Override
+    public NewAction<ProjectProperties, ClientDistribution> distributionEdit(String hash, boolean noProgress, boolean plainView, String name, ExportMode exportMode, List<String> files, List<Integer> bundleIds, String branch) {
+        return new DistributionEditAction(hash, noProgress, plainView, name, exportMode, files, bundleIds, branch);
+    }
+
+    @Override
     public NewAction<ProjectProperties, ClientDistribution> distributionRelease(boolean noProgress, boolean plainView, String hash) {
         return new DistributionReleaseAction(noProgress, plainView, hash);
     }
