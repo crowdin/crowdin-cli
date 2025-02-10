@@ -21,7 +21,7 @@ public class PropertiesBuilderTest {
 
     private TempProject tempProject;
 
-    private PropertiesBuilders propertiesBuilders = new PropertiesBuilders();
+    private PropertiesBuilders propertiesBuilders = new PropertiesBuilders(false);
     private Outputter out = Outputter.getDefault();
 
     @BeforeEach
