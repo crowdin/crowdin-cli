@@ -80,10 +80,9 @@ public class PropertiesBuilders {
     }
 
     private Map<String, Object> loadAndLog(File file, Outputter out, String messageTemplate) {
-        var res = FileUtils.readYamlFile(file);
         if (isVerbose) {
             out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString(messageTemplate), file.getAbsolutePath())));
         }
-        return res;
+        return FileUtils.readYamlFile(file);
     }
 }
