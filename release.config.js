@@ -148,7 +148,8 @@ module.exports = {
           "package.json",
           "package-lock.json",
           "packages/aur/pkgbuild/PKGBUILD",
-          "packages/chocolatey/*",
+          "packages/chocolatey/crowdin-cli.nuspec",
+          "packages/chocolatey/tools/chocolateyinstall.ps1",
           "packages/exe/CrowdinCLIInstaller.iss",
           "CHANGELOG.md"
         ],
