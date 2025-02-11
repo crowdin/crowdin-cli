@@ -149,7 +149,7 @@ public class DistributionAddActionTest {
 
         try (var mocked = mockStatic(GenericActCommand.class)) {
             mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
-            action = new DistributionAddAction(true, true, "My Distribution 1", ExportMode.BUNDLE, null, Arrays.asList(9), "main");
+            action = new DistributionAddAction(true, true, "My Distribution 1", null, null, Arrays.asList(9), "main");
             action.act(Outputter.getDefault(), pb, client);
             verify(client).addDistributionStringsBased(request);
             verifyNoMoreInteractions(client);

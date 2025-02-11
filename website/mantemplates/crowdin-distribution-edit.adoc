@@ -15,4 +15,4 @@ include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-options]
 
 include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
 
-See the link:/crowdin-cli/commands/crowdin-bundle-list[`crowdin bundle list` command] to get the list of bundles including their hashes.
+See the link:/crowdin-cli/commands/crowdin-distribution-list[`crowdin distribution list` command] to get the list of distributions including their hashes.

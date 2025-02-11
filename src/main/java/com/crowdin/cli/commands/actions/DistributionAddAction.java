@@ -53,6 +53,10 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
         );
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
+        if (isStringsBasedProject && exportMode != null) {
+            throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.distribution.strings_based_export_mode"));
+        }
+
         List<Long> fileIds = null;
         if (files != null) {
             if (isStringsBasedProject) {
