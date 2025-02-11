@@ -10,10 +10,13 @@ import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.client.distributions.model.Distribution;
 import com.crowdin.client.distributions.model.DistributionRelease;
 import com.crowdin.client.distributions.model.DistributionStringsBasedRelease;
 import com.crowdin.client.projectsgroups.model.Type;
 import org.junit.jupiter.api.Test;
+
+import java.util.ArrayList;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
@@ -33,6 +36,11 @@ public class DistributionReleaseActionTest {
         ClientDistribution client = mock(ClientDistribution.class);
         ProjectClient projectClient = mock(ProjectClient.class);
         CrowdinProjectInfo projectInfo = mock(CrowdinProjectInfo.class);
+        when(client.listDistribution()).thenReturn(new ArrayList<>(){{
+            add(new Distribution() {{
+                setHash(HASH);
+            }});
+        }});
         when(projectInfo.getType())
             .thenReturn(Type.FILES_BASED);
         when(projectClient.downloadProjectInfo())
@@ -45,6 +53,7 @@ public class DistributionReleaseActionTest {
             mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
             action = new DistributionReleaseAction(true, true, HASH);
             action.act(Outputter.getDefault(), pb, client);
+            verify(client).listDistribution();
             verify(client).release(HASH);
             mocked.verify(() -> GenericActCommand.getProjectClient(pb));
         }
@@ -59,6 +68,11 @@ public class DistributionReleaseActionTest {
         ClientDistribution client = mock(ClientDistribution.class);
         ProjectClient projectClient = mock(ProjectClient.class);
         CrowdinProjectInfo projectInfo = mock(CrowdinProjectInfo.class);
+        when(client.listDistribution()).thenReturn(new ArrayList<>(){{
+            add(new Distribution() {{
+                setHash(HASH);
+            }});
+        }});
         when(projectInfo.getType())
             .thenReturn(Type.FILES_BASED);
         when(projectClient.downloadProjectInfo())
@@ -72,6 +86,7 @@ public class DistributionReleaseActionTest {
             mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
             action = new DistributionReleaseAction(true, true, HASH);
             assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+            verify(client).listDistribution();
             verify(client).release(HASH);
             verify(client).getDistributionRelease(HASH);
             mocked.verify(() -> GenericActCommand.getProjectClient(pb));
@@ -87,6 +102,11 @@ public class DistributionReleaseActionTest {
         ClientDistribution client = mock(ClientDistribution.class);
         ProjectClient projectClient = mock(ProjectClient.class);
         CrowdinProjectInfo projectInfo = mock(CrowdinProjectInfo.class);
+        when(client.listDistribution()).thenReturn(new ArrayList<>(){{
+            add(new Distribution() {{
+                setHash(HASH);
+            }});
+        }});
         when(projectInfo.getType())
             .thenReturn(Type.STRINGS_BASED);
         when(projectClient.downloadProjectInfo())
@@ -99,6 +119,7 @@ public class DistributionReleaseActionTest {
             mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
             action = new DistributionReleaseAction(true, true, HASH);
             action.act(Outputter.getDefault(), pb, client);
+            verify(client).listDistribution();
             verify(client).releaseStringsBased(HASH);
             mocked.verify(() -> GenericActCommand.getProjectClient(pb));
         }

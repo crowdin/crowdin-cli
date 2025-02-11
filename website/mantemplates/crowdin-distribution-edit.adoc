@@ -1,0 +1,18 @@
+:includedir: ../generated-picocli-docs
+:command: crowdin-distribution-edit
+
+== crowdin distribution edit
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-description]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-synopsis]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-arguments]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-commands]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-options]
+
+include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
+
+See the link:/crowdin-cli/commands/crowdin-distribution-list[`crowdin distribution list` command] to get the list of distributions including their hashes.

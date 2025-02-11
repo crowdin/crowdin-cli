@@ -66,8 +66,8 @@ public class DistributionAddActionTest {
             projectBuilder.addBranches(branchId, branch);
         }
         Optional.ofNullable(fileIds).ifPresent(ids -> new ArrayList<>(ids).forEach(
-                f -> projectBuilder.addFile(Utils.sepAtStart(Paths.get(Optional.ofNullable(branch).orElse(""),
-                                                                       files.get(ids.indexOf(f))).toString()),
+                f -> projectBuilder.addFile(Utils.toUnixPath(Utils.toUnixPath(Utils.sepAtStart(Paths.get(Optional.ofNullable(branch).orElse(""),
+                                                                       files.get(ids.indexOf(f))).toString()))),
                                             "gettext", f, null, branchId,
                                             "/%original_file_name%-CR-%locale%")));
 
@@ -149,7 +149,7 @@ public class DistributionAddActionTest {
 
         try (var mocked = mockStatic(GenericActCommand.class)) {
             mocked.when(() -> GenericActCommand.getProjectClient(pb)).thenReturn(projectClient);
-            action = new DistributionAddAction(true, true, "My Distribution 1", ExportMode.BUNDLE, null, Arrays.asList(9), "main");
+            action = new DistributionAddAction(true, true, "My Distribution 1", null, null, Arrays.asList(9), "main");
             action.act(Outputter.getDefault(), pb, client);
             verify(client).addDistributionStringsBased(request);
             verifyNoMoreInteractions(client);

@@ -1,5 +1,6 @@
 package com.crowdin.cli.client;
 
+import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.distributions.model.*;
 
 import java.util.List;
@@ -59,6 +60,13 @@ public class CrowdinClientDistribution extends CrowdinClientCore implements Clie
     public DistributionStringsBasedRelease getDistributionStringsBasedRelease(String hash) {
         return executeRequest(() -> this.client.getDistributionsApi()
                                                .getDistributionStringsBasedRelease(Long.valueOf(projectId), hash)
+                                               .getData());
+    }
+
+    @Override
+    public Distribution editDistribution(String hash, List<PatchRequest> request) {
+        return executeRequest(() -> this.client.getDistributionsApi()
+                                               .editDistribution(Long.valueOf(projectId), hash, request)
                                                .getData());
     }
 }
