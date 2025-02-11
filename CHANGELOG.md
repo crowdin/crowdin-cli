@@ -1,5 +1,19 @@
 # Changelog
 
+# [4.6.0](https://github.com/crowdin/crowdin-cli/compare/4.5.2...4.6.0) (2025-02-11)
+
+
+### Bug Fixes
+
+* branch alias for 'distribution add' and 'task add' commands ([#892](https://github.com/crowdin/crowdin-cli/issues/892)) ([a5467bd](https://github.com/crowdin/crowdin-cli/commit/a5467bd8a99e6dc22e89c35feedc9479a59218e6))
+
+
+### Features
+
+* bundle download retries on fail ([#893](https://github.com/crowdin/crowdin-cli/issues/893)) ([f84237a](https://github.com/crowdin/crowdin-cli/commit/f84237a57b2f57df7496d8814b928be99d23af73))
+* distribution edit command ([#897](https://github.com/crowdin/crowdin-cli/issues/897)) ([815df9a](https://github.com/crowdin/crowdin-cli/commit/815df9a16d6347e42604de663aa40ccb488a6927))
+* print config file location ([#898](https://github.com/crowdin/crowdin-cli/issues/898)) ([2919455](https://github.com/crowdin/crowdin-cli/commit/2919455d9f7590e14338995a7f0a565da19b15ea))
+
 ## [4.5.2](https://github.com/crowdin/crowdin-cli/compare/4.5.1...4.5.2) (2025-01-24)
 
 
