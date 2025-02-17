@@ -85,5 +85,6 @@ public class ProjectFilesUtilsTest {
         assertEquals(file1, ProjectFilesUtils.fileLookup(file1, Map.of(file1, file1, file2, file2)));
         assertEquals(file2, ProjectFilesUtils.fileLookup(file1, Map.of(file2, file2, file3, file3)));
         assertNull(ProjectFilesUtils.fileLookup(file3, Map.of(file1, file1, file2, file2)));
+        assertNull(ProjectFilesUtils.fileLookup("path/to/test", Map.of(file1, file1, file2, file2)));
     }
 }
