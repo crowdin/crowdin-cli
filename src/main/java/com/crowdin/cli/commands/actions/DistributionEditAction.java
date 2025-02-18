@@ -60,7 +60,7 @@ class DistributionEditAction implements NewAction<ProjectProperties, ClientDistr
             .findFirst();
 
         if (foundDistribution.isEmpty()) {
-            throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.distribution.not_found"), hash));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.distribution.not_found"), hash));
         }
         String existingExportMode = foundDistribution.get().getExportMode();
 

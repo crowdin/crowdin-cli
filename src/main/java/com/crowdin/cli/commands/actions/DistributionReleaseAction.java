@@ -38,7 +38,7 @@ class DistributionReleaseAction implements NewAction<ProjectProperties, ClientDi
             .findFirst();
 
         if (foundDistribution.isEmpty()) {
-            throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.distribution.not_found"), hash));
+            throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.distribution.not_found"), hash));
         }
 
         CrowdinProjectInfo project = ConsoleSpinner.execute(
