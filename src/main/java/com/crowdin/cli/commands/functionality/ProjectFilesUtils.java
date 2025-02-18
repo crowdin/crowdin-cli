@@ -54,6 +54,9 @@ public class ProjectFilesUtils {
     }
 
     public static String removeExtension(String file) {
+        if (!file.contains(".")) {
+            return file;
+        }
         return file.substring(0, file.lastIndexOf('.'));
     }
 
