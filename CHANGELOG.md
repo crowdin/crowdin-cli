@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.6.1](https://github.com/crowdin/crowdin-cli/compare/4.6.0...4.6.1) (2025-02-18)
+
+
+### Bug Fixes
+
+* distribution not found exit code ([#901](https://github.com/crowdin/crowdin-cli/issues/901)) ([c57e636](https://github.com/crowdin/crowdin-cli/commit/c57e636a8e84e203791828e19b6d99280e33244c))
+* file lookup error ([#900](https://github.com/crowdin/crowdin-cli/issues/900)) ([0259427](https://github.com/crowdin/crowdin-cli/commit/0259427c5440185a1ca13a2b76a72e064150faae))
+
 # [4.6.0](https://github.com/crowdin/crowdin-cli/compare/4.5.2...4.6.0) (2025-02-11)
 
 
