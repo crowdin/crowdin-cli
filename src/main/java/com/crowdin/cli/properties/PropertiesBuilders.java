@@ -14,9 +14,11 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 public class PropertiesBuilders {
 
     private final boolean isVerbose;
+    private final boolean isPlain;
 
-    public PropertiesBuilders(boolean isVerbose) {
+    public PropertiesBuilders(boolean isVerbose, boolean isPlain) {
         this.isVerbose = isVerbose;
+        this.isPlain = isPlain;
     }
 
     public PropertiesWithFiles buildPropertiesWithFiles(Outputter out, File configFile, File identityFile, ParamsWithFiles params) {
@@ -80,7 +82,7 @@ public class PropertiesBuilders {
     }
 
     private Map<String, Object> loadAndLog(File file, Outputter out, String messageTemplate) {
-        if (isVerbose) {
+        if (isVerbose && !isPlain) {
             out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString(messageTemplate), file.getAbsolutePath())));
         }
         return FileUtils.readYamlFile(file);
