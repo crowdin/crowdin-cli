@@ -11,6 +11,7 @@ import com.crowdin.client.core.model.DownloadLinkResponseObject;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.languages.model.LanguageResponseList;
 import com.crowdin.client.languages.model.LanguageResponseObject;
+import com.crowdin.client.machinetranslationengines.model.MachineTranslationResponseObject;
 import com.crowdin.client.projectsgroups.model.AddProjectRequest;
 import com.crowdin.client.projectsgroups.model.Project;
 import com.crowdin.client.projectsgroups.model.ProjectResponseObject;
@@ -78,6 +79,7 @@ public class CrowdinProjectClientTest {
     private static final String languageId = "uk";
     private static final long buildId = 62;
     private static final long stringId = 52;
+    private static final long mtId = 21;
     private static final String downloadUrl = "https://downloadme.crowdin.com";
     private static final String downloadUrlMalformed = "https";
 
@@ -112,6 +114,8 @@ public class CrowdinProjectClientTest {
         String.format("%s/projects/%d/translations/builds/%d", url, projectId, buildId);
     private static final String downloadBuildUrl =
         String.format("%s/projects/%d/translations/builds/%d/download", url, projectId, buildId);
+    private static final String getMtUrl =
+        String.format("%s/mts/%d", url, mtId);
 
     private static final String addSourceStringUrl =
         String.format("%s/projects/%d/strings", url, projectId);
@@ -466,6 +470,18 @@ public class CrowdinProjectClientTest {
         client.checkBuildingTranslation(this.buildId);
 
         verify(httpClientMock).get(eq(checkBuildingTranslationUrl), any(), eq(ProjectBuildResponseObject.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
+    @Test
+    public void testGetMt() throws ResponseException {
+        MachineTranslationResponseObject response = new MachineTranslationResponseObject();
+        when(httpClientMock.get(eq(getMtUrl), any(), eq(MachineTranslationResponseObject.class)))
+            .thenReturn(response);
+
+        client.getMt(mtId);
+
+        verify(httpClientMock).get(eq(getMtUrl), any(), eq(MachineTranslationResponseObject.class));
         verifyNoMoreInteractions(httpClientMock);
     }
 
