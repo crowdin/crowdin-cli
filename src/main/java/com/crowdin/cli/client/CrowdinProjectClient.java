@@ -9,6 +9,7 @@ import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.machinetranslationengines.model.MachineTranslation;
 import com.crowdin.client.projectsgroups.model.AddProjectRequest;
 import com.crowdin.client.projectsgroups.model.Project;
 import com.crowdin.client.projectsgroups.model.ProjectSettings;
@@ -518,6 +519,16 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return executeRequest(() -> this.client.getTranslationsApi()
             .preTranslationStatus(this.projectId, preTranslationId)
             .getData());
+    }
+
+    @Override
+    public MachineTranslation getMt(Long mtId) throws ResponseException {
+        Map<BiPredicate<String, String>, ResponseException> errorHandler = new LinkedHashMap<>() {{
+            put((code, message) -> code.equals("403") && message.contains("Endpoint isn't allowed for token scopes"),
+                new ResponseException("Unable to retrieve MT due to insufficient token scopes"));
+        }};
+        return executeRequest(errorHandler, () -> this.client.getMachineTranslationEnginesApi().getMt(mtId))
+            .getData();
     }
 
     @Override
