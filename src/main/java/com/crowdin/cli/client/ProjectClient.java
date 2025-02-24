@@ -7,6 +7,7 @@ import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.machinetranslationengines.model.MachineTranslation;
 import com.crowdin.client.projectsgroups.model.AddProjectRequest;
 import com.crowdin.client.projectsgroups.model.Project;
 import com.crowdin.client.sourcefiles.model.*;
@@ -126,6 +127,8 @@ public interface ProjectClient extends Client {
     PreTranslationStatus startPreTranslationStringsBased(ApplyPreTranslationStringsBasedRequest request);
 
     PreTranslationStatus checkPreTranslation(String preTranslationId);
+
+    MachineTranslation getMt(Long mtId) throws ResponseException;
 
     String getProjectUrl();
 
