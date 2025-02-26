@@ -4,6 +4,7 @@ import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.CrowdinProjectInfo;
 import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
@@ -13,6 +14,7 @@ import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.machinetranslationengines.model.MachineTranslation;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
@@ -24,6 +26,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 @AllArgsConstructor
@@ -50,7 +53,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                 this.noProgress, this.plainView, () -> client.downloadFullProject(this.branchName));
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
-        List<String> languages = this.prepareLanguageIds(project);
+        List<String> languages = this.prepareLanguageIds(project, client, out);
         List<Long> labelIds = this.prepareLabelIds(out, client);
 
         if (isStringsBasedProject) {
@@ -121,23 +124,35 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         }
     }
 
-    private List<String> prepareLanguageIds(CrowdinProjectInfo projectInfo) {
+    private List<String> prepareLanguageIds(CrowdinProjectInfo projectInfo, ProjectClient client, Outputter out) {
         List<String> projectLanguages = projectInfo.getProjectLanguages(false).stream()
                 .map(Language::getId)
                 .collect(Collectors.toList());
-        if (languageIds.size() == 1 && BaseCli.ALL.equalsIgnoreCase(languageIds.get(0))) {
-            return projectLanguages;
-        } else {
-            String wrongLanguageIds = languageIds.stream()
-                    .filter(langId -> !projectLanguages.contains(langId))
-                    .map(id -> "'" + id + "'")
-                    .collect(Collectors.joining(", "));
-            if (!wrongLanguageIds.isEmpty()) {
-                throw new ExitCodeExceptionMapper.NotFoundException(
-                        String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), wrongLanguageIds));
+        if (languageIds == null || (languageIds.size() == 1 && BaseCli.ALL.equalsIgnoreCase(languageIds.get(0)))) {
+            if (Method.MT.equals(method)) {
+                try {
+                    ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.validating_mt_languages"), this.noProgress);
+                    MachineTranslation mt = client.getMt(engineId);
+                    ConsoleSpinner.stop(OK, RESOURCE_BUNDLE.getString("message.spinner.validation_success"));
+                    Set<String> supportedMtLanguageIds = new HashSet<>(mt.getSupportedLanguageIds());
+                    return projectLanguages.stream()
+                        .filter(supportedMtLanguageIds::contains)
+                        .collect(Collectors.toList());
+                } catch (ResponseException e) {
+                    ConsoleSpinner.stop(WARNING, String.format(RESOURCE_BUNDLE.getString("message.spinner.validation_error"), e.getMessage()));
+                }
             }
-            return languageIds;
+            return projectLanguages;
         }
+        String wrongLanguageIds = languageIds.stream()
+            .filter(langId -> !projectLanguages.contains(langId))
+            .map(id -> "'" + id + "'")
+            .collect(Collectors.joining(", "));
+        if (!wrongLanguageIds.isEmpty()) {
+            throw new ExitCodeExceptionMapper.NotFoundException(
+                String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), wrongLanguageIds));
+        }
+        return languageIds;
     }
 
     private List<Long> prepareLabelIds(Outputter out, ProjectClient client) {

@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.PropertiesWithFiles;
@@ -10,9 +11,11 @@ import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.labels.model.Label;
+import com.crowdin.client.machinetranslationengines.model.MachineTranslation;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.translations.model.ApplyPreTranslationRequest;
 import com.crowdin.client.translations.model.ApplyPreTranslationStringsBasedRequest;
+import com.crowdin.client.translations.model.Method;
 import com.crowdin.client.translations.model.PreTranslationStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
@@ -164,6 +167,67 @@ class PreTranslateActionTest {
 
         verify(client).downloadFullProject(eq(branchName));
         verify(client).startPreTranslationStringsBased(eq(request));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testPreTranslate_MtMethodNoLanguages() throws ResponseException {
+        String fileName = "first.po";
+        String labelName = "label_1";
+        String branchName = "main";
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile(fileName, "gettext", 101L, null, 81L)
+            .addBranches(81L, branchName);
+        CrowdinProjectFull crowdinProjectFull = projectBuilder.build();
+        crowdinProjectFull.setType(Type.FILES_BASED);
+
+        Label label1 = new Label() {{
+            setId(91L);
+            setTitle(labelName);
+        }};
+        List<Label> labels = List.of(label1);
+
+        ApplyPreTranslationRequest request = new ApplyPreTranslationRequest() {{
+            setLabelIds(List.of(91L));
+            setMethod(Method.MT);
+            setEngineId(1L);
+            setFileIds(List.of(101L));
+            setLanguageIds(List.of("ua"));
+        }};
+        PreTranslationStatus preTransInProgress = new PreTranslationStatus() {{
+            setStatus("progress");
+            setProgress(10);
+            setIdentifier("121");
+        }};
+        PreTranslationStatus preTransFinished = new PreTranslationStatus() {{
+            setStatus("finished");
+            setIdentifier("121");
+        }};
+
+        ProjectClient client = mock(ProjectClient.class);
+        MachineTranslation mt = new MachineTranslation() {{
+            setSupportedLanguageIds(List.of("ua", "fr"));
+        }};
+
+        when(client.downloadFullProject(eq(branchName))).thenReturn(crowdinProjectFull);
+        when(client.getMt(1L)).thenReturn(mt);
+        when(client.startPreTranslation(eq(request))).thenReturn(preTransInProgress);
+        when(client.checkPreTranslation("121")).thenReturn(preTransFinished);
+        when(client.listLabels()).thenReturn(labels);
+
+        PreTranslateAction action = new PreTranslateAction(null, List.of(fileName), Method.MT, 1L, branchName, null,
+            null, null, null, null, false, false, List.of(labelName), null);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(eq(branchName));
+        verify(client).listLabels();
+        verify(client).getMt(eq(1L));
+        verify(client).startPreTranslation(eq(request));
+        verify(client).checkPreTranslation(eq("121"));
         verifyNoMoreInteractions(client);
     }
 }
