@@ -1,38 +1,40 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.MockitoUtils;
-import com.crowdin.cli.client.CrowdinProject;
+import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectBuilder;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.FilesInterface;
+import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
-import com.crowdin.cli.utils.console.ExecutionStatus;
-import org.apache.commons.lang3.StringUtils;
+import com.crowdin.client.projectsgroups.model.Type;
+import com.crowdin.client.sourcefiles.model.BuildReviewedSourceFilesRequest;
+import com.crowdin.client.sourcefiles.model.ReviewedStringsBuild;
 import org.hamcrest.Matchers;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.condition.DisabledOnOs;
 import org.junit.jupiter.api.condition.OS;
-import org.mockito.Mockito;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.ArrayList;
 
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 import static org.hamcrest.MatcherAssert.assertThat;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
@@ -52,19 +54,18 @@ public class DownloadSourcesActionTest {
     }
 
     @Test
-    public void testDest() throws IOException {
+    public void testDownloadSourcesAction() throws IOException {
         PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean(
-                "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
-                null, "/common/%original_file_name%")
+                "/strings.xml", "/values-%two_letters_code%/%original_file_name%",
+                null, null)
             .setBasePath(project.getBasePath())
             .build();
 
         ProjectClient client = mock(ProjectClient.class);
         when(client.downloadFullProject(null))
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                .addDirectory("common", 201L, null, null)
-                .addFile("strings.xml", "gettext", 101L, 201L, null, "/values-%two_letters_code%/%original_file_name%").build());
+                .addFile("strings.xml", "gettext", 101L, null, null, "/values-%two_letters_code%/%original_file_name%").build());
         URL urlMock = MockitoUtils.getMockUrl(getClass());
         when(client.downloadFile(eq(101L)))
             .thenReturn(urlMock);
@@ -79,8 +80,58 @@ public class DownloadSourcesActionTest {
         verify(client).downloadFile(eq(101L));
         verifyNoMoreInteractions(client);
 
-        verify(files).writeToFile(eq(Utils.joinPaths(project.getBasePath(), "values/strings.xml")), any());
+        verify(files).writeToFile(eq(Utils.joinPaths(project.getBasePath(), "strings.xml")), any());
         verifyNoMoreInteractions(files);
+    }
+
+    @Test
+    public void testDownloadSourcesAction_WithDestination() {
+        PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(
+                "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
+                null, "/common/%original_file_name%")
+            .setBasePath(project.getBasePath())
+            .build();
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject(null))
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
+        when(client.downloadFile(eq(101L)))
+            .thenReturn(urlMock);
+
+        FilesInterface files = mock(FilesInterface.class);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadSourcesAction(files, false, false, null, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(null);
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testDownloadSourcesAction_StringBased_ThrowsValidationException() {
+        PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(
+                "/values/strings.xml", "/values-%two_letters_code%/%original_file_name%",
+                null, "/common/%original_file_name%")
+            .setBasePath(project.getBasePath())
+            .build();
+
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .build();
+        build.setType(Type.STRINGS_BASED);
+        when(client.downloadFullProject(null))
+            .thenReturn(build);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadSourcesAction(null, false, false, null, true, false, false);
+        assertThrows(ExitCodeExceptionMapper.ValidationException.class, () -> action.act(Outputter.getDefault(), pb, client));
+
+        verify(client).downloadFullProject(null);
+        verifyNoMoreInteractions(client);
     }
 
     @Test
@@ -140,7 +191,7 @@ public class DownloadSourcesActionTest {
         FilesInterface files = mock(FilesInterface.class);
 
         NewAction<PropertiesWithFiles, ProjectClient> action =
-            new DownloadSourcesAction(files, false, false, null, true, false, false);
+            new DownloadSourcesAction(files, false, true, null, true, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(null);
@@ -348,7 +399,7 @@ public class DownloadSourcesActionTest {
     }
 
     @Test
-    public void testReviewedOnly() {
+    public void testReviewedOnly_NotEnterprise() {
         ByteArrayOutputStream outContent = new ByteArrayOutputStream();
         PrintStream ps = System.out;
         System.setOut(new PrintStream(outContent));
@@ -380,5 +431,49 @@ public class DownloadSourcesActionTest {
 
         client.downloadFullProject(null);
         assertEquals(warnMessage, outContent.toString());
+    }
+
+    @Test
+    public void testDownloadReviewedOnly() throws MalformedURLException {
+        ByteArrayOutputStream outContent = new ByteArrayOutputStream();
+        System.setOut(new PrintStream(outContent));
+        ReviewedStringsBuild build = new ReviewedStringsBuild() {{
+            setId(10L);
+            setProgress(40L);
+            setStatus("in_progress");
+        }};
+        ReviewedStringsBuild finishedBuild = new ReviewedStringsBuild() {{
+            setId(10L);
+            setStatus("finished");
+        }};
+
+        PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(
+                Utils.toUnixPath("/values/strings.xml"), Utils.toUnixPath("/values-%two_letters_code%/%original_file_name%"),
+                null, Utils.toUnixPath("/common/%original_file_name%"))
+            .setBasePath(project.getBasePath())
+            .build();
+        pb.setBaseUrl("https://companyname.crowdin.com");
+
+        FilesInterface files = mock(FilesInterface.class);
+        ProjectClient client = mock(ProjectClient.class);
+
+        when(client.downloadFullProject(null))
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                .addDirectory("common", 201L, null, null)
+                .addFile("strings.xml", "gettext", 101L, 201L, null, Utils.toUnixPath("/values-%two_letters_code%/%original_file_name%")).build());
+        when(client.startBuildingReviewedSources(eq(new BuildReviewedSourceFilesRequest()))).thenReturn(build);
+        when(client.checkBuildingReviewedSources(10L)).thenReturn(finishedBuild);
+        when(client.downloadReviewedSourcesBuild(10L)).thenReturn(new URL("https://companyname.crowdin.com"));
+
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadSourcesAction(files, false, false, null, true, true, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(null);
+        verify(client).startBuildingReviewedSources(any());
+        verify(client).checkBuildingReviewedSources(any());
+        verify(client).downloadReviewedSourcesBuild(any());
+        verifyNoMoreInteractions(client);
     }
 }
