@@ -334,7 +334,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     @Override
     public void uploadTranslations(String languageId, UploadTranslationsRequest request) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorhandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
-            put((code, message) -> code.equals("0") && message.equals("File is not allowed for language"),
+            put((code, message) -> code.equals("0") && message.equals("File is not allowed for the language specified"),
                 new WrongLanguageException());
             put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"),
                 new RepeatException("File not found in the storage"));
