@@ -1,5 +1,19 @@
 # Changelog
 
+# [4.7.0](https://github.com/crowdin/crowdin-cli/compare/4.6.1...4.7.0) (2025-03-31)
+
+
+### Bug Fixes
+
+* api exceptions messages ([#914](https://github.com/crowdin/crowdin-cli/issues/914)) ([9d5514e](https://github.com/crowdin/crowdin-cli/commit/9d5514e056c1c3d55a6141a544e683c747b2f451))
+* suppress config file location logs when --plain was provided ([#903](https://github.com/crowdin/crowdin-cli/issues/903)) ([4867d9e](https://github.com/crowdin/crowdin-cli/commit/4867d9eb4ecace1defd0a55dd96f5f9f92b9cc04))
+* throw error after retries fail ([#912](https://github.com/crowdin/crowdin-cli/issues/912)) ([6bcd602](https://github.com/crowdin/crowdin-cli/commit/6bcd602cd2f909710edb730b5a3e3b9eedc2f1c0))
+
+
+### Features
+
+* validate MT languages ([#904](https://github.com/crowdin/crowdin-cli/issues/904)) ([702f2a3](https://github.com/crowdin/crowdin-cli/commit/702f2a39fdc12524574c02cae2acfdc2deb8b2dc))
+
 ## [4.6.1](https://github.com/crowdin/crowdin-cli/compare/4.6.0...4.6.1) (2025-02-18)
 
 
