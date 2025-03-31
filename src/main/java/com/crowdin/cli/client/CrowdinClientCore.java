@@ -33,7 +33,7 @@ abstract class CrowdinClientCore {
                         (msg) -> new ExitCodeExceptionMapper.AuthorizationException(RESOURCE_BUNDLE.getString("error.response.401")));
                 put((code, message) -> code.equals("403") && message.contains("upgrade your subscription plan to upload more file formats"),
                         (msg) -> new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403_upgrade_subscription")));
-                put((code, message) -> code.equals("403") && !message.contains("Merge is possible only into main branch"),
+                put((code, message) -> code.equals("403") && !message.contains("Merge is only possible into the main branch"),
                         (msg) -> new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403")));
                 put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Project Not Found"),
                         (msg) -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_project_not_found")));
