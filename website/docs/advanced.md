@@ -168,6 +168,39 @@ Example of the configuration:
 ]
 ```
 
+### Argument File
+
+Crowdin CLI supports loading command-line arguments from a file.
+The arguments can be stored in a plain text file and be passed to the CLI using the `@filename` syntax.
+
+This can be useful when:
+- You have a long list of options
+- You want to reuse the same configuration
+- You want to avoid issues with escaping special characters (like quotes) on Windows shells (PowerShell, cmd.exe)
+
+#### How to use
+Create a text file containing the arguments you would normally type in the command line.
+Each argument must be separated by a new line.
+In your CLI command, reference the file using `@` followed by the filename.
+
+Example file (args.txt):
+```
+--branch feat
+--directory src
+```
+
+Run CLI using file:
+
+```bash
+crowdin string list @args.txt
+```
+
+For PowerShell:
+
+```powershell
+crowdin string list "@args.txt"
+```
+
 ### Multilingual Files
 
 For multilingual file formats (containing multiple languages in one file) you can use the `multilingual` option in the configuration. This option allows you to omit the language placeholders in the `translation` pattern:
