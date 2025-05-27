@@ -4,6 +4,7 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
@@ -43,14 +44,16 @@ class BranchEditAction implements NewAction<ProjectProperties, ProjectClient> {
         CrowdinProjectFull project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
                 this.noProgress, this.plainView, client::downloadFullProject);
 
-        Optional<Branch> branchObj = project.findBranchByName(this.branch);
+        String normalizedSource = BranchUtils.normalizeBranchName(branch);
+        Optional<Branch> branchObj = project.findBranchByName(normalizedSource);
         if (branchObj.isEmpty()) {
             throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.branch_not_exists"), this.branch));
         }
 
         List<PatchRequest> requests = new ArrayList<>();
         if (name != null) {
-            PatchRequest request = RequestBuilder.patch(name, PatchOperation.REPLACE, "/name");
+            String normalizedName = BranchUtils.normalizeBranchName(name);
+            PatchRequest request = RequestBuilder.patch(normalizedName, PatchOperation.REPLACE, "/name");
             requests.add(request);
         }
         if (title != null) {

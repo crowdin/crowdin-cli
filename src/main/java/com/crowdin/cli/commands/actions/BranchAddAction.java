@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchUtils;
 import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ExecutionStatus;
@@ -11,6 +12,7 @@ import com.crowdin.client.sourcefiles.model.Branch;
 import lombok.AllArgsConstructor;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -30,7 +32,9 @@ class BranchAddAction implements NewAction<ProjectProperties, ProjectClient> {
         Map<String, Long> branches = client.listBranches().stream()
             .collect(Collectors.toMap(Branch::getName, Branch::getId));
         if (!branches.containsKey(name)) {
-            Branch branch = client.addBranch(RequestBuilder.addBranch(name, title, exportPattern, priority));
+            String branchName = BranchUtils.normalizeBranchName(name);
+            String branchTitle = Objects.isNull(title) && !name.equals(branchName) ? name : title;
+            Branch branch = client.addBranch(RequestBuilder.addBranch(branchName, branchTitle, exportPattern, priority));
             if (!plainView) {
                 out.println(ExecutionStatus.OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.branch.list"), branch.getId(), branch.getName())));
             } else {

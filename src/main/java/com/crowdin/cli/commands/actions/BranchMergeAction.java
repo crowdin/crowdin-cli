@@ -4,6 +4,7 @@ import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.BranchUtils;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
@@ -41,12 +42,14 @@ class BranchMergeAction implements NewAction<ProjectProperties, ProjectClient> {
             throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.string_based_only"));
         }
 
-        Optional<Branch> sourceBranch = project.findBranchByName(source);
+        String normalizedSource = BranchUtils.normalizeBranchName(source);
+        Optional<Branch> sourceBranch = project.findBranchByName(normalizedSource);
         if (sourceBranch.isEmpty()) {
             throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.branch_not_exists"), source));
         }
 
-        Optional<Branch> targetBranch = project.findBranchByName(target);
+        String normalizedTarget = BranchUtils.normalizeBranchName(target);
+        Optional<Branch> targetBranch = project.findBranchByName(normalizedTarget);
         if (targetBranch.isEmpty()) {
             throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.branch_not_exists"), target));
         }
