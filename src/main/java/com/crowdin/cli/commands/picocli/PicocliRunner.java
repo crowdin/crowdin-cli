@@ -58,7 +58,8 @@ public class PicocliRunner {
             .setExecutionExceptionHandler(executionExceptionHandler)
             .setColorScheme(colorScheme)
             .setCaseInsensitiveEnumValuesAllowed(true)
-            .setExitCodeExceptionMapper(ExitCodeExceptionMapper::getExitCode);
+            .setExitCodeExceptionMapper(ExitCodeExceptionMapper::getExitCode)
+            .setExpandAtFiles(true);
         HelpCommand.setOptions(commandLine, System.out, colorScheme);
     }
 
