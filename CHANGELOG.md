@@ -1,5 +1,12 @@
 # Changelog
 
+## [4.7.1](https://github.com/crowdin/crowdin-cli/compare/4.7.0...4.7.1) (2025-06-05)
+
+
+### Bug Fixes
+
+* add normalize support to branch commands ([#920](https://github.com/crowdin/crowdin-cli/issues/920)) ([fb9b47b](https://github.com/crowdin/crowdin-cli/commit/fb9b47b778d2edfa06703805560f034f7f1ee937))
+
 # [4.7.0](https://github.com/crowdin/crowdin-cli/compare/4.6.1...4.7.0) (2025-03-31)
 
 
