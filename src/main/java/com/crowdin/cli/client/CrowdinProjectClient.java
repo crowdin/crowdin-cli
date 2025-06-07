@@ -21,6 +21,7 @@ import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.StringComment;
 import com.crowdin.client.translations.model.*;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
+import com.crowdin.client.users.model.User;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
 import org.json.JSONArray;
@@ -580,5 +581,12 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             return Optional.empty();
         }
         return Optional.ofNullable(JSONObject.class.cast(apps.get(0)).get("manifest").toString());
+    }
+
+    @Override
+    public User getAuthenticatedUser() {
+        return executeRequest(() -> this.client.getUsersApi()
+                .getAuthenticatedUser()
+                .getData());
     }
 }

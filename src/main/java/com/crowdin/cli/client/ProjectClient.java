@@ -16,6 +16,7 @@ import com.crowdin.client.stringcomments.model.AddStringCommentRequest;
 import com.crowdin.client.stringcomments.model.StringComment;
 import com.crowdin.client.translations.model.*;
 import com.crowdin.client.translationstatus.model.LanguageProgress;
+import com.crowdin.client.users.model.User;
 
 import java.io.InputStream;
 import java.net.URL;
@@ -143,4 +144,6 @@ public interface ProjectClient extends Client {
     void installApplication(String url);
 
     Optional<String> findManifestUrl(String id);
+
+    User getAuthenticatedUser();
 }
