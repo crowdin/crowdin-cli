@@ -54,7 +54,11 @@ public class InitActionTest {
         }
 
         @Override
-        protected void verifyAuth(Map<String, String> values) {
+        protected void verifyAuth(Outputter outputter, Map<String, String> values) {
+        }
+
+        @Override
+        protected void listProjects(Outputter out, Map<String, String> values) {
         }
     }
 

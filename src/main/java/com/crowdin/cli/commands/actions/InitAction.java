@@ -13,6 +13,7 @@ import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.cli.utils.http.OAuthUtil;
+import com.crowdin.client.projectsgroups.model.Project;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.apache.commons.lang3.StringUtils;
@@ -150,7 +151,7 @@ class InitAction implements NewAction<NoProperties, NoClient> {
                     if (StringUtils.isNotEmpty(organizationName)) {
                         if (PropertiesBeanUtils.isUrlValid(organizationName)) {
                             String realOrganizationName = PropertiesBeanUtils.getOrganization(organizationName);
-                            System.out.println(String.format(RESOURCE_BUNDLE.getString("message.extracted_organization_name"), realOrganizationName));
+                            out.println(String.format(RESOURCE_BUNDLE.getString("message.extracted_organization_name"), realOrganizationName));
                             values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, realOrganizationName));
                         } else {
                             values.put(BASE_URL, String.format(BASE_ENTERPRISE_URL_DEFAULT, PropertiesBeanUtils.getOrganization(organizationName)));
@@ -171,11 +172,19 @@ class InitAction implements NewAction<NoProperties, NoClient> {
             }
         }
 
-        this.verifyAuth(values);
+        this.verifyAuth(out, values);
 
         boolean projectIdSpecified = nonNull(projectId);
+        boolean printProjects = true;
+
         while (true) {
-            String projectIdToSet = projectIdSpecified ? projectId : asking.askParam(PROJECT_ID);
+            if (!projectIdSpecified && printProjects) {
+                this.listProjects(out, values);
+                printProjects = false;
+            }
+            String projectIdToSet = projectIdSpecified
+                    ? projectId
+                    : asking.ask(RESOURCE_BUNDLE.getString("message.ask_project_id"));
             if (projectIdToSet.isEmpty()) {
                 break;
             } else if (StringUtils.isNumeric(projectIdToSet)) {
@@ -184,32 +193,44 @@ class InitAction implements NewAction<NoProperties, NoClient> {
             } else {
                 projectIdSpecified = false;
                 values.remove(PROJECT_ID);
-                System.out.println(String.format(RESOURCE_BUNDLE.getString("error.init.project_id_is_not_number"), projectId));
+                out.println(String.format(RESOURCE_BUNDLE.getString("error.init.project_id_is_not_number"), projectIdToSet));
             }
         }
         if (values.containsKey(BASE_URL) && values.containsKey(PROJECT_ID) && values.containsKey(API_TOKEN)) {
             this.checkParametersForExistence(out, values.get(API_TOKEN), values.get(BASE_URL), Long.parseLong(values.get(PROJECT_ID)));
         } else {
-            System.out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("error.init.skip_project_validation")));
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("error.init.skip_project_validation")));
         }
         String basePathToSet = nonNull(basePath) ? basePath : asking.askWithDefault(RESOURCE_BUNDLE.getString("message.ask_project_directory"), BASE_PATH_DEFAULT);
         java.io.File basePathFile = Paths.get(basePathToSet).normalize().toAbsolutePath().toFile();
         if (!basePathFile.exists()) {
-            System.out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.init.path_not_exist"), basePathFile)));
+            out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.init.path_not_exist"), basePathFile)));
         }
         values.put(BASE_PATH, basePathToSet);
 
         return values;
     }
 
-    protected void verifyAuth(Map<String, String> values) {
+    protected void verifyAuth(Outputter out, Map<String, String> values) {
         var client = Clients.getProjectClient(
                 values.get(API_TOKEN),
                 values.get(BASE_URL),
                 Long.parseLong(values.getOrDefault(PROJECT_ID, "0"))
         );
         client.getAuthenticatedUser();
-        System.out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.auth_successful")));
+        out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.auth_successful")));
+    }
+
+    protected void listProjects(Outputter out, Map<String, String> values) {
+        var client = Clients.getProjectClient(
+                values.get(API_TOKEN),
+                values.get(BASE_URL),
+                Long.parseLong(values.getOrDefault(PROJECT_ID, "0"))
+        );
+        var projects = client.listProjects();
+        for (Project project : projects) {
+            out.println(String.format(RESOURCE_BUNDLE.getString("message.project.list"), project.getId(), project.getName()));
+        }
     }
 
     private boolean updateYmlValues(List<String> fileLines, Map<String, String> values) {
