@@ -328,4 +328,16 @@ public class PlaceholderUtil {
             PLACEHOLDER_OSX_CODE,
             PLACEHOLDER_OSX_LOCALE);
     }
+
+    public static boolean validTranslationsPattern(String translationsPattern) {
+        var parts = translationsPattern.split("/");
+        for (String part : parts) {
+            if (part.endsWith("%") && part.startsWith("%")) {
+                if (!ALL_PLACEHOLDERS.contains(part)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
 }

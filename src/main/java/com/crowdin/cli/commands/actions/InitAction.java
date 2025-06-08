@@ -217,10 +217,18 @@ class InitAction implements NewAction<NoProperties, NoClient> {
         }
 
         if (isNull(translation)) {
-            String translationInput = asking.ask(String.format(RESOURCE_BUNDLE.getString("message.ask_translation"), PlaceholderUtil.ALL_PLACEHOLDERS));
-            if (!translationInput.isEmpty()) {
-                //TODO validate placeholders
-                values.put(TRANSLATION, translationInput);
+            while (true) {
+                String translationInput = asking.ask(String.format(RESOURCE_BUNDLE.getString("message.ask_translation"), PlaceholderUtil.ALL_PLACEHOLDERS));
+                if (!translationInput.isEmpty()) {
+                    if (PlaceholderUtil.validTranslationsPattern(translationInput)) {
+                        values.put(TRANSLATION, translationInput);
+                        break;
+                    } else {
+                        out.println(String.format(RESOURCE_BUNDLE.getString("error.init.translation_not_valid"), translationInput));
+                    }
+                } else {
+                    break;
+                }
             }
         }
 
