@@ -128,7 +128,7 @@ public class InitActionTest {
     public void enterprisetest() throws IOException {
         FilesInterface files = mock(FilesInterface.class);
         doThrow(new IOException()).when(files).writeToFile(anyString(), any());
-        InputStream responsesIS = setResponses(false, true, "undefined", "apiToken", "42", ".");
+        InputStream responsesIS = setResponses(false, true, "undefined", "apiToken", "42", ".", null, null);
         System.setIn(responsesIS);
 
         action = new TestInitAction(files, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
@@ -142,7 +142,7 @@ public class InitActionTest {
     public void enterpriseUrlTest() throws IOException {
         FilesInterface files = mock(FilesInterface.class);
         doThrow(new IOException()).when(files).writeToFile(anyString(), any());
-        InputStream responsesIS = setResponses(false, true, "https://undefined.crowdin.com", "apiToken", "42", ".");
+        InputStream responsesIS = setResponses(false, true, "https://undefined.crowdin.com", "apiToken", "42", ".", null, null);
         System.setIn(responsesIS);
 
         action = new TestInitAction(files, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
@@ -156,7 +156,7 @@ public class InitActionTest {
     public void enterpriseNoNametest() throws IOException {
         FilesInterface files = mock(FilesInterface.class);
         doThrow(new IOException()).when(files).writeToFile(anyString(), any());
-        InputStream responsesIS = setResponses(false, true, "", "apiToken", "42", ".");
+        InputStream responsesIS = setResponses(false, true, "", "apiToken", "42", ".", null, null);
         System.setIn(responsesIS);
 
         action = new TestInitAction(files, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
@@ -171,7 +171,7 @@ public class InitActionTest {
         project.addFile("crowdin.yml");
         FilesInterface files = mock(FilesInterface.class);
         doThrow(new IOException()).when(files).writeToFile(anyString(), any());
-        InputStream responsesIS = setResponses(false, true, "https://undefined.crowdin.com", "apiToken", "42", ".");
+        InputStream responsesIS = setResponses(false, true, "https://undefined.crowdin.com", "apiToken", "42", ".", null, null);
         System.setIn(responsesIS);
 
         action = new TestInitAction(files, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
@@ -181,18 +181,20 @@ public class InitActionTest {
     }
 
     private static InputStream setResponses(boolean authViaBrowser, boolean isEnterprise, String apiToken, String projectId, String basePath) {
-        return setResponses(authViaBrowser, isEnterprise, null, apiToken, projectId, basePath);
+        return setResponses(authViaBrowser, isEnterprise, null, apiToken, projectId, basePath, null, null);
     }
 
     private static InputStream setResponses(
-        boolean authViaBrowser, boolean isEnterprise, String organizationName, String apiToken, String projectId, String basePath
+        boolean authViaBrowser, boolean isEnterprise, String organizationName, String apiToken, String projectId, String basePath, String source, String translation
     ) {
         String responsesString =
             (authViaBrowser ? "yes" : "no") + "\n"
             + (isEnterprise ? "yes" + "\n" + organizationName : "no") + "\n"
             + apiToken + "\n"
             + projectId + "\n"
-            + basePath + "\n";
+            + basePath + "\n"
+            + source + "\n"
+            + translation + "\n";
         return new ByteArrayInputStream(responsesString.getBytes(UTF_8));
     }
 }

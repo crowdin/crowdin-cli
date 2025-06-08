@@ -9,6 +9,7 @@ import com.crowdin.cli.commands.functionality.FilesInterface;
 import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.NoProperties;
+import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.cli.utils.console.ExecutionStatus;
@@ -207,6 +208,21 @@ class InitAction implements NewAction<NoProperties, NoClient> {
             out.println(WARNING.withIcon(String.format(RESOURCE_BUNDLE.getString("error.init.path_not_exist"), basePathFile)));
         }
         values.put(BASE_PATH, basePathToSet);
+
+        if (isNull(source)) {
+            String sourceInput = asking.ask(RESOURCE_BUNDLE.getString("message.ask_source"));
+            if (!sourceInput.isEmpty()) {
+                values.put(SOURCE, sourceInput);
+            }
+        }
+
+        if (isNull(translation)) {
+            String translationInput = asking.ask(String.format(RESOURCE_BUNDLE.getString("message.ask_translation"), PlaceholderUtil.ALL_PLACEHOLDERS));
+            if (!translationInput.isEmpty()) {
+                //TODO validate placeholders
+                values.put(TRANSLATION, translationInput);
+            }
+        }
 
         return values;
     }
