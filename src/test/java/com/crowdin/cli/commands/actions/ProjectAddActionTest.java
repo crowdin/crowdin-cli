@@ -26,7 +26,7 @@ class ProjectAddActionTest {
         project.setName(PROJECT_TITLE);
         project.setId(1L);
 
-        FilesBasedProjectRequest request = new FilesBasedProjectRequest();
+        ProjectRequest request = new ProjectRequest();
         request.setName(PROJECT_TITLE);
         request.setTargetLanguageIds(TARGET_LANGUAGE);
         request.setSourceLanguageId("en");
@@ -48,9 +48,9 @@ class ProjectAddActionTest {
         project.setName(PROJECT_TITLE);
         project.setId(1L);
 
-        StringsBasedProjectRequest request = new StringsBasedProjectRequest();
+        ProjectRequest request = new ProjectRequest();
         request.setName(PROJECT_TITLE);
-        request.setType(Type.STRINGS_BASED);
+        request.setType(Type.STRINGS_BASED.to(Type.STRINGS_BASED));
         request.setTargetLanguageIds(TARGET_LANGUAGE);
         request.setSourceLanguageId("fr");
         request.setVisibility("OPEN");
@@ -71,7 +71,7 @@ class ProjectAddActionTest {
         project.setName(PROJECT_TITLE);
         project.setId(1L);
 
-        FilesBasedProjectRequest request = new FilesBasedProjectRequest();
+        ProjectRequest request = new ProjectRequest();
         request.setName(PROJECT_TITLE);
         request.setTargetLanguageIds(TARGET_LANGUAGE);
         request.setSourceLanguageId("fr");

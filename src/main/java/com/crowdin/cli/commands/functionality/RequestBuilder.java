@@ -25,6 +25,8 @@ import com.crowdin.client.translations.model.*;
 
 import java.util.*;
 
+import static com.crowdin.client.projectsgroups.model.Type.STRINGS_BASED;
+
 public class RequestBuilder {
 
     public static AddSourceStringRequest addString(String text, String identifier, Integer maxLength, String context, Long fileId, Boolean hidden, List<Long> labelIds) {
@@ -325,21 +327,14 @@ public class RequestBuilder {
     }
 
     public static AddProjectRequest addProject(String name, boolean isStringBased, String sourceLanguage, List<String> languages, Visibility visibility, boolean isOrganization) {
+        ProjectRequest request = new ProjectRequest();
+        request.setName(name);
         if (isStringBased) {
-            StringsBasedProjectRequest request = new StringsBasedProjectRequest();
-            request.setName(name);
-            request.setType(com.crowdin.client.projectsgroups.model.Type.STRINGS_BASED);
-            request.setSourceLanguageId(sourceLanguage);
-            request.setTargetLanguageIds(languages);
-            Optional.ofNullable(visibility).ifPresent(v -> request.setVisibility(v.toString()));
-            return request;
-        } else {
-            FilesBasedProjectRequest request = new FilesBasedProjectRequest();
-            request.setName(name);
-            request.setSourceLanguageId(sourceLanguage);
-            request.setTargetLanguageIds(languages);
-            Optional.ofNullable(visibility).ifPresent(v -> request.setVisibility(v.toString()));
-            return request;
+            request.setType(STRINGS_BASED.to(STRINGS_BASED));
         }
+        request.setSourceLanguageId(sourceLanguage);
+        request.setTargetLanguageIds(languages);
+        Optional.ofNullable(visibility).ifPresent(v -> request.setVisibility(v.toString()));
+        return request;
     }
 }

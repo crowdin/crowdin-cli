@@ -134,7 +134,7 @@ public class CliActionsTest {
 
     @Test
     void testPreTranslate() {
-        assertNotNull(actions.preTranslate(null, null, null, null, null, null, null, null, null, null,false, false, null, null));
+        assertNotNull(actions.preTranslate(null, null, null, null, null, null, null, null, null, null,false, false, null, null, false));
     }
 
     @Test

@@ -91,7 +91,8 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
             noProgress,
             plainView,
             labelNames,
-            aiPrompt
+            aiPrompt,
+            isVerbose
         );
     }
 
