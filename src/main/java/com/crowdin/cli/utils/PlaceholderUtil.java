@@ -6,10 +6,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.utils.Utils.isWindows;
@@ -41,6 +38,22 @@ public class PlaceholderUtil {
     public static final String PLACEHOLDER_FILE_NAME = "%file_name%";
     public static final String PLACEHOLDER_ORIGINAL_FILE_NAME = "%original_file_name%";
     public static final String PLACEHOLDER_ORIGINAL_PATH = "%original_path%";
+
+    public static final List<String> ALL_PLACEHOLDERS = List.of(
+            PLACEHOLDER_FILE_EXTENSION,
+            PLACEHOLDER_FILE_NAME,
+            PLACEHOLDER_ORIGINAL_FILE_NAME,
+            PLACEHOLDER_ORIGINAL_PATH,
+            PLACEHOLDER_ANDROID_CODE,
+            PLACEHOLDER_LANGUAGE,
+            PLACEHOLDER_LOCALE,
+            PLACEHOLDER_LOCALE_WITH_UNDERSCORE,
+            PLACEHOLDER_THREE_LETTERS_CODE,
+            PLACEHOLDER_TWO_LETTERS_CODE,
+            PLACEHOLDER_OSX_CODE,
+            PLACEHOLDER_OSX_LOCALE,
+            PLACEHOLDER_LANGUAGE_ID
+    );
 
     public static final String DOUBLED_ASTERISK = "**";
 
@@ -314,5 +327,17 @@ public class PlaceholderUtil {
             PLACEHOLDER_ANDROID_CODE,
             PLACEHOLDER_OSX_CODE,
             PLACEHOLDER_OSX_LOCALE);
+    }
+
+    public static boolean validTranslationsPattern(String translationsPattern) {
+        var parts = translationsPattern.split("/");
+        for (String part : parts) {
+            if (part.endsWith("%") && part.startsWith("%")) {
+                if (!ALL_PLACEHOLDERS.contains(part)) {
+                    return false;
+                }
+            }
+        }
+        return true;
     }
 }
