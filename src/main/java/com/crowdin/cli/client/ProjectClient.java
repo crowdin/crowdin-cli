@@ -129,6 +129,8 @@ public interface ProjectClient extends Client {
 
     PreTranslationStatus checkPreTranslation(String preTranslationId);
 
+    PreTranslationReportResponse getPreTranslationReport(String preTranslationId);
+
     MachineTranslation getMt(Long mtId) throws ResponseException;
 
     String getProjectUrl();

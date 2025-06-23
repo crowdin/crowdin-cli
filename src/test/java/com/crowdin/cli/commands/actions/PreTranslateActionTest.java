@@ -84,7 +84,7 @@ class PreTranslateActionTest {
         when(client.listLabels()).thenReturn(labels);
 
         PreTranslateAction action = new PreTranslateAction(List.of("ua"), List.of(fileName), null, null, branchName, null,
-            null, null, null, null, false, false, List.of(labelName), null);
+            null, null, null, null, false, false, List.of(labelName), null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(eq(branchName));
@@ -126,7 +126,7 @@ class PreTranslateActionTest {
         when(client.startPreTranslation(eq(request))).thenReturn(preTranslationStatus);
 
         PreTranslateAction action = new PreTranslateAction(List.of("ua"), null, null, null, branchName, directoryName,
-            null, null, null, null, true, true, null, null);
+            null, null, null, null, true, true, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(eq(branchName));
@@ -162,7 +162,7 @@ class PreTranslateActionTest {
         when(client.startPreTranslationStringsBased(eq(request))).thenReturn(preTranslationStatus);
 
         PreTranslateAction action = new PreTranslateAction(List.of("ua"), null, null, null, branchName, null,
-            null, null, null, null, false, false, null, null);
+            null, null, null, null, false, false, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(eq(branchName));
@@ -220,7 +220,7 @@ class PreTranslateActionTest {
         when(client.listLabels()).thenReturn(labels);
 
         PreTranslateAction action = new PreTranslateAction(null, List.of(fileName), Method.MT, 1L, branchName, null,
-            null, null, null, null, false, false, List.of(labelName), null);
+            null, null, null, null, false, false, List.of(labelName), null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(eq(branchName));

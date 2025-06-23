@@ -523,6 +523,13 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    public PreTranslationReportResponse getPreTranslationReport(String preTranslationId) {
+        return executeRequest(() -> this.client.getTranslationsApi()
+                .getPreTranslationReport(this.projectId, preTranslationId)
+                .getData());
+    }
+
+    @Override
     public MachineTranslation getMt(Long mtId) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorHandler = new LinkedHashMap<>() {{
             put((code, message) -> code.equals("403") && message.contains("Endpoint isn't allowed for token scopes"),

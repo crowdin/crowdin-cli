@@ -46,6 +46,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
     private final boolean plainView;
     private final List<String> labelNames;
     private final Long aiPrompt;
+    private final boolean isVerbose;
 
     @Override
     public void act(Outputter out, PropertiesWithFiles properties, ProjectClient client) {
@@ -65,7 +66,8 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
             ApplyPreTranslationStringsBasedRequest request = RequestBuilder.applyPreTranslationStringsBased(
                     languages, Collections.singletonList(branch.getId()), method, engineId, autoApproveOption,
                     duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds, aiPrompt);
-            this.applyPreTranslationStringsBased(out, client, request);
+            PreTranslationStatus status = this.applyPreTranslationStringsBased(out, client, request);
+            this.printVerbose(client, status, out);
             return;
         }
 
@@ -76,11 +78,11 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         }
 
         List<FileInfo> fileInfos = project
-            .getFileInfos()
-            .stream()
-            .filter(f -> (branch.isEmpty() && f.getBranchId() == null)
-                || (branch.isPresent() && branch.get().getId().equals(f.getBranchId())))
-            .collect(Collectors.toList());
+                .getFileInfos()
+                .stream()
+                .filter(f -> (branch.isEmpty() && f.getBranchId() == null)
+                        || (branch.isPresent() && branch.get().getId().equals(f.getBranchId())))
+                .collect(Collectors.toList());
         Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), fileInfos);
         boolean containsError = false;
 
@@ -117,7 +119,8 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         ApplyPreTranslationRequest request = RequestBuilder.applyPreTranslation(
                 languages, fileIds, method, engineId, autoApproveOption,
                 duplicateTranslations, translateUntranslatedOnly, translateWithPerfectMatchOnly, labelIds, aiPrompt);
-        this.applyPreTranslation(out, client, request);
+        PreTranslationStatus status = this.applyPreTranslation(out, client, request);
+        this.printVerbose(client, status, out);
 
         if (containsError) {
             throw new RuntimeException();
@@ -136,8 +139,8 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                     ConsoleSpinner.stop(OK, RESOURCE_BUNDLE.getString("message.spinner.validation_success"));
                     Set<String> supportedMtLanguageIds = new HashSet<>(mt.getSupportedLanguageIds());
                     return projectLanguages.stream()
-                        .filter(supportedMtLanguageIds::contains)
-                        .collect(Collectors.toList());
+                            .filter(supportedMtLanguageIds::contains)
+                            .collect(Collectors.toList());
                 } catch (ResponseException e) {
                     ConsoleSpinner.stop(WARNING, String.format(RESOURCE_BUNDLE.getString("message.spinner.validation_error"), e.getMessage()));
                 }
@@ -145,12 +148,12 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
             return projectLanguages;
         }
         String wrongLanguageIds = languageIds.stream()
-            .filter(langId -> !projectLanguages.contains(langId))
-            .map(id -> "'" + id + "'")
-            .collect(Collectors.joining(", "));
+                .filter(langId -> !projectLanguages.contains(langId))
+                .map(id -> "'" + id + "'")
+                .collect(Collectors.joining(", "));
         if (!wrongLanguageIds.isEmpty()) {
             throw new ExitCodeExceptionMapper.NotFoundException(
-                String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), wrongLanguageIds));
+                    String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), wrongLanguageIds));
         }
         return languageIds;
     }
@@ -176,8 +179,8 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         }
     }
 
-    private void applyPreTranslation(Outputter out, ProjectClient client, ApplyPreTranslationRequest request) {
-        ConsoleSpinner.execute(
+    private PreTranslationStatus applyPreTranslation(Outputter out, ProjectClient client, ApplyPreTranslationRequest request) {
+        return ConsoleSpinner.execute(
                 out,
                 "message.spinner.pre_translate",
                 "error.spinner.pre_translate",
@@ -194,8 +197,8 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         );
     }
 
-    private void applyPreTranslationStringsBased(Outputter out, ProjectClient client, ApplyPreTranslationStringsBasedRequest request) {
-        ConsoleSpinner.execute(
+    private PreTranslationStatus applyPreTranslationStringsBased(Outputter out, ProjectClient client, ApplyPreTranslationStringsBasedRequest request) {
+        return ConsoleSpinner.execute(
                 out,
                 "message.spinner.pre_translate",
                 "error.spinner.pre_translate",
@@ -226,5 +229,42 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
             }
         }
         return preTranslationStatus;
+    }
+
+    private void printVerbose(ProjectClient client, PreTranslationStatus status, Outputter out) {
+        if (!this.isVerbose) {
+            return;
+        }
+
+        PreTranslationReportResponse preTranslationReport = client.getPreTranslationReport(status.getIdentifier());
+
+        int filesCount = preTranslationReport.getLanguages().stream()
+                .mapToInt(l -> Optional.ofNullable(l.getFiles()).map(List::size).orElse(0))
+                .sum();
+
+        int phrasesCount = preTranslationReport.getLanguages().stream()
+                .flatMap(l -> Optional.ofNullable(l.getFiles()).orElse(List.of()).stream())
+                .mapToInt(f -> Optional.ofNullable(f.getStatistics())
+                        .map(PreTranslationReportResponse.Statistics::getPhrases)
+                        .orElse(0)
+                )
+                .sum();
+
+        int wordsCount = preTranslationReport.getLanguages().stream()
+                .flatMap(l -> Optional.ofNullable(l.getFiles()).orElse(List.of()).stream())
+                .mapToInt(f -> Optional.ofNullable(f.getStatistics())
+                        .map(PreTranslationReportResponse.Statistics::getWords)
+                        .orElse(0)
+                )
+                .sum();
+
+        int skippedCount = preTranslationReport.getLanguages().stream()
+                .flatMapToInt(l -> Optional.ofNullable(l.getSkipped()).map(Map::values).orElse(List.of()).stream().mapToInt(i -> i))
+                .sum();
+
+        out.println(String.format(RESOURCE_BUNDLE.getString("message.pre_translate.files_count"), filesCount));
+        out.println(String.format(RESOURCE_BUNDLE.getString("message.pre_translate.phrases_count"), phrasesCount));
+        out.println(String.format(RESOURCE_BUNDLE.getString("message.pre_translate.words_count"), wordsCount));
+        out.println(String.format(RESOURCE_BUNDLE.getString("message.pre_translate.skipped_count"), skippedCount));
     }
 }
