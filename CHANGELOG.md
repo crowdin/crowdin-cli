@@ -1,5 +1,12 @@
 # Changelog
 
+# [4.8.0](https://github.com/crowdin/crowdin-cli/compare/4.7.1...4.8.0) (2025-06-24)
+
+
+### Features
+
+* pre-translate with detailed output ([#923](https://github.com/crowdin/crowdin-cli/issues/923)) ([e049dfd](https://github.com/crowdin/crowdin-cli/commit/e049dfd20f3a18b36e3ac561fe994cef2e723fc5))
+
 ## [4.7.1](https://github.com/crowdin/crowdin-cli/compare/4.7.0...4.7.1) (2025-06-05)
 
 
