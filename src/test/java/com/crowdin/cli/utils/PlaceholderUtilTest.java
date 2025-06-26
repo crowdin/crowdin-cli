@@ -18,8 +18,7 @@ import java.util.Set;
 import java.util.stream.Stream;
 
 import static com.crowdin.cli.utils.AssertUtils.assertPathsEqualIgnoringSeparator;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class PlaceholderUtilTest {
@@ -258,5 +257,13 @@ public class PlaceholderUtilTest {
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(suppLangs, projLangs, "");
         String result = placeholderUtil.replaceLanguageDependentPlaceholders(toFormat, languageMapping, language);
         assertEquals(expected, result);
+    }
+
+    @Test
+    public void testValidTranslationsPattern() {
+        assertTrue(PlaceholderUtil.validTranslationsPattern("src/test"));
+        assertTrue(PlaceholderUtil.validTranslationsPattern("src"));
+        assertTrue(PlaceholderUtil.validTranslationsPattern("src/" + PlaceholderUtil.PLACEHOLDER_LANGUAGE + "/" + PlaceholderUtil.PLACEHOLDER_FILE_NAME));
+        assertFalse(PlaceholderUtil.validTranslationsPattern("src/" + PlaceholderUtil.PLACEHOLDER_LANGUAGE + "/%invalid%"));
     }
 }
