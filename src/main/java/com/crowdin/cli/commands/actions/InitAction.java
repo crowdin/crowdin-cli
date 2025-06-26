@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.OAUTH_CLIENT_ID;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -80,6 +81,9 @@ class InitAction implements NewAction<NoProperties, NoClient> {
                     //if we successfully updated shared, we don't persist token in local yml
                     var localInputs = new HashMap<>(inputs);
                     localInputs.remove(API_TOKEN);
+                    localFileLines = localFileLines.stream()
+                            .filter(line -> !line.contains(String.format("\"%s\"", API_TOKEN)))
+                            .collect(Collectors.toList());
                     this.updateYmlValues(localFileLines, localInputs);
                 } else {
                     //otherwise we persist everything in local yml
@@ -104,7 +108,7 @@ class InitAction implements NewAction<NoProperties, NoClient> {
             if (!Files.exists(Paths.get(sharedFile))) {
                 Files.createFile(Paths.get(sharedFile));
             }
-            return Files.lines(Paths.get(sharedFile)).toList();
+            return new ArrayList<>(Files.lines(Paths.get(sharedFile)).toList());
         } catch (Exception e) {
             //ignore shared file
         }
@@ -117,7 +121,7 @@ class InitAction implements NewAction<NoProperties, NoClient> {
             return;
         }
         var sharedFile = System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin.yml";
-        Files.write(Paths.get(sharedFile), sharedFileLines);
+        files.writeToFile(sharedFile, new ByteArrayInputStream(StringUtils.join(sharedFileLines, "\n").getBytes(StandardCharsets.UTF_8)));
     }
 
     private Map<String, String> collectUserInputs(Outputter out, Asking asking) {
@@ -263,6 +267,7 @@ class InitAction implements NewAction<NoProperties, NoClient> {
         }
 
         for (Map.Entry<String, String> entry : values.entrySet()) {
+            var found = false;
             for (int i = 0; i < fileLines.size(); i++) {
                 String keyToSearch = String.format("\"%s\"", entry.getKey());
                 if (fileLines.get(i).contains(keyToSearch)) {
@@ -270,8 +275,12 @@ class InitAction implements NewAction<NoProperties, NoClient> {
                             fileLines.get(i).replace(String.valueOf(TRUE), entry.getValue())
                             : fileLines.get(i).replaceFirst(": \"*\"", String.format(": \"%s\"", Utils.regexPath(entry.getValue())));
                     fileLines.set(i, updatedLine);
+                    found = true;
                     break;
                 }
+            }
+            if (!found) {
+                fileLines.add(String.format("\"%s\": \"%s\"", entry.getKey(), entry.getValue()));
             }
         }
 
