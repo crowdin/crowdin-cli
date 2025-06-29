@@ -43,6 +43,12 @@ public class CrowdinClientBundle extends CrowdinClientCore implements ClientBund
     }
 
     @Override
+    public void deleteBundle(Long bundleId) {
+        executeRequest(() -> this.client.getBundlesApi()
+            .deleteBundle(Long.valueOf(projectId), bundleId));
+    }
+
+    @Override
     public URL downloadBundle(Long id, String exportId) {
         return url(executeRequest(() -> this.client.getBundlesApi()
                 .downloadBundle(Long.valueOf(projectId), id, exportId)

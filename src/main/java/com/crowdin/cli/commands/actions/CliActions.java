@@ -220,6 +220,11 @@ public class CliActions implements Actions {
     }
 
     @Override
+    public NewAction<ProjectProperties, ClientBundle> bundleDelete(Long bundleId) {
+        return new BundleDeleteAction(bundleId);
+    }
+
+    @Override
     public NewAction<ProjectProperties, ClientBundle> bundleBrowse(Long id) {
         return new BundleBrowseAction(id);
     }
