@@ -11,7 +11,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
-        name = CommandNames.ADD
+        name = CommandNames.ADD,
+        sortOptions = false
 )
 class BundleAddSubcommand extends ActCommandBundle {
 
@@ -39,6 +40,9 @@ class BundleAddSubcommand extends ActCommandBundle {
     @CommandLine.Option(names = {"--include-source-language"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.includeProjectSourceLanguage", order = -2)
     protected boolean includeProjectSourceLanguage;
 
+    @CommandLine.Option(names = {"--include-pseudo-language"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.includePseudoLanguage", order = -2)
+    protected boolean includePseudoLanguage = true;
+
     @CommandLine.Option(names = {"--multilingual"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.isMultilingual", order = -2)
     protected boolean isMultilingual;
 
@@ -49,7 +53,7 @@ class BundleAddSubcommand extends ActCommandBundle {
 
     @Override
     protected NewAction<ProjectProperties, ClientBundle> getAction(Actions actions) {
-        return actions.bundleAdd(name, format, source, ignore, translation, labels, plainView, includeProjectSourceLanguage, isMultilingual);
+        return actions.bundleAdd(name, format, source, ignore, translation, labels, plainView, includeProjectSourceLanguage, includePseudoLanguage, isMultilingual);
     }
 
     @Override
