@@ -230,6 +230,11 @@ public class CliActions implements Actions {
     }
 
     @Override
+    public NewAction<ProjectProperties, ClientBundle> bundleClone(Long bundleId, String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView, Boolean includeProjectSourceLanguage, Boolean includePseudoLanguage, Boolean isMultilingual) {
+        return new BundleCloneAction(bundleId, name, format, source, ignore, translation, labels, plainView, includeProjectSourceLanguage, includePseudoLanguage, isMultilingual);
+    }
+
+    @Override
     public NewAction<NoProperties, NoClient> checkNewVersion() {
         return new CheckNewVersionAction();
     }
