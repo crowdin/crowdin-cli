@@ -131,7 +131,9 @@ const sidebars = {
           items: [
             'commands/crowdin-bundle-list',
             'commands/crowdin-bundle-add',
+            'commands/crowdin-bundle-delete',
             'commands/crowdin-bundle-download',
+            'commands/crowdin-bundle-clone',
             'commands/crowdin-bundle-browse',
           ]
         },

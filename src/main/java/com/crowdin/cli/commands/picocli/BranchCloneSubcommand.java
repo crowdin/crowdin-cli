@@ -10,7 +10,7 @@ import picocli.CommandLine.Parameters;
 
 @Command(
     sortOptions = false,
-    name = CommandNames.BRANCH_CLONE
+    name = CommandNames.CLONE
 )
 class BranchCloneSubcommand extends ActCommandProject {
 

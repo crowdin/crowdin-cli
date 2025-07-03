@@ -23,11 +23,13 @@ public class CrowdinClientBundleTest {
     private ClientBundle client;
 
     private static final long projectId = 42;
+    private static final long bundleId = 1;
     private static final String preUrl = "https://testme.crowdin.com";
     private static final String url = "https://testme.crowdin.com/api/v2";
 
     private static final String listBundleUrl = String.format("%s/projects/%s/bundles", url, projectId);
     private static final String addBundleUrl = String.format("%s/projects/%s/bundles", url, projectId);
+    private static final String deleteBundleUrl = String.format("%s/projects/%s/bundles/%s", url, projectId, bundleId);
 
 
     @BeforeEach
@@ -70,4 +72,10 @@ public class CrowdinClientBundleTest {
         verifyNoMoreInteractions(httpClientMock);
     }
 
+    @Test
+    public void testDeleteBundle() {
+        client.deleteBundle(bundleId);
+        verify(httpClientMock).delete(eq(deleteBundleUrl), any(), eq(Void.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
 }

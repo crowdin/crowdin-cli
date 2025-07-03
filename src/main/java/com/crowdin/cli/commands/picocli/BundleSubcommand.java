@@ -7,7 +7,9 @@ import picocli.CommandLine;
     subcommands = {
         BundleListSubcommand.class,
         BundleAddSubcommand.class,
+        BundleDeleteSubcommand.class,
         BundleDownloadSubcommand.class,
+        BundleCloneSubcommand.class,
         BundleBrowseSubcommand.class
     }
 )

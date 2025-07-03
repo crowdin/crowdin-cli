@@ -13,6 +13,7 @@ public final class CommandNames {
     public static final String ADD = "add";
     public static final String EDIT = "edit";
     public static final String DELETE = "delete";
+    public static final String CLONE = "clone";
 
     public static final String STATUS = "status";
     public static final String STATUS_TRANSLATION = "translation";
@@ -21,7 +22,6 @@ public final class CommandNames {
     public static final String STRING = "string";
 
     public static final String BRANCH = "branch";
-    public static final String BRANCH_CLONE = "clone";
     public static final String BRANCH_MERGE = "merge";
 
     public static final String GLOSSARY = "glossary";
