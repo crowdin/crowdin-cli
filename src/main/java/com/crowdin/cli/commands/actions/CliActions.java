@@ -220,8 +220,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientBundle> bundleDelete(Long bundleId) {
-        return new BundleDeleteAction(bundleId);
+    public NewAction<ProjectProperties, ClientBundle> bundleDelete(Long id) {
+        return new BundleDeleteAction(id);
     }
 
     @Override
@@ -230,8 +230,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ClientBundle> bundleClone(Long bundleId, String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView, Boolean includeProjectSourceLanguage, Boolean includePseudoLanguage, Boolean isMultilingual) {
-        return new BundleCloneAction(bundleId, name, format, source, ignore, translation, labels, plainView, includeProjectSourceLanguage, includePseudoLanguage, isMultilingual);
+    public NewAction<ProjectProperties, ClientBundle> bundleClone(Long id, String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView, Boolean includeProjectSourceLanguage, Boolean includePseudoLanguage, Boolean isMultilingual) {
+        return new BundleCloneAction(id, name, format, source, ignore, translation, labels, plainView, includeProjectSourceLanguage, includePseudoLanguage, isMultilingual);
     }
 
     @Override

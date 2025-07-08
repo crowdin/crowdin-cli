@@ -17,10 +17,10 @@ import java.util.List;
 class BundleDeleteSubcommand extends ActCommandBundle {
 
     @CommandLine.Parameters(descriptionKey = "crowdin.bundle.delete.id")
-    protected Long bundleId;
+    protected Long id;
 
     @Override
     protected NewAction<ProjectProperties, ClientBundle> getAction(Actions actions) {
-        return actions.bundleDelete(bundleId);
+        return actions.bundleDelete(id);
     }
 }

@@ -15,22 +15,22 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 class BundleDeleteAction implements NewAction<ProjectProperties, ClientBundle> {
 
-    private final Long bundleId;
+    private final Long id;
 
-    public BundleDeleteAction(Long bundleId) {
-        this.bundleId = bundleId;
+    public BundleDeleteAction(Long id) {
+        this.id = id;
     }
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientBundle client) {
-        Bundle bundleToDelete = client.getBundle(bundleId);
+        Bundle bundleToDelete = client.getBundle(id);
         if (Objects.isNull(bundleToDelete)) {
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.bundle.not_found")));
             return;
         }
-        client.deleteBundle(bundleId);
+        client.deleteBundle(id);
         out.println(ExecutionStatus.OK.withIcon(
-            String.format(RESOURCE_BUNDLE.getString("message.bundle_deleted"), bundleId)
+            String.format(RESOURCE_BUNDLE.getString("message.bundle_deleted"), id)
         ));
     }
 }

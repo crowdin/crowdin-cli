@@ -20,7 +20,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
 @AllArgsConstructor
 class BundleCloneAction implements NewAction<ProjectProperties, ClientBundle> {
 
-    private Long bundleId;
+    private Long id;
     private String name;
     private String format;
     private List<String> source;
@@ -34,7 +34,7 @@ class BundleCloneAction implements NewAction<ProjectProperties, ClientBundle> {
 
     @Override
     public void act(Outputter out, ProjectProperties pb, ClientBundle client) {
-        Bundle bundleToClone = client.getBundle(bundleId);
+        Bundle bundleToClone = client.getBundle(id);
         if (Objects.isNull(bundleToClone)) {
             out.println(SKIPPED.withIcon(RESOURCE_BUNDLE.getString("message.bundle.not_found")));
             return;

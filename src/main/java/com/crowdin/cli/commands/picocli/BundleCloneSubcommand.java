@@ -17,7 +17,7 @@ import java.util.List;
 class BundleCloneSubcommand extends ActCommandBundle {
 
     @CommandLine.Parameters(descriptionKey = "crowdin.bundle.clone.id")
-    protected Long bundleId;
+    protected Long id;
 
     @CommandLine.Option(names = {"--name"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.name", order = -2)
     protected String name;
@@ -56,6 +56,6 @@ class BundleCloneSubcommand extends ActCommandBundle {
 
     @Override
     protected NewAction<ProjectProperties, ClientBundle> getAction(Actions actions) {
-        return actions.bundleClone(bundleId, name, format, source, ignore, translation, labels, plainView, includeProjectSourceLanguage, includePseudoLanguage, isMultilingual);
+        return actions.bundleClone(id, name, format, source, ignore, translation, labels, plainView, includeProjectSourceLanguage, includePseudoLanguage, isMultilingual);
     }
 }

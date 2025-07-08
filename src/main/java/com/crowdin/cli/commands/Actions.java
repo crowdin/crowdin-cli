@@ -108,11 +108,11 @@ public interface Actions {
 
     NewAction<ProjectProperties, ClientBundle> bundleAdd(String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView, boolean includeProjectSourceLanguage, boolean includePseudoLanguage, boolean isMultilingual);
 
-    NewAction<ProjectProperties, ClientBundle> bundleDelete(Long bundleId);
+    NewAction<ProjectProperties, ClientBundle> bundleDelete(Long id);
 
     NewAction<ProjectProperties, ClientBundle> bundleBrowse(Long id);
 
-    NewAction<ProjectProperties, ClientBundle> bundleClone(Long bundleId, String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView, Boolean includeProjectSourceLanguage, Boolean includePseudoLanguage, Boolean isMultilingual);
+    NewAction<ProjectProperties, ClientBundle> bundleClone(Long id, String name, String format, List<String> source, List<String> ignore, String translation, List<Long> labels, boolean plainView, Boolean includeProjectSourceLanguage, Boolean includePseudoLanguage, Boolean isMultilingual);
 
     NewAction<NoProperties, NoClient> checkNewVersion();
 
