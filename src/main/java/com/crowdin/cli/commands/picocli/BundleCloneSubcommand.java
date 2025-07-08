@@ -11,12 +11,15 @@ import java.util.ArrayList;
 import java.util.List;
 
 @CommandLine.Command(
-        name = CommandNames.ADD,
+        name = CommandNames.CLONE,
         sortOptions = false
 )
-class BundleAddSubcommand extends ActCommandBundle {
+class BundleCloneSubcommand extends ActCommandBundle {
 
-    @CommandLine.Parameters(descriptionKey = "crowdin.bundle.add.name")
+    @CommandLine.Parameters(descriptionKey = "crowdin.bundle.clone.id")
+    protected Long id;
+
+    @CommandLine.Option(names = {"--name"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.name", order = -2)
     protected String name;
 
     @CommandLine.Option(names = {"--format"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.format", order = -2)
@@ -38,13 +41,13 @@ class BundleAddSubcommand extends ActCommandBundle {
     protected boolean plainView;
 
     @CommandLine.Option(names = {"--include-source-language"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.includeProjectSourceLanguage", order = -2)
-    protected boolean includeProjectSourceLanguage;
+    protected Boolean includeProjectSourceLanguage;
 
     @CommandLine.Option(names = {"--include-pseudo-language"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.includePseudoLanguage", order = -2)
-    protected boolean includePseudoLanguage = true;
+    protected Boolean includePseudoLanguage;
 
     @CommandLine.Option(names = {"--multilingual"}, paramLabel = "...", descriptionKey = "crowdin.bundle.add.isMultilingual", order = -2)
-    protected boolean isMultilingual;
+    protected Boolean isMultilingual;
 
     @Override
     protected final boolean isAnsi() {
@@ -53,24 +56,6 @@ class BundleAddSubcommand extends ActCommandBundle {
 
     @Override
     protected NewAction<ProjectProperties, ClientBundle> getAction(Actions actions) {
-        return actions.bundleAdd(name, format, source, ignore, translation, labels, plainView, includeProjectSourceLanguage, includePseudoLanguage, isMultilingual);
-    }
-
-    @Override
-    protected List<String> checkOptions() {
-        List<String> errors = new ArrayList<>();
-        if (Strings.isEmpty(name)) {
-            errors.add(RESOURCE_BUNDLE.getString("error.bundle.empty_name"));
-        }
-        if (Strings.isEmpty(format)) {
-            errors.add(RESOURCE_BUNDLE.getString("error.bundle.empty_format"));
-        }
-        if (source == null || source.isEmpty()) {
-            errors.add(RESOURCE_BUNDLE.getString("error.bundle.empty_source"));
-        }
-        if (Strings.isEmpty(translation)) {
-            errors.add(RESOURCE_BUNDLE.getString("error.bundle.empty_translation"));
-        }
-        return errors;
+        return actions.bundleClone(id, name, format, source, ignore, translation, labels, plainView, includeProjectSourceLanguage, includePseudoLanguage, isMultilingual);
     }
 }

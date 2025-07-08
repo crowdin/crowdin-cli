@@ -15,6 +15,8 @@ public interface ClientBundle extends Client {
 
     Bundle getBundle(Long id);
 
+    void deleteBundle(Long bundleId);
+
     URL downloadBundle(Long id, String exportId);
 
     BundleExport startExportingBundle(Long id) throws ResponseException;

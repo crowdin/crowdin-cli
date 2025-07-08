@@ -34,6 +34,8 @@ class BundleAddAction implements NewAction<ProjectProperties, ClientBundle> {
 
     private boolean includeProjectSourceLanguage;
 
+    private boolean includePseudoLanguage;
+
     private boolean isMultilingual;
 
     @Override
@@ -46,6 +48,7 @@ class BundleAddAction implements NewAction<ProjectProperties, ClientBundle> {
         Optional.ofNullable(ignore).ifPresent(addBundleRequest::setIgnorePatterns);
         Optional.ofNullable(translation).ifPresent(addBundleRequest::setExportPattern);
         addBundleRequest.setIncludeProjectSourceLanguage(includeProjectSourceLanguage);
+        addBundleRequest.setIncludeInContextPseudoLanguage(includePseudoLanguage);
         addBundleRequest.setIsMultilingual(isMultilingual);
 
         Optional.ofNullable(labels).ifPresent(addBundleRequest::setLabelIds);
