@@ -15,6 +15,9 @@ import static com.crowdin.cli.commands.picocli.GenericCommand.RESOURCE_BUNDLE;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyBoolean;
+import static org.mockito.Mockito.verify;
 
 public class BundleAddSubcommandTest extends PicocliTestUtils {
 
@@ -66,5 +69,13 @@ public class BundleAddSubcommandTest extends PicocliTestUtils {
                 arguments("Bundle 3", "format3", null, null, "translation3", Arrays.asList(), Arrays.asList(RESOURCE_BUNDLE.getString("error.bundle.empty_source"))),
                 arguments(null, "format4", Arrays.asList("src1"), null, "translation3", Arrays.asList(), Arrays.asList(RESOURCE_BUNDLE.getString("error.bundle.empty_name")))
         );
+    }
+
+    @Test
+    public void testBundleAdd() {
+        this.execute(CommandNames.BUNDLE, CommandNames.ADD, "name", "--format", "macos", "--source", "file", "--translation", "en");
+        verify(actionsMock)
+            .bundleAdd(any(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
+        this.check(true);
     }
 }

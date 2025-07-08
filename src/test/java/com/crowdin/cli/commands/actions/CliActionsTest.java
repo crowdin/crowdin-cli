@@ -206,4 +206,14 @@ public class CliActionsTest {
     void testBundleBrowse() {
         assertNotNull(actions.bundleBrowse(null));
     }
+
+    @Test
+    void testBundleClone() {
+        assertNotNull(actions.bundleClone(null, null, null, null,  null, null, null,false, null, null, null));
+    }
+
+    @Test
+    void testBundleDelete() {
+        assertNotNull(actions.bundleDelete(null));
+    }
 }
