@@ -1,5 +1,13 @@
 # Changelog
 
+# [4.9.0](https://github.com/crowdin/crowdin-cli/compare/4.8.0...4.9.0) (2025-07-10)
+
+
+### Features
+
+* bundle command improvements ([#929](https://github.com/crowdin/crowdin-cli/issues/929)) ([f36f853](https://github.com/crowdin/crowdin-cli/commit/f36f8530fd1e027d2379806fb2583176ecab3973))
+* init command rework ([#922](https://github.com/crowdin/crowdin-cli/issues/922)) ([a6d2a8e](https://github.com/crowdin/crowdin-cli/commit/a6d2a8e13d6f4234bcae8b343459dcdf592c3906))
+
 # [4.8.0](https://github.com/crowdin/crowdin-cli/compare/4.7.1...4.8.0) (2025-06-24)
 
 
