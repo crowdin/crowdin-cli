@@ -29,7 +29,7 @@ It is cross-platform and runs in a terminal on Linux-based and macOS operating s
 [![homebrew downloads](https://img.shields.io/homebrew/installs/dy/crowdin?logo=homebrew)](https://formulae.brew.sh/formula/crowdin)
 [![Chocolatey](https://img.shields.io/chocolatey/dt/crowdin-cli?logo=chocolatey&cacheSeconds=2000)](https://community.chocolatey.org/packages/crowdin-cli)
 [![GitHub all releases](https://img.shields.io/github/downloads/crowdin/crowdin-cli/total?label=assets%20downloads&logo=github&cacheSeconds=2000)](https://github.com/crowdin/crowdin-cli/releases)
-[![GitHub Used by](https://img.shields.io/static/v1?label=used%20by&message=1.5k&color=brightgreen&logo=github&cacheSeconds=10000)](https://github.com/crowdin/crowdin-cli/network/dependents)
+[![GitHub Used by](https://img.shields.io/static/v1?label=used%20by&message=3k&color=brightgreen&logo=github&cacheSeconds=10000)](https://github.com/crowdin/crowdin-cli/network/dependents)
 
 [![build-test](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml/badge.svg?branch=main)](https://github.com/crowdin/crowdin-cli/actions/workflows/build-test.yml)
 [![CodeQL](https://github.com/crowdin/crowdin-cli/actions/workflows/codeql-analysis.yml/badge.svg?branch=main)](https://github.com/crowdin/crowdin-cli/actions/workflows/codeql-analysis.yml)

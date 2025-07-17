@@ -21,7 +21,7 @@ This is a cross-platform, and it runs in a terminal on Linux based and macOS ope
 [![GitHub all releases](https://img.shields.io/github/downloads/crowdin/crowdin-cli/total?label=assets%20downloads&logo=github&cacheSeconds=2000)](https://github.com/crowdin/crowdin-cli/releases)
 [![codecov](https://codecov.io/gh/crowdin/crowdin-cli/branch/main/graph/badge.svg)](https://codecov.io/gh/crowdin/crowdin-cli)
 
-[![GitHub Used by](https://img.shields.io/static/v1?label=used%20by&message=1.5k&color=brightgreen&logo=github&cacheSeconds=10000)](https://github.com/crowdin/crowdin-cli/network/dependents)
+[![GitHub Used by](https://img.shields.io/static/v1?label=used%20by&message=3k&color=brightgreen&logo=github&cacheSeconds=10000)](https://github.com/crowdin/crowdin-cli/network/dependents)
 [![GitHub contributors](https://img.shields.io/github/contributors/crowdin/crowdin-cli?cacheSeconds=1000)](https://github.com/crowdin/crowdin-cli/graphs/contributors)
 ![GitHub](https://img.shields.io/github/license/crowdin/crowdin-cli?cacheSeconds=50000)
 [![GitHub Repo stars](https://img.shields.io/github/stars/crowdin/crowdin-cli?style=social&cacheSeconds=1800)](https://github.com/crowdin/crowdin-cli/stargazers)
