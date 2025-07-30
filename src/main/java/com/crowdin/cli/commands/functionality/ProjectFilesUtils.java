@@ -40,17 +40,26 @@ public class ProjectFilesUtils {
             return files.get(filePath);
         }
 
+        T fallback = null;
+
         for (var entry : files.entrySet()) {
             if (ProjectFilesUtils.equalsIgnoreExtension(filePath, entry.getKey())) {
                 return entry.getValue();
+            } else if (ProjectFilesUtils.equalsIgnoreExtraExtension(filePath, entry.getKey())) {
+                //storing it as a fallback because perfect match should have higher priority
+                fallback = entry.getValue();
             }
         }
 
-        return null;
+        return fallback;
     }
 
     public static boolean equalsIgnoreExtension(String file1, String file2) {
         return removeExtension(file1).equals(removeExtension(file2));
+    }
+
+    public static boolean equalsIgnoreExtraExtension(String file1, String file2) {
+        return file1.equals(removeExtension(file2)) || removeExtension(file1).equals(file2);
     }
 
     public static String removeExtension(String file) {
