@@ -81,9 +81,12 @@ public class ProjectFilesUtilsTest {
         String file1 = "path/to/file.json";
         String file2 = "path/to/file.txt";
         String file3 = "path/to/test.txt";
+        String file4 = "path/to/file.json";
+        String file5 = "path/to/file.json.xml";
 
         assertEquals(file1, ProjectFilesUtils.fileLookup(file1, Map.of(file1, file1, file2, file2)));
         assertEquals(file2, ProjectFilesUtils.fileLookup(file1, Map.of(file2, file2, file3, file3)));
+        assertEquals(file4, ProjectFilesUtils.fileLookup(file4, Map.of(file5, file4)));
         assertNull(ProjectFilesUtils.fileLookup(file3, Map.of(file1, file1, file2, file2)));
         assertNull(ProjectFilesUtils.fileLookup("path/to/test", Map.of(file1, file1, file2, file2)));
     }
