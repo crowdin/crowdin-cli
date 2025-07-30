@@ -25,10 +25,7 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -77,14 +74,20 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
         Branch branch = (branchName != null) ? BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView) : null;
         Long branchId = (branch != null) ? branch.getId() : null;
 
+        Map<Long, Branch> branchesMap = new HashMap<>(project.getBranches());
+        if (branch != null && !branchesMap.containsKey(branchId)) {
+            //case when it's a new branch and created within this command
+            branchesMap.put(branchId, branch);
+        }
+
         Map<String, Long> directoryPaths = null;
         Map<String, FileInfo> paths = null;
         DeleteObsoleteProjectFilesSubAction deleteObsoleteProjectFilesSubAction = new DeleteObsoleteProjectFilesSubAction(out, client);
 
         if (!isStringsBasedProject) {
-            directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
+            directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), branchesMap)
                 .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
-            paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
+            paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), branchesMap, project.getFileInfos());
             if (deleteObsolete) {
                 Map<String, Long> directories = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(branchId))
                     .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
