@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.9.1](https://github.com/crowdin/crowdin-cli/compare/4.9.0...4.9.1) (2025-08-01)
+
+
+### Bug Fixes
+
+* lookup file with different extension ([#935](https://github.com/crowdin/crowdin-cli/issues/935)) ([6df143a](https://github.com/crowdin/crowdin-cli/commit/6df143a4573670ca05614795c2161fda65fad211))
+* upload action when branch is created ([#934](https://github.com/crowdin/crowdin-cli/issues/934)) ([c17afef](https://github.com/crowdin/crowdin-cli/commit/c17afef327ef2ad77c25ea5728f11fdcc101cfdf))
+
 # [4.9.0](https://github.com/crowdin/crowdin-cli/compare/4.8.0...4.9.0) (2025-07-10)
 
 
