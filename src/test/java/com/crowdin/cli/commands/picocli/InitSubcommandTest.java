@@ -12,7 +12,7 @@ public class InitSubcommandTest extends PicocliTestUtils {
     public void testGenerate() {
         this.execute(CommandNames.INIT);
         verify(actionsMock)
-            .init(any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean());
+            .init(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean());
         this.check(false);
     }
 }

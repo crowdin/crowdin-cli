@@ -44,8 +44,8 @@ public class InitActionTest {
 
     public static class TestInitAction extends InitAction {
 
-        public TestInitAction(FilesInterface files, String token, String baseUrl, String basePath, String projectId, String source, String translation, Boolean preserveHierarchy, Path destinationPath, boolean quiet) {
-            super(files, token, baseUrl, basePath, projectId, source, translation, preserveHierarchy, destinationPath, quiet);
+        public TestInitAction(FilesInterface files, String token, String baseUrl, String basePath, String projectId, String source, String translation, String conext, Boolean preserveHierarchy, Path destinationPath, boolean quiet) {
+            super(files, token, baseUrl, basePath, projectId, source, translation, conext, preserveHierarchy, destinationPath, quiet);
         }
 
         @Override
@@ -68,7 +68,7 @@ public class InitActionTest {
         InputStream responsesIS = setResponses(false, false, "apiToken", "42", ".");
         System.setIn(responsesIS);
 
-        action = new TestInitAction(files,  null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new TestInitAction(files,  null, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class));
 
         verify(files).writeToFile(anyString(), any());
@@ -79,7 +79,7 @@ public class InitActionTest {
     public void userInputTest() throws IOException {
         FilesInterface files = mock(FilesInterface.class);
 
-        action = new TestInitAction(files,  "token", "", ".", "42", "file.json", "translation.json", true, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new TestInitAction(files,  "token", "", ".", "42", "file.json", "translation.json", "test", true, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class));
 
         verify(files).writeToFile(anyString(), any());
@@ -90,7 +90,7 @@ public class InitActionTest {
     public void userInputAllTest() throws IOException {
         FilesInterface files = mock(FilesInterface.class);
 
-        action = new TestInitAction(files, "token", "https://api.crowdin.com", ".", "42", "file.json", "translation.json", true, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new TestInitAction(files, "token", "https://api.crowdin.com", ".", "42", "file.json", "translation.json", "test", true, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class));
 
         ArgumentCaptor<InputStream> contentCaptor = ArgumentCaptor.forClass(InputStream.class);
@@ -117,7 +117,7 @@ public class InitActionTest {
         InputStream responsesIS = setResponses(false, false, "apiToken", "42", ".");
         System.setIn(responsesIS);
 
-        action = new TestInitAction(files, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new TestInitAction(files, null, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class)));
 
         verify(files).writeToFile(anyString(), any());
@@ -128,10 +128,10 @@ public class InitActionTest {
     public void enterprisetest() throws IOException {
         FilesInterface files = mock(FilesInterface.class);
         doThrow(new IOException()).when(files).writeToFile(anyString(), any());
-        InputStream responsesIS = setResponses(false, true, "undefined", "apiToken", "42", ".", null, null);
+        InputStream responsesIS = setResponses(false, true, "undefined", "apiToken", "42", ".", null, null, null);
         System.setIn(responsesIS);
 
-        action = new TestInitAction(files, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new TestInitAction(files, null, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class)));
 
         verify(files).writeToFile(anyString(), any());
@@ -142,10 +142,10 @@ public class InitActionTest {
     public void enterpriseUrlTest() throws IOException {
         FilesInterface files = mock(FilesInterface.class);
         doThrow(new IOException()).when(files).writeToFile(anyString(), any());
-        InputStream responsesIS = setResponses(false, true, "https://undefined.crowdin.com", "apiToken", "42", ".", null, null);
+        InputStream responsesIS = setResponses(false, true, "https://undefined.crowdin.com", "apiToken", "42", ".", null, null, null);
         System.setIn(responsesIS);
 
-        action = new TestInitAction(files, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new TestInitAction(files, null, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class)));
 
         verify(files).writeToFile(anyString(), any());
@@ -156,10 +156,10 @@ public class InitActionTest {
     public void enterpriseNoNametest() throws IOException {
         FilesInterface files = mock(FilesInterface.class);
         doThrow(new IOException()).when(files).writeToFile(anyString(), any());
-        InputStream responsesIS = setResponses(false, true, "", "apiToken", "42", ".", null, null);
+        InputStream responsesIS = setResponses(false, true, "", "apiToken", "42", ".", null, null, null);
         System.setIn(responsesIS);
 
-        action = new TestInitAction(files, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new TestInitAction(files, null, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class)));
 
         verify(files).writeToFile(anyString(), any());
@@ -171,21 +171,21 @@ public class InitActionTest {
         project.addFile("crowdin.yml");
         FilesInterface files = mock(FilesInterface.class);
         doThrow(new IOException()).when(files).writeToFile(anyString(), any());
-        InputStream responsesIS = setResponses(false, true, "https://undefined.crowdin.com", "apiToken", "42", ".", null, null);
+        InputStream responsesIS = setResponses(false, true, "https://undefined.crowdin.com", "apiToken", "42", ".", null, null, null);
         System.setIn(responsesIS);
 
-        action = new TestInitAction(files, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
+        action = new TestInitAction(files, null, null, null, null, null, null, null, null, Paths.get(project.getBasePath() + "/crowdin.yml"), false);
         action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class));
 
         verifyNoMoreInteractions(files);
     }
 
     private static InputStream setResponses(boolean authViaBrowser, boolean isEnterprise, String apiToken, String projectId, String basePath) {
-        return setResponses(authViaBrowser, isEnterprise, null, apiToken, projectId, basePath, null, null);
+        return setResponses(authViaBrowser, isEnterprise, null, apiToken, projectId, basePath, null, null, null);
     }
 
     private static InputStream setResponses(
-        boolean authViaBrowser, boolean isEnterprise, String organizationName, String apiToken, String projectId, String basePath, String source, String translation
+        boolean authViaBrowser, boolean isEnterprise, String organizationName, String apiToken, String projectId, String basePath, String source, String translation, String context
     ) {
         String responsesString =
             (authViaBrowser ? "yes" : "no") + "\n"
@@ -194,7 +194,8 @@ public class InitActionTest {
             + projectId + "\n"
             + basePath + "\n"
             + source + "\n"
-            + translation + "\n";
+            + translation + "\n"
+            + context + "\n";
         return new ByteArrayInputStream(responsesString.getBytes(UTF_8));
     }
 }

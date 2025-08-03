@@ -168,6 +168,17 @@ Example of the configuration:
 ]
 ```
 
+### File Context
+
+Add additional information or instructions to help translators better understand how to translate a file.
+File context can be added as plain text or Markdown in File Settings > Context or directly in the Editor.
+The provided context will be visible to translators in the Editor in the [File Context](https://support.crowdin.com/online-editor/#file-context) tab.
+The  icon appears next to files that have file context added, helping you quickly identify which files include helpful notes for translators.
+
+#### Limitations
+
+File Context is only available for [file-based](https://support.crowdin.com/creating-project/#project-types) projects.
+
 ### Argument File
 
 Crowdin CLI supports loading command-line arguments from a file.

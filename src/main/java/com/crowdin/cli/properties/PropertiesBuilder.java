@@ -69,6 +69,8 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String TRANSLATION = "translation";
 
+    public static final String CONTEXT = "context";
+
     public static final String UPDATE_OPTION = "update_option";
 
     public static final String LANGUAGES_MAPPING = "languages_mapping";

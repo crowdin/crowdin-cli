@@ -52,6 +52,7 @@ class InitAction implements NewAction<NoProperties, NoClient> {
     private final String projectId;
     private final String source;
     private final String translation;
+    private final String context;
     private final Boolean preserveHierarchy;
     private final Path destinationPath;
     private final boolean quiet;
@@ -224,11 +225,27 @@ class InitAction implements NewAction<NoProperties, NoClient> {
             while (true) {
                 String translationInput = asking.ask(String.format(RESOURCE_BUNDLE.getString("message.ask_translation"), PlaceholderUtil.ALL_PLACEHOLDERS));
                 if (!translationInput.isEmpty()) {
-                    if (PlaceholderUtil.validTranslationsPattern(translationInput)) {
+                    if (PlaceholderUtil.validStringPattern(translationInput, PlaceholderUtil.ALL_PLACEHOLDERS)) {
                         values.put(TRANSLATION, translationInput);
                         break;
                     } else {
                         out.println(String.format(RESOURCE_BUNDLE.getString("error.init.translation_not_valid"), translationInput));
+                    }
+                } else {
+                    break;
+                }
+            }
+        }
+
+        if (isNull(context)) {
+            while (true) {
+                String contextInput = asking.ask(String.format(RESOURCE_BUNDLE.getString("message.ask_context"), PlaceholderUtil.FILE_PLACEHOLDERS));
+                if (!contextInput.isEmpty()) {
+                    if (PlaceholderUtil.validStringPattern(contextInput, PlaceholderUtil.FILE_PLACEHOLDERS)) {
+                        values.put(CONTEXT, contextInput);
+                        break;
+                    } else {
+                        out.println(String.format(RESOURCE_BUNDLE.getString("error.init.context_not_valid"), contextInput));
                     }
                 } else {
                     break;
@@ -293,6 +310,7 @@ class InitAction implements NewAction<NoProperties, NoClient> {
         Optional.ofNullable(basePath).ifPresent(v -> values.put(BASE_PATH, basePath));
         Optional.ofNullable(projectId).ifPresent(v -> values.put(PROJECT_ID, projectId));
         Optional.ofNullable(source).ifPresent(v -> values.put(SOURCE, source));
+        Optional.ofNullable(context).ifPresent(v -> values.put(CONTEXT, context));
         Optional.ofNullable(translation).ifPresent(v -> values.put(TRANSLATION, translation));
         Optional.ofNullable(preserveHierarchy).ifPresent(v -> values.put(PRESERVE_HIERARCHY, String.valueOf(preserveHierarchy)));
     }

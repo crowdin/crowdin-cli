@@ -55,6 +55,13 @@ public class PlaceholderUtil {
             PLACEHOLDER_LANGUAGE_ID
     );
 
+    public static final List<String> FILE_PLACEHOLDERS = List.of(
+            PLACEHOLDER_FILE_EXTENSION,
+            PLACEHOLDER_FILE_NAME,
+            PLACEHOLDER_ORIGINAL_FILE_NAME,
+            PLACEHOLDER_ORIGINAL_PATH
+    );
+
     public static final String DOUBLED_ASTERISK = "**";
 
     private static final String REGEX = "regex";
@@ -329,11 +336,11 @@ public class PlaceholderUtil {
             PLACEHOLDER_OSX_LOCALE);
     }
 
-    public static boolean validTranslationsPattern(String translationsPattern) {
+    public static boolean validStringPattern(String translationsPattern, List<String> patterns) {
         var parts = translationsPattern.split("/");
         for (String part : parts) {
             if (part.endsWith("%") && part.startsWith("%")) {
-                if (!ALL_PLACEHOLDERS.contains(part)) {
+                if (!patterns.contains(part)) {
                     return false;
                 }
             }

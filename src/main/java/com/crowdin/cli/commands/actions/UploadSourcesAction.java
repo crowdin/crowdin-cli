@@ -24,7 +24,10 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
@@ -120,6 +123,10 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                 } catch (Exception e) {
                     errorsPresented.set(true);
                     throw e;
+                }
+
+                if (isStringsBasedProject && file.getContext() != null && !file.getContext().isEmpty()) {
+                    out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.file_context_for_string_based_project")));
                 }
 
                 LanguageMapping localLanguageMapping = LanguageMapping.fromConfigFileLanguageMapping(file.getLanguagesMapping());
@@ -247,6 +254,17 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             if (file.getLabels() != null) {
                                 List<Long> labelsIds = file.getLabels().stream().map(labels::get).collect(Collectors.toList());
                                 request.setAttachLabelIds(labelsIds);
+                            }
+
+                            if (file.getContext() != null && !file.getContext().isEmpty()) {
+                                String contextPath = placeholderUtil.replaceFileDependentPlaceholders(file.getContext(), sourceFile);
+                                try {
+                                    String context = Files.readString(Paths.get(pb.getBasePath(), contextPath));
+                                    request.setContext(context);
+                                } catch (IOException e) {
+                                    errorsPresented.set(true);
+                                    throw ExitCodeExceptionMapper.remap(e, RESOURCE_BUNDLE.getString("error.reading_context_file"));
+                                }
                             }
 
                             return (Runnable) () -> {

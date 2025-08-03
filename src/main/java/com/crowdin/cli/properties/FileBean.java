@@ -20,6 +20,7 @@ public class FileBean {
 
     private String source;
     private String translation;
+    private String context;
     private List<String> ignore;
     private Boolean multilingual;
     private String dest;
@@ -59,6 +60,7 @@ public class FileBean {
             PropertiesBuilder.setPropertyIfExists(fileBean::setDest, map, DEST, String.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setType, map, TYPE, String.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setTranslation, map, TRANSLATION, String.class);
+            PropertiesBuilder.setPropertyIfExists(fileBean::setContext, map, CONTEXT, String.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setUpdateOption, map, UPDATE_OPTION, String.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setScheme, map, SCHEME, String.class);
             PropertiesBuilder.setPropertyIfExists(fileBean::setIgnore, map, IGNORE, List.class);
