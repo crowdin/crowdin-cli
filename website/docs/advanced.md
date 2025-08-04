@@ -175,6 +175,18 @@ File context can be added as plain text or Markdown in File Settings > Context o
 The provided context will be visible to translators in the Editor in the [File Context](https://support.crowdin.com/online-editor/#file-context) tab.
 The  icon appears next to files that have file context added, helping you quickly identify which files include helpful notes for translators.
 
+Example of `crowdin.yml` with `context`
+
+```yml title="crowdin.yml"
+"files": [
+  {
+    "source": "/src/*.json",
+    "translation": "/locale/%two_letters_code%/%original_file_name%",
+    "context": "/src/%file_name%.txt",
+  }
+]
+```
+
 #### Limitations
 
 File Context is only available for [file-based](https://support.crowdin.com/creating-project/#project-types) projects.
