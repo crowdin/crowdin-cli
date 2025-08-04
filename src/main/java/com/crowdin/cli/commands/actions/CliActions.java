@@ -34,9 +34,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<NoProperties, NoClient> init(FilesInterface files, String token, String baseUrl, String basePath,
-        String projectId, String source, String translation, String context, Boolean preserveHierarchy, Path destinationPath, boolean quiet
+        String projectId, String source, String translation, Boolean preserveHierarchy, Path destinationPath, boolean quiet
     ) {
-        return new InitAction(files, token, baseUrl, basePath, projectId, source, translation, context, preserveHierarchy, destinationPath, quiet);
+        return new InitAction(files, token, baseUrl, basePath, projectId, source, translation, preserveHierarchy, destinationPath, quiet);
     }
 
     @Override

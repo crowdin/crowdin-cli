@@ -39,9 +39,6 @@ public class InitSubcommand extends GenericActCommand<NoProperties, NoClient> {
     @CommandLine.Option(names = {"-t", "--translation"}, paramLabel = "...", descriptionKey = "params.translation", order = -2)
     private String translation;
 
-    @CommandLine.Option(names = {"-c", "--context"}, paramLabel = "...", descriptionKey = "params.context", order = -2)
-    private String context;
-
     @CommandLine.Option(names = {"--preserve-hierarchy"}, negatable = true, paramLabel = "...", descriptionKey = "params.preserve-hierarchy", order = -2)
     private Boolean preserveHierarchy;
 
@@ -49,7 +46,7 @@ public class InitSubcommand extends GenericActCommand<NoProperties, NoClient> {
     private boolean quiet;
 
     protected NewAction<NoProperties, NoClient> getAction(Actions actions) {
-        return actions.init(new FsFiles(), token, baseUrl, basePath, projectId, source, translation, context, preserveHierarchy, destinationPath, quiet);
+        return actions.init(new FsFiles(), token, baseUrl, basePath, projectId, source, translation, preserveHierarchy, destinationPath, quiet);
     }
 
     protected NoProperties getProperties(PropertiesBuilders propertiesBuilders, Outputter out) {
