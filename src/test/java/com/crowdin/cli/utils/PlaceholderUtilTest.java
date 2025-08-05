@@ -260,10 +260,11 @@ public class PlaceholderUtilTest {
     }
 
     @Test
-    public void testValidTranslationsPattern() {
-        assertTrue(PlaceholderUtil.validTranslationsPattern("src/test"));
-        assertTrue(PlaceholderUtil.validTranslationsPattern("src"));
-        assertTrue(PlaceholderUtil.validTranslationsPattern("src/" + PlaceholderUtil.PLACEHOLDER_LANGUAGE + "/" + PlaceholderUtil.PLACEHOLDER_FILE_NAME));
-        assertFalse(PlaceholderUtil.validTranslationsPattern("src/" + PlaceholderUtil.PLACEHOLDER_LANGUAGE + "/%invalid%"));
+    public void testValidStringPattern() {
+        assertTrue(PlaceholderUtil.validStringPattern("src/test", PlaceholderUtil.FILE_PLACEHOLDERS));
+        assertTrue(PlaceholderUtil.validStringPattern("src", PlaceholderUtil.FILE_PLACEHOLDERS));
+        assertTrue(PlaceholderUtil.validStringPattern("src/" + PlaceholderUtil.PLACEHOLDER_LANGUAGE + "/" + PlaceholderUtil.PLACEHOLDER_FILE_NAME, PlaceholderUtil.ALL_PLACEHOLDERS));
+        assertFalse(PlaceholderUtil.validStringPattern("src/" + PlaceholderUtil.PLACEHOLDER_LANGUAGE + "/" + PlaceholderUtil.PLACEHOLDER_FILE_NAME, PlaceholderUtil.FILE_PLACEHOLDERS));
+        assertFalse(PlaceholderUtil.validStringPattern("src/" + PlaceholderUtil.PLACEHOLDER_LANGUAGE + "/%invalid%", PlaceholderUtil.ALL_PLACEHOLDERS));
     }
 }

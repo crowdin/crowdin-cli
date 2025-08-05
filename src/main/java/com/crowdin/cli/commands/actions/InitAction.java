@@ -224,7 +224,7 @@ class InitAction implements NewAction<NoProperties, NoClient> {
             while (true) {
                 String translationInput = asking.ask(String.format(RESOURCE_BUNDLE.getString("message.ask_translation"), PlaceholderUtil.ALL_PLACEHOLDERS));
                 if (!translationInput.isEmpty()) {
-                    if (PlaceholderUtil.validTranslationsPattern(translationInput)) {
+                    if (PlaceholderUtil.validStringPattern(translationInput, PlaceholderUtil.ALL_PLACEHOLDERS)) {
                         values.put(TRANSLATION, translationInput);
                         break;
                     } else {
