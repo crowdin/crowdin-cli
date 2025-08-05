@@ -170,14 +170,11 @@ Example of the configuration:
 
 ### File Context
 
-Add additional information or instructions to help translators better understand how to translate a file.
-File context can be added as plain text or Markdown in File Settings > Context or directly in the Editor.
-The provided context will be visible to translators in the Editor in the [File Context](https://support.crowdin.com/online-editor/#file-context) tab.
-The  icon appears next to files that have file context added, helping you quickly identify which files include helpful notes for translators.
+Add additional information or instructions to help translators better understand how to translate a file. File context can be added as plain text or Markdown in *File Settings* > *Context* or directly in the Editor.
 
-Example of `crowdin.yml` with `context`
+You can automate the process of adding context to files by specifying the `context` property in your `crowdin.yml` configuration file. This property should point to a text file that contains the context information for each source file:
 
-```yml title="crowdin.yml"
+```yml title="crowdin.yml" {5}
 "files": [
   {
     "source": "/src/*.json",
@@ -187,9 +184,20 @@ Example of `crowdin.yml` with `context`
 ]
 ```
 
-#### Limitations
+When you upload sources, Crowdin CLI will read the context file specified in the `context` property and associate it with the corresponding source file. The provided context will be visible to translators in the Editor in the [File Context](https://support.crowdin.com/online-editor/#file-context) tab.
 
-File Context is only available for [file-based](https://support.crowdin.com/creating-project/#project-types) projects.
+The supported placeholders in the `context` file path are:
+
+- `%file_name%` - the name of the source file without the extension
+- `%original_file_name%` - the name of the source file with the extension
+- `%file_extension%` - the extension of the source file
+- `%original_path%` - the full path to the source file, including the file name
+
+:::info
+The File Context feature is only available for [file-based](https://support.crowdin.com/creating-project/#project-types) projects.
+:::
+
+You can also specify the file context when uploading sources using the [`file upload`](/commands/crowdin-file-upload) command.
 
 ### Argument File
 
@@ -228,7 +236,7 @@ crowdin string list "@args.txt"
 
 For multilingual file formats (containing multiple languages in one file) you can use the `multilingual` option in the configuration. This option allows you to omit the language placeholders in the `translation` pattern:
 
-```yml title="crowdin.yml"
+```yml title="crowdin.yml" {5}
 "files": [
   {
     "source": "Localizable.xcstrings",
