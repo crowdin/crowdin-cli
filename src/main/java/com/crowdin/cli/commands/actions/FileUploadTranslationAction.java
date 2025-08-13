@@ -6,6 +6,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.BranchUtils;
+import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
@@ -16,6 +17,7 @@ import com.crowdin.client.sourcefiles.model.FileInfo;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import com.crowdin.client.translations.model.UploadTranslationsStringsRequest;
 import lombok.AllArgsConstructor;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -58,7 +60,8 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
         if (!isStringsBasedProject) {
             if (Objects.isNull(dest))
                 throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.file.dest_required"), languageId));
-            String sourcePath = Utils.toUnixPath(Utils.sepAtStart(dest));
+            String branchPath = (StringUtils.isNotEmpty(this.branchName) ? BranchUtils.normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "");
+            String sourcePath = Utils.toUnixPath(Utils.sepAtStart(branchPath + dest));
             FileInfo sourceFileInfo = project.getFileInfos().stream()
                 .filter(fi -> Objects.equals(sourcePath, fi.getPath()))
                 .findFirst()

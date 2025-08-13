@@ -70,6 +70,37 @@ class FileUploadTranslationActionTest {
     }
 
     @Test
+    public void testUploadTranslation_FileBasedProject_WithBranch() throws ResponseException {
+        File fileToUpload = new File(project.getBasePath() + "first_uk.po");
+        project.addFile(Utils.normalizePath("first_uk.po"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addBranches(1L, "main")
+            .addFile("/main/first.po", "gettext", 101L, null, 1L, null).build();
+        build.setType(Type.FILES_BASED);
+        when(client.downloadFullProject(any()))
+            .thenReturn(build);
+        when(client.uploadStorage(eq("first_uk.po"), any()))
+            .thenReturn(1L);
+
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, "main", "/first.po", "ua", false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(any());
+        verify(client).uploadStorage(eq("first_uk.po"), any());
+        UploadTranslationsRequest request = new UploadTranslationsRequest() {{
+            setFileId(101L);
+            setStorageId(1L);
+        }};
+        verify(client).uploadTranslations(eq("ua"), eq(request));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
     public void testUploadTranslation_StringBasedProject() throws ResponseException {
         File fileToUpload = new File(project.getBasePath() + "first_uk.po");
         project.addFile(Utils.normalizePath("first_uk.po"), "Hello, World!");
