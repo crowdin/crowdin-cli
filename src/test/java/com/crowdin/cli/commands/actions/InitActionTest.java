@@ -15,6 +15,7 @@ import org.mockito.ArgumentCaptor;
 import java.io.*;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -22,6 +23,7 @@ import java.util.stream.Collectors;
 import static java.nio.charset.StandardCharsets.UTF_8;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.*;
@@ -178,6 +180,43 @@ public class InitActionTest {
         action.act(Outputter.getDefault(), new NoProperties(), mock(NoClient.class));
 
         verifyNoMoreInteractions(files);
+    }
+
+    @Test
+    public void updateYmlValuesTest() {
+        List<String> fileLines = new ArrayList<>(
+                List.of(
+                        "\"api_token\": \"test123\"",
+                        "\"directory\"  : \"/qwe/*.json\"",
+                        "\"plain\":   \"1\"",
+                        "\"num\": 145",
+                        "\"bool\": true",
+                        "\"broken\": \"testst\"dedw\"",
+                        "\"source\": \"\"",
+                        "\"translation\": \"\","
+                )
+        );
+        Map<String, String> values = Map.of(
+                "api_token", "newToken1234",
+                "directory", "/new/dir/*.json",
+                "plain", "2",
+                "num", "154",
+                "bool", "false",
+                "broken", "fixed",
+                "source", "test.json",
+                "translation", "qwerty.json"
+        );
+        var updated = InitAction.updateYmlValues(fileLines, values);
+        assertTrue(updated);
+        assertEquals(8, fileLines.size());
+        assertEquals("\"api_token\": \"newToken1234\"", fileLines.get(0));
+        assertEquals("\"directory\"  : \"/new/dir/*.json\"", fileLines.get(1));
+        assertEquals("\"plain\":   \"2\"", fileLines.get(2));
+        assertEquals("\"num\": 154", fileLines.get(3));
+        assertEquals("\"bool\": false", fileLines.get(4));
+        assertEquals("\"broken\": \"fixed\"", fileLines.get(5));
+        assertEquals("\"source\": \"test.json\"", fileLines.get(6));
+        assertEquals("\"translation\": \"qwerty.json\",", fileLines.get(7));
     }
 
     private static InputStream setResponses(boolean authViaBrowser, boolean isEnterprise, String apiToken, String projectId, String basePath) {

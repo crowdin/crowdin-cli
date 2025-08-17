@@ -25,6 +25,8 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.OAUTH_CLIENT_ID;
@@ -76,7 +78,7 @@ class InitAction implements NewAction<NoProperties, NoClient> {
             if (!quiet) {
                 var inputs = this.collectUserInputs(out, asking);
                 //only save api token in shared yml
-                var sharedUpdated = this.updateYmlValues(sharedFileLines, Map.of(API_TOKEN, inputs.get(API_TOKEN)));
+                var sharedUpdated = updateYmlValues(sharedFileLines, Map.of(API_TOKEN, inputs.get(API_TOKEN)));
                 if (sharedUpdated) {
                     //if we successfully updated shared, we don't persist token in local yml
                     var localInputs = new HashMap<>(inputs);
@@ -84,10 +86,10 @@ class InitAction implements NewAction<NoProperties, NoClient> {
                     localFileLines = localFileLines.stream()
                             .filter(line -> !line.contains(String.format("\"%s\"", API_TOKEN)))
                             .collect(Collectors.toList());
-                    this.updateYmlValues(localFileLines, localInputs);
+                    updateYmlValues(localFileLines, localInputs);
                 } else {
                     //otherwise we persist everything in local yml
-                    this.updateYmlValues(localFileLines, inputs);
+                    updateYmlValues(localFileLines, inputs);
                 }
             }
 
@@ -261,7 +263,7 @@ class InitAction implements NewAction<NoProperties, NoClient> {
         }
     }
 
-    private boolean updateYmlValues(List<String> fileLines, Map<String, String> values) {
+    public static boolean updateYmlValues(List<String> fileLines, Map<String, String> values) {
         if (isNull(fileLines)) {
             return false;
         }
@@ -270,10 +272,15 @@ class InitAction implements NewAction<NoProperties, NoClient> {
             var found = false;
             for (int i = 0; i < fileLines.size(); i++) {
                 String keyToSearch = String.format("\"%s\"", entry.getKey());
-                if (fileLines.get(i).contains(keyToSearch)) {
-                    String updatedLine = PRESERVE_HIERARCHY.equals(entry.getKey()) ?
-                            fileLines.get(i).replace(String.valueOf(TRUE), entry.getValue())
-                            : fileLines.get(i).replaceFirst(": \"*\"", String.format(": \"%s\"", Utils.regexPath(entry.getValue())));
+                String fileLine = fileLines.get(i);
+                if (fileLine.contains(keyToSearch)) {
+                    String updatedLine;
+                    if (PRESERVE_HIERARCHY.equals(entry.getKey())) {
+                        updatedLine = fileLine.replace(String.valueOf(TRUE), entry.getValue());
+                    } else {
+                        var value = Utils.regexPath(entry.getValue());
+                        updatedLine = replacePreservingQuoting(fileLine, value);
+                    }
                     fileLines.set(i, updatedLine);
                     found = true;
                     break;
@@ -285,6 +292,52 @@ class InitAction implements NewAction<NoProperties, NoClient> {
         }
 
         return true;
+    }
+
+    private static String replacePreservingQuoting(String line, String newValue) {
+        Pattern p = Pattern.compile(
+                // 1: prefix '...key...: ' (key may be quoted; allows leading [ or { from flow collections)
+                "^(\\s*(?:[\\[{]\\s*)?\"?[^\\s\":]+\"?\\s*:\\s*)" +
+                        // either: double-quoted value -> group 2 (supports escaped chars and internal quotes)
+                        "(?:\"((?:\\\\.|[^\"\\\\]|\"(?!\\s*(?:,?\\s*[\\]\\}\\)]*)?\\s*(?:#.*)?$))*)\"" +
+                        // or: unquoted value -> group 3 (stops before , ] } ) or a comment; must not start with a quote)
+                        "|((?!\")[^,#\\]\\}\\)\\r\\n]*?))" +
+                        // 4: optional suffix like ',]' or ']' (preserved)
+                        "\\s*(,?\\s*[\\]\\}\\)]*)?" +
+                        // 5: optional inline comment (preserved)
+                        "\\s*(#.*)?$"
+        );
+        Matcher m = p.matcher(line);
+
+        if (!m.matches()) {
+            return line;
+        }
+
+        String prefix = m.group(1);
+        String dqValue = m.group(2); // non-null if originally double-quoted
+        String bareVal = m.group(3); // non-null if originally unquoted
+        String suffix = m.group(4); // e.g., ",]" or "]" or empty
+        String comment = m.group(5); // e.g., "# note" or empty
+
+        String rebuilt;
+        if (dqValue != null) {
+            // keep double quotes; escape safely
+            // backslashes first, then quotes
+            rebuilt = prefix + "\"" + newValue.replace("\\", "\\\\").replace("\"", "\\\"") + "\"";
+        } else {
+            // originally unquoted -> keep unquoted
+            rebuilt = prefix + newValue;
+        }
+
+        if (suffix != null && !suffix.isEmpty()) {
+            rebuilt += suffix;
+        }
+
+        if (comment != null && !comment.isEmpty()) {
+            rebuilt += " " + comment;
+        }
+
+        return rebuilt;
     }
 
     private void setGivenParams(Map<String, String> values) {
