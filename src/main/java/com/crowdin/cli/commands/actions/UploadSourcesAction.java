@@ -190,9 +190,13 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             uploadedSources.add(fileFullPath);
                         }
 
-                        FileInfo projectFile = !isStringsBasedProject ? ProjectFilesUtils.fileLookup(fileFullPath, finalPaths) : null;
+                        Map.Entry<FileInfo, Boolean> projectFile = !isStringsBasedProject ? ProjectFilesUtils.fileLookup(fileFullPath, finalPaths) : null;
                         if (!isStringsBasedProject && autoUpdate && projectFile != null) {
                             final UpdateFileRequest request = new UpdateFileRequest();
+                            if (!projectFile.getValue()) {
+                                //only for soft match we set name
+                                request.setName(projectFile.getKey().getName());
+                            }
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
                             request.setImportOptions(buildImportOptions(sourceFile, file, srxStorageId));
                             PropertiesBeanUtils.getUpdateOption(file.getUpdateOption()).ifPresent(request::setUpdateOption);
@@ -202,7 +206,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 request.setAttachLabelIds(labelsIds);
                             }
 
-                            final Long sourceId = projectFile.getId();
+                            final Long sourceId = projectFile.getKey().getId();
 
                             return (Runnable) () -> {
                                 try (InputStream fileStream = new FileInputStream(sourceFile)) {
@@ -216,7 +220,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 try {
                                     client.updateSource(sourceId, request);
                                     if (file.getExcludedTargetLanguages() != null && !file.getExcludedTargetLanguages().isEmpty()) {
-                                        List<String> projectFileExcludedTargetLanguages = ((com.crowdin.client.sourcefiles.model.File) projectFile).getExcludedTargetLanguages();
+                                        List<String> projectFileExcludedTargetLanguages = ((com.crowdin.client.sourcefiles.model.File) projectFile.getKey()).getExcludedTargetLanguages();
                                         if (!file.getExcludedTargetLanguages().equals(projectFileExcludedTargetLanguages)) {
                                             List<PatchRequest> editRequest = RequestBuilder.updateExcludedTargetLanguages(file.getExcludedTargetLanguages());
                                             client.editSource(sourceId, editRequest);

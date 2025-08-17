@@ -122,7 +122,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         }
                         return;
                     }
-                    Long fileId = sourceFile.getId();
+                    Long fileId = sourceFile.getKey().getId();
 
 //                build filePath to each source and project language
                     String fileSource = StringUtils.removeStart(source, pb.getBasePath());

@@ -83,7 +83,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             fileFullPath = (nonNull(branchName) ? branchName + Utils.PATH_SEPARATOR : "") + filePath;
             fileDestName = fileFullPath.substring(fileFullPath.lastIndexOf(Utils.PATH_SEPARATOR) + 1);
             Map<String, FileInfo> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFileInfos());
-            FileInfo projectFile = ProjectFilesUtils.fileLookup(fileFullPath, paths);
+            Map.Entry<FileInfo, Boolean> projectFile = ProjectFilesUtils.fileLookup(fileFullPath, paths);
 
             if (nonNull(projectFile)) {
                 if (!autoUpdate) {
@@ -91,7 +91,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
                     return;
                 }
                 final UpdateFileRequest request = new UpdateFileRequest();
-                final Long sourceId = projectFile.getId();
+                final Long sourceId = projectFile.getKey().getId();
                 attachLabelIds.ifPresent(request::setAttachLabelIds);
 
                 Long storageId = getStorageId(client, fileDestName);
@@ -100,7 +100,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
                 try {
                     client.updateSource(sourceId, request);
                     if (nonNull(excludedLanguages) && !excludedLanguages.isEmpty()) {
-                        List<String> projectFileExcludedTargetLanguages = ((com.crowdin.client.sourcefiles.model.File) projectFile).getExcludedTargetLanguages();
+                        List<String> projectFileExcludedTargetLanguages = ((com.crowdin.client.sourcefiles.model.File) projectFile.getKey()).getExcludedTargetLanguages();
                         if (!Objects.equals(excludedLanguages, projectFileExcludedTargetLanguages)) {
                             List<PatchRequest> editRequest = RequestBuilder.updateExcludedTargetLanguages(excludedLanguages);
                             client.editSource(sourceId, editRequest);
