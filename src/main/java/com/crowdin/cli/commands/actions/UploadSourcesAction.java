@@ -195,7 +195,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             final UpdateFileRequest request = new UpdateFileRequest();
                             if (!projectFile.getValue()) {
                                 //only for soft match we set name
-                                request.setName(projectFile.getKey().getName());
+                                request.setName(source.substring(source.lastIndexOf(Utils.PATH_SEPARATOR) + 1));
                             }
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
                             request.setImportOptions(buildImportOptions(sourceFile, file, srxStorageId));
