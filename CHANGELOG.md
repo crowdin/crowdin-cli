@@ -1,5 +1,19 @@
 # Changelog
 
+# [4.10.0](https://github.com/crowdin/crowdin-cli/compare/4.9.1...4.10.0) (2025-08-22)
+
+
+### Bug Fixes
+
+* file update for soft match ([#942](https://github.com/crowdin/crowdin-cli/issues/942)) ([e618716](https://github.com/crowdin/crowdin-cli/commit/e6187162a5890b912865468df0648b80a8a27e2d))
+* file upload include branch in dest ([#941](https://github.com/crowdin/crowdin-cli/issues/941)) ([569e593](https://github.com/crowdin/crowdin-cli/commit/569e593706547ea2369a8969029590956c5fdd95))
+* re-init generates invalid yml ([#943](https://github.com/crowdin/crowdin-cli/issues/943)) ([e589dc0](https://github.com/crowdin/crowdin-cli/commit/e589dc0db6593073e0f8934ad541a5af62b68527))
+
+
+### Features
+
+* file context ([#937](https://github.com/crowdin/crowdin-cli/issues/937)) ([65b50dd](https://github.com/crowdin/crowdin-cli/commit/65b50dddb465e539a6c361650a42f7e4904b956b))
+
 ## [4.9.1](https://github.com/crowdin/crowdin-cli/compare/4.9.0...4.9.1) (2025-08-01)
 
 
