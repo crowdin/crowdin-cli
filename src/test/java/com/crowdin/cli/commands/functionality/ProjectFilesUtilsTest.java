@@ -11,6 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
+import java.util.AbstractMap;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -84,9 +85,9 @@ public class ProjectFilesUtilsTest {
         String file4 = "path/to/file.json";
         String file5 = "path/to/file.json.xml";
 
-        assertEquals(file1, ProjectFilesUtils.fileLookup(file1, Map.of(file1, file1, file2, file2)));
-        assertEquals(file2, ProjectFilesUtils.fileLookup(file1, Map.of(file2, file2, file3, file3)));
-        assertEquals(file4, ProjectFilesUtils.fileLookup(file4, Map.of(file5, file4)));
+        assertEquals(new AbstractMap.SimpleEntry<>(file1, true), ProjectFilesUtils.fileLookup(file1, Map.of(file1, file1, file2, file2)));
+        assertEquals(new AbstractMap.SimpleEntry<>(file2, false), ProjectFilesUtils.fileLookup(file1, Map.of(file2, file2, file3, file3)));
+        assertEquals(new AbstractMap.SimpleEntry<>(file4, false), ProjectFilesUtils.fileLookup(file4, Map.of(file5, file4)));
         assertNull(ProjectFilesUtils.fileLookup(file3, Map.of(file1, file1, file2, file2)));
         assertNull(ProjectFilesUtils.fileLookup("path/to/test", Map.of(file1, file1, file2, file2)));
     }

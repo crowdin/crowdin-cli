@@ -12,11 +12,7 @@ import com.crowdin.client.sourcefiles.model.GeneralFileExportOptions;
 import com.crowdin.client.sourcefiles.model.PropertyFileExportOptions;
 import lombok.NonNull;
 
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -35,23 +31,27 @@ public class ProjectFilesUtils {
         return filePathsToId;
     }
 
-    public static <T> T fileLookup(String filePath, Map<String, T> files) {
+    public static <T> Map.Entry<T, Boolean> fileLookup(String filePath, Map<String, T> files) {
         if (files.containsKey(filePath)) {
-            return files.get(filePath);
+            return new AbstractMap.SimpleEntry<>(files.get(filePath), true);
         }
 
         T fallback = null;
 
         for (var entry : files.entrySet()) {
             if (ProjectFilesUtils.equalsIgnoreExtension(filePath, entry.getKey())) {
-                return entry.getValue();
+                return new AbstractMap.SimpleEntry<>(entry.getValue(), false);
             } else if (ProjectFilesUtils.equalsIgnoreExtraExtension(filePath, entry.getKey())) {
                 //storing it as a fallback because perfect match should have higher priority
                 fallback = entry.getValue();
             }
         }
 
-        return fallback;
+        if (fallback == null) {
+            return null;
+        }
+
+        return new AbstractMap.SimpleEntry<>(fallback, false);
     }
 
     public static boolean equalsIgnoreExtension(String file1, String file2) {
