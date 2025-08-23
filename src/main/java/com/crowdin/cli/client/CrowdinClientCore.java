@@ -129,7 +129,11 @@ abstract class CrowdinClientCore {
             String code = (e.getError() != null && e.getError().code != null) ? e.getError().code : "<empty_code>";
             String message = (e.getError() != null && e.getError().message != null) ? e.getError().message : "<empty_message>";
             searchErrorHandler(errorHandlers, code, message);
-            throw new RuntimeException(String.format("Error from server: <Code: %s, Message: %s>", code, message));
+            String errorMessage = String.format("Error from server: <Code: %s, Message: %s>", code, message);
+            if (e.getHttpResponse() != null) {
+                errorMessage += ", Response: " + e.getHttpResponse();
+            }
+            throw new RuntimeException(errorMessage);
         } catch (Exception e) {
             throw e;
         }
