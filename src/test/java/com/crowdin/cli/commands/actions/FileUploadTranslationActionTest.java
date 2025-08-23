@@ -13,7 +13,6 @@ import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.projectsgroups.model.Type;
-import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
 import com.crowdin.client.translations.model.UploadTranslationsStringsRequest;
 import org.junit.jupiter.api.AfterEach;
@@ -40,6 +39,34 @@ class FileUploadTranslationActionTest {
     }
 
     @Test
+    public void testUploadTranslation_xliff() throws ResponseException {
+        File fileToUpload = new File(project.getBasePath() + "first_uk.po");
+        project.addFile(Utils.normalizePath("first_uk.po"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
+        build.setType(Type.FILES_BASED);
+        when(client.downloadFullProject(any()))
+            .thenReturn(build);
+        when(client.uploadStorage(eq("first_uk.po"), any()))
+            .thenReturn(1L);
+
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, null, null, "ua", true, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(any());
+        verify(client).uploadStorage(eq("first_uk.po"), any());
+        UploadTranslationsRequest request = new UploadTranslationsRequest() {{
+            setStorageId(1L);
+        }};
+        verify(client).uploadTranslations(eq("ua"), eq(request));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
     public void testUploadTranslation_FileBasedProject() throws ResponseException {
         File fileToUpload = new File(project.getBasePath() + "first_uk.po");
         project.addFile(Utils.normalizePath("first_uk.po"), "Hello, World!");
@@ -56,7 +83,7 @@ class FileUploadTranslationActionTest {
         when(client.uploadStorage(eq("first_uk.po"), any()))
             .thenReturn(1L);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, null, "/first.po", "ua", false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, null, "/first.po", "ua", false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(any());
@@ -87,7 +114,7 @@ class FileUploadTranslationActionTest {
         when(client.uploadStorage(eq("first_uk.po"), any()))
             .thenReturn(1L);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, "main", "/first.po", "ua", false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, "main", "/first.po", "ua", false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(any());
@@ -117,7 +144,7 @@ class FileUploadTranslationActionTest {
         when(client.uploadStorage(eq("first_uk.po"), any()))
             .thenReturn(1L);
 
-        NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, "main", null, "ua", false);
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, "main", null, "ua", false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(any());
