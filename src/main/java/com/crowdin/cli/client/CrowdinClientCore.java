@@ -25,16 +25,15 @@ import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 
 abstract class CrowdinClientCore {
 
-    private static final long defaultMillisToRetry = 100;
-
     protected static final Map<BiPredicate<String, String>, Function<String, RuntimeException>> standardErrorHandlers =
             new LinkedHashMap<>() {{
+                //401
                 put((code, message) -> code.equals("401"),
                         (msg) -> new ExitCodeExceptionMapper.AuthorizationException(RESOURCE_BUNDLE.getString("error.response.401")));
+                //403
                 put((code, message) -> code.equals("403") && message.contains("upgrade your subscription plan to upload more file formats"),
                         (msg) -> new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403_upgrade_subscription")));
-                put((code, message) -> code.equals("403") && !message.contains("Merge is only possible into the main branch"),
-                        (msg) -> new ExitCodeExceptionMapper.ForbiddenException(RESOURCE_BUNDLE.getString("error.response.403")));
+                //404
                 put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Project Not Found"),
                         (msg) -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.response.404_project_not_found")));
                 put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Organization Not Found"),
@@ -43,6 +42,7 @@ abstract class CrowdinClientCore {
                         (msg) -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.bundle.not_found_by_id")));
                 put((code, message) -> code.equals("404") && StringUtils.containsIgnoreCase(message, "Screenshot Not Found"),
                         (msg) -> new ExitCodeExceptionMapper.NotFoundException(RESOURCE_BUNDLE.getString("error.screenshot.not_found_by_id")));
+                //429
                 put((code, message) -> code.equals("429"),
                         (msg) -> new ExitCodeExceptionMapper.RateLimitException(RESOURCE_BUNDLE.getString("error.response.429")));
                 put((code, message) -> StringUtils.containsAny(message,
@@ -50,14 +50,16 @@ abstract class CrowdinClientCore {
                                 "sun.security.provider.certpath.SunCertPathBuilderException",
                                 "unable to find valid certification path to requested target"),
                         (msg) -> new RuntimeException(RESOURCE_BUNDLE.getString("error.response.certificate")));
+                //specific message
                 put((code, message) -> message.equals("Name or service not known"),
                         (msg) -> new RuntimeException(RESOURCE_BUNDLE.getString("error.response.url_not_known")));
                 put((code, message) -> code.equals("<empty_code>") && message.equals("<empty_message>"),
                         (msg) -> new RuntimeException("Empty error message from server"));
+                //generic
                 put((code, message) -> code.equals("404"),
                         ExitCodeExceptionMapper.NotFoundException::new);
                 put((code, message) -> code.equals("403"),
-                        ExitCodeExceptionMapper.ForbiddenException::new);
+                        (msg) -> new ExitCodeExceptionMapper.ForbiddenException(String.format(RESOURCE_BUNDLE.getString("error.response.403"), msg)));
             }};
 
     /**
