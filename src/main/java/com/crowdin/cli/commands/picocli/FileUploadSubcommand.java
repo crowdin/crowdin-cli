@@ -58,7 +58,7 @@ class FileUploadSubcommand extends ActCommandProject {
     @Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
 
-    @Option(names = {"--xliff"}, negatable = true, descriptionKey = "crowdin.file.upload.xliff", order = -3)
+    @Option(names = {"--xliff"}, descriptionKey = "crowdin.file.upload.xliff", order = -3)
     protected boolean xliff = false;
 
     @Override

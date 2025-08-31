@@ -40,8 +40,8 @@ class FileUploadTranslationActionTest {
 
     @Test
     public void testUploadTranslation_xliff() throws ResponseException {
-        File fileToUpload = new File(project.getBasePath() + "first_uk.po");
-        project.addFile(Utils.normalizePath("first_uk.po"), "Hello, World!");
+        File fileToUpload = new File(project.getBasePath() + "first_uk.xliff");
+        project.addFile(Utils.normalizePath("first_uk.xliff"), "Hello, World!");
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath());
@@ -51,14 +51,14 @@ class FileUploadTranslationActionTest {
         build.setType(Type.FILES_BASED);
         when(client.downloadFullProject(any()))
             .thenReturn(build);
-        when(client.uploadStorage(eq("first_uk.po"), any()))
+        when(client.uploadStorage(eq("first_uk.xliff"), any()))
             .thenReturn(1L);
 
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, null, null, "ua", true, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(any());
-        verify(client).uploadStorage(eq("first_uk.po"), any());
+        verify(client).uploadStorage(eq("first_uk.xliff"), any());
         UploadTranslationsRequest request = new UploadTranslationsRequest() {{
             setStorageId(1L);
         }};
