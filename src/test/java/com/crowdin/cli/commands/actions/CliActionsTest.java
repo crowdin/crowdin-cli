@@ -174,7 +174,7 @@ public class CliActionsTest {
 
     @Test
     void testFileUploadTranslation() {
-        assertNotNull(actions.fileUploadTranslation(null, null, null, null, false,false));
+        assertNotNull(actions.fileUploadTranslation(null, null, null, null, false, false));
     }
 
     @Test
