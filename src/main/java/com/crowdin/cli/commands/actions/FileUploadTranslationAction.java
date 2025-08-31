@@ -6,7 +6,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.BranchUtils;
-import com.crowdin.cli.commands.functionality.PropertiesBeanUtils;
+import com.crowdin.cli.commands.functionality.SourcesUtils;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
 import com.crowdin.cli.utils.Utils;
@@ -23,6 +23,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Files;
+import java.util.Collections;
 import java.util.Objects;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -58,10 +59,13 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
         }
 
         if (!isStringsBasedProject) {
-            if (Objects.isNull(dest))
-                throw new ExitCodeExceptionMapper.ValidationException(String.format(RESOURCE_BUNDLE.getString("error.file.dest_required"), languageId));
             String branchPath = (StringUtils.isNotEmpty(this.branchName) ? BranchUtils.normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "");
-            String sourcePath = Utils.toUnixPath(Utils.sepAtStart(branchPath + dest));
+            String destination = dest;
+            if (Objects.isNull(destination)) {
+                String commonPath = SourcesUtils.getCommonPath(Collections.singletonList(this.file.getAbsolutePath()), properties.getBasePath());
+                destination = StringUtils.removeStart(file.getAbsolutePath(), properties.getBasePath() + commonPath);
+            }
+            String sourcePath = Utils.toUnixPath(Utils.sepAtStart(branchPath + destination));
             FileInfo sourceFileInfo = project.getFileInfos().stream()
                 .filter(fi -> Objects.equals(sourcePath, fi.getPath()))
                 .findFirst()
