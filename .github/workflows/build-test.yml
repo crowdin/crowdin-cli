@@ -141,7 +141,7 @@ jobs:
 
       - name: Build and install the package
         run: |
-          sudo npm install --location=global jdeploy@4.1.2
+          sudo npm install --location=global jdeploy@5.0.3
           npm install
           jdeploy install
 
