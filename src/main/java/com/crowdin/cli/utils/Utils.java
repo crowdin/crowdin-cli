@@ -21,10 +21,7 @@ import static com.crowdin.cli.BaseCli.HTTP_PROXY_PASSWORD_ENV;
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_PORT_ENV;
 import static com.crowdin.cli.BaseCli.HTTP_PROXY_USER_ENV;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.utils.PlaceholderUtil.ESCAPE_ROUND_BRACKET_CLOSE;
-import static com.crowdin.cli.utils.PlaceholderUtil.ESCAPE_ROUND_BRACKET_OPEN;
-import static com.crowdin.cli.utils.PlaceholderUtil.ROUND_BRACKET_CLOSE;
-import static com.crowdin.cli.utils.PlaceholderUtil.ROUND_BRACKET_OPEN;
+import static com.crowdin.cli.utils.PlaceholderUtil.*;
 
 public class Utils {
 
@@ -123,7 +120,8 @@ public class Utils {
         if (path != null) {
             return path.replaceAll("\\\\", "\\\\\\\\")
                 .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
-                .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE);
+                .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE)
+                .replace(PLUS, PLUS_REGEX);
         } else {
             return null;
         }
