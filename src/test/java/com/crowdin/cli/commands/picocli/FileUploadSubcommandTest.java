@@ -23,7 +23,7 @@ class FileUploadSubcommandTest extends PicocliTestUtils {
     public void testFileUploadTranslations() throws URISyntaxException {
         var file = Path.of(this.getClass().getClassLoader().getResource("file.txt").toURI()).toFile();
         this.execute(CommandNames.FILE, CommandNames.FILE_UPLOAD, file.getAbsolutePath(), "--language", "uk");
-        verify(actionsMock).fileUploadTranslation(any(), any(), any(), any(), anyBoolean());
+        verify(actionsMock).fileUploadTranslation(any(), any(), any(), any(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 

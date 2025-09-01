@@ -58,6 +58,9 @@ class FileUploadSubcommand extends ActCommandProject {
     @Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
 
+    @Option(names = {"--xliff"}, descriptionKey = "crowdin.file.upload.xliff", order = -3)
+    protected boolean xliff = false;
+
     @Override
     protected List<String> checkOptions() {
         if (!file.exists()) {
@@ -70,13 +73,19 @@ class FileUploadSubcommand extends ActCommandProject {
         if (file.isDirectory()) {
             errors.add(RESOURCE_BUNDLE.getString("error.file.is_folder"));
         }
+        if (xliff && languageId == null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.file.language_xliff_required"));
+        }
+        if (xliff && destination != null) {
+            errors.add(RESOURCE_BUNDLE.getString("error.file.dest_with_xliff"));
+        }
         return errors;
     }
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
         if (Objects.nonNull(languageId)) {
-            return actions.fileUploadTranslation(file, branch, destination, languageId, plainView);
+            return actions.fileUploadTranslation(file, branch, destination, languageId, xliff, plainView);
         }
         return actions.fileUpload(file, branch, autoUpdate, labels, destination, context, type, parserVersion, excludedLanguages, plainView, cleanupMode, updateStrings);
     }

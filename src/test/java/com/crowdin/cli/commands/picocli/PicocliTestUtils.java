@@ -128,7 +128,7 @@ public class PicocliTestUtils {
                 .thenReturn(actionMock);
         when(actionsMock.fileUpload(any(), any(), anyBoolean(), any(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
                 .thenReturn(actionMock);
-        when(actionsMock.fileUploadTranslation(any(), any(), any(), any(), anyBoolean()))
+        when(actionsMock.fileUploadTranslation(any(), any(), any(), any(), anyBoolean(), anyBoolean()))
                 .thenReturn(actionMock);
         when(actionsMock.fileDownload(any(), any(), anyBoolean(), any()))
                 .thenReturn(actionMock);
