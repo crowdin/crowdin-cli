@@ -534,6 +534,8 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         Map<BiPredicate<String, String>, ResponseException> errorHandler = new LinkedHashMap<>() {{
             put((code, message) -> code.equals("403") && message.contains("Endpoint isn't allowed for token scopes"),
                 new ResponseException("Unable to retrieve MT due to insufficient token scopes"));
+            put((code, message) -> code.equals("403"),
+                new ResponseException("Unable to retrieve MT due to insufficient account or role permissions."));
         }};
         return executeRequest(errorHandler, () -> this.client.getMachineTranslationEnginesApi().getMt(mtId))
             .getData();
