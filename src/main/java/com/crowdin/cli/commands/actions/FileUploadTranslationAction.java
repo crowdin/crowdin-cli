@@ -24,6 +24,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Collections;
+import java.util.Collections;
 import java.util.Objects;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -37,6 +38,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
     private final String branchName;
     private final String dest;
     private final String languageId;
+    private final boolean xliff;
     private final boolean plainView;
 
     @Override
@@ -58,7 +60,17 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
             throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId));
         }
 
-        if (!isStringsBasedProject) {
+        if (xliff) {
+            UploadTranslationsRequest request = new UploadTranslationsRequest();
+            Long storageId = getStorageId(client);
+            request.setStorageId(storageId);
+            try {
+                client.uploadTranslations(languageId, request);
+            } catch (Exception e) {
+                throw ExitCodeExceptionMapper.remap(e, String.format(
+                        RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()));
+            }
+        } else if (!isStringsBasedProject) {
             String branchPath = (StringUtils.isNotEmpty(this.branchName) ? BranchUtils.normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "");
             String destination = dest;
             if (Objects.isNull(destination)) {

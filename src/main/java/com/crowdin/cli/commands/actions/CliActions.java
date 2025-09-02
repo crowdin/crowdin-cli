@@ -309,8 +309,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> fileUploadTranslation(File file, String branch, String dest, String languageId, boolean plainView) {
-        return new FileUploadTranslationAction(file, branch, dest, languageId, plainView);
+    public NewAction<ProjectProperties, ProjectClient> fileUploadTranslation(File file, String branch, String dest, String languageId, boolean xliff, boolean plainView) {
+        return new FileUploadTranslationAction(file, branch, dest, languageId, xliff, plainView);
     }
 
     @Override

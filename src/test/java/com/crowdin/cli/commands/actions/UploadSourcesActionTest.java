@@ -546,6 +546,54 @@ public class UploadSourcesActionTest {
     }
 
     @Test
+    public void testUploadOneSourceWithDestAndDeleteObsoleteOptionAndPlusName_Project() throws ResponseException {
+        project.addFile(Utils.normalizePath("docs/en/index+new.md"), "Hello, World!");
+        String translationPattern = "/app/docs/%two_letters_code%/%original_file_name%";
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(Utils.normalizePath("/docs/en/*.md"), Utils.normalizePath(translationPattern), Arrays.asList("**/.*"))
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setDest(Utils.normalizePath("/app/%original_path%/%original_file_name%"));
+        pb.setPreserveHierarchy(true);
+        pb.setProjectId("551261");
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("locale.md", "yaml", 66l, 209l, null, translationPattern)
+            .addFile("index+new.md", "yaml", 77l, 209l, null, translationPattern)
+            .addDirectory("docs", 207l, 215l, null)
+            .addDirectory("app", 215l, null, null)
+            .addDirectory("en", 209l, 207l, null)
+            .addDirectory("en", 225l, null, null)
+            .build();
+        build.setType(Type.FILES_BASED);
+        when(client.downloadFullProject())
+            .thenReturn(build);
+        when(client.uploadStorage(eq("/docs/en/index+new.md"), any()))
+            .thenReturn(1L);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, true, false, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("index+new.md"), any());
+        UpdateFileRequest updateFileRequest = new UpdateFileRequest() {{
+            setStorageId(0L);
+            setImportOptions(new OtherFileImportOptions() {{
+                                 setContentSegmentation(pb.getFiles().get(0).getContentSegmentation());
+                             }}
+            );
+            setExportOptions(new GeneralFileExportOptions() {{
+                                 setExportPattern(pb.getFiles().get(0).getTranslation().replaceAll("[\\\\/]+", "/"));
+                             }}
+            );
+        }};
+        verify(client).updateSource(eq(77l), eq(updateFileRequest));
+        verify(client).deleteSource(66l);
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
     public void testUpdateOneUploadOneSource_Project() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("second.po"), "Hello, World!");
