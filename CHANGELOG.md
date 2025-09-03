@@ -1,5 +1,21 @@
 # Changelog
 
+# [4.11.0](https://github.com/crowdin/crowdin-cli/compare/4.10.0...4.11.0) (2025-09-03)
+
+
+### Bug Fixes
+
+* delete-obsolete to accept plus in file names ([#948](https://github.com/crowdin/crowdin-cli/issues/948)) ([535422d](https://github.com/crowdin/crowdin-cli/commit/535422d376c7befddae6ceb2e7792bdb2386ed65))
+* improved error message ([#945](https://github.com/crowdin/crowdin-cli/issues/945)) ([1b36c11](https://github.com/crowdin/crowdin-cli/commit/1b36c1191f42c99a5efa0039fef30b2f7c326f5c))
+* MT error message for insufficient permissions ([#950](https://github.com/crowdin/crowdin-cli/issues/950)) ([93afa7d](https://github.com/crowdin/crowdin-cli/commit/93afa7d0a61769f262594d83f41c447256ad31cc))
+
+
+### Features
+
+* improve error message for 403 error ([#946](https://github.com/crowdin/crowdin-cli/issues/946)) ([3485c8b](https://github.com/crowdin/crowdin-cli/commit/3485c8b45fc3c79d4f947cffd2bb1c7a0173649c))
+* optional destination for upload translation command ([#947](https://github.com/crowdin/crowdin-cli/issues/947)) ([b4da9f0](https://github.com/crowdin/crowdin-cli/commit/b4da9f0a33d46c850ea4a26a0d479ef1bfc375c1))
+* xliff parameter to upload offline translation file ([#944](https://github.com/crowdin/crowdin-cli/issues/944)) ([ed2b599](https://github.com/crowdin/crowdin-cli/commit/ed2b599709af494ff8a69dbcf6a8f76afe0582d4))
+
 # [4.10.0](https://github.com/crowdin/crowdin-cli/compare/4.9.1...4.10.0) (2025-08-22)
 
 
