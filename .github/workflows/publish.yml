@@ -241,7 +241,7 @@ jobs:
           mv build/libs/crowdin-cli-*.jar dist/crowdin-cli.jar
 
       - name: Compile .ISS to .EXE Installer
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.2
+        uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
         with:
           path: packages/exe/CrowdinCLIInstaller.iss
 
