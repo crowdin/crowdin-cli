@@ -101,6 +101,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+          registry-url: https://registry.npmjs.org/
 
       - name: Install the latest version of the npm CLI
         run: npm install -g npm@latest
@@ -116,10 +117,7 @@ jobs:
         run: crowdin -V
 
       - name: Publish the package
-        uses: JS-DevTools/npm-publish@v3
-        with:
-          provenance: true
-          token: ${{ secrets.NPM_TOKEN }}
+        run: npm publish --provenance
 
   aur:
     runs-on: ubuntu-latest
