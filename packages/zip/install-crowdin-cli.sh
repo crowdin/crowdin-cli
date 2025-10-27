@@ -10,7 +10,7 @@ if type -p java; then
 elif [[ -n "$JAVA_HOME" ]] && [[ -x "$JAVA_HOME/bin/java" ]];  then
     _java="$JAVA_HOME/bin/java"
 else
-    echo "Looks like JAVA is not installed. You can download it from https://www.java.com/"
+    echo "Looks like JAVA is not installed. You can download it from https://www.oracle.com/java/technologies/downloads/"
 fi
 
 if [[ "$_java" ]]; then
@@ -49,7 +49,7 @@ EOF"
         chmod +x /usr/local/bin/crowdin_uninstall
 
     else
-        echo Your Java version is "$version" - needs to be updated. You can download it from https://www.java.com/
+        echo Your Java version is "$version" - needs to be updated. You can download it from https://www.oracle.com/java/technologies/downloads/
     fi
 fi
 
