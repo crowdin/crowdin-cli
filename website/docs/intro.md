@@ -85,7 +85,7 @@ Some commands have their own config options.
 
 Check that you have **Java 17** or newer installed. Type `java -version` command in the terminal (Command Prompt on Windows) to check Java version.
 
-If you don’t have Java installed, download it from [Oracle’s website](https://www.java.com/en/).
+If you don’t have Java installed, download it from [Oracle’s website](https://www.oracle.com/java/technologies/downloads/).
 
 ## Further Reading
 

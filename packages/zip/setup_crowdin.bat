@@ -22,7 +22,7 @@ if "%_JAVACMD%"=="" (
 )
 
 if "%_JAVACMD%"=="" (
-    ECHO Looks like Java is not installed. You can download it from https://www.java.com/
+    ECHO Looks like Java is not installed. You can download it from https://www.oracle.com/java/technologies/downloads/
     GOTO EXIT
 )
 
@@ -41,7 +41,7 @@ for /f "delims=. tokens=1-3" %%v in ("%JAVAVER%") do (
 ECHO Checking JAVA version
 
 IF %MAJORVERSION% GEQ 17 GOTO VALID
-ECHO Your JAVA version should be updated to version 17. You can download it from https://www.java.com/
+ECHO Your JAVA version should be updated to version 17. You can download it from https://www.oracle.com/java/technologies/downloads/
 GOTO EXIT
 
 :VALID

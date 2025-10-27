@@ -144,11 +144,11 @@ begin
   Result := HasJava1Dot7OrNewer;
   if not Result then
   begin
-    Result := MsgBox(ExpandConstant('Your Java version needs to be updated. Download it from https://www.java.com?'), mbConfirmation, MB_YESNO) = idYes;
+    Result := MsgBox(ExpandConstant('Your Java version needs to be updated. Download it from https://www.oracle.com/java/technologies/downloads/'), mbConfirmation, MB_YESNO) = idYes;
     if Result then
     begin
       ShellExec(
-        'open', 'https://www.java.com/getjava/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+        'open', 'https://www.oracle.com/java/technologies/downloads/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
     end;
   end;
 end;
