@@ -85,7 +85,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - uses: actions/setup-java@v4
@@ -134,14 +134,14 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
 
       - name: Install the latest version of the npm CLI
         run: npm install -g npm@latest
 
       - name: Build and install the package
         run: |
-          sudo npm install --location=global jdeploy@5.0.3
+          sudo npm install --location=global jdeploy@5.4.3
           npm install
           jdeploy install
 

@@ -100,7 +100,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           registry-url: https://registry.npmjs.org/
 
       - name: Install the latest version of the npm CLI
@@ -108,7 +108,7 @@ jobs:
 
       - name: Build and install the package
         run: |
-          sudo npm install --location=global jdeploy@5.0.3
+          sudo npm install --location=global jdeploy@5.4.3
           npm install
           jdeploy install
           mv build/libs/crowdin_completion jdeploy-bundle/crowdin_completion

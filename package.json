@@ -20,8 +20,8 @@
   "dependencies": {
     "command-exists-promise": "^2.0.2",
     "node-fetch": "2.7.0",
-    "shelljs": "^0.8.5",
-    "tar": "^7.4.3",
+    "shelljs": "^0.10.0",
+    "tar": "^7.5.2",
     "yauzl": "^3.2.0"
   },
   "license": "MIT",
@@ -45,8 +45,8 @@
   "devDependencies": {
     "semantic-release-replace-plugin": "^1.2.7",
     "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/exec": "^7.0.3",
+    "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
-    "semantic-release": "^24.2.1"
+    "semantic-release": "^25.0.2"
   }
 }
