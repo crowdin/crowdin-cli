@@ -234,6 +234,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             put((code, message) -> Utils.isServerErrorCode(code), new RepeatException("Server Error"));
             put((code, message) -> message.contains("Request aborted"), new RepeatException("Request aborted"));
             put((code, message) -> message.contains("Connection reset"), new RepeatException("Connection reset"));
+            put((code, message) -> message.contains("Connection timed out"), new RepeatException("Connection timed out"));
         }};
         Storage storage = executeRequestWithPossibleRetries(
             errorHandlers,
@@ -273,6 +274,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             put((code, message) -> Utils.isServerErrorCode(code), new RepeatException("Server Error"));
             put((code, message) -> message.contains("Request aborted"), new RepeatException("Request aborted"));
             put((code, message) -> message.contains("Connection reset"), new RepeatException("Connection reset"));
+            put((code, message) -> message.contains("Connection timed out"), new RepeatException("Connection timed out"));
             put((code, message) -> StringUtils.contains(message, "Invalid SRX specified"), new ResponseException("Invalid SRX file specified"));
             put((code, message) -> code.equals("409"), new FileInUpdateException());
         }};
@@ -291,6 +293,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             put((code, message) -> Utils.isServerErrorCode(code), new RepeatException("Server Error"));
             put((code, message) -> message.contains("Request aborted"), new RepeatException("Request aborted"));
             put((code, message) -> message.contains("Connection reset"), new RepeatException("Connection reset"));
+            put((code, message) -> message.contains("Connection timed out"), new RepeatException("Connection timed out"));
             put((code, message) -> StringUtils.contains(message, "Name must be unique"), new ExistsResponseException());
             put((code, message) -> StringUtils.contains(message, "Invalid SRX specified"), new ResponseException("Invalid SRX file specified"));
             put((code, message) -> StringUtils.containsAny(message, "isEmpty", "Value is required and can't be empty"), new EmptyFileException("Value is required and can't be empty"));
@@ -342,6 +345,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             put((code, message) -> Utils.isServerErrorCode(code), new RepeatException("Server Error"));
             put((code, message) -> message.contains("Request aborted"), new RepeatException("Request aborted"));
             put((code, message) -> message.contains("Connection reset"), new RepeatException("Connection reset"));
+            put((code, message) -> message.contains("Connection timed out"), new RepeatException("Connection timed out"));
         }};
         executeRequestWithPossibleRetries(
             errorhandlers,
