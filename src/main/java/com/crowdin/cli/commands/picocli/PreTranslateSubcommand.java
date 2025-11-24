@@ -105,7 +105,7 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
         if ((Method.MT == method) && (engineId == null)) {
             errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.engine_id"));
         }
-        if ((Method.MT == method || Method.AI == method) && translateWithPerfectMatchOnly != null) {
+        if ((Method.TM != method) && translateWithPerfectMatchOnly != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.translate_with_perfect_match_only"));
         }
         if (Method.MT == method && autoApproveOption != null) {
