@@ -45,14 +45,16 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
     private boolean autoUpdate;
     private boolean debug;
     private boolean plainView;
+    private boolean cache;
 
-    public UploadSourcesAction(String branchName, boolean deleteObsolete, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView) {
+    public UploadSourcesAction(String branchName, boolean deleteObsolete, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView, boolean cache) {
         this.branchName = branchName;
         this.deleteObsolete = deleteObsolete;
         this.noProgress = noProgress || plainView;
         this.autoUpdate = autoUpdate;
         this.debug = debug;
         this.plainView = plainView;
+        this.cache = cache;
     }
 
     @Override
