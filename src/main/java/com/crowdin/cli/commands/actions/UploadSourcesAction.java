@@ -8,10 +8,13 @@ import com.crowdin.cli.commands.functionality.*;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.FileBean;
 import com.crowdin.cli.properties.PropertiesWithFiles;
+import com.crowdin.cli.utils.OutputUtil;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.cli.utils.cache.Cache;
 import com.crowdin.cli.utils.concurrency.ConcurrencyUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
+import com.crowdin.cli.utils.file.FileUtils;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.Label;
 import com.crowdin.client.languages.model.Language;
@@ -29,6 +32,7 @@ import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
@@ -116,6 +120,14 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             .forEach(labelTitle -> labels.computeIfAbsent(labelTitle, (title) -> client.addLabel(RequestBuilder.addLabel(title)).getId()));
 
         AtomicBoolean errorsPresented = new AtomicBoolean(false);
+
+        Map<String, String> sourceHashes = new ConcurrentHashMap<>();
+
+        if (cache) {
+            Cache.initialize(this.plainView, out);
+            sourceHashes.putAll(Cache.getSourceHashes());
+        }
+
         List<Runnable> tasks = pb.getFiles().stream()
             .map(file -> (Runnable) () -> {
 
@@ -173,6 +185,29 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                 Long srxStorageId = customSegmentationFileId;
 
                 List<Runnable> taskss = sources.stream()
+                    .filter(source -> {
+                        if (!cache) {
+                            return true;
+                        } else {
+                            try {
+                                String currentHash = FileUtils.computeChecksum(new File(source).toPath());
+                                String previousHash = sourceHashes.get(source);
+                                if (!currentHash.equals(previousHash)) {
+                                    return true;
+                                } else {
+                                    if (!plainView) {
+                                        out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped_cached"), StringUtils.removeStart(source, pb.getBasePath()))));
+                                    }
+                                    return false;
+                                }
+                            } catch (Exception e) {
+                                if (plainView) {
+                                    OutputUtil.fancyErr(e, System.err, debug);
+                                }
+                                return true;
+                            }
+                        }
+                    })
                     .map(source -> {
                         final File sourceFile = new File(source);
                         final String filePath = (file.getDest() != null)
@@ -233,6 +268,17 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                             OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
                                     } else {
                                         out.println(fileFullPath);
+                                    }
+
+                                    if (cache) {
+                                        try {
+                                            String currentHash = FileUtils.computeChecksum(sourceFile.toPath());
+                                            sourceHashes.put(source, currentHash);
+                                        } catch (Exception e) {
+                                            if (plainView) {
+                                                OutputUtil.fancyErr(e, System.err, debug);
+                                            }
+                                        }
                                     }
                                 } catch (FileInUpdateException e) {
                                     if (!plainView) {
@@ -313,6 +359,17 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 } else {
                                     out.println(fileFullPath);
                                 }
+
+                                if (cache) {
+                                    try {
+                                        String currentHash = FileUtils.computeChecksum(sourceFile.toPath());
+                                        sourceHashes.put(source, currentHash);
+                                    } catch (Exception e) {
+                                        if (plainView) {
+                                            OutputUtil.fancyErr(e, System.err, debug);
+                                        }
+                                    }
+                                }
                             };
                         } else if (isStringsBasedProject) {
                             final UploadStringsRequest request = new UploadStringsRequest();
@@ -378,6 +435,17 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 } else {
                                     out.println(fileFullPath);
                                 }
+
+                                if (cache) {
+                                    try {
+                                        String currentHash = FileUtils.computeChecksum(sourceFile.toPath());
+                                        sourceHashes.put(source, currentHash);
+                                    } catch (Exception e) {
+                                        if (plainView) {
+                                            OutputUtil.fancyErr(e, System.err, debug);
+                                        }
+                                    }
+                                }
                             };
                         } else {
                             return (Runnable) () -> {
@@ -394,6 +462,11 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                     ConcurrencyUtil.executeAndWaitSingleThread(taskss, debug);
                 } else {
                     ConcurrencyUtil.executeAndWait(taskss, debug);
+                }
+
+                if (cache) {
+                    Cache.setSourceHashes(sourceHashes);
+                    Cache.save(plainView, out);
                 }
             })
             .collect(Collectors.toList());
