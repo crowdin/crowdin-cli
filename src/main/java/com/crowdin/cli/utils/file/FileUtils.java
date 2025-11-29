@@ -3,15 +3,13 @@ package com.crowdin.cli.utils.file;
 import org.apache.commons.io.IOUtils;
 import org.yaml.snakeyaml.Yaml;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import java.io.*;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.DigestInputStream;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.Map;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -49,5 +47,20 @@ public class FileUtils {
         IOUtils.copy(data, fileOutputStream);
         fileOutputStream.flush();
         fileOutputStream.close();
+    }
+
+    public static String computeChecksum(Path path) throws IOException, NoSuchAlgorithmException {
+        MessageDigest md = MessageDigest.getInstance("SHA-256");
+        try (InputStream is = Files.newInputStream(path);
+             DigestInputStream dis = new DigestInputStream(is, md)) {
+            byte[] buffer = new byte[8192];
+            while (dis.read(buffer) != -1) { /* read to update digest */ }
+        }
+        byte[] digest = md.digest();
+        StringBuilder sb = new StringBuilder(digest.length * 2);
+        for (byte b : digest) {
+            sb.append(String.format("%02x", b));
+        }
+        return sb.toString();
     }
 }
