@@ -201,9 +201,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                     return false;
                                 }
                             } catch (Exception e) {
-                                if (plainView) {
-                                    OutputUtil.fancyErr(e, System.err, debug);
-                                }
+                                OutputUtil.fancyErr(e, System.err, debug);
                                 return true;
                             }
                         }
@@ -275,9 +273,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                             String currentHash = FileUtils.computeChecksum(sourceFile.toPath());
                                             sourceHashes.put(source, currentHash);
                                         } catch (Exception e) {
-                                            if (plainView) {
-                                                OutputUtil.fancyErr(e, System.err, debug);
-                                            }
+                                            OutputUtil.fancyErr(e, System.err, debug);
                                         }
                                     }
                                 } catch (FileInUpdateException e) {
@@ -365,9 +361,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                         String currentHash = FileUtils.computeChecksum(sourceFile.toPath());
                                         sourceHashes.put(source, currentHash);
                                     } catch (Exception e) {
-                                        if (plainView) {
-                                            OutputUtil.fancyErr(e, System.err, debug);
-                                        }
+                                        OutputUtil.fancyErr(e, System.err, debug);
                                     }
                                 }
                             };
@@ -441,9 +435,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                         String currentHash = FileUtils.computeChecksum(sourceFile.toPath());
                                         sourceHashes.put(source, currentHash);
                                     } catch (Exception e) {
-                                        if (plainView) {
-                                            OutputUtil.fancyErr(e, System.err, debug);
-                                        }
+                                        OutputUtil.fancyErr(e, System.err, debug);
                                     }
                                 }
                             };
