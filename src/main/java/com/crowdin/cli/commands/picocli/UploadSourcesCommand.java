@@ -38,11 +38,14 @@ class UploadSourcesCommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
 
+    @CommandLine.Option(names = {"--cache"}, descriptionKey = "crowdin.upload.sources.cache")
+    protected boolean cache;
+
     @Override
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
             ? actions.listSources(this.deleteObsolete, this.branch, this.noProgress, this.treeView, plainView)
-            : actions.uploadSources(this.branch, this.deleteObsolete, this.noProgress, this.autoUpdate, debug, plainView);
+            : actions.uploadSources(this.branch, this.deleteObsolete, this.noProgress, this.autoUpdate, debug, plainView, cache);
     }
 
     @Override
