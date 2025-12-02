@@ -1,5 +1,18 @@
 # Changelog
 
+# [4.12.0](https://github.com/crowdin/crowdin-cli/compare/4.11.0...4.12.0) (2025-12-02)
+
+
+### Bug Fixes
+
+* add retry logic for connection timeout errors ([#955](https://github.com/crowdin/crowdin-cli/issues/955)) ([54efa9d](https://github.com/crowdin/crowdin-cli/commit/54efa9d511ab34fdf631e781fa73b5189e27e631))
+* **pre-translate:** align parameter validations with API ([#956](https://github.com/crowdin/crowdin-cli/issues/956)) ([4a45d39](https://github.com/crowdin/crowdin-cli/commit/4a45d3944cd95701d10d34933bc8f31bcbaa4102))
+
+
+### Features
+
+* upload sources with cache ([#959](https://github.com/crowdin/crowdin-cli/issues/959)) ([0bdbadd](https://github.com/crowdin/crowdin-cli/commit/0bdbadd1266eadf38e16ac287b9d1007b6a50c03))
+
 # [4.11.0](https://github.com/crowdin/crowdin-cli/compare/4.10.0...4.11.0) (2025-09-03)
 
 
