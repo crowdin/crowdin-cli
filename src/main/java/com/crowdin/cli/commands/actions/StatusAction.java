@@ -40,7 +40,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
             this.noProgress, this.plainView, () -> client.downloadFullProject(branchName));
 
         if (languageId != null) {
-            project.findLanguageById(languageId, true)
+            project.findLanguageById(languageId)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)));
         }
 
@@ -81,7 +81,7 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
         if (isVerbose) {
             progresses.forEach(pr -> {
                 out.println(String.format(RESOURCE_BUNDLE.getString("message.language"),
-                    project.findLanguageById(pr.getLanguageId(), true).get().getName(), pr.getLanguageId()));
+                    project.findLanguageById(pr.getLanguageId()).get().getName(), pr.getLanguageId()));
                 if (showTranslated) {
                     out.println(String.format(RESOURCE_BUNDLE.getString("message.translation_progress"),
                         pr.getTranslationProgress(),

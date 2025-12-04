@@ -105,16 +105,15 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         }
 
         PlaceholderUtil placeholderUtil =
-            new PlaceholderUtil(
-                project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
+            new PlaceholderUtil(project.getProjectLanguages(true), pb.getBasePath());
 
         List<Language> languages = languageIds == null ? null : languageIds.stream()
-            .map(lang -> project.findLanguageById(lang, true)
+            .map(lang -> project.findLanguageById(lang)
                 .orElseThrow(() -> new RuntimeException(
                     String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))))
             .collect(Collectors.toList());
         List<Language> excludeLanguages = excludeLanguageIds == null ? new ArrayList<>() : excludeLanguageIds.stream()
-            .map(lang -> project.findLanguageById(lang, true)
+            .map(lang -> project.findLanguageById(lang)
                 .orElseThrow(() -> new RuntimeException(
                     String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))))
             .collect(Collectors.toList());
@@ -131,7 +130,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         Map<File, List<String>> tempDirs = new HashMap<>();
         try {
             if (pseudo) {
-                List<Language> forLanguages = project.getSupportedLanguages();
+                List<Language> forLanguages = project.getProjectLanguages(true);
                 if (!plainView) {
                     out.println(OK.withIcon(RESOURCE_BUNDLE.getString("message.build_archive_pseudo")));
                 }

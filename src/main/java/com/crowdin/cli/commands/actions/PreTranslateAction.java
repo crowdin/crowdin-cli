@@ -2,7 +2,7 @@ package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.BaseCli;
 import com.crowdin.cli.client.CrowdinProjectFull;
-import com.crowdin.cli.client.CrowdinProjectInfo;
+import com.crowdin.cli.client.CrowdinProject;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.commands.NewAction;
@@ -127,7 +127,7 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         }
     }
 
-    private List<String> prepareLanguageIds(CrowdinProjectInfo projectInfo, ProjectClient client, Outputter out) {
+    private List<String> prepareLanguageIds(CrowdinProject projectInfo, ProjectClient client, Outputter out) {
         List<String> projectLanguages = projectInfo.getProjectLanguages(false).stream()
                 .map(Language::getId)
                 .collect(Collectors.toList());

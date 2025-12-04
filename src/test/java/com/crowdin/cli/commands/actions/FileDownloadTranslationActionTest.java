@@ -132,6 +132,12 @@ class FileDownloadTranslationActionTest {
         BuildProjectFileTranslationRequest requestUa = new BuildProjectFileTranslationRequest() {{
             setTargetLanguageId("ua");
         }};
+        BuildProjectFileTranslationRequest requestDe = new BuildProjectFileTranslationRequest() {{
+            setTargetLanguageId("de");
+        }};
+        BuildProjectFileTranslationRequest requestEn = new BuildProjectFileTranslationRequest() {{
+            setTargetLanguageId("en");
+        }};
         when(client.downloadFullProject())
             .thenReturn(build);
         when(client.buildProjectFileTranslation(eq(101L), any()))
@@ -143,6 +149,8 @@ class FileDownloadTranslationActionTest {
         verify(client).downloadFullProject();
         verify(client).buildProjectFileTranslation(eq(101L), eq(requestRu));
         verify(client).buildProjectFileTranslation(eq(101L), eq(requestUa));
+        verify(client).buildProjectFileTranslation(eq(101L), eq(requestDe));
+        verify(client).buildProjectFileTranslation(eq(101L), eq(requestEn));
         verifyNoMoreInteractions(client);
         assertTrue(Files.exists(Paths.get(project.getBasePath() + "ru/first.po")), "File should exist at the specified path");
         assertTrue(Files.exists(Paths.get(project.getBasePath() + "ua/first.po")), "File should exist at the specified path");

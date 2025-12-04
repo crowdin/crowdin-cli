@@ -56,7 +56,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
             }
         }
 
-        if (!project.findLanguageById(languageId, true).isPresent()) {
+        if (!project.findLanguageById(languageId).isPresent()) {
             throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId));
         }
 

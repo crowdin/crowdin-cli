@@ -92,6 +92,7 @@ public class UploadSourcesActionTest {
                 );
             }};
         verify(client).addSource(eq(addFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -131,6 +132,7 @@ public class UploadSourcesActionTest {
             );
         }};
         verify(client).addSource(eq(addFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -172,6 +174,7 @@ public class UploadSourcesActionTest {
             );
         }};
         verify(client).addSource(eq(addFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -212,6 +215,7 @@ public class UploadSourcesActionTest {
             );
         }};
         verify(client).addSource(eq(addFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -292,6 +296,7 @@ public class UploadSourcesActionTest {
                 );
             }};
         verify(client).addSource(eq(addFileRequest3));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -339,6 +344,7 @@ public class UploadSourcesActionTest {
                 );
             }};
         verify(client).addSource(eq(addFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -378,6 +384,7 @@ public class UploadSourcesActionTest {
                 );
             }};
         verify(client).addSource(eq(addFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -416,6 +423,7 @@ public class UploadSourcesActionTest {
                 );
             }};
         verify(client).addSource(eq(addFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -456,6 +464,7 @@ public class UploadSourcesActionTest {
                 );
             }};
         verify(client).addSource(eq(addFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -495,6 +504,7 @@ public class UploadSourcesActionTest {
                 );
             }};
         verify(client).addSource(eq(addFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -542,6 +552,7 @@ public class UploadSourcesActionTest {
             );
         }};
         verify(client).updateSource(eq(77l), eq(updateFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -590,6 +601,7 @@ public class UploadSourcesActionTest {
         }};
         verify(client).updateSource(eq(77l), eq(updateFileRequest));
         verify(client).deleteSource(66l);
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -644,6 +656,7 @@ public class UploadSourcesActionTest {
                 );
             }};
         verify(client).addSource(eq(addFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -691,6 +704,7 @@ public class UploadSourcesActionTest {
                 );
             }};
         verify(client).addSource(eq(addFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -730,6 +744,7 @@ public class UploadSourcesActionTest {
             );
         }};
         verify(client).addSource(eq(addFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -777,6 +792,7 @@ public class UploadSourcesActionTest {
             );
         }};
         verify(client).addSource(eq(addFileRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 
@@ -819,6 +835,7 @@ public class UploadSourcesActionTest {
         verify(client).uploadStorage(eq("first.po"), any());
         verify(client).addDirectory(eq(addDirectoryRequest1));
         verify(client).addDirectory(eq(addDirectoryRequest2));
+        verify(client).listSupportedLanguages();
         AddFileRequest addFileRequest = new AddFileRequest() {{
             setName("first.po");
             setStorageId(1L);
@@ -868,6 +885,7 @@ public class UploadSourcesActionTest {
         verify(client).listLabels();
         verify(client).uploadStorage(eq("first.po"), any());
         verify(client).addSourceStringsBased(eq(uploadStringsRequest));
+        verify(client).listSupportedLanguages();
         verifyNoMoreInteractions(client);
     }
 }

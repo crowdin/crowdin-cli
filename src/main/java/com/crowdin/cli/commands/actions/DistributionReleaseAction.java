@@ -1,7 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.ClientDistribution;
-import com.crowdin.cli.client.CrowdinProjectInfo;
+import com.crowdin.cli.client.CrowdinProject;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
@@ -41,7 +41,7 @@ class DistributionReleaseAction implements NewAction<ProjectProperties, ClientDi
             throw new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.distribution.not_found"), hash));
         }
 
-        CrowdinProjectInfo project = ConsoleSpinner.execute(
+        CrowdinProject project = ConsoleSpinner.execute(
             out,
             "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress,

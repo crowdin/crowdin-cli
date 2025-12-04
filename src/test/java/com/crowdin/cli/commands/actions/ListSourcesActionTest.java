@@ -40,13 +40,13 @@ public class ListSourcesActionTest {
             .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadProjectWithLanguages())
+        when(client.downloadProjectInfo())
             .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
 
         NewAction<PropertiesWithFiles, ProjectClient> action = new ListSourcesAction(false, null, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
-        verify(client).downloadProjectWithLanguages();
+        verify(client).downloadProjectInfo();
         verifyNoMoreInteractions(client);
     }
 
@@ -57,7 +57,7 @@ public class ListSourcesActionTest {
                 .setBasePath(project.getBasePath());
         PropertiesWithFiles pb = pbBuilder.build();
         ProjectClient client = mock(ProjectClient.class);
-        when(client.downloadProjectWithLanguages())
+        when(client.downloadProjectInfo())
                 .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build());
 
         NewAction<PropertiesWithFiles, ProjectClient> action = new ListSourcesAction(false, null, false, false, false);

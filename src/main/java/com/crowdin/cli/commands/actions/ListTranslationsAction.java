@@ -53,8 +53,7 @@ class ListTranslationsAction implements NewAction<PropertiesWithFiles, ProjectCl
 
         Map<String, File> files = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
 
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(
-            project.getSupportedLanguages(), project.getProjectLanguages(!isLocal), pb.getBasePath());
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getProjectLanguages(!isLocal), pb.getBasePath());
 
         (new DryrunTranslations(pb, project.getLanguageMapping(), placeholderUtil, project.getProjectLanguages(withInContextLang), false, files, useServerSources, isUpload))
             .run(out, treeView, plainView);

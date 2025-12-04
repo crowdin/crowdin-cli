@@ -59,7 +59,7 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
         if (Objects.equals(languageId, "all")) {
             languagesToDownload = project.getProjectLanguages(false);
         } else {
-            Language languageToDownload = project.findLanguageById(languageId, true)
+            Language languageToDownload = project.findLanguageById(languageId)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)));
             languagesToDownload = Collections.singletonList(languageToDownload);
         }
@@ -71,7 +71,6 @@ public class FileDownloadTranslationAction implements NewAction<ProjectPropertie
             .findFirst()
             .orElseThrow(() -> new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), sourcePath)));
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(
-            project.getSupportedLanguages(),
             project.getProjectLanguages(true),
             properties.getBasePath()
         );

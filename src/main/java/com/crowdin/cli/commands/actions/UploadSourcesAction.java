@@ -78,7 +78,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             }
         }
 
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getProjectLanguages(false), pb.getBasePath());
 
         Branch branch = (branchName != null) ? BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView) : null;
         Long branchId = (branch != null) ? branch.getId() : null;
@@ -133,7 +133,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
                 try {
                     this.checkExcludedTargetLanguages(file.getExcludedTargetLanguages(),
-                        project.getSupportedLanguages(), project.getProjectLanguages(false));
+                        client.listSupportedLanguages(), project.getProjectLanguages(false));
                 } catch (Exception e) {
                     errorsPresented.set(true);
                     throw e;

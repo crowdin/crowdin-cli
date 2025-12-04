@@ -1,7 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.client.ClientDistribution;
-import com.crowdin.cli.client.CrowdinProjectInfo;
+import com.crowdin.cli.client.CrowdinProject;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
@@ -35,7 +35,7 @@ public class DistributionReleaseActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         ClientDistribution client = mock(ClientDistribution.class);
         ProjectClient projectClient = mock(ProjectClient.class);
-        CrowdinProjectInfo projectInfo = mock(CrowdinProjectInfo.class);
+        CrowdinProject projectInfo = mock(CrowdinProject.class);
         when(client.listDistribution()).thenReturn(new ArrayList<>(){{
             add(new Distribution() {{
                 setHash(HASH);
@@ -67,7 +67,7 @@ public class DistributionReleaseActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         ClientDistribution client = mock(ClientDistribution.class);
         ProjectClient projectClient = mock(ProjectClient.class);
-        CrowdinProjectInfo projectInfo = mock(CrowdinProjectInfo.class);
+        CrowdinProject projectInfo = mock(CrowdinProject.class);
         when(client.listDistribution()).thenReturn(new ArrayList<>(){{
             add(new Distribution() {{
                 setHash(HASH);
@@ -101,7 +101,7 @@ public class DistributionReleaseActionTest {
         PropertiesWithFiles pb = pbBuilder.build();
         ClientDistribution client = mock(ClientDistribution.class);
         ProjectClient projectClient = mock(ProjectClient.class);
-        CrowdinProjectInfo projectInfo = mock(CrowdinProjectInfo.class);
+        CrowdinProject projectInfo = mock(CrowdinProject.class);
         when(client.listDistribution()).thenReturn(new ArrayList<>(){{
             add(new Distribution() {{
                 setHash(HASH);

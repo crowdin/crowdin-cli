@@ -1,7 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.BaseCli;
-import com.crowdin.cli.client.CrowdinProjectInfo;
+import com.crowdin.cli.client.CrowdinProject;
 import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Outputter;
@@ -18,14 +18,14 @@ import static org.mockito.Mockito.*;
 public class LanguageListActionTest {
 
     ProjectClient client;
-    CrowdinProjectInfo projectInfo;
+    CrowdinProject projectInfo;
     Outputter out;
     ProjectProperties properties;
 
     @BeforeEach
     public void setup() {
         client = mock(ProjectClient.class);
-        projectInfo = mock(CrowdinProjectInfo.class);
+        projectInfo = mock(CrowdinProject.class);
         out = mock(Outputter.class);
         properties = mock(ProjectProperties.class);
 
