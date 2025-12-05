@@ -174,6 +174,8 @@ public class UploadTranslationsActionTest {
             }};
         verify(client).uploadTranslations(eq("ua"), eq(uploadTranslationRequest));
         verify(client).uploadTranslations(eq("ru"), eq(uploadTranslationRequest));
+        verify(client).uploadTranslations(eq("de"), eq(uploadTranslationRequest));
+        verify(client).uploadTranslations(eq("en"), eq(uploadTranslationRequest));
         verifyNoMoreInteractions(client);
     }
 

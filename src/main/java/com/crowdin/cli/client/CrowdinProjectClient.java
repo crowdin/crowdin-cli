@@ -56,22 +56,13 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     public CrowdinProjectFull downloadFullProject(String branchName) {
         CrowdinProjectFull project = new CrowdinProjectFull();
         this.populateProjectWithInfo(project);
-        this.populateProjectWithLangs(project);
         this.populateProjectWithStructure(project, branchName);
         return project;
     }
 
     @Override
-    public CrowdinProject downloadProjectWithLanguages() {
+    public CrowdinProject downloadProjectInfo() {
         CrowdinProject project = new CrowdinProject();
-        this.populateProjectWithInfo(project);
-        this.populateProjectWithLangs(project);
-        return project;
-    }
-
-    @Override
-    public CrowdinProjectInfo downloadProjectInfo() {
-        CrowdinProjectInfo project = new CrowdinProjectInfo();
         this.populateProjectWithInfo(project);
         return project;
     }
@@ -95,18 +86,14 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             .listDirectories(this.projectId, branchId, null, null, true, limit, offset)));
     }
 
-    private void populateProjectWithLangs(CrowdinProject project) {
-        project.setSupportedLanguages(this.listSupportedLanguages());
-    }
-
-    private void populateProjectWithInfo(CrowdinProjectInfo project) {
+    private void populateProjectWithInfo(CrowdinProject project) {
         com.crowdin.client.projectsgroups.model.Project projectModel = this.getProject();
         project.setProjectId(projectModel.getId());
         project.setType(projectModel.getType());
         project.setSourceLanguageId(projectModel.getSourceLanguageId());
         project.setProjectLanguages(projectModel.getTargetLanguages());
         if (projectModel instanceof ProjectSettings) {
-            project.setAccessLevel(CrowdinProjectInfo.Access.MANAGER);
+            project.setAccessLevel(CrowdinProject.Access.MANAGER);
             ProjectSettings projectSettings = (ProjectSettings) projectModel;
             if (projectSettings.getInContext() != null && projectSettings.getInContext()) {
                 project.setInContextLanguage(projectSettings.getInContextPseudoLanguage());
@@ -116,7 +103,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
             }
             project.setLanguageMapping(LanguageMapping.fromServerLanguageMapping(projectSettings.getLanguageMapping()));
         } else {
-            project.setAccessLevel(CrowdinProjectInfo.Access.TRANSLATOR);
+            project.setAccessLevel(CrowdinProject.Access.TRANSLATOR);
         }
     }
 

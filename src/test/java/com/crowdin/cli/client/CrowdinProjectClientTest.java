@@ -144,16 +144,8 @@ public class CrowdinProjectClientTest {
     public void testDownloadProjectFull() {
         Project project = new Project() {{
                 setId(projectId);
-                setTargetLanguages(Arrays.asList(LanguageBuilder.ENG.build()));
+                setTargetLanguages(Arrays.asList(LanguageBuilder.ENG.build(), LanguageBuilder.UKR.build()));
             }};
-        List<LanguageResponseObject> supportedLangs = Arrays.asList(
-            new LanguageResponseObject() {{
-                    setData(LanguageBuilder.ENG.build());
-                }},
-            new LanguageResponseObject() {{
-                    setData(LanguageBuilder.UKR.build());
-                }}
-        );
         List<FileResponseObject> files = Arrays.asList(
             new FileResponseObject() {{
                     setData(new File());
@@ -172,9 +164,6 @@ public class CrowdinProjectClientTest {
         ProjectResponseObject projectResponse = new ProjectResponseObject() {{
                 setData(project);
             }};
-        LanguageResponseList langsResponse = new LanguageResponseList() {{
-                setData(supportedLangs);
-            }};
         FileInfoResponseList filesResponse = new FileInfoResponseList() {{
                 setData(files);
             }};
@@ -186,8 +175,6 @@ public class CrowdinProjectClientTest {
             }};
         when(httpClientMock.get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class)))
             .thenReturn(projectResponse);
-        when(httpClientMock.get(eq(listSupportedLanguagesUrl), any(), eq(LanguageResponseList.class)))
-            .thenReturn(langsResponse);
         when(httpClientMock.get(eq(listFilesUrl), any(), eq(FileInfoResponseList.class)))
             .thenReturn(filesResponse);
         when(httpClientMock.get(eq(listDirectoriesUrl), any(), eq(DirectoryResponseList.class)))
@@ -196,49 +183,14 @@ public class CrowdinProjectClientTest {
             .thenReturn(branchesResponse);
 
         CrowdinProject crowdinProject = client.downloadFullProject(null);
-        assertEquals(1, crowdinProject.getProjectLanguages(false).size());
-        assertEquals(2, crowdinProject.getSupportedLanguages().size());
-        assertTrue(crowdinProject.findLanguageById("ua", false).isPresent());
-        assertFalse(crowdinProject.findLanguageById("ua", true).isPresent());
+        assertEquals(2, crowdinProject.getProjectLanguages(false).size());
+        assertEquals(2, crowdinProject.getProjectLanguages(true).size());
+        assertTrue(crowdinProject.findLanguageById("ua").isPresent());
 
         verify(httpClientMock).get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class));
-        verify(httpClientMock).get(eq(listSupportedLanguagesUrl), any(), eq(LanguageResponseList.class));
         verify(httpClientMock).get(eq(listFilesUrl), any(), eq(FileInfoResponseList.class));
         verify(httpClientMock).get(eq(listDirectoriesUrl), any(), eq(DirectoryResponseList.class));
         verify(httpClientMock).get(eq(listBranchesUrl), any(), eq(BranchResponseList.class));
-        verifyNoMoreInteractions(httpClientMock);
-    }
-
-    @Test
-    public void testDownloadProjectWithLangs() {
-        Project project = new Project() {{
-                setId(projectId);
-                setTargetLanguages(Arrays.asList(LanguageBuilder.ENG.build()));
-            }};
-        List<LanguageResponseObject> supportedLangs = Arrays.asList(
-            new LanguageResponseObject() {{
-                    setData(LanguageBuilder.ENG.build());
-                }},
-            new LanguageResponseObject() {{
-                    setData(LanguageBuilder.UKR.build());
-                }}
-        );
-        ProjectResponseObject projectResponse = new ProjectResponseObject() {{
-                setData(project);
-            }};
-        LanguageResponseList langsResponse = new LanguageResponseList() {{
-                setData(supportedLangs);
-            }};
-        when(httpClientMock.get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class)))
-            .thenReturn(projectResponse);
-        when(httpClientMock.get(eq(listSupportedLanguagesUrl), any(), eq(LanguageResponseList.class)))
-            .thenReturn(langsResponse);
-
-        CrowdinProject crowdinProject = client.downloadProjectWithLanguages();
-        assertEquals(1, crowdinProject.getProjectLanguages(false).size());
-
-        verify(httpClientMock).get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class));
-        verify(httpClientMock).get(eq(listSupportedLanguagesUrl), any(), eq(LanguageResponseList.class));
         verifyNoMoreInteractions(httpClientMock);
     }
 
@@ -255,7 +207,7 @@ public class CrowdinProjectClientTest {
         when(httpClientMock.get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class)))
             .thenReturn(response);
 
-        CrowdinProjectInfo projectInfo = client.downloadProjectInfo();
+        CrowdinProject projectInfo = client.downloadProjectInfo();
 
         assertTrue(projectInfo.isManagerAccess());
         assertFalse(projectInfo.getInContextLanguage().isPresent());
@@ -279,7 +231,7 @@ public class CrowdinProjectClientTest {
         when(httpClientMock.get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class)))
             .thenReturn(response);
 
-        CrowdinProjectInfo projectInfo = client.downloadProjectInfo();
+        CrowdinProject projectInfo = client.downloadProjectInfo();
         assertTrue(projectInfo.getInContextLanguage().isPresent());
 
         verify(httpClientMock).get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class));
@@ -298,7 +250,7 @@ public class CrowdinProjectClientTest {
         when(httpClientMock.get(eq(getProjectUrl), any(), eq(ProjectResponseObject.class)))
             .thenReturn(response);
 
-        CrowdinProjectInfo projectInfo = client.downloadProjectInfo();
+        CrowdinProject projectInfo = client.downloadProjectInfo();
 
         assertFalse(projectInfo.isManagerAccess());
 

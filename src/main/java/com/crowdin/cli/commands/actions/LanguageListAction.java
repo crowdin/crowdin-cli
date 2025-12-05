@@ -1,7 +1,7 @@
 package com.crowdin.cli.commands.actions;
 
 import com.crowdin.cli.BaseCli;
-import com.crowdin.cli.client.CrowdinProjectInfo;
+import com.crowdin.cli.client.CrowdinProject;
 import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
@@ -20,7 +20,6 @@ import static com.crowdin.cli.utils.PlaceholderUtil.PLACEHOLDER_OSX_CODE;
 import static com.crowdin.cli.utils.PlaceholderUtil.PLACEHOLDER_OSX_LOCALE;
 import static com.crowdin.cli.utils.PlaceholderUtil.PLACEHOLDER_THREE_LETTERS_CODE;
 import static com.crowdin.cli.utils.PlaceholderUtil.PLACEHOLDER_TWO_LETTERS_CODE;
-import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 class LanguageListAction implements NewAction<ProjectProperties, ProjectClient> {
@@ -39,7 +38,7 @@ class LanguageListAction implements NewAction<ProjectProperties, ProjectClient> 
 
     @Override
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
-        CrowdinProjectInfo project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
+        CrowdinProject project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
             this.noProgress, this.plainView, client::downloadProjectInfo);
 
         if (!project.isManagerAccess()) {

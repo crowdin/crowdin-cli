@@ -75,12 +75,12 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
             }
         }
 
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), pb.getBasePath());
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getProjectLanguages(true), pb.getBasePath());
 
         LanguageMapping serverLanguageMapping = project.getLanguageMapping();
 
         List<Language> languages = (languageId != null)
-            ? project.findLanguageById(languageId, true)
+            ? project.findLanguageById(languageId)
                 .map(Collections::singletonList)
                 .orElseThrow(() -> new RuntimeException(String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), languageId)))
             : project.getProjectLanguages(false);

@@ -89,16 +89,14 @@ public class PlaceholderUtil {
     private static final String ESCAPE_ASTERISK_REPLACEMENT_FROM = ".+" + Utils.PATH_SEPARATOR_REGEX;
     private static final String ESCAPE_ASTERISK_REPLACEMENT_TO = "(.+" + Utils.PATH_SEPARATOR_REGEX + ")?";
 
-    private List<Language> supportedLanguages;
     private List<Language> projectLanguages;
     private String basePath;
 
-    public PlaceholderUtil(List<Language> supportedLanguages, List<com.crowdin.client.languages.model.Language> projectLanguages, String basePath) {
-        if (supportedLanguages == null || projectLanguages == null || basePath == null) {
+    public PlaceholderUtil(List<Language> projectLanguages, String basePath) {
+        if (projectLanguages == null || basePath == null) {
             throw new NullPointerException("in PlaceholderUtil.constructor");
         }
-        this.supportedLanguages = supportedLanguages;
-        this.projectLanguages = projectLanguages;
+        this.projectLanguages = List.copyOf(projectLanguages);;
         this.basePath = basePath;
     }
 
@@ -129,7 +127,7 @@ public class PlaceholderUtil {
             return new HashSet<>();
         }
 
-        return supportedLanguages.stream()
+        return projectLanguages.stream()
             .map(lang -> languageMapping == null
                 ? this.replaceLanguageDependentPlaceholders(toFormat, lang)
                 : this.replaceLanguageDependentPlaceholders(toFormat, languageMapping, lang))
@@ -251,16 +249,16 @@ public class PlaceholderUtil {
     }
 
     public List<String> formatForRegex(List<String> toFormat) {
-        String langIds = supportedLanguages.stream().map(Language::getId).collect(Collectors.joining("|", "(", ")"));
-        String langNames = supportedLanguages.stream().map(Language::getName).collect(Collectors.joining("|", "(", ")"));
-        String langLocales = supportedLanguages.stream().map(Language::getLocale).collect(Collectors.joining("|", "(", ")"));
-        String langLocalesWithUnderscore = supportedLanguages.stream().map(Language::getLocale).map(s -> s.replace("-", "_"))
+        String langIds = projectLanguages.stream().map(Language::getId).collect(Collectors.joining("|", "(", ")"));
+        String langNames = projectLanguages.stream().map(Language::getName).collect(Collectors.joining("|", "(", ")"));
+        String langLocales = projectLanguages.stream().map(Language::getLocale).collect(Collectors.joining("|", "(", ")"));
+        String langLocalesWithUnderscore = projectLanguages.stream().map(Language::getLocale).map(s -> s.replace("-", "_"))
             .collect(Collectors.joining("|", "(", ")"));
-        String langTwoLettersCodes = supportedLanguages.stream().map(Language::getTwoLettersCode).collect(Collectors.joining("|", "(", ")"));
-        String langThreeLettersCodes = supportedLanguages.stream().map(Language::getThreeLettersCode).collect(Collectors.joining("|", "(", ")"));
-        String langAndroidCodes = supportedLanguages.stream().map(Language::getAndroidCode).collect(Collectors.joining("|", "(", ")"));
-        String langOsxLocales = supportedLanguages.stream().map(Language::getOsxLocale).collect(Collectors.joining("|", "(", ")"));
-        String langOsxCodes = supportedLanguages.stream().map(Language::getOsxCode).collect(Collectors.joining("|", "(", ")"));
+        String langTwoLettersCodes = projectLanguages.stream().map(Language::getTwoLettersCode).collect(Collectors.joining("|", "(", ")"));
+        String langThreeLettersCodes = projectLanguages.stream().map(Language::getThreeLettersCode).collect(Collectors.joining("|", "(", ")"));
+        String langAndroidCodes = projectLanguages.stream().map(Language::getAndroidCode).collect(Collectors.joining("|", "(", ")"));
+        String langOsxLocales = projectLanguages.stream().map(Language::getOsxLocale).collect(Collectors.joining("|", "(", ")"));
+        String langOsxCodes = projectLanguages.stream().map(Language::getOsxCode).collect(Collectors.joining("|", "(", ")"));
         return toFormat.stream()
             .map(PlaceholderUtil::formatSourcePatternForRegex)
             .map(s -> s

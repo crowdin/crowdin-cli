@@ -24,6 +24,6 @@ public enum PlaceholderUtilBuilder {
     }
 
     public PlaceholderUtil build(String basePath) {
-        return new PlaceholderUtil(supportedLanguages, projectLanguages, basePath);
+        return new PlaceholderUtil(projectLanguages, basePath);
     }
 }

@@ -1,7 +1,6 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.client.applications.installations.model.ApplicationInstallation;
-import com.crowdin.client.applications.model.ApplicationDataResponseObject;
 import com.crowdin.client.branches.model.*;
 import com.crowdin.client.core.model.PatchRequest;
 import com.crowdin.client.labels.model.AddLabelRequest;
@@ -33,9 +32,7 @@ public interface ProjectClient extends Client {
 
     CrowdinProjectFull downloadFullProject(String branchName);
 
-    CrowdinProject downloadProjectWithLanguages();
-
-    CrowdinProjectInfo downloadProjectInfo();
+    CrowdinProject downloadProjectInfo();
 
     Branch addBranch(AddBranchRequest request);
 

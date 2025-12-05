@@ -78,7 +78,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             }
         }
 
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getProjectLanguages(false), pb.getBasePath());
 
         Branch branch = (branchName != null) ? BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView) : null;
         Long branchId = (branch != null) ? branch.getId() : null;
@@ -132,8 +132,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             .map(file -> (Runnable) () -> {
 
                 try {
-                    this.checkExcludedTargetLanguages(file.getExcludedTargetLanguages(),
-                        project.getSupportedLanguages(), project.getProjectLanguages(false));
+                    this.checkExcludedTargetLanguages(file.getExcludedTargetLanguages(), project.getProjectLanguages(false));
                 } catch (Exception e) {
                     errorsPresented.set(true);
                     throw e;
@@ -551,21 +550,10 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
         }
     }
 
-    private void checkExcludedTargetLanguages(List<String> excludedTargetLanguages, List<Language> supportedLanguages, List<Language> projectLanguages) {
+    private void checkExcludedTargetLanguages(List<String> excludedTargetLanguages, List<Language> projectLanguages) {
         if (excludedTargetLanguages != null && !excludedTargetLanguages.isEmpty()) {
-            List<String> supportedLanguageIds = supportedLanguages.stream()
-                .map(Language::getId)
-                .collect(Collectors.toList());
             List<String> projectLanguageIds = projectLanguages.stream()
-                .map(Language::getId)
-                .collect(Collectors.toList());
-            String notSupportedLangs = excludedTargetLanguages.stream()
-                .filter(lang -> !supportedLanguageIds.contains(lang))
-                .map(lang -> "'" + lang + "'")
-                .collect(Collectors.joining(", "));
-            if (notSupportedLangs.length() > 0) {
-                throw new ExitCodeExceptionMapper.ValidationException(String.format("Crowdin doesn't support %s language code(s)", notSupportedLangs));
-            }
+                .map(Language::getId).toList();
             String notInProjectLangs = excludedTargetLanguages.stream()
                 .filter(lang -> !projectLanguageIds.contains(lang))
                 .map(lang -> "'" + lang + "'")

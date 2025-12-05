@@ -66,7 +66,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
             }
         }
 
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), properties.getBasePath());
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getProjectLanguages(false), properties.getBasePath());
 
         Optional<List<Long>> attachLabelIds = Optional.empty();
         if (nonNull(labels) && !labels.isEmpty()) {
@@ -243,7 +243,7 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
         Map<String, Long> directoryPaths = ProjectFilesUtils.buildDirectoryPaths(project.getDirectories(), project.getBranches())
             .entrySet().stream().collect(Collectors.toMap(Map.Entry::getValue, Map.Entry::getKey));
         String commonPath = SourcesUtils.getCommonPath(Collections.singletonList(this.file.getAbsolutePath()), properties.getBasePath());
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), properties.getBasePath());
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getProjectLanguages(false), properties.getBasePath());
         String filePath = (nonNull(dest))
             ? PropertiesBeanUtils.prepareDest(dest, StringUtils.removeStart(this.file.getAbsolutePath(), properties.getBasePath()), placeholderUtil)
             : StringUtils.removeStart(this.file.getAbsolutePath(), properties.getBasePath() + commonPath);

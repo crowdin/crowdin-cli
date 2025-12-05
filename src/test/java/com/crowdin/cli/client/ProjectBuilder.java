@@ -43,9 +43,8 @@ public class ProjectBuilder {
 
         CrowdinProjectFull project = new CrowdinProjectFull();
         project.setBranches(branches);
-        project.setSupportedLanguages(supportedLanguages);
         project.setProjectLanguages(projectLanguages);
-        project.setAccessLevel(CrowdinProjectInfo.Access.MANAGER);
+        project.setAccessLevel(CrowdinProject.Access.MANAGER);
         projectBuilder.project = project;
         projectBuilder.projectSettings = projectSettings;
         return projectBuilder;
@@ -113,6 +112,8 @@ public class ProjectBuilder {
         List<String> targetLanguageIds = new ArrayList<>();
         targetLanguageIds.add(LanguageBuilder.RUS.build().getId());
         targetLanguageIds.add(LanguageBuilder.UKR.build().getId());
+        targetLanguageIds.add(LanguageBuilder.DEU.build().getId());
+        targetLanguageIds.add(LanguageBuilder.ENG.build().getId());
         ps.setTargetLanguageIds(targetLanguageIds);
         ps.setName("checkdest");
         ps.setIdentifier("checkdest");

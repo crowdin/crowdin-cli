@@ -121,7 +121,7 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
         Map<String, FileInfo> filePaths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), fileInfos);
 
         PlaceholderUtil placeholderUtil =
-            new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(true), properties.getBasePath());
+            new PlaceholderUtil(project.getProjectLanguages(true), properties.getBasePath());
 
         AtomicBoolean isAnyFileDownloaded = new AtomicBoolean(false);
 

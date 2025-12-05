@@ -37,8 +37,8 @@ class ListSourcesAction implements NewAction<PropertiesWithFiles, ProjectClient>
     @Override
     public void act(Outputter out, PropertiesWithFiles pb, ProjectClient client) {
         CrowdinProject project = ConsoleSpinner.execute(out, "message.spinner.fetching_project_info", "error.collect_project_info",
-            this.noProgress, this.plainView, (deleteObsolete) ? () -> client.downloadFullProject(this.branchName) : client::downloadProjectWithLanguages);
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getSupportedLanguages(), project.getProjectLanguages(false), pb.getBasePath());
+            this.noProgress, this.plainView, (deleteObsolete) ? () -> client.downloadFullProject(this.branchName) : client::downloadProjectInfo);
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getProjectLanguages(false), pb.getBasePath());
 
         if (!project.isManagerAccess() && deleteObsolete) {
             if (!plainView) {

@@ -26,14 +26,12 @@ public class PlaceholderUtilTest {
     @ParameterizedTest
     @MethodSource
     public void testMainFunctionality(
-        Language[] supportedLangs,
         Language[] projectLangs,
         File[] sources,
         String toFormat,
         String[] expected
     ) {
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(
-            Arrays.asList(supportedLangs),
             Arrays.asList(projectLangs),
             "/proj/path/"
         );
@@ -47,13 +45,11 @@ public class PlaceholderUtilTest {
         return Stream.of(
             arguments(
                 new Language[] {LanguageBuilder.UKR.build(), LanguageBuilder.RUS.build()},
-                new Language[] {LanguageBuilder.UKR.build(), LanguageBuilder.RUS.build()},
                 new File[] {new File("resources/messages.xml")},
                 Utils.normalizePath("resources/%two_letters_code%_%original_file_name%"),
                 new String[] {Utils.normalizePath("resources/ua_messages.xml"), Utils.normalizePath("resources/ru_messages.xml")}
             ),
             arguments(// How to treat double asterisks
-                new Language[] {LanguageBuilder.ENG.build()},
                 new Language[] {LanguageBuilder.ENG.build()},
                 new File[] {new File("resources/messages.xml")},
                 Utils.normalizePath("/**/%two_letters_code%_%original_file_name%"),
@@ -61,13 +57,11 @@ public class PlaceholderUtilTest {
             ),
             arguments(// How to treat double asterisks in the middle
                 new Language[] {LanguageBuilder.ENG.build()},
-                new Language[] {LanguageBuilder.ENG.build()},
                 new File[] {new File("resources/main/settings/default/messages.xml")},
                 Utils.normalizePath("app/**/default/%two_letters_code%_%original_file_name%"),
                 new String[] {Utils.normalizePath("app/resources/main/settings/default/en_messages.xml")}
             ),
             arguments(// How to treat double asterisks in the middle
-                new Language[] {LanguageBuilder.ENG.build()},
                 new Language[] {LanguageBuilder.ENG.build()},
                 new File[] {new File("resources/main/settings/default/test/messages.xml")},
                 Utils.normalizePath("app/**/default/test/%two_letters_code%_%original_file_name%"),
@@ -75,13 +69,11 @@ public class PlaceholderUtilTest {
             ),
             arguments(// How to treat double asterisks in the middle
                 new Language[] {LanguageBuilder.ENG.build()},
-                new Language[] {LanguageBuilder.ENG.build()},
                 new File[] {new File("resources/test/main/settings/default/en/test/messages.xml")},
                 Utils.normalizePath("app/**/default/%two_letters_code%"),
                 new String[] {Utils.normalizePath("app/resources/test/main/settings/default/en")}
             ),
             arguments(// How to treat double asterisks in the middle
-                    new Language[] {LanguageBuilder.ENG.build()},
                     new Language[] {LanguageBuilder.ENG.build()},
                     new File[] {new File("resources/test/main/settings/default/en/messages.xml")},
                     Utils.normalizePath("app/**/default/%two_letters_code%/%original_file_name%"),
@@ -89,13 +81,11 @@ public class PlaceholderUtilTest {
             ),
             arguments(// How to treat double asterisks in the middle
                     new Language[] {LanguageBuilder.ENG.build()},
-                    new Language[] {LanguageBuilder.ENG.build()},
                     new File[] {new File("resources/test/main/settings/default/en/messages.xml")},
                     Utils.normalizePath("**/default/%two_letters_code%/"),
                     new String[] {Utils.normalizePath("resources/test/main/settings/default/en/")}
             ),
             arguments(// How to treat double asterisks in the middle
-                    new Language[] {LanguageBuilder.ENG.build()},
                     new Language[] {LanguageBuilder.ENG.build()},
                     new File[] {new File("resources/test/main/settings/default/test/en/messages.xml")},
                     Utils.normalizePath("**/default/test/%two_letters_code%"),
@@ -103,13 +93,11 @@ public class PlaceholderUtilTest {
             ),
             arguments(// How to treat double asterisks in the middle
                     new Language[] {LanguageBuilder.ENG.build()},
-                    new Language[] {LanguageBuilder.ENG.build()},
                     new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
                     Utils.normalizePath("src/app/**/default/test/%two_letters_code%"),
                     new String[] {Utils.normalizePath("src/app/resources/test/main/settings/default/test/en")}
             ),
             arguments(// How to treat double asterisks in the middle
-                    new Language[] {LanguageBuilder.ENG.build()},
                     new Language[] {LanguageBuilder.ENG.build()},
                     new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
                     Utils.normalizePath("src/app/**/"),
@@ -117,13 +105,11 @@ public class PlaceholderUtilTest {
             ),
             arguments(// How to treat double asterisks in the middle
                     new Language[] {LanguageBuilder.ENG.build()},
-                    new Language[] {LanguageBuilder.ENG.build()},
                     new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
                     Utils.normalizePath("src/app/**"),
                     new String[] {Utils.normalizePath("src/app/resources/test/main/settings/default/test/en")}
             ),
             arguments(// How to treat double asterisks in the middle
-                    new Language[] {LanguageBuilder.ENG.build()},
                     new Language[] {LanguageBuilder.ENG.build()},
                     new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
                     Utils.normalizePath("/**/test/en"),
@@ -131,20 +117,17 @@ public class PlaceholderUtilTest {
             ),
             arguments(// How to treat double asterisks in the middle
                     new Language[] {LanguageBuilder.ENG.build()},
-                    new Language[] {LanguageBuilder.ENG.build()},
                     new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
                     Utils.normalizePath("/**/test/en/"),
                     new String[] {Utils.normalizePath("src/app/resources/test/main/settings/default/test/en/")}
             ),
             arguments(// How to treat double asterisks in the middle
                     new Language[] {LanguageBuilder.ENG.build()},
-                    new Language[] {LanguageBuilder.ENG.build()},
                     new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
                     Utils.normalizePath("src/**/test/en/"),
                     new String[] {Utils.normalizePath("src/app/resources/test/main/settings/default/test/en/")}
             ),
             arguments(// How to treat double asterisks in the middle
-                    new Language[] {LanguageBuilder.ENG.build()},
                     new Language[] {LanguageBuilder.ENG.build()},
                     new File[] {new File("src/app/resources/test/main/settings/default/test/en/messages.xml")},
                     Utils.normalizePath("src/**/test/en"),
@@ -156,14 +139,12 @@ public class PlaceholderUtilTest {
     @ParameterizedTest
     @MethodSource
     public void testMainFunctionalityWithLists(
-        Language[] supportedLangs,
         Language[] projectLangs,
         File[] sources,
         String[] toFormat,
         String[] expected
     ) {
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(
-            Arrays.asList(supportedLangs),
             Arrays.asList(projectLangs),
             "/proj/path/"
         );
@@ -176,7 +157,6 @@ public class PlaceholderUtilTest {
     static Stream<Arguments> testMainFunctionalityWithLists() {
         return Stream.of(
             arguments(
-                new Language[] {LanguageBuilder.UKR.build(), LanguageBuilder.RUS.build()},
                 new Language[] {LanguageBuilder.UKR.build(), LanguageBuilder.RUS.build()},
                 new File[] {new File("resources/messages.xml")},
                 new String[] {
@@ -195,8 +175,8 @@ public class PlaceholderUtilTest {
 
     @Test
     public void testForNpe() {
-        assertThrows(NullPointerException.class, () -> new PlaceholderUtil(null, null, null));
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(new ArrayList<>(), new ArrayList<>(), "/here/it/goes/");
+        assertThrows(NullPointerException.class, () -> new PlaceholderUtil(null, null));
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(new ArrayList<>(), "/here/it/goes/");
 
         assertEquals(new ArrayList<String>(), placeholderUtil.format(null, new ArrayList<>()));
         assertEquals(new HashSet<>(), placeholderUtil.format(null, ""));
@@ -214,7 +194,7 @@ public class PlaceholderUtilTest {
                 add("/path/to/ua/file.txt");
             }};
         List<Language> langs = Arrays.asList(LanguageBuilder.RUS.build(), LanguageBuilder.UKR.build());
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(langs, langs, "");
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(langs, "");
         List<String> result = placeholderUtil.replaceLanguageDependentPlaceholders(toFormat, LanguageMapping.fromServerLanguageMapping(null));
         assertEquals(expected, result);
     }
@@ -222,7 +202,7 @@ public class PlaceholderUtilTest {
     @ParameterizedTest
     @MethodSource
     public void testDoubleAsteriskInWildCard(String source, File crowdinFile, String expected) {
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(new ArrayList<>(), new ArrayList<>(), "./");
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(new ArrayList<>(), "./");
         assertPathsEqualIgnoringSeparator(expected, placeholderUtil.replaceFileDependentPlaceholders(source, crowdinFile));
     }
 
@@ -254,7 +234,7 @@ public class PlaceholderUtilTest {
         List<Language> suppLangs =
             Arrays.asList(LanguageBuilder.RUS.build(), LanguageBuilder.UKR.build(), LanguageBuilder.ENG.build(), LanguageBuilder.DEU.build());
         List<Language> projLangs = Arrays.asList(LanguageBuilder.RUS.build(), LanguageBuilder.UKR.build());
-        PlaceholderUtil placeholderUtil = new PlaceholderUtil(suppLangs, projLangs, "");
+        PlaceholderUtil placeholderUtil = new PlaceholderUtil(projLangs, "");
         String result = placeholderUtil.replaceLanguageDependentPlaceholders(toFormat, languageMapping, language);
         assertEquals(expected, result);
     }
