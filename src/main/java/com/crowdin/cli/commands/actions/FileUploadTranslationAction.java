@@ -14,8 +14,9 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
+import com.crowdin.client.translations.model.ImportTranslationsStringsBasedRequest;
+import com.crowdin.client.translations.model.ImportTranslationsStringsBasedStatus;
 import com.crowdin.client.translations.model.UploadTranslationsRequest;
-import com.crowdin.client.translations.model.UploadTranslationsStringsRequest;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,10 +25,10 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Collections;
-import java.util.Collections;
 import java.util.Objects;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.client.Client.executeAsyncAction;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
@@ -94,13 +95,27 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
                     RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()));
             }
         } else {
-            UploadTranslationsStringsRequest request = new UploadTranslationsStringsRequest();
+            ImportTranslationsStringsBasedRequest request = new ImportTranslationsStringsBasedRequest();
             Branch branch = project.findBranchByName(branchName)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project")));
             Long storageId = getStorageId(client);
             request.setBranchId(branch.getId());
             request.setStorageId(storageId);
-            client.uploadTranslationStringsBased(languageId, request);
+            request.setLanguageIds(Collections.singletonList(languageId));
+
+            executeAsyncAction(
+                    out,
+                    "tbd", // TODO fix
+                    "tbd", // TODO fix
+                    "tbd", // TODO fix
+                    null,
+                    false,
+                    this.plainView,
+                    () -> client.importTranslations(request),
+                    status -> client.importTranslationsStringsBasedStatus(status.getIdentifier()),
+                    ImportTranslationsStringsBasedStatus::getStatus,
+                    ImportTranslationsStringsBasedStatus::getProgress
+            );
         }
 
         if (!plainView) {

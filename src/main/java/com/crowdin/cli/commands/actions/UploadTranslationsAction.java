@@ -18,8 +18,7 @@ import com.crowdin.client.languages.model.Language;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.File;
-import com.crowdin.client.translations.model.UploadTranslationsRequest;
-import com.crowdin.client.translations.model.UploadTranslationsStringsRequest;
+import com.crowdin.client.translations.model.*;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.tuple.Pair;
 
@@ -30,6 +29,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.client.Client.executeAsyncAction;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
@@ -105,7 +105,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
             AtomicBoolean containsErrors = new AtomicBoolean(false);
             if (!isStringsBasedProject) {
                 Map<String, File> paths = ProjectFilesUtils.buildFilePaths(project.getDirectories(), project.getBranches(), project.getFiles());
-                Map<java.io.File, Pair<List<Language>, UploadTranslationsRequest>> preparedRequests = new HashMap<>();
+                Map<java.io.File, Pair<List<Language>, ImportTranslationsRequest>> preparedRequests = new HashMap<>();
                 String branchPath = (StringUtils.isNotEmpty(this.branchName) ? BranchUtils.normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "");
                 fileSourcesWithoutIgnores.forEach(source -> {
                     String filePath = branchPath + (StringUtils.isNotEmpty(file.getDest())
@@ -131,13 +131,13 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                     if (file.getScheme() != null && !PlaceholderUtil.containsLangPlaceholders(translation)) {
                         java.io.File transFile = getTranslationFile(out, pb, translation);
                         if (Objects.isNull(transFile)) return;
-                        UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported, translateHidden);
+                        ImportTranslationsRequest request = RequestBuilder.importTranslations(fileId, importEqSuggestions, autoApproveImported, translateHidden);
                         preparedRequests.put(transFile, Pair.of(languages, request));
                     } else {
                         for (Language language : languages) {
                             java.io.File transFile = getTranslationFileWithPlaceholders(out, pb, placeholderUtil, serverLanguageMapping, file, translation, language);
                             if (Objects.isNull(transFile)) continue;
-                            UploadTranslationsRequest request = RequestBuilder.uploadTranslations(fileId, importEqSuggestions, autoApproveImported, translateHidden);
+                            ImportTranslationsRequest request = RequestBuilder.importTranslations(fileId, importEqSuggestions, autoApproveImported, translateHidden);
                             preparedRequests.put(transFile, Pair.of(Collections.singletonList(language), request));
                         }
                     }
@@ -148,25 +148,33 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                     .map(entry -> (Runnable) () -> {
                         java.io.File translationFile = entry.getKey();
                         List<Language> langs = entry.getValue().getLeft();
-                        UploadTranslationsRequest request = entry.getValue().getRight();
+
+                        ImportTranslationsRequest request = entry.getValue().getRight();
                         request.setStorageId(uploadToStorage(pb, client, containsErrors, translationFile));
+                        request.setLanguageIds(langs.stream().map(Language::getId).collect(Collectors.toList()));
+
                         try {
-                            for (Language lang : langs) {
-                                try {
-                                    client.uploadTranslations(lang.getId(), request);
-                                } catch (WrongLanguageException e) {
-                                    out.println(WARNING.withIcon(String.format(
-                                        RESOURCE_BUNDLE.getString("message.warning.file_not_uploaded_cause_of_language"),
-                                        StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()), lang.getName())));
-                                }
-                            }
+                            executeAsyncAction(
+                                out,
+                                "tbd", // TODO fix
+                                String.format(
+                                    RESOURCE_BUNDLE.getString("error.upload_translation"),
+                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
+                                ),
+                                "tbd", // TODO fix
+                                null,
+                                this.noProgress,
+                                this.plainView,
+                                () -> client.importTranslations(request),
+                                status -> client.importTranslationsStatus(status.getIdentifier()),
+                                ImportTranslationsStatus::getStatus,
+                                ImportTranslationsStatus::getProgress
+                            );
                         } catch (Exception e) {
                             containsErrors.set(true);
-                            throw ExitCodeExceptionMapper.remap(e, String.format(
-                                RESOURCE_BUNDLE.getString("error.upload_translation"),
-                                StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
-                            ));
+                            throw e;
                         }
+
                         if (!plainView) {
                             out.println(OK.withIcon(String.format(
                                 RESOURCE_BUNDLE.getString("message.uploading_file"),
@@ -177,7 +185,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                     })
                     .collect(Collectors.toList());
             } else {
-                Map<java.io.File, Pair<List<Language>, UploadTranslationsStringsRequest>> preparedRequests = new HashMap<>();
+                Map<java.io.File, Pair<List<Language>, ImportTranslationsStringsBasedRequest>> preparedRequests = new HashMap<>();
                 Branch branch = project.findBranchByName(branchName)
                     .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project")));
                 fileSourcesWithoutIgnores.forEach(source -> {
@@ -187,13 +195,13 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                     if (file.getScheme() != null && !PlaceholderUtil.containsLangPlaceholders(translation)) {
                         java.io.File transFile = getTranslationFile(out, pb, translation);
                         if (Objects.isNull(transFile)) return;
-                        UploadTranslationsStringsRequest request = RequestBuilder.uploadTranslationsStrings(branch.getId(), importEqSuggestions, autoApproveImported, translateHidden);
+                        ImportTranslationsStringsBasedRequest request = RequestBuilder.importTranslationsStrings(branch.getId(), importEqSuggestions, autoApproveImported, translateHidden);
                         preparedRequests.put(transFile, Pair.of(languages, request));
                     } else {
                         for (Language language : languages) {
                             java.io.File transFile = getTranslationFileWithPlaceholders(out, pb, placeholderUtil, serverLanguageMapping, file, translation, language);
                             if (Objects.isNull(transFile)) continue;
-                            UploadTranslationsStringsRequest request = RequestBuilder.uploadTranslationsStrings(branch.getId(), importEqSuggestions, autoApproveImported, translateHidden);
+                            ImportTranslationsStringsBasedRequest request = RequestBuilder.importTranslationsStrings(branch.getId(), importEqSuggestions, autoApproveImported, translateHidden);
                             preparedRequests.put(transFile, Pair.of(Collections.singletonList(language), request));
                         }
                     }
@@ -204,19 +212,32 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                     .map(entry -> (Runnable) () -> {
                         java.io.File translationFile = entry.getKey();
                         List<Language> langs = entry.getValue().getLeft();
-                        UploadTranslationsStringsRequest request = entry.getValue().getRight();
+                        ImportTranslationsStringsBasedRequest request = entry.getValue().getRight();
                         request.setStorageId(uploadToStorage(pb, client, containsErrors, translationFile));
+                        request.setLanguageIds(langs.stream().map(Language::getId).collect(Collectors.toList()));
+
                         try {
-                            for (Language lang : langs) {
-                                client.uploadTranslationStringsBased(lang.getId(), request);
-                            }
+                            executeAsyncAction(
+                                out,
+                                "tbd", // TODO fix
+                                String.format(
+                                    RESOURCE_BUNDLE.getString("error.upload_translation"),
+                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
+                                ),
+                                "tbd", // TODO fix
+                                null,
+                                this.noProgress,
+                                this.plainView,
+                                () -> client.importTranslations(request),
+                                status -> client.importTranslationsStringsBasedStatus(status.getIdentifier()),
+                                ImportTranslationsStringsBasedStatus::getStatus,
+                                ImportTranslationsStringsBasedStatus::getProgress
+                            );
                         } catch (Exception e) {
                             containsErrors.set(true);
-                            throw ExitCodeExceptionMapper.remap(e, String.format(
-                                RESOURCE_BUNDLE.getString("error.upload_translation"),
-                                StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
-                            ));
+                            throw e;
                         }
+
                         if (!plainView) {
                             out.println(OK.withIcon(String.format(
                                 RESOURCE_BUNDLE.getString("message.uploading_file"),

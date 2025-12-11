@@ -127,8 +127,8 @@ public class RequestBuilder {
         return request;
     }
 
-    public static UploadTranslationsRequest uploadTranslations(Long fileId, boolean importEqSuggestions, boolean autoApproveImported, boolean translateHidden) {
-        UploadTranslationsRequest request = new UploadTranslationsRequest();
+    public static ImportTranslationsRequest importTranslations(Long fileId, boolean importEqSuggestions, boolean autoApproveImported, boolean translateHidden) {
+        ImportTranslationsRequest request = new ImportTranslationsRequest();
         request.setFileId(fileId);
         request.setImportEqSuggestions(importEqSuggestions);
         request.setAutoApproveImported(autoApproveImported);
@@ -136,8 +136,8 @@ public class RequestBuilder {
         return request;
     }
 
-    public static UploadTranslationsStringsRequest uploadTranslationsStrings(Long branchId, boolean importEqSuggestions, boolean autoApproveImported, boolean translateHidden) {
-        UploadTranslationsStringsRequest request = new UploadTranslationsStringsRequest();
+    public static ImportTranslationsStringsBasedRequest importTranslationsStrings(Long branchId, boolean importEqSuggestions, boolean autoApproveImported, boolean translateHidden) {
+        ImportTranslationsStringsBasedRequest request = new ImportTranslationsStringsBasedRequest();
         request.setBranchId(branchId);
         request.setImportEqSuggestions(importEqSuggestions);
         request.setAutoApproveImported(autoApproveImported);
