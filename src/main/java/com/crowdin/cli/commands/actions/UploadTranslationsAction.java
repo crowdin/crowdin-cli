@@ -162,7 +162,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                                     StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
                                 ),
                                 "message.spinner.importing_translations_percents",
-                                null,
+                                    "message.spinner.importing_translations_percents_completed",
                                 this.noProgress,
                                 this.plainView,
                                 () -> client.importTranslations(request),
@@ -225,7 +225,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                                     StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
                                 ),
                                 "message.spinner.importing_translations_percents",
-                                null,
+                                    "message.spinner.importing_translations_percents_completed",
                                 this.noProgress,
                                 this.plainView,
                                 () -> client.importTranslations(request),

@@ -48,7 +48,8 @@ public interface Client {
                     }
 
                     if (finalMessage != null) {
-                        ConsoleSpinner.update(finalMessage);
+                        var finalMsg = RESOURCE_BUNDLE.containsKey(finalMessage) ? RESOURCE_BUNDLE.getString(finalMessage) : finalMessage;
+                        ConsoleSpinner.update(finalMsg);
                     }
 
                     return status;
