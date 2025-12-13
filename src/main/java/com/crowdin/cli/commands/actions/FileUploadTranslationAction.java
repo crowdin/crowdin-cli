@@ -14,9 +14,7 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
-import com.crowdin.client.translations.model.ImportTranslationsStringsBasedRequest;
-import com.crowdin.client.translations.model.ImportTranslationsStringsBasedStatus;
-import com.crowdin.client.translations.model.UploadTranslationsRequest;
+import com.crowdin.client.translations.model.*;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
@@ -62,15 +60,25 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
         }
 
         if (xliff) {
-            UploadTranslationsRequest request = new UploadTranslationsRequest();
+            ImportTranslationsRequest request = new ImportTranslationsRequest();
             Long storageId = getStorageId(client);
             request.setStorageId(storageId);
-            try {
-                client.uploadTranslations(languageId, request);
-            } catch (Exception e) {
-                throw ExitCodeExceptionMapper.remap(e, String.format(
-                        RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()));
-            }
+            request.setLanguageIds(Collections.singletonList(languageId));
+
+            executeAsyncAction(
+                    out,
+                    "tbd", // TODO fix
+                    String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()),
+                    "tbd", // TODO fix
+                    null,
+                    false,
+                    this.plainView,
+                    () -> client.importTranslations(request),
+                    status -> client.importTranslationsStatus(status.getIdentifier()),
+                    ImportTranslationsStatus::getStatus,
+                    ImportTranslationsStatus::getProgress
+            );
+
         } else if (!isStringsBasedProject) {
             String branchPath = (StringUtils.isNotEmpty(this.branchName) ? BranchUtils.normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "");
             String destination = dest;
@@ -84,16 +92,26 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
                 .findFirst()
                 .orElseThrow(() -> new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), sourcePath)));
 
-            UploadTranslationsRequest request = new UploadTranslationsRequest();
+            ImportTranslationsRequest request = new ImportTranslationsRequest();
             Long storageId = getStorageId(client);
             request.setFileId(sourceFileInfo.getId());
             request.setStorageId(storageId);
-            try {
-                client.uploadTranslations(languageId, request);
-            } catch (Exception e) {
-                throw ExitCodeExceptionMapper.remap(e, String.format(
-                    RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()));
-            }
+            request.setLanguageIds(Collections.singletonList(languageId));
+
+            executeAsyncAction(
+                    out,
+                    "tbd", // TODO fix
+                    String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()),
+                    "tbd", // TODO fix
+                    null,
+                    false,
+                    this.plainView,
+                    () -> client.importTranslations(request),
+                    status -> client.importTranslationsStatus(status.getIdentifier()),
+                    ImportTranslationsStatus::getStatus,
+                    ImportTranslationsStatus::getProgress
+            );
+
         } else {
             ImportTranslationsStringsBasedRequest request = new ImportTranslationsStringsBasedRequest();
             Branch branch = project.findBranchByName(branchName)
@@ -106,7 +124,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
             executeAsyncAction(
                     out,
                     "tbd", // TODO fix
-                    "tbd", // TODO fix
+                    String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()),
                     "tbd", // TODO fix
                     null,
                     false,
