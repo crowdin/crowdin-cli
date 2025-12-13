@@ -67,9 +67,9 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
 
             executeAsyncAction(
                     out,
-                    "tbd", // TODO fix
+                    "message.spinner.importing_translations",
                     String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()),
-                    "tbd", // TODO fix
+                    "message.spinner.importing_translations_percents",
                     null,
                     false,
                     this.plainView,
@@ -100,9 +100,9 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
 
             executeAsyncAction(
                     out,
-                    "tbd", // TODO fix
+                    "message.spinner.importing_translations",
                     String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()),
-                    "tbd", // TODO fix
+                    "message.spinner.importing_translations_percents",
                     null,
                     false,
                     this.plainView,
@@ -123,9 +123,9 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
 
             executeAsyncAction(
                     out,
-                    "tbd", // TODO fix
+                    "message.spinner.importing_translations",
                     String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()),
-                    "tbd", // TODO fix
+                    "message.spinner.importing_translations_percents",
                     null,
                     false,
                     this.plainView,

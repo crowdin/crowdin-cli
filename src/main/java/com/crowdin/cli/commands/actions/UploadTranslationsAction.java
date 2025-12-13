@@ -156,12 +156,12 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         try {
                             executeAsyncAction(
                                 out,
-                                "tbd", // TODO fix
+                                "message.spinner.importing_translations",
                                 String.format(
                                     RESOURCE_BUNDLE.getString("error.upload_translation"),
                                     StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
                                 ),
-                                "tbd", // TODO fix
+                                "message.spinner.importing_translations_percents",
                                 null,
                                 this.noProgress,
                                 this.plainView,
@@ -219,12 +219,12 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         try {
                             executeAsyncAction(
                                 out,
-                                "tbd", // TODO fix
+                                "message.spinner.importing_translations",
                                 String.format(
                                     RESOURCE_BUNDLE.getString("error.upload_translation"),
                                     StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
                                 ),
-                                "tbd", // TODO fix
+                                "message.spinner.importing_translations_percents",
                                 null,
                                 this.noProgress,
                                 this.plainView,
