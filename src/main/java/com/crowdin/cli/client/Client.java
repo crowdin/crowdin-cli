@@ -36,7 +36,7 @@ public interface Client {
 
                         if (progressMessage != null) {
                             var progressMsg = RESOURCE_BUNDLE.containsKey(progressMessage) ? RESOURCE_BUNDLE.getString(progressMessage) : progressMessage;
-                            ConsoleSpinner.update(String.format(progressMsg, Math.toIntExact(getProgress.apply(status))));
+                            ConsoleSpinner.update(String.format(progressMsg + " (%d%%)", Math.toIntExact(getProgress.apply(status))));
                         }
                         Thread.sleep(1000);
 

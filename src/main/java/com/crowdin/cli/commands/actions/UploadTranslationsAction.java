@@ -156,13 +156,22 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         try {
                             executeAsyncAction(
                                 out,
-                                "message.spinner.importing_translations",
+                                String.format(
+                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations"),
+                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
+                                ),
                                 String.format(
                                     RESOURCE_BUNDLE.getString("error.upload_translation"),
                                     StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
                                 ),
-                                "message.spinner.importing_translations_percents",
-                                    "message.spinner.importing_translations_percents_completed",
+                                String.format(
+                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"),
+                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
+                                ),
+                                String.format(
+                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents_completed"),
+                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
+                                ),
                                 this.noProgress,
                                 this.plainView,
                                 () -> client.importTranslations(request),
@@ -219,13 +228,22 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         try {
                             executeAsyncAction(
                                 out,
-                                "message.spinner.importing_translations",
+                                String.format(
+                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations"),
+                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
+                                ),
                                 String.format(
                                     RESOURCE_BUNDLE.getString("error.upload_translation"),
                                     StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
                                 ),
-                                "message.spinner.importing_translations_percents",
-                                    "message.spinner.importing_translations_percents_completed",
+                                String.format(
+                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"),
+                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
+                                ),
+                                String.format(
+                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents_completed"),
+                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
+                                ),
                                 this.noProgress,
                                 this.plainView,
                                 () -> client.importTranslations(request),
