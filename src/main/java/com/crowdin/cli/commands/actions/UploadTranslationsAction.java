@@ -3,7 +3,6 @@ package com.crowdin.cli.commands.actions;
 import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.client.ProjectClient;
-import com.crowdin.cli.client.WrongLanguageException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.*;
@@ -29,7 +28,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.client.Client.executeAsyncAction;
+import static com.crowdin.cli.client.Client.executeAsyncActionWithoutSpinner;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.SKIPPED;
@@ -154,23 +153,18 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         request.setLanguageIds(langs.stream().map(Language::getId).collect(Collectors.toList()));
 
                         try {
-                            executeAsyncAction(
+                            executeAsyncActionWithoutSpinner(
                                 out,
-                                String.format(
-                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations"),
-                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
-                                ),
                                 String.format(
                                     RESOURCE_BUNDLE.getString("error.upload_translation"),
                                     StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
                                 ),
                                 String.format(
-                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"),
+                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations_init"),
                                     StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
                                 ),
                                 null,
-                                this.noProgress,
-                                this.plainView,
+                                null,
                                 () -> client.importTranslations(request),
                                 status -> client.importTranslationsStatus(status.getIdentifier()),
                                 ImportTranslationsStatus::getStatus,
@@ -223,23 +217,18 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         request.setLanguageIds(langs.stream().map(Language::getId).collect(Collectors.toList()));
 
                         try {
-                            executeAsyncAction(
+                            executeAsyncActionWithoutSpinner(
                                 out,
-                                String.format(
-                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations"),
-                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
-                                ),
                                 String.format(
                                     RESOURCE_BUNDLE.getString("error.upload_translation"),
                                     StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
                                 ),
                                 String.format(
-                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"),
+                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations_init"),
                                     StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
                                 ),
                                 null,
-                                this.noProgress,
-                                this.plainView,
+                                null,
                                 () -> client.importTranslations(request),
                                 status -> client.importTranslationsStringsBasedStatus(status.getIdentifier()),
                                 ImportTranslationsStringsBasedStatus::getStatus,

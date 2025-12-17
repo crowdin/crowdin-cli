@@ -67,7 +67,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
 
             executeAsyncAction(
                     out,
-                    String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations"), file.getPath()),
+                    String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_init"), file.getPath()),
                     String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()),
                     String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"), file.getPath()),
                     null,
@@ -100,7 +100,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
 
             executeAsyncAction(
                     out,
-                    String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations"), file.getPath()),
+                    String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_init"), file.getPath()),
                     String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()),
                     String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"), file.getPath()),
                     null,
@@ -123,7 +123,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
 
             executeAsyncAction(
                     out,
-                    String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations"), file.getPath()),
+                    String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_init"), file.getPath()),
                     String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()),
                     String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"), file.getPath()),
                     null,
