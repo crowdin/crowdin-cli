@@ -168,10 +168,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                                     RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"),
                                     StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
                                 ),
-                                String.format(
-                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents_completed"),
-                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
-                                ),
+                                null,
                                 this.noProgress,
                                 this.plainView,
                                 () -> client.importTranslations(request),
@@ -240,10 +237,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                                     RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"),
                                     StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
                                 ),
-                                String.format(
-                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents_completed"),
-                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
-                                ),
+                                null,
                                 this.noProgress,
                                 this.plainView,
                                 () -> client.importTranslations(request),
