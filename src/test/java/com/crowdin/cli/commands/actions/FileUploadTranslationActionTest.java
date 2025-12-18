@@ -13,13 +13,13 @@ import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.client.projectsgroups.model.Type;
-import com.crowdin.client.translations.model.UploadTranslationsRequest;
-import com.crowdin.client.translations.model.UploadTranslationsStringsRequest;
+import com.crowdin.client.translations.model.*;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
 import java.io.File;
+import java.util.List;
 
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -49,20 +49,25 @@ class FileUploadTranslationActionTest {
         ProjectClient client = mock(ProjectClient.class);
         CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId())).build();
         build.setType(Type.FILES_BASED);
+        ImportTranslationsRequest request = new ImportTranslationsRequest() {{
+            setStorageId(1L);
+            setLanguageIds(List.of("ua"));
+        }};
         when(client.downloadFullProject(any()))
             .thenReturn(build);
         when(client.uploadStorage(eq("first_uk.xliff"), any()))
             .thenReturn(1L);
+        when(client.importTranslations(eq(request))).thenReturn(new ImportTranslationsStatus() {{
+            setStatus("finished");
+            setIdentifier("123");
+        }});
 
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, null, null, "ua", true, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(any());
         verify(client).uploadStorage(eq("first_uk.xliff"), any());
-        UploadTranslationsRequest request = new UploadTranslationsRequest() {{
-            setStorageId(1L);
-        }};
-        verify(client).uploadTranslations(eq("ua"), eq(request));
+        verify(client).importTranslations(eq(request));
         verifyNoMoreInteractions(client);
     }
 
@@ -78,21 +83,26 @@ class FileUploadTranslationActionTest {
         CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
             .addFile("/first.po", "gettext", 101L, null, null, null).build();
         build.setType(Type.FILES_BASED);
+        ImportTranslationsRequest request = new ImportTranslationsRequest() {{
+            setFileId(101L);
+            setStorageId(1L);
+            setLanguageIds(List.of("ua"));
+        }};
         when(client.downloadFullProject(any()))
             .thenReturn(build);
         when(client.uploadStorage(eq("first_uk.po"), any()))
             .thenReturn(1L);
+        when(client.importTranslations(eq(request))).thenReturn(new ImportTranslationsStatus() {{
+            setStatus("finished");
+            setIdentifier("123");
+        }});
 
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, null, "/first.po", "ua", false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(any());
         verify(client).uploadStorage(eq("first_uk.po"), any());
-        UploadTranslationsRequest request = new UploadTranslationsRequest() {{
-            setFileId(101L);
-            setStorageId(1L);
-        }};
-        verify(client).uploadTranslations(eq("ua"), eq(request));
+        verify(client).importTranslations(eq(request));
         verifyNoMoreInteractions(client);
     }
 
@@ -109,26 +119,31 @@ class FileUploadTranslationActionTest {
             .addBranches(1L, "main")
             .addFile("/main/first.po", "gettext", 101L, null, 1L, null).build();
         build.setType(Type.FILES_BASED);
+        ImportTranslationsRequest request = new ImportTranslationsRequest() {{
+            setFileId(101L);
+            setStorageId(1L);
+            setLanguageIds(List.of("ua"));
+        }};
         when(client.downloadFullProject(any()))
             .thenReturn(build);
         when(client.uploadStorage(eq("first_uk.po"), any()))
             .thenReturn(1L);
+        when(client.importTranslations(eq(request))).thenReturn(new ImportTranslationsStatus() {{
+            setStatus("finished");
+            setIdentifier("123");
+        }});
 
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, "main", "/first.po", "ua", false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(any());
         verify(client).uploadStorage(eq("first_uk.po"), any());
-        UploadTranslationsRequest request = new UploadTranslationsRequest() {{
-            setFileId(101L);
-            setStorageId(1L);
-        }};
-        verify(client).uploadTranslations(eq("ua"), eq(request));
+        verify(client).importTranslations(eq(request));
         verifyNoMoreInteractions(client);
     }
 
     @Test
-    public void testUploadTranslation_StringBasedProject() throws ResponseException {
+    public void testImportTranslation_StringBasedProject() throws ResponseException {
         File fileToUpload = new File(project.getBasePath() + "first_uk.po");
         project.addFile(Utils.normalizePath("first_uk.po"), "Hello, World!");
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
@@ -139,21 +154,26 @@ class FileUploadTranslationActionTest {
         CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
             .addBranches(2L, "main").build();
         build.setType(Type.STRINGS_BASED);
+        ImportTranslationsStringsBasedRequest request = new ImportTranslationsStringsBasedRequest() {{
+            setBranchId(2L);
+            setStorageId(1L);
+            setLanguageIds(List.of("ua"));
+        }};
+        ImportTranslationsStringsBasedStatus status = new ImportTranslationsStringsBasedStatus();
+        status.setStatus("finished");
+        status.setIdentifier("123");
         when(client.downloadFullProject(any()))
             .thenReturn(build);
         when(client.uploadStorage(eq("first_uk.po"), any()))
             .thenReturn(1L);
+        when(client.importTranslations(eq(request))).thenReturn(status);
 
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadTranslationAction(fileToUpload, "main", null, "ua", false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(any());
         verify(client).uploadStorage(eq("first_uk.po"), any());
-        UploadTranslationsStringsRequest request = new UploadTranslationsStringsRequest() {{
-            setBranchId(2L);
-            setStorageId(1L);
-        }};
-        verify(client).uploadTranslationStringsBased(eq("ua"), eq(request));
+        verify(client).importTranslations(eq(request));
         verifyNoMoreInteractions(client);
     }
 }

@@ -72,10 +72,6 @@ public interface ProjectClient extends Client {
 
     void deleteSource(Long fileId);
 
-    void uploadTranslations(String languageId, UploadTranslationsRequest request) throws ResponseException;
-
-    void uploadTranslationStringsBased(String languageId, UploadTranslationsStringsRequest request);
-
     ProjectBuild startBuildingTranslation(BuildProjectTranslationRequest request) throws ResponseException;
 
     ProjectBuild checkBuildingTranslation(Long buildId);
@@ -145,4 +141,12 @@ public interface ProjectClient extends Client {
     Optional<String> findManifestUrl(String id);
 
     User getAuthenticatedUser();
+
+    ImportTranslationsStatus importTranslations(ImportTranslationsRequest request);
+
+    ImportTranslationsStatus importTranslationsStatus(String importId);
+
+    ImportTranslationsStringsBasedStatus importTranslations(ImportTranslationsStringsBasedRequest request);
+
+    ImportTranslationsStringsBasedStatus importTranslationsStringsBasedStatus(String importId);
 }

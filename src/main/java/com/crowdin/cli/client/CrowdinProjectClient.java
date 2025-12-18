@@ -323,32 +323,6 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
-    public void uploadTranslations(String languageId, UploadTranslationsRequest request) throws ResponseException {
-        Map<BiPredicate<String, String>, ResponseException> errorhandlers = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
-            put((code, message) -> code.equals("0") && message.equals("File is not allowed for the language specified"),
-                new WrongLanguageException());
-            put((code, message) -> message.contains("File from storage with id #" + request.getStorageId() + " was not found"),
-                new RepeatException("File not found in the storage"));
-            put((code, message) -> Utils.isServerErrorCode(code), new RepeatException("Server Error"));
-            put((code, message) -> message.contains("Request aborted"), new RepeatException("Request aborted"));
-            put((code, message) -> message.contains("Connection reset"), new RepeatException("Connection reset"));
-            put((code, message) -> message.contains("Connection timed out"), new RepeatException("Connection timed out"));
-        }};
-        executeRequestWithPossibleRetries(
-            errorhandlers,
-            () -> this.client.getTranslationsApi().uploadTranslations(this.projectId, languageId, request),
-            3,
-            2 * 1000
-        );
-    }
-
-    @Override
-    public void uploadTranslationStringsBased(String languageId, UploadTranslationsStringsRequest request) {
-        executeRequest(() -> this.client.getTranslationsApi()
-            .uploadTranslationStringsBased(this.projectId, languageId, request));
-    }
-
-    @Override
     public ProjectBuild startBuildingTranslation(BuildProjectTranslationRequest request) throws ResponseException {
         Map<BiPredicate<String, String>, ResponseException> errorHandler = new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
             put((code, message) -> code.equals("409") && message.contains("Another build is currently in progress"),
@@ -588,5 +562,58 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
         return executeRequest(() -> this.client.getUsersApi()
                 .getAuthenticatedUser()
                 .getData());
+    }
+
+    @Override
+    @SneakyThrows
+    public ImportTranslationsStatus importTranslations(ImportTranslationsRequest request) {
+        return executeRequestWithPossibleRetries(
+                this.errorHandlingForImportTranslations(request.getStorageId()),
+                () -> this.client.getTranslationsApi()
+                        .importTranslations(this.projectId, request)
+                        .getData(),
+                3,
+                2 * 1000
+        );
+    }
+
+    @Override
+    public ImportTranslationsStatus importTranslationsStatus(String importId) {
+        return executeRequest(() -> this.client.getTranslationsApi()
+                .importTranslationsStatus(this.projectId, importId)
+                .getData());
+    }
+
+    @Override
+    @SneakyThrows
+    public ImportTranslationsStringsBasedStatus importTranslations(ImportTranslationsStringsBasedRequest request) {
+        return executeRequestWithPossibleRetries(
+                this.errorHandlingForImportTranslations(request.getStorageId()),
+                () -> this.client.getTranslationsApi()
+                        .importTranslations(this.projectId, request)
+                        .getData(),
+                3,
+                2 * 1000
+        );
+    }
+
+    @Override
+    public ImportTranslationsStringsBasedStatus importTranslationsStringsBasedStatus(String importId) {
+        return executeRequest(() -> this.client.getTranslationsApi()
+                .importTranslationsStringsBasedStatus(this.projectId, importId)
+                .getData());
+    }
+
+    private LinkedHashMap<BiPredicate<String, String>, ResponseException> errorHandlingForImportTranslations(Long storageId) {
+        return new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
+            put((code, message) -> code.equals("0") && message.equals("File is not allowed for the language specified"),
+                    new WrongLanguageException());
+            put((code, message) -> message.contains("File from storage with id #" + storageId + " was not found"),
+                    new RepeatException("File not found in the storage"));
+            put((code, message) -> Utils.isServerErrorCode(code), new RepeatException("Server Error"));
+            put((code, message) -> message.contains("Request aborted"), new RepeatException("Request aborted"));
+            put((code, message) -> message.contains("Connection reset"), new RepeatException("Connection reset"));
+            put((code, message) -> message.contains("Connection timed out"), new RepeatException("Connection timed out"));
+        }};
     }
 }

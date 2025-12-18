@@ -20,14 +20,21 @@ public class ConsoleSpinner {
     ) {
         try {
             if (!isPlain) {
-                ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString(waitingMessageKey), noProgress);
+                ConsoleSpinner.start(
+                    out,
+                    RESOURCE_BUNDLE.containsKey(waitingMessageKey) ? RESOURCE_BUNDLE.getString(waitingMessageKey) : waitingMessageKey,
+                    noProgress
+                );
             }
             T result = callable.call();
             ConsoleSpinner.stop(OK);
             return result;
         } catch (Exception e) {
             ConsoleSpinner.stop(ERROR);
-            throw ExitCodeExceptionMapper.remap(e, RESOURCE_BUNDLE.getString(errorMessageKey));
+            throw ExitCodeExceptionMapper.remap(
+                e,
+                RESOURCE_BUNDLE.containsKey(errorMessageKey) ? RESOURCE_BUNDLE.getString(errorMessageKey) : errorMessageKey
+            );
         }
     }
 

@@ -35,12 +35,7 @@ import com.crowdin.client.sourcestrings.model.SourceStringResponseList;
 import com.crowdin.client.sourcestrings.model.SourceStringResponseObject;
 import com.crowdin.client.storage.model.Storage;
 import com.crowdin.client.storage.model.StorageResponseObject;
-import com.crowdin.client.translations.model.BuildProjectTranslationRequest;
-import com.crowdin.client.translations.model.ProjectBuild;
-import com.crowdin.client.translations.model.ProjectBuildResponseObject;
-import com.crowdin.client.translations.model.UploadTranslationsRequest;
-import com.crowdin.client.translations.model.UploadTranslationsResponse;
-import com.crowdin.client.translations.model.UploadTranslationsResponseObject;
+import com.crowdin.client.translations.model.*;
 import com.crowdin.client.translationstatus.model.LanguageProgressResponseList;
 import org.apache.commons.io.IOUtils;
 import org.junit.jupiter.api.BeforeEach;
@@ -106,8 +101,8 @@ public class CrowdinProjectClientTest {
         String.format("%s/projects/%d/files/%d", url, projectId, fileId);
     private static final String addSourceUrl =
         String.format("%s/projects/%d/files", url, projectId);
-    private static final String uploadTranslationsUrl =
-        String.format("%s/projects/%d/translations/%s", url, projectId, languageId);
+    private static final String importTranslationsUrl =
+        String.format("%s/projects/%d/translations/imports", url, projectId);
     private static final String startBuildingTranslationsUrl =
         String.format("%s/projects/%d/translations/builds", url, projectId);
     private static final String checkBuildingTranslationUrl =
@@ -365,33 +360,33 @@ public class CrowdinProjectClientTest {
 
     @Test
     public void testUploadTranslations() throws ResponseException {
-        UploadTranslationsResponseObject response = new UploadTranslationsResponseObject() {{
-                setData(new UploadTranslationsResponse());
+        ImportTranslationsStatusResponseObject response = new ImportTranslationsStatusResponseObject() {{
+                setData(new ImportTranslationsStatus());
             }};
-        when(httpClientMock.post(eq(uploadTranslationsUrl), any(), any(), eq(UploadTranslationsResponseObject.class)))
+        when(httpClientMock.post(eq(importTranslationsUrl), any(), any(), eq(ImportTranslationsStatusResponseObject.class)))
             .thenReturn(response);
-        UploadTranslationsRequest request = new UploadTranslationsRequest();
+        ImportTranslationsRequest request = new ImportTranslationsRequest();
 
-        client.uploadTranslations(languageId, request);
+        client.importTranslations(request);
 
-        verify(httpClientMock).post(eq(uploadTranslationsUrl), any(), any(), eq(UploadTranslationsResponseObject.class));
+        verify(httpClientMock).post(eq(importTranslationsUrl), any(), any(), eq(ImportTranslationsStatusResponseObject.class));
         verifyNoMoreInteractions(httpClientMock);
     }
 
     @Test
     public void testUploadTranslationsWithRepeat() throws ResponseException {
-        UploadTranslationsResponseObject response = new UploadTranslationsResponseObject() {{
-                setData(new UploadTranslationsResponse());
+        ImportTranslationsStatusResponseObject response = new ImportTranslationsStatusResponseObject() {{
+                setData(new ImportTranslationsStatus());
             }};
-        UploadTranslationsRequest request = new UploadTranslationsRequest();
+        ImportTranslationsRequest request = new ImportTranslationsRequest();
         request.setStorageId(100L);
-        when(httpClientMock.post(eq(uploadTranslationsUrl), any(), any(), eq(UploadTranslationsResponseObject.class)))
+        when(httpClientMock.post(eq(importTranslationsUrl), any(), any(), eq(ImportTranslationsStatusResponseObject.class)))
             .thenThrow(HttpExceptionBuilder.build("-", "File from storage with id #" + request.getStorageId() + " was not found"))
             .thenReturn(response);
 
-        client.uploadTranslations(languageId, request);
+        client.importTranslations(request);
 
-        verify(httpClientMock, times(2)).post(eq(uploadTranslationsUrl), any(), any(), eq(UploadTranslationsResponseObject.class));
+        verify(httpClientMock, times(2)).post(eq(importTranslationsUrl), any(), any(), eq(ImportTranslationsStatusResponseObject.class));
         verifyNoMoreInteractions(httpClientMock);
     }
 

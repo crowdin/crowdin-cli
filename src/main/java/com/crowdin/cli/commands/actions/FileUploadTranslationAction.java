@@ -14,8 +14,7 @@ import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.Branch;
 import com.crowdin.client.sourcefiles.model.FileInfo;
-import com.crowdin.client.translations.model.UploadTranslationsRequest;
-import com.crowdin.client.translations.model.UploadTranslationsStringsRequest;
+import com.crowdin.client.translations.model.*;
 import lombok.AllArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 
@@ -24,10 +23,10 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.Collections;
-import java.util.Collections;
 import java.util.Objects;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
+import static com.crowdin.cli.client.Client.executeAsyncAction;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
@@ -61,15 +60,25 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
         }
 
         if (xliff) {
-            UploadTranslationsRequest request = new UploadTranslationsRequest();
+            ImportTranslationsRequest request = new ImportTranslationsRequest();
             Long storageId = getStorageId(client);
             request.setStorageId(storageId);
-            try {
-                client.uploadTranslations(languageId, request);
-            } catch (Exception e) {
-                throw ExitCodeExceptionMapper.remap(e, String.format(
-                        RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()));
-            }
+            request.setLanguageIds(Collections.singletonList(languageId));
+
+            executeAsyncAction(
+                    out,
+                    String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_init"), file.getPath()),
+                    String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()),
+                    String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"), file.getPath()),
+                    null,
+                    false,
+                    this.plainView,
+                    () -> client.importTranslations(request),
+                    status -> client.importTranslationsStatus(status.getIdentifier()),
+                    ImportTranslationsStatus::getStatus,
+                    ImportTranslationsStatus::getProgress
+            );
+
         } else if (!isStringsBasedProject) {
             String branchPath = (StringUtils.isNotEmpty(this.branchName) ? BranchUtils.normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "");
             String destination = dest;
@@ -83,24 +92,48 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
                 .findFirst()
                 .orElseThrow(() -> new ExitCodeExceptionMapper.NotFoundException(String.format(RESOURCE_BUNDLE.getString("error.file_not_found"), sourcePath)));
 
-            UploadTranslationsRequest request = new UploadTranslationsRequest();
+            ImportTranslationsRequest request = new ImportTranslationsRequest();
             Long storageId = getStorageId(client);
             request.setFileId(sourceFileInfo.getId());
             request.setStorageId(storageId);
-            try {
-                client.uploadTranslations(languageId, request);
-            } catch (Exception e) {
-                throw ExitCodeExceptionMapper.remap(e, String.format(
-                    RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()));
-            }
+            request.setLanguageIds(Collections.singletonList(languageId));
+
+            executeAsyncAction(
+                    out,
+                    String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_init"), file.getPath()),
+                    String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()),
+                    String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"), file.getPath()),
+                    null,
+                    false,
+                    this.plainView,
+                    () -> client.importTranslations(request),
+                    status -> client.importTranslationsStatus(status.getIdentifier()),
+                    ImportTranslationsStatus::getStatus,
+                    ImportTranslationsStatus::getProgress
+            );
+
         } else {
-            UploadTranslationsStringsRequest request = new UploadTranslationsStringsRequest();
+            ImportTranslationsStringsBasedRequest request = new ImportTranslationsStringsBasedRequest();
             Branch branch = project.findBranchByName(branchName)
                 .orElseThrow(() -> new RuntimeException(RESOURCE_BUNDLE.getString("error.branch_required_string_project")));
             Long storageId = getStorageId(client);
             request.setBranchId(branch.getId());
             request.setStorageId(storageId);
-            client.uploadTranslationStringsBased(languageId, request);
+            request.setLanguageIds(Collections.singletonList(languageId));
+
+            executeAsyncAction(
+                    out,
+                    String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_init"), file.getPath()),
+                    String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), file.getPath()),
+                    String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"), file.getPath()),
+                    null,
+                    false,
+                    this.plainView,
+                    () -> client.importTranslations(request),
+                    status -> client.importTranslationsStringsBasedStatus(status.getIdentifier()),
+                    ImportTranslationsStringsBasedStatus::getStatus,
+                    ImportTranslationsStringsBasedStatus::getProgress
+            );
         }
 
         if (!plainView) {
