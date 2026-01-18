@@ -184,27 +184,6 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                 Long srxStorageId = customSegmentationFileId;
 
                 List<Runnable> taskss = sources.stream()
-                    .filter(source -> {
-                        if (!cache) {
-                            return true;
-                        } else {
-                            try {
-                                String currentHash = FileUtils.computeChecksum(new File(source).toPath());
-                                String previousHash = sourceHashes.get(source);
-                                if (!currentHash.equals(previousHash)) {
-                                    return true;
-                                } else {
-                                    if (!plainView) {
-                                        out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped_cached"), StringUtils.removeStart(source, pb.getBasePath()))));
-                                    }
-                                    return false;
-                                }
-                            } catch (Exception e) {
-                                OutputUtil.fancyErr(e, System.err, debug);
-                                return true;
-                            }
-                        }
-                    })
                     .map(source -> {
                         final File sourceFile = new File(source);
                         final String filePath = (file.getDest() != null)
@@ -226,6 +205,10 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
                         Map.Entry<FileInfo, Boolean> projectFile = !isStringsBasedProject ? ProjectFilesUtils.fileLookup(fileFullPath, finalPaths) : null;
                         if (!isStringsBasedProject && autoUpdate && projectFile != null) {
+                            if (this.wasNotChanged(out, pb, sourceHashes, source)) {
+                                return (Runnable) () -> { };
+                            }
+
                             final UpdateFileRequest request = new UpdateFileRequest();
                             if (!projectFile.getValue()) {
                                 //only for soft match we set name
@@ -288,6 +271,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 }
                             };
                         } else if (projectFile == null && !isStringsBasedProject) {
+                            // file not present in Crowdin, bypass cache and upload as new file
                             final AddFileRequest request = new AddFileRequest();
                             request.setName(fileName);
                             request.setExportOptions(buildExportOptions(sourceFile, file, pb.getBasePath()));
@@ -365,6 +349,10 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 }
                             };
                         } else if (isStringsBasedProject) {
+                            if (this.wasNotChanged(out, pb, sourceHashes, source)) {
+                                return (Runnable) () -> { };
+                            }
+
                             final UploadStringsRequest request = new UploadStringsRequest();
                             request.setImportOptions(buildImportOptionsStringsBased(sourceFile, file, srxStorageId));
                             if (file.getType() != null) {
@@ -468,6 +456,25 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
         if (errorsPresented.get()) {
             throw new RuntimeException(RESOURCE_BUNDLE.getString("error.execution_contains_errors"));
         }
+    }
+
+    private boolean wasNotChanged(Outputter out, PropertiesWithFiles pb, Map<String, String> sourceHashes, String source) {
+        if (cache) {
+            try {
+                String currentHash = FileUtils.computeChecksum(new File(source).toPath());
+                String previousHash = sourceHashes.get(source);
+                if (currentHash.equals(previousHash)) {
+                    if (!plainView) {
+                        out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped_cached"), StringUtils.removeStart(source, pb.getBasePath()))));
+                    }
+                    // no changes, skip upload
+                    return true;
+                }
+            } catch (Exception e) {
+                OutputUtil.fancyErr(e, System.err, debug);
+            }
+        }
+        return false;
     }
 
     private ImportOptions buildImportOptions(java.io.File sourceFile, FileBean fileBean, Long srxStorageId) {
