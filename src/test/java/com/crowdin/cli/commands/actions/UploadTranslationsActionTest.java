@@ -72,7 +72,7 @@ public class UploadTranslationsActionTest {
                 .thenReturn(1L);
         when(client.importTranslations(eq(request))).thenReturn(importTranslationsStatus);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false, false);
         assertDoesNotThrow(() -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject(null);
@@ -125,7 +125,7 @@ public class UploadTranslationsActionTest {
         when(client.importTranslations(eq(request1))).thenReturn(importTranslationsStatus);
         when(client.importTranslations(eq(request2))).thenReturn(importTranslationsStatus);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(null);
@@ -150,7 +150,7 @@ public class UploadTranslationsActionTest {
         when(client.downloadFullProject(null))
                 .thenReturn(build);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false, false);
         assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject(null);
@@ -193,7 +193,7 @@ public class UploadTranslationsActionTest {
                 .thenReturn(1L);
         when(client.importTranslations(eq(request))).thenReturn(importTranslationsStatus);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(null);
@@ -232,7 +232,7 @@ public class UploadTranslationsActionTest {
                 .thenReturn(1L);
         when(client.importTranslations(eq(request))).thenReturn(importTranslationsStatus);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false, false);
         assertDoesNotThrow(() -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject(null);
@@ -270,7 +270,7 @@ public class UploadTranslationsActionTest {
                 .thenReturn(1L);
         when(client.importTranslations(eq(importTranslationsStringsBasedRequest))).thenReturn(status);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, "main", false, false, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, "main", false, false, false, false, false, false);
         assertDoesNotThrow(() -> action.act(Outputter.getDefault(), pb, client));
 
         verify(client).downloadFullProject("main");

@@ -120,9 +120,9 @@ public class CliActions implements Actions {
     @Override
     public NewAction<PropertiesWithFiles, ProjectClient> uploadTranslations(
         boolean noProgress, String languageId, String branchName, boolean importEqSuggestions,
-        boolean autoApproveImported, boolean translateHidden, boolean debug, boolean plainView
+        boolean autoApproveImported, boolean translateHidden, boolean debug, boolean plainView, boolean isVerbose
     ) {
-        return new UploadTranslationsAction(noProgress, languageId, branchName, importEqSuggestions, autoApproveImported, translateHidden, debug, plainView);
+        return new UploadTranslationsAction(noProgress, languageId, branchName, importEqSuggestions, autoApproveImported, translateHidden, debug, plainView, isVerbose);
     }
 
     @Override
@@ -309,8 +309,8 @@ public class CliActions implements Actions {
     }
 
     @Override
-    public NewAction<ProjectProperties, ProjectClient> fileUploadTranslation(File file, String branch, String dest, String languageId, boolean xliff, boolean plainView) {
-        return new FileUploadTranslationAction(file, branch, dest, languageId, xliff, plainView);
+    public NewAction<ProjectProperties, ProjectClient> fileUploadTranslation(File file, String branch, String dest, String languageId, boolean xliff, boolean plainView, boolean isVerbose) {
+        return new FileUploadTranslationAction(file, branch, dest, languageId, xliff, plainView, isVerbose);
     }
 
     @Override

@@ -40,7 +40,7 @@ class UploadTranslationsSubcommand extends ActCommandWithFiles {
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return (dryrun)
             ? actions.listTranslations(noProgress, treeView, true, plainView, false, false, true)
-            : actions.uploadTranslations(noProgress, languageId, branch, importEqSuggestions, autoApproveImported, translateHidden, debug, plainView);
+            : actions.uploadTranslations(noProgress, languageId, branch, importEqSuggestions, autoApproveImported, translateHidden, debug, plainView, isVerbose);
     }
 
     @Override

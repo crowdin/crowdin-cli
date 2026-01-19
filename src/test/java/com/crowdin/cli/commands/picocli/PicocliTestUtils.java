@@ -80,7 +80,7 @@ public class PicocliTestUtils {
             .thenReturn(actionMock);
         when(actionsMock.uploadSources(any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
-        when(actionsMock.uploadTranslations(anyBoolean(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
+        when(actionsMock.uploadTranslations(anyBoolean(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
         when(actionsMock.glossaryList(anyBoolean(), anyBoolean()))
             .thenReturn(actionMock);
@@ -128,7 +128,7 @@ public class PicocliTestUtils {
                 .thenReturn(actionMock);
         when(actionsMock.fileUpload(any(), any(), anyBoolean(), any(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
                 .thenReturn(actionMock);
-        when(actionsMock.fileUploadTranslation(any(), any(), any(), any(), anyBoolean(), anyBoolean()))
+        when(actionsMock.fileUploadTranslation(any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
                 .thenReturn(actionMock);
         when(actionsMock.fileDownload(any(), any(), anyBoolean(), any()))
                 .thenReturn(actionMock);

@@ -190,7 +190,11 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                     PreTranslationStatus preTranslationStatus = client.startPreTranslation(request);
                     preTranslationStatus = handlePreTranslationStatus(client, preTranslationStatus);
 
-                    ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_done"), 100));
+                    if (isVerbose) {
+                        ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_done_verbose"), 100, preTranslationStatus.getIdentifier()));
+                    } else {
+                        ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_done"), 100));
+                    }
 
                     return preTranslationStatus;
                 }
@@ -208,7 +212,11 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                     PreTranslationStatus preTranslationStatus = client.startPreTranslationStringsBased(request);
                     preTranslationStatus = handlePreTranslationStatus(client, preTranslationStatus);
 
-                    ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_done"), 100));
+                    if (isVerbose) {
+                        ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_done_verbose"), 100, preTranslationStatus.getIdentifier()));
+                    } else {
+                        ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_done"), 100));
+                    }
 
                     return preTranslationStatus;
                 }
@@ -217,9 +225,16 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
 
     private PreTranslationStatus handlePreTranslationStatus(ProjectClient client, PreTranslationStatus preTranslationStatus) throws InterruptedException {
         while (!preTranslationStatus.getStatus().equalsIgnoreCase("finished")) {
-            ConsoleSpinner.update(
-                    String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_percents"),
-                            Math.toIntExact(preTranslationStatus.getProgress())));
+            if (isVerbose) {
+                ConsoleSpinner.update(
+                        String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_percents_verbose"),
+                                Math.toIntExact(preTranslationStatus.getProgress()), preTranslationStatus.getIdentifier()));
+            } else {
+                ConsoleSpinner.update(
+                        String.format(RESOURCE_BUNDLE.getString("message.spinner.pre_translate_percents"),
+                                Math.toIntExact(preTranslationStatus.getProgress())));
+            }
+
             Thread.sleep(1000);
 
             preTranslationStatus = client.checkPreTranslation(preTranslationStatus.getIdentifier());

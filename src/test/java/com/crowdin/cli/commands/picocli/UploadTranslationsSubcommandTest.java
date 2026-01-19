@@ -12,7 +12,7 @@ public class UploadTranslationsSubcommandTest extends PicocliTestUtils {
     public void testUploadTranslations() {
         this.execute(CommandNames.UPLOAD, CommandNames.UPLOAD_TRANSLATIONS);
         verify(actionsMock)
-            .uploadTranslations(anyBoolean(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
+            .uploadTranslations(anyBoolean(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 

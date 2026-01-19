@@ -39,6 +39,7 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
     private final String languageId;
     private final boolean xliff;
     private final boolean plainView;
+    private final boolean isVerbose;
 
     @Override
     public void act(Outputter out, ProjectProperties properties, ProjectClient client) {
@@ -76,7 +77,9 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
                     () -> client.importTranslations(request),
                     status -> client.importTranslationsStatus(status.getIdentifier()),
                     ImportTranslationsStatus::getStatus,
-                    ImportTranslationsStatus::getProgress
+                    ImportTranslationsStatus::getProgress,
+                    ImportTranslationsStatus::getIdentifier,
+                    this.isVerbose
             );
 
         } else if (!isStringsBasedProject) {
@@ -109,7 +112,9 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
                     () -> client.importTranslations(request),
                     status -> client.importTranslationsStatus(status.getIdentifier()),
                     ImportTranslationsStatus::getStatus,
-                    ImportTranslationsStatus::getProgress
+                    ImportTranslationsStatus::getProgress,
+                    ImportTranslationsStatus::getIdentifier,
+                    this.isVerbose
             );
 
         } else {
@@ -132,7 +137,9 @@ public class FileUploadTranslationAction implements NewAction<ProjectProperties,
                     () -> client.importTranslations(request),
                     status -> client.importTranslationsStringsBasedStatus(status.getIdentifier()),
                     ImportTranslationsStringsBasedStatus::getStatus,
-                    ImportTranslationsStringsBasedStatus::getProgress
+                    ImportTranslationsStringsBasedStatus::getProgress,
+                    ImportTranslationsStringsBasedStatus::getIdentifier,
+                    this.isVerbose
             );
         }
 

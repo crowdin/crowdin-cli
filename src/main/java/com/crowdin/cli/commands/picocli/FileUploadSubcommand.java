@@ -85,7 +85,7 @@ class FileUploadSubcommand extends ActCommandProject {
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
         if (Objects.nonNull(languageId)) {
-            return actions.fileUploadTranslation(file, branch, destination, languageId, xliff, plainView);
+            return actions.fileUploadTranslation(file, branch, destination, languageId, xliff, plainView, isVerbose);
         }
         return actions.fileUpload(file, branch, autoUpdate, labels, destination, context, type, parserVersion, excludedLanguages, plainView, cleanupMode, updateStrings);
     }
