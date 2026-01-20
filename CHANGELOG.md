@@ -1,5 +1,18 @@
 # Changelog
 
+# [4.13.0](https://github.com/crowdin/crowdin-cli/compare/4.12.0...4.13.0) (2026-01-20)
+
+
+### Bug Fixes
+
+* uploaded sources with cache ([#974](https://github.com/crowdin/crowdin-cli/issues/974)) ([73e1ba1](https://github.com/crowdin/crowdin-cli/commit/73e1ba1e5f7e9244e37d70cb3af20674dbe90786))
+
+
+### Features
+
+* import translations ([#968](https://github.com/crowdin/crowdin-cli/issues/968)) ([c90d2e5](https://github.com/crowdin/crowdin-cli/commit/c90d2e5df43ea69772e2505688ac54fc48ac734a))
+* log async operation id for verbose output ([#975](https://github.com/crowdin/crowdin-cli/issues/975)) ([1724c26](https://github.com/crowdin/crowdin-cli/commit/1724c268049e8ba184f2b802d65b20dead7a9c90))
+
 # [4.12.0](https://github.com/crowdin/crowdin-cli/compare/4.11.0...4.12.0) (2025-12-02)
 
 
