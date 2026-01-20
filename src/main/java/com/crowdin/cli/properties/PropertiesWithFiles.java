@@ -2,11 +2,13 @@ package com.crowdin.cli.properties;
 
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.picocli.GenericActCommand;
+import com.crowdin.cli.properties.helper.FileHelper;
 import com.crowdin.client.languages.model.Language;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import org.apache.commons.lang3.StringUtils;
 
+import java.io.File;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -75,6 +77,9 @@ public class PropertiesWithFiles extends ProjectProperties {
             } else {
                 for (FileBean fileBean : props.getFiles()) {
                     messages.addAllErrors(FileBean.CONFIGURATOR.checkProperties(fileBean));
+                    if (checkType == CheckType.LINT) {
+                        checkSourceFilesExist(props.getBasePath(), fileBean, messages);
+                    }
                     if (StringUtils.isNotEmpty(fileBean.getDest()) && !props.getPreserveHierarchy()) {
                         messages.addError(RESOURCE_BUNDLE.getString("error.dest_and_preserve_hierarchy"));
                     }
@@ -99,6 +104,21 @@ public class PropertiesWithFiles extends ProjectProperties {
                 messages.addAllErrors(PseudoLocalization.CONFIGURATOR.checkProperties(props.getPseudoLocalization()));
             }
             return messages;
+        }
+
+        private void checkSourceFilesExist(String basePath, FileBean fileBean, PropertiesBuilder.Messages messages) {
+            if (StringUtils.isEmpty(fileBean.getSource())) {
+                return;
+            }
+            FileHelper fileHelper = new FileHelper(basePath);
+            String relativePath = StringUtils.removeStart(fileBean.getSource(), basePath);
+            List<File> sources = fileHelper.getFiles(relativePath)
+                .stream()
+                .filter(File::isFile)
+                .collect(Collectors.toList());
+            if (sources.isEmpty()) {
+                messages.addError(String.format(RESOURCE_BUNDLE.getString("error.config.source_not_found"), fileBean.getSource()));
+            }
         }
     }
 }
