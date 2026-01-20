@@ -44,10 +44,11 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
     private boolean translateHidden;
     private boolean debug;
     private boolean plainView;
+    private boolean isVerbose;
 
     public UploadTranslationsAction(
         boolean noProgress, String languageId, String branchName, boolean importEqSuggestions,
-        boolean autoApproveImported, boolean translateHidden, boolean debug, boolean plainView
+        boolean autoApproveImported, boolean translateHidden, boolean debug, boolean plainView, boolean isVerbose
     ) {
         this.noProgress = noProgress || plainView;
         this.languageId = languageId;
@@ -57,6 +58,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
         this.translateHidden = translateHidden;
         this.debug = debug;
         this.plainView = plainView;
+        this.isVerbose = isVerbose;
     }
 
     @Override
@@ -153,22 +155,19 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         request.setLanguageIds(langs.stream().map(Language::getId).collect(Collectors.toList()));
 
                         try {
+                            String filePath = StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath());
                             executeAsyncActionWithoutSpinner(
                                 out,
-                                String.format(
-                                    RESOURCE_BUNDLE.getString("error.upload_translation"),
-                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
-                                ),
-                                String.format(
-                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations_init"),
-                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
-                                ),
-                                null,
+                                String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), filePath),
+                                String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_init"), filePath),
+                                isVerbose ? String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"), filePath) : null,
                                 null,
                                 () -> client.importTranslations(request),
                                 status -> client.importTranslationsStatus(status.getIdentifier()),
                                 ImportTranslationsStatus::getStatus,
-                                ImportTranslationsStatus::getProgress
+                                ImportTranslationsStatus::getProgress,
+                                ImportTranslationsStatus::getIdentifier,
+                                isVerbose
                             );
                         } catch (Exception e) {
                             containsErrors.set(true);
@@ -217,22 +216,19 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                         request.setLanguageIds(langs.stream().map(Language::getId).collect(Collectors.toList()));
 
                         try {
+                            String filePath = StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath());
                             executeAsyncActionWithoutSpinner(
                                 out,
-                                String.format(
-                                    RESOURCE_BUNDLE.getString("error.upload_translation"),
-                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
-                                ),
-                                String.format(
-                                    RESOURCE_BUNDLE.getString("message.spinner.importing_translations_init"),
-                                    StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath())
-                                ),
-                                null,
+                                String.format(RESOURCE_BUNDLE.getString("error.upload_translation"), filePath),
+                                String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_init"), filePath),
+                                isVerbose ? String.format(RESOURCE_BUNDLE.getString("message.spinner.importing_translations_percents"), filePath) : null,
                                 null,
                                 () -> client.importTranslations(request),
                                 status -> client.importTranslationsStringsBasedStatus(status.getIdentifier()),
                                 ImportTranslationsStringsBasedStatus::getStatus,
-                                ImportTranslationsStringsBasedStatus::getProgress
+                                ImportTranslationsStringsBasedStatus::getProgress,
+                                ImportTranslationsStringsBasedStatus::getIdentifier,
+                                isVerbose
                             );
                         } catch (Exception e) {
                             containsErrors.set(true);

@@ -23,7 +23,9 @@ public interface Client {
             Supplier<S> initialAction,
             Function<S, S> checkStatusAction,
             Function<S, String> getStatus,
-            Function<S, Integer> getProgress
+            Function<S, Integer> getProgress,
+            Function<S, String> getId,
+            boolean isVerbose
     ) {
         return ConsoleSpinner.execute(
                 out,
@@ -45,7 +47,12 @@ public interface Client {
 
                         if (progressMessage != null) {
                             var progressMsg = RESOURCE_BUNDLE.containsKey(progressMessage) ? RESOURCE_BUNDLE.getString(progressMessage) : progressMessage;
-                            ConsoleSpinner.update(String.format(progressMsg + " (%d%%)", Math.toIntExact(getProgress.apply(status))));
+
+                            if (isVerbose) {
+                                out.println(String.format(progressMsg + " (%d%%) (%s)", Math.toIntExact(getProgress.apply(status)), getId.apply(status)));
+                            } else {
+                                out.println(String.format(progressMsg + " (%d%%)", Math.toIntExact(getProgress.apply(status))));
+                            }
                         }
                     }
 
@@ -68,7 +75,9 @@ public interface Client {
             Supplier<S> initialAction,
             Function<S, S> checkStatusAction,
             Function<S, String> getStatus,
-            Function<S, Integer> getProgress
+            Function<S, Integer> getProgress,
+            Function<S, String> getId,
+            boolean isVerbose
     ) {
         try {
             if (initMessage != null) {
@@ -89,7 +98,12 @@ public interface Client {
 
                 if (progressMessage != null) {
                     var progressMsg = RESOURCE_BUNDLE.containsKey(progressMessage) ? RESOURCE_BUNDLE.getString(progressMessage) : progressMessage;
-                    out.println(String.format(progressMsg + " (%d%%)", Math.toIntExact(getProgress.apply(status))));
+
+                    if (isVerbose) {
+                        out.println(String.format(progressMsg + " (%d%%) (%s)", Math.toIntExact(getProgress.apply(status)), getId.apply(status)));
+                    } else {
+                        out.println(String.format(progressMsg + " (%d%%)", Math.toIntExact(getProgress.apply(status))));
+                    }
                 }
             }
 
