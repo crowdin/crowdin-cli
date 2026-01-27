@@ -241,10 +241,11 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<PropertiesWithFiles, ProjectClient> preTranslate(
-        List<String> languageIds, List<String> files, Method method, Long engineId, String branchName, String directory, AutoApproveOption autoApproveOption,
-        Boolean duplicateTranslations, Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress, boolean plainView, List<String> labelNames, Long aiPrompt, boolean isVerbose
+        List<String> languageIds, List<String> excludeLanguageIds, List<String> files, Method method, Long engineId, String branchName, String directory,
+        AutoApproveOption autoApproveOption, Boolean duplicateTranslations, Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, boolean noProgress,
+        boolean plainView, List<String> labelNames, Long aiPrompt, boolean isVerbose
     ) {
-        return new PreTranslateAction(languageIds, files, method, engineId, branchName, directory, autoApproveOption, duplicateTranslations,
+        return new PreTranslateAction(languageIds, excludeLanguageIds, files, method, engineId, branchName, directory, autoApproveOption, duplicateTranslations,
             translateUntranslatedOnly, translateWithPerfectMatchOnly, noProgress, plainView, labelNames, aiPrompt, isVerbose);
     }
 
