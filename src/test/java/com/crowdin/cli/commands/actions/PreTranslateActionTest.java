@@ -20,11 +20,15 @@ import com.crowdin.client.translations.model.PreTranslationStatus;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.mockito.ArgumentCaptor;
 
+import java.util.HashSet;
 import java.util.List;
 
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 
 class PreTranslateActionTest {
 
@@ -123,14 +127,18 @@ class PreTranslateActionTest {
         ProjectClient client = mock(ProjectClient.class);
 
         when(client.downloadFullProject(eq(branchName))).thenReturn(crowdinProjectFull);
-        when(client.startPreTranslation(eq(request))).thenReturn(preTranslationStatus);
+        when(client.startPreTranslation(any())).thenReturn(preTranslationStatus);
 
         PreTranslateAction action = new PreTranslateAction(List.of("ua"), null, null, null, null, branchName, directoryName,
             null, null, null, null, true, true, null, null, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject(eq(branchName));
-        verify(client).startPreTranslation(eq(request));
+        ArgumentCaptor<ApplyPreTranslationRequest> requestCaptor = ArgumentCaptor.forClass(ApplyPreTranslationRequest.class);
+        verify(client).startPreTranslation(requestCaptor.capture());
+        ApplyPreTranslationRequest actual = requestCaptor.getValue();
+        assertEquals(request.getFileIds(), actual.getFileIds());
+        assertEquals(new HashSet<>(request.getLanguageIds()), new HashSet<>(actual.getLanguageIds()));
         verifyNoMoreInteractions(client);
     }
 
@@ -228,6 +236,64 @@ class PreTranslateActionTest {
         verify(client).getMt(eq(1L));
         verify(client).startPreTranslation(eq(request));
         verify(client).checkPreTranslation(eq("121"));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testPreTranslate_ExcludeLanguages() {
+        String fileName = "first.po";
+        String branchName = "main";
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile(fileName, "gettext", 101L, null, 81L)
+            .addBranches(81L, branchName);
+        CrowdinProjectFull crowdinProjectFull = projectBuilder.build();
+        crowdinProjectFull.setType(Type.FILES_BASED);
+
+        ApplyPreTranslationRequest request = new ApplyPreTranslationRequest() {{
+            setFileIds(List.of(101L));
+            setLanguageIds(List.of("ua", "en"));
+        }};
+        PreTranslationStatus preTranslationStatus = new PreTranslationStatus() {{
+            setStatus("finished");
+            setProgress(10);
+            setIdentifier("121");
+        }};
+
+        ProjectClient client = mock(ProjectClient.class);
+
+        when(client.downloadFullProject(eq(branchName))).thenReturn(crowdinProjectFull);
+        when(client.startPreTranslation(any())).thenReturn(preTranslationStatus);
+
+        PreTranslateAction action = new PreTranslateAction(
+            null,
+            List.of("ru", "de"),
+            List.of(fileName),
+            null,
+            null,
+            branchName,
+            null,
+            null,
+            null,
+            null,
+            null,
+            true,
+            true,
+            null,
+            null,
+            false
+        );
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(eq(branchName));
+        ArgumentCaptor<ApplyPreTranslationRequest> requestCaptor = ArgumentCaptor.forClass(ApplyPreTranslationRequest.class);
+        verify(client).startPreTranslation(requestCaptor.capture());
+        ApplyPreTranslationRequest actual = requestCaptor.getValue();
+        assertEquals(request.getFileIds(), actual.getFileIds());
+        assertEquals(new HashSet<>(request.getLanguageIds()), new HashSet<>(actual.getLanguageIds()));
         verifyNoMoreInteractions(client);
     }
 }
