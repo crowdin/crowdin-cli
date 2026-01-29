@@ -33,6 +33,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient> {
 
     private final List<String> languageIds;
+    private final List<String> excludeLanguageIds;
     private final List<String> files;
     private final Method method;
     private final Long engineId;
@@ -131,21 +132,28 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
         List<String> projectLanguages = projectInfo.getProjectLanguages(false).stream()
                 .map(Language::getId)
                 .collect(Collectors.toList());
-        if (languageIds == null || (languageIds.size() == 1 && BaseCli.ALL.equalsIgnoreCase(languageIds.get(0)))) {
+        List<String> excludedLanguages = prepareExcludedLanguageIds(projectLanguages);
+        if (languageIds == null || isAllLanguages(languageIds)) {
+            List<String> languages = projectLanguages;
             if (Method.MT.equals(method)) {
                 try {
                     ConsoleSpinner.start(out, RESOURCE_BUNDLE.getString("message.spinner.validating_mt_languages"), this.noProgress);
                     MachineTranslation mt = client.getMt(engineId);
                     ConsoleSpinner.stop(OK, RESOURCE_BUNDLE.getString("message.spinner.validation_success"));
                     Set<String> supportedMtLanguageIds = new HashSet<>(mt.getSupportedLanguageIds());
-                    return projectLanguages.stream()
+                    languages = projectLanguages.stream()
                             .filter(supportedMtLanguageIds::contains)
                             .collect(Collectors.toList());
                 } catch (ResponseException e) {
                     ConsoleSpinner.stop(WARNING, String.format(RESOURCE_BUNDLE.getString("message.spinner.validation_error"), e.getMessage()));
                 }
             }
-            return projectLanguages;
+            if (!excludedLanguages.isEmpty()) {
+                languages = languages.stream()
+                        .filter(language -> !excludedLanguages.contains(language))
+                        .collect(Collectors.toList());
+            }
+            return languages;
         }
         String wrongLanguageIds = languageIds.stream()
                 .filter(langId -> !projectLanguages.contains(langId))
@@ -156,6 +164,25 @@ class PreTranslateAction implements NewAction<PropertiesWithFiles, ProjectClient
                     String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), wrongLanguageIds));
         }
         return languageIds;
+    }
+
+    private List<String> prepareExcludedLanguageIds(List<String> projectLanguages) {
+        if (excludeLanguageIds == null || excludeLanguageIds.isEmpty()) {
+            return Collections.emptyList();
+        }
+        String wrongLanguageIds = excludeLanguageIds.stream()
+                .filter(langId -> !projectLanguages.contains(langId))
+                .map(id -> "'" + id + "'")
+                .collect(Collectors.joining(", "));
+        if (!wrongLanguageIds.isEmpty()) {
+            throw new ExitCodeExceptionMapper.NotFoundException(
+                    String.format(RESOURCE_BUNDLE.getString("error.languages_not_exist"), wrongLanguageIds));
+        }
+        return excludeLanguageIds;
+    }
+
+    private boolean isAllLanguages(List<String> languages) {
+        return languages.size() == 1 && BaseCli.ALL.equalsIgnoreCase(languages.get(0));
     }
 
     private List<Long> prepareLabelIds(Outputter out, ProjectClient client) {

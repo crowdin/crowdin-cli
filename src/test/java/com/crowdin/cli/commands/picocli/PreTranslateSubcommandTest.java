@@ -12,7 +12,7 @@ class PreTranslateSubcommandTest extends PicocliTestUtils {
     public void testPreTranslate() {
         this.execute(CommandNames.PRE_TRANSLATE, "--method", "TM");
         verify(actionsMock)
-            .preTranslate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), any(), any(), anyBoolean());
+            .preTranslate(any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), any(), any(), anyBoolean());
         this.check(true);
     }
 }

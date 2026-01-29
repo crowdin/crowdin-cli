@@ -27,6 +27,9 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
     @CommandLine.Option(names = {"-l", "--language"}, descriptionKey = "crowdin.pre-translate.language", paramLabel = "...", defaultValue = BaseCli.ALL, order = -2)
     protected List<String> languageIds;
 
+    @CommandLine.Option(names = {"-e", "--exclude-language"}, descriptionKey = "crowdin.pre-translate.exclude-language", paramLabel = "...", order = -2)
+    protected List<String> excludeLanguageIds;
+
     @CommandLine.Option(names = {"--file"}, descriptionKey = "crowdin.pre-translate.file", paramLabel = "...", order = -2)
     protected List<String> files;
 
@@ -79,6 +82,7 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
     protected NewAction<PropertiesWithFiles, ProjectClient> getAction(Actions actions) {
         return actions.preTranslate(
             languageIds,
+            excludeLanguageIds,
             files,
             method,
             engineId,
@@ -101,6 +105,9 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
         List<String> errors = new ArrayList<>();
         if (directory != null && files != null && !files.isEmpty()) {
             errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.directory_or_file_only"));
+        }
+        if (excludeLanguageIds != null && languageIds != null && !isAllLanguages(languageIds)) {
+            errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.include_exclude_lang_conflict"));
         }
         if ((Method.MT == method) && (engineId == null)) {
             errors.add(RESOURCE_BUNDLE.getString("error.pre_translate.engine_id"));
@@ -128,5 +135,9 @@ public class PreTranslateSubcommand extends ActCommandWithFiles {
             directory = StringUtils.removeStart(Utils.normalizePath(directory), Utils.PATH_SEPARATOR);
         }
         return errors;
+    }
+
+    private boolean isAllLanguages(List<String> languages) {
+        return languages.size() == 1 && BaseCli.ALL.equalsIgnoreCase(languages.get(0));
     }
 }
