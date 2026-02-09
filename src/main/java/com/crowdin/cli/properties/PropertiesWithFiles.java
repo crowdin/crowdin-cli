@@ -14,9 +14,7 @@ import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.IGNORE_HIDDEN_FILES_PATTERN;
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
-import static com.crowdin.cli.properties.PropertiesBuilder.FILES;
-import static com.crowdin.cli.properties.PropertiesBuilder.PRESERVE_HIERARCHY;
-import static com.crowdin.cli.properties.PropertiesBuilder.PSEUDO_LOCALIZATION;
+import static com.crowdin.cli.properties.PropertiesBuilder.*;
 
 @EqualsAndHashCode(callSuper = true)
 @Data
@@ -27,6 +25,7 @@ public class PropertiesWithFiles extends ProjectProperties {
     private Boolean preserveHierarchy;
     private List<FileBean> files;
     private PseudoLocalization pseudoLocalization;
+    private List<String> exportLanguages;
 
     static class PropertiesWithFilesConfigurator implements PropertiesConfigurator<PropertiesWithFiles> {
 
@@ -42,6 +41,7 @@ public class PropertiesWithFiles extends ProjectProperties {
                 .map(FileBean.CONFIGURATOR::buildFromMap)
                 .collect(Collectors.toList()));
             props.setPseudoLocalization(PseudoLocalization.CONFIGURATOR.buildFromMap(PropertiesBuilder.getMap(map, PSEUDO_LOCALIZATION)));
+            PropertiesBuilder.setPropertyIfExists(props::setExportLanguages, map, EXPORT_LANGUAGES, List.class);
         }
 
         @Override

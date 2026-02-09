@@ -68,6 +68,11 @@ public class NewPropertiesWithFilesUtilBuilder {
         return this;
     }
 
+    public NewPropertiesWithFilesUtilBuilder setExportLanguages(List<String> exportLanguages) {
+        this.pb.setExportLanguages(exportLanguages);
+        return this;
+    }
+
     public NewPropertiesWithFilesUtilBuilder addBuiltFileBean(String source, String translation) {
         return this.addBuiltFileBean(source, translation, null, null);
     }

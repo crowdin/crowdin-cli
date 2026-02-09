@@ -129,6 +129,8 @@ public abstract class PropertiesBuilder<T extends Properties, P extends Params> 
 
     public static final String IMPORT_TRANSLATIONS = "import_translations";
 
+    public static final String EXPORT_LANGUAGES = "export_languages";
+
     private Outputter out;
     private Map<String, Object> configFileParams;
     private Map<String, Object> identityFileParams;
