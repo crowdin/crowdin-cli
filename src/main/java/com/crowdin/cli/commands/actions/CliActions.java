@@ -112,9 +112,9 @@ public class CliActions implements Actions {
 
     @Override
     public NewAction<PropertiesWithFiles, ProjectClient> uploadSources(
-        String branchName, boolean deleteObsolete, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView, boolean cache
+        String branchName, boolean deleteObsolete, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView, boolean isVerbose, boolean cache
     ) {
-        return new UploadSourcesAction(branchName, deleteObsolete, noProgress, autoUpdate, debug, plainView, cache);
+        return new UploadSourcesAction(branchName, deleteObsolete, noProgress, autoUpdate, debug, plainView, isVerbose, cache);
     }
 
     @Override

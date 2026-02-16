@@ -49,15 +49,17 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
     private boolean autoUpdate;
     private boolean debug;
     private boolean plainView;
+    private boolean isVerbose;
     private boolean cache;
 
-    public UploadSourcesAction(String branchName, boolean deleteObsolete, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView, boolean cache) {
+    public UploadSourcesAction(String branchName, boolean deleteObsolete, boolean noProgress, boolean autoUpdate, boolean debug, boolean plainView, boolean isVerbose, boolean cache) {
         this.branchName = branchName;
         this.deleteObsolete = deleteObsolete;
         this.noProgress = noProgress || plainView;
         this.autoUpdate = autoUpdate;
         this.debug = debug;
         this.plainView = plainView;
+        this.isVerbose = isVerbose;
         this.cache = cache;
     }
 
@@ -445,7 +447,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
                 if (cache) {
                     Cache.setSourceHashes(sourceHashes);
-                    Cache.save(plainView, out);
+                    Cache.save(plainView, isVerbose, out);
                 }
             })
             .collect(Collectors.toList());

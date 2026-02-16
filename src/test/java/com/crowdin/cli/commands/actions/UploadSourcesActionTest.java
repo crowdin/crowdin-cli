@@ -73,7 +73,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -112,7 +112,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
                 .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -151,7 +151,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.properties"), any()))
           .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -192,7 +192,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.js"), any()))
           .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -243,7 +243,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("third.po"), any()))
             .thenReturn(3L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -318,7 +318,7 @@ public class UploadSourcesActionTest {
         when(client.addBranch(addBranchRequest))
             .thenReturn(branch);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("newBranch", false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("newBranch", false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -358,7 +358,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("newBranch", false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("newBranch", false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -396,7 +396,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -436,7 +436,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -475,7 +475,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -524,7 +524,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("/docs/en/index.md"), any()))
                 .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, true, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, true, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -571,7 +571,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("/docs/en/index+new.md"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, true, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, true, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -612,7 +612,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("second.po"), any()))
             .thenReturn(2L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -664,7 +664,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.csv"), any()))
                 .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -710,7 +710,7 @@ public class UploadSourcesActionTest {
         when(client.uploadStorage(eq("first.po"), any()))
             .thenReturn(1L);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -756,7 +756,7 @@ public class UploadSourcesActionTest {
                 setId(3L);
             }});
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, true, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, true, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -811,7 +811,7 @@ public class UploadSourcesActionTest {
                 setId(4L);
             }});
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
@@ -861,7 +861,7 @@ public class UploadSourcesActionTest {
             .thenReturn(1L);
         when(client.addSourceStringsBased(eq(uploadStringsRequest))).thenReturn(uploadStringsProgress);
 
-        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("main", false, false, true, false, false, false);
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction("main", false, false, true, false, false, false, false);
         action.act(Outputter.getDefault(), pb, client);
 
         verify(client).downloadFullProject();
