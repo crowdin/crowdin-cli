@@ -5,6 +5,7 @@ import com.crowdin.cli.utils.Utils;
 import org.json.JSONObject;
 
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.Map;
@@ -12,6 +13,7 @@ import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class Cache {
 
@@ -19,13 +21,17 @@ public class Cache {
 
     private static JSONObject CACHE = new JSONObject();
 
+    public static Path getCacheLocation() {
+        return Paths.get(CACHE_LOCATION).toAbsolutePath().normalize();
+    }
+
     public static void initialize(boolean plainView, Outputter out) {
         try {
-            if (!Files.exists(Paths.get(CACHE_LOCATION))) {
+            if (!Files.exists(getCacheLocation())) {
                 return;
             }
 
-            String json = String.join("", Files.readAllLines(Paths.get(CACHE_LOCATION)));
+            String json = String.join("", Files.readAllLines(getCacheLocation()));
 
             CACHE = new JSONObject(json);
         } catch (Exception e) {
@@ -37,10 +43,17 @@ public class Cache {
         }
     }
 
-    public static void save(boolean plainView, Outputter out) {
+    public static void save(boolean plainView, boolean isVerbose, Outputter out) {
         try {
-            Files.createDirectories(Paths.get(CACHE_LOCATION).getParent());
-            Files.write(Paths.get(CACHE_LOCATION), CACHE.toString(4).getBytes());
+            Path cachePath = getCacheLocation();
+            Files.createDirectories(cachePath.getParent());
+            Files.write(cachePath, CACHE.toString(4).getBytes());
+            if (!plainView && isVerbose) {
+                out.println(OK.withIcon(String.format(
+                    RESOURCE_BUNDLE.getString("message.cache_saving"),
+                    cachePath
+                )));
+            }
         } catch (Exception e) {
             if (!plainView) {
                 out.println(ERROR.withIcon(RESOURCE_BUNDLE.getString("error.cache_save")));
