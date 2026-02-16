@@ -19,6 +19,7 @@ import com.crowdin.client.translations.model.Method;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -357,5 +358,10 @@ public class CliActions implements Actions {
     @Override
     public NewAction<ProjectProperties, ProjectClient> installApp(String identifier) {
         return new AppInstallAction(identifier);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> contextDownload(File to, List<String> filesFilter, List<String> labelsFilter, String branchFilter, String croqlFilter, LocalDate sinceFilter, String statusFilter, String outputFormat, FilesInterface files, boolean plainView, boolean noProgress) {
+        return new ContextDownloadAction(to, filesFilter, labelsFilter, branchFilter, croqlFilter, sinceFilter, statusFilter, outputFormat, files, plainView, noProgress);
     }
 }
