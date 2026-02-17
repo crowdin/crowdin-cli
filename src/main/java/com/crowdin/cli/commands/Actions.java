@@ -179,4 +179,6 @@ public interface Actions {
             boolean plainView,
             boolean noProgress
     );
+
+    NewAction<ProjectProperties, ProjectClient> contextUpload(File file, boolean overwrite, boolean dryRun, boolean plainView, int batchSize);
 }

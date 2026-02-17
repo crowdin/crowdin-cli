@@ -60,6 +60,8 @@ class ContextDownloadAction implements NewAction<ProjectProperties, ProjectClien
                 () -> client.downloadFullProject(this.branchFilter)
         );
 
+        List<AiContextUtil.StringContextRecord> existingRecords = to.exists() ? AiContextUtil.readRecords(to) : List.of();
+
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
 
         Long branchId = Optional.ofNullable(project.getBranch())
@@ -155,15 +157,22 @@ class ContextDownloadAction implements NewAction<ProjectProperties, ProjectClien
                                 .map(FileInfo::getPath)
                                 .orElse("");
 
-                        JSONObject jsonObject = new JSONObject();
-                        jsonObject.put("id", string.getId());
-                        jsonObject.put("key", string.getIdentifier());
-                        jsonObject.put("text", StringUtil.getStringText(string));
-                        jsonObject.put("file", filePath);
-                        jsonObject.put("context", AiContextUtil.getManualContext(string.getContext()));
-                        jsonObject.put("ai_context", AiContextUtil.getAiContextSection(string.getContext()));
+                        var existingRecord = existingRecords.stream()
+                                .filter(record -> record.getId().equals(string.getId()))
+                                .findFirst();
 
-                        return jsonObject.toString();
+                        var stringContextRow = new AiContextUtil.StringContextRecord(
+                                string.getId(),
+                                string.getIdentifier(),
+                                StringUtil.getStringText(string),
+                                filePath,
+                                AiContextUtil.getManualContext(string.getContext()),
+                                existingRecord
+                                        .map(AiContextUtil.StringContextRecord::getAi_context)
+                                        .orElseGet(() -> AiContextUtil.getAiContextSection(string.getContext()))
+                        );
+
+                        return new JSONObject(stringContextRow).toString();
                     })
                     .collect(Collectors.joining("\n"));
 

@@ -6,6 +6,7 @@ import picocli.CommandLine;
     name = CommandNames.CONTEXT,
     subcommands = {
         ContextDownloadSubcommand.class,
+        ContextUploadSubcommand.class,
     }
 )
 class ContextSubcommand extends HelpCommand {

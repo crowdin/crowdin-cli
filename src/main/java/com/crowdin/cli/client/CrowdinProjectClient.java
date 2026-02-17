@@ -424,6 +424,25 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
     }
 
     @Override
+    @SneakyThrows
+    public void batchEditSourceStrings(List<PatchRequest> request) {
+        Map<BiPredicate<String, String>, ResponseException> errorHandler = new LinkedHashMap<>() {{
+            put((code, message) -> message.contains("Someone else is currently editing one of the file"),
+                    new RepeatException("Someone else is currently editing one of the file."));
+            put((code, message) -> code.equals("409"),
+                    new RepeatException("Conflict occurred while batch editing source strings. Please try again."));
+        }};
+        executeRequestWithPossibleRetries(
+                errorHandler,
+                () -> this.client.getSourceStringsApi()
+                .stringBatchOperations(this.projectId, request)
+                .getData(),
+                3,
+                3 * 1000
+        );
+    }
+
+    @Override
     public void deleteSourceString(Long sourceId) {
         executeRequest(() -> {
             this.client.getSourceStringsApi()

@@ -312,6 +312,7 @@ const sidebars = {
           collapsed: true,
           items: [
             'commands/crowdin-context-download',
+            'commands/crowdin-context-upload',
           ]
         },
       ],
