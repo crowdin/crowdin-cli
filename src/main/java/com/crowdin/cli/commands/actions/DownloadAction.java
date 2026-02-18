@@ -107,16 +107,8 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
         PlaceholderUtil placeholderUtil =
             new PlaceholderUtil(project.getProjectLanguages(true), pb.getBasePath());
 
-        List<Language> languages = languageIds == null ? null : languageIds.stream()
-            .map(lang -> project.findLanguageById(lang)
-                .orElseThrow(() -> new RuntimeException(
-                    String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))))
-            .collect(Collectors.toList());
-        List<Language> excludeLanguages = excludeLanguageIds == null ? new ArrayList<>() : excludeLanguageIds.stream()
-            .map(lang -> project.findLanguageById(lang)
-                .orElseThrow(() -> new RuntimeException(
-                    String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))))
-            .collect(Collectors.toList());
+        List<Language> languages = languageIds == null ? null : resolveLanguagesById(languageIds, project);
+        List<Language> excludeLanguages = excludeLanguageIds == null ? new ArrayList<>() : resolveLanguagesById(excludeLanguageIds, project);
 
         Optional<Branch> branch = Optional.ofNullable(project.getBranch());
 
@@ -157,11 +149,22 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 }
                 tempDirs.put(downloadedFiles.getLeft(), downloadedFiles.getRight());
             } else {
-                List<Language> forLanguages = languages != null ? languages :
-                        project.getProjectLanguages(true).stream()
-                               .filter(language -> !excludeLanguages.contains(language))
-                               .collect(Collectors.toList());
-
+                List<Language> forLanguages;
+                List<Language> exportLanguages = new ArrayList<>();
+                if (languages != null) {
+                    forLanguages = languages;
+                } else {
+                    List<Language> baseLanguages;
+                    List<String> exportLanguageIdsFromConfig = pb.getExportLanguages();
+                    exportLanguages = exportLanguageIdsFromConfig == null ? new ArrayList<>() : resolveLanguagesById(exportLanguageIdsFromConfig, project);
+                    baseLanguages = exportLanguages.isEmpty() ? project.getProjectLanguages(true) : exportLanguages;
+                    Set<String> excludeIds = excludeLanguages.stream()
+                        .map(Language::getId)
+                        .collect(Collectors.toSet());
+                    forLanguages = baseLanguages.stream()
+                        .filter(l -> !excludeIds.contains(l.getId()))
+                        .collect(Collectors.toList());
+                }
                 if (!plainView) {
                     out.println((languageIds != null)
                         ? OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.build_language_archive"), String.join(", ", languageIds)))
@@ -169,9 +172,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 }
                 CrowdinTranslationCreateProjectBuildForm templateRequest = new CrowdinTranslationCreateProjectBuildForm();
 
-                if (languages != null) {
-                    templateRequest.setTargetLanguageIds(languages.stream().map(Language::getId).collect(Collectors.toList()));
-                } else if (!excludeLanguages.isEmpty()) {
+                if (languages != null || !exportLanguages.isEmpty() || !excludeLanguages.isEmpty()) {
                     templateRequest.setTargetLanguageIds(forLanguages.stream().map(Language::getId).collect(Collectors.toList()));
                 }
 
@@ -332,6 +333,14 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 throw new RuntimeException(RESOURCE_BUNDLE.getString("error.clearing_temp"), e);
             }
         }
+    }
+
+    private List<Language> resolveLanguagesById(List<String> languageIds, CrowdinProjectFull project) {
+        return languageIds.stream()
+            .map(lang -> project.findLanguageById(lang)
+                .orElseThrow(() -> new RuntimeException(
+                    String.format(RESOURCE_BUNDLE.getString("error.language_not_exist"), lang))))
+            .collect(Collectors.toList());
     }
 
     /**

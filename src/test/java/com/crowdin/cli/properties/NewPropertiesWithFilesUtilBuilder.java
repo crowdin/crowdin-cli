@@ -68,6 +68,11 @@ public class NewPropertiesWithFilesUtilBuilder {
         return this;
     }
 
+    public NewPropertiesWithFilesUtilBuilder setExportLanguages(List<String> exportLanguages) {
+        this.pb.setExportLanguages(exportLanguages);
+        return this;
+    }
+
     public NewPropertiesWithFilesUtilBuilder addBuiltFileBean(String source, String translation) {
         return this.addBuiltFileBean(source, translation, null, null);
     }
@@ -119,6 +124,14 @@ public class NewPropertiesWithFilesUtilBuilder {
         }
         if (pb.getPreserveHierarchy() != null) {
             sb.append("\"preserve_hierarchy\": \"").append(pb.getPreserveHierarchy()).append("\"\n");
+        }
+        if (pb.getExportLanguages() != null && !pb.getExportLanguages().isEmpty()) {
+            sb.append("\"export_languages\": [");
+            for (int i = 0; i < pb.getExportLanguages().size(); i++) {
+                if (i > 0) sb.append(", ");
+                sb.append("\"").append(pb.getExportLanguages().get(i)).append("\"");
+            }
+            sb.append("]\n");
         }
         if (pb.getFiles() != null && !pb.getFiles().isEmpty()) {
             sb.append("files: [\n");
