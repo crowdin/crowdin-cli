@@ -88,6 +88,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
 
     private void populateProjectWithInfo(CrowdinProject project) {
         com.crowdin.client.projectsgroups.model.Project projectModel = this.getProject();
+        project.setProject(projectModel);
         project.setProjectId(projectModel.getId());
         project.setType(projectModel.getType());
         project.setSourceLanguageId(projectModel.getSourceLanguageId());

@@ -374,4 +374,9 @@ public class CliActions implements Actions {
     public NewAction<ProjectProperties, ProjectClient> contextReset(List<String> filesFilter, List<String> labelsFilter, String branchFilter, String croqlFilter, LocalDate sinceFilter, boolean dryRun, int batchSize, boolean plainView, boolean noProgress) {
         return new ContextResetAction(filesFilter, labelsFilter, branchFilter, croqlFilter, sinceFilter, dryRun, batchSize, plainView, noProgress);
     }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> contextStatus(List<String> filesFilter, List<String> labelsFilter, String branchFilter, String croqlFilter, LocalDate sinceFilter, boolean byFile, boolean plainView, boolean noProgress) {
+        return new ContextStatusAction(filesFilter, labelsFilter, branchFilter, croqlFilter, sinceFilter, byFile, plainView, noProgress);
+    }
 }

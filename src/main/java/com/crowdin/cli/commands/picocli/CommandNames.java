@@ -73,4 +73,5 @@ public final class CommandNames {
     public static final String CONTEXT_DOWNLOAD = "download";
     public static final String CONTEXT_UPLOAD = "upload";
     public static final String CONTEXT_RESET = "reset";
+    public static final String CONTEXT_STATUS = "status";
 }

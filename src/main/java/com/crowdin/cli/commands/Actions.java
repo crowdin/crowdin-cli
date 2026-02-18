@@ -193,4 +193,15 @@ public interface Actions {
             boolean plainView,
             boolean noProgress
     );
+
+    NewAction<ProjectProperties, ProjectClient> contextStatus(
+            List<String> filesFilter,
+            List<String> labelsFilter,
+            String branchFilter,
+            String croqlFilter,
+            LocalDate sinceFilter,
+            boolean byFile,
+            boolean plainView,
+            boolean noProgress
+    );
 }

@@ -161,6 +161,8 @@ public class PicocliTestUtils {
                 .thenReturn(actionMock);
         when(actionsMock.contextReset(any(), any(), any(), any(), any(), anyBoolean(), anyInt(), anyBoolean(), anyBoolean()))
                 .thenReturn(actionMock);
+        when(actionsMock.contextStatus(any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
+                .thenReturn(actionMock);
     }
 
     private void mockBuilders() {

@@ -8,6 +8,7 @@ import picocli.CommandLine;
         ContextDownloadSubcommand.class,
         ContextUploadSubcommand.class,
         ContextResetSubcommand.class,
+        ContextStatusSubcommand.class,
     }
 )
 class ContextSubcommand extends HelpCommand {

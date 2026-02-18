@@ -314,6 +314,7 @@ const sidebars = {
             'commands/crowdin-context-download',
             'commands/crowdin-context-upload',
             'commands/crowdin-context-reset',
+            'commands/crowdin-context-status',
           ]
         },
       ],
