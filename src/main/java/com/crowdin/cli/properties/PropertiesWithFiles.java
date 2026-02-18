@@ -100,6 +100,13 @@ public class PropertiesWithFiles extends ProjectProperties {
                     }
                 }
             }
+            if (props.getExportLanguages() != null) {
+                List<?> raw = (List<?>) (Object) props.getExportLanguages();
+                boolean hasNonString = raw.stream().anyMatch(item -> !(item instanceof String));
+                if (hasNonString) {
+                    messages.addError(String.format(RESOURCE_BUNDLE.getString("error.config.list_of_strings"), EXPORT_LANGUAGES));
+                }
+            }
             if (props.getPseudoLocalization() != null) {
                 messages.addAllErrors(PseudoLocalization.CONFIGURATOR.checkProperties(props.getPseudoLocalization()));
             }

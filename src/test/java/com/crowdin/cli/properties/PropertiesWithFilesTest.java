@@ -6,6 +6,11 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
 import static com.crowdin.cli.properties.PropertiesConfigurator.CheckType;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
@@ -118,5 +123,29 @@ public class PropertiesWithFilesTest {
         PropertiesBuilder.Messages messages = PropertiesWithFiles.CONFIGURATOR.checkProperties(props, CheckType.LINT);
 
         assertTrue(messages.getErrors().isEmpty(), "Expected no errors when ** pattern matches files");
+    }
+
+    @Test
+    public void testPropertiesWithFiles_parseExportLanguagesFromMap() {
+        Map<String, Object> map = new HashMap<>();
+        map.put("project_id", "1");
+        map.put("api_token", "token");
+        map.put("base_path", ".");
+        map.put("base_url", "https://crowdin.com");
+        map.put("preserve_hierarchy", false);
+
+        List<Map<String, Object>> files = new ArrayList<>();
+        Map<String, Object> file = new HashMap<>();
+        file.put("source", "*");
+        file.put("translation", "/%original_file_name%-CR-%locale%");
+        files.add(file);
+        map.put("files", files);
+
+        map.put("export_languages", List.of("de", "ua"));
+
+        PropertiesWithFiles props = new PropertiesWithFiles();
+        PropertiesWithFiles.CONFIGURATOR.populateWithValues(props, map);
+
+        assertEquals(List.of("de", "ua"), props.getExportLanguages());
     }
 }

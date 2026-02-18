@@ -912,7 +912,7 @@ public class DownloadActionTest {
     }
 
     @Test
-    public void testProjectFittingFile_ExcludeLanguagesOnly() throws IOException, ResponseException {
+    public void testProjectFittingFile_ExportLanguagesOnly() throws IOException, ResponseException {
         NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
             .setBasePath(project.getBasePath())
