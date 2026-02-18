@@ -18,14 +18,23 @@ public class AiContextUtil {
     }
 
     public static String getManualContext(String context) {
+        if (context == null || context.isEmpty()) {
+            return "";
+        }
+
         int startIndex = context.indexOf(AI_CONTEXT_SECTION_START);
         if (startIndex != -1) {
             return context.substring(0, startIndex).trim();
         }
+
         return context.trim();
     }
 
     public static String getAiContextSection(String context) {
+        if (context == null || context.isEmpty()) {
+            return "";
+        }
+
         int startIndex = context.indexOf(AI_CONTEXT_SECTION_START);
         int endIndex = context.indexOf(AI_CONTEXT_SECTION_END);
 

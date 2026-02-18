@@ -20,14 +20,14 @@ public class ContextDownloadSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testContextDownload() {
-        this.execute(CommandNames.CONTEXT, CommandNames.DOWNLOAD, "some/path/to/file.jsonl");
+        this.execute(CommandNames.CONTEXT, CommandNames.CONTEXT_DOWNLOAD, "some/path/to/file.jsonl");
         verify(actionsMock).contextDownload(any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean());
         this.check(true);
     }
 
     @Test
     public void testContextDownloadInvalid() {
-        this.executeInvalidParams(CommandNames.CONTEXT, CommandNames.DOWNLOAD);
+        this.executeInvalidParams(CommandNames.CONTEXT, CommandNames.CONTEXT_DOWNLOAD);
     }
 
     @ParameterizedTest

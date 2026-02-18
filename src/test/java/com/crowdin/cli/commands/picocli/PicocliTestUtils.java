@@ -159,6 +159,8 @@ public class PicocliTestUtils {
         when(actionsMock.installApp(anyString())).thenReturn(actionMock);
         when(actionsMock.contextDownload(any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean()))
                 .thenReturn(actionMock);
+        when(actionsMock.contextReset(any(), any(), any(), any(), any(), anyBoolean(), anyInt(), anyBoolean(), anyBoolean()))
+                .thenReturn(actionMock);
     }
 
     private void mockBuilders() {

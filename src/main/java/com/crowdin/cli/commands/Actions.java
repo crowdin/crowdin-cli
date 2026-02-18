@@ -181,4 +181,16 @@ public interface Actions {
     );
 
     NewAction<ProjectProperties, ProjectClient> contextUpload(File file, boolean overwrite, boolean dryRun, boolean plainView, int batchSize);
+
+    NewAction<ProjectProperties, ProjectClient> contextReset(
+            List<String> filesFilter,
+            List<String> labelsFilter,
+            String branchFilter,
+            String croqlFilter,
+            LocalDate sinceFilter,
+            boolean dryRun,
+            int batchSize,
+            boolean plainView,
+            boolean noProgress
+    );
 }

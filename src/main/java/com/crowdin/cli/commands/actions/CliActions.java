@@ -369,4 +369,9 @@ public class CliActions implements Actions {
     public NewAction<ProjectProperties, ProjectClient> contextUpload(File file, boolean overwrite, boolean dryRun, boolean plainView, int batchSize) {
         return new ContextUploadAction(file, overwrite, dryRun, plainView, batchSize);
     }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> contextReset(List<String> filesFilter, List<String> labelsFilter, String branchFilter, String croqlFilter, LocalDate sinceFilter, boolean dryRun, int batchSize, boolean plainView, boolean noProgress) {
+        return new ContextResetAction(filesFilter, labelsFilter, branchFilter, croqlFilter, sinceFilter, dryRun, batchSize, plainView, noProgress);
+    }
 }

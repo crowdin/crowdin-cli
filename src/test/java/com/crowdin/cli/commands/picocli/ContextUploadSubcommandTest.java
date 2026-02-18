@@ -6,6 +6,6 @@ public class ContextUploadSubcommandTest extends PicocliTestUtils {
 
     @Test
     public void testContextUploadInvalid() {
-        this.executeInvalidParams(CommandNames.CONTEXT, CommandNames.UPLOAD);
+        this.executeInvalidParams(CommandNames.CONTEXT, CommandNames.CONTEXT_UPLOAD);
     }
 }

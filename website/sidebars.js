@@ -313,6 +313,7 @@ const sidebars = {
           items: [
             'commands/crowdin-context-download',
             'commands/crowdin-context-upload',
+            'commands/crowdin-context-reset',
           ]
         },
       ],
