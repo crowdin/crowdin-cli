@@ -40,9 +40,6 @@ class ContextResetSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--all"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.reset.all")
     protected boolean all;
 
-    @CommandLine.Option(names = {"--batch-size"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.reset.batchSize")
-    protected int batchSize = 100;
-
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
 
@@ -74,6 +71,6 @@ class ContextResetSubcommand extends ActCommandProject {
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
         var sinceDate = since != null ? LocalDate.parse(since, DATE_FORMAT) : null;
-        return actions.contextReset(files, labelNames, branchName, croql, sinceDate, dryrun, batchSize, plainView, noProgress);
+        return actions.contextReset(files, labelNames, branchName, croql, sinceDate, dryrun, 100, plainView, noProgress);
     }
 }

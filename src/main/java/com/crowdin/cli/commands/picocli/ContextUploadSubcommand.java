@@ -25,9 +25,6 @@ class ContextUploadSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--dry-run"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.upload.dryrun")
     protected boolean dryrun;
 
-    @CommandLine.Option(names = {"--batch-size"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.upload.batchSize")
-    protected int batchSize = 100;
-
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
     protected boolean plainView;
 
@@ -44,6 +41,6 @@ class ContextUploadSubcommand extends ActCommandProject {
 
     @Override
     protected NewAction<ProjectProperties, ProjectClient> getAction(Actions actions) {
-        return actions.contextUpload(file, overwrite, this.dryrun, plainView, batchSize);
+        return actions.contextUpload(file, overwrite, this.dryrun, plainView, 100);
     }
 }
