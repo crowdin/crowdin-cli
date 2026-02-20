@@ -24,8 +24,8 @@ class ContextDownloadSubcommand extends ActCommandProject {
     private static final Set<String> AVAILABLE_FORMATS = Set.of("jsonl");
     private static final Set<String> AVAILABLE_STATUSES = Set.of("ai", "empty", "manual");
 
-    @CommandLine.Parameters(descriptionKey = "crowdin.context.download.to")
-    protected File to;
+    @CommandLine.Option(names = {"--to"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.download.to")
+    protected File to = new File("crowdin-context.jsonl");
 
     @CommandLine.Option(names = {"-f", "--file"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.download.file")
     protected List<String> files;

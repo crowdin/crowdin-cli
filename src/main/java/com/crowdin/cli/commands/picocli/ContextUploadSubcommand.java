@@ -16,8 +16,8 @@ import java.util.List;
 )
 class ContextUploadSubcommand extends ActCommandProject {
 
-    @CommandLine.Parameters(descriptionKey = "crowdin.context.upload.file")
-    protected File file;
+    @CommandLine.Option(names = {"--from"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.upload.file")
+    protected File file = new File("crowdin-context.jsonl");
 
     @CommandLine.Option(names = {"--overwrite"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.upload.overwrite")
     protected boolean overwrite;
