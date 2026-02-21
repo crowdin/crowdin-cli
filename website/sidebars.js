@@ -300,7 +300,23 @@ const sidebars = {
             'commands/crowdin-app-install',
             'commands/crowdin-app-uninstall',
           ]
-        }
+        },
+        {
+          type: 'category',
+          label: 'crowdin context',
+          link: {
+            type: 'doc',
+            id: 'commands/crowdin-context'
+          },
+          collapsible: true,
+          collapsed: true,
+          items: [
+            'commands/crowdin-context-download',
+            'commands/crowdin-context-upload',
+            'commands/crowdin-context-reset',
+            'commands/crowdin-context-status',
+          ]
+        },
       ],
     },
     'ci-cd',

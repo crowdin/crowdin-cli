@@ -16,9 +16,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 import static org.junit.jupiter.params.provider.Arguments.arguments;
 
 public class FileHelperTest {
@@ -133,5 +131,23 @@ public class FileHelperTest {
         List<E> toReturn = new ArrayList<>(list);
         toReturn.addAll(Arrays.asList(toAdd));
         return toReturn;
+    }
+
+    @Test
+    public void testIsPathMatch() {
+        assertTrue(FileHelper.isPathMatch("file.txt", "*.txt"));
+        assertFalse(FileHelper.isPathMatch("file.jpg", "*.txt"));
+        assertTrue(FileHelper.isPathMatch("dir/file.txt", "**/*.txt"));
+        assertFalse(FileHelper.isPathMatch("dir/file.jpg", "**/*.txt"));
+        assertTrue(FileHelper.isPathMatch("file1.txt", "file?.txt"));
+        assertFalse(FileHelper.isPathMatch("file12.txt", "file?.txt"));
+        assertTrue(FileHelper.isPathMatch("file1.txt", "file[0-9].txt"));
+        assertFalse(FileHelper.isPathMatch("filea.txt", "file[0-9].txt"));
+        assertTrue(FileHelper.isPathMatch("src/a/n/c/test.json", "src/**/test.json"));
+        assertTrue(FileHelper.isPathMatch("src/a/n/c/test.json", "**/*.*"));
+        assertTrue(FileHelper.isPathMatch("src/a/b.txt", "src/a/b.txt"));
+        assertFalse(FileHelper.isPathMatch("src/a/b.json", "src/a/b.txt"));
+        assertFalse(FileHelper.isPathMatch("android-new-file2.xml", "android-new-file.xml"));
+        assertTrue(FileHelper.isPathMatch("android-new-file.xml", "android-new-file.xml"));
     }
 }

@@ -104,6 +104,8 @@ public interface ProjectClient extends Client {
 
     List<SourceString> listSourceString(Long fileId, Long branchId, String labelIds, String filter, String croql, Long directory, String scope);
 
+    void batchEditSourceStrings(List<PatchRequest> request);
+
     void deleteSourceString(Long id);
 
     StringComment commentString(AddStringCommentRequest request);

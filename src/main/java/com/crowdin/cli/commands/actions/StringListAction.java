@@ -8,6 +8,7 @@ import com.crowdin.cli.commands.functionality.BranchUtils;
 import com.crowdin.cli.commands.functionality.ProjectFilesUtils;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.ProjectProperties;
+import com.crowdin.cli.utils.StringUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.labels.model.Label;
@@ -111,18 +112,7 @@ class StringListAction implements NewAction<ProjectProperties, ProjectClient> {
         String labelsString = (ss.getLabelIds() != null)
                 ? ss.getLabelIds().stream().map(labelsMap::get).map(s -> String.format("@|cyan %s|@", s)).collect(Collectors.joining(", "))
                 : "";
-        StringBuilder text = new StringBuilder();
-        if (ss.getText() instanceof HashMap<?, ?>) {
-            HashMap<?, ?> map = (HashMap<?, ?>) ss.getText();
-            for (Map.Entry<?, ?> entry : map.entrySet()) {
-                text.append(entry.getKey()).append(": ").append(entry.getValue()).append(" | ");
-            }
-            if (text.length() > 0) {
-                text.delete(text.length() - 3, text.length());
-            }
-        } else {
-            text.append((String) ss.getText());
-        }
+        String text = StringUtil.getStringText(ss);
         if (!plainView) {
             if (ss.getIdentifier() == null) {
                 out.println(String.format(RESOURCE_BUNDLE.getString("message.source_string_list_text_short"), ss.getId(), text));

@@ -45,6 +45,7 @@ public class ProjectBuilder {
         project.setBranches(branches);
         project.setProjectLanguages(projectLanguages);
         project.setAccessLevel(CrowdinProject.Access.MANAGER);
+        project.setProject(new ProjectSettings());
         projectBuilder.project = project;
         projectBuilder.projectSettings = projectSettings;
         return projectBuilder;

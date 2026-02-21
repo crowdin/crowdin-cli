@@ -2,11 +2,13 @@ package com.crowdin.cli.properties.helper;
 
 import com.crowdin.cli.utils.Utils;
 import org.apache.commons.io.filefilter.RegexFileFilter;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.FileFilter;
 import java.nio.file.Files;
 import java.nio.file.LinkOption;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -119,6 +121,11 @@ public class FileHelper {
             .stream()
             .filter(source -> matchers.stream().noneMatch(m -> m.matches(source)))
             .collect(Collectors.toList());
+    }
+
+    public static boolean isPathMatch(String path, String pattern) {
+        var normalizedPath = Path.of(Utils.noSepAtStart(Utils.normalizePath(path)));
+        return new FileMatcher(pattern, null).matches(normalizedPath);
     }
 
     private String translateToRegex(String node) {
