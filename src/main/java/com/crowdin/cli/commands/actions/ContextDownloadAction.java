@@ -151,7 +151,9 @@ class ContextDownloadAction implements NewAction<ProjectProperties, ProjectClien
         if (outputFormat.equals("jsonl")) {
             String jsonlOutput = strings.stream()
                     .map(string -> {
-                        String filePath = project.getFileInfos().stream()
+                        String filePath = isStringsBasedProject
+                                ? ""
+                                : project.getFileInfos().stream()
                                 .filter(file -> string.getFileId() != null && file.getId().equals(string.getFileId()))
                                 .findFirst()
                                 .map(FileInfo::getPath)
@@ -163,7 +165,7 @@ class ContextDownloadAction implements NewAction<ProjectProperties, ProjectClien
 
                         var stringContextRow = new AiContextUtil.StringContextRecord(
                                 string.getId(),
-                                string.getIdentifier(),
+                                string.getIdentifier() != null ? string.getIdentifier() : "",
                                 StringUtil.getStringText(string),
                                 filePath,
                                 AiContextUtil.getManualContext(string.getContext()),
