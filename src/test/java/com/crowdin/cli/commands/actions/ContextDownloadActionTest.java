@@ -189,4 +189,68 @@ public class ContextDownloadActionTest {
         // since all strings are filtered out, writeToFile should not be called
         verify(files, never()).writeToFile(any(), any());
     }
+
+
+    @Test
+    public void testJsonlSavesFileFilter() throws Exception {
+        ProjectProperties pb = NewProjectPropertiesUtilBuilder.minimalBuilt().build();
+
+        // Build project with one file (id=101)
+        var projectFull = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                .addFile("android-new-file.xml", "plain", 101L, null, null, "/%original_file_name%")
+                .addFile("android-new-file2.xml", "plain", 102L, null, null, "/%original_file_name%")
+                .build();
+        projectFull.setType(Type.FILES_BASED);
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject(null)).thenReturn(projectFull);
+        when(client.listLabels()).thenReturn(List.of());
+
+        SourceString ss = SourceStringBuilder.standard()
+                .setProjectId(Long.parseLong(pb.getProjectId()))
+                .setIdentifiers(701L, "the-text", "manual\n\n✨ AI Context\nai-content\n✨ 🔚", "the.key", 101L)
+                .build();
+
+        when(client.listSourceString(101L, null, null, null, null, null, null))
+                .thenReturn(Arrays.asList(ss));
+
+        FilesInterface files = mock(FilesInterface.class);
+        File to = new File("out.jsonl");
+
+        ContextDownloadAction action = new ContextDownloadAction(
+                to,
+                List.of("android-new-file.xml"),
+                null,
+                null,
+                null,
+                null,
+                null,
+                "jsonl",
+                files,
+                true,
+                false
+        );
+
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(null);
+        verify(client).listLabels();
+        verify(client).listSourceString(101L, null, null, null, null, null, null);
+
+        ArgumentCaptor<InputStream> captor = ArgumentCaptor.forClass(InputStream.class);
+        verify(files).writeToFile(eq(to.toString()), captor.capture());
+
+        try (InputStream is = captor.getValue()) {
+            byte[] bytes = is.readAllBytes();
+            String content = new String(bytes, UTF_8);
+            // The saved jsonl should contain id and key
+            assertTrue(content.contains("\"id\":701"));
+            assertFalse(content.contains("\"id\":702"));
+            assertTrue(content.contains("\"key\":\"the.key\""));
+            assertFalse(content.contains("\"key\":\"the.key2\""));
+            assertTrue(content.contains("\"ai_context\":\"ai-content\""));
+        }
+
+        verifyNoMoreInteractions(files);
+    }
 }

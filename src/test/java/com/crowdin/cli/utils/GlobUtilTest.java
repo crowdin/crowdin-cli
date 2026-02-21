@@ -21,5 +21,7 @@ public class GlobUtilTest {
         assertTrue(GlobUtil.matches("**/*.*", "src/a/n/c/test.json"));
         assertTrue(GlobUtil.matches("src/a/b.txt", "src/a/b.txt"));
         assertFalse(GlobUtil.matches("src/a/b.txt", "src/a/b.json"));
+        assertFalse(GlobUtil.matches("android-new-file.xml", "android-new-file2.xml"));
+        assertTrue(GlobUtil.matches("android-new-file.xml", "android-new-file.xml"));
     }
 }
