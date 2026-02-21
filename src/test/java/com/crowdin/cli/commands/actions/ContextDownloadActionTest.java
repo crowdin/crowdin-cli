@@ -197,8 +197,8 @@ public class ContextDownloadActionTest {
 
         // Build project with one file (id=101)
         var projectFull = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
-                .addFile("android-new-file.xml", "plain", 101L, null, null, "/%original_file_name%")
-                .addFile("android-new-file2.xml", "plain", 102L, null, null, "/%original_file_name%")
+                .addFile("/android-new-file.xml", "plain", 101L, null, null, "/%original_file_name%")
+                .addFile("/android-new-file2.xml", "plain", 102L, null, null, "/%original_file_name%")
                 .build();
         projectFull.setType(Type.FILES_BASED);
 

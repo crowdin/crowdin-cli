@@ -5,8 +5,8 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.ProjectProperties;
+import com.crowdin.cli.properties.helper.FileHelper;
 import com.crowdin.cli.utils.AiContextUtil;
-import com.crowdin.cli.utils.GlobUtil;
 import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.core.model.PatchOperation;
@@ -77,7 +77,7 @@ class ContextResetAction implements NewAction<ProjectProperties, ProjectClient> 
 
         if (!isStringsBasedProject && nonNull(this.filesFilter) && !this.filesFilter.isEmpty()) {
             fileIds = project.getFileInfos().stream()
-                    .filter(file -> this.filesFilter.stream().anyMatch(filter -> GlobUtil.matches(filter, file.getPath())))
+                    .filter(file -> this.filesFilter.stream().anyMatch(filter -> FileHelper.isPathMatch(file.getPath(), filter)))
                     .map(FileInfo::getId)
                     .toList();
         }
