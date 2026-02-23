@@ -1,1 +1,0 @@
-"use strict";(self.webpackChunkcrowdin_cli_website=self.webpackChunkcrowdin_cli_website||[]).push([[7472],{5513:e=>{e.exports=JSON.parse('{"title":"Recent posts","items":[{"title":"Crowdin CLI 4.0","permalink":"/crowdin-cli/blog/2024/05/28/cli-v4"},{"title":"Files Management","permalink":"/crowdin-cli/blog/2024/01/23/files-management"}]}')}}]);
