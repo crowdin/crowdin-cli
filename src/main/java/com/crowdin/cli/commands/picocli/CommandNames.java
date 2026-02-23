@@ -68,4 +68,10 @@ public final class CommandNames {
     public static final String APP = "app";
     public static final String UNINSTALL = "uninstall";
     public static final String INSTALL = "install";
+
+    public static final String CONTEXT = "context";
+    public static final String CONTEXT_DOWNLOAD = "download";
+    public static final String CONTEXT_UPLOAD = "upload";
+    public static final String CONTEXT_RESET = "reset";
+    public static final String CONTEXT_STATUS = "status";
 }

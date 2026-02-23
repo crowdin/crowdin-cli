@@ -12,6 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 public class PicocliTestUtils {
@@ -156,6 +157,12 @@ public class PicocliTestUtils {
         when(actionsMock.listApps(anyBoolean())).thenReturn(actionMock);
         when(actionsMock.uninstallApp(anyString(), anyBoolean())).thenReturn(actionMock);
         when(actionsMock.installApp(anyString())).thenReturn(actionMock);
+        when(actionsMock.contextDownload(any(), any(), any(), any(), any(), any(), any(), any(), any(), anyBoolean(), anyBoolean()))
+                .thenReturn(actionMock);
+        when(actionsMock.contextReset(any(), any(), any(), any(), any(), anyBoolean(), anyInt(), anyBoolean(), anyBoolean()))
+                .thenReturn(actionMock);
+        when(actionsMock.contextStatus(any(), any(), any(), any(), any(), anyBoolean(), anyBoolean(), anyBoolean()))
+                .thenReturn(actionMock);
     }
 
     private void mockBuilders() {

@@ -1,6 +1,7 @@
 package com.crowdin.cli.client;
 
 import com.crowdin.client.languages.model.Language;
+import com.crowdin.client.projectsgroups.model.Project;
 import com.crowdin.client.projectsgroups.model.Type;
 
 import java.util.ArrayList;
@@ -17,6 +18,7 @@ public class CrowdinProject {
     private LanguageMapping languageMapping;
     private List<Language> projectLanguages;
     private boolean skipUntranslatedFiles;
+    private com.crowdin.client.projectsgroups.model.Project project;
 
     CrowdinProject() {
 
@@ -95,6 +97,14 @@ public class CrowdinProject {
         } else {
             return projectLanguages;
         }
+    }
+
+    public Project getProject() {
+        return project;
+    }
+
+    public void setProject(Project project) {
+        this.project = project;
     }
 
     public Optional<Language> findLanguageById(String langId) {

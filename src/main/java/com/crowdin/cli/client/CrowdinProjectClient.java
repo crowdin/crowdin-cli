@@ -88,6 +88,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
 
     private void populateProjectWithInfo(CrowdinProject project) {
         com.crowdin.client.projectsgroups.model.Project projectModel = this.getProject();
+        project.setProject(projectModel);
         project.setProjectId(projectModel.getId());
         project.setType(projectModel.getType());
         project.setSourceLanguageId(projectModel.getSourceLanguageId());
@@ -421,6 +422,25 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
                 .scope(scope);
         return executeRequestFullList((limit, offset) -> this.client.getSourceStringsApi()
             .listSourceStrings(this.projectId, builder.limit(limit).offset(offset).build()));
+    }
+
+    @Override
+    @SneakyThrows
+    public void batchEditSourceStrings(List<PatchRequest> request) {
+        Map<BiPredicate<String, String>, ResponseException> errorHandler = new LinkedHashMap<>() {{
+            put((code, message) -> message.contains("Someone else is currently editing one of the file"),
+                    new RepeatException("Someone else is currently editing one of the file."));
+            put((code, message) -> code.equals("409"),
+                    new RepeatException("Conflict occurred while batch editing source strings. Please try again."));
+        }};
+        executeRequestWithPossibleRetries(
+                errorHandler,
+                () -> this.client.getSourceStringsApi()
+                .stringBatchOperations(this.projectId, request)
+                .getData(),
+                3,
+                3 * 1000
+        );
     }
 
     @Override

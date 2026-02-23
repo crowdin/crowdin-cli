@@ -19,6 +19,7 @@ import com.crowdin.client.translations.model.Method;
 
 import java.io.File;
 import java.nio.file.Path;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
 
@@ -357,5 +358,25 @@ public class CliActions implements Actions {
     @Override
     public NewAction<ProjectProperties, ProjectClient> installApp(String identifier) {
         return new AppInstallAction(identifier);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> contextDownload(File to, List<String> filesFilter, List<String> labelsFilter, String branchFilter, String croqlFilter, LocalDate sinceFilter, String statusFilter, String outputFormat, FilesInterface files, boolean plainView, boolean noProgress) {
+        return new ContextDownloadAction(to, filesFilter, labelsFilter, branchFilter, croqlFilter, sinceFilter, statusFilter, outputFormat, files, plainView, noProgress);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> contextUpload(File file, boolean overwrite, boolean dryRun, boolean plainView, int batchSize) {
+        return new ContextUploadAction(file, overwrite, dryRun, plainView, batchSize);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> contextReset(List<String> filesFilter, List<String> labelsFilter, String branchFilter, String croqlFilter, LocalDate sinceFilter, boolean dryRun, int batchSize, boolean plainView, boolean noProgress) {
+        return new ContextResetAction(filesFilter, labelsFilter, branchFilter, croqlFilter, sinceFilter, dryRun, batchSize, plainView, noProgress);
+    }
+
+    @Override
+    public NewAction<ProjectProperties, ProjectClient> contextStatus(List<String> filesFilter, List<String> labelsFilter, String branchFilter, String croqlFilter, LocalDate sinceFilter, boolean byFile, boolean plainView, boolean noProgress) {
+        return new ContextStatusAction(filesFilter, labelsFilter, branchFilter, croqlFilter, sinceFilter, byFile, plainView, noProgress);
     }
 }
