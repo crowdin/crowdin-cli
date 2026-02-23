@@ -149,5 +149,9 @@ public class FileHelperTest {
         assertFalse(FileHelper.isPathMatch("src/a/b.json", "src/a/b.txt"));
         assertFalse(FileHelper.isPathMatch("android-new-file2.xml", "android-new-file.xml"));
         assertTrue(FileHelper.isPathMatch("android-new-file.xml", "android-new-file.xml"));
+        assertTrue(FileHelper.isPathMatch("/android-new-file.xml", "android-new-file.xml"));
+        assertTrue(FileHelper.isPathMatch("android-new-file.xml", "/android-new-file.xml"));
+        assertTrue(FileHelper.isPathMatch("/[te.st]/file.json", "/[te.st]/file.json"));
+        assertTrue(FileHelper.isPathMatch("/test/file.json", "/[a-z]*/file.json"));
     }
 }

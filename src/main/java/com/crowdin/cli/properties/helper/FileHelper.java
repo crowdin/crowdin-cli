@@ -124,8 +124,8 @@ public class FileHelper {
     }
 
     public static boolean isPathMatch(String path, String pattern) {
-        var normalizedPath = Path.of(Utils.noSepAtStart(Utils.normalizePath(path)));
-        return new FileMatcher(pattern, null).matches(normalizedPath);
+        var normalizedPath = Path.of(Utils.sepAtStart(Utils.normalizePath(path)));
+        return new FileMatcher(Utils.sepAtStart(pattern), null).matches(normalizedPath);
     }
 
     private String translateToRegex(String node) {
