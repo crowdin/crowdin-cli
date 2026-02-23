@@ -34,7 +34,7 @@ class ContextResetSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--since"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.reset.since")
     protected String since;
 
-    @CommandLine.Option(names = {"--dry-run"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.reset.dryrun")
+    @CommandLine.Option(names = {"--dryrun"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.reset.dryrun")
     protected boolean dryrun;
 
     @CommandLine.Option(names = {"--all"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.reset.all")
