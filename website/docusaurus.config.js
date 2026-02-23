@@ -94,9 +94,9 @@ const config = {
         ],
       },
       announcementBar: {
-        id: "cli_v4",
+        id: "context_enrichment",
         content:
-          '🎉 <a target="_blank" rel="noopener noreferrer" href="/crowdin-cli/blog/2024/05/28/cli-v4">Crowdin CLI v4</a> is out! 🥳',
+          '✨ <a target="_blank" rel="noopener noreferrer" href="/crowdin-cli/blog/2026/02/23/context-enrichment">Context Enrichment with AI Agents and CLI</a> — learn how to improve your translation accuracy with AI',
         backgroundColor: "#029e87",
         textColor: "#ffffff",
       },
