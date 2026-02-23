@@ -1,5 +1,16 @@
 # Changelog
 
+# [4.14.0](https://github.com/crowdin/crowdin-cli/compare/4.13.0...4.14.0) (2026-02-23)
+
+
+### Features
+
+* add export_languages support in the config file ([#985](https://github.com/crowdin/crowdin-cli/issues/985)) ([8234dac](https://github.com/crowdin/crowdin-cli/commit/8234dac59253d733ebbd15af7fb5e6b420d1801b))
+* add source file existence validation to config lint ([#976](https://github.com/crowdin/crowdin-cli/issues/976)) ([37573aa](https://github.com/crowdin/crowdin-cli/commit/37573aad1c652775d7398c9aa3cb3b2bf40173f1))
+* log cache saving path in verbose mode ([#986](https://github.com/crowdin/crowdin-cli/issues/986)) ([9243204](https://github.com/crowdin/crowdin-cli/commit/924320486a9cc88c330bd5057c53861ebd5abcd9))
+* pre-translate, add exclude-language option ([#982](https://github.com/crowdin/crowdin-cli/issues/982)) ([079c871](https://github.com/crowdin/crowdin-cli/commit/079c871060260e48d19e3e431635bba30e394f64))
+* strings context management ([#987](https://github.com/crowdin/crowdin-cli/issues/987)) ([91c66e0](https://github.com/crowdin/crowdin-cli/commit/91c66e094286680386fef313b49baae8fd1e5c8d))
+
 # [4.13.0](https://github.com/crowdin/crowdin-cli/compare/4.12.0...4.13.0) (2026-01-20)
 
 
