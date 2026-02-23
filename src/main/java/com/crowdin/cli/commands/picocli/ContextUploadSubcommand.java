@@ -22,7 +22,7 @@ class ContextUploadSubcommand extends ActCommandProject {
     @CommandLine.Option(names = {"--overwrite"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.upload.overwrite")
     protected boolean overwrite;
 
-    @CommandLine.Option(names = {"--dryrun"}, paramLabel = "...", order = -2, descriptionKey = "crowdin.context.upload.dryrun")
+    @CommandLine.Option(names = {"--dryrun"}, paramLabel = "...", order = -2)
     protected boolean dryrun;
 
     @CommandLine.Option(names = {"--plain"}, descriptionKey = "crowdin.list.usage.plain")
