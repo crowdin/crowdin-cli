@@ -276,7 +276,7 @@ public class ContextDownloadActionTest {
 
         SourceString ss2 = SourceStringBuilder.standard()
                 .setProjectId(Long.parseLong(pb.getProjectId()))
-                .setIdentifiers(702L, "the-text2", "manual\n\n✨ AI Context\nai-content2\n✨ 🔚", "the.key2", 101L)
+                .setIdentifiers(702L, "the-text2", "manual\n\n✨ AI Context\nai-content2\n✨ 🔚", "the.key2", 102L)
                 .build();
 
         when(client.listSourceString(101L, null, null, null, null, null, null))
