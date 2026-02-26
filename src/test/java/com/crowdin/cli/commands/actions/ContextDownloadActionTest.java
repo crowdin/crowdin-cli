@@ -258,7 +258,7 @@ public class ContextDownloadActionTest {
     public void testJsonlSavesFileFilter2() throws Exception {
         ProjectProperties pb = NewProjectPropertiesUtilBuilder.minimalBuilt().build();
 
-        // Build project with one file (id=101)
+        // Build project with two files (id=101 and id=102)
         var projectFull = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
                 .addFile("/[test.Folder dev]/resources/js/lang/en/auth.php", "plain", 101L, null, null, "/%original_file_name%")
                 .addFile("/[test.Folder dev]/resources/js/lang/en/email.php", "plain", 102L, null, null, "/%original_file_name%")
