@@ -29,9 +29,9 @@ class ContextUploadAction implements NewAction<ProjectProperties, ProjectClient>
     public void act(Outputter out, ProjectProperties pb, ProjectClient client) {
         var stringContextRecords = AiContextUtil.readRecords(file);
 
-        if (overwrite) {
+        if (!overwrite) {
             stringContextRecords = stringContextRecords.stream()
-                    .filter(record -> record.getAi_context() == null || record.getAi_context().isEmpty())
+                    .filter(record -> record.getAi_context() != null && !record.getAi_context().isEmpty())
                     .toList();
         }
 

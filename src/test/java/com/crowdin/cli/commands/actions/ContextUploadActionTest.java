@@ -26,13 +26,13 @@ public class ContextUploadActionTest {
         File file = new File("dummy.jsonl");
 
         var r1 = new AiContextUtil.StringContextRecord(11L, "k1", "t1", "f", "man1", "ai1");
-        var r2 = new AiContextUtil.StringContextRecord(22L, "k2", "t2", "f", "man2", "");
+        var r2 = new AiContextUtil.StringContextRecord(22L, "k2", "t2", "f", "man2", "ai2");
         var r3 = new AiContextUtil.StringContextRecord(33L, "k3", "t3", "f", "", "ai3");
 
         try (var mocked = mockStatic(AiContextUtil.class)) {
             mocked.when(() -> AiContextUtil.readRecords(file)).thenReturn(List.of(r1, r2, r3));
             mocked.when(() -> AiContextUtil.fullContext("man1", "ai1")).thenReturn("man1\n\n✨ AI Context\nai1\n✨ 🔚");
-            mocked.when(() -> AiContextUtil.fullContext("man2", "")).thenReturn("man2");
+            mocked.when(() -> AiContextUtil.fullContext("man2", "ai2")).thenReturn("man2");
             mocked.when(() -> AiContextUtil.fullContext("", "ai3")).thenReturn("\n\n✨ AI Context\nai3\n✨ 🔚");
 
             ContextUploadAction action = new ContextUploadAction(file, false, false, false, 2);
@@ -87,9 +87,11 @@ public class ContextUploadActionTest {
         ArgumentCaptor<List> captor = ArgumentCaptor.forClass(List.class);
         verify(client, times(1)).batchEditSourceStrings(captor.capture());
         List batch = captor.getValue();
-        assertEquals(1, batch.size());
+        assertEquals(2, batch.size());
         PatchRequest req = (PatchRequest) batch.get(0);
         assertEquals("/10/context", req.getPath());
+        PatchRequest req2 = (PatchRequest) batch.get(1);
+        assertEquals("/11/context", req2.getPath());
     }
 
     @Test
