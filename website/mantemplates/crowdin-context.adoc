@@ -18,3 +18,4 @@ include::{includedir}/{command}.adoc[tag=picocli-generated-man-section-footer]
 === Links
 
 * link:/blog/2026/02/23/context-enrichment[Context Enrichment with AI Agents]
+* link:https://github.com/crowdin/crowdin-cli/discussions/992[Share feedback on the context commands]
