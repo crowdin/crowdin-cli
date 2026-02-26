@@ -326,4 +326,78 @@ public class ContextDownloadActionTest {
 
         verifyNoMoreInteractions(files);
     }
+
+    @Test
+    public void testJsonlSavesStatusFilter() throws Exception {
+        ProjectProperties pb = NewProjectPropertiesUtilBuilder.minimalBuilt().build();
+
+        // Build project with one file (id=101)
+        var projectFull = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                .addFile("/[test.Folder dev]/resources/js/lang/en/auth.php", "plain", 101L, null, null, "/%original_file_name%")
+                .addFile("/[test.Folder dev]/resources/js/lang/en/email.php", "plain", 102L, null, null, "/%original_file_name%")
+                .build();
+        projectFull.setType(Type.FILES_BASED);
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject(null)).thenReturn(projectFull);
+        when(client.listLabels()).thenReturn(List.of());
+
+        SourceString ss1 = SourceStringBuilder.standard()
+                .setProjectId(Long.parseLong(pb.getProjectId()))
+                .setIdentifiers(701L, "the-text", "manual1\n\n✨ AI Context\nai-content\n✨ 🔚", "the.key", 101L)
+                .build();
+
+        SourceString ss2 = SourceStringBuilder.standard()
+                .setProjectId(Long.parseLong(pb.getProjectId()))
+                .setIdentifiers(702L, "the-text2", "\n\n✨ AI Context\nai-content2\n✨ 🔚", "the.key2", 101L)
+                .build();
+
+        when(client.listSourceString(101L, null, null, null, null, null, null))
+                .thenReturn(Arrays.asList(ss1));
+
+        when(client.listSourceString(102L, null, null, null, null, null, null))
+                .thenReturn(Arrays.asList(ss2));
+
+        FilesInterface files = mock(FilesInterface.class);
+        File to = new File("out.jsonl");
+
+        ContextDownloadAction action = new ContextDownloadAction(
+                to,
+                List.of("/[test.Folder dev]/**/*.php"),
+                null,
+                null,
+                null,
+                null,
+                "manual",
+                "jsonl",
+                files,
+                true,
+                false
+        );
+
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(null);
+        verify(client).listLabels();
+        verify(client).listSourceString(101L, null, null, null, null, null, null);
+        verify(client).listSourceString(102L, null, null, null, null, null, null);
+
+        ArgumentCaptor<InputStream> captor = ArgumentCaptor.forClass(InputStream.class);
+        verify(files).writeToFile(eq(to.toString()), captor.capture());
+
+        try (InputStream is = captor.getValue()) {
+            byte[] bytes = is.readAllBytes();
+            String content = new String(bytes, UTF_8);
+            // The saved jsonl should contain id and key
+            assertTrue(content.contains("\"id\":701"));
+            assertFalse(content.contains("\"id\":702"));
+            assertTrue(content.contains("\"key\":\"the.key\""));
+            assertFalse(content.contains("\"key\":\"the.key2\""));
+            assertTrue(content.contains("\"ai_context\":\"ai-content\""));
+            assertFalse(content.contains("\"ai_context\":\"ai-content2\""));
+            assertTrue(content.contains("\"context\":\"manual1\""));
+        }
+
+        verifyNoMoreInteractions(files);
+    }
 }
