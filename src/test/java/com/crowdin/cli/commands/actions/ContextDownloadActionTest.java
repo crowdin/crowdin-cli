@@ -255,7 +255,7 @@ public class ContextDownloadActionTest {
     }
 
     @Test
-    public void testJsonlSavesFileFilter2() throws Exception {
+    public void testJsonlSavesFileFilterWithBracketsInFolderNames() throws Exception {
         ProjectProperties pb = NewProjectPropertiesUtilBuilder.minimalBuilt().build();
 
         // Build project with two files (id=101 and id=102)
