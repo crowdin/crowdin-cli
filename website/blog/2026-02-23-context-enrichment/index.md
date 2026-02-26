@@ -118,3 +118,7 @@ You can scope the reset to specific files, labels, or branches using the same fi
 ## Summary
 
 This post showed how to enrich your project's string context using Crowdin CLI and an AI agent. The workflow: install [Crowdin Skills](https://github.com/crowdin/skills), download strings to a local JSONL file, ask your agent to fill in context, then upload the result back to Crowdin. Use context status to check coverage and context reset to remove AI-generated context when needed.
+
+:::tip Share your feedback
+[Visit our GitHub discussions](https://github.com/crowdin/crowdin-cli/discussions/992) to share your feedback on the context commands.
+:::
