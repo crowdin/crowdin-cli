@@ -27,3 +27,7 @@ The JSON objects in the file include the following fields:
 - `file`: Crowdin file path
 - `context`: Existing source context
 - `ai_context`: AI context to set
+
+=== Notes
+
+The `--croql` option cannot be used together with other filter options.
