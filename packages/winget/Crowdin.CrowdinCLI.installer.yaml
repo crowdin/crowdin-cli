@@ -1,0 +1,23 @@
+# Created using wingetcreate 1.6.5.0
+# yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.6.0.schema.json
+
+PackageIdentifier: Crowdin.CrowdinCLI
+PackageVersion: 4.14.0
+MinimumOSVersion: 10.0.0.0
+InstallerType: inno
+InstallModes:
+  - interactive
+  - silent
+InstallerSwitches:
+  Silent: /VERYSILENT /SUPPRESSMSGBOXES /NORESTART /SP-
+  SilentWithProgress: /SILENT /SUPPRESSMSGBOXES /NORESTART /SP-
+Installers:
+  - Architecture: x64
+    InstallerUrl: https://github.com/crowdin/crowdin-cli/releases/download/4.14.0/crowdin.exe
+    InstallerSha256: e328c12295d3a62725b25dcbe883a50f6d4835acb70d94a10306e6fa79661c98
+    ProductCode: '{52B80417-16B8-4EFE-B118-6FA64B25CC0F}_is1'
+Dependencies:
+  PackageDependencies:
+    - PackageIdentifier: EclipseAdoptium.Temurin.17.JRE
+ManifestType: installer
+ManifestVersion: 1.6.0
