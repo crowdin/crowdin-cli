@@ -36,6 +36,26 @@ docker pull crowdin/cli
 
 ## Windows
 
+### WinGet
+
+```bash
+winget install Crowdin.CrowdinCLI
+```
+
+```bash
+winget upgrade Crowdin.CrowdinCLI
+```
+
+```bash
+winget uninstall Crowdin.CrowdinCLI
+```
+
+You can also search for the package:
+
+```bash
+winget search crowdin
+```
+
 ### Chocolatey
 
 ```bash
