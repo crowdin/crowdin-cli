@@ -151,6 +151,8 @@ begin
   Result := HasJava1Dot7OrNewer;
   if not Result then
   begin
+    if WizardSilent() then
+      Exit;
     Result := MsgBox('Java 17 or newer is required to run Crowdin CLI. Would you like to download it now?', mbConfirmation, MB_YESNO) = idYes;
     if Result then
     begin
