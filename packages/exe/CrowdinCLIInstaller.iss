@@ -20,11 +20,13 @@ AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 AppPublisher={#MyAppPublisher}
 AppPublisherURL={#MyAppURL}
-AppSupportURL={#MyAppURL}
-AppUpdatesURL={#MyAppURL}
+AppSupportURL=https://github.com/crowdin/crowdin-cli/issues
+AppUpdatesURL=https://github.com/crowdin/crowdin-cli/releases
 DefaultDirName={commonpf}\CrowdinCLI
 DefaultGroupName={#MyAppName}
 DisableProgramGroupPage=yes
+WizardStyle=modern
+AppMutex=CrowdinCLISetupMutex
 OutputDir=..\..\
 OutputBaseFilename=crowdin
 Compression=lzma
@@ -110,13 +112,9 @@ begin
     Log(Format('Error reading file %s', [TempFile]));
   end
     else
-  if Copy(S, 1, 14) <> 'java version "' then
   begin
-    Log('Output of the java -version not as expected');
-  end
-    else
-  begin
-    Delete(S, 1, 14);
+    // Extract version string between the first pair of double-quotes.
+    // Works for both 'java version "1.x"' (Oracle) and 'openjdk version "17.x"' (Temurin).
     P := Pos('"', S);
     if P = 0 then
     begin
@@ -124,8 +122,17 @@ begin
     end
       else
     begin
-      SetLength(S, P - 1);
-      Result := S;
+      Delete(S, 1, P);
+      P := Pos('"', S);
+      if P = 0 then
+      begin
+        Log('Output of the java -version not as expected');
+      end
+        else
+      begin
+        SetLength(S, P - 1);
+        Result := S;
+      end;
     end;
   end;
 
@@ -144,11 +151,11 @@ begin
   Result := HasJava1Dot7OrNewer;
   if not Result then
   begin
-    Result := MsgBox(ExpandConstant('Your Java version needs to be updated. Download it from https://www.oracle.com/java/technologies/downloads/'), mbConfirmation, MB_YESNO) = idYes;
+    Result := MsgBox('Java 17 or newer is required to run Crowdin CLI. Would you like to download it now?', mbConfirmation, MB_YESNO) = idYes;
     if Result then
     begin
       ShellExec(
-        'open', 'https://www.oracle.com/java/technologies/downloads/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
+        'open', 'https://www.java.com/download/', '', '', SW_SHOWNORMAL, ewNoWait, ErrorCode);
     end;
   end;
 end;
