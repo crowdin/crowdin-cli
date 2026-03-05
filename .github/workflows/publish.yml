@@ -231,7 +231,7 @@ jobs:
         with:
           identifier: Crowdin.CrowdinCLI
           installers-regex: '\.exe$'
-          token: ${{ secrets.GH_WINGET_TOKEN }}
+          token: ${{ secrets.GH_HOMEBREW_TOKEN }}
 
   exe:
     runs-on: windows-latest
