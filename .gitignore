@@ -11,3 +11,4 @@ jdeploy-bundle
 node_modules
 .DS_Store
 *.patch
+.crowdin

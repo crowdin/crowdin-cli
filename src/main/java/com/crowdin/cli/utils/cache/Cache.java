@@ -17,7 +17,7 @@ import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
 
 public class Cache {
 
-    private static final String CACHE_LOCATION = System.getProperty("user.home") + Utils.PATH_SEPARATOR + ".crowdin" + Utils.PATH_SEPARATOR + "cache.json";
+    private static final String CACHE_LOCATION = ".crowdin" + Utils.PATH_SEPARATOR + "cache.json";
 
     private static JSONObject CACHE = new JSONObject();
 
