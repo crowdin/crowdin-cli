@@ -108,7 +108,7 @@ jobs:
 
       - name: Build and install the package
         run: |
-          sudo npm install --location=global jdeploy@6.0.19
+          sudo npm install --location=global jdeploy@6.0.20
           npm install
           jdeploy install
           mv build/libs/crowdin_completion jdeploy-bundle/crowdin_completion
