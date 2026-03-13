@@ -15,6 +15,7 @@ on:
           - 'homebrew'
           - 'chocolatey'
           - 'docker'
+          - 'winget'
 
   release:
     types: [released]
@@ -220,6 +221,17 @@ jobs:
           tags: |
             "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}"
             "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest"
+
+  winget:
+    runs-on: windows-latest
+    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'winget'
+    needs: exe
+    steps:
+      - uses: vedantmgoyal9/winget-releaser@v2
+        with:
+          identifier: Crowdin.CrowdinCLI
+          installers-regex: '\.exe$'
+          token: ${{ secrets.GH_HOMEBREW_TOKEN }}
 
   exe:
     runs-on: windows-latest
