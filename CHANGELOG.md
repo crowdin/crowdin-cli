@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.14.1](https://github.com/crowdin/crowdin-cli/compare/4.14.0...4.14.1) (2026-03-13)
+
+
+### Bug Fixes
+
+* cache in upload sources ([#1000](https://github.com/crowdin/crowdin-cli/issues/1000)) ([4a163cb](https://github.com/crowdin/crowdin-cli/commit/4a163cb79d6735e1665a5be65c7ddea5c8143f53))
+* file and overwrite parameters in the context commands ([#991](https://github.com/crowdin/crowdin-cli/issues/991)) ([af4b9e6](https://github.com/crowdin/crowdin-cli/commit/af4b9e690299d7d63c3b326e00718e011e1c4bce))
+
 # [4.14.0](https://github.com/crowdin/crowdin-cli/compare/4.13.0...4.14.0) (2026-02-23)
 
 
