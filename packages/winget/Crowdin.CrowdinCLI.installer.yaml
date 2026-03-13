@@ -2,7 +2,7 @@
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.10.0.schema.json
 
 PackageIdentifier: Crowdin.CrowdinCLI
-PackageVersion: 4.14.0
+PackageVersion: 4.14.1
 MinimumOSVersion: 10.0.0.0
 InstallerType: inno
 InstallModes:
@@ -13,8 +13,8 @@ InstallerSwitches:
   SilentWithProgress: /SILENT /SUPPRESSMSGBOXES /NORESTART /SP-
 Installers:
   - Architecture: x64
-    InstallerUrl: https://github.com/crowdin/crowdin-cli/releases/download/4.14.0/crowdin.exe
-    InstallerSha256: e328c12295d3a62725b25dcbe883a50f6d4835acb70d94a10306e6fa79661c98
+    InstallerUrl: https://github.com/crowdin/crowdin-cli/releases/download/4.14.1/crowdin.exe
+    InstallerSha256: e912b4db3693fd9681d88cde83bcd1f8d955ba332aaf6c509cafd0a1b7f15541
     ProductCode: '{52B80417-16B8-4EFE-B118-6FA64B25CC0F}_is1'
 Dependencies:
   PackageDependencies:
