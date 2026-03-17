@@ -1,8 +1,6 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.CrowdinProjectFull;
-import com.crowdin.cli.client.LanguageMapping;
-import com.crowdin.cli.client.ProjectClient;
+import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.functionality.*;
@@ -169,6 +167,17 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                                 ImportTranslationsStatus::getIdentifier,
                                 isVerbose
                             );
+                        } catch (WrongLanguageException e) {
+                            String languageNames = langs.stream()
+                                .map(Language::getName)
+                                .collect(Collectors.joining("/"));
+                            out.println(WARNING.withIcon(String.format(
+                                RESOURCE_BUNDLE.getString("message.warning.file_not_uploaded_cause_of_language"),
+                                StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()), languageNames)));
+                            return;
+                        } catch (ResponseException e) {
+                            containsErrors.set(true);
+                            throw new RuntimeException(e);
                         } catch (Exception e) {
                             containsErrors.set(true);
                             throw e;
@@ -230,6 +239,17 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                                 ImportTranslationsStringsBasedStatus::getIdentifier,
                                 isVerbose
                             );
+                        } catch (WrongLanguageException e) {
+                            String languageNames = langs.stream()
+                                .map(Language::getName)
+                                .collect(Collectors.joining("/"));
+                            out.println(WARNING.withIcon(String.format(
+                                RESOURCE_BUNDLE.getString("message.warning.file_not_uploaded_cause_of_language"),
+                                StringUtils.removeStart(translationFile.getAbsolutePath(), pb.getBasePath()), languageNames)));
+                            return;
+                        } catch (ResponseException e) {
+                            containsErrors.set(true);
+                            throw new RuntimeException(e);
                         } catch (Exception e) {
                             containsErrors.set(true);
                             throw e;

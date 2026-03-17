@@ -9,6 +9,7 @@ import java.util.function.Supplier;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 public interface Client {
 
@@ -66,7 +67,7 @@ public interface Client {
         );
     }
 
-    static <S> S executeAsyncActionWithoutSpinner(
+    static <S> S executeAsyncActionWithoutSpinner (
             Outputter out,
             String errorMessage,
             String initMessage,
@@ -78,7 +79,7 @@ public interface Client {
             Function<S, Integer> getProgress,
             Function<S, String> getId,
             boolean isVerbose
-    ) {
+    ) throws ResponseException {
         try {
             if (initMessage != null) {
                 var initMsg = RESOURCE_BUNDLE.containsKey(initMessage) ? RESOURCE_BUNDLE.getString(initMessage) : initMessage;
@@ -114,6 +115,10 @@ public interface Client {
 
             return status;
         } catch (Exception e) {
+            if (e instanceof ResponseException) {
+                ConsoleSpinner.stop(WARNING);
+                throw (ResponseException) e;
+            }
             ConsoleSpinner.stop(ERROR);
             throw ExitCodeExceptionMapper.remap(
                     e,
