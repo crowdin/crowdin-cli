@@ -232,7 +232,7 @@ jobs:
         with:
           identifier: Crowdin.CrowdinCLI
           installers-regex: '\.exe$'
-          token: ${{ secrets.GH_HOMEBREW_TOKEN }}
+          token: ${{ secrets.GH_WINGET_TOKEN }}
 
   winget-manual:
     # Runs on manual dispatch only. No exe build - the action picks up the .exe
@@ -244,7 +244,7 @@ jobs:
         with:
           identifier: Crowdin.CrowdinCLI
           installers-regex: '\.exe$'
-          token: ${{ secrets.GH_HOMEBREW_TOKEN }}
+          token: ${{ secrets.GH_WINGET_TOKEN }}
 
   exe:
     runs-on: windows-latest
