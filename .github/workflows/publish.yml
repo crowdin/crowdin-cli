@@ -223,9 +223,22 @@ jobs:
             "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest"
 
   winget:
+    # Runs automatically on release, after the exe job has built and uploaded the installer.
     runs-on: windows-latest
-    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'winget'
+    if: github.event_name == 'release'
     needs: exe
+    steps:
+      - uses: vedantmgoyal9/winget-releaser@v2
+        with:
+          identifier: Crowdin.CrowdinCLI
+          installers-regex: '\.exe$'
+          token: ${{ secrets.GH_HOMEBREW_TOKEN }}
+
+  winget-manual:
+    # Runs on manual dispatch only. No exe build - the action picks up the .exe
+    # from the latest existing GitHub release, so the release must already exist.
+    runs-on: windows-latest
+    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.package == 'all' || github.event.inputs.package == 'winget')
     steps:
       - uses: vedantmgoyal9/winget-releaser@v2
         with:
