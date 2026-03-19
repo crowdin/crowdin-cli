@@ -148,7 +148,7 @@ jobs:
       - name: Test crowdin command
         run: crowdin -V
 
-  build-exe:
+  build-windows-installers:
     runs-on: windows-latest
     needs: build
     steps:
@@ -158,8 +158,19 @@ jobs:
         with:
           name: artifacts
 
+      - uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: 'gradle'
+
       - name: Prepare distribution
         run: mkdir dist && mv crowdin-cli-*.jar dist/crowdin-cli.jar
+
+      - name: Build MSI package
+        run: |
+          jpackage --type msi --name crowdin --install-dir "CrowdinCLI" --app-version "0.0.${{ github.run_number }}" --vendor "Crowdin" --input dist --main-jar crowdin-cli.jar --resource-dir packages/msi --dest .
+          Get-ChildItem -Path . -Filter "*.msi" | Where-Object { $_.Name -ne "crowdin.msi" } | Select-Object -First 1 | Rename-Item -NewName "crowdin.msi"
 
       - name: Compile .ISS to .EXE Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
@@ -168,5 +179,7 @@ jobs:
 
       - uses: actions/upload-artifact@v7
         with:
-          name: exe-package
-          path: crowdin.exe
+          name: windows-installers-package
+          path: |
+            crowdin.exe
+            crowdin.msi
