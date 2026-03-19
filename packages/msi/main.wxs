@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Wix xmlns="http://schemas.microsoft.com/wix/2006/wi">
+
+  <?ifdef JpIsSystemWide ?>
+    <?define JpInstallScope="perMachine"?>
+  <?else?>
+    <?define JpInstallScope="perUser"?>
+  <?endif?>
+
+  <?define JpProductLanguage=1033 ?>
+  <?define JpInstallerVersion=200 ?>
+  <?define JpCompressedMsi=yes ?>
+
+  <?include $(var.JpConfigDir)/overrides.wxi ?>
+
+  <Product
+    Id="$(var.JpProductCode)"
+    Name="$(var.JpAppName)"
+    Language="$(var.JpProductLanguage)"
+    Version="$(var.JpAppVersion)"
+    Manufacturer="$(var.JpAppVendor)"
+    UpgradeCode="$(var.JpProductUpgradeCode)">
+
+    <Package
+      Description="$(var.JpAppDescription)"
+      Manufacturer="$(var.JpAppVendor)"
+      InstallerVersion="$(var.JpInstallerVersion)"
+      Compressed="$(var.JpCompressedMsi)"
+      InstallScope="$(var.JpInstallScope)"
+      Platform="x64"
+    />
+
+    <Media Id="1" Cabinet="Data.cab" EmbedCab="yes" />
+
+    <?ifdef JpAllowDowngrades ?>
+    <?ifdef JpAllowUpgrades ?>
+    <MajorUpgrade
+      AllowDowngrades="yes"
+      Disallow="no"
+    />
+    <?endif?>
+    <?endif?>
+
+    <?ifdef JpAllowDowngrades ?>
+    <?ifndef JpAllowUpgrades ?>
+    <MajorUpgrade
+      AllowDowngrades="yes"
+      Disallow="yes"
+      DisallowUpgradeErrorMessage="!(loc.DisallowUpgradeErrorMessage)"
+    />
+    <?endif?>
+    <?endif?>
+
+    <?ifndef JpAllowDowngrades ?>
+    <?ifdef JpAllowUpgrades ?>
+    <MajorUpgrade
+      AllowDowngrades="no"
+      Disallow="no"
+      DowngradeErrorMessage="!(loc.DowngradeErrorMessage)"
+    />
+    <?endif?>
+    <?endif?>
+
+    <?ifndef JpAllowDowngrades ?>
+    <?ifndef JpAllowUpgrades ?>
+    <MajorUpgrade
+      AllowDowngrades="no"
+      Disallow="yes"
+      DowngradeErrorMessage="!(loc.DowngradeErrorMessage)"
+      DisallowUpgradeErrorMessage="!(loc.DisallowUpgradeErrorMessage)"
+    />
+    <?endif?>
+    <?endif?>
+
+    <!-- Standard required root -->
+    <Directory Id="TARGETDIR" Name="SourceDir"/>
+
+    <Feature Id="DefaultFeature" Title="!(loc.MainFeatureTitle)" Level="1">
+      <ComponentGroupRef Id="Shortcuts"/>
+      <ComponentGroupRef Id="Files"/>
+      <ComponentGroupRef Id="FileAssociations"/>
+      <ComponentGroupRef Id="PathEnvironment"/>
+    </Feature>
+
+  </Product>
+
+  <Fragment>
+    <DirectoryRef Id="INSTALLDIR">
+      <Component Id="PathEnvironmentComponent" Guid="{4EA1A1CE-4D4F-4F40-B8AE-823B5363D9F1}">
+        <RegistryValue Root="HKCU" Key="Software\Crowdin\CrowdinCLI" Name="PathAdded" Type="integer" Value="1" KeyPath="yes"/>
+        <Environment Id="CrowdinPath" Action="set" Name="PATH" Part="last" System="no" Value="[INSTALLDIR]"/>
+      </Component>
+    </DirectoryRef>
+    <ComponentGroup Id="PathEnvironment">
+      <ComponentRef Id="PathEnvironmentComponent"/>
+    </ComponentGroup>
+  </Fragment>
+</Wix>

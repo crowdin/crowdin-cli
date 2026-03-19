@@ -241,12 +241,9 @@ jobs:
           mv build/libs/crowdin-cli-*.jar dist/crowdin-cli.jar
 
       - name: Build MSI package
-        run: >
-          jpackage --type msi --name CrowdinCLI --app-version "${{ github.ref_name }}" --vendor "Crowdin" --input dist --main-jar crowdin-cli.jar --dest .
-
-      - name: Rename MSI artifact
         run: |
-          Get-ChildItem -Path . -Filter "CrowdinCLI-*.msi" | Select-Object -First 1 | Rename-Item -NewName "crowdin.msi"
+          jpackage --type msi --name crowdin --install-dir "CrowdinCLI" --app-version "${{ github.ref_name }}" --vendor "Crowdin" --input dist --main-jar crowdin-cli.jar --resource-dir packages/msi --dest .
+          Get-ChildItem -Path . -Filter "*.msi" | Where-Object { $_.Name -ne "crowdin.msi" } | Select-Object -First 1 | Rename-Item -NewName "crowdin.msi"
 
       - name: Compile .ISS to .EXE Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
