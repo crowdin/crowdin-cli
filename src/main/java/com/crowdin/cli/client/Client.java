@@ -4,6 +4,7 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
@@ -78,6 +79,7 @@ public interface Client {
             Function<S, String> getStatus,
             Function<S, Integer> getProgress,
             Function<S, String> getId,
+            Set<Class<? extends ResponseException>> passthroughExceptions,
             boolean isVerbose
     ) throws ResponseException {
         try {
@@ -115,7 +117,7 @@ public interface Client {
 
             return status;
         } catch (Exception e) {
-            if (e instanceof ResponseException) {
+            if (passthroughExceptions != null && passthroughExceptions.stream().anyMatch(c -> c.isInstance(e))) {
                 ConsoleSpinner.stop(WARNING);
                 throw (ResponseException) e;
             }

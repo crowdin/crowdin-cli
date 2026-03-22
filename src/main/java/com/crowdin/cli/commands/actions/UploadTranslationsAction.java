@@ -165,6 +165,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                                 ImportTranslationsStatus::getStatus,
                                 ImportTranslationsStatus::getProgress,
                                 ImportTranslationsStatus::getIdentifier,
+                                Set.of(WrongLanguageException.class),
                                 isVerbose
                             );
                         } catch (WrongLanguageException e) {
@@ -237,6 +238,7 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
                                 ImportTranslationsStringsBasedStatus::getStatus,
                                 ImportTranslationsStringsBasedStatus::getProgress,
                                 ImportTranslationsStringsBasedStatus::getIdentifier,
+                                null,
                                 isVerbose
                             );
                         } catch (WrongLanguageException e) {
