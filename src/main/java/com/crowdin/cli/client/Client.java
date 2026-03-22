@@ -68,7 +68,7 @@ public interface Client {
         );
     }
 
-    static <S> S executeAsyncActionWithoutSpinner (
+    static <S> S executeAsyncActionWithoutSpinner(
             Outputter out,
             String errorMessage,
             String initMessage,
