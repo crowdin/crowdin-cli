@@ -1,9 +1,6 @@
 package com.crowdin.cli.commands.actions;
 
-import com.crowdin.cli.client.CrowdinProjectFull;
-import com.crowdin.cli.client.ProjectClient;
-import com.crowdin.cli.client.ProjectBuilder;
-import com.crowdin.cli.client.ResponseException;
+import com.crowdin.cli.client.*;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.properties.PropertiesWithFiles;
@@ -23,10 +20,7 @@ import java.util.List;
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.ArgumentMatchers.*;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.verifyNoMoreInteractions;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 public class UploadTranslationsActionTest {
 
@@ -277,6 +271,50 @@ public class UploadTranslationsActionTest {
         verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
 
         verify(client).importTranslations(eq(importTranslationsStringsBasedRequest));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadTranslation_WrongLanguage_ShowsWarningAndContinues() throws ResponseException {
+        project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
+        project.addFile(Utils.normalizePath("first.po-CR-uk-UA"), "Hello, World!");
+
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(
+                "*",
+                Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%",
+                Arrays.asList("*-CR-*")
+            )
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+
+        ProjectClient client = mock(ProjectClient.class);
+        Outputter out = mock(Outputter.class);
+
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("first.po", "gettext", 301L, null, null)
+            .build();
+        build.setType(Type.FILES_BASED);
+
+        when(client.downloadFullProject(null)).thenReturn(build);
+        when(client.uploadStorage(eq("first.po-CR-uk-UA"), any())).thenReturn(1L);
+        doAnswer(invocation -> {
+            throw new WrongLanguageException();
+        }).when(client).importTranslations(any(ImportTranslationsRequest.class));
+
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new UploadTranslationsAction(false, null, null, false, false, false, false, false, false);
+
+        assertDoesNotThrow(() -> action.act(out, pb, client));
+
+        verify(client).downloadFullProject(null);
+        verify(client).uploadStorage(eq("first.po-CR-uk-UA"), any());
+        verify(client).importTranslations(any(ImportTranslationsRequest.class));
+
+        verify(out).println(argThat(msg ->
+            msg.contains("first.po-CR-uk-UA") && msg.contains("Ukrainian")
+        ));
+
         verifyNoMoreInteractions(client);
     }
 }

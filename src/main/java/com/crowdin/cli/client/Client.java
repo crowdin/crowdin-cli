@@ -4,11 +4,13 @@ import com.crowdin.cli.commands.Outputter;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 
+import java.util.Set;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.ERROR;
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 
 public interface Client {
 
@@ -77,8 +79,9 @@ public interface Client {
             Function<S, String> getStatus,
             Function<S, Integer> getProgress,
             Function<S, String> getId,
+            Set<Class<? extends ResponseException>> passthroughExceptions,
             boolean isVerbose
-    ) {
+    ) throws ResponseException {
         try {
             if (initMessage != null) {
                 var initMsg = RESOURCE_BUNDLE.containsKey(initMessage) ? RESOURCE_BUNDLE.getString(initMessage) : initMessage;
@@ -114,6 +117,10 @@ public interface Client {
 
             return status;
         } catch (Exception e) {
+            if (passthroughExceptions != null && passthroughExceptions.stream().anyMatch(c -> c.isInstance(e))) {
+                ConsoleSpinner.stop(WARNING);
+                throw (ResponseException) e;
+            }
             ConsoleSpinner.stop(ERROR);
             throw ExitCodeExceptionMapper.remap(
                     e,
