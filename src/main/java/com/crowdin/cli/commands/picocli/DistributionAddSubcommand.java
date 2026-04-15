@@ -23,10 +23,10 @@ class DistributionAddSubcommand extends ActCommandDistribution {
     @CommandLine.Parameters(descriptionKey = "crowdin.distribution.add.name")
     protected String name;
 
-    @CommandLine.Option(names = {"--export-mode"}, paramLabel = "...", descriptionKey = "crowdin.distribution.add.export-mode", defaultValue = "default", order = -2)
+    @CommandLine.Option(names = {"--export-mode"}, paramLabel = "...", descriptionKey = "crowdin.distribution.add.export-mode", order = -2, hidden = true)
     protected ExportMode exportMode;
 
-    @CommandLine.Option(names = {"--file"}, paramLabel = "...", descriptionKey = "crowdin.distribution.add.file", order = -2)
+    @CommandLine.Option(names = {"--file"}, paramLabel = "...", descriptionKey = "crowdin.distribution.add.file", order = -2, hidden = true)
     protected List<String> files;
 
     @CommandLine.Option(names = {"--bundle-id"}, paramLabel = "...", descriptionKey = "crowdin.distribution.add.bundle-id", order = -2)

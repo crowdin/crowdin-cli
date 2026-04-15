@@ -28,6 +28,7 @@ import java.util.stream.Collectors;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
 import static com.crowdin.cli.utils.console.ExecutionStatus.OK;
+import static com.crowdin.cli.utils.console.ExecutionStatus.WARNING;
 import static com.crowdin.client.distributions.model.ExportMode.DEFAULT;
 
 @AllArgsConstructor
@@ -52,6 +53,13 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
                 () -> projectClient.downloadFullProject(this.branch)
         );
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
+
+        if (exportMode != null) {
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("warning.distribution.deprecated_export_mode")));
+        }
+        if (files != null) {
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("warning.distribution.deprecated_file")));
+        }
 
         if (isStringsBasedProject && exportMode != null) {
             throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.distribution.strings_based_export_mode"));
