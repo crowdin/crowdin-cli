@@ -134,12 +134,21 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                 if (project.isManagerAccess()) {
                     filePaths2 = new ArrayList<>();
                     if (properties.getPreserveHierarchy()) {
+                        Predicate<String> destPredicate = fileBean.getDest() != null
+                            ? Pattern.compile("^" + PlaceholderUtil.formatSourcePatternForRegex(Utils.noSepAtStart(Utils.normalizePath(fileBean.getDest()))) + "$").asPredicate()
+                            : null;
                         for (String filePathKey : filePaths.keySet()) {
-                            String exportPattern = Utils.normalizePath(ProjectFilesUtils.getExportPattern(((File) filePaths.get(filePathKey)).getExportOptions()));
-                            String translationPattern = TranslationsUtils.replaceDoubleAsterisk(fileBean.getSource(), fileBean.getTranslation(), filePathKey);
-                            if (exportPattern == null || translationPattern.endsWith(exportPattern)) {
+                            boolean matchesFileBean;
+                            if (destPredicate != null) {
+                                matchesFileBean = destPredicate.test(Utils.noSepAtStart(Utils.normalizePath(filePathKey)));
+                            } else {
+                                String exportPattern = Utils.normalizePath(ProjectFilesUtils.getExportPattern(((File) filePaths.get(filePathKey)).getExportOptions()));
+                                String translationPattern = TranslationsUtils.replaceDoubleAsterisk(fileBean.getSource(), fileBean.getTranslation(), filePathKey);
+                                matchesFileBean = exportPattern == null || translationPattern.endsWith(exportPattern);
+                            }
+                            if (matchesFileBean) {
                                 String sourceName = new java.io.File(fileBean.getSource()).getName();
-                                if(sourceName.equals(new java.io.File(filePathKey).getName()) || SourcesUtils.containsPattern(sourceName) || searchPattern.contains(filePathKey)) {
+                                if (sourceName.equals(new java.io.File(filePathKey).getName()) || SourcesUtils.containsPattern(sourceName) || searchPattern.contains(filePathKey)) {
                                     filePaths2.add(filePathKey);
                                 }
                             }
