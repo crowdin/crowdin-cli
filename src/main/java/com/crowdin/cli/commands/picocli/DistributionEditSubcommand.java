@@ -22,10 +22,10 @@ class DistributionEditSubcommand extends ActCommandDistribution {
     @CommandLine.Option(names = {"--name"}, paramLabel = "...", descriptionKey = "crowdin.distribution.edit.name", order = -2)
     protected String name;
 
-    @CommandLine.Option(names = {"--export-mode"}, paramLabel = "...", descriptionKey = "crowdin.distribution.edit.export-mode", order = -2)
+    @CommandLine.Option(names = {"--export-mode"}, paramLabel = "...", descriptionKey = "crowdin.distribution.edit.export-mode", order = -2, hidden = true)
     protected ExportMode exportMode;
 
-    @CommandLine.Option(names = {"--file"}, paramLabel = "...", descriptionKey = "crowdin.distribution.edit.file", order = -2)
+    @CommandLine.Option(names = {"--file"}, paramLabel = "...", descriptionKey = "crowdin.distribution.edit.file", order = -2, hidden = true)
     protected List<String> files;
 
     @CommandLine.Option(names = {"--bundle-id"}, paramLabel = "...", descriptionKey = "crowdin.distribution.edit.bundle-id", order = -2)

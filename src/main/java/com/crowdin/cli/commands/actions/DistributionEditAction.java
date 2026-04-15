@@ -64,6 +64,13 @@ class DistributionEditAction implements NewAction<ProjectProperties, ClientDistr
         }
         String existingExportMode = foundDistribution.get().getExportMode();
 
+        if (exportMode != null) {
+            out.println(ExecutionStatus.WARNING.withIcon(RESOURCE_BUNDLE.getString("warning.distribution.deprecated_export_mode")));
+        }
+        if (files != null) {
+            out.println(ExecutionStatus.WARNING.withIcon(RESOURCE_BUNDLE.getString("warning.distribution.deprecated_file")));
+        }
+
         List<PatchRequest> requests = new ArrayList<>();
 
         if (name != null) {
