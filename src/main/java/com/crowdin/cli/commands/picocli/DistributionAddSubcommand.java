@@ -59,7 +59,7 @@ class DistributionAddSubcommand extends ActCommandDistribution {
             errors.add(RESOURCE_BUNDLE.getString("error.distribution.incorrect_file_command_usage"));
         }
 
-        if ((exportMode == DEFAULT || (exportMode == null && files != null)) && bundleIds != null) {
+        if (exportMode == DEFAULT && bundleIds != null) {
             errors.add(RESOURCE_BUNDLE.getString("error.distribution.incorrect_bundle_id_command_usage"));
         }
 
