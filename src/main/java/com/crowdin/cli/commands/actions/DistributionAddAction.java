@@ -61,9 +61,7 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
             out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("warning.distribution.deprecated_file")));
         }
 
-        ExportMode effectiveExportMode = exportMode != null ? exportMode : (files != null ? DEFAULT : null);
-
-        if (isStringsBasedProject && effectiveExportMode != null) {
+        if (isStringsBasedProject && exportMode != null) {
             throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.distribution.strings_based_export_mode"));
         }
 
@@ -98,15 +96,15 @@ class DistributionAddAction implements NewAction<ProjectProperties, ClientDistri
                     .filter(file -> files.contains(file.getPath()))
                     .map(FileInfo::getId)
                     .collect(Collectors.toList());
-        } else if (effectiveExportMode == DEFAULT && !isStringsBasedProject) {
+        } else if (exportMode == DEFAULT && !isStringsBasedProject) {
             throw new ExitCodeExceptionMapper.ValidationException(RESOURCE_BUNDLE.getString("error.distribution.empty_file"));
         }
 
         Distribution distribution = null;
         if (!isStringsBasedProject) {
-            AddDistributionRequest addDistributionRequest = RequestBuilder.addDistribution(name, effectiveExportMode, fileIds, bundleIds);
+            AddDistributionRequest addDistributionRequest = RequestBuilder.addDistribution(name, exportMode, fileIds, bundleIds);
             Optional.ofNullable(name).ifPresent(addDistributionRequest::setName);
-            Optional.ofNullable(effectiveExportMode).ifPresent(addDistributionRequest::setExportMode);
+            Optional.ofNullable(exportMode).ifPresent(addDistributionRequest::setExportMode);
             Optional.ofNullable(fileIds).ifPresent(addDistributionRequest::setFileIds);
             Optional.ofNullable(bundleIds).ifPresent(addDistributionRequest::setBundleIds);
 
