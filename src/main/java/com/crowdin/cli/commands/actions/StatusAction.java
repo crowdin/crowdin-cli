@@ -84,13 +84,13 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                     project.findLanguageById(pr.getLanguageId()).get().getName(), pr.getLanguageId()));
                 if (showTranslated) {
                     out.println(String.format(RESOURCE_BUNDLE.getString("message.translation_progress"),
-                        pr.getTranslationProgress(),
+                        getTranslationProgress(pr),
                         pr.getWords().getTranslated(), pr.getWords().getTotal(),
                         pr.getPhrases().getTranslated(), pr.getPhrases().getTotal()));
                 }
                 if (showApproved) {
                     out.println(String.format(RESOURCE_BUNDLE.getString("message.approval_progress"),
-                        pr.getApprovalProgress(),
+                        getApprovalProgress(pr),
                         pr.getWords().getApproved(), pr.getWords().getTotal(),
                         pr.getPhrases().getApproved(), pr.getPhrases().getTotal()));
                 }
@@ -103,9 +103,9 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 progresses.forEach(pr -> {
                     if (!plainView) {
                         out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
-                            pr.getLanguageId(), pr.getTranslationProgress()));
+                            pr.getLanguageId(), getTranslationProgress(pr)));
                     } else {
-                        out.println(String.format("%s %d", pr.getLanguageId(), pr.getTranslationProgress()));
+                        out.println(String.format("%s %d", pr.getLanguageId(), getTranslationProgress(pr)));
                     }
                 });
             }
@@ -116,14 +116,26 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
                 progresses.forEach(pr -> {
                     if (!plainView) {
                         out.println(String.format(RESOURCE_BUNDLE.getString("message.item_list_with_percents"),
-                            pr.getLanguageId(), pr.getApprovalProgress()));
+                            pr.getLanguageId(), getApprovalProgress(pr)));
                     } else {
-                        out.println(String.format("%s %d", pr.getLanguageId(), pr.getApprovalProgress()));
+                        out.println(String.format("%s %d", pr.getLanguageId(), getApprovalProgress(pr)));
                     }
                 });
             }
             throwExceptionIfIncomplete(progresses.stream());
         }
+    }
+
+    private static boolean hasNothingToTranslate(LanguageProgress pr) {
+        return pr.getWords() != null && pr.getWords().getTotal() != null && pr.getWords().getTotal() == 0;
+    }
+
+    private static int getTranslationProgress(LanguageProgress pr) {
+        return hasNothingToTranslate(pr) ? 100 : pr.getTranslationProgress();
+    }
+
+    private static int getApprovalProgress(LanguageProgress pr) {
+        return hasNothingToTranslate(pr) ? 100 : pr.getApprovalProgress();
     }
 
     private Consumer<? super LanguageProgress> throwException(String msg) {
@@ -135,13 +147,13 @@ class StatusAction implements NewAction<ProjectProperties, ProjectClient> {
 
         if (showApproved && failIfIncomplete) {
             for (LanguageProgress p : collect) {
-                if (p.getApprovalProgress() < 100) {
+                if (getApprovalProgress(p) < 100) {
                     throwException(RESOURCE_BUNDLE.getString("error.project_is_incomplete"));
                 }
             }
         } else if (showTranslated && failIfIncomplete) {
             for (LanguageProgress p : collect) {
-                if (p.getTranslationProgress() < 100) {
+                if (getTranslationProgress(p) < 100) {
                     throwException(RESOURCE_BUNDLE.getString("error.project_is_incomplete"));
                 }
             }
