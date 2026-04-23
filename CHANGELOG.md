@@ -1,5 +1,14 @@
 # Changelog
 
+## [4.14.2](https://github.com/crowdin/crowdin-cli/compare/4.14.1...4.14.2) (2026-04-23)
+
+
+### Bug Fixes
+
+* asterisks in sources ([#1015](https://github.com/crowdin/crowdin-cli/issues/1015)) ([7a22022](https://github.com/crowdin/crowdin-cli/commit/7a2202287f090047b2a8d36e750c42fad3f10044))
+* disabled target languages warning ([#1008](https://github.com/crowdin/crowdin-cli/issues/1008)) ([d608b11](https://github.com/crowdin/crowdin-cli/commit/d608b11982da6a3c7e3b750762fee8b31c36f251))
+* show translation status 100% when nothing to translate ([#1018](https://github.com/crowdin/crowdin-cli/issues/1018)) ([cfa052c](https://github.com/crowdin/crowdin-cli/commit/cfa052c9a4ab661efa4b8dced8487259c39902d3))
+
 ## [4.14.1](https://github.com/crowdin/crowdin-cli/compare/4.14.0...4.14.1) (2026-03-13)
 
 
