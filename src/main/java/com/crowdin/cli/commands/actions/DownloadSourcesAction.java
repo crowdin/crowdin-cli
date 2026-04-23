@@ -185,8 +185,14 @@ public class DownloadSourcesAction implements NewAction<PropertiesWithFiles, Pro
                     .map(filePath -> () -> {
                         String fileDestination;
                         if (fileBean.getDest() != null) {
-                            fileDestination = SourcesUtils.replaceUnaryAsterisk(fileBean.getSource(), filePath);
-                            fileDestination = placeholderUtil.replaceFileDependentPlaceholders(fileDestination, new java.io.File(filePath));
+                            if (!fileBean.getDest().contains("**")
+                                && !fileBean.getDest().contains(PlaceholderUtil.PLACEHOLDER_ORIGINAL_PATH)
+                                && fileBean.getSource().contains("**")) {
+                                fileDestination = placeholderUtil.replaceFileDependentPlaceholders(fileBean.getDest(), new java.io.File(filePath));
+                            } else {
+                                fileDestination = SourcesUtils.replaceUnaryAsterisk(fileBean.getSource(), filePath);
+                                fileDestination = placeholderUtil.replaceFileDependentPlaceholders(fileDestination, new java.io.File(filePath));
+                            }
                         } else {
                             fileDestination = filePath;
                         }

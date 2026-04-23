@@ -201,7 +201,7 @@ public class DownloadSourcesActionTest {
         verify(client).downloadFile(eq(101L));
         verifyNoMoreInteractions(client);
 
-        verify(files).writeToFile(any(), any());
+        verify(files).writeToFile(eq(Utils.joinPaths(project.getBasePath(), "Android/strings.xml")), any());
         verifyNoMoreInteractions(files);
     }
 
