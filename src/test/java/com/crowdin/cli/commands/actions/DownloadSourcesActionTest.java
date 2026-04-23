@@ -171,6 +171,41 @@ public class DownloadSourcesActionTest {
     }
 
     @Test
+    public void testDest_doubleAsterisksInSourceOnly() throws IOException {
+        PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean(
+                Utils.normalizePath("/**/src/main/res/values/*trings.xml"),
+                Utils.normalizePath("/**/src/main/res/values-%two_letters_code%/%original_file_name%"),
+                null, Utils.normalizePath("/Android/%original_file_name%"))
+            .setBasePath(project.getBasePath())
+            .setPreserveHierarchy(true)
+            .build();
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject(null))
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                .addDirectory("Android", 201L, null, null)
+                .addFile("strings.xml", "gettext", 101L, 201L, null,
+                    Utils.normalizePath("/euro/src/main/res/values-%two_letters_code%/%original_file_name%")).build());
+        URL urlMock = MockitoUtils.getMockUrl(getClass());
+        when(client.downloadFile(eq(101L)))
+            .thenReturn(urlMock);
+
+        FilesInterface files = mock(FilesInterface.class);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadSourcesAction(files, false, false, null, true, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject(null);
+        verify(client).downloadFile(eq(101L));
+        verifyNoMoreInteractions(client);
+
+        verify(files).writeToFile(eq(Utils.joinPaths(project.getBasePath(), "Android/strings.xml")), any());
+        verifyNoMoreInteractions(files);
+    }
+
+    @Test
     public void testDestAndUnaryAsterisk() throws IOException {
         PropertiesWithFiles pb = NewPropertiesWithFilesUtilBuilder
             .minimalBuiltPropertiesBean(
