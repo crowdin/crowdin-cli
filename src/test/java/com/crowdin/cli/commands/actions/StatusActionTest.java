@@ -101,9 +101,47 @@ class StatusActionTest {
         when(projectClient.listBranches())
                 .thenReturn(Collections.singletonList(branch));
 
-        statusAction = new StatusAction(noProgress, branchName, null, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete, false);
-        statusAction.act(Outputter.getDefault(), projectProperties, projectClient);
+        Outputter out = mock(Outputter.class);
+        statusAction = new StatusAction(noProgress, branchName, null, null, null, isVerbose, showTranslated, showApproved, failIfIncomplete, true);
+        statusAction.act(out, projectProperties, projectClient);
 
+        verify(out).println(argThat(s -> s.contains("fr-CA") && s.contains("100")));
+        verify(projectClient).downloadFullProject("release");
+        verify(projectClient).listBranches();
+        verify(projectClient).getBranchProgress(456L);
+        verifyNoMoreInteractions(projectClient);
+    }
+
+    @Test
+    public void testStatusBranchWithNothingToApprove() {
+        ProjectClient projectClient = mock(ProjectClient.class);
+        ProjectProperties projectProperties = mock(ProjectProperties.class);
+        LanguageProgress languageProgress = mock(LanguageProgress.class);
+        Branch branch = mock(Branch.class);
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+                .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+                .setBasePath(Utils.PATH_SEPARATOR);
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectBuilder projectBuilder = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()));
+
+        when(projectClient.downloadFullProject("release"))
+                .thenReturn(projectBuilder.build());
+        when(languageProgress.getApprovalProgress()).thenReturn(0);
+        when(languageProgress.getLanguageId()).thenReturn("fr-CA");
+        when(languageProgress.getWords()).thenReturn(getEmptyWords());
+        when(languageProgress.getPhrases()).thenReturn(getEmptyWords());
+        when(branch.getId()).thenReturn(456L);
+        when(branch.getName()).thenReturn("release");
+        when(projectClient.getBranchProgress(456L))
+                .thenReturn(Collections.singletonList(languageProgress));
+        when(projectClient.listBranches())
+                .thenReturn(Collections.singletonList(branch));
+
+        Outputter out = mock(Outputter.class);
+        statusAction = new StatusAction(true, "release", null, null, null, false, false, true, true, true);
+        statusAction.act(out, projectProperties, projectClient);
+
+        verify(out).println(argThat(s -> s.contains("fr-CA") && s.contains("100")));
         verify(projectClient).downloadFullProject("release");
         verify(projectClient).listBranches();
         verify(projectClient).getBranchProgress(456L);
