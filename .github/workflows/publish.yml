@@ -16,6 +16,10 @@ on:
           - 'chocolatey'
           - 'docker'
           - 'winget'
+      winget_release_tag:
+        description: 'Release tag for manual WinGet publish (example: 4.14.2)'
+        type: string
+        required: false
 
   release:
     types: [released]
@@ -245,6 +249,7 @@ jobs:
         with:
           identifier: Crowdin.CrowdinCLI
           installers-regex: '\.exe$'
+          release-tag: ${{ github.event.inputs.winget_release_tag }}
           token: ${{ secrets.GH_WINGET_TOKEN }}
           fork-user: crowdin-bot
 
