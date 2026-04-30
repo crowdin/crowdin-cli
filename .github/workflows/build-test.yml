@@ -145,6 +145,10 @@ jobs:
           npm install
           jdeploy install
 
+      - name: Print jdeploy log on failure
+        if: failure()
+        run: cat ~/.jdeploy/log/jdeploy-local-install.log
+
       - name: Test crowdin command
         run: crowdin -V
 

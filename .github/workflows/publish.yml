@@ -118,6 +118,10 @@ jobs:
           jdeploy install
           mv build/libs/crowdin_completion jdeploy-bundle/crowdin_completion
 
+      - name: Print jdeploy log on failure
+        if: failure()
+        run: cat ~/.jdeploy/log/jdeploy-local-install.log
+
       - name: Test crowdin command
         run: crowdin -V
 
