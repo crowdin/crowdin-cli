@@ -1,0 +1,36 @@
+{
+  "name": "crowdin-commander",
+  "type": "module",
+  "private": true,
+  "bin": {
+    "crowdin": "./src/cli.ts"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "@bomb.sh/tab": "^0.0.14",
+    "@clack/prompts": "^1.2.0",
+    "@crowdin/crowdin-api-client": "^1.55.1",
+    "@toon-format/toon": "^2.1.0",
+    "@types/adm-zip": "^0.5.8",
+    "adm-zip": "^0.5.17",
+    "commander": "^14.0.3",
+    "yaml": "^2.8.3",
+    "zod": "^4.3.6"
+  },
+   "scripts": {
+     "dev": "bun run src/cli.ts",
+     "build": "bun build src/cli.ts --compile --outfile dist/crowdin",
+     "build-linux": "bun build src/cli.ts --compile --target=bun-linux-x64-baseline --outfile dist/crowdin-linux-x64-baseline",
+     "build-windows": "bun build src/cli.ts --compile --target=bun-windows-x64-modern --outfile dist/crowdin-windows-x64-modern",
+     "test": "bun test",
+     "format": "biome format --write",
+     "lint": "biome lint",
+     "check": "biome check --write"
+   }
+}
