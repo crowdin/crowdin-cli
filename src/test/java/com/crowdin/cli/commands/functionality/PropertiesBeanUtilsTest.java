@@ -155,7 +155,11 @@ public class PropertiesBeanUtilsTest {
             arguments("https://organizzzation.daanya.crowdin.dev"),
             arguments("https://daanya.crowdin.dev"),
             arguments("https://98011165-2619304c.test.crowdin.com"),
-            arguments("https://myorg.e-test.crowdin.com")
+            arguments("https://myorg.e-test.crowdin.com"),
+            arguments("https://Daanya.crowdin.com/"),
+            arguments("https://Daanya.api.crowdin.com/"),
+            arguments("https://organizzzation.daanya.crowdin.dev/"),
+            arguments("https://myorg.e-test.crowdin.com/")
         );
     }
 
