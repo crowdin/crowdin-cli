@@ -81,9 +81,6 @@ public class PropertiesBeanUtils {
     }
 
     public static boolean isUrlValid(String baseUrl) {
-        if (baseUrl == null) {
-            return false;
-        }
         String normalized = StringUtils.removeEnd(baseUrl, "/");
         return isUrlForTesting(normalized) || isUrlOfficial(normalized);
     }
