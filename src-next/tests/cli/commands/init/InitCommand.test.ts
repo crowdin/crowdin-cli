@@ -39,8 +39,8 @@ describe('InitCommand', () => {
       optsWithGlobals: () => ({
         verbose: false,
         config: '',
-        noColors: false,
-        noProgress: false,
+        colors: false,
+        progress: false,
         format: 'text',
         destination,
         token: apiToken,
@@ -89,8 +89,8 @@ describe('InitCommand', () => {
       optsWithGlobals: () => ({
         verbose: false,
         config: '',
-        noColors: false,
-        noProgress: false,
+        colors: false,
+        progress: false,
         format: 'text',
         destination: 'crowdin.yml',
       }),

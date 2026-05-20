@@ -5,13 +5,8 @@ import { buildCommand, buildOption, getHelpConfig } from './cli/builder.ts';
 import { commands } from './cli/commands.ts';
 import CliError from './cli/errors/CliError.ts';
 import colorHook from './cli/hooks/color.ts';
-import configHook from './cli/hooks/config.ts';
-import formatHook from './cli/hooks/format.ts';
 import getGlobalOptions from './cli/options.ts';
-import { enableColors } from './cli/utils/colors.ts';
 import { createOutput } from './cli/utils/output.ts';
-
-enableColors(!process.argv.includes('--no-colors'));
 
 const name = 'crowdin';
 const version = '0.0.1';
@@ -36,23 +31,18 @@ function createProgram(): Command {
   }
 
   program.hook('preAction', async (_thisCommand, actionCommand) => {
-    formatHook(actionCommand);
     colorHook(actionCommand);
-    await configHook(actionCommand);
   });
+
+  for (const def of commands) {
+    program.addCommand(buildCommand(def));
+  }
 
   return program;
 }
 
 async function main() {
   const program = createProgram();
-
-  for (const def of commands) {
-    program.addCommand(buildCommand(def));
-  }
-
-  // const completion = tab(program);
-
   await program.parseAsync(process.argv);
 }
 

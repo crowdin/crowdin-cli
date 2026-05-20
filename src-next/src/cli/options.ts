@@ -12,7 +12,7 @@ export default function getGlobalOptions(): OptionDef[] {
 export type GlobalOptions = {
   verbose: boolean;
   config: string;
-  noColors: boolean;
-  noProgress: boolean;
+  colors: boolean;
+  progress: boolean;
   format: string;
 };
