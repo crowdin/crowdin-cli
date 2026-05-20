@@ -12,16 +12,8 @@ export function createGetOutput() {
 
     const options = command.optsWithGlobals() as GlobalOptions;
 
-    cachedOutput = createOutput(resolveOutputFormat(options.format), options.verbose);
+    cachedOutput = createOutput(options);
 
     return cachedOutput;
   };
-}
-
-export function resolveOutputFormat(format?: string): 'json' | 'toon' | 'text' {
-  if (format === 'json' || format === 'toon') {
-    return format;
-  }
-
-  return 'text';
 }

@@ -5,7 +5,7 @@ import { buildCommand, buildOption, getHelpConfig } from './cli/builder.ts';
 import { commands } from './cli/commands.ts';
 import CliError from './cli/errors/CliError.ts';
 import colorHook from './cli/hooks/color.ts';
-import getGlobalOptions from './cli/options.ts';
+import getGlobalOptions, { type GlobalOptions } from './cli/options.ts';
 import { createOutput } from './cli/utils/output.ts';
 
 const name = 'crowdin';
@@ -75,7 +75,9 @@ function getExitCode(error: unknown): number {
   return 1;
 }
 
-function getOutputFormat(argv: string[]): 'json' | 'toon' | 'text' {
+function getOutputFormat(argv: string[]): GlobalOptions {
+  let format = 'text';
+
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
 
@@ -83,7 +85,8 @@ function getOutputFormat(argv: string[]): 'json' | 'toon' | 'text' {
       const value = argv[index + 1];
 
       if (value === 'json' || value === 'toon' || value === 'text') {
-        return value;
+        format = value;
+        break;
       }
     }
 
@@ -91,10 +94,17 @@ function getOutputFormat(argv: string[]): 'json' | 'toon' | 'text' {
       const value = arg.slice('--format='.length);
 
       if (value === 'json' || value === 'toon' || value === 'text') {
-        return value;
+        format = value;
+        break;
       }
     }
   }
 
-  return 'text';
+  return {
+    colors: false,
+    config: '',
+    progress: false,
+    verbose: false,
+    format: format
+  };
 }
