@@ -2,7 +2,7 @@ import { encode } from '@toon-format/toon';
 
 export type OutputFormat = 'text' | 'json' | 'toon';
 
-const formatters: Record<OutputFormat, (data: any) => string> = {
+const formatters: Record<OutputFormat, (data: unknown) => string> = {
   text: (data) => {
     if (typeof data === 'object') {
       return JSON.stringify(data, null, 2);
@@ -14,6 +14,6 @@ const formatters: Record<OutputFormat, (data: any) => string> = {
   toon: (data) => encode(data),
 };
 
-export function formatData(data: any, format: OutputFormat = 'text'): string {
+export function formatData(data: unknown, format: OutputFormat = 'text'): string {
   return formatters[format](data);
 }

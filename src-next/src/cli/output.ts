@@ -11,8 +11,8 @@ export function createGetOutput() {
     }
 
     const options = command.optsWithGlobals() as GlobalOptions;
-    const format = resolveOutputFormat(options.format);
-    cachedOutput = createOutput(format);
+
+    cachedOutput = createOutput(resolveOutputFormat(options.format), options.verbose);
 
     return cachedOutput;
   };

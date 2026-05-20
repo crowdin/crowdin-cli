@@ -1,10 +1,10 @@
 import type { Command } from 'commander';
+import type Client from '../../../lib/api/client.ts';
 import CliError, { toCliError } from '../../errors/CliError.ts';
-import type { Client } from '../../../lib/api/client.ts';
-import type { Output } from '../../utils/output.ts';
-import type { ProjectService } from '../../services/ProjectService.ts';
 import type { GlobalOptions } from '../../options.ts';
+import type { ProjectService } from '../../services/ProjectService.ts';
 import type { CommandDef } from '../../types.ts';
+import type { Output } from '../../utils/output.ts';
 import language from './options/language.ts';
 import languageAccessPolicy from './options/languageAccessPolicy.ts';
 import sourceLanguage from './options/sourceLanguage.ts';
@@ -26,7 +26,8 @@ export default class ProjectCommand {
     private getOutput: GetOutput,
     private getProjectService: GetProjectService,
     private getApiClient: GetApiClient,
-  ) {}
+  ) {
+  }
 
   getDefinition(): CommandDef {
     return {
@@ -79,12 +80,13 @@ export default class ProjectCommand {
     const projectService = await this.getProjectService(command);
     const projects = await projectService.loadProjects(true);
 
-    output.log(
-      projects.data.map((project) => ({
-        Id: project.data.id,
-        Name: project.data.name,
-      })),
-      { showAsTable: true },
+    output.table(
+      projects.data.map(
+        (project) => ({
+          id: project.data.id,
+          name: project.data.name,
+        }),
+      ),
     );
   };
 
@@ -117,9 +119,12 @@ export default class ProjectCommand {
         data.stringBased,
       );
 
-      output.log([{ Id: project.data.id, Name: project.data.name }], {
-        showAsTable: true,
-      });
+      output.table([
+        {
+          id: project.data.id,
+          name: project.data.name
+        }
+      ]);
     } catch (error) {
       throw toCliError(error, `Failed to add project`);
     }

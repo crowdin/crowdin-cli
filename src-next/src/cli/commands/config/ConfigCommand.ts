@@ -57,9 +57,8 @@ export default class ConfigCommand {
     await projectService.loadProject();
     const localFilePaths = new SourceFileLoader(config).getFilePaths();
 
-    output.log(
-      localFilePaths.map((localFilePath) => ({ File: localFilePath })),
-      { showAsTable: true },
+    output.table(
+      localFilePaths.map((localFilePath) => ({ file: localFilePath })),
     );
   };
 
@@ -70,16 +69,16 @@ export default class ConfigCommand {
     const project = await projectService.loadProject();
     const translationPathResolver = new TranslationPathResolver(config);
     const sourceFilePaths = new SourceFileLoader(config).getFilePaths();
-    const translationFilePaths: Array<{ File: string }> = [];
+    const translationFilePaths: Array<{ file: string }> = [];
 
     for (const targetLanguage of project.data.targetLanguages.sort((a, b) => a.name.localeCompare(b.name))) {
       for (const sourceFilePath of sourceFilePaths) {
         const filePath = translationPathResolver.resolve(Bun.file(sourceFilePath), targetLanguage).slice(1);
-        translationFilePaths.push({ File: filePath });
+        translationFilePaths.push({ file: filePath });
       }
     }
 
-    output.log(translationFilePaths, { showAsTable: true });
+    output.table(translationFilePaths);
   };
 
   lintAction = async (command: Command) => {

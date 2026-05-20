@@ -76,22 +76,22 @@ export default class StatusCommand {
       }
 
       if (show === 'all' || show === 'translated') {
-        if (!progress.Translation) {
-          progress.Translation = {};
+        if (!progress.translation) {
+          progress.translation = {};
         }
 
-        progress.Translation[languageProgress.data.languageId] = `${languageProgress.data.translationProgress}%`;
+        progress.translation[languageProgress.data.languageId] = `${languageProgress.data.translationProgress}%`;
       }
 
       if (show === 'all' || show === 'proofread') {
-        if (!progress.Proofread) {
-          progress.Proofread = {};
+        if (!progress.proofread) {
+          progress.proofread = {};
         }
 
-        progress.Proofread[languageProgress.data.languageId] = `${languageProgress.data.approvalProgress}%`;
+        progress.proofread[languageProgress.data.languageId] = `${languageProgress.data.approvalProgress}%`;
       }
     }
 
-    output.log(progress, { showAsTable: true });
+    output.table(progress);
   }
 }

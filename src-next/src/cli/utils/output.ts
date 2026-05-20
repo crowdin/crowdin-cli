@@ -1,7 +1,7 @@
 import { cancel, intro, log, outro, type SpinnerResult, spinner } from '@clack/prompts';
 import { formatData, type OutputFormat } from './formatter.ts';
 
-export function createOutput(format: OutputFormat = 'text') {
+export function createOutput(format: OutputFormat = 'text', verbose = false) {
   return {
     spinners: {} as Record<string, SpinnerResult>,
     intro(message: string): void {
@@ -19,19 +19,22 @@ export function createOutput(format: OutputFormat = 'text') {
         cancel(message);
       }
     },
-    log(data: unknown, config?: { showAsTable?: boolean; tableProperties?: string[] }): void {
+    table(data: unknown, tableProperties?: string[]): void {
       if (format !== 'text') {
-        if (config?.showAsTable) {
-          console.log(this.format(data));
-          return;
-        }
-
-        console.log(this.format({ message: data }));
+        console.debug(formatData(data, format));
         return;
       }
 
-      if (config?.showAsTable) {
-        console.table(data, config.tableProperties);
+      console.table(data, tableProperties);
+    },
+    debug(data: string): void {
+      if (verbose) {
+        this.info(data);
+      }
+    },
+    log(data: unknown): void {
+      if (format !== 'text') {
+        console.log(formatData({ message: data }, format));
         return;
       }
 
@@ -39,7 +42,7 @@ export function createOutput(format: OutputFormat = 'text') {
     },
     success(message: string): void {
       if (format !== 'text') {
-        console.log(this.format({ success: message }));
+        console.log(formatData({ success: message }, format));
         return;
       }
 
@@ -47,7 +50,7 @@ export function createOutput(format: OutputFormat = 'text') {
     },
     info(message: string): void {
       if (format !== 'text') {
-        console.log(this.format({ info: message }));
+        console.log(formatData({ info: message }, format));
         return;
       }
 
@@ -55,7 +58,7 @@ export function createOutput(format: OutputFormat = 'text') {
     },
     error(message: string): void {
       if (format !== 'text') {
-        console.log(this.format({ error: message }));
+        console.log(formatData({ error: message }, format));
         return;
       }
 
@@ -63,14 +66,11 @@ export function createOutput(format: OutputFormat = 'text') {
     },
     warning(message: string): void {
       if (format !== 'text') {
-        console.log(this.format({ warning: message }));
+        console.log(formatData({ warning: message }, format));
         return;
       }
 
       log.warning(message);
-    },
-    format(data: unknown): string {
-      return formatData(data, format);
     },
     spinner(
       identifier: string,

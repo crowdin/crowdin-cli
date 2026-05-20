@@ -15,8 +15,8 @@ import {
 } from './services.ts';
 import type { CommandDef } from './types.ts';
 
-const getConfig = createGetConfig();
 const getOutput = createGetOutput();
+const getConfig = createGetConfig(getOutput);
 const getApiClient = createGetApiClient(getConfig);
 const getProjectService = createGetProjectService(getApiClient, getOutput, getConfig);
 const getStorageService = createGetStorageService(getApiClient);

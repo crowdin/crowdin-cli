@@ -6,13 +6,13 @@ import type { Config } from '../../../lib/config.ts';
 import CliError, { toCliError } from '../../errors/CliError.ts';
 import type { GlobalOptions } from '../../options.ts';
 import type { ProjectService } from '../../services/ProjectService.ts';
+import type { StorageService } from '../../services/StorageService.ts';
 import type { CommandDef } from '../../types.ts';
 import type { Output } from '../../utils/output.ts';
 import destination from './options/destination.ts';
 import label from './options/label.ts';
 import parserVersion from './options/parserVersion.ts';
 import type from './options/type.ts';
-import type { StorageService } from '../../services/StorageService.ts';
 
 interface UploadFileCommandOptions extends GlobalOptions {
   dest?: string;
@@ -106,9 +106,8 @@ export default class FileCommand {
     await projectService.loadProject();
     const projectFiles = await projectService.loadProjectFiles();
 
-    output.log(
+    output.table(
       projectFiles.data.map((file) => ({ id: file.data.id, path: file.data.path })),
-      { showAsTable: true },
     );
   };
 

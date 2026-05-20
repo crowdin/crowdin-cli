@@ -59,7 +59,7 @@ describe('FileCommand', () => {
     return new FileCommand(
       async (command: Command) => ({
         ...config,
-        basePath: (command.optsWithGlobals() as any).basePath || tempDir,
+        basePath: (command.optsWithGlobals() as unknown).basePath || tempDir,
       }),
       () => output,
       async () => projectService,
@@ -90,7 +90,7 @@ describe('FileCommand', () => {
 
     await fileCommand.listAction(commandContext);
 
-    expect(console.log).toHaveBeenCalledWith(
+    expect(console.table).toHaveBeenCalledWith(
       JSON.stringify(
         [
           { id: 1, path: '/docs/readme.md' },
