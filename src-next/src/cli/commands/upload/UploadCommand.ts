@@ -5,9 +5,19 @@ import SourceFileLoader from '../../../lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '../../../lib/config/translationPathResolver.ts';
 import type { Config } from '../../../lib/config.ts';
 import type { ProjectService } from '../../services/ProjectService.ts';
+import type { StorageService } from '../../services/StorageService.ts';
 import type { CommandDef } from '../../types.ts';
 import type { Output } from '../../utils/output.ts';
-import type { StorageService } from '../../services/StorageService.ts';
+import dryRun from '../common/options/dryRun.ts';
+import language from '../project/options/language.ts';
+import branch from './options/branch.ts';
+import deleteObsolete from './options/deleteObsolete.ts';
+import excludedLanguage from './options/excludedLanguage.ts';
+import label from './options/label.ts';
+import noAutoApproveImported from './options/noAutoApproveImported.ts';
+import noAutoUpdate from './options/noAutoUpdate.ts';
+import noImportEqSuggestions from './options/noImportEqSuggestions.ts';
+import noTranslateHidden from './options/noTranslateHidden.ts';
 
 type GetConfig = (command: Command) => Promise<Config>;
 type GetOutput = (command: Command) => Output;
@@ -30,16 +40,19 @@ export default class UploadCommand {
       name: 'upload',
       alias: 'push',
       description: 'Upload source files to a Crowdin project',
+      options: [branch, label, deleteObsolete, noAutoUpdate, excludedLanguage, dryRun],
       action: this.defaultAction,
       subcommands: [
         {
           name: 'sources',
           description: 'Upload source files to a Crowdin project',
+          options: [branch, label, deleteObsolete, noAutoUpdate, excludedLanguage, dryRun],
           action: this.uploadSourcesAction,
         },
         {
           name: 'translations',
           description: 'Upload translation files to a Crowdin project',
+          options: [language, noAutoApproveImported, noImportEqSuggestions, noTranslateHidden, branch, dryRun],
           action: this.uploadTranslationsAction,
         },
       ],

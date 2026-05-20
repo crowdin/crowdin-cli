@@ -11,11 +11,12 @@ import type { Output } from '../../utils/output.ts';
 import basePath from './options/basePath.ts';
 import baseUrl from './options/baseUrl.ts';
 import destination from './options/destination.ts';
-import preserveHierarchy from './options/preserveHierarchy.ts';
+import noPreserveHierarchy from './options/noPreserveHierarchy.ts';
 import projectId from './options/projectId.ts';
 import source from './options/source.ts';
 import token from './options/token.ts';
 import translation from './options/translation.ts';
+import { BooleanInt } from '@crowdin/crowdin-api-client/out/core';
 
 interface InitCommandOptions extends GlobalOptions {
   destination?: string;
@@ -41,7 +42,16 @@ export default class InitCommand {
       name: 'init',
       description: 'Generate Crowdin CLI configuration skeleton',
       action: this.defaultAction,
-      options: [destination, token, projectId, basePath, baseUrl, source, translation, preserveHierarchy],
+      options: [
+        destination,
+        token,
+        projectId,
+        basePath,
+        baseUrl,
+        source,
+        translation,
+        noPreserveHierarchy,
+      ],
     };
   }
 
@@ -81,7 +91,7 @@ export default class InitCommand {
         apiToken,
         basePath: projectDirectory,
         baseUrl: options.baseUrl,
-        preserveHierarchy: options.preserveHierarchy,
+        preserveHierarchy: options.preserveHierarchy ?? true,
         files: [
           {
             source: sourcePattern,
@@ -188,7 +198,7 @@ export default class InitCommand {
     let projectId = options.projectId || null;
 
     if (projectId === null) {
-      const projects = await apiClient.listProjects(true);
+      const projects = await apiClient.listProjects(true, 0, 500);
       projectId = (await select({
         message: 'Select project:',
         options: projects.data.map((project) => ({

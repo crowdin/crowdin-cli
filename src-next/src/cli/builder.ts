@@ -5,6 +5,7 @@ import { colors } from './utils/colors.ts';
 
 export function getHelpConfig() {
   return {
+    showGlobalOptions: true,
     styleTitle: (str: string) => colors.bold(str),
     styleCommandText: (str: string) => colors.cyan(str),
     styleOptionText: (str: string) => {
@@ -29,15 +30,16 @@ export function buildCommand(def: CommandDef): Command {
   const cmd = new Command(def.name);
 
   cmd.description(def.description);
+  cmd.helpOption('-h, --help', 'Display help message and exit');
   cmd.configureHelp(getHelpConfig());
 
   if (def.alias) {
     cmd.alias(def.alias);
   }
 
-  for (const opt of getGlobalOptions()) {
-    cmd.addOption(buildOption(opt));
-  }
+  // for (const opt of getGlobalOptions()) {
+  //   cmd.addOption(buildOption(opt));
+  // }
 
   def.options?.forEach((opt) => {
     cmd.addOption(buildOption(opt));
@@ -81,6 +83,10 @@ export function buildOption(opt: OptionDef): Option {
 
   if (opt.choices) {
     option.choices(opt.choices);
+  }
+
+  if (opt.hidden) {
+    option.hideHelp();
   }
 
   return option;

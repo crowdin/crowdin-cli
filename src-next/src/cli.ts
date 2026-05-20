@@ -19,12 +19,11 @@ function createProgram(): Command {
 
   program
     .name(name)
-    .version(version)
+    .version(version, '-V, --version', 'Display version information and exit')
     .description(description)
+    .helpOption('-h, --help', 'Display help message and exit')
     .configureHelp(getHelpConfig())
-    .action(() => {
-      program.help();
-    });
+    .action(() => program.help());
 
   for (const opt of getGlobalOptions()) {
     program.addOption(buildOption(opt));

@@ -1,7 +1,7 @@
 import type { OptionDef } from '../../../types.ts';
 
 export default {
-  name: 'dry-run',
+  name: 'no-translate-hidden',
   type: 'boolean',
-  description: 'Print a command output without execution',
+  description: 'Upload translations to hidden source strings',
 } as OptionDef;

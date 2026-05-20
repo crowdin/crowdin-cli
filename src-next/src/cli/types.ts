@@ -11,6 +11,7 @@ export interface OptionDef {
   name: string;
   description: string;
   type: 'string' | 'boolean' | 'number';
+  hidden?: boolean;
   short?: string;
   required?: boolean;
   variadic?: boolean;

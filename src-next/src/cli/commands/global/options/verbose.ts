@@ -5,5 +5,4 @@ export default {
   short: 'v',
   type: 'boolean',
   description: 'Provide more information about command execution',
-  default: false,
 } as OptionDef;

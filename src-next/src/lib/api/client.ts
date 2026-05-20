@@ -19,8 +19,12 @@ export default class Client {
     return await this.apiClient.usersApi.getAuthenticatedUser();
   }
 
-  async listProjects(_hasManagerAccess: boolean = true, _offset: number = 0, _limit: number = 25) {
-    return await this.apiClient.projectsGroupsApi.listProjects();
+  async listProjects(hasManagerAccess: boolean = true, offset: number = 0, limit: number = 25) {
+    return await this.apiClient.projectsGroupsApi.listProjects({
+      hasManagerAccess: +hasManagerAccess,
+      offset,
+      limit
+    });
   }
 
   async addProject(

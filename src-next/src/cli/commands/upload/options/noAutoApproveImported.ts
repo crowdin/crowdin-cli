@@ -1,7 +1,7 @@
 import type { OptionDef } from '../../../types.ts';
 
 export default {
-  name: 'dry-run',
+  name: 'no-auto-approve-imported',
   type: 'boolean',
-  description: 'Print a command output without execution',
+  description: 'Approve added translations automatically',
 } as OptionDef;
