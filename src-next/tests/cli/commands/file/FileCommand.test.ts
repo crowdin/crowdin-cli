@@ -5,11 +5,12 @@ import { join } from 'node:path';
 import type { Command } from 'commander';
 import FileCommand from '../../../../src/cli/commands/file/FileCommand.ts';
 import CliError from '../../../../src/cli/errors/CliError.ts';
+import type { GlobalOptions } from '../../../../src/cli/options.ts';
 import { ProjectService } from '../../../../src/cli/services/ProjectService.ts';
+import { StorageService } from '../../../../src/cli/services/StorageService.ts';
 import { createOutput, type Output } from '../../../../src/cli/utils/output.ts';
 import Client from '../../../../src/lib/api/client.ts';
 import type { Config } from '../../../../src/lib/config.ts';
-import { StorageService } from '../../../../src/cli/services/StorageService.ts';
 
 const config: Config = {
   projectId: 123,
@@ -32,19 +33,37 @@ describe('FileCommand', () => {
   let output: Output;
   let projectService: ProjectService;
   let storageService: StorageService;
+  const globalOptions: GlobalOptions = {
+    verbose: false,
+    config: '',
+    colors: false,
+    progress: false,
+    format: 'json',
+  };
+
+  type FileTestOptions = GlobalOptions & {
+    basePath?: string;
+    dest?: string;
+    type?: string;
+    parserVersion?: string;
+  };
+
+  const createCommandContext = (options: FileTestOptions, args: string[] = []) => {
+    return {
+      optsWithGlobals: () => options,
+      args,
+    } as unknown as Command & { args?: string[] };
+  };
 
   beforeEach(async () => {
     tempDir = await mkdtemp(join(tmpdir(), 'crowdin-file-command-'));
 
     apiClient = new Client({ token: config.apiToken });
-    output = createOutput('json');
+    output = createOutput(globalOptions);
     projectService = new ProjectService(apiClient, output, config.projectId);
     storageService = new StorageService(apiClient);
 
-    commandContext = {
-      optsWithGlobals: () => ({ format: 'json' }),
-      args: [],
-    } as Command & { args?: string[] };
+    commandContext = createCommandContext(globalOptions);
 
     spyOn(console, 'log').mockImplementation(() => {});
     spyOn(console, 'table').mockImplementation(() => {});
@@ -59,7 +78,7 @@ describe('FileCommand', () => {
     return new FileCommand(
       async (command: Command) => ({
         ...config,
-        basePath: (command.optsWithGlobals() as unknown).basePath || tempDir,
+        basePath: (command as unknown as { optsWithGlobals: () => FileTestOptions }).optsWithGlobals().basePath || tempDir,
       }),
       () => output,
       async () => projectService,
@@ -71,7 +90,7 @@ describe('FileCommand', () => {
   test('delegates default action to command help', async () => {
     const fileCommand = createFileCommand();
     const help = mock(() => {});
-    const helpCommand = { help, optsWithGlobals: () => ({}) } as Command;
+    const helpCommand = { help, optsWithGlobals: () => ({}) } as unknown as Command;
 
     await fileCommand.defaultAction(helpCommand);
 
@@ -90,7 +109,7 @@ describe('FileCommand', () => {
 
     await fileCommand.listAction(commandContext);
 
-    expect(console.table).toHaveBeenCalledWith(
+    expect(console.log).toHaveBeenCalledWith(
       JSON.stringify(
         [
           { id: 1, path: '/docs/readme.md' },
@@ -119,16 +138,16 @@ describe('FileCommand', () => {
     } as never);
     const addProjectFile = spyOn(apiClient, 'addProjectFile').mockResolvedValue({ data: { id: 777 } } as never);
 
-    commandContext = {
-      ...commandContext,
-      optsWithGlobals: () => ({
+    commandContext = createCommandContext(
+      {
+        ...globalOptions,
         format: 'json',
         dest: 'nested/translations/remote.json',
         type: 'json',
         parserVersion: '2',
-      }),
-      args: [localFilePath],
-    } as Command & { args?: string[] };
+      },
+      [localFilePath],
+    );
 
     await fileCommand.uploadAction(commandContext);
 
@@ -143,11 +162,10 @@ describe('FileCommand', () => {
   test('requires file type when parser version provided', async () => {
     const fileCommand = createFileCommand();
 
-    commandContext = {
-      ...commandContext,
-      optsWithGlobals: () => ({ format: 'json', parserVersion: '2' }),
-      args: ['example.json'],
-    } as Command & { args?: string[] };
+    commandContext = createCommandContext(
+      { ...globalOptions, parserVersion: '2' },
+      ['example.json'],
+    );
 
     expect(fileCommand.uploadAction(commandContext)).rejects.toThrow(
       new CliError('Type is required for parser version')
@@ -171,11 +189,10 @@ describe('FileCommand', () => {
     } as never);
     spyOn(globalThis, 'fetch').mockResolvedValue(new Response('downloaded content'));
 
-    commandContext = {
-      ...commandContext,
-      optsWithGlobals: () => ({ format: 'json', dest: 'downloads' }),
-      args: ['docs/readme.md'],
-    } as Command & { args?: string[] };
+    commandContext = createCommandContext(
+      { ...globalOptions, dest: 'downloads' },
+      ['docs/readme.md'],
+    );
 
     await fileCommand.downloadAction(commandContext);
 
@@ -193,11 +210,7 @@ describe('FileCommand', () => {
     } as never);
     const deleteProjectFile = spyOn(apiClient, 'deleteProjectFile').mockResolvedValue(undefined as never);
 
-    commandContext = {
-      ...commandContext,
-      optsWithGlobals: () => ({ format: 'json' }),
-      args: ['docs/readme.md'],
-    } as Command & { args?: string[] };
+    commandContext = createCommandContext(globalOptions, ['docs/readme.md']);
 
     await fileCommand.deleteAction(commandContext);
 

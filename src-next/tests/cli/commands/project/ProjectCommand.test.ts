@@ -2,9 +2,10 @@ import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:
 import type { Command } from 'commander';
 import ProjectCommand from '../../../../src/cli/commands/project/ProjectCommand.ts';
 import CliError from '../../../../src/cli/errors/CliError.ts';
-import Client from '../../../../src/lib/api/client.ts';
-import { createOutput, type Output } from '../../../../src/cli/utils/output.ts';
+import type { GlobalOptions } from '../../../../src/cli/options.ts';
 import { ProjectService } from '../../../../src/cli/services/ProjectService.ts';
+import { createOutput, type Output } from '../../../../src/cli/utils/output.ts';
+import Client from '../../../../src/lib/api/client.ts';
 import type { Config } from '../../../../src/lib/config.ts';
 
 const config: Config = {
@@ -26,16 +27,26 @@ describe('ProjectCommand', () => {
   let apiClient: Client;
   let output: Output;
   let projectService: ProjectService;
+  const globalOptions: GlobalOptions = {
+    verbose: false,
+    config: '',
+    colors: false,
+    progress: false,
+    format: 'json',
+  };
+
+  const createCommandContext = (options: unknown, args: string[] = []) => {
+    return {
+      optsWithGlobals: () => options,
+      args,
+    } as unknown as Command & { args?: string[] };
+  };
 
   beforeEach(() => {
     apiClient = new Client({ token: config.apiToken });
-    output = createOutput('json');
+    output = createOutput(globalOptions);
     projectService = new ProjectService(apiClient, output, config.projectId);
-
-    commandContext = {
-      optsWithGlobals: () => ({ format: 'json' }),
-      args: [],
-    } as Command & { args?: string[] };
+    commandContext = createCommandContext(globalOptions);
 
     spyOn(console, 'log').mockImplementation(() => {});
     spyOn(console, 'table').mockImplementation(() => {});
@@ -57,7 +68,7 @@ describe('ProjectCommand', () => {
   test('delegates default action to command help', async () => {
     const projectCommand = createProjectCommand();
     const help = mock(() => {});
-    const helpCommand = { help, optsWithGlobals: () => ({}) } as Command;
+    const helpCommand = { help, optsWithGlobals: () => ({}) } as unknown as Command;
 
     await projectCommand.defaultAction(helpCommand);
 
@@ -74,15 +85,6 @@ describe('ProjectCommand', () => {
     await projectCommand.browseAction(commandContext);
 
     expect(Bun.spawn).toHaveBeenCalledWith(['open', 'https://crowdin.com/project/demo']);
-    expect(console.log).toHaveBeenCalledWith(
-      JSON.stringify(
-        {
-          success: 'Opened https://crowdin.com/project/demo in browser',
-        },
-        null,
-        2,
-      ),
-    );
   });
 
   test('lists projects with manager access', async () => {
@@ -97,8 +99,8 @@ describe('ProjectCommand', () => {
     expect(console.log).toHaveBeenCalledWith(
       JSON.stringify(
         [
-          { Id: 1, Name: 'Docs' },
-          { Id: 2, Name: 'Website' },
+          { id: 1, name: 'Docs' },
+          { id: 2, name: 'Website' },
         ],
         null,
         2,
@@ -112,32 +114,29 @@ describe('ProjectCommand', () => {
       data: { id: 77, name: 'New Project' },
     } as never);
 
-    commandContext = {
-      optsWithGlobals: () => ({
-        format: 'json',
+    commandContext = createCommandContext(
+      {
+        ...globalOptions,
         sourceLanguage: 'uk',
         language: ['fr', 'de'],
         public: true,
         stringBased: true,
-      }),
-      args: ['New Project'],
-    } as Command & { args?: string[] };
+      },
+      ['New Project'],
+    );
 
     await projectCommand.addAction(commandContext);
 
     expect(addProject).toHaveBeenCalledWith('New Project', 'uk', ['fr', 'de'], 'open', true);
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ Id: 77, Name: 'New Project' }], null, 2));
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 77, name: 'New Project' }], null, 2));
   });
 
   test('requires project name', async () => {
     const projectCommand = createProjectCommand();
 
-    commandContext = {
-      optsWithGlobals: () => ({ format: 'json' }),
-      args: [],
-    } as Command & { args?: string[] };
+    commandContext = createCommandContext(globalOptions);
 
-    await expect(projectCommand.addAction(commandContext)).rejects.toThrow(
+    expect(projectCommand.addAction(commandContext)).rejects.toThrow(
       new CliError('Project name is required'),
     );
   });

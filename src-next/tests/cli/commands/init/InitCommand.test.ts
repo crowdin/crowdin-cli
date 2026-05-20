@@ -2,9 +2,9 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { Command } from 'commander';
 import InitCommand from '../../../../src/cli/commands/init/InitCommand.ts';
 import { createOutput } from '../../../../src/cli/utils/output.ts';
-import type { Command } from 'commander';
 
 describe('InitCommand', () => {
   let previousCwd: string;
@@ -22,7 +22,15 @@ describe('InitCommand', () => {
   });
 
   test('writes config skeleton from provided options', async () => {
-    const command = new InitCommand(() => createOutput('json')) as InitCommand & Record<string, unknown>;
+    const globalOptions = {
+      verbose: false,
+      config: '',
+      colors: false,
+      progress: false,
+      format: 'json',
+      destination: 'crowdin.yml',
+    };
+    const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
     const apiToken = 'a'.repeat(80);
     const destination = 'crowdin.test.yml';
 
@@ -37,11 +45,7 @@ describe('InitCommand', () => {
 
     const commandContext = {
       optsWithGlobals: () => ({
-        verbose: false,
-        config: '',
-        colors: false,
-        progress: false,
-        format: 'text',
+        ...globalOptions,
         destination,
         token: apiToken,
         projectId: 321,
@@ -67,7 +71,16 @@ describe('InitCommand', () => {
   });
 
   test('does not overwrite existing config file', async () => {
-    const command = new InitCommand(() => createOutput('json')) as InitCommand & Record<string, unknown>;
+    const globalOptions = {
+      verbose: false,
+      config: '',
+      colors: false,
+      progress: false,
+      format: 'json',
+      destination: 'crowdin.yml',
+    };
+
+    const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
     const configPath = join(tempDir, 'crowdin.yml');
 
     await Bun.write(configPath, 'existing config');
@@ -86,14 +99,7 @@ describe('InitCommand', () => {
     };
 
     const commandContext = {
-      optsWithGlobals: () => ({
-        verbose: false,
-        config: '',
-        colors: false,
-        progress: false,
-        format: 'text',
-        destination: 'crowdin.yml',
-      }),
+      optsWithGlobals: () => (globalOptions),
     } as Command;
 
     await command.defaultAction(commandContext);
