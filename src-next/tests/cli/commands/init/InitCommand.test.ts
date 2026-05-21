@@ -9,6 +9,14 @@ import { createOutput } from '../../../../src/cli/utils/output.ts';
 describe('InitCommand', () => {
   let previousCwd: string;
   let tempDir: string;
+  const globalOptions = {
+    verbose: false,
+    config: '',
+    colors: false,
+    progress: false,
+    format: 'json',
+    destination: 'crowdin.yml',
+  };
 
   beforeEach(async () => {
     previousCwd = process.cwd();
@@ -22,14 +30,6 @@ describe('InitCommand', () => {
   });
 
   test('writes config skeleton from provided options', async () => {
-    const globalOptions = {
-      verbose: false,
-      config: '',
-      colors: false,
-      progress: false,
-      format: 'json',
-      destination: 'crowdin.yml',
-    };
     const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
     const apiToken = 'a'.repeat(80);
     const destination = 'crowdin.test.yml';
@@ -38,6 +38,8 @@ describe('InitCommand', () => {
     command.authorizeViaBrowser = async () => {
       throw new Error('authorizeViaBrowser should not be called when token option is provided');
     };
+    // @ts-expect-error
+    command.isEnterprise = async () => false;
     // @ts-expect-error
     command.getAuthorizedUser = async () => ({ data: { id: 1 } });
     // @ts-expect-error
@@ -68,6 +70,70 @@ describe('InitCommand', () => {
     expect(config).toContain('"preserve_hierarchy": false');
     expect(config).toContain('"source": "/src/**/*.json"');
     expect(config).toContain('"translation": "/locale/%locale%/%original_file_name%"');
+  });
+
+  test('writes enterprise base url from provided organization url', async () => {
+    const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
+    const apiToken = 'a'.repeat(80);
+    const destination = 'crowdin.enterprise.yml';
+
+    // @ts-expect-error
+    command.authorizeViaBrowser = async () => {
+      throw new Error('authorizeViaBrowser should not be called when token option is provided');
+    };
+    // @ts-expect-error
+    command.isEnterprise = async () => {
+      throw new Error('isEnterprise should not be called when baseUrl contains organization');
+    };
+    // @ts-expect-error
+    command.getAuthorizedUser = async () => ({ data: { id: 1 } });
+    // @ts-expect-error
+    command.selectProject = async () => ({ data: { id: 987 } });
+
+    const commandContext = {
+      optsWithGlobals: () => ({
+        ...globalOptions,
+        destination,
+        token: apiToken,
+        projectId: 987,
+        basePath: '.',
+        baseUrl: 'https://enterprise.crowdin.com',
+        source: '/src/**/*.json',
+        translation: '/locale/%locale%/%original_file_name%',
+        preserveHierarchy: true,
+      }),
+    } as Command;
+
+    await command.defaultAction(commandContext);
+
+    const config = await Bun.file(join(tempDir, destination)).text();
+
+    expect(config).toContain('"project_id": "987"');
+    expect(config).toContain('"base_url": "https://enterprise.api.crowdin.com"');
+  });
+
+  test('extracts enterprise domain from base url like java implementation', () => {
+    const command = new InitCommand(() => createOutput(globalOptions)) as unknown as {
+      extractEnterpriseDomainFromUrl(baseUrl: string): string | undefined;
+    };
+
+    const cases: Array<[string, string | undefined]> = [
+      ['https://Daanya.crowdin.com', 'Daanya'],
+      ['https://Daanya.api.crowdin.com', 'Daanya'],
+      ['https://crowdin.com', undefined],
+      ['https://api.crowdin.com', undefined],
+      ['https://apicustom.crowdin.com', 'apicustom'],
+      ['https://apicustom.api.crowdin.com', 'apicustom'],
+      ['andriy.crowdin.com', 'andriy'],
+      ['https://organizzzation.daanya.crowdin.dev', 'organizzzation'],
+      ['https://daanya.crowdin.dev', undefined],
+      ['https://98011165-2619304c.test.crowdin.com', undefined],
+      ['https://myorg.e-test.crowdin.com', 'myorg'],
+    ];
+
+    for (const [baseUrl, expected] of cases) {
+      expect(command.extractEnterpriseDomainFromUrl(baseUrl)).toBe(expected);
+    }
   });
 
   test('does not overwrite existing config file', async () => {

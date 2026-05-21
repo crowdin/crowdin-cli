@@ -1,8 +1,8 @@
 import { confirm, isCancel, select, text } from '@clack/prompts';
 import type { Command } from 'commander';
+import { decodeJwt } from 'jose';
 import Client from '../../../lib/api/client.ts';
 import { generate } from '../../../lib/config/yamlGenerator.ts';
-import { ConfigSchema } from '../../../lib/config.ts';
 import patterns from '../../../lib/export/patterns.ts';
 import CliError from '../../errors/CliError.ts';
 import type { GlobalOptions } from '../../options.ts';
@@ -16,17 +16,16 @@ import projectId from './options/projectId.ts';
 import source from './options/source.ts';
 import token from './options/token.ts';
 import translation from './options/translation.ts';
-import { BooleanInt } from '@crowdin/crowdin-api-client/out/core';
 
 interface InitCommandOptions extends GlobalOptions {
-  destination?: string;
+  destination: string;
   token?: string;
   projectId?: number;
   basePath?: string;
-  baseUrl?: string;
+  baseUrl: string;
   source?: string;
   translation?: string;
-  preserveHierarchy?: boolean;
+  preserveHierarchy: boolean;
 }
 
 type GetOutput = (command: Command) => Output;
@@ -58,7 +57,7 @@ export default class InitCommand {
   defaultAction = async (command: Command) => {
     const options = command.optsWithGlobals() as InitCommandOptions;
     const output = this.getOutput(command);
-    const configFilePath = `${process.cwd()}/${options.destination ?? 'crowdin.yml'}`;
+    const configFilePath = `${process.cwd()}/${options.destination}`;
 
     output.intro(`Generating Crowdin CLI configuration skeleton '${configFilePath}'`);
 
@@ -71,13 +70,24 @@ export default class InitCommand {
       return;
     }
 
-    let apiToken: string | null = options.token ?? (await this.authorizeViaBrowser(output));
+    let apiToken: string | undefined = options.token ?? undefined;
+    let domain: string | undefined = options.baseUrl ? this.extractEnterpriseDomainFromUrl(options.baseUrl) : undefined;
 
-    if (apiToken === null) {
+    if (apiToken === undefined) {
+      const authorization = await this.authorizeViaBrowser(output);
+      apiToken = authorization?.accessToken ?? undefined;
+      domain = authorization?.domain ?? undefined;
+    }
+
+    if (domain === undefined && await this.isEnterprise(output)) {
+      domain = await this.getEnterpriseDomain(output);
+    }
+
+    if (apiToken === undefined) {
       apiToken = await this.getToken(output);
     }
 
-    const apiClient = new Client({ token: apiToken });
+    const apiClient = new Client({ token: apiToken, organization: domain });
     await this.getAuthorizedUser(apiClient, output);
 
     const project = await this.selectProject(apiClient, options, output);
@@ -85,21 +95,19 @@ export default class InitCommand {
     const sourcePattern = await this.selectSourcePattern(options, output);
     const translationPattern = await this.selectTranslationPattern(options, output);
 
-    const config = generate(
-      ConfigSchema.parse({
-        projectId: project.data.id,
-        apiToken,
-        basePath: projectDirectory,
-        baseUrl: options.baseUrl,
-        preserveHierarchy: options.preserveHierarchy ?? true,
-        files: [
-          {
-            source: sourcePattern,
-            translation: translationPattern,
-          },
-        ],
-      }),
-    );
+    const config = generate({
+      projectId: project.data.id,
+      apiToken,
+      basePath: projectDirectory,
+      baseUrl: domain ? `https://${domain}.api.crowdin.com` : options.baseUrl,
+      preserveHierarchy: options.preserveHierarchy,
+      files: [
+        {
+          source: sourcePattern,
+          translation: translationPattern,
+        },
+      ],
+    });
 
     await Bun.write(configFilePath, config);
 
@@ -134,7 +142,7 @@ export default class InitCommand {
       `response_type=token&` +
       `scope=project`;
 
-    return new Promise<string>((resolve, reject) => {
+    return new Promise<{ accessToken: string, domain: string | null }>((resolve, reject) => {
       const server = Bun.serve({
         port,
         hostname,
@@ -149,7 +157,10 @@ export default class InitCommand {
             server.stop();
 
             if (accessToken) {
-              resolve(accessToken);
+              const payload = decodeJwt(accessToken);
+              const domain = typeof payload.domain === 'string' ? payload.domain : null;
+
+              resolve({ accessToken, domain });
               return new Response(
                 '<h1 style="text-align: center">You have successfully authenticated.</h1>' +
                 '<p style="text-align: center;">You may now close this page.</p>',
@@ -174,6 +185,35 @@ export default class InitCommand {
     });
   }
 
+  private async isEnterprise(output: Output) {
+    const confirmation = await confirm({
+      message: 'For Crowdin Enterprise?',
+      initialValue: false
+    });
+    this.cancelHandler(confirmation, output);
+
+    return confirmation as boolean;
+  }
+
+  private async getEnterpriseDomain(output: Output) {
+    const domain = await text({ message: 'Your organization name:' });
+    this.cancelHandler(domain, output);
+
+    return domain as string;
+  }
+
+  private extractEnterpriseDomainFromUrl(baseUrl: string) {
+    const organization = baseUrl
+      .replace(/^https?:?\/?\/?/, '')
+      .replace(/(\.?[^.]+)?\.?crowdin\.dev(\/api\/v2)?\/?$/, '')
+      .replace(/\.?api\./g, '')
+      .replace(/\.?crowdin\.com(\/api\/v2)?\/?$/, '')
+      .replace(/.+\.test$/, '')
+      .replace(/\.e-test$/, '');
+
+    return organization.length === 0 ? undefined : organization;
+  }
+
   private async getAuthorizedUser(apiClient: Client, output: Output) {
     output.spinner('authorization', 'start', 'Authorizing...');
 
@@ -184,7 +224,7 @@ export default class InitCommand {
 
       return user;
     } catch (error) {
-      output.spinner('authorization', 'error', 'Authorized successfully');
+      output.spinner('authorization', 'error', 'Authorization failed');
 
       if (error instanceof Error) {
         throw new CliError(`Authorization failed. ${error.message}`, 1, true);
