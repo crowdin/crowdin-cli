@@ -136,7 +136,7 @@ module.exports = {
     [
       "@semantic-release/exec",
       {
-        "prepareCmd": "npm install"
+        "prepareCmd": "bun install"
       }
     ],
     [

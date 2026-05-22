@@ -19,6 +19,6 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["src/**/*.ts", "tests/**/*.ts"]
+    "includes": ["src-next/**/*.ts", "tests/**/*.ts"]
   }
 }

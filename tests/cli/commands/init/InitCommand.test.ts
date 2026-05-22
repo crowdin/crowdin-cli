@@ -3,8 +3,8 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Command } from 'commander';
-import InitCommand from '../../../../src/cli/commands/init/InitCommand.ts';
-import { createOutput } from '../../../../src/cli/utils/output.ts';
+import InitCommand from '../../../../src-next/cli/commands/init/InitCommand.ts';
+import { createOutput } from '../../../../src-next/cli/utils/output.ts';
 
 describe('InitCommand', () => {
   let previousCwd: string;
@@ -53,7 +53,7 @@ describe('InitCommand', () => {
         projectId: 321,
         basePath: '/workspace/app',
         baseUrl: 'https://api.crowdin.com',
-        source: '/src/**/*.json',
+        source: '/src-next/**/*.json',
         translation: '/locale/%locale%/%original_file_name%',
         preserveHierarchy: false,
       }),
@@ -68,7 +68,7 @@ describe('InitCommand', () => {
     expect(config).toContain('"base_path": "/workspace/app"');
     expect(config).toContain('"base_url": "https://api.crowdin.com"');
     expect(config).toContain('"preserve_hierarchy": false');
-    expect(config).toContain('"source": "/src/**/*.json"');
+    expect(config).toContain('"source": "/src-next/**/*.json"');
     expect(config).toContain('"translation": "/locale/%locale%/%original_file_name%"');
   });
 
@@ -98,7 +98,7 @@ describe('InitCommand', () => {
         projectId: 987,
         basePath: '.',
         baseUrl: 'https://enterprise.crowdin.com',
-        source: '/src/**/*.json',
+        source: '/src-next/**/*.json',
         translation: '/locale/%locale%/%original_file_name%',
         preserveHierarchy: true,
       }),

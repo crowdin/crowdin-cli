@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import { loadFromString } from '../../../src/lib/config/yamlLoader.ts';
-import { ConfigSchema } from '../../../src/lib/config.ts';
+import { loadFromString } from '../../../src-next/lib/config/yamlLoader.ts';
+import { ConfigSchema } from '../../../src-next/lib/config.ts';
 
 describe('config loader', () => {
   test('loads config', async () => {

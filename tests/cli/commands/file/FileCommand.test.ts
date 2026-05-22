@@ -3,14 +3,14 @@ import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Command } from 'commander';
-import FileCommand from '../../../../src/cli/commands/file/FileCommand.ts';
-import CliError from '../../../../src/cli/errors/CliError.ts';
-import type { GlobalOptions } from '../../../../src/cli/options.ts';
-import { ProjectService } from '../../../../src/cli/services/ProjectService.ts';
-import { StorageService } from '../../../../src/cli/services/StorageService.ts';
-import { createOutput, type Output } from '../../../../src/cli/utils/output.ts';
-import Client from '../../../../src/lib/api/client.ts';
-import type { Config } from '../../../../src/lib/config.ts';
+import FileCommand from '../../../../src-next/cli/commands/file/FileCommand.ts';
+import CliError from '../../../../src-next/cli/errors/CliError.ts';
+import type { GlobalOptions } from '../../../../src-next/cli/options.ts';
+import { ProjectService } from '../../../../src-next/cli/services/ProjectService.ts';
+import { StorageService } from '../../../../src-next/cli/services/StorageService.ts';
+import { createOutput, type Output } from '../../../../src-next/cli/utils/output.ts';
+import Client from '../../../../src-next/lib/api/client.ts';
+import type { Config } from '../../../../src-next/lib/config.ts';
 
 const config: Config = {
   projectId: 123,

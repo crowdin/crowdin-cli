@@ -114,39 +114,24 @@ jobs:
         working-directory: website
         run: npm run build
 
-  publish-test:
+  test-ts:
     needs: test
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-java@v5
+      - uses: oven-sh/setup-bun@v2
         with:
-          distribution: temurin
-          java-version: 17
-          cache: 'gradle'
+          bun-version: latest
 
-      - name: Prepare distribution
-        run: |
-          ./gradlew shadowJar
-          mkdir dist
-          mv build/libs/crowdin-cli-*.jar dist/crowdin-cli.jar
+      - name: Install dependencies
+        run: bun install
 
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24
+      - name: Run tests
+        run: bun test
 
-      - name: Install the latest version of the npm CLI
-        run: npm install -g npm@latest
-
-      - name: Build and install the package
-        run: |
-          sudo npm install --location=global jdeploy@6.0.20
-          npm install
-          jdeploy install
-
-      - name: Test crowdin command
-        run: crowdin -V
+      - name: Lint
+        run: bun run lint
 
   build-exe:
     runs-on: windows-latest

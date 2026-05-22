@@ -86,43 +86,25 @@ jobs:
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-java@v5
+      - uses: oven-sh/setup-bun@v2
         with:
-          distribution: temurin
-          java-version: 17
-          cache: 'gradle'
-
-      - name: Generate autocomplete script
-        run: |
-          ./gradlew shadowJar
-          cd build/libs
-          java -cp crowdin-cli-*.jar picocli.AutoComplete com.crowdin.cli.commands.picocli.RootCommand
-
-      - name: Prepare distribution
-        run: |
-          mkdir dist
-          mv build/libs/crowdin-cli-*.jar dist/crowdin-cli.jar
+          bun-version: latest
 
       - uses: actions/setup-node@v6
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
 
-      - name: Install the latest version of the npm CLI
-        run: npm install -g npm@latest
-
-      - name: Build and install the package
-        run: |
-          sudo npm install --location=global jdeploy@6.0.20
-          npm install
-          jdeploy install
-          mv build/libs/crowdin_completion jdeploy-bundle/crowdin_completion
+      - name: Install dependencies
+        run: bun install
 
       - name: Test crowdin command
-        run: crowdin -V
+        run: bun run src-next/cli.ts --version
 
       - name: Publish the package
-        run: npm stage publish --provenance
+        run: npm publish --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
   aur:
     runs-on: ubuntu-latest

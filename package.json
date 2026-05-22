@@ -1,9 +1,9 @@
 {
   "name": "@crowdin/cli",
+  "type": "module",
   "author": "Crowdin",
   "description": "Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project",
   "homepage": "https://crowdin.github.io/crowdin-cli",
-  "main": "index.js",
   "preferGlobal": true,
   "repository": {
     "type": "git",
@@ -11,23 +11,13 @@
   },
   "version": "4.14.3",
   "bin": {
-    "crowdin": "jdeploy-bundle/jdeploy.js"
+    "crowdin": "./src-next/cli.ts"
   },
-  "jdeploy": {
-    "jar": "dist/crowdin-cli.jar",
-    "javaVersion": "17"
-  },
-  "dependencies": {
-    "command-exists-promise": "^2.0.2",
-    "node-fetch": "2.7.0",
-    "shelljs": "^0.10.0",
-    "tar": "^7.5.2",
-    "yauzl": "^3.2.0"
-  },
-  "license": "MIT",
   "files": [
-    "jdeploy-bundle"
+    "src-next",
+    "tests"
   ],
+  "license": "MIT",
   "keywords": [
     "Crowdin",
     "CLI",
@@ -42,11 +32,38 @@
     "Synchronization",
     "Translation management"
   ],
+  "scripts": {
+    "dev": "bun run src-next/cli.ts",
+    "build": "bun build src-next/cli.ts --compile --outfile dist/crowdin",
+    "build-linux": "bun build src-next/cli.ts --compile --target=bun-linux-x64-baseline --outfile dist/crowdin-linux-x64-baseline",
+    "build-windows": "bun build src-next/cli.ts --compile --target=bun-windows-x64-modern --outfile dist/crowdin-windows-x64-modern",
+    "test": "bun test",
+    "format": "biome format --write",
+    "lint": "biome lint",
+    "check": "biome check --write"
+  },
+  "dependencies": {
+    "@bomb.sh/tab": "^0.0.14",
+    "@clack/prompts": "^1.4.0",
+    "@crowdin/crowdin-api-client": "^1.55.1",
+    "@toon-format/toon": "^2.1.0",
+    "@types/adm-zip": "^0.5.8",
+    "adm-zip": "^0.5.17",
+    "commander": "^14.0.3",
+    "jose": "^6.2.3",
+    "yaml": "^2.8.3",
+    "zod": "^4.3.6"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
   "devDependencies": {
-    "semantic-release-replace-plugin": "^1.2.7",
+    "@biomejs/biome": "^2.4.13",
+    "@types/bun": "latest",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
-    "semantic-release": "^25.0.2"
+    "semantic-release": "^25.0.2",
+    "semantic-release-replace-plugin": "^1.2.7"
   }
 }

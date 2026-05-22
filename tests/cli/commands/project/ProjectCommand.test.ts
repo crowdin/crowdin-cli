@@ -1,12 +1,12 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
 import type { Command } from 'commander';
-import ProjectCommand from '../../../../src/cli/commands/project/ProjectCommand.ts';
-import CliError from '../../../../src/cli/errors/CliError.ts';
-import type { GlobalOptions } from '../../../../src/cli/options.ts';
-import { ProjectService } from '../../../../src/cli/services/ProjectService.ts';
-import { createOutput, type Output } from '../../../../src/cli/utils/output.ts';
-import Client from '../../../../src/lib/api/client.ts';
-import type { Config } from '../../../../src/lib/config.ts';
+import ProjectCommand from '../../../../src-next/cli/commands/project/ProjectCommand.ts';
+import CliError from '../../../../src-next/cli/errors/CliError.ts';
+import type { GlobalOptions } from '../../../../src-next/cli/options.ts';
+import { ProjectService } from '../../../../src-next/cli/services/ProjectService.ts';
+import { createOutput, type Output } from '../../../../src-next/cli/utils/output.ts';
+import Client from '../../../../src-next/lib/api/client.ts';
+import type { Config } from '../../../../src-next/lib/config.ts';
 
 const config: Config = {
   projectId: 123,

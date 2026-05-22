@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { generate } from '../../../src/lib/config/yamlGenerator.ts';
+import { generate } from '../../../src-next/lib/config/yamlGenerator.ts';
 
 describe('config generator', () => {
   test('generates config', async () => {

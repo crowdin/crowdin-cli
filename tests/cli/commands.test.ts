@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { commands } from '../../src/cli/commands.ts';
+import { commands } from '../../src-next/cli/commands.ts';
 
 describe('command registry', () => {
   test('registers expected top-level commands with unique names', () => {
