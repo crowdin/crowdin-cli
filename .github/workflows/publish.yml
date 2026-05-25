@@ -122,7 +122,7 @@ jobs:
         run: crowdin -V
 
       - name: Publish the package
-        run: npm publish --provenance
+        run: npm stage publish --provenance
 
   aur:
     runs-on: ubuntu-latest
