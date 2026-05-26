@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import TranslationPathResolver from '../../../src-next/lib/config/translationPathResolver.ts';
-import { ConfigSchema } from '../../../src-next/lib/config.ts';
+import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
+import { ConfigSchema } from '@/lib/config.ts';
 
 describe('translation path resolver', () => {
   test('resolves path for export pattern', async () => {

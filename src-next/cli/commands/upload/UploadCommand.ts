@@ -1,9 +1,9 @@
 import path from 'node:path';
 import type { Command } from 'commander';
-import type Client from '../../../lib/api/client.ts';
-import SourceFileLoader from '../../../lib/config/sourceFileLoader.ts';
-import TranslationPathResolver from '../../../lib/config/translationPathResolver.ts';
-import type { Config } from '../../../lib/config.ts';
+import type Client from '@/lib/api/client.ts';
+import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
+import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
+import type { Config } from '@/lib/config.ts';
 import type { ProjectService } from '../../services/ProjectService.ts';
 import type { StorageService } from '../../services/StorageService.ts';
 import type { CommandDef } from '../../types.ts';

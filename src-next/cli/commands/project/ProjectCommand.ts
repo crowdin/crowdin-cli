@@ -1,5 +1,5 @@
 import type { Command } from 'commander';
-import type Client from '../../../lib/api/client.ts';
+import type Client from '@/lib/api/client.ts';
 import CliError, { toCliError } from '../../errors/CliError.ts';
 import type { GlobalOptions } from '../../options.ts';
 import type { ProjectService } from '../../services/ProjectService.ts';

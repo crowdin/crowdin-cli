@@ -1,9 +1,9 @@
 import { confirm, isCancel, select, text } from '@clack/prompts';
 import type { Command } from 'commander';
 import { decodeJwt } from 'jose';
-import Client from '../../../lib/api/client.ts';
-import { generate } from '../../../lib/config/yamlGenerator.ts';
-import patterns from '../../../lib/export/patterns.ts';
+import Client from '@/lib/api/client.ts';
+import { generate } from '@/lib/config/yamlGenerator.ts';
+import patterns from '@/lib/export/patterns.ts';
 import CliError from '../../errors/CliError.ts';
 import type { GlobalOptions } from '../../options.ts';
 import type { CommandDef } from '../../types.ts';

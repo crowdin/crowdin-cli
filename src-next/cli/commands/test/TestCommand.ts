@@ -1,7 +1,7 @@
 import type { Command } from 'commander';
 import CliError from '../../errors/CliError.ts';
 import type { GlobalOptions } from '../../options.ts';
-import type { Client } from '../../../lib/api/client.ts';
+import type { Client } from '@/lib/api/client.ts';
 import type { Output } from '../../utils/output.ts';
 import type { CommandDef } from '../../types.ts';
 

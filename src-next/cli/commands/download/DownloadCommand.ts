@@ -1,8 +1,8 @@
 import path from 'node:path';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
-import type Client  from '../../../lib/api/client.ts';
-import type { Config } from '../../../lib/config.ts';
+import type Client  from '@/lib/api/client.ts';
+import type { Config } from '@/lib/config.ts';
 import CliError, { toCliError } from '../../errors/CliError.ts';
 import type { GlobalOptions } from '../../options.ts';
 import type { ProjectService } from '../../services/ProjectService.ts';

@@ -1,4 +1,4 @@
-import type { OptionDef } from '../../../types.ts';
+import type { OptionDef } from '@/cli/types.ts';
 
 export default {
   name: 'type',

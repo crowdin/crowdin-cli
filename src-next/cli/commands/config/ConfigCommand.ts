@@ -1,9 +1,9 @@
 import type { Command } from 'commander';
 import { ZodError, z } from 'zod';
-import SourceFileLoader from '../../../lib/config/sourceFileLoader.ts';
-import TranslationPathResolver from '../../../lib/config/translationPathResolver.ts';
-import { loadFromFile } from '../../../lib/config/yamlLoader.ts';
-import type { Config } from '../../../lib/config.ts';
+import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
+import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
+import { loadFromFile } from '@/lib/config/yamlLoader.ts';
+import type { Config } from '@/lib/config.ts';
 import CliError from '../../errors/CliError.ts';
 import type { GlobalOptions } from '../../options.ts';
 import type { ProjectService } from '../../services/ProjectService.ts';

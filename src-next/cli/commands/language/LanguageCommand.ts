@@ -1,10 +1,10 @@
 import type { Command } from 'commander';
-import type Client from '../../../lib/api/client.ts';
-import CliError, { toCliError } from '../../errors/CliError.ts';
-import type { GlobalOptions } from '../../options.ts';
-import type { ProjectService } from '../../services/ProjectService.ts';
-import type { CommandDef } from '../../types.ts';
-import type { Output } from '../../utils/output.ts';
+import CliError, { toCliError } from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import type { ProjectService } from '@/cli/services/ProjectService.ts';
+import type { CommandDef } from '@/cli/types.ts';
+import type { Output } from '@/cli/utils/output.ts';
+import type Client from '@/lib/api/client.ts';
 import all from './options/all.ts';
 import code from './options/code.ts';
 

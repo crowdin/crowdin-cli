@@ -3,8 +3,8 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Command } from 'commander';
-import InitCommand from '../../../../src-next/cli/commands/init/InitCommand.ts';
-import { createOutput } from '../../../../src-next/cli/utils/output.ts';
+import InitCommand from '@/cli/commands/init/InitCommand.ts';
+import { createOutput } from '@/cli/utils/output.ts';
 
 describe('InitCommand', () => {
   let previousCwd: string;
