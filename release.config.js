@@ -146,7 +146,7 @@ module.exports = {
           "build.gradle",
           "src/main/resources/crowdin.properties",
           "package.json",
-          "package-lock.json",
+          "bun.lock",
           "packages/aur/pkgbuild/PKGBUILD",
           "packages/chocolatey/crowdin-cli.nuspec",
           "packages/chocolatey/tools/chocolateyinstall.ps1",

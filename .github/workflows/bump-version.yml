@@ -12,17 +12,16 @@ jobs:
           fetch-depth: 0
           persist-credentials: false
 
-      - uses: actions/setup-node@v6
+      - uses: oven-sh/setup-bun@v2
         with:
-          node-version: 24
-          cache: 'npm'
+          bun-version: latest
 
       - name: Install dependencies
-        run: npm install
+        run: bun install --frozen-lockfile
 
       - name: Bump version
         env:
           GITHUB_TOKEN: ${{ secrets.RELEASE_GH_TOKEN }}
         run: |
-          npx semantic-release
-          npx semantic-release --version
+          bunx semantic-release
+          bunx semantic-release --version
