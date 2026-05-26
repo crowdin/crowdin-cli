@@ -50,6 +50,30 @@ export default class Client {
     return await this.apiClient.translationStatusApi.getProjectProgress(projectId);
   }
 
+  async getBranchProgress(projectId: number, branchId: number): Promise<{ data: unknown[] }> {
+    const translationStatusApi = this.apiClient.translationStatusApi as unknown as {
+      getBranchProgress: (projectId: number, branchId: number) => Promise<{ data: unknown[] }>;
+    };
+
+    return await translationStatusApi.getBranchProgress(projectId, branchId);
+  }
+
+  async getFileProgress(projectId: number, fileId: number): Promise<{ data: unknown[] }> {
+    const translationStatusApi = this.apiClient.translationStatusApi as unknown as {
+      getFileProgress: (projectId: number, fileId: number) => Promise<{ data: unknown[] }>;
+    };
+
+    return await translationStatusApi.getFileProgress(projectId, fileId);
+  }
+
+  async getDirectoryProgress(projectId: number, directoryId: number): Promise<{ data: unknown[] }> {
+    const translationStatusApi = this.apiClient.translationStatusApi as unknown as {
+      getDirectoryProgress: (projectId: number, directoryId: number) => Promise<{ data: unknown[] }>;
+    };
+
+    return await translationStatusApi.getDirectoryProgress(projectId, directoryId);
+  }
+
   async listProjectLabels(projectId: number) {
     return await this.apiClient.labelsApi.listLabels(projectId);
   }
@@ -63,6 +87,14 @@ export default class Client {
 
   async listProjectDirectories(projectId: number) {
     return await this.apiClient.sourceFilesApi.listProjectDirectories(projectId);
+  }
+
+  async listProjectBranches(projectId: number): Promise<{ data: unknown[] }> {
+    const sourceFilesApi = this.apiClient.sourceFilesApi as unknown as {
+      listProjectBranches: (projectId: number) => Promise<{ data: unknown[] }>;
+    };
+
+    return await sourceFilesApi.listProjectBranches(projectId);
   }
 
   async addProjectFile(

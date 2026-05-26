@@ -4,15 +4,35 @@ import type { GlobalOptions } from '../../options.ts';
 import type { ProjectService } from '../../services/ProjectService.ts';
 import type { CommandDef } from '../../types.ts';
 import type { Output } from '../../utils/output.ts';
+import branch from '../upload/options/branch.ts';
+import directory from './options/directory.ts';
+import failIfIncompleteProofreading from './options/failIfIncompleteProofreading.ts';
+import failIfIncompleteStatus from './options/failIfIncompleteStatus.ts';
+import failIfIncompleteTranslation from './options/failIfIncompleteTranslation.ts';
+import file from './options/file.ts';
 import language from './options/language.ts';
 
 interface StatusCommandOptions extends GlobalOptions {
   language?: string;
+  branch?: string;
+  file?: string;
+  directory?: string;
+  failIfIncomplete?: boolean;
 }
 
 type ProgressView = 'all' | 'translated' | 'proofread';
 type GetOutput = (command: Command) => Output;
 type GetProjectService = (command: Command) => Promise<ProjectService>;
+type LanguageProgressEntry = {
+  data: {
+    languageId: string;
+    translationProgress: number;
+    approvalProgress: number;
+    words?: {
+      total?: number;
+    };
+  };
+};
 
 export default class StatusCommand {
   constructor(
@@ -23,20 +43,20 @@ export default class StatusCommand {
   getDefinition(): CommandDef {
     return {
       name: 'status',
-      description: 'Show translation and proofreading progress',
+      description: 'Show translation and proofreading progress for a project',
       action: this.defaultAction,
-      options: [language],
+      options: [language, branch, file, directory, failIfIncompleteStatus],
       subcommands: [
         {
           name: 'translation',
-          description: 'Show translation progress',
-          options: [language],
+          description: 'Show translation progress for a project',
+          options: [language, branch, file, directory, failIfIncompleteTranslation],
           action: this.translationStatusAction,
         },
         {
           name: 'proofreading',
-          description: 'Show proofreading progress',
-          options: [language],
+          description: 'Show proofreading progress for a project',
+          options: [language, branch, file, directory, failIfIncompleteProofreading],
           action: this.proofreadingStatusAction,
         },
       ],
@@ -61,26 +81,81 @@ export default class StatusCommand {
     const projectService = await this.getProjectService(command);
     const project = await projectService.loadProject();
     const languageId = options.language || null;
+    const branchName = this.normalizeBranch(options.branch);
+    const filePath = options.file;
+    const directoryPath = options.directory;
+    const failIfIncomplete = Boolean(options.failIfIncomplete);
     const targetLanguageIds = project.data.targetLanguages.map((language) => language.id);
 
     if (languageId && languageId !== 'all' && !targetLanguageIds.includes(languageId)) {
-      throw new CliError(`Language ${languageId} does not exist in project. Try specifying another language code`);
+      throw new CliError(`Language '${languageId}' doesn't exist in the project. Try specifying another language code`);
     }
 
-    const projectProgress = await projectService.progress.loadProjectProgress();
+    if (filePath && directoryPath) {
+      throw new CliError("Only one of the following options can be used at a time: '--file', '--directory'");
+    }
+
+    let progressData: LanguageProgressEntry[];
+
+    if (filePath) {
+      const projectFiles = await projectService.loadProjectFiles();
+      const normalizedFilePath = this.normalizePath(filePath);
+      const projectFile = projectFiles.data.find((fileEntry) => this.normalizePath(fileEntry.data.path) === normalizedFilePath);
+
+      if (!projectFile) {
+        throw new CliError(`Project doesn't contain the '${filePath}' file`);
+      }
+
+      const fileProgress = await projectService.progress.loadFileProgress(projectFile.data.id);
+      progressData = fileProgress.data as LanguageProgressEntry[];
+    } else if (directoryPath) {
+      const projectDirectories = await projectService.directory.loadProjectDirectories();
+      const normalizedDirectoryPath = this.normalizePath(directoryPath);
+      const projectDirectory = projectDirectories.find(
+        (directoryEntry) => this.normalizePath(directoryEntry.data.path) === normalizedDirectoryPath,
+      );
+
+      if (!projectDirectory) {
+        throw new CliError(`Project doesn't contain the '${directoryPath}' directory`);
+      }
+
+      const directoryProgress = await projectService.progress.loadDirectoryProgress(projectDirectory.data.id);
+      progressData = directoryProgress.data as LanguageProgressEntry[];
+    } else if (branchName) {
+      const branches = await projectService.loadProjectBranches();
+      const projectBranch = branches.find((branchEntry) => branchEntry.data.name === branchName);
+
+      if (!projectBranch) {
+        throw new CliError("The branch with the specified name doesn't exist in the project. Try specifying another branch name");
+      }
+
+      const branchProgress = await projectService.progress.loadBranchProgress(projectBranch.data.id);
+      progressData = branchProgress.data as LanguageProgressEntry[];
+    } else {
+      const projectProgress = await projectService.progress.loadProjectProgress();
+      progressData = projectProgress.data as LanguageProgressEntry[];
+    }
+
+    const filteredProgressData = progressData.filter((entry) => {
+      if (!languageId || languageId === 'all') {
+        return true;
+      }
+
+      return entry.data.languageId === languageId;
+    });
+
     const progress: Record<string, Record<string, string>> = {};
 
-    for (const languageProgress of projectProgress.data) {
-      if (languageId && languageProgress.data.languageId !== languageId && languageId !== 'all') {
-        continue;
-      }
+    for (const languageProgress of filteredProgressData) {
+      const translationProgress = this.getTranslationProgress(languageProgress);
+      const approvalProgress = this.getApprovalProgress(languageProgress);
 
       if (show === 'all' || show === 'translated') {
         if (!progress.translation) {
           progress.translation = {};
         }
 
-        progress.translation[languageProgress.data.languageId] = `${languageProgress.data.translationProgress}%`;
+        progress.translation[languageProgress.data.languageId] = `${translationProgress}%`;
       }
 
       if (show === 'all' || show === 'proofread') {
@@ -88,10 +163,64 @@ export default class StatusCommand {
           progress.proofread = {};
         }
 
-        progress.proofread[languageProgress.data.languageId] = `${languageProgress.data.approvalProgress}%`;
+        progress.proofread[languageProgress.data.languageId] = `${approvalProgress}%`;
       }
     }
 
+    if (!options.verbose && failIfIncomplete) {
+      this.throwIfIncomplete(show, filteredProgressData);
+    }
+
     output.table(progress);
+  }
+
+  private normalizePath(value: string): string {
+    const normalizedValue = value.replaceAll('\\', '/');
+
+    if (normalizedValue.startsWith('/')) {
+      return normalizedValue;
+    }
+
+    return `/${normalizedValue}`;
+  }
+
+  private normalizeBranch(value?: string): string | null {
+    if (!value || value === 'none') {
+      return null;
+    }
+
+    return value;
+  }
+
+  private hasNothingToTranslate(progress: LanguageProgressEntry): boolean {
+    return progress.data.words?.total === 0;
+  }
+
+  private getTranslationProgress(progress: LanguageProgressEntry): number {
+    if (this.hasNothingToTranslate(progress)) {
+      return 100;
+    }
+
+    return progress.data.translationProgress;
+  }
+
+  private getApprovalProgress(progress: LanguageProgressEntry): number {
+    if (this.hasNothingToTranslate(progress)) {
+      return 100;
+    }
+
+    return progress.data.approvalProgress;
+  }
+
+  private throwIfIncomplete(show: ProgressView, progressData: LanguageProgressEntry[]): void {
+    for (const progress of progressData) {
+      if ((show === 'all' || show === 'translated') && this.getTranslationProgress(progress) < 100) {
+        throw new CliError('The current project is incomplete');
+      }
+
+      if ((show === 'all' || show === 'proofread') && this.getApprovalProgress(progress) < 100) {
+        throw new CliError('The current project is incomplete');
+      }
+    }
   }
 }

@@ -5,5 +5,5 @@ export default {
   short: 'l',
   type: 'string',
   default: 'all',
-  description: 'View progress for a single specified language',
+  description: 'View progress for a single specified language. Default: all',
 } as OptionDef;

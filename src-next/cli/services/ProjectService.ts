@@ -25,7 +25,28 @@ export class ProjectService {
         this.output.spinner('projectProgress', 'error', message);
         throw new CliError(message, 1, true);
       }
-    }
+    },
+    loadBranchProgress: async (branchId: number) => {
+      try {
+        return await this.apiClient.getBranchProgress(this.projectId, branchId);
+      } catch (error) {
+        throw toCliError(error, `Failed to fetch branch progress for branch ${branchId}`);
+      }
+    },
+    loadFileProgress: async (fileId: number) => {
+      try {
+        return await this.apiClient.getFileProgress(this.projectId, fileId);
+      } catch (error) {
+        throw toCliError(error, `Failed to fetch file progress for file ${fileId}`);
+      }
+    },
+    loadDirectoryProgress: async (directoryId: number) => {
+      try {
+        return await this.apiClient.getDirectoryProgress(this.projectId, directoryId);
+      } catch (error) {
+        throw toCliError(error, `Failed to fetch directory progress for directory ${directoryId}`);
+      }
+    },
   };
 
   file = {
@@ -140,6 +161,14 @@ export class ProjectService {
 
       this.output.spinner('projectFiles', 'error', message);
       throw new CliError(message, 1, true);
+    }
+  }
+
+  async loadProjectBranches(): Promise<Array<{ data: { id: number; name: string } }>> {
+    try {
+      return (await this.apiClient.listProjectBranches(this.projectId)).data as Array<{ data: { id: number; name: string } }>;
+    } catch (error) {
+      throw toCliError(error, `Failed to fetch branches for project ${this.projectId}`);
     }
   }
 
