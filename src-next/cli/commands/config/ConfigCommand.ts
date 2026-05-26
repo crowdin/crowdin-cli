@@ -1,18 +1,12 @@
 import type { Command } from 'commander';
 import { ZodError, z } from 'zod';
+import CliError from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import type { GetConfig, GetOutput, GetProjectService } from '@/cli/services.ts';
+import type { CommandDef } from '@/cli/types.ts';
 import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
 import { loadFromFile } from '@/lib/config/yamlLoader.ts';
-import type { Config } from '@/lib/config.ts';
-import CliError from '../../errors/CliError.ts';
-import type { GlobalOptions } from '../../options.ts';
-import type { ProjectService } from '../../services/ProjectService.ts';
-import type { CommandDef } from '../../types.ts';
-import type { Output } from '../../utils/output.ts';
-
-type GetConfig = (command: Command) => Promise<Config>;
-type GetOutput = (command: Command) => Output;
-type GetProjectService = (command: Command) => Promise<ProjectService>;
 
 export default class ConfigCommand {
   constructor(

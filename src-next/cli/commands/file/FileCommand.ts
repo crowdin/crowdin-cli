@@ -1,14 +1,10 @@
 import path from 'node:path';
 import type { ResponseObject, SourceFilesModel, UploadStorageModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import type { GetApiClient } from '@/cli/services.ts';
-import type { Config } from '@/lib/config.ts';
-import CliError, { toCliError } from '../../errors/CliError.ts';
-import type { GlobalOptions } from '../../options.ts';
-import type { ProjectService } from '../../services/ProjectService.ts';
-import type { StorageService } from '../../services/StorageService.ts';
-import type { CommandDef } from '../../types.ts';
-import type { Output } from '../../utils/output.ts';
+import CliError, { toCliError } from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import type { GetApiClient, GetConfig, GetOutput, GetProjectService, GetStorageService } from '@/cli/services.ts';
+import type { CommandDef } from '@/cli/types.ts';
 import destination from './options/destination.ts';
 import label from './options/label.ts';
 import parserVersion from './options/parserVersion.ts';
@@ -19,11 +15,6 @@ interface UploadFileCommandOptions extends GlobalOptions {
   type?: string;
   parserVersion?: string;
 }
-
-type GetConfig = (command: Command) => Promise<Config>;
-type GetOutput = (command: Command) => Output;
-type GetProjectService = (command: Command) => Promise<ProjectService>;
-type GetStorageService = (command: Command) => Promise<StorageService>;
 
 export default class FileCommand {
   constructor(

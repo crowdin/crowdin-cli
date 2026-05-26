@@ -1,15 +1,13 @@
 import path from 'node:path';
 import type { LanguagesModel, SourceFilesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import type { GetApiClient } from '@/cli/services.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import type { ProjectService } from '@/cli/services/ProjectService.ts';
+import type { GetApiClient, GetConfig, GetOutput, GetProjectService, GetStorageService } from '@/cli/services.ts';
+import type { CommandDef } from '@/cli/types.ts';
+import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
-import type { Config } from '@/lib/config.ts';
-import CliError from '../../errors/CliError.ts';
-import type { ProjectService } from '../../services/ProjectService.ts';
-import type { StorageService } from '../../services/StorageService.ts';
-import type { CommandDef } from '../../types.ts';
-import type { Output } from '../../utils/output.ts';
 import dryRun from '../common/options/dryRun.ts';
 import tree from '../common/options/tree.ts';
 import basePath from '../init/options/basePath.ts';
@@ -28,11 +26,6 @@ import importEqSuggestions from './options/importEqSuggestions.ts';
 import label from './options/label.ts';
 import noAutoUpdate from './options/noAutoUpdate.ts';
 import translateHidden from './options/translateHidden.ts';
-
-type GetConfig = (command: Command) => Promise<Config>;
-type GetOutput = (command: Command) => Output;
-type GetProjectService = (command: Command) => Promise<ProjectService>;
-type GetStorageService = (command: Command) => Promise<StorageService>;
 
 interface UploadSourcesOptions {
   branch?: string;
@@ -78,14 +71,13 @@ export default class UploadCommand {
     private getProjectService: GetProjectService,
     private getStorageService: GetStorageService,
     private getApiClient: GetApiClient,
-  ) {
-  }
+  ) {}
 
   getDefinition(): CommandDef {
     const configOptionGroup = {
       group: 'Config options:',
       options: [token, baseUrl, basePath, projectId, source, translation, destination, noPreserveHierarchy],
-    }
+    };
 
     const uploadSourcesOptions = [
       branch,

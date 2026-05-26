@@ -1,10 +1,8 @@
 import type { Command } from 'commander';
-import type { GetApiClient } from '@/cli/services.ts';
-import CliError, { toCliError } from '../../errors/CliError.ts';
-import type { GlobalOptions } from '../../options.ts';
-import type { ProjectService } from '../../services/ProjectService.ts';
-import type { CommandDef } from '../../types.ts';
-import type { Output } from '../../utils/output.ts';
+import CliError, { toCliError } from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import type { GetApiClient, GetOutput, GetProjectService } from '@/cli/services.ts';
+import type { CommandDef } from '@/cli/types.ts';
 import language from './options/language.ts';
 import languageAccessPolicy from './options/languageAccessPolicy.ts';
 import sourceLanguage from './options/sourceLanguage.ts';
@@ -16,9 +14,6 @@ interface ProjectCommandOptions extends GlobalOptions {
   public?: boolean;
   stringBased?: boolean;
 }
-
-type GetOutput = (command: Command) => Output;
-type GetProjectService = (command: Command) => Promise<ProjectService>;
 
 export default class ProjectCommand {
   constructor(

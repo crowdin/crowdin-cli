@@ -2,12 +2,13 @@ import { confirm, isCancel, select, text } from '@clack/prompts';
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { decodeJwt } from 'jose';
+import CliError from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import type { GetOutput } from '@/cli/services.ts';
+import type { CommandDef } from '@/cli/types.ts';
+import type { Output } from '@/cli/utils/output.ts';
 import { generate } from '@/lib/config/yamlGenerator.ts';
 import patterns from '@/lib/export/patterns.ts';
-import CliError from '../../errors/CliError.ts';
-import type { GlobalOptions } from '../../options.ts';
-import type { CommandDef } from '../../types.ts';
-import type { Output } from '../../utils/output.ts';
 import basePath from './options/basePath.ts';
 import baseUrl from './options/baseUrl.ts';
 import destination from './options/destination.ts';
@@ -27,8 +28,6 @@ interface InitCommandOptions extends GlobalOptions {
   translation?: string;
   preserveHierarchy: boolean;
 }
-
-type GetOutput = (command: Command) => Output;
 
 export default class InitCommand {
   constructor(private getOutput: GetOutput) {

@@ -42,7 +42,7 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
       };
 
       if (options.destination) {
-        file.dest = options.destination; // TODO:
+        // file.dest = options.destination; // TODO:
       }
 
       cachedConfig.files = [file];

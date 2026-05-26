@@ -1,22 +1,15 @@
 import path from 'node:path';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
-import type { GetApiClient } from '@/cli/services.ts';
-import type { Config } from '@/lib/config.ts';
-import CliError, { toCliError } from '../../errors/CliError.ts';
-import type { GlobalOptions } from '../../options.ts';
-import type { ProjectService } from '../../services/ProjectService.ts';
-import type { CommandDef } from '../../types.ts';
-import type { Output } from '../../utils/output.ts';
+import CliError, { toCliError } from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import type { GetApiClient, GetConfig, GetOutput, GetProjectService } from '@/cli/services.ts';
+import type { CommandDef } from '@/cli/types.ts';
 import language from './options/language.ts';
 
 interface DownloadCommandOptions extends GlobalOptions {
   language?: string[];
 }
-
-type GetConfig = (command: Command) => Promise<Config>;
-type GetOutput = (command: Command) => Output;
-type GetProjectService = (command: Command) => Promise<ProjectService>;
 
 export default class DownloadCommand {
   constructor(

@@ -1,11 +1,8 @@
 import type { Command } from 'commander';
-import CliError from '../../errors/CliError.ts';
-import type { GlobalOptions } from '../../options.ts';
-import type { GetApiClient } from '../../services.ts';
-import type { Output } from '../../utils/output.ts';
-import type { CommandDef } from '../../types.ts';
-
-type GetOutput = (command: Command) => Output;
+import CliError from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import type { GetApiClient, GetOutput } from '@/cli/services.ts';
+import type { CommandDef } from '@/cli/types.ts';
 
 export default class TestCommand {
   constructor(

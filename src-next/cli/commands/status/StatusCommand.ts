@@ -1,10 +1,9 @@
 import type { ResponseObject, TranslationStatusModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import CliError from '../../errors/CliError.ts';
-import type { GlobalOptions } from '../../options.ts';
-import type { ProjectService } from '../../services/ProjectService.ts';
-import type { CommandDef } from '../../types.ts';
-import type { Output } from '../../utils/output.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import type { GetOutput, GetProjectService } from '@/cli/services.ts';
+import type { CommandDef } from '@/cli/types.ts';
 import branch from '../upload/options/branch.ts';
 import directory from './options/directory.ts';
 import failIfIncompleteProofreading from './options/failIfIncompleteProofreading.ts';
@@ -22,8 +21,6 @@ interface StatusCommandOptions extends GlobalOptions {
 }
 
 type ProgressView = 'all' | 'translated' | 'proofread';
-type GetOutput = (command: Command) => Output;
-type GetProjectService = (command: Command) => Promise<ProjectService>;
 type LanguageProgress = ResponseObject<TranslationStatusModel.LanguageProgress>;
 
 export default class StatusCommand {

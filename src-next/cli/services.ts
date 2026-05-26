@@ -1,13 +1,17 @@
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import type { Config } from '../lib/config.ts';
+import type { Config } from '@/lib/config.ts';
 import { ProjectService } from './services/ProjectService.ts';
 import { StorageService } from './services/StorageService.ts';
 import type { Output } from './utils/output.ts';
 
 export type GetApiClient = (command: Command) => Promise<Client>;
+export type GetConfig = (command: Command) => Promise<Config>;
+export type GetOutput = (command: Command) => Output;
+export type GetProjectService = (command: Command) => Promise<ProjectService>;
+export type GetStorageService = (command: Command) => Promise<StorageService>;
 
-export function createGetApiClient(getConfig: (command: Command) => Promise<Config>) {
+export function createGetApiClient(getConfig: GetConfig) {
   let cachedClient: Client | undefined;
 
   return async (command: Command): Promise<Client> => {
@@ -24,8 +28,8 @@ export function createGetApiClient(getConfig: (command: Command) => Promise<Conf
 
 export function createGetProjectService(
   getApiClient: GetApiClient,
-  getOutput: (command: Command) => Output,
-  getConfig: (command: Command) => Promise<Config>,
+  getOutput: GetOutput,
+  getConfig: GetConfig,
 ) {
   let cachedService: ProjectService | undefined;
 
