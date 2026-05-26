@@ -1,7 +1,7 @@
 import type { OptionDef } from '@/cli/types.ts';
 
 export default {
-  name: 'no-auto-approve-imported',
+  name: 'translate-hidden',
   type: 'boolean',
-  description: 'Approve added translations automatically',
+  description: 'Upload translations to hidden source strings',
 } as OptionDef;

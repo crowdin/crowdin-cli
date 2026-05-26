@@ -8,7 +8,8 @@ import {
   S_SUCCESS,
   S_WARN,
   type SpinnerResult,
-  spinner
+  spinner,
+  updateSettings,
 } from '@clack/prompts';
 import type { GlobalOptions } from '../options.ts';
 import { colors } from './colors.ts';
@@ -16,6 +17,8 @@ import { formatData } from './formatter.ts';
 
 export function createOutput(options: GlobalOptions) {
   const format = resolveOutputFormat(options.format);
+
+  updateClackSettings();
 
   return {
     spinners: {} as Record<string, SpinnerResult>,
@@ -102,6 +105,13 @@ function resolveOutputFormat(format?: string): 'json' | 'toon' | 'text' {
   }
 
   return 'text';
+}
+
+function updateClackSettings() {
+  updateSettings({
+    // Disable guide lines globally
+    withGuide: false,
+  });
 }
 
 export type Output = ReturnType<typeof createOutput>;

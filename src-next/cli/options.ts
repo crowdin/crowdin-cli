@@ -16,3 +16,14 @@ export type GlobalOptions = {
   progress: boolean;
   format: string;
 };
+
+export type ConfigOptions = {
+  token?: string;
+  basePath?: string;
+  baseUrl?: string;
+  projectId?: number;
+  source?: string;
+  translation?: string;
+  destination?: string;
+  preserveHierarchy?: boolean;
+};

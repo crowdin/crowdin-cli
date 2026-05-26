@@ -2,7 +2,7 @@ import type { OptionDef } from '@/cli/types.ts';
 
 export default {
   name: 'format',
-  short: 'f',
+  short: 'F',
   type: 'string',
   description: 'Change output format',
   default: 'text',

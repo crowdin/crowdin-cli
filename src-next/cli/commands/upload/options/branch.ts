@@ -5,5 +5,5 @@ export default {
   short: 'b',
   type: 'string',
   default: 'none',
-  description: 'Specify branch name. Default: none',
+  description: 'Specify branch name',
 } as OptionDef;

@@ -19,11 +19,16 @@ export interface OptionDef {
   choices?: string[];
 }
 
+export interface OptionGroupDef {
+  group: string;
+  options: OptionDef[];
+}
+
 export interface SubcommandDef {
   name: string;
   description: string;
   arguments?: ArgumentDef[];
-  options?: OptionDef[];
+  options?: (OptionDef | OptionGroupDef)[];
   action?: (command: Command) => Promise<void>;
 }
 
@@ -32,7 +37,7 @@ export interface CommandDef {
   alias?: string;
   description: string;
   arguments?: ArgumentDef[];
-  options?: OptionDef[];
+  options?: (OptionDef | OptionGroupDef)[];
   subcommands?: SubcommandDef[];
   action?: (command: Command) => Promise<void>;
 }

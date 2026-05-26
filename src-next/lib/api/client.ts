@@ -1,4 +1,8 @@
-import { Client as ApiClient, type ProjectsGroupsModel, type SourceFilesModel } from '@crowdin/crowdin-api-client';
+import {
+  Client as ApiClient,
+  type ProjectsGroupsModel,
+  type SourceFilesModel,
+} from '@crowdin/crowdin-api-client';
 
 export interface Credentials {
   token: string;
@@ -19,11 +23,11 @@ export default class Client {
     return await this.apiClient.usersApi.getAuthenticatedUser();
   }
 
-  async listProjects(hasManagerAccess: boolean = true, offset: number = 0, limit: number = 25) {
+  async listProjects(hasManagerAccess: boolean = true, offset?: number, limit?: number) {
     return await this.apiClient.projectsGroupsApi.listProjects({
       hasManagerAccess: +hasManagerAccess,
       offset,
-      limit
+      limit,
     });
   }
 
@@ -82,23 +86,42 @@ export default class Client {
     return await this.apiClient.labelsApi.listLabels(projectId);
   }
 
-  async createProjectDirectory(projectId: number, name: string, directoryId?: number) {
-    return await this.apiClient.sourceFilesApi.createDirectory(projectId, {
-      name,
-      directoryId,
-    });
+  async addProjectLabel(projectId: number, title: string) {
+    return await this.apiClient.labelsApi.addLabel(projectId, { title });
   }
 
-  async listProjectDirectories(projectId: number) {
-    return await this.apiClient.sourceFilesApi.listProjectDirectories(projectId);
+  async listProjectBranches(projectId: number, name?: string, limit?: number) {
+    return await this.apiClient.sourceFilesApi.listProjectBranches(projectId, { name, limit });
   }
 
-  async listProjectBranches(projectId: number): Promise<{ data: unknown[] }> {
-    const sourceFilesApi = this.apiClient.sourceFilesApi as unknown as {
-      listProjectBranches: (projectId: number) => Promise<{ data: unknown[] }>;
-    };
+  async createProjectBranch(projectId: number, name: string) {
+    return await this.apiClient.sourceFilesApi.createBranch(projectId, { name });
+  }
 
-    return await sourceFilesApi.listProjectBranches(projectId);
+  async createProjectDirectory(projectId: number, name: string, directoryId?: number, branchId?: number) {
+    return await this.apiClient.sourceFilesApi.createDirectory(
+      projectId,
+      {
+        name,
+        directoryId,
+        branchId,
+      }
+    );
+  }
+
+  async listProjectDirectories(projectId: number, branchId?: number, recursion?: string, limit?: number) {
+    return await this.apiClient.sourceFilesApi.listProjectDirectories(
+      projectId,
+      {
+        branchId,
+        recursion,
+        limit,
+      }
+    );
+  }
+
+  async deleteProjectDirectory(projectId: number, directoryId: number) {
+    return await this.apiClient.sourceFilesApi.deleteDirectory(projectId, directoryId);
   }
 
   async addProjectFile(
@@ -109,22 +132,45 @@ export default class Client {
     exportPattern?: string,
     type?: SourceFilesModel.FileType,
     parserVersion?: number,
+    excludedTargetLanguages?: string[],
+    attachLabelIds?: number[],
+    branchId?: number,
   ) {
     return this.apiClient.sourceFilesApi.createFile(projectId, {
       storageId,
       name: fileName,
       directoryId,
+      branchId,
       type,
       parserVersion,
       exportOptions: { exportPattern },
+      excludedTargetLanguages,
+      attachLabelIds,
     });
   }
 
-  async updateProjectFile(projectId: number, fileId: number, storageId: number, exportPattern?: string) {
+  async updateProjectFile(
+    projectId: number,
+    fileId: number,
+    storageId: number,
+    exportPattern?: string,
+    attachLabelIds?: number[],
+  ) {
     return await this.apiClient.sourceFilesApi.updateOrRestoreFile(projectId, fileId, {
       storageId,
       exportOptions: { exportPattern },
+      attachLabelIds,
     });
+  }
+
+  async editProjectFile(projectId: number, fileId: number, path: string, value: unknown) {
+    return await this.apiClient.sourceFilesApi.editFile(projectId, fileId, [
+      {
+        op: 'replace',
+        path: path,
+        value: value,
+      },
+    ]);
   }
 
   async deleteProjectFile(projectId: number, fileId: number) {
@@ -135,15 +181,31 @@ export default class Client {
     return await this.apiClient.sourceFilesApi.downloadFile(projectId, fileId);
   }
 
-  async listProjectFiles(projectId: number) {
-    return await this.apiClient.sourceFilesApi.listProjectFiles(projectId);
+  async listProjectFiles(projectId: number, branchId?: number, recursion?: boolean, limit?: number, offset?: number) {
+    return await this.apiClient.sourceFilesApi.listProjectFiles(projectId, {
+      branchId,
+      recursion,
+      limit,
+      offset,
+    });
   }
 
-  async importProjectTranslation(projectId: number, storageId: number, fileId: number, languageIds: string[]) {
+  async importProjectTranslation(
+    projectId: number,
+    storageId: number,
+    fileId: number,
+    languageIds: string[],
+    autoApproveImported?: boolean,
+    importEqSuggestions?: boolean,
+    translateHidden?: boolean,
+  ) {
     return await this.apiClient.translationsApi.importTranslations(projectId, {
       storageId,
       fileId,
       languageIds,
+      autoApproveImported,
+      importEqSuggestions,
+      translateHidden,
     });
   }
 
@@ -161,7 +223,7 @@ export default class Client {
     return await this.apiClient.translationsApi.downloadTranslations(projectId, buildId);
   }
 
-  async addStorage(fileName: string, fileContent: any, contentType?: string) {
+  async addStorage(fileName: string, fileContent: unknown, contentType?: string) {
     return await this.apiClient.uploadStorageApi.addStorage(fileName, fileContent, contentType);
   }
 

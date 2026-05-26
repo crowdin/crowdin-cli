@@ -5,5 +5,5 @@ export default {
   short: 'l',
   type: 'string',
   default: 'all',
-  description: 'Upload translations for a single specified language. Default: all',
+  description: 'Upload translations for a single specified language',
 } as OptionDef;

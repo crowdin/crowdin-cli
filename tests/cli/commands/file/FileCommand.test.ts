@@ -151,8 +151,8 @@ describe('FileCommand', () => {
 
     await fileCommand.uploadAction(commandContext);
 
-    expect(createProjectDirectory).toHaveBeenNthCalledWith(1, 123, 'nested', undefined);
-    expect(createProjectDirectory).toHaveBeenNthCalledWith(2, 123, 'translations', 10);
+    expect(createProjectDirectory).toHaveBeenNthCalledWith(1, 123, 'nested', undefined, undefined);
+    expect(createProjectDirectory).toHaveBeenNthCalledWith(2, 123, 'translations', 10, undefined);
     expect(addStorage).toHaveBeenCalledWith(
       expect.any(Object), // Bun.file object
     );

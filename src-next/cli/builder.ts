@@ -1,11 +1,10 @@
 import { Command, Option } from 'commander';
 import getGlobalOptions from './options.ts';
-import type { CommandDef, OptionDef } from './types.ts';
+import type { CommandDef, OptionDef, OptionGroupDef } from './types.ts';
 import { colors } from './utils/colors.ts';
 
 export function getHelpConfig() {
   return {
-    showGlobalOptions: true,
     styleTitle: (str: string) => colors.bold(str),
     styleCommandText: (str: string) => colors.cyan(str),
     styleOptionText: (str: string) => {
@@ -37,13 +36,22 @@ export function buildCommand(def: CommandDef): Command {
     cmd.alias(def.alias);
   }
 
-  // for (const opt of getGlobalOptions()) {
-  //   cmd.addOption(buildOption(opt));
-  // }
+  for (const item of def.options ?? []) {
+    if (isOptionGroup(item)) {
+      cmd.optionsGroup(item.group);
 
-  def.options?.forEach((opt) => {
+      item.options.forEach((opt: OptionDef) => {
+        cmd.addOption(buildOption(opt))
+      });
+    } else {
+      cmd.addOption(buildOption(item));
+    }
+  }
+
+  cmd.optionsGroup('Global options:');
+  for (const opt of getGlobalOptions()) {
     cmd.addOption(buildOption(opt));
-  });
+  }
 
   def.arguments?.forEach((arg) => {
     cmd.argument(`<${arg.name}>`, arg.description, arg?.default);
@@ -62,6 +70,10 @@ export function buildCommand(def: CommandDef): Command {
   });
 
   return cmd;
+}
+
+function isOptionGroup(item: OptionDef | OptionGroupDef): item is OptionGroupDef {
+  return 'group' in item;
 }
 
 export function buildOption(opt: OptionDef): Option {

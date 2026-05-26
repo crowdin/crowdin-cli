@@ -16,6 +16,9 @@ export const ConfigSchema = z.object({
         error: 'source parameter cannot be empty',
         abort: true,
       }),
+      dest: z.string().optional(),
+      labels: z.array(z.string()).optional(),
+      excluded_target_languages: z.array(z.string()).optional(),
       translation: z
         .string()
         .refine((arg) => arg.length > 0, {
@@ -41,6 +44,7 @@ export const ConfigSchema = z.object({
             abort: true,
           },
         ),
+      type: z.string().optional(),
     }),
   ),
 });
