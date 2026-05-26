@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import ProjectCommand from '@/cli/commands/project/ProjectCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
-import Client from '@/lib/api/client.ts';
 import type { Config } from '@/lib/config.ts';
 
 const config: Config = {
@@ -90,7 +90,7 @@ describe('ProjectCommand', () => {
   test('lists projects with manager access', async () => {
     const projectCommand = createProjectCommand();
 
-    spyOn(apiClient, 'listProjects').mockResolvedValue({
+    spyOn(apiClient.projectsGroupsApi, 'listProjects').mockResolvedValue({
       data: [{ data: { id: 1, name: 'Docs' } }, { data: { id: 2, name: 'Website' } }],
     } as never);
 
@@ -110,7 +110,7 @@ describe('ProjectCommand', () => {
 
   test('adds project with requested options', async () => {
     const projectCommand = createProjectCommand();
-    const addProject = spyOn(apiClient, 'addProject').mockResolvedValue({
+    const addProject = spyOn(apiClient.projectsGroupsApi, 'addProject').mockResolvedValue({
       data: { id: 77, name: 'New Project' },
     } as never);
 
@@ -127,7 +127,7 @@ describe('ProjectCommand', () => {
 
     await projectCommand.addAction(commandContext);
 
-    expect(addProject).toHaveBeenCalledWith('New Project', 'uk', ['fr', 'de'], 'open', true);
+    expect(addProject).toHaveBeenCalledWith({ name: 'New Project', sourceLanguageId: 'uk', targetLanguageIds: ['fr', 'de'], languageAccessPolicy: 'open' });
     expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 77, name: 'New Project' }], null, 2));
   });
 

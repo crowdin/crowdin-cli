@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import LanguageCommand from '@/cli/commands/language/LanguageCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
-import Client from '@/lib/api/client.ts';
 
 type LanguageCommandTestOptions = GlobalOptions & {
   code?: 'id' | 'two_letters_code' | 'three_letters_code' | 'locale' | 'android_code' | 'osx_code' | 'osx_locale';
@@ -105,7 +105,7 @@ describe('LanguageCommand', () => {
         managerAccess: true,
       },
     } as never);
-    const listSupportedLanguages = spyOn(apiClient, 'listSupportedLanguages').mockResolvedValue({
+    const listSupportedLanguages = spyOn(apiClient.languagesApi, 'listSupportedLanguages').mockResolvedValue({
       data: [
         {
           data: { id: 'uk', name: 'Ukrainian', locale: 'uk-UA' },
@@ -154,7 +154,7 @@ describe('LanguageCommand', () => {
       },
     } as never);
 
-    await expect(languageCommand.listAction(commandContext)).rejects.toThrow(
+    expect(languageCommand.listAction(commandContext)).rejects.toThrow(
       new CliError('You must have manager or developer role in the project to perform this action'),
     );
   });
@@ -190,9 +190,9 @@ describe('LanguageCommand', () => {
         managerAccess: true,
       },
     } as never);
-    spyOn(apiClient, 'listSupportedLanguages').mockRejectedValue(new Error('network failure'));
+    spyOn(apiClient.languagesApi, 'listSupportedLanguages').mockRejectedValue(new Error('network failure'));
 
-    await expect(languageCommand.listAction(commandContext)).rejects.toThrow(
+    expect(languageCommand.listAction(commandContext)).rejects.toThrow(
       new CliError('Failed to list supported languages. network failure'),
     );
   });

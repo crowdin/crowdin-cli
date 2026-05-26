@@ -1,7 +1,7 @@
 import path from 'node:path';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
-import type Client  from '@/lib/api/client.ts';
+import type { GetApiClient } from '@/cli/services.ts';
 import type { Config } from '@/lib/config.ts';
 import CliError, { toCliError } from '../../errors/CliError.ts';
 import type { GlobalOptions } from '../../options.ts';
@@ -17,7 +17,6 @@ interface DownloadCommandOptions extends GlobalOptions {
 type GetConfig = (command: Command) => Promise<Config>;
 type GetOutput = (command: Command) => Output;
 type GetProjectService = (command: Command) => Promise<ProjectService>;
-type GetApiClient = (command: Command) => Promise<Client>;
 
 export default class DownloadCommand {
   constructor(
@@ -63,7 +62,7 @@ export default class DownloadCommand {
 
     for (const projectFile of projectFiles.data) {
       try {
-        const downloadLink = await apiClient.downloadProjectFile(project.data.id, projectFile.data.id);
+        const downloadLink = await apiClient.sourceFilesApi.downloadFile(project.data.id, projectFile.data.id);
         const response = await fetch(downloadLink.data.url);
         const filePath = [process.cwd(), config.basePath, projectFile.data.path].join(path.sep);
 
@@ -99,7 +98,7 @@ export default class DownloadCommand {
     let response: Response;
 
     try {
-      const downloadLink = await apiClient.downloadProjectTranslations(config.projectId, build.data.id);
+      const downloadLink = await apiClient.translationsApi.downloadTranslations(config.projectId, build.data.id);
       response = await fetch(downloadLink.data.url);
     } catch (error) {
       throw toCliError(error, 'Failed to download project translations');

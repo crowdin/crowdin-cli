@@ -52,13 +52,13 @@ describe('UploadCommand', () => {
         createProjectDirectory: mock(async () => ({ data: { id: 1, path: '/src' } })),
       },
     };
-    const apiClient = { addProjectFile: mock(async () => undefined) };
+    const apiClient = { sourceFilesApi: { createFile: mock(async () => undefined) } };
     const output = createOutputMock();
     const command = createUploadCommand(tempDir, output, projectService, storageService, apiClient);
 
     await command.defaultAction(commandContext({}));
 
-    expect(apiClient.addProjectFile).toHaveBeenCalled();
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalled();
   });
 
   test('skips existing source file when no-auto-update is enabled', async () => {
@@ -71,7 +71,7 @@ describe('UploadCommand', () => {
       directory: { loadProjectDirectories: mock(async () => []) },
       file: { updateProjectFile: mock(async () => undefined) },
     };
-    const apiClient = { addProjectFile: mock(async () => undefined) };
+    const apiClient = { sourceFilesApi: { createFile: mock(async () => undefined) } };
     const output = createOutputMock();
     const command = createUploadCommand(tempDir, output, projectService, storageService, apiClient);
 
@@ -79,7 +79,7 @@ describe('UploadCommand', () => {
 
     expect(storageService.addStorage).not.toHaveBeenCalled();
     expect(projectService.file.updateProjectFile).not.toHaveBeenCalled();
-    expect(apiClient.addProjectFile).not.toHaveBeenCalled();
+    expect(apiClient.sourceFilesApi.createFile).not.toHaveBeenCalled();
     expect(output.info).toHaveBeenCalledWith('File src/app.json already exists and will not be updated');
   });
 
@@ -96,7 +96,7 @@ describe('UploadCommand', () => {
       },
       file: { updateProjectFile: mock(async () => undefined) },
     };
-    const apiClient = { addProjectFile: mock(async () => undefined) };
+    const apiClient = { sourceFilesApi: { createFile: mock(async () => undefined) } };
     const output = createOutputMock();
     const command = createUploadCommand(tempDir, output, projectService, storageService, apiClient);
 
@@ -104,7 +104,7 @@ describe('UploadCommand', () => {
 
     expect(storageService.addStorage).not.toHaveBeenCalled();
     expect(projectService.directory.createProjectDirectory).not.toHaveBeenCalled();
-    expect(apiClient.addProjectFile).not.toHaveBeenCalled();
+    expect(apiClient.sourceFilesApi.createFile).not.toHaveBeenCalled();
     expect(output.info).toHaveBeenCalledWith('File src/app.json would be created');
   });
 
@@ -121,7 +121,7 @@ describe('UploadCommand', () => {
       },
       label: { resolveLabelIds: mock(async () => [11, 12]) },
     };
-    const apiClient = { addProjectFile: mock(async () => undefined) };
+    const apiClient = { sourceFilesApi: { createFile: mock(async () => undefined) } };
     const output = createOutputMock();
     const command = createUploadCommand(tempDir, output, projectService, storageService, apiClient, {
       labels: ['existing-label'],
@@ -134,13 +134,16 @@ describe('UploadCommand', () => {
     }));
 
     expect(projectService.label.resolveLabelIds).toHaveBeenCalledWith(['existing-label', 'cli-label']);
-    expect(apiClient.addProjectFile).toHaveBeenCalledWith(
-      123, 10, 'app.json', 1,
-      '/locale/%two_letters_code%/%original_file_name%',
-      undefined, undefined,
-      ['uk', 'es'],
-      [11, 12],
-      undefined,
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(
+      123, {
+        storageId: 10,
+        name: 'app.json',
+        directoryId: 1,
+        branchId: undefined,
+        exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+        excludedTargetLanguages: ['uk', 'es'],
+        attachLabelIds: [11, 12],
+      },
     );
     expect(output.success).toHaveBeenCalledWith('File src/app.json created');
   });
@@ -159,7 +162,7 @@ describe('UploadCommand', () => {
       },
       label: { resolveLabelIds: mock(async () => undefined) },
     };
-    const apiClient = { addProjectFile: mock(async () => undefined) };
+    const apiClient = { sourceFilesApi: { createFile: mock(async () => undefined) } };
     const output = createOutputMock();
     const command = createUploadCommand(tempDir, output, projectService, storageService, apiClient);
 
@@ -169,12 +172,16 @@ describe('UploadCommand', () => {
     expect(projectService.loadProjectFiles).toHaveBeenCalledWith(44);
     expect(projectService.directory.loadProjectDirectories).toHaveBeenCalledWith(44);
     expect(projectService.directory.createProjectDirectory).toHaveBeenCalledWith('src', undefined, 44);
-    expect(apiClient.addProjectFile).toHaveBeenCalledWith(
-      123, 10, 'app.json', 1,
-      '/locale/%two_letters_code%/%original_file_name%',
-      undefined, undefined,
-      undefined, undefined,
-      44,
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(
+      123, {
+        storageId: 10,
+        name: 'app.json',
+        directoryId: 1,
+        branchId: 44,
+        exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+        excludedTargetLanguages: undefined,
+        attachLabelIds: undefined,
+      },
     );
     expect(output.success).toHaveBeenCalledWith('Directory src created');
     expect(output.success).toHaveBeenCalledWith('File src/app.json created');
@@ -194,7 +201,7 @@ describe('UploadCommand', () => {
         createProjectDirectory: mock(async () => ({ data: { id: 1, path: '/src' } })),
       },
     };
-    const apiClient = { addProjectFile: mock(async () => undefined) };
+    const apiClient = { sourceFilesApi: { createFile: mock(async () => undefined) } };
     const output = createOutputMock();
     const command = createUploadCommand(tempDir, output, projectService, storageService, apiClient);
 
@@ -202,16 +209,28 @@ describe('UploadCommand', () => {
 
     expect(projectService.directory.createProjectDirectory).toHaveBeenCalledTimes(1);
     expect(projectService.directory.createProjectDirectory).toHaveBeenCalledWith('src', undefined, undefined);
-    expect(apiClient.addProjectFile).toHaveBeenCalledTimes(2);
-    expect(apiClient.addProjectFile).toHaveBeenCalledWith(
-      123, 10, 'app.json', 1,
-      '/locale/%two_letters_code%/%original_file_name%',
-      undefined, undefined, undefined, undefined, undefined,
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledTimes(2);
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(
+      123, {
+        storageId: 10,
+        name: 'app.json',
+        directoryId: 1,
+        branchId: undefined,
+        exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+        excludedTargetLanguages: undefined,
+        attachLabelIds: undefined,
+      },
     );
-    expect(apiClient.addProjectFile).toHaveBeenCalledWith(
-      123, 11, 'utils.json', 1,
-      '/locale/%two_letters_code%/%original_file_name%',
-      undefined, undefined, undefined, undefined, undefined,
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(
+      123, {
+        storageId: 11,
+        name: 'utils.json',
+        directoryId: 1,
+        branchId: undefined,
+        exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+        excludedTargetLanguages: undefined,
+        attachLabelIds: undefined,
+      },
     );
     expect(output.success).toHaveBeenCalledWith('Directory src created');
     expect(output.success).toHaveBeenCalledWith('File src/app.json created');
@@ -230,17 +249,23 @@ describe('UploadCommand', () => {
         createProjectDirectory: mock(async () => ({ data: { id: 999, path: '/src' } })),
       },
     };
-    const apiClient = { addProjectFile: mock(async () => undefined) };
+    const apiClient = { sourceFilesApi: { createFile: mock(async () => undefined) } };
     const output = createOutputMock();
     const command = createUploadCommand(tempDir, output, projectService, storageService, apiClient);
 
     await command.uploadSourcesAction(commandContext({}));
 
     expect(projectService.directory.createProjectDirectory).not.toHaveBeenCalled();
-    expect(apiClient.addProjectFile).toHaveBeenCalledWith(
-      123, 10, 'app.json', 5,
-      '/locale/%two_letters_code%/%original_file_name%',
-      undefined, undefined, undefined, undefined, undefined,
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(
+      123, {
+        storageId: 10,
+        name: 'app.json',
+        directoryId: 5,
+        branchId: undefined,
+        exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+        excludedTargetLanguages: undefined,
+        attachLabelIds: undefined,
+      },
     );
     expect(output.success).not.toHaveBeenCalledWith(expect.stringContaining('Directory'));
     expect(output.success).toHaveBeenCalledWith('File src/app.json created');
@@ -263,7 +288,7 @@ describe('UploadCommand', () => {
       },
       file: { updateProjectFile: mock(async () => undefined) },
     };
-    const apiClient = { addProjectFile: mock(async () => undefined) };
+    const apiClient = { sourceFilesApi: { createFile: mock(async () => undefined) } };
     const output = createOutputMock();
     const command = createUploadCommand(tempDir, output, projectService, storageService, apiClient);
 
@@ -274,10 +299,16 @@ describe('UploadCommand', () => {
       '/locale/%two_letters_code%/%original_file_name%',
       undefined, undefined,
     );
-    expect(apiClient.addProjectFile).toHaveBeenCalledWith(
-      123, expect.any(Number), 'new.json', 5,
-      '/locale/%two_letters_code%/%original_file_name%',
-      undefined, undefined, undefined, undefined, undefined,
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(
+      123, {
+        storageId: expect.any(Number),
+        name: 'new.json',
+        directoryId: 5,
+        branchId: undefined,
+        exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+        excludedTargetLanguages: undefined,
+        attachLabelIds: undefined,
+      },
     );
     expect(projectService.directory.createProjectDirectory).not.toHaveBeenCalled();
     expect(output.success).toHaveBeenCalledWith('File src/app.json updated');

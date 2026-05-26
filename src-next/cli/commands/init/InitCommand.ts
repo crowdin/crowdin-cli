@@ -1,7 +1,7 @@
 import { confirm, isCancel, select, text } from '@clack/prompts';
+import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { decodeJwt } from 'jose';
-import Client from '@/lib/api/client.ts';
 import { generate } from '@/lib/config/yamlGenerator.ts';
 import patterns from '@/lib/export/patterns.ts';
 import CliError from '../../errors/CliError.ts';
@@ -31,9 +31,7 @@ interface InitCommandOptions extends GlobalOptions {
 type GetOutput = (command: Command) => Output;
 
 export default class InitCommand {
-  constructor(
-    private getOutput: GetOutput,
-  ) {
+  constructor(private getOutput: GetOutput) {
   }
 
   getDefinition(): CommandDef {
@@ -41,16 +39,7 @@ export default class InitCommand {
       name: 'init',
       description: 'Generate Crowdin CLI configuration skeleton',
       action: this.defaultAction,
-      options: [
-        destination,
-        token,
-        projectId,
-        basePath,
-        baseUrl,
-        source,
-        translation,
-        noPreserveHierarchy,
-      ],
+      options: [destination, token, projectId, basePath, baseUrl, source, translation, noPreserveHierarchy],
     };
   }
 
@@ -79,7 +68,7 @@ export default class InitCommand {
       domain = authorization?.domain ?? undefined;
     }
 
-    if (domain === undefined && await this.isEnterprise(output)) {
+    if (domain === undefined && (await this.isEnterprise(output))) {
       domain = await this.getEnterpriseDomain(output);
     }
 
@@ -142,7 +131,7 @@ export default class InitCommand {
       `response_type=token&` +
       `scope=project`;
 
-    return new Promise<{ accessToken: string, domain: string | null }>((resolve, reject) => {
+    return new Promise<{ accessToken: string; domain: string | null }>((resolve, reject) => {
       const server = Bun.serve({
         port,
         hostname,
@@ -188,7 +177,7 @@ export default class InitCommand {
   private async isEnterprise(output: Output) {
     const confirmation = await confirm({
       message: 'For Crowdin Enterprise?',
-      initialValue: false
+      initialValue: false,
     });
     this.cancelHandler(confirmation, output);
 
@@ -218,7 +207,7 @@ export default class InitCommand {
     output.spinner('authorization', 'start', 'Authorizing...');
 
     try {
-      const user = await apiClient.getAuthenticatedUser();
+      const user = await apiClient.usersApi.getAuthenticatedUser();
 
       output.spinner('authorization', 'stop', 'Authorized successfully');
 
@@ -238,7 +227,7 @@ export default class InitCommand {
     let projectId = options.projectId || null;
 
     if (projectId === null) {
-      const projects = await apiClient.listProjects(true, 0, 500);
+      const projects = await apiClient.projectsGroupsApi.listProjects({ hasManagerAccess: 1, limit: 500 });
       projectId = (await select({
         message: 'Select project:',
         options: projects.data.map((project) => ({
@@ -254,7 +243,7 @@ export default class InitCommand {
     output.spinner('projectValidation', 'start', 'Validating project...');
 
     try {
-      const project = await apiClient.getProject(Number(projectId));
+      const project = await apiClient.projectsGroupsApi.getProject(Number(projectId));
 
       output.spinner('projectValidation', 'stop', 'Project validated successfully');
 

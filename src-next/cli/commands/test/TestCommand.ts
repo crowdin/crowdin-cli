@@ -1,12 +1,11 @@
 import type { Command } from 'commander';
 import CliError from '../../errors/CliError.ts';
 import type { GlobalOptions } from '../../options.ts';
-import type { Client } from '@/lib/api/client.ts';
+import type { GetApiClient } from '../../services.ts';
 import type { Output } from '../../utils/output.ts';
 import type { CommandDef } from '../../types.ts';
 
 type GetOutput = (command: Command) => Output;
-type GetApiClient = (command: Command) => Promise<Client>;
 
 export default class TestCommand {
   constructor(
@@ -30,7 +29,7 @@ export default class TestCommand {
     output.info('Testing API connection...');
 
     try {
-      const user = await apiClient.getAuthenticatedUser();
+      const user = await apiClient.usersApi.getAuthenticatedUser();
       output.success(`Connected as: ${user.data.username}`);
     } catch (error) {
       if (error instanceof Error) {

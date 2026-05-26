@@ -1,5 +1,5 @@
 import type { Command } from 'commander';
-import type Client from '@/lib/api/client.ts';
+import type { GetApiClient } from '@/cli/services.ts';
 import CliError, { toCliError } from '../../errors/CliError.ts';
 import type { GlobalOptions } from '../../options.ts';
 import type { ProjectService } from '../../services/ProjectService.ts';
@@ -19,7 +19,6 @@ interface ProjectCommandOptions extends GlobalOptions {
 
 type GetOutput = (command: Command) => Output;
 type GetProjectService = (command: Command) => Promise<ProjectService>;
-type GetApiClient = (command: Command) => Promise<Client>;
 
 export default class ProjectCommand {
   constructor(
@@ -111,13 +110,12 @@ export default class ProjectCommand {
     };
 
     try {
-      const project = await apiClient.addProject(
-        data.name,
-        data.sourceLanguageId,
-        data.targetLanguageIds,
-        data.languageAccessPolicy,
-        data.stringBased,
-      );
+      const project = await apiClient.projectsGroupsApi.addProject({
+        name: data.name,
+        sourceLanguageId: data.sourceLanguageId,
+        targetLanguageIds: data.targetLanguageIds,
+        languageAccessPolicy: data.languageAccessPolicy,
+      });
 
       output.table([
         {

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import FileCommand from '@/cli/commands/file/FileCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -9,7 +10,6 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { StorageService } from '@/cli/services/StorageService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
-import Client from '@/lib/api/client.ts';
 import type { Config } from '@/lib/config.ts';
 
 const config: Config = {
@@ -127,16 +127,16 @@ describe('FileCommand', () => {
 
     await Bun.write(localFilePath, '{"hello":"world"}');
 
-    spyOn(apiClient, 'getProject').mockResolvedValue({
+    spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
       data: { id: 123 },
     } as never);
-    const createProjectDirectory = spyOn(apiClient, 'createProjectDirectory');
-    createProjectDirectory.mockResolvedValueOnce({ data: { id: 10 } } as never)
+    const createDirectory = spyOn(apiClient.sourceFilesApi, 'createDirectory');
+    createDirectory.mockResolvedValueOnce({ data: { id: 10 } } as never)
       .mockResolvedValueOnce({ data: { id: 20 } } as never);
     const addStorage = spyOn(storageService, 'addStorage').mockResolvedValue({
       data: { id: 99 },
     } as never);
-    const addProjectFile = spyOn(apiClient, 'addProjectFile').mockResolvedValue({ data: { id: 777 } } as never);
+    const createFile = spyOn(apiClient.sourceFilesApi, 'createFile').mockResolvedValue({ data: { id: 777 } } as never);
 
     commandContext = createCommandContext(
       {
@@ -151,12 +151,12 @@ describe('FileCommand', () => {
 
     await fileCommand.uploadAction(commandContext);
 
-    expect(createProjectDirectory).toHaveBeenNthCalledWith(1, 123, 'nested', undefined, undefined);
-    expect(createProjectDirectory).toHaveBeenNthCalledWith(2, 123, 'translations', 10, undefined);
+    expect(createDirectory).toHaveBeenNthCalledWith(1, 123, { name: 'nested', directoryId: undefined, branchId: undefined });
+    expect(createDirectory).toHaveBeenNthCalledWith(2, 123, { name: 'translations', directoryId: 10, branchId: undefined });
     expect(addStorage).toHaveBeenCalledWith(
       expect.any(Object), // Bun.file object
     );
-    expect(addProjectFile).toHaveBeenCalledWith(123, 99, 'nested/translations/remote.json', 20, undefined, 'json', 2);
+    expect(createFile).toHaveBeenCalledWith(123, { storageId: 99, name: 'nested/translations/remote.json', directoryId: 20, type: 'json', parserVersion: 2 });
   });
 
   test('requires file type when parser version provided', async () => {
@@ -178,13 +178,13 @@ describe('FileCommand', () => {
 
     await mkdir(destinationDir, { recursive: true });
 
-    spyOn(apiClient, 'getProject').mockResolvedValue({
+    spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
       data: { id: 123 },
     } as never);
-    spyOn(apiClient, 'listProjectFiles').mockResolvedValue({
+    spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
       data: [{ data: { id: 40, path: 'docs/readme.md' } }],
     } as never);
-    spyOn(apiClient, 'downloadProjectFile').mockResolvedValue({
+    spyOn(apiClient.sourceFilesApi, 'downloadFile').mockResolvedValue({
       data: { url: 'https://example.test/readme.md' },
     } as never);
     spyOn(globalThis, 'fetch').mockResolvedValue(new Response('downloaded content'));
@@ -202,18 +202,18 @@ describe('FileCommand', () => {
   test('deletes matching project file', async () => {
     const fileCommand = createFileCommand();
 
-    spyOn(apiClient, 'getProject').mockResolvedValue({
+    spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
       data: { id: 123 },
     } as never);
-    spyOn(apiClient, 'listProjectFiles').mockResolvedValue({
+    spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
       data: [{ data: { id: 55, path: '/docs/readme.md' } }],
     } as never);
-    const deleteProjectFile = spyOn(apiClient, 'deleteProjectFile').mockResolvedValue(undefined as never);
+    const deleteFile = spyOn(apiClient.sourceFilesApi, 'deleteFile').mockResolvedValue(undefined as never);
 
     commandContext = createCommandContext(globalOptions, ['docs/readme.md']);
 
     await fileCommand.deleteAction(commandContext);
 
-    expect(deleteProjectFile).toHaveBeenCalledWith(123, 55);
+    expect(deleteFile).toHaveBeenCalledWith(123, 55);
   });
 });

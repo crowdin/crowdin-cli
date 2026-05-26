@@ -1,4 +1,4 @@
-import type Client from '../../lib/api/client.ts';
+import type { Client } from '@crowdin/crowdin-api-client';
 import CliError, { toCliError } from '../errors/CliError.ts';
 import type { Output } from '../utils/output.ts';
 
@@ -15,7 +15,7 @@ export class ProjectService {
       this.output.spinner('projectProgress', 'start', 'Fetching project progress');
 
       try {
-        const projectProgress = await this.apiClient.getProjectProgress(this.projectId);
+        const projectProgress = await this.apiClient.translationStatusApi.getProjectProgress(this.projectId);
 
         this.output.spinner('projectProgress', 'stop', 'Project progress fetched');
 
@@ -28,21 +28,21 @@ export class ProjectService {
     },
     loadBranchProgress: async (branchId: number) => {
       try {
-        return await this.apiClient.getBranchProgress(this.projectId, branchId);
+        return await this.apiClient.translationStatusApi.getBranchProgress(this.projectId, branchId);
       } catch (error) {
         throw toCliError(error, `Failed to fetch branch progress for branch ${branchId}`);
       }
     },
     loadFileProgress: async (fileId: number) => {
       try {
-        return await this.apiClient.getFileProgress(this.projectId, fileId);
+        return await this.apiClient.translationStatusApi.getFileProgress(this.projectId, fileId);
       } catch (error) {
         throw toCliError(error, `Failed to fetch file progress for file ${fileId}`);
       }
     },
     loadDirectoryProgress: async (directoryId: number) => {
       try {
-        return await this.apiClient.getDirectoryProgress(this.projectId, directoryId);
+        return await this.apiClient.translationStatusApi.getDirectoryProgress(this.projectId, directoryId);
       } catch (error) {
         throw toCliError(error, `Failed to fetch directory progress for directory ${directoryId}`);
       }
@@ -59,14 +59,27 @@ export class ProjectService {
       excludedTargetLanguages?: string[],
     ) => {
       try {
-        await this.apiClient.updateProjectFile(this.projectId, fileId, storageId, exportPattern, attachLabelIds);
+        await this.apiClient.sourceFilesApi.updateOrRestoreFile(
+          this.projectId,
+          fileId,
+          {
+            storageId,
+            exportOptions: { exportPattern },
+            attachLabelIds,
+          },
+        );
 
         if (excludedTargetLanguages !== undefined) {
-          await this.apiClient.editProjectFile(
+          await this.apiClient.sourceFilesApi.editFile(
             this.projectId,
             fileId,
-            '/excludedTargetLanguages',
-            excludedTargetLanguages,
+            [
+              {
+                op: 'replace',
+                path: '/excludedTargetLanguages',
+                value: excludedTargetLanguages,
+              },
+            ],
           );
         }
       } catch (error) {
@@ -75,12 +88,12 @@ export class ProjectService {
     },
     deleteProjectFile: async (fileId: number, projectFilePath: string) => {
       try {
-        await this.apiClient.deleteProjectFile(this.projectId, fileId);
+        await this.apiClient.sourceFilesApi.deleteFile(this.projectId, fileId);
       } catch (error) {
         throw toCliError(error, `Failed to delete ${projectFilePath}`);
       }
     },
-  }
+  };
 
   label = {
     resolveLabelIds: async (titles: string[]) => {
@@ -89,7 +102,7 @@ export class ProjectService {
       }
 
       try {
-        const labels = await this.apiClient.listProjectLabels(this.projectId);
+        const labels = await this.apiClient.labelsApi.listLabels(this.projectId);
         const labelIdsByTitle = new Map(labels.data.map((label) => [label.data.title, label.data.id]));
         const labelIds: number[] = [];
 
@@ -97,7 +110,7 @@ export class ProjectService {
           let labelId = labelIdsByTitle.get(title);
 
           if (labelId === undefined) {
-            const label = await this.apiClient.addProjectLabel(this.projectId, title);
+            const label = await this.apiClient.labelsApi.addLabel(this.projectId, { title });
             labelId = label.data.id;
             labelIdsByTitle.set(title, labelId);
           }
@@ -110,41 +123,40 @@ export class ProjectService {
         throw toCliError(error, 'Failed to resolve labels');
       }
     },
-  }
+  };
 
   directory = {
     loadProjectDirectories: async (branchId?: number) => {
       try {
-        return (await this.apiClient.listProjectDirectories(
-          this.projectId,
-          branchId,
-          '1', // TODO: Looks weird. API doc says should be integer or null
-          500,
-        )).data;
+        return (
+          await this.apiClient.sourceFilesApi.listProjectDirectories(
+            this.projectId,
+            {
+              branchId,
+              recursion: '1', // TODO: Looks weird. API doc says should be integer or null
+              limit: 500,
+            },
+          )
+        ).data;
       } catch (error) {
         throw toCliError(error, `Failed to list directories for project ${this.projectId}`);
       }
     },
     createProjectDirectory: async (name: string, directoryId?: number, branchId?: number) => {
       try {
-        return await this.apiClient.createProjectDirectory(
-          this.projectId,
-          name,
-          directoryId,
-          branchId,
-        );
+        return await this.apiClient.sourceFilesApi.createDirectory(this.projectId, { name, directoryId, branchId });
       } catch (error) {
         throw toCliError(error, `Failed to create directory ${name}`);
       }
     },
     deleteProjectDirectory: async (directoryId: number, directoryPath: string) => {
       try {
-        await this.apiClient.deleteProjectDirectory(this.projectId, directoryId);
+        await this.apiClient.sourceFilesApi.deleteDirectory(this.projectId, directoryId);
       } catch (error) {
         throw toCliError(error, `Failed to delete directory ${directoryPath}`);
       }
     },
-  }
+  };
 
   branch = {
     getOrCreateBranch: async (name?: string) => {
@@ -153,19 +165,19 @@ export class ProjectService {
       }
 
       try {
-        const branches = await this.apiClient.listProjectBranches(this.projectId, name, 500);
+        const branches = await this.apiClient.sourceFilesApi.listProjectBranches(this.projectId, { name, limit: 500 });
         const existingBranch = branches.data.find((branch) => branch.data.name === name);
 
         if (existingBranch !== undefined) {
           return existingBranch.data;
         }
 
-        return (await this.apiClient.createProjectBranch(this.projectId, name)).data;
+        return (await this.apiClient.sourceFilesApi.createBranch(this.projectId, { name })).data;
       } catch (error) {
         throw toCliError(error, `Failed to resolve branch ${name}`);
       }
     },
-  }
+  };
 
   translation = {
     importProjectTranslation: async (
@@ -178,14 +190,16 @@ export class ProjectService {
       translateHidden?: boolean,
     ) => {
       try {
-        await this.apiClient.importProjectTranslation(
+        await this.apiClient.translationsApi.importTranslations(
           this.projectId,
-          storageId,
-          fileId,
-          languageIds,
-          autoApproveImported,
-          importEqSuggestions,
-          translateHidden,
+          {
+            storageId,
+            fileId,
+            languageIds,
+            autoApproveImported,
+            importEqSuggestions,
+            translateHidden,
+          },
         );
       } catch (error) {
         throw toCliError(error, `Failed to import translations for file ${filePath}`);
@@ -195,10 +209,15 @@ export class ProjectService {
       this.output.spinner('build', 'start', 'Building translations...');
 
       try {
-        const build = await this.apiClient.buildProjectTranslations(this.projectId, languageIds);
+        const build = await this.apiClient.translationsApi.buildProject(
+          this.projectId,
+          {
+            targetLanguageIds: languageIds,
+          },
+        );
 
         while (true) {
-          const buildProgress = await this.apiClient.getProjectTranslationsBuildStatus(this.projectId, build.data.id);
+          const buildProgress = await this.apiClient.translationsApi.checkBuildStatus(this.projectId, build.data.id);
 
           if (buildProgress.data.status === 'finished') {
             break;
@@ -214,13 +233,13 @@ export class ProjectService {
         throw toCliError(error, 'Failed to build project translations');
       }
     },
-  }
+  };
 
   async loadProject() {
     this.output.spinner('project', 'start', 'Fetching project info');
 
     try {
-      const project = await this.apiClient.getProject(this.projectId);
+      const project = await this.apiClient.projectsGroupsApi.getProject(this.projectId);
 
       this.output.spinner('project', 'stop', 'Project info fetched');
 
@@ -237,7 +256,9 @@ export class ProjectService {
     this.output.spinner('projects', 'start', 'Fetching projects');
 
     try {
-      const projects = await this.apiClient.listProjects(hasManagerAccess);
+      const projects = await this.apiClient.projectsGroupsApi.listProjects({
+        hasManagerAccess: +hasManagerAccess,
+      });
 
       this.output.spinner('projects', 'stop', 'Projects fetched');
 
@@ -254,7 +275,13 @@ export class ProjectService {
     this.output.spinner('projectFiles', 'start', 'Fetching project files');
 
     try {
-      const projectFiles = await this.apiClient.listProjectFiles(this.projectId, branchId, undefined, 500);
+      const projectFiles = await this.apiClient.sourceFilesApi.listProjectFiles(
+        this.projectId,
+        {
+          branchId,
+          limit: 500,
+        },
+      );
 
       this.output.spinner('projectFiles', 'stop', 'Project files fetched');
 
@@ -267,9 +294,9 @@ export class ProjectService {
     }
   }
 
-  async loadProjectBranches(): Promise<Array<{ data: { id: number; name: string } }>> {
+  async loadProjectBranches() {
     try {
-      return (await this.apiClient.listProjectBranches(this.projectId)).data as Array<{ data: { id: number; name: string } }>;
+      return await this.apiClient.sourceFilesApi.listProjectBranches(this.projectId);
     } catch (error) {
       throw toCliError(error, `Failed to fetch branches for project ${this.projectId}`);
     }

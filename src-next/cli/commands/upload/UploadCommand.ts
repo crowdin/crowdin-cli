@@ -1,7 +1,7 @@
 import path from 'node:path';
 import type { LanguagesModel, SourceFilesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import type Client from '@/lib/api/client.ts';
+import type { GetApiClient } from '@/cli/services.ts';
 import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
 import type { Config } from '@/lib/config.ts';
@@ -33,7 +33,6 @@ type GetConfig = (command: Command) => Promise<Config>;
 type GetOutput = (command: Command) => Output;
 type GetProjectService = (command: Command) => Promise<ProjectService>;
 type GetStorageService = (command: Command) => Promise<StorageService>;
-type GetApiClient = (command: Command) => Promise<Client>;
 
 interface UploadSourcesOptions {
   branch?: string;
@@ -215,18 +214,15 @@ export default class UploadCommand {
           );
         }
 
-        await apiClient.addProjectFile(
-          project.data.id,
-          storage.data.id,
-          pathDetails.base,
+        await apiClient.sourceFilesApi.createFile(project.data.id, {
+          storageId: storage.data.id,
+          name: pathDetails.base,
           directoryId,
-          patterns.translation,
-          undefined,
-          undefined,
-          fileOptions.excluded_target_languages,
-          labelIds,
           branchId,
-        );
+          exportOptions: { exportPattern: patterns.translation },
+          excludedTargetLanguages: fileOptions.excluded_target_languages,
+          attachLabelIds: labelIds,
+        });
 
         output.success(`File ${localFilePath} created`);
       }

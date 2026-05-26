@@ -1,7 +1,7 @@
 import path from 'node:path';
 import type { ResponseObject, SourceFilesModel, UploadStorageModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import type Client from '@/lib/api/client.ts';
+import type { GetApiClient } from '@/cli/services.ts';
 import type { Config } from '@/lib/config.ts';
 import CliError, { toCliError } from '../../errors/CliError.ts';
 import type { GlobalOptions } from '../../options.ts';
@@ -24,7 +24,6 @@ type GetConfig = (command: Command) => Promise<Config>;
 type GetOutput = (command: Command) => Output;
 type GetProjectService = (command: Command) => Promise<ProjectService>;
 type GetStorageService = (command: Command) => Promise<StorageService>;
-type GetApiClient = (command: Command) => Promise<Client>;
 
 export default class FileCommand {
   constructor(
@@ -166,14 +165,15 @@ export default class FileCommand {
     }
 
     try {
-      await apiClient.addProjectFile(
+      await apiClient.sourceFilesApi.createFile(
         config.projectId,
-        storage.data.id,
-        destPath,
-        parentDirectoryId,
-        undefined,
-        fileType,
-        parserVersion,
+        {
+          storageId: storage.data.id,
+          name: destPath,
+          directoryId: parentDirectoryId,
+          type: fileType,
+          parserVersion,
+        },
       );
     } catch (error) {
       if (error instanceof CliError) {
@@ -206,7 +206,7 @@ export default class FileCommand {
         const destPath = options.dest || filePath;
 
         try {
-          const downloadLink = await apiClient.downloadProjectFile(project.data.id, projectFile.data.id);
+          const downloadLink = await apiClient.sourceFilesApi.downloadFile(project.data.id, projectFile.data.id);
           await Bun.file(`${config.basePath}/${destPath}/${path.basename(filePath)}`).write(
             await fetch(downloadLink.data.url),
           );
@@ -240,7 +240,7 @@ export default class FileCommand {
     for (const file of projectFiles.data) {
       if (file.data.path === `/${filePath}`) {
         try {
-          await apiClient.deleteProjectFile(config.projectId, file.data.id);
+          await apiClient.sourceFilesApi.deleteFile(config.projectId, file.data.id);
         } catch (error) {
           throw toCliError(error, `Failed to delete ${filePath}`);
         }

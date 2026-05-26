@@ -1,3 +1,4 @@
+import type { ResponseObject, TranslationStatusModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import CliError from '../../errors/CliError.ts';
 import type { GlobalOptions } from '../../options.ts';
@@ -23,16 +24,7 @@ interface StatusCommandOptions extends GlobalOptions {
 type ProgressView = 'all' | 'translated' | 'proofread';
 type GetOutput = (command: Command) => Output;
 type GetProjectService = (command: Command) => Promise<ProjectService>;
-type LanguageProgressEntry = {
-  data: {
-    languageId: string;
-    translationProgress: number;
-    approvalProgress: number;
-    words?: {
-      total?: number;
-    };
-  };
-};
+type LanguageProgress = ResponseObject<TranslationStatusModel.LanguageProgress>;
 
 export default class StatusCommand {
   constructor(
@@ -95,19 +87,21 @@ export default class StatusCommand {
       throw new CliError("Only one of the following options can be used at a time: '--file', '--directory'");
     }
 
-    let progressData: LanguageProgressEntry[];
+    let progressData: LanguageProgress[];
 
     if (filePath) {
       const projectFiles = await projectService.loadProjectFiles();
       const normalizedFilePath = this.normalizePath(filePath);
-      const projectFile = projectFiles.data.find((fileEntry) => this.normalizePath(fileEntry.data.path) === normalizedFilePath);
+      const projectFile = projectFiles.data.find(
+        (fileEntry) => this.normalizePath(fileEntry.data.path) === normalizedFilePath,
+      );
 
       if (!projectFile) {
         throw new CliError(`Project doesn't contain the '${filePath}' file`);
       }
 
       const fileProgress = await projectService.progress.loadFileProgress(projectFile.data.id);
-      progressData = fileProgress.data as LanguageProgressEntry[];
+      progressData = fileProgress.data;
     } else if (directoryPath) {
       const projectDirectories = await projectService.directory.loadProjectDirectories();
       const normalizedDirectoryPath = this.normalizePath(directoryPath);
@@ -120,20 +114,22 @@ export default class StatusCommand {
       }
 
       const directoryProgress = await projectService.progress.loadDirectoryProgress(projectDirectory.data.id);
-      progressData = directoryProgress.data as LanguageProgressEntry[];
+      progressData = directoryProgress.data;
     } else if (branchName) {
       const branches = await projectService.loadProjectBranches();
-      const projectBranch = branches.find((branchEntry) => branchEntry.data.name === branchName);
+      const projectBranch = branches.data.find((branchEntry) => branchEntry.data.name === branchName);
 
       if (!projectBranch) {
-        throw new CliError("The branch with the specified name doesn't exist in the project. Try specifying another branch name");
+        throw new CliError(
+          "The branch with the specified name doesn't exist in the project. Try specifying another branch name",
+        );
       }
 
       const branchProgress = await projectService.progress.loadBranchProgress(projectBranch.data.id);
-      progressData = branchProgress.data as LanguageProgressEntry[];
+      progressData = branchProgress.data;
     } else {
       const projectProgress = await projectService.progress.loadProjectProgress();
-      progressData = projectProgress.data as LanguageProgressEntry[];
+      progressData = projectProgress.data;
     }
 
     const filteredProgressData = progressData.filter((entry) => {
@@ -192,11 +188,11 @@ export default class StatusCommand {
     return value;
   }
 
-  private hasNothingToTranslate(progress: LanguageProgressEntry): boolean {
+  private hasNothingToTranslate(progress: LanguageProgress): boolean {
     return progress.data.words?.total === 0;
   }
 
-  private getTranslationProgress(progress: LanguageProgressEntry): number {
+  private getTranslationProgress(progress: LanguageProgress): number {
     if (this.hasNothingToTranslate(progress)) {
       return 100;
     }
@@ -204,7 +200,7 @@ export default class StatusCommand {
     return progress.data.translationProgress;
   }
 
-  private getApprovalProgress(progress: LanguageProgressEntry): number {
+  private getApprovalProgress(progress: LanguageProgress): number {
     if (this.hasNothingToTranslate(progress)) {
       return 100;
     }
@@ -212,7 +208,7 @@ export default class StatusCommand {
     return progress.data.approvalProgress;
   }
 
-  private throwIfIncomplete(show: ProgressView, progressData: LanguageProgressEntry[]): void {
+  private throwIfIncomplete(show: ProgressView, progressData: LanguageProgress[]): void {
     for (const progress of progressData) {
       if ((show === 'all' || show === 'translated') && this.getTranslationProgress(progress) < 100) {
         throw new CliError('The current project is incomplete');

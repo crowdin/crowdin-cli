@@ -1,11 +1,11 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import StatusCommand from '@/cli/commands/status/StatusCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
-import Client from '@/lib/api/client.ts';
 
 type StatusTestOptions = GlobalOptions & {
   language?: string;
@@ -123,7 +123,7 @@ describe('StatusCommand', () => {
       data: [createProgress('fr', 99, 100)],
     } as never);
 
-    await expect(statusCommand.translationStatusAction(commandContext)).rejects.toThrow(
+    expect(statusCommand.translationStatusAction(commandContext)).rejects.toThrow(
       new CliError('The current project is incomplete'),
     );
   });
@@ -194,7 +194,7 @@ describe('StatusCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
 
-    await expect(statusCommand.defaultAction(commandContext)).rejects.toThrow(
+    expect(statusCommand.defaultAction(commandContext)).rejects.toThrow(
       new CliError("Only one of the following options can be used at a time: '--file', '--directory'"),
     );
   });

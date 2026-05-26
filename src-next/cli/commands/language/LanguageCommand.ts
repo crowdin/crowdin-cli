@@ -2,9 +2,9 @@ import type { Command } from 'commander';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { ProjectService } from '@/cli/services/ProjectService.ts';
+import type { GetApiClient } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import type { Output } from '@/cli/utils/output.ts';
-import type Client from '@/lib/api/client.ts';
 import all from './options/all.ts';
 import code from './options/code.ts';
 
@@ -41,7 +41,6 @@ interface ProjectData {
 
 type GetOutput = (command: Command) => Output;
 type GetProjectService = (command: Command) => Promise<ProjectService>;
-type GetApiClient = (command: Command) => Promise<Client>;
 
 export default class LanguageCommand {
   constructor(
@@ -80,6 +79,7 @@ export default class LanguageCommand {
     const project = await projectService.loadProject();
     const projectData = project.data as ProjectData;
 
+    // TODO: This options does not look right
     if (projectData.managerAccess === false) {
       const message = 'You must have manager or developer role in the project to perform this action';
 
@@ -95,7 +95,7 @@ export default class LanguageCommand {
 
     if (options.all) {
       try {
-        const response = await apiClient.listSupportedLanguages();
+        const response = await apiClient.languagesApi.listSupportedLanguages({ offset: 500 });
         languages = response.data.map((entry) => entry.data as LanguageData);
       } catch (error) {
         throw toCliError(error, 'Failed to list supported languages');
