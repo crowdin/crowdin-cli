@@ -27,6 +27,10 @@ export default class Client {
     });
   }
 
+  async listSupportedLanguages() {
+    return await this.apiClient.languagesApi.withFetchAll().listSupportedLanguages();
+  }
+
   async addProject(
     name: string,
     sourceLanguageId: string,

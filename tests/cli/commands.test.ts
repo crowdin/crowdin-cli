@@ -5,7 +5,7 @@ describe('command registry', () => {
   test('registers expected top-level commands with unique names', () => {
     const names = commands.map((command) => command.name);
 
-    expect(names).toEqual(['upload', 'download', 'init', 'status', 'file', 'config', 'project', 'test']);
+    expect(names).toEqual(['upload', 'download', 'init', 'status', 'file', 'language', 'config', 'project', 'test']);
     expect(new Set(names).size).toBe(names.length);
   });
 
@@ -13,6 +13,7 @@ describe('command registry', () => {
     const upload = commands.find((command) => command.name === 'upload');
     const download = commands.find((command) => command.name === 'download');
     const status = commands.find((command) => command.name === 'status');
+    const language = commands.find((command) => command.name === 'language');
     const config = commands.find((command) => command.name === 'config');
 
     expect(upload?.alias).toBe('push');
@@ -22,6 +23,7 @@ describe('command registry', () => {
     expect(download?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['sources', 'translations']);
 
     expect(status?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['translation', 'proofreading']);
+    expect(language?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list']);
     expect(config?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['sources', 'translations', 'lint']);
   });
 });
