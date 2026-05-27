@@ -1,7 +1,7 @@
 import CommentCommand from './commands/comment/CommentCommand.ts';
 import ConfigCommand from './commands/config/ConfigCommand.ts';
-import DownloadCommand from './commands/download/DownloadCommand.ts';
 import DistributionCommand from './commands/distribution/DistributionCommand.ts';
+import DownloadCommand from './commands/download/DownloadCommand.ts';
 import FileCommand from './commands/file/FileCommand.ts';
 import InitCommand from './commands/init/InitCommand.ts';
 import LanguageCommand from './commands/language/LanguageCommand.ts';
@@ -35,33 +35,16 @@ const getTaskService = createGetTaskService(getApiClient, getConfig);
 const commentCommand = new CommentCommand(getOutput, getCommentService);
 const initCommand = new InitCommand(getOutput);
 const configCommand = new ConfigCommand(getConfig, getOutput, getProjectService);
-const downloadCommand = new DownloadCommand(
-  getConfig,
-  getOutput,
-  getProjectService,
-  getApiClient
-);
+const downloadCommand = new DownloadCommand(getConfig, getOutput, getProjectService, getApiClient);
 const distributionCommand = new DistributionCommand(getOutput, getProjectService, getApiClient);
-const fileCommand = new FileCommand(
-  getConfig,
-  getOutput,
-  getProjectService,
-  getStorageService,
-  getApiClient
-);
+const fileCommand = new FileCommand(getConfig, getOutput, getProjectService, getStorageService, getApiClient);
 const languageCommand = new LanguageCommand(getOutput, getProjectService, getApiClient);
 const projectCommand = new ProjectCommand(getOutput, getProjectService, getApiClient);
 const statusCommand = new StatusCommand(getOutput, getProjectService);
 const stringCommand = new StringCommand(getOutput, getStringService);
 const taskCommand = new TaskCommand(getOutput, getTaskService, getApiClient);
 const testCommand = new TestCommand(getOutput, getApiClient);
-const uploadCommand = new UploadCommand(
-  getConfig,
-  getOutput,
-  getProjectService,
-  getStorageService,
-  getApiClient
-);
+const uploadCommand = new UploadCommand(getConfig, getOutput, getProjectService, getStorageService, getApiClient);
 
 export const commands: CommandDef[] = [
   uploadCommand.getDefinition(),

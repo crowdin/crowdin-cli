@@ -134,9 +134,7 @@ describe('LanguageCommand', () => {
             locale: 'uk_UA',
           },
         },
-        targetLanguages: [
-          { id: 'uk', name: 'Ukrainian', locale: 'uk-UA' },
-        ],
+        targetLanguages: [{ id: 'uk', name: 'Ukrainian', locale: 'uk-UA' }],
       },
     } as never);
 
@@ -175,7 +173,9 @@ describe('LanguageCommand', () => {
 
     await languageCommand.listAction(commandContext);
 
-    expect(warning).toHaveBeenCalledWith('You must have manager or developer role in the project to perform this action');
+    expect(warning).toHaveBeenCalledWith(
+      'You must have manager or developer role in the project to perform this action',
+    );
   });
 
   test('wraps supported languages API errors into CliError', async () => {

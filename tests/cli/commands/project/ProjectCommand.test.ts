@@ -213,8 +213,6 @@ describe('ProjectCommand', () => {
 
     commandContext = createCommandContext(globalOptions);
 
-    expect(projectCommand.addAction(commandContext)).rejects.toThrow(
-      new CliError('Project name is required'),
-    );
+    expect(projectCommand.addAction(commandContext)).rejects.toThrow(new CliError('Project name is required'));
   });
 });

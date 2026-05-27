@@ -23,8 +23,7 @@ export default class FileCommand {
     private getProjectService: GetProjectService,
     private getStorageService: GetStorageService,
     private getApiClient: GetApiClient,
-  ) {
-  }
+  ) {}
 
   getDefinition(): CommandDef {
     return {
@@ -96,9 +95,7 @@ export default class FileCommand {
     await projectService.loadProject();
     const projectFiles = await projectService.loadProjectFiles();
 
-    output.table(
-      projectFiles.data.map((file) => ({ id: file.data.id, path: file.data.path })),
-    );
+    output.table(projectFiles.data.map((file) => ({ id: file.data.id, path: file.data.path })));
   };
 
   uploadAction = async (command: Command) => {
@@ -135,10 +132,7 @@ export default class FileCommand {
 
       for (const directory of directories) {
         try {
-          const projectDirectory = await projectService.directory.createProjectDirectory(
-            directory,
-            parentDirectoryId,
-          );
+          const projectDirectory = await projectService.directory.createProjectDirectory(directory, parentDirectoryId);
           parentDirectoryId = projectDirectory.data.id;
           output.success(`Directory ${directory} created`);
         } catch (error) {
@@ -156,16 +150,13 @@ export default class FileCommand {
     }
 
     try {
-      await apiClient.sourceFilesApi.createFile(
-        config.projectId,
-        {
-          storageId: storage.data.id,
-          name: destPath,
-          directoryId: parentDirectoryId,
-          type: fileType,
-          parserVersion,
-        },
-      );
+      await apiClient.sourceFilesApi.createFile(config.projectId, {
+        storageId: storage.data.id,
+        name: destPath,
+        directoryId: parentDirectoryId,
+        type: fileType,
+        parserVersion,
+      });
     } catch (error) {
       if (error instanceof CliError) {
         throw error;

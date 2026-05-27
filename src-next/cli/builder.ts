@@ -41,7 +41,7 @@ export function buildCommand(def: CommandDef): Command {
       cmd.optionsGroup(item.group);
 
       item.options.forEach((opt: OptionDef) => {
-        cmd.addOption(buildOption(opt))
+        cmd.addOption(buildOption(opt));
       });
     } else {
       cmd.addOption(buildOption(item));

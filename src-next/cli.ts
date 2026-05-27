@@ -104,6 +104,6 @@ function getOutputFormat(argv: string[]): GlobalOptions {
     config: '',
     progress: false,
     verbose: false,
-    format: format
+    format: format,
   };
 }

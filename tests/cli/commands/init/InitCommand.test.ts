@@ -165,7 +165,7 @@ describe('InitCommand', () => {
     };
 
     const commandContext = {
-      optsWithGlobals: () => (globalOptions),
+      optsWithGlobals: () => globalOptions,
     } as Command;
 
     await command.defaultAction(commandContext);

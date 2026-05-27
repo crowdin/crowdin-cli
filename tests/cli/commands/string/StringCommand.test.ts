@@ -131,11 +131,7 @@ describe('StringCommand', () => {
         }),
       );
       expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify(
-          [{ id: 11, identifier: 'welcome', text: 'Hello' }],
-          null,
-          2,
-        ),
+        JSON.stringify([{ id: 11, identifier: 'welcome', text: 'Hello' }], null, 2),
       );
     });
 
@@ -173,27 +169,21 @@ describe('StringCommand', () => {
       const cmd = createStringCommand();
       const commandContext = createCommandContext(globalOptions, []);
 
-      expect(cmd.addAction(commandContext)).rejects.toThrow(
-        new CliError('Source string text can not be empty'),
-      );
+      expect(cmd.addAction(commandContext)).rejects.toThrow(new CliError('Source string text can not be empty'));
     });
 
     test('validates max-length lower bound', async () => {
       const cmd = createStringCommand();
       const commandContext = createCommandContext({ ...globalOptions, maxLength: -1 }, ['hello']);
 
-      expect(cmd.addAction(commandContext)).rejects.toThrow(
-        new CliError("'--max-length' cannot be lower than 0"),
-      );
+      expect(cmd.addAction(commandContext)).rejects.toThrow(new CliError("'--max-length' cannot be lower than 0"));
     });
 
     test('requires files for file-based projects', async () => {
       const cmd = createStringCommand();
       const commandContext = createCommandContext(globalOptions, ['hello']);
 
-      expect(cmd.addAction(commandContext)).rejects.toThrow(
-        new CliError("The '--file' value can not be empty"),
-      );
+      expect(cmd.addAction(commandContext)).rejects.toThrow(new CliError("The '--file' value can not be empty"));
     });
 
     test('requires branch for string-based projects', async () => {
@@ -235,10 +225,7 @@ describe('StringCommand', () => {
       const cmd = createStringCommand();
       stringService.isStringsBasedProject.mockResolvedValue(true);
       stringService.resolveBranchId.mockResolvedValue(555);
-      const commandContext = createCommandContext(
-        { ...globalOptions, branch: 'main', one: 'One value' },
-        ['hello'],
-      );
+      const commandContext = createCommandContext({ ...globalOptions, branch: 'main', one: 'One value' }, ['hello']);
 
       await cmd.addAction(commandContext);
 
@@ -257,9 +244,7 @@ describe('StringCommand', () => {
       const cmd = createStringCommand();
       const commandContext = createCommandContext(globalOptions, []);
 
-      expect(cmd.editAction(commandContext)).rejects.toThrow(
-        new CliError('Source string id can not be empty'),
-      );
+      expect(cmd.editAction(commandContext)).rejects.toThrow(new CliError('Source string id can not be empty'));
     });
 
     test('requires at least one edit option', async () => {
@@ -298,9 +283,7 @@ describe('StringCommand', () => {
       const cmd = createStringCommand();
       const commandContext = createCommandContext(globalOptions, ['abc']);
 
-      expect(cmd.deleteAction(commandContext)).rejects.toThrow(
-        new CliError('Source string id must be numeric'),
-      );
+      expect(cmd.deleteAction(commandContext)).rejects.toThrow(new CliError('Source string id must be numeric'));
     });
 
     test('deletes string by id', async () => {

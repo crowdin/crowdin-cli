@@ -33,9 +33,7 @@ describe('UploadCommand', () => {
     expect(topOpts.find((o) => o.name === 'label')?.variadic).toBe(true);
     expect(topOpts.find((o) => o.name === 'excluded-language')?.variadic).toBe(true);
 
-    const sourcesOpts = flatOptions(
-      definition.subcommands?.find((s) => s.name === 'sources')?.options ?? [],
-    );
+    const sourcesOpts = flatOptions(definition.subcommands?.find((s) => s.name === 'sources')?.options ?? []);
     expect(sourcesOpts.find((o) => o.name === 'label')?.variadic).toBe(true);
     expect(sourcesOpts.find((o) => o.name === 'excluded-language')?.variadic).toBe(true);
   });
@@ -128,23 +126,23 @@ describe('UploadCommand', () => {
       excluded_target_languages: ['uk'],
     });
 
-    await command.uploadSourcesAction(commandContext({
-      label: ['cli-label', 'existing-label'],
-      excludedLanguage: ['es', 'uk'],
-    }));
+    await command.uploadSourcesAction(
+      commandContext({
+        label: ['cli-label', 'existing-label'],
+        excludedLanguage: ['es', 'uk'],
+      }),
+    );
 
     expect(projectService.label.resolveLabelIds).toHaveBeenCalledWith(['existing-label', 'cli-label']);
-    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(
-      123, {
-        storageId: 10,
-        name: 'app.json',
-        directoryId: 1,
-        branchId: undefined,
-        exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
-        excludedTargetLanguages: ['uk', 'es'],
-        attachLabelIds: [11, 12],
-      },
-    );
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(123, {
+      storageId: 10,
+      name: 'app.json',
+      directoryId: 1,
+      branchId: undefined,
+      exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+      excludedTargetLanguages: ['uk', 'es'],
+      attachLabelIds: [11, 12],
+    });
     expect(output.success).toHaveBeenCalledWith('File src/app.json created');
   });
 
@@ -172,17 +170,15 @@ describe('UploadCommand', () => {
     expect(projectService.loadProjectFiles).toHaveBeenCalledWith(44);
     expect(projectService.directory.loadProjectDirectories).toHaveBeenCalledWith(44);
     expect(projectService.directory.createProjectDirectory).toHaveBeenCalledWith('src', undefined, 44);
-    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(
-      123, {
-        storageId: 10,
-        name: 'app.json',
-        directoryId: 1,
-        branchId: 44,
-        exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
-        excludedTargetLanguages: undefined,
-        attachLabelIds: undefined,
-      },
-    );
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(123, {
+      storageId: 10,
+      name: 'app.json',
+      directoryId: 1,
+      branchId: 44,
+      exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+      excludedTargetLanguages: undefined,
+      attachLabelIds: undefined,
+    });
     expect(output.success).toHaveBeenCalledWith('Directory src created');
     expect(output.success).toHaveBeenCalledWith('File src/app.json created');
   });
@@ -210,28 +206,24 @@ describe('UploadCommand', () => {
     expect(projectService.directory.createProjectDirectory).toHaveBeenCalledTimes(1);
     expect(projectService.directory.createProjectDirectory).toHaveBeenCalledWith('src', undefined, undefined);
     expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledTimes(2);
-    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(
-      123, {
-        storageId: 10,
-        name: 'app.json',
-        directoryId: 1,
-        branchId: undefined,
-        exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
-        excludedTargetLanguages: undefined,
-        attachLabelIds: undefined,
-      },
-    );
-    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(
-      123, {
-        storageId: 11,
-        name: 'utils.json',
-        directoryId: 1,
-        branchId: undefined,
-        exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
-        excludedTargetLanguages: undefined,
-        attachLabelIds: undefined,
-      },
-    );
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(123, {
+      storageId: 10,
+      name: 'app.json',
+      directoryId: 1,
+      branchId: undefined,
+      exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+      excludedTargetLanguages: undefined,
+      attachLabelIds: undefined,
+    });
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(123, {
+      storageId: 11,
+      name: 'utils.json',
+      directoryId: 1,
+      branchId: undefined,
+      exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+      excludedTargetLanguages: undefined,
+      attachLabelIds: undefined,
+    });
     expect(output.success).toHaveBeenCalledWith('Directory src created');
     expect(output.success).toHaveBeenCalledWith('File src/app.json created');
     expect(output.success).toHaveBeenCalledWith('File src/utils.json created');
@@ -256,17 +248,15 @@ describe('UploadCommand', () => {
     await command.uploadSourcesAction(commandContext({}));
 
     expect(projectService.directory.createProjectDirectory).not.toHaveBeenCalled();
-    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(
-      123, {
-        storageId: 10,
-        name: 'app.json',
-        directoryId: 5,
-        branchId: undefined,
-        exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
-        excludedTargetLanguages: undefined,
-        attachLabelIds: undefined,
-      },
-    );
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(123, {
+      storageId: 10,
+      name: 'app.json',
+      directoryId: 5,
+      branchId: undefined,
+      exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+      excludedTargetLanguages: undefined,
+      attachLabelIds: undefined,
+    });
     expect(output.success).not.toHaveBeenCalledWith(expect.stringContaining('Directory'));
     expect(output.success).toHaveBeenCalledWith('File src/app.json created');
   });
@@ -295,21 +285,22 @@ describe('UploadCommand', () => {
     await command.uploadSourcesAction(commandContext({}));
 
     expect(projectService.file.updateProjectFile).toHaveBeenCalledWith(
-      77, expect.any(Number), 'src/app.json',
+      77,
+      expect.any(Number),
+      'src/app.json',
       '/locale/%two_letters_code%/%original_file_name%',
-      undefined, undefined,
+      undefined,
+      undefined,
     );
-    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(
-      123, {
-        storageId: expect.any(Number),
-        name: 'new.json',
-        directoryId: 5,
-        branchId: undefined,
-        exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
-        excludedTargetLanguages: undefined,
-        attachLabelIds: undefined,
-      },
-    );
+    expect(apiClient.sourceFilesApi.createFile).toHaveBeenCalledWith(123, {
+      storageId: expect.any(Number),
+      name: 'new.json',
+      directoryId: 5,
+      branchId: undefined,
+      exportOptions: { exportPattern: '/locale/%two_letters_code%/%original_file_name%' },
+      excludedTargetLanguages: undefined,
+      attachLabelIds: undefined,
+    });
     expect(projectService.directory.createProjectDirectory).not.toHaveBeenCalled();
     expect(output.success).toHaveBeenCalledWith('File src/app.json updated');
     expect(output.success).toHaveBeenCalledWith('File src/new.json created');
@@ -322,10 +313,7 @@ describe('UploadCommand', () => {
     const projectService = {
       ...baseProjectServiceMock(),
       loadProjectFiles: mock(async () => ({
-        data: [
-          { data: { id: 77, path: '/src/app.json' } },
-          { data: { id: 88, path: '/old/removed.json' } },
-        ],
+        data: [{ data: { id: 77, path: '/src/app.json' } }, { data: { id: 88, path: '/old/removed.json' } }],
       })),
       directory: {
         loadProjectDirectories: mock(async () => [
@@ -358,10 +346,7 @@ describe('UploadCommand', () => {
     const projectService = {
       ...baseProjectServiceMock(),
       loadProjectFiles: mock(async () => ({
-        data: [
-          { data: { id: 77, path: '/src/app.json' } },
-          { data: { id: 88, path: '/old/removed.json' } },
-        ],
+        data: [{ data: { id: 77, path: '/src/app.json' } }, { data: { id: 88, path: '/old/removed.json' } }],
       })),
       directory: {
         loadProjectDirectories: mock(async () => [
@@ -406,17 +391,24 @@ describe('UploadCommand', () => {
     const output = createOutputMock();
     const command = createUploadCommand(tempDir, output, projectService, storageService, {});
 
-    await command.uploadTranslationsAction(commandContext({
-      language: 'es',
-      autoApproveImported: true,
-      importEqSuggestions: true,
-      translateHidden: true,
-    }));
+    await command.uploadTranslationsAction(
+      commandContext({
+        language: 'es',
+        autoApproveImported: true,
+        importEqSuggestions: true,
+        translateHidden: true,
+      }),
+    );
 
     expect(storageService.addStorage).toHaveBeenCalledTimes(1);
     expect(projectService.translation.importProjectTranslation).toHaveBeenCalledWith(
-      10, 77, ['es'], 'locale/es/app.json',
-      true, true, true,
+      10,
+      77,
+      ['es'],
+      'locale/es/app.json',
+      true,
+      true,
+      true,
     );
     expect(output.success).toHaveBeenCalledWith('File locale/es/app.json was queued for translations import');
   });
@@ -442,8 +434,13 @@ describe('UploadCommand', () => {
     expect(projectService.branch.getOrCreateBranch).toHaveBeenCalledWith('feature');
     expect(projectService.loadProjectFiles).toHaveBeenCalledWith(44);
     expect(projectService.translation.importProjectTranslation).toHaveBeenCalledWith(
-      10, 77, ['es'], 'locale/es/app.json',
-      undefined, undefined, undefined,
+      10,
+      77,
+      ['es'],
+      'locale/es/app.json',
+      undefined,
+      undefined,
+      undefined,
     );
     expect(output.success).toHaveBeenCalledWith('File locale/es/app.json was queued for translations import');
   });
@@ -467,9 +464,7 @@ describe('UploadCommand', () => {
 
     expect(storageService.addStorage).not.toHaveBeenCalled();
     expect(projectService.translation.importProjectTranslation).not.toHaveBeenCalled();
-    expect(output.warning).toHaveBeenCalledWith(
-      'File locale/es/app.json does not exist in the specified location',
-    );
+    expect(output.warning).toHaveBeenCalledWith('File locale/es/app.json does not exist in the specified location');
   });
 
   test('uploads translations for all languages when no language filter is specified', async () => {
@@ -497,12 +492,22 @@ describe('UploadCommand', () => {
 
     expect(projectService.translation.importProjectTranslation).toHaveBeenCalledTimes(2);
     expect(projectService.translation.importProjectTranslation).toHaveBeenCalledWith(
-      expect.any(Number), 77, ['es'], 'locale/es/app.json',
-      undefined, undefined, undefined,
+      expect.any(Number),
+      77,
+      ['es'],
+      'locale/es/app.json',
+      undefined,
+      undefined,
+      undefined,
     );
     expect(projectService.translation.importProjectTranslation).toHaveBeenCalledWith(
-      expect.any(Number), 77, ['fr'], 'locale/fr/app.json',
-      undefined, undefined, undefined,
+      expect.any(Number),
+      77,
+      ['fr'],
+      'locale/fr/app.json',
+      undefined,
+      undefined,
+      undefined,
     );
     expect(output.success).toHaveBeenCalledWith('File locale/es/app.json was queued for translations import');
     expect(output.success).toHaveBeenCalledWith('File locale/fr/app.json was queued for translations import');
@@ -528,9 +533,7 @@ describe('UploadCommand', () => {
 
     expect(storageService.addStorage).not.toHaveBeenCalled();
     expect(projectService.translation.importProjectTranslation).not.toHaveBeenCalled();
-    expect(output.info).toHaveBeenCalledWith(
-      'File locale/es/app.json would be queued for translations import',
-    );
+    expect(output.info).toHaveBeenCalledWith('File locale/es/app.json would be queued for translations import');
   });
 
   test('does nothing when project has no source files', async () => {
@@ -565,9 +568,9 @@ describe('UploadCommand', () => {
     const output = createOutputMock();
     const command = createUploadCommand(tempDir, output, projectService, storageService, {});
 
-    expect(
-      command.uploadTranslationsAction(commandContext({ language: 'fr' })),
-    ).rejects.toThrow('Language \'fr\' does not exist in the project');
+    expect(command.uploadTranslationsAction(commandContext({ language: 'fr' }))).rejects.toThrow(
+      "Language 'fr' does not exist in the project",
+    );
   });
 });
 

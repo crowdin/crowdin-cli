@@ -5,7 +5,21 @@ describe('command registry', () => {
   test('registers expected top-level commands with unique names', () => {
     const names = commands.map((command) => command.name);
 
-    expect(names).toEqual(['upload', 'download', 'init', 'status', 'string', 'task', 'file', 'language', 'comment', 'config', 'project', 'distribution', 'test']);
+    expect(names).toEqual([
+      'upload',
+      'download',
+      'init',
+      'status',
+      'string',
+      'task',
+      'file',
+      'language',
+      'comment',
+      'config',
+      'project',
+      'distribution',
+      'test',
+    ]);
     expect(new Set(names).size).toBe(names.length);
   });
 

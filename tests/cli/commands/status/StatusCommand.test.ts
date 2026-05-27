@@ -33,14 +33,16 @@ const createCommandContext = (options: StatusTestOptions) => {
 const mockProject = {
   data: {
     id: 123,
-    targetLanguages: [
-      { id: 'fr' },
-      { id: 'de' },
-    ],
+    targetLanguages: [{ id: 'fr' }, { id: 'de' }],
   },
 };
 
-const createProgress = (languageId: string, translationProgress: number, approvalProgress: number, wordsTotal: number = 100) => {
+const createProgress = (
+  languageId: string,
+  translationProgress: number,
+  approvalProgress: number,
+  wordsTotal: number = 100,
+) => {
   return {
     data: {
       languageId,
@@ -85,10 +87,7 @@ describe('StatusCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
     spyOn(projectService.progress, 'loadProjectProgress').mockResolvedValue({
-      data: [
-        createProgress('fr', 87, 75),
-        createProgress('de', 92, 88),
-      ],
+      data: [createProgress('fr', 87, 75), createProgress('de', 92, 88)],
     } as never);
 
     await statusCommand.defaultAction(commandContext);

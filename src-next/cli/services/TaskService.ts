@@ -45,7 +45,10 @@ export class TaskService {
     let branchId: number | undefined;
 
     if (branchName && branchName !== 'none') {
-      const branches = await this.client.sourceFilesApi.listProjectBranches(this.projectId, { name: branchName, limit: 500 });
+      const branches = await this.client.sourceFilesApi.listProjectBranches(this.projectId, {
+        name: branchName,
+        limit: 500,
+      });
       const branch = branches.data.find((entry) => entry.data.name === branchName);
 
       if (!branch) {

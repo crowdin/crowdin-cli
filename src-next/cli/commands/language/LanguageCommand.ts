@@ -42,8 +42,7 @@ export default class LanguageCommand {
     private getOutput: GetOutput,
     private getProjectService: GetProjectService,
     private getApiClient: GetApiClient,
-  ) {
-  }
+  ) {}
 
   getDefinition(): CommandDef {
     return {

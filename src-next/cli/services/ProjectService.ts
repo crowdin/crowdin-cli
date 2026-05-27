@@ -7,8 +7,7 @@ export class ProjectService {
     private apiClient: Client,
     private output: Output,
     private projectId: number,
-  ) {
-  }
+  ) {}
 
   progress = {
     loadProjectProgress: async () => {
@@ -59,28 +58,20 @@ export class ProjectService {
       excludedTargetLanguages?: string[],
     ) => {
       try {
-        await this.apiClient.sourceFilesApi.updateOrRestoreFile(
-          this.projectId,
-          fileId,
-          {
-            storageId,
-            exportOptions: { exportPattern },
-            attachLabelIds,
-          },
-        );
+        await this.apiClient.sourceFilesApi.updateOrRestoreFile(this.projectId, fileId, {
+          storageId,
+          exportOptions: { exportPattern },
+          attachLabelIds,
+        });
 
         if (excludedTargetLanguages !== undefined) {
-          await this.apiClient.sourceFilesApi.editFile(
-            this.projectId,
-            fileId,
-            [
-              {
-                op: 'replace',
-                path: '/excludedTargetLanguages',
-                value: excludedTargetLanguages,
-              },
-            ],
-          );
+          await this.apiClient.sourceFilesApi.editFile(this.projectId, fileId, [
+            {
+              op: 'replace',
+              path: '/excludedTargetLanguages',
+              value: excludedTargetLanguages,
+            },
+          ]);
         }
       } catch (error) {
         throw toCliError(error, `Failed to update ${localFilePath}`);
@@ -129,14 +120,11 @@ export class ProjectService {
     loadProjectDirectories: async (branchId?: number) => {
       try {
         return (
-          await this.apiClient.sourceFilesApi.listProjectDirectories(
-            this.projectId,
-            {
-              branchId,
-              recursion: '1', // TODO: Looks weird. API doc says should be integer or null
-              limit: 500,
-            },
-          )
+          await this.apiClient.sourceFilesApi.listProjectDirectories(this.projectId, {
+            branchId,
+            recursion: '1', // TODO: Looks weird. API doc says should be integer or null
+            limit: 500,
+          })
         ).data;
       } catch (error) {
         throw toCliError(error, `Failed to list directories for project ${this.projectId}`);
@@ -190,17 +178,14 @@ export class ProjectService {
       translateHidden?: boolean,
     ) => {
       try {
-        await this.apiClient.translationsApi.importTranslations(
-          this.projectId,
-          {
-            storageId,
-            fileId,
-            languageIds,
-            autoApproveImported,
-            importEqSuggestions,
-            translateHidden,
-          },
-        );
+        await this.apiClient.translationsApi.importTranslations(this.projectId, {
+          storageId,
+          fileId,
+          languageIds,
+          autoApproveImported,
+          importEqSuggestions,
+          translateHidden,
+        });
       } catch (error) {
         throw toCliError(error, `Failed to import translations for file ${filePath}`);
       }
@@ -209,12 +194,9 @@ export class ProjectService {
       this.output.spinner('build', 'start', 'Building translations...');
 
       try {
-        const build = await this.apiClient.translationsApi.buildProject(
-          this.projectId,
-          {
-            targetLanguageIds: languageIds,
-          },
-        );
+        const build = await this.apiClient.translationsApi.buildProject(this.projectId, {
+          targetLanguageIds: languageIds,
+        });
 
         while (true) {
           const buildProgress = await this.apiClient.translationsApi.checkBuildStatus(this.projectId, build.data.id);
@@ -275,13 +257,10 @@ export class ProjectService {
     this.output.spinner('projectFiles', 'start', 'Fetching project files');
 
     try {
-      const projectFiles = await this.apiClient.sourceFilesApi.listProjectFiles(
-        this.projectId,
-        {
-          branchId,
-          limit: 500,
-        },
-      );
+      const projectFiles = await this.apiClient.sourceFilesApi.listProjectFiles(this.projectId, {
+        branchId,
+        limit: 500,
+      });
 
       this.output.spinner('projectFiles', 'stop', 'Project files fetched');
 

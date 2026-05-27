@@ -78,7 +78,8 @@ describe('FileCommand', () => {
     return new FileCommand(
       async (command: Command) => ({
         ...config,
-        basePath: (command as unknown as { optsWithGlobals: () => FileTestOptions }).optsWithGlobals().basePath || tempDir,
+        basePath:
+          (command as unknown as { optsWithGlobals: () => FileTestOptions }).optsWithGlobals().basePath || tempDir,
       }),
       () => output,
       async () => projectService,
@@ -131,7 +132,8 @@ describe('FileCommand', () => {
       data: { id: 123 },
     } as never);
     const createDirectory = spyOn(apiClient.sourceFilesApi, 'createDirectory');
-    createDirectory.mockResolvedValueOnce({ data: { id: 10 } } as never)
+    createDirectory
+      .mockResolvedValueOnce({ data: { id: 10 } } as never)
       .mockResolvedValueOnce({ data: { id: 20 } } as never);
     const addStorage = spyOn(storageService, 'addStorage').mockResolvedValue({
       data: { id: 99 },
@@ -151,24 +153,35 @@ describe('FileCommand', () => {
 
     await fileCommand.uploadAction(commandContext);
 
-    expect(createDirectory).toHaveBeenNthCalledWith(1, 123, { name: 'nested', directoryId: undefined, branchId: undefined });
-    expect(createDirectory).toHaveBeenNthCalledWith(2, 123, { name: 'translations', directoryId: 10, branchId: undefined });
+    expect(createDirectory).toHaveBeenNthCalledWith(1, 123, {
+      name: 'nested',
+      directoryId: undefined,
+      branchId: undefined,
+    });
+    expect(createDirectory).toHaveBeenNthCalledWith(2, 123, {
+      name: 'translations',
+      directoryId: 10,
+      branchId: undefined,
+    });
     expect(addStorage).toHaveBeenCalledWith(
       expect.any(Object), // Bun.file object
     );
-    expect(createFile).toHaveBeenCalledWith(123, { storageId: 99, name: 'nested/translations/remote.json', directoryId: 20, type: 'json', parserVersion: 2 });
+    expect(createFile).toHaveBeenCalledWith(123, {
+      storageId: 99,
+      name: 'nested/translations/remote.json',
+      directoryId: 20,
+      type: 'json',
+      parserVersion: 2,
+    });
   });
 
   test('requires file type when parser version provided', async () => {
     const fileCommand = createFileCommand();
 
-    commandContext = createCommandContext(
-      { ...globalOptions, parserVersion: '2' },
-      ['example.json'],
-    );
+    commandContext = createCommandContext({ ...globalOptions, parserVersion: '2' }, ['example.json']);
 
     expect(fileCommand.uploadAction(commandContext)).rejects.toThrow(
-      new CliError('Type is required for parser version')
+      new CliError('Type is required for parser version'),
     );
   });
 
@@ -189,10 +202,7 @@ describe('FileCommand', () => {
     } as never);
     spyOn(globalThis, 'fetch').mockResolvedValue(new Response('downloaded content'));
 
-    commandContext = createCommandContext(
-      { ...globalOptions, dest: 'downloads' },
-      ['docs/readme.md'],
-    );
+    commandContext = createCommandContext({ ...globalOptions, dest: 'downloads' }, ['docs/readme.md']);
 
     await fileCommand.downloadAction(commandContext);
 

@@ -1,6 +1,6 @@
+import type { Client } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
-import type { Client } from '@crowdin/crowdin-api-client';
 
 interface SourceStringRecord {
   id: number;
@@ -67,7 +67,10 @@ export class StringService {
 
   async addStringsBased(request: Record<string, unknown>): Promise<SourceStringRecord> {
     try {
-      const response = await (this.client as any).sourceStringsApi.addStringForStringsBasedProject(this.projectId, request);
+      const response = await (this.client as any).sourceStringsApi.addStringForStringsBasedProject(
+        this.projectId,
+        request,
+      );
 
       return this.unwrapData<SourceStringRecord>(response?.data);
     } catch (error) {
@@ -77,7 +80,10 @@ export class StringService {
 
   async addPluralStringsBased(request: Record<string, unknown>): Promise<SourceStringRecord> {
     try {
-      const response = await (this.client as any).sourceStringsApi.addPluralStringForStringsBasedProject(this.projectId, request);
+      const response = await (this.client as any).sourceStringsApi.addPluralStringForStringsBasedProject(
+        this.projectId,
+        request,
+      );
 
       return this.unwrapData<SourceStringRecord>(response?.data);
     } catch (error) {
@@ -189,10 +195,7 @@ export class StringService {
     }
   }
 
-  async resolveFileIds(
-    rawPaths: string[],
-    branchId?: number,
-  ): Promise<{ fileIds: number[]; missingPaths: string[] }> {
+  async resolveFileIds(rawPaths: string[], branchId?: number): Promise<{ fileIds: number[]; missingPaths: string[] }> {
     const normalizedPaths = rawPaths.map((rawPath) => this.normalizePath(rawPath));
     const fileIdsByPath = await this.loadFileIdsByPath(branchId);
     const fileIds: number[] = [];

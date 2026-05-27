@@ -89,9 +89,7 @@ describe('CommentCommand', () => {
         targetLanguageId: 'uk',
         type: 'comment',
       });
-      expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify([{ id: 99, text: 'Hello world' }], null, 2),
-      );
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 99, text: 'Hello world' }], null, 2));
     });
 
     test('adds an issue comment with issue-type', async () => {
@@ -125,48 +123,34 @@ describe('CommentCommand', () => {
 
     test('defaults type to comment when not provided', async () => {
       const cmd = createCommentCommand();
-      const commandContext = createCommandContext(
-        { ...globalOptions, stringId: '5', language: 'de' },
-        ['Nice string'],
-      );
+      const commandContext = createCommandContext({ ...globalOptions, stringId: '5', language: 'de' }, ['Nice string']);
 
       spyOn(commentService, 'add').mockResolvedValue({ id: 1, text: 'Nice string' } as never);
 
       await cmd.addAction(commandContext);
 
-      expect(commentService.add).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'comment' }),
-      );
+      expect(commentService.add).toHaveBeenCalledWith(expect.objectContaining({ type: 'comment' }));
     });
 
     test('throws when text is missing', async () => {
       const cmd = createCommentCommand();
-      const commandContext = createCommandContext(
-        { ...globalOptions, stringId: '1', language: 'en' },
-        [],
-      );
+      const commandContext = createCommandContext({ ...globalOptions, stringId: '1', language: 'en' }, []);
 
-      expect(cmd.addAction(commandContext)).rejects.toThrow(
-        new CliError('String comment text is required'),
-      );
+      expect(cmd.addAction(commandContext)).rejects.toThrow(new CliError('String comment text is required'));
     });
 
     test('throws when --string-id is missing', async () => {
       const cmd = createCommentCommand();
       const commandContext = createCommandContext({ ...globalOptions, language: 'en' }, ['text']);
 
-      expect(cmd.addAction(commandContext)).rejects.toThrow(
-        new CliError("The '--string-id' option is required"),
-      );
+      expect(cmd.addAction(commandContext)).rejects.toThrow(new CliError("The '--string-id' option is required"));
     });
 
     test('throws when --language is missing', async () => {
       const cmd = createCommentCommand();
       const commandContext = createCommandContext({ ...globalOptions, stringId: '1' }, ['text']);
 
-      expect(cmd.addAction(commandContext)).rejects.toThrow(
-        new CliError("The '--language' option is required"),
-      );
+      expect(cmd.addAction(commandContext)).rejects.toThrow(new CliError("The '--language' option is required"));
     });
 
     test('throws when issue-type is provided for comment type', async () => {
@@ -183,18 +167,13 @@ describe('CommentCommand', () => {
       );
 
       expect(cmd.addAction(commandContext)).rejects.toThrow(
-        new CliError(
-          'Comment should not have the --issue-type parameter. It can only be used if --type=issue',
-        ),
+        new CliError('Comment should not have the --issue-type parameter. It can only be used if --type=issue'),
       );
     });
 
     test('propagates service errors', async () => {
       const cmd = createCommentCommand();
-      const commandContext = createCommandContext(
-        { ...globalOptions, stringId: '1', language: 'en' },
-        ['text'],
-      );
+      const commandContext = createCommandContext({ ...globalOptions, stringId: '1', language: 'en' }, ['text']);
 
       spyOn(commentService, 'add').mockRejectedValue(new CliError('Comment was not added'));
 
@@ -263,20 +242,19 @@ describe('CommentCommand', () => {
       const cmd = createCommentCommand();
       const commandContext = createCommandContext(globalOptions);
 
-      spyOn(commentService, 'list').mockResolvedValue([
-        { id: 3, text: 'line one\nline two' },
-      ] as never);
+      spyOn(commentService, 'list').mockResolvedValue([{ id: 3, text: 'line one\nline two' }] as never);
 
       await cmd.listAction(commandContext);
 
-      expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify([{ id: 3, text: 'line one line two' }], null, 2),
-      );
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 3, text: 'line one line two' }], null, 2));
     });
 
     test('outputs success message when no comments found', async () => {
       const textOutput = createOutput({ ...globalOptions, format: 'text' });
-      const cmd = new CommentCommand(() => textOutput, async () => commentService);
+      const cmd = new CommentCommand(
+        () => textOutput,
+        async () => commentService,
+      );
       const commandContext = createCommandContext({ ...globalOptions, format: 'text' });
       const successSpy = spyOn(textOutput, 'success');
 
@@ -318,9 +296,7 @@ describe('CommentCommand', () => {
 
       await cmd.listAction(commandContext);
 
-      expect(listSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'issue', status: 'resolved' }),
-      );
+      expect(listSpy).toHaveBeenCalledWith(expect.objectContaining({ type: 'issue', status: 'resolved' }));
     });
 
     test('does not override type when both status and type are set', async () => {
@@ -334,16 +310,17 @@ describe('CommentCommand', () => {
 
       await cmd.listAction(commandContext);
 
-      expect(listSpy).toHaveBeenCalledWith(
-        expect.objectContaining({ type: 'comment', status: 'resolved' }),
-      );
+      expect(listSpy).toHaveBeenCalledWith(expect.objectContaining({ type: 'comment', status: 'resolved' }));
     });
   });
 
   describe('resolveAction', () => {
     test('resolves comment and outputs success message', async () => {
       const textOutput = createOutput({ ...globalOptions, format: 'text' });
-      const cmd = new CommentCommand(() => textOutput, async () => commentService);
+      const cmd = new CommentCommand(
+        () => textOutput,
+        async () => commentService,
+      );
       const commandContext = createCommandContext(globalOptions, ['42']);
       const successSpy = spyOn(textOutput, 'success');
 
@@ -352,9 +329,7 @@ describe('CommentCommand', () => {
       await cmd.resolveAction(commandContext);
 
       expect(commentService.resolve).toHaveBeenCalledWith(42);
-      expect(successSpy).toHaveBeenCalledWith(
-        'A string issue #42 has been successfully resolved',
-      );
+      expect(successSpy).toHaveBeenCalledWith('A string issue #42 has been successfully resolved');
     });
 
     test('throws when id argument is missing', async () => {
@@ -370,22 +345,16 @@ describe('CommentCommand', () => {
       const cmd = createCommentCommand();
       const commandContext = createCommandContext(globalOptions, ['abc']);
 
-      expect(cmd.resolveAction(commandContext)).rejects.toThrow(
-        new CliError('Invalid comment ID: must be a number'),
-      );
+      expect(cmd.resolveAction(commandContext)).rejects.toThrow(new CliError('Invalid comment ID: must be a number'));
     });
 
     test('propagates service errors', async () => {
       const cmd = createCommentCommand();
       const commandContext = createCommandContext(globalOptions, ['99']);
 
-      spyOn(commentService, 'resolve').mockRejectedValue(
-        new CliError('Comment #99 was not resolved'),
-      );
+      spyOn(commentService, 'resolve').mockRejectedValue(new CliError('Comment #99 was not resolved'));
 
-      expect(cmd.resolveAction(commandContext)).rejects.toThrow(
-        new CliError('Comment #99 was not resolved'),
-      );
+      expect(cmd.resolveAction(commandContext)).rejects.toThrow(new CliError('Comment #99 was not resolved'));
     });
   });
 });

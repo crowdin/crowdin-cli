@@ -1,8 +1,8 @@
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetApiClient, GetOutput, GetTaskService } from '@/cli/services.ts';
 import type { TaskStatus } from '@/cli/services/TaskService.ts';
+import type { GetApiClient, GetOutput, GetTaskService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import branch from '../upload/options/branch.ts';
 import assigneeId from './options/assigneeId.ts';
@@ -170,7 +170,9 @@ export default class TaskCommand {
     }
 
     if (type === 'translate' && options.includePreTranslatedStringsOnly) {
-      throw new CliError("The '--include-pre-translated-strings-only' option can't be used with the 'translate' task type");
+      throw new CliError(
+        "The '--include-pre-translated-strings-only' option can't be used with the 'translate' task type",
+      );
     }
 
     const resolvedFiles = await taskService.resolveFileIds(files, options.branch);

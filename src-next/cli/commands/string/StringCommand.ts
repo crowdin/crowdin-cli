@@ -207,7 +207,15 @@ export default class StringCommand {
               description: 'Numeric source string identifier',
             },
           ],
-          options: [identifierOption, textOption, contextOption, maxLengthOption, labelOption, hiddenOption, noHiddenOption],
+          options: [
+            identifierOption,
+            textOption,
+            contextOption,
+            maxLengthOption,
+            labelOption,
+            hiddenOption,
+            noHiddenOption,
+          ],
           action: this.editAction,
         },
       ],
@@ -258,14 +266,19 @@ export default class StringCommand {
 
     if (options.verbose) {
       const labelsMap = await stringService.listLabelsMap();
-      const filePaths = !isStringsBasedProject ? await stringService.listProjectFilePaths(branchId) : new Map<number, string>();
+      const filePaths = !isStringsBasedProject
+        ? await stringService.listProjectFilePaths(branchId)
+        : new Map<number, string>();
       output.table(
         strings.map((entry) => ({
           id: entry.id,
           identifier: entry.identifier ?? '',
           text: this.extractText(entry),
           file: entry.fileId !== undefined ? (filePaths.get(entry.fileId) ?? '') : '',
-          labels: (entry.labelIds ?? []).map((id: number) => labelsMap.get(id)).filter(Boolean).join(', '),
+          labels: (entry.labelIds ?? [])
+            .map((id: number) => labelsMap.get(id))
+            .filter(Boolean)
+            .join(', '),
           context: entry.context ?? '',
         })),
       );
@@ -340,9 +353,7 @@ export default class StringCommand {
 
     for (const fileId of resolvedFiles.fileIds) {
       const request = this.buildAddRequest(text, options, labelIds, fileId, undefined);
-      const added = isPluralString
-        ? await stringService.addPlural(request)
-        : await stringService.add(request);
+      const added = isPluralString ? await stringService.addPlural(request) : await stringService.add(request);
 
       result.push({
         id: added.id,
@@ -362,12 +373,12 @@ export default class StringCommand {
     const id = this.parseNumericId(idArg, 'Source string id can not be empty');
     const labelNames = this.toArray(options.label);
     const hasAnyPatch =
-      options.text !== undefined
-      || options.context !== undefined
-      || options.maxLength !== undefined
-      || options.hidden !== undefined
-      || options.identifier !== undefined
-      || labelNames.length > 0;
+      options.text !== undefined ||
+      options.context !== undefined ||
+      options.maxLength !== undefined ||
+      options.hidden !== undefined ||
+      options.identifier !== undefined ||
+      labelNames.length > 0;
 
     if (!hasAnyPatch) {
       throw new CliError('No fields to update. Specify at least one option to edit');
@@ -485,11 +496,13 @@ export default class StringCommand {
   }
 
   private isPlural(options: AddOptions): boolean {
-    return options.one !== undefined
-      || options.two !== undefined
-      || options.few !== undefined
-      || options.many !== undefined
-      || options.zero !== undefined;
+    return (
+      options.one !== undefined ||
+      options.two !== undefined ||
+      options.few !== undefined ||
+      options.many !== undefined ||
+      options.zero !== undefined
+    );
   }
 
   private toArray(value: string | string[] | undefined): string[] {

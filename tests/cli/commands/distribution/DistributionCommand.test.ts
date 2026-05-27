@@ -212,16 +212,10 @@ describe('DistributionCommand', () => {
     spyOn(apiClient.distributionsApi, 'listDistributions').mockResolvedValue({
       data: [{ data: { hash: 'hash-1', name: 'CDN' } }],
     } as never);
-    const createDistributionRelease = spyOn(
-      apiClient.distributionsApi,
-      'createDistributionRelease',
-    ).mockResolvedValue({
+    const createDistributionRelease = spyOn(apiClient.distributionsApi, 'createDistributionRelease').mockResolvedValue({
       data: { status: 'inProgress', progress: 20 },
     } as never);
-    const getDistributionRelease = spyOn(
-      apiClient.distributionsApi,
-      'getDistributionRelease',
-    ).mockResolvedValue({
+    const getDistributionRelease = spyOn(apiClient.distributionsApi, 'getDistributionRelease').mockResolvedValue({
       data: { status: 'success', progress: 100 },
     } as never);
 

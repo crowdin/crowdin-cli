@@ -51,9 +51,7 @@ export default class ConfigCommand {
     await projectService.loadProject();
     const localFilePaths = new SourceFileLoader(config).getFilePaths();
 
-    output.table(
-      localFilePaths.map((localFilePath) => ({ file: localFilePath })),
-    );
+    output.table(localFilePaths.map((localFilePath) => ({ file: localFilePath })));
   };
 
   listTranslationsAction = async (command: Command) => {

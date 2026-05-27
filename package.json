@@ -40,7 +40,8 @@
     "test": "bun test",
     "format": "biome format --write",
     "lint": "biome lint",
-    "check": "biome check --write"
+    "check": "biome check --write",
+    "prepare": "husky"
   },
   "dependencies": {
     "@bomb.sh/tab": "^0.0.14",
@@ -57,12 +58,17 @@
   "peerDependencies": {
     "typescript": "^5"
   },
+  "lint-staged": {
+    "*.ts": "biome check --write"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.4.13",
-    "@types/bun": "latest",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
+    "@types/bun": "latest",
+    "husky": "^9.1.7",
+    "lint-staged": "^17.0.5",
     "semantic-release": "^25.0.2",
     "semantic-release-replace-plugin": "^1.2.7"
   }

@@ -1,5 +1,5 @@
-import type { Command } from 'commander';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
+import type { Command } from 'commander';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetApiClient, GetOutput, GetProjectService } from '@/cli/services.ts';
@@ -21,8 +21,7 @@ export default class ProjectCommand {
     private getOutput: GetOutput,
     private getProjectService: GetProjectService,
     private getApiClient: GetApiClient,
-  ) {
-  }
+  ) {}
 
   getDefinition(): CommandDef {
     return {
@@ -78,12 +77,10 @@ export default class ProjectCommand {
 
     if (!options.verbose) {
       output.table(
-        projects.data.map(
-          (project) => ({
-            id: project.data.id,
-            name: project.data.name,
-          }),
-        ),
+        projects.data.map((project) => ({
+          id: project.data.id,
+          name: project.data.name,
+        })),
       );
 
       return;
@@ -112,21 +109,22 @@ export default class ProjectCommand {
 
     const sourceLanguageId = options.sourceLanguage || 'en';
     const targetLanguageIds = options.language ?? [];
-    const data: ProjectsGroupsModel.CreateProjectEnterpriseRequest | ProjectsGroupsModel.CreateProjectRequest = apiClient.organization
-      ? {
-          name,
-          sourceLanguageId,
-          targetLanguageIds,
-          ...(options.stringBased ? { type: 1 as const } : {}),
-        }
-      : {
-          name,
-          identifier: name,
-          sourceLanguageId,
-          targetLanguageIds,
-          visibility: options.public ? 'open' : 'private',
-          ...(options.stringBased ? { type: 1 as const } : {}),
-        };
+    const data: ProjectsGroupsModel.CreateProjectEnterpriseRequest | ProjectsGroupsModel.CreateProjectRequest =
+      apiClient.organization
+        ? {
+            name,
+            sourceLanguageId,
+            targetLanguageIds,
+            ...(options.stringBased ? { type: 1 as const } : {}),
+          }
+        : {
+            name,
+            identifier: name,
+            sourceLanguageId,
+            targetLanguageIds,
+            visibility: options.public ? 'open' : 'private',
+            ...(options.stringBased ? { type: 1 as const } : {}),
+          };
 
     try {
       const project = await apiClient.projectsGroupsApi.addProject(data);

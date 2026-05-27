@@ -70,26 +70,20 @@ describe('TaskCommand', () => {
       const cmd = createTaskCommand();
       const commandContext = createCommandContext({ ...globalOptions, status: 'unknown' });
 
-      expect(cmd.listAction(commandContext)).rejects.toThrow(
-        new CliError("Unsupported status: 'unknown'"),
-      );
+      expect(cmd.listAction(commandContext)).rejects.toThrow(new CliError("Unsupported status: 'unknown'"));
     });
 
     test('throws when assignee id is not numeric', async () => {
       const cmd = createTaskCommand();
       const commandContext = createCommandContext({ ...globalOptions, assigneeId: 'abc' });
 
-      expect(cmd.listAction(commandContext)).rejects.toThrow(
-        new CliError("The '--assignee-id' value must be numeric"),
-      );
+      expect(cmd.listAction(commandContext)).rejects.toThrow(new CliError("The '--assignee-id' value must be numeric"));
     });
 
     test('lists task rows in non-verbose mode', async () => {
       const cmd = createTaskCommand();
       const commandContext = createCommandContext({ ...globalOptions, status: 'todo' });
-      taskService.list.mockResolvedValue([
-        { id: 11, title: 'First task', targetLanguageId: 'fr' },
-      ]);
+      taskService.list.mockResolvedValue([{ id: 11, title: 'First task', targetLanguageId: 'fr' }]);
 
       await cmd.listAction(commandContext);
 
@@ -156,9 +150,7 @@ describe('TaskCommand', () => {
       const cmd = createTaskCommand();
       const commandContext = createCommandContext({ ...globalOptions, language: 'fr', file: ['a'] }, []);
 
-      expect(cmd.addAction(commandContext)).rejects.toThrow(
-        new CliError('Task title can not be empty'),
-      );
+      expect(cmd.addAction(commandContext)).rejects.toThrow(new CliError('Task title can not be empty'));
     });
 
     test('validates required language', async () => {
@@ -174,17 +166,14 @@ describe('TaskCommand', () => {
       const cmd = createTaskCommand();
       const commandContext = createCommandContext({ ...globalOptions, language: 'fr' }, ['Title']);
 
-      expect(cmd.addAction(commandContext)).rejects.toThrow(
-        new CliError("The '--file' value can not be empty"),
-      );
+      expect(cmd.addAction(commandContext)).rejects.toThrow(new CliError("The '--file' value can not be empty"));
     });
 
     test('requires task type for non-enterprise', async () => {
       const cmd = createTaskCommand();
-      const commandContext = createCommandContext(
-        { ...globalOptions, language: 'fr', file: ['content.md'] },
-        ['Title'],
-      );
+      const commandContext = createCommandContext({ ...globalOptions, language: 'fr', file: ['content.md'] }, [
+        'Title',
+      ]);
 
       expect(cmd.addAction(commandContext)).rejects.toThrow(
         new CliError('Task type can not be empty. Possible values: translate, proofread'),
@@ -194,14 +183,11 @@ describe('TaskCommand', () => {
     test('requires workflow step for enterprise', async () => {
       const cmd = createTaskCommand();
       apiClient.organization = 'acme';
-      const commandContext = createCommandContext(
-        { ...globalOptions, language: 'fr', file: ['content.md'] },
-        ['Title'],
-      );
+      const commandContext = createCommandContext({ ...globalOptions, language: 'fr', file: ['content.md'] }, [
+        'Title',
+      ]);
 
-      expect(cmd.addAction(commandContext)).rejects.toThrow(
-        new CliError('Workflow step id can not be empty'),
-      );
+      expect(cmd.addAction(commandContext)).rejects.toThrow(new CliError('Workflow step id can not be empty'));
     });
 
     test('rejects incompatible translate/pre-translated-only option pair', async () => {

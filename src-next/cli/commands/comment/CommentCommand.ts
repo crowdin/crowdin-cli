@@ -1,5 +1,5 @@
-import type { Command } from 'commander';
 import type { StringCommentsModel } from '@crowdin/crowdin-api-client';
+import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetCommentService, GetOutput } from '@/cli/services.ts';
@@ -95,9 +95,7 @@ export default class CommentCommand {
     const issueTypeValue = options.issueType as StringCommentsModel.IssueType | undefined;
 
     if (type === 'comment' && issueTypeValue) {
-      throw new CliError(
-        'Comment should not have the --issue-type parameter. It can only be used if --type=issue',
-      );
+      throw new CliError('Comment should not have the --issue-type parameter. It can only be used if --type=issue');
     }
 
     const comment = await commentService.add({
