@@ -1,3 +1,4 @@
+import type { PatchRequest, SourceStringsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -116,7 +117,7 @@ interface ListOptions extends GlobalOptions {
   label?: string | string[];
   croql?: string;
   directory?: string;
-  scope?: string;
+  scope?: SourceStringsModel.Scope;
 }
 
 interface AddOptions extends GlobalOptions {
@@ -142,8 +143,6 @@ interface EditOptions extends GlobalOptions {
   label?: string | string[];
   hidden?: boolean;
 }
-
-type PatchRecord = { op: 'replace'; path: string; value: unknown };
 
 export default class StringCommand {
   constructor(
@@ -325,7 +324,7 @@ export default class StringCommand {
         throw new CliError("The '--branch' option is required for string-based projects");
       }
 
-      const request = this.buildAddRequest(text, options, labelIds, undefined, branchId);
+      const request = this.buildStringsBasedAddRequest(text, options, labelIds, branchId);
       const result = isPluralString
         ? await stringService.addPluralStringsBased(request)
         : await stringService.addStringsBased(request);
@@ -352,7 +351,7 @@ export default class StringCommand {
     const result: Array<{ id: number; identifier: string; text: string }> = [];
 
     for (const fileId of resolvedFiles.fileIds) {
-      const request = this.buildAddRequest(text, options, labelIds, fileId, undefined);
+      const request = this.buildFileBasedAddRequest(text, options, labelIds, fileId);
       const added = isPluralString ? await stringService.addPlural(request) : await stringService.add(request);
 
       result.push({
@@ -434,39 +433,48 @@ export default class StringCommand {
     return id;
   }
 
-  private buildAddRequest(
+  private buildFileBasedAddRequest(
     text: string,
     options: AddOptions,
     labelIds: number[] | undefined,
-    fileId: number | undefined,
-    branchId: number | undefined,
-  ): Record<string, unknown> {
-    const request: Record<string, unknown> = {
-      text,
+    fileId: number,
+  ): SourceStringsModel.CreateStringRequest {
+    const requestText = this.isPlural(options) ? this.buildPluralText(options) : text;
+    const request: SourceStringsModel.CreateStringRequest = {
+      text: requestText,
+      fileId,
       ...(options.identifier ? { identifier: options.identifier } : {}),
       ...(options.maxLength !== undefined ? { maxLength: options.maxLength } : {}),
       ...(options.context ? { context: options.context } : {}),
       ...(options.hidden !== undefined ? { isHidden: options.hidden } : {}),
       ...(labelIds && labelIds.length > 0 ? { labelIds } : {}),
-      ...(fileId !== undefined ? { fileId } : {}),
-      ...(branchId !== undefined ? { branchId } : {}),
     };
-
-    if (this.isPlural(options)) {
-      request.pluralValues = {
-        ...(options.one !== undefined ? { one: options.one } : {}),
-        ...(options.two !== undefined ? { two: options.two } : {}),
-        ...(options.few !== undefined ? { few: options.few } : {}),
-        ...(options.many !== undefined ? { many: options.many } : {}),
-        ...(options.zero !== undefined ? { zero: options.zero } : {}),
-      };
-    }
 
     return request;
   }
 
-  private buildEditPatch(options: EditOptions, labelIds: number[] | undefined): PatchRecord[] {
-    const patch: PatchRecord[] = [];
+  private buildStringsBasedAddRequest(
+    text: string,
+    options: AddOptions,
+    labelIds: number[] | undefined,
+    branchId: number,
+  ): SourceStringsModel.CreateStringStringsBasedRequest {
+    const requestText = this.isPlural(options) ? this.buildPluralText(options) : text;
+    const request: SourceStringsModel.CreateStringStringsBasedRequest = {
+      text: requestText,
+      branchId,
+      identifier: options.identifier ?? text,
+      ...(options.maxLength !== undefined ? { maxLength: options.maxLength } : {}),
+      ...(options.context ? { context: options.context } : {}),
+      ...(options.hidden !== undefined ? { isHidden: options.hidden } : {}),
+      ...(labelIds && labelIds.length > 0 ? { labelIds } : {}),
+    };
+
+    return request;
+  }
+
+  private buildEditPatch(options: EditOptions, labelIds: number[] | undefined): PatchRequest[] {
+    const patch: PatchRequest[] = [];
 
     if (options.text !== undefined) {
       patch.push({ op: 'replace', path: '/text', value: options.text });
@@ -505,6 +513,16 @@ export default class StringCommand {
     );
   }
 
+  private buildPluralText(options: AddOptions): SourceStringsModel.PluralText {
+    return {
+      ...(options.one !== undefined ? { one: options.one } : {}),
+      ...(options.two !== undefined ? { two: options.two } : {}),
+      ...(options.few !== undefined ? { few: options.few } : {}),
+      ...(options.many !== undefined ? { many: options.many } : {}),
+      ...(options.zero !== undefined ? { zero: options.zero } : {}),
+    };
+  }
+
   private toArray(value: string | string[] | undefined): string[] {
     if (value === undefined || value === '') {
       return [];
@@ -521,19 +539,17 @@ export default class StringCommand {
     return Array.isArray(value) ? value[0] : value;
   }
 
-  private extractText(entry: Record<string, unknown>): string {
+  private extractText(entry: SourceStringsModel.String): string {
     const text = entry.text;
 
     if (typeof text === 'string') {
       return text;
     }
 
-    const pluralValues = entry.pluralValues as Record<string, string> | undefined;
-
-    if (!pluralValues) {
+    if (!text || typeof text !== 'object') {
       return '';
     }
 
-    return pluralValues.one ?? pluralValues.other ?? Object.values(pluralValues)[0] ?? '';
+    return text.one ?? text.other ?? Object.values(text)[0] ?? '';
   }
 }

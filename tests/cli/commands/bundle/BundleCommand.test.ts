@@ -43,11 +43,28 @@ describe('BundleCommand', () => {
     );
   };
 
+  const createBundleView = (overrides: Partial<BundleView>): BundleView => ({
+    id: 1,
+    name: 'bundle',
+    format: 'json',
+    sourcePatterns: ['/src/**'],
+    ignorePatterns: [],
+    exportPattern: '/%locale%/app.json',
+    isMultilingual: false,
+    includeProjectSourceLanguage: false,
+    labelIds: [],
+    excludeLabelIds: [],
+    createdAt: '',
+    webUrl: '',
+    updatedAt: '',
+    ...overrides,
+  });
+
   beforeEach(() => {
     output = createOutput(globalOptions);
     bundleService = {
       list: mock(async () => []),
-      add: mock(async () => ({ id: 10, name: 'bundle', format: 'json', exportPattern: '/%two_letters_code%/a.json' })),
+      add: mock(async () => createBundleView({ id: 10, exportPattern: '/%two_letters_code%/a.json' })),
       get: mock(async () => null),
       delete: mock(async () => {}),
       getBundleUrl: mock(async () => 'https://crowdin.com/project/demo/bundles/10'),
@@ -88,7 +105,7 @@ describe('BundleCommand', () => {
     test('prints bundle list', async () => {
       const cmd = createBundleCommand();
       bundleService.list.mockResolvedValue([
-        { id: 1, name: 'App', format: 'json', exportPattern: '/%locale%/app.json' },
+        createBundleView({ id: 1, name: 'App', format: 'json', exportPattern: '/%locale%/app.json' }),
       ]);
 
       await cmd.listAction(createCommandContext(globalOptions));
@@ -185,7 +202,7 @@ describe('BundleCommand', () => {
         () => textOutput,
         async () => bundleService as unknown as BundleService,
       );
-      bundleService.get.mockResolvedValue({ id: 1, name: 'bundle' } as BundleView);
+      bundleService.get.mockResolvedValue(createBundleView({ id: 1, name: 'bundle' }));
 
       await cmd.deleteAction(createCommandContext({ ...globalOptions, format: 'text' }, ['1']));
 
@@ -212,18 +229,20 @@ describe('BundleCommand', () => {
 
     test('clones bundle with defaults from source bundle', async () => {
       const cmd = createBundleCommand();
-      bundleService.get.mockResolvedValue({
-        id: 1,
-        name: 'my_bundle',
-        format: 'crowdin-resx',
-        sourcePatterns: ['/master/'],
-        ignorePatterns: ['/tmp/'],
-        exportPattern: '/%two_letters_code%/a.resx',
-        labelIds: [11],
-        includeProjectSourceLanguage: false,
-        includeInContextPseudoLanguage: true,
-        isMultilingual: false,
-      });
+      bundleService.get.mockResolvedValue(
+        createBundleView({
+          id: 1,
+          name: 'my_bundle',
+          format: 'crowdin-resx',
+          sourcePatterns: ['/master/'],
+          ignorePatterns: ['/tmp/'],
+          exportPattern: '/%two_letters_code%/a.resx',
+          labelIds: [11],
+          includeProjectSourceLanguage: false,
+          includeInContextPseudoLanguage: true,
+          isMultilingual: false,
+        }),
+      );
 
       await cmd.cloneAction(createCommandContext(globalOptions, ['1'], {}));
 

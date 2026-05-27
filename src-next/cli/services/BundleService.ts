@@ -1,20 +1,9 @@
 import type { BundlesModel, Client } from '@crowdin/crowdin-api-client';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 
-export interface BundleView {
-  id: number;
-  name?: string;
-  format?: string;
-  exportPattern?: string;
-  sourcePatterns?: string[];
-  ignorePatterns?: string[];
-  labelIds?: number[];
-  includeProjectSourceLanguage?: boolean;
+export type BundleView = BundlesModel.Bundle & {
   includeInContextPseudoLanguage?: boolean;
-  isMultilingual?: boolean;
-  webUrl?: string;
-  url?: string;
-}
+};
 
 export type AddBundlePayload = BundlesModel.CreateBundleRequest;
 
@@ -27,7 +16,7 @@ export class BundleService {
   async list(): Promise<BundleView[]> {
     try {
       const response = await this.client.bundlesApi.listBundles(this.projectId);
-      return this.normalizeResponse<BundleView>(this.getResponseData(response));
+      return response.data.map((entry) => entry.data);
     } catch (error) {
       throw toCliError(error, 'Failed to list bundles');
     }
@@ -36,7 +25,7 @@ export class BundleService {
   async add(payload: AddBundlePayload): Promise<BundleView> {
     try {
       const response = await this.client.bundlesApi.addBundle(this.projectId, payload);
-      return this.unwrapData<BundleView>(this.getResponseData(response));
+      return response.data;
     } catch (error) {
       throw toCliError(error, `Bundle was not added: '${JSON.stringify(payload)}'`);
     }
@@ -45,7 +34,7 @@ export class BundleService {
   async get(bundleId: number): Promise<BundleView | null> {
     try {
       const response = await this.client.bundlesApi.getBundle(this.projectId, bundleId);
-      return this.unwrapData<BundleView>(this.getResponseData(response));
+      return response.data;
     } catch (error) {
       if (this.isNotFoundError(error)) {
         return null;
@@ -74,10 +63,6 @@ export class BundleService {
       return bundle.webUrl;
     }
 
-    if (bundle.url) {
-      return bundle.url;
-    }
-
     throw new CliError(`Bundle #${bundleId} URL is unavailable`);
   }
 
@@ -95,29 +80,5 @@ export class BundleService {
     }
 
     return false;
-  }
-
-  private normalizeResponse<T>(data: unknown): T[] {
-    if (!Array.isArray(data)) {
-      return [];
-    }
-
-    return data.map((entry) => this.unwrapData<T>(entry));
-  }
-
-  private getResponseData(response: unknown): unknown {
-    if (response && typeof response === 'object' && 'data' in response) {
-      return (response as { data: unknown }).data;
-    }
-
-    return response;
-  }
-
-  private unwrapData<T>(entry: unknown): T {
-    if (entry && typeof entry === 'object' && 'data' in entry) {
-      return (entry as { data: T }).data;
-    }
-
-    return entry as T;
   }
 }

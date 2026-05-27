@@ -1,17 +1,8 @@
-import type { Client } from '@crowdin/crowdin-api-client';
+import type { Client, TasksModel } from '@crowdin/crowdin-api-client';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 
-export type TaskStatus = 'todo' | 'in_progress' | 'done' | 'closed';
-
-export interface TaskRecord {
-  id: number;
-  title: string;
-  targetLanguageId?: string;
-  status?: string;
-  wordsCount?: number;
-  deadline?: string | Date | null;
-  assignees?: Array<{ id?: number }>;
-}
+export type TaskStatus = TasksModel.Status;
+export type TaskRecord = TasksModel.Task;
 
 export class TaskService {
   constructor(
@@ -21,21 +12,21 @@ export class TaskService {
 
   async list(status?: TaskStatus): Promise<TaskRecord[]> {
     try {
-      const response = await (this.client as any).tasksApi.withFetchAll().listTasks(this.projectId, {
+      const response = await this.client.tasksApi.withFetchAll().listTasks(this.projectId, {
         ...(status ? { status } : {}),
       });
 
-      return this.normalizeTaskListResponse(response?.data);
+      return response.data.map((entry) => entry.data);
     } catch (error) {
       throw toCliError(error, 'Failed to list tasks');
     }
   }
 
-  async add(request: Record<string, unknown>): Promise<TaskRecord> {
+  async add(request: TasksModel.CreateTaskRequest): Promise<TaskRecord> {
     try {
-      const response = await (this.client as any).tasksApi.addTask(this.projectId, request);
+      const response = await this.client.tasksApi.addTask(this.projectId, request);
 
-      return response.data as TaskRecord;
+      return response.data;
     } catch (error) {
       throw toCliError(error, 'Task was not added');
     }
@@ -84,20 +75,6 @@ export class TaskService {
       fileIds: Array.from(new Set(fileIds)),
       missingPaths,
     };
-  }
-
-  private normalizeTaskListResponse(data: unknown): TaskRecord[] {
-    if (!Array.isArray(data)) {
-      return [];
-    }
-
-    return data.map((entry) => {
-      if (entry && typeof entry === 'object' && 'data' in entry) {
-        return (entry as { data: TaskRecord }).data;
-      }
-
-      return entry as TaskRecord;
-    });
   }
 
   private normalizePath(value: string): string {

@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import type { SourceStringsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import StringCommand from '@/cli/commands/string/StringCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -47,6 +48,31 @@ describe('StringCommand', () => {
     );
   };
 
+  const createStringModel = (overrides: Partial<SourceStringsModel.String>): SourceStringsModel.String => ({
+    id: 1,
+    projectId: 1,
+    branchId: 1,
+    identifier: 'k1',
+    text: 'text',
+    type: 0,
+    context: '',
+    maxLength: 0,
+    isHidden: false,
+    isDuplicate: false,
+    masterStringId: false,
+    hasPlurals: false,
+    isIcu: false,
+    labelIds: [],
+    webUrl: '',
+    createdAt: '',
+    updatedAt: '',
+    fileId: 0,
+    directoryId: 0,
+    revision: 1,
+    fields: {},
+    ...overrides,
+  });
+
   beforeEach(() => {
     output = createOutput(globalOptions);
     stringService = {
@@ -56,11 +82,11 @@ describe('StringCommand', () => {
       resolveLabelIds: mock(async () => undefined),
       resolveFileIds: mock(async () => ({ fileIds: [101], missingPaths: [] })),
       list: mock(async () => []),
-      add: mock(async () => ({ id: 1, text: 'added text', identifier: 'k1' })),
-      addPlural: mock(async () => ({ id: 2, pluralValues: { one: 'one' }, identifier: 'k2' })),
-      addStringsBased: mock(async () => ({ id: 3, text: 'added text', identifier: 'k3' })),
-      addPluralStringsBased: mock(async () => ({ id: 4, pluralValues: { one: 'one' }, identifier: 'k4' })),
-      edit: mock(async () => ({ id: 5, text: 'edited', identifier: 'k5' })),
+      add: mock(async () => createStringModel({ id: 1, text: 'added text', identifier: 'k1' })),
+      addPlural: mock(async () => createStringModel({ id: 2, text: { one: 'one' }, identifier: 'k2' })),
+      addStringsBased: mock(async () => createStringModel({ id: 3, text: 'added text', identifier: 'k3' })),
+      addPluralStringsBased: mock(async () => createStringModel({ id: 4, text: { one: 'one' }, identifier: 'k4' })),
+      edit: mock(async () => createStringModel({ id: 5, text: 'edited', identifier: 'k5' })),
       delete: mock(async () => {}),
       listLabelsMap: mock(async () => new Map<number, string>()),
       listProjectFilePaths: mock(async () => new Map<number, string>([[101, '/content.md']])),
@@ -121,7 +147,7 @@ describe('StringCommand', () => {
     test('lists strings in non-verbose mode', async () => {
       const cmd = createStringCommand();
       const commandContext = createCommandContext({ ...globalOptions, filter: 'hello' });
-      stringService.list.mockResolvedValue([{ id: 11, identifier: 'welcome', text: 'Hello' }]);
+      stringService.list.mockResolvedValue([createStringModel({ id: 11, identifier: 'welcome', text: 'Hello' })]);
 
       await cmd.listAction(commandContext);
 
@@ -139,7 +165,14 @@ describe('StringCommand', () => {
       const cmd = createStringCommand();
       const commandContext = createCommandContext({ ...globalOptions, verbose: true });
       stringService.list.mockResolvedValue([
-        { id: 11, identifier: 'welcome', text: 'Hello', fileId: 101, labelIds: [9], context: 'Greeting' },
+        createStringModel({
+          id: 11,
+          identifier: 'welcome',
+          text: 'Hello',
+          fileId: 101,
+          labelIds: [9],
+          context: 'Greeting',
+        }),
       ]);
       stringService.listLabelsMap.mockResolvedValue(new Map([[9, 'marketing']]));
 
@@ -231,9 +264,9 @@ describe('StringCommand', () => {
 
       expect(stringService.addPluralStringsBased).toHaveBeenCalledWith(
         expect.objectContaining({
-          text: 'hello',
+          text: { one: 'One value' },
+          identifier: 'hello',
           branchId: 555,
-          pluralValues: { one: 'One value' },
         }),
       );
     });

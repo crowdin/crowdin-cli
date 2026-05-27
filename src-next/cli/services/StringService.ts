@@ -1,21 +1,6 @@
-import type { Client } from '@crowdin/crowdin-api-client';
+import type { Client, PatchRequest, SourceStringsModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
-
-interface SourceStringRecord {
-  id: number;
-  identifier?: string;
-  text?: string;
-  context?: string;
-  fileId?: number;
-  labelIds?: number[];
-  [key: string]: unknown;
-}
-
-interface LabelRecord {
-  id: number;
-  title: string;
-}
 
 export class StringService {
   constructor(
@@ -33,69 +18,65 @@ export class StringService {
     }
   }
 
-  async list(params: Record<string, unknown>): Promise<SourceStringRecord[]> {
+  async list(params: SourceStringsModel.ListProjectStringsOptions): Promise<SourceStringsModel.String[]> {
     try {
-      const api = (this.client as any).sourceStringsApi;
-      const runner = typeof api.withFetchAll === 'function' ? api.withFetchAll() : api;
-      const response = await runner.listProjectStrings(this.projectId, params);
+      const response = await this.client.sourceStringsApi.withFetchAll().listProjectStrings(this.projectId, params);
 
-      return this.normalizeResponse<SourceStringRecord>(response?.data);
+      return response.data.map((entry) => entry.data);
     } catch (error) {
       throw toCliError(error, 'Failed to list source strings');
     }
   }
 
-  async add(request: Record<string, unknown>): Promise<SourceStringRecord> {
+  async add(request: SourceStringsModel.CreateStringRequest): Promise<SourceStringsModel.String> {
     try {
-      const response = await (this.client as any).sourceStringsApi.addString(this.projectId, request);
+      const response = await this.client.sourceStringsApi.addString(this.projectId, request);
 
-      return this.unwrapData<SourceStringRecord>(response?.data);
+      return response.data;
     } catch (error) {
       throw toCliError(error, 'Source string was not added');
     }
   }
 
-  async addPlural(request: Record<string, unknown>): Promise<SourceStringRecord> {
+  async addPlural(request: SourceStringsModel.CreateStringRequest): Promise<SourceStringsModel.String> {
     try {
-      const response = await (this.client as any).sourceStringsApi.addPluralString(this.projectId, request);
+      const response = await this.client.sourceStringsApi.addString(this.projectId, request);
 
-      return this.unwrapData<SourceStringRecord>(response?.data);
+      return response.data;
     } catch (error) {
       throw toCliError(error, 'Source plural string was not added');
     }
   }
 
-  async addStringsBased(request: Record<string, unknown>): Promise<SourceStringRecord> {
+  async addStringsBased(
+    request: SourceStringsModel.CreateStringStringsBasedRequest,
+  ): Promise<SourceStringsModel.String> {
     try {
-      const response = await (this.client as any).sourceStringsApi.addStringForStringsBasedProject(
-        this.projectId,
-        request,
-      );
+      const response = await this.client.sourceStringsApi.addString(this.projectId, request);
 
-      return this.unwrapData<SourceStringRecord>(response?.data);
+      return response.data;
     } catch (error) {
       throw toCliError(error, 'Source string was not added');
     }
   }
 
-  async addPluralStringsBased(request: Record<string, unknown>): Promise<SourceStringRecord> {
+  async addPluralStringsBased(
+    request: SourceStringsModel.CreateStringStringsBasedRequest,
+  ): Promise<SourceStringsModel.String> {
     try {
-      const response = await (this.client as any).sourceStringsApi.addPluralStringForStringsBasedProject(
-        this.projectId,
-        request,
-      );
+      const response = await this.client.sourceStringsApi.addString(this.projectId, request);
 
-      return this.unwrapData<SourceStringRecord>(response?.data);
+      return response.data;
     } catch (error) {
       throw toCliError(error, 'Source plural string was not added');
     }
   }
 
-  async edit(stringId: number, patch: Record<string, unknown>[]): Promise<SourceStringRecord> {
+  async edit(stringId: number, patch: PatchRequest[]): Promise<SourceStringsModel.String> {
     try {
-      const response = await (this.client as any).sourceStringsApi.editString(this.projectId, stringId, patch);
+      const response = await this.client.sourceStringsApi.editString(this.projectId, stringId, patch);
 
-      return this.unwrapData<SourceStringRecord>(response?.data);
+      return response.data;
     } catch (error) {
       throw toCliError(error, `Failed to edit source string #${stringId}`);
     }
@@ -103,7 +84,7 @@ export class StringService {
 
   async delete(stringId: number): Promise<void> {
     try {
-      await (this.client as any).sourceStringsApi.deleteString(this.projectId, stringId);
+      await this.client.sourceStringsApi.deleteString(this.projectId, stringId);
     } catch (error) {
       throw toCliError(error, `Failed to delete source string #${stringId}`);
     }
@@ -232,13 +213,10 @@ export class StringService {
     }
   }
 
-  private async listLabels(): Promise<LabelRecord[]> {
+  private async listLabels(): Promise<{ id: number; title: string }[]> {
     const response = await this.client.labelsApi.listLabels(this.projectId);
 
-    return response.data.map((entry) => ({
-      id: entry.data.id,
-      title: entry.data.title,
-    }));
+    return response.data.map((entry) => entry.data);
   }
 
   private async loadFileIdsByPath(branchId?: number): Promise<Map<string, number>> {
@@ -256,21 +234,5 @@ export class StringService {
 
   private normalizePath(path: string): string {
     return `/${path.replaceAll('\\', '/').replace(/^\/+/, '')}`;
-  }
-
-  private normalizeResponse<T>(data: unknown): T[] {
-    if (!Array.isArray(data)) {
-      return [];
-    }
-
-    return data.map((entry) => this.unwrapData<T>(entry));
-  }
-
-  private unwrapData<T>(entry: unknown): T {
-    if (entry && typeof entry === 'object' && 'data' in entry) {
-      return (entry as { data: T }).data;
-    }
-
-    return entry as T;
   }
 }
