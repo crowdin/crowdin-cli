@@ -7,6 +7,7 @@ import InitCommand from './commands/init/InitCommand.ts';
 import LanguageCommand from './commands/language/LanguageCommand.ts';
 import ProjectCommand from './commands/project/ProjectCommand.ts';
 import StatusCommand from './commands/status/StatusCommand.ts';
+import TaskCommand from './commands/task/TaskCommand.ts';
 import TestCommand from './commands/test/TestCommand.ts';
 import UploadCommand from './commands/upload/UploadCommand.ts';
 import { createGetConfig } from './config.ts';
@@ -16,6 +17,7 @@ import {
   createGetCommentService,
   createGetProjectService,
   createGetStorageService,
+  createGetTaskService,
 } from './services.ts';
 import type { CommandDef } from './types.ts';
 
@@ -25,6 +27,7 @@ const getApiClient = createGetApiClient(getConfig);
 const getCommentService = createGetCommentService(getApiClient, getConfig);
 const getProjectService = createGetProjectService(getApiClient, getOutput, getConfig);
 const getStorageService = createGetStorageService(getApiClient);
+const getTaskService = createGetTaskService(getApiClient, getConfig);
 
 const commentCommand = new CommentCommand(getOutput, getCommentService);
 const initCommand = new InitCommand(getOutput);
@@ -46,6 +49,7 @@ const fileCommand = new FileCommand(
 const languageCommand = new LanguageCommand(getOutput, getProjectService, getApiClient);
 const projectCommand = new ProjectCommand(getOutput, getProjectService, getApiClient);
 const statusCommand = new StatusCommand(getOutput, getProjectService);
+const taskCommand = new TaskCommand(getOutput, getTaskService, getApiClient);
 const testCommand = new TestCommand(getOutput, getApiClient);
 const uploadCommand = new UploadCommand(
   getConfig,
@@ -60,6 +64,7 @@ export const commands: CommandDef[] = [
   downloadCommand.getDefinition(),
   initCommand.getDefinition(),
   statusCommand.getDefinition(),
+  taskCommand.getDefinition(),
   fileCommand.getDefinition(),
   languageCommand.getDefinition(),
   commentCommand.getDefinition(),
