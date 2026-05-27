@@ -36,6 +36,10 @@ From `*Subcommand.java`:
 - Every `@CommandLine.Option` field: name, short flag, type, default, description
 - The `getAction()` call — which `actions.*` method and which arguments
 
+Preserve CLI contract parity with Java:
+- Keep option names/flags and parameter descriptions the same as Java CLI unless there is a documented intentional global replacement.
+- Keep user-facing texts aligned with Java CLI (success messages, error messages, validation messages, prompts, and table/header labels).
+
 From `*Action.java`:
 - Full business logic: API calls made, transformations, output printed, errors thrown
 - Any dry-run or alternative code paths
@@ -93,7 +97,9 @@ Not all Java options need migrating. Intentional omissions:
 | `--no-progress` | Already a global option |
 | `--verbose` / `-v` | Already a global option |
 
-For all other options, preserve the Java semantics exactly. Document in a code comment if an option is intentionally deferred.
+For all other options, preserve Java semantics exactly, including option names and descriptions. Document in a code comment if an option is intentionally deferred.
+
+User-facing output parity also applies: keep command messages and wording consistent with Java CLI unless there is an explicit product decision to change them.
 
 ## Known nuances
 

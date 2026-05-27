@@ -1,5 +1,6 @@
 import ConfigCommand from './commands/config/ConfigCommand.ts';
 import DownloadCommand from './commands/download/DownloadCommand.ts';
+import DistributionCommand from './commands/distribution/DistributionCommand.ts';
 import FileCommand from './commands/file/FileCommand.ts';
 import InitCommand from './commands/init/InitCommand.ts';
 import LanguageCommand from './commands/language/LanguageCommand.ts';
@@ -30,6 +31,7 @@ const downloadCommand = new DownloadCommand(
   getProjectService,
   getApiClient
 );
+const distributionCommand = new DistributionCommand(getOutput, getProjectService, getApiClient);
 const fileCommand = new FileCommand(
   getConfig,
   getOutput,
@@ -58,5 +60,6 @@ export const commands: CommandDef[] = [
   languageCommand.getDefinition(),
   configCommand.getDefinition(),
   projectCommand.getDefinition(),
+  distributionCommand.getDefinition(),
   testCommand.getDefinition(),
 ];

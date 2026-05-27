@@ -37,9 +37,6 @@ interface ProjectData {
   managerAccess?: boolean;
 }
 
-type GetOutput = (command: Command) => Output;
-type GetProjectService = (command: Command) => Promise<ProjectService>;
-
 export default class LanguageCommand {
   constructor(
     private getOutput: GetOutput,
