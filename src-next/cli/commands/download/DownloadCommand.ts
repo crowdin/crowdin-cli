@@ -9,6 +9,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { ProjectService } from '@/cli/services/ProjectService.ts';
 import type { GetApiClient, GetConfig, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { fileTree } from '@/cli/utils/fileTree.ts';
 import dryRun from '../common/options/dryRun.ts';
 import tree from '../common/options/tree.ts';
 import basePath from '../init/options/basePath.ts';
@@ -112,7 +113,6 @@ export default class DownloadCommand {
     const projectService = await this.getProjectService(command);
     const apiClient = await this.getApiClient(command);
     const project = await projectService.loadProject();
-
     const branchId = await this.resolveBranchId(options.branch, projectService);
     const projectFiles = await projectService.loadProjectFiles(branchId);
 
@@ -226,9 +226,11 @@ export default class DownloadCommand {
 
     if (options.dryRun) {
       const projectFiles = await projectService.loadProjectFiles(branchId);
+      const paths = projectFiles.data.map((file) => (file.data.path || '').replace(/^\//, ''));
+      const lines = options.tree ? fileTree(paths) : paths;
 
-      for (const file of projectFiles.data) {
-        output.log((file.data.path || '').replace(/^\//, ''));
+      for (const line of lines) {
+        output.log(line);
       }
 
       return;

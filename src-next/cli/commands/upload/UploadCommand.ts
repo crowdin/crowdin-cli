@@ -5,6 +5,7 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { ProjectService } from '@/cli/services/ProjectService.ts';
 import type { GetApiClient, GetConfig, GetOutput, GetProjectService, GetStorageService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { fileTree } from '@/cli/utils/fileTree.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
@@ -35,6 +36,7 @@ interface UploadSourcesOptions {
   noAutoUpdate?: boolean;
   excludedLanguage?: string[];
   dryRun?: boolean;
+  tree?: boolean;
 }
 
 interface UploadTranslationsOptions {
@@ -44,6 +46,7 @@ interface UploadTranslationsOptions {
   importEqSuggestions?: boolean;
   translateHidden?: boolean;
   dryRun?: boolean;
+  tree?: boolean;
 }
 
 interface SourceFileOptions {
@@ -154,6 +157,16 @@ export default class UploadCommand {
       );
     }
 
+    if (options.dryRun && options.tree) {
+      const allPaths = patternFilePaths.flatMap(({ filePaths }) => filePaths);
+
+      for (const line of fileTree(allPaths)) {
+        output.log(line);
+      }
+
+      return;
+    }
+
     for (const { patterns, filePaths } of patternFilePaths) {
       const fileOptions = this.resolveSourceFileOptions(patterns, options);
       const labelIds =
@@ -180,7 +193,9 @@ export default class UploadCommand {
             labelIds,
             fileOptions.excluded_target_languages,
           );
+
           output.success(`File ${localFilePath} updated`);
+
           continue;
         }
 
@@ -352,6 +367,30 @@ export default class UploadCommand {
     const project = await projectService.loadProject();
     const projectFiles = await projectService.loadProjectFiles(branchId);
     const targetLanguages = this.filterTargetLanguages(project.data.targetLanguages, options.language);
+
+    if (options.dryRun && options.tree) {
+      const allPaths: string[] = [];
+
+      for (const projectFile of projectFiles.data) {
+        for (const targetLanguage of targetLanguages) {
+          const projectFilePath = projectFile.data.path.startsWith('/')
+            ? projectFile.data.path.slice(1)
+            : projectFile.data.path;
+          const filePath = translationPathResolver.resolve(Bun.file(projectFilePath), targetLanguage).slice(1);
+          const localFilePath = path.join(config.basePath, filePath);
+
+          if (await Bun.file(localFilePath).exists()) {
+            allPaths.push(filePath);
+          }
+        }
+      }
+
+      for (const line of fileTree(allPaths)) {
+        output.log(line);
+      }
+
+      return;
+    }
 
     for (const projectFile of projectFiles.data) {
       for (const targetLanguage of targetLanguages) {
