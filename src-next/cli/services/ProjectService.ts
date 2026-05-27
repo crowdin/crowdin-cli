@@ -1,4 +1,4 @@
-import type { Client } from '@crowdin/crowdin-api-client';
+import type { Client, TranslationsModel } from '@crowdin/crowdin-api-client';
 import CliError, { toCliError } from '../errors/CliError.ts';
 import type { Output } from '../utils/output.ts';
 
@@ -190,13 +190,13 @@ export class ProjectService {
         throw toCliError(error, `Failed to import translations for file ${filePath}`);
       }
     },
-    buildProjectTranslations: async (languageIds: string[]) => {
+    buildProjectTranslations: async (
+      request?: TranslationsModel.BuildRequest | TranslationsModel.PseudoBuildRequest,
+    ) => {
       this.output.spinner('build', 'start', 'Building translations...');
 
       try {
-        const build = await this.apiClient.translationsApi.buildProject(this.projectId, {
-          targetLanguageIds: languageIds,
-        });
+        const build = await this.apiClient.translationsApi.buildProject(this.projectId, request);
 
         while (true) {
           const buildProgress = await this.apiClient.translationsApi.checkBuildStatus(this.projectId, build.data.id);
@@ -205,10 +205,15 @@ export class ProjectService {
             break;
           }
 
+          if (buildProgress.data.status === 'failed') {
+            throw new CliError('Translations build failed');
+          }
+
           await Bun.sleep(2000);
         }
 
         this.output.spinner('build', 'stop', 'Translations built');
+
         return build;
       } catch (error) {
         this.output.spinner('build', 'error', 'Translations build failed');
