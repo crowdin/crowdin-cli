@@ -1,3 +1,4 @@
+import BundleCommand from './commands/bundle/BundleCommand.ts';
 import CommentCommand from './commands/comment/CommentCommand.ts';
 import ConfigCommand from './commands/config/ConfigCommand.ts';
 import DistributionCommand from './commands/distribution/DistributionCommand.ts';
@@ -15,6 +16,7 @@ import { createGetConfig } from './config.ts';
 import { createGetOutput } from './output.ts';
 import {
   createGetApiClient,
+  createGetBundleService,
   createGetCommentService,
   createGetProjectService,
   createGetStorageService,
@@ -27,12 +29,14 @@ const getOutput = createGetOutput();
 const getConfig = createGetConfig(getOutput);
 const getApiClient = createGetApiClient(getConfig);
 const getCommentService = createGetCommentService(getApiClient, getConfig);
+const getBundleService = createGetBundleService(getApiClient, getConfig);
 const getProjectService = createGetProjectService(getApiClient, getOutput, getConfig);
 const getStorageService = createGetStorageService(getApiClient);
 const getStringService = createGetStringService(getApiClient, getConfig);
 const getTaskService = createGetTaskService(getApiClient, getConfig);
 
 const commentCommand = new CommentCommand(getOutput, getCommentService);
+const bundleCommand = new BundleCommand(getOutput, getBundleService);
 const initCommand = new InitCommand(getOutput);
 const configCommand = new ConfigCommand(getConfig, getOutput, getProjectService);
 const downloadCommand = new DownloadCommand(getConfig, getOutput, getProjectService, getApiClient);
@@ -49,6 +53,7 @@ const uploadCommand = new UploadCommand(getConfig, getOutput, getProjectService,
 export const commands: CommandDef[] = [
   uploadCommand.getDefinition(),
   downloadCommand.getDefinition(),
+  bundleCommand.getDefinition(),
   initCommand.getDefinition(),
   statusCommand.getDefinition(),
   stringCommand.getDefinition(),

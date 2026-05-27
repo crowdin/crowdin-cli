@@ -8,6 +8,7 @@ describe('command registry', () => {
     expect(names).toEqual([
       'upload',
       'download',
+      'bundle',
       'init',
       'status',
       'string',
@@ -26,6 +27,7 @@ describe('command registry', () => {
   test('keeps command aliases and key subcommands', () => {
     const upload = commands.find((command) => command.name === 'upload');
     const download = commands.find((command) => command.name === 'download');
+    const bundle = commands.find((command) => command.name === 'bundle');
     const status = commands.find((command) => command.name === 'status');
     const string = commands.find((command) => command.name === 'string');
     const language = commands.find((command) => command.name === 'language');
@@ -38,6 +40,14 @@ describe('command registry', () => {
     expect(download?.alias).toBe('pull');
     expect(download?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['sources', 'translations']);
 
+    expect(bundle?.subcommands?.map((subcommand) => subcommand.name)).toEqual([
+      'list',
+      'add',
+      'delete',
+      'download',
+      'clone',
+      'browse',
+    ]);
     expect(status?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['translation', 'proofreading']);
     expect(string?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'add', 'delete', 'edit']);
     expect(task?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'add']);

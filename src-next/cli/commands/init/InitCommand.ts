@@ -31,8 +31,7 @@ interface InitCommandOptions extends GlobalOptions {
 }
 
 export default class InitCommand {
-  constructor(private getOutput: GetOutput) {
-  }
+  constructor(private getOutput: GetOutput) {}
 
   getDefinition(): CommandDef {
     return {
@@ -53,8 +52,8 @@ export default class InitCommand {
     if (await Bun.file(configFilePath).exists()) {
       output.outro(
         `File '${configFilePath}' already exists. ` +
-        `Fill it out accordingly to the following requirements: ` +
-        `https://developer.crowdin.com/configuration-file/#configuration-file-structure`,
+          `Fill it out accordingly to the following requirements: ` +
+          `https://developer.crowdin.com/configuration-file/#configuration-file-structure`,
       );
       return;
     }
@@ -76,10 +75,7 @@ export default class InitCommand {
       apiToken = await this.getToken(output);
     }
 
-    const apiClient = new Client(
-      { token: apiToken, organization: domain },
-      { userAgent: buildUserAgent() },
-    );
+    const apiClient = new Client({ token: apiToken, organization: domain }, { userAgent: buildUserAgent() });
     await this.getAuthorizedUser(apiClient, output);
 
     const project = await this.selectProject(apiClient, options, output);
@@ -105,8 +101,8 @@ export default class InitCommand {
 
     output.outro(
       'Your configuration skeleton has been successfully generated. ' +
-      'Specify your source and translation paths in the files section. ' +
-      'For more details see https://crowdin.github.io/crowdin-cli/configuration',
+        'Specify your source and translation paths in the files section. ' +
+        'For more details see https://crowdin.github.io/crowdin-cli/configuration',
     );
   };
 
@@ -155,7 +151,7 @@ export default class InitCommand {
               resolve({ accessToken, domain });
               return new Response(
                 '<h1 style="text-align: center">You have successfully authenticated.</h1>' +
-                '<p style="text-align: center;">You may now close this page.</p>',
+                  '<p style="text-align: center;">You may now close this page.</p>',
                 { headers: { 'Content-Type': 'text/html' } },
               );
             }

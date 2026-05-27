@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import os from 'node:os';
-import packageJson from '../../../package.json';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
+import packageJson from '../../../package.json';
 
 describe('buildUserAgent', () => {
   test('builds user agent from app version and os info', () => {
