@@ -1,3 +1,4 @@
+import CommentCommand from './commands/comment/CommentCommand.ts';
 import ConfigCommand from './commands/config/ConfigCommand.ts';
 import DownloadCommand from './commands/download/DownloadCommand.ts';
 import DistributionCommand from './commands/distribution/DistributionCommand.ts';
@@ -12,6 +13,7 @@ import { createGetConfig } from './config.ts';
 import { createGetOutput } from './output.ts';
 import {
   createGetApiClient,
+  createGetCommentService,
   createGetProjectService,
   createGetStorageService,
 } from './services.ts';
@@ -20,9 +22,11 @@ import type { CommandDef } from './types.ts';
 const getOutput = createGetOutput();
 const getConfig = createGetConfig(getOutput);
 const getApiClient = createGetApiClient(getConfig);
+const getCommentService = createGetCommentService(getApiClient, getConfig);
 const getProjectService = createGetProjectService(getApiClient, getOutput, getConfig);
 const getStorageService = createGetStorageService(getApiClient);
 
+const commentCommand = new CommentCommand(getOutput, getCommentService);
 const initCommand = new InitCommand(getOutput);
 const configCommand = new ConfigCommand(getConfig, getOutput, getProjectService);
 const downloadCommand = new DownloadCommand(
@@ -58,6 +62,7 @@ export const commands: CommandDef[] = [
   statusCommand.getDefinition(),
   fileCommand.getDefinition(),
   languageCommand.getDefinition(),
+  commentCommand.getDefinition(),
   configCommand.getDefinition(),
   projectCommand.getDefinition(),
   distributionCommand.getDefinition(),

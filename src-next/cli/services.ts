@@ -1,6 +1,7 @@
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import type { Config } from '@/lib/config.ts';
+import { CommentService } from '@/cli/services/CommentService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { StorageService } from '@/cli/services/StorageService.ts';
 import type { Output } from '@/cli/utils/output.ts';
@@ -9,6 +10,7 @@ import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 export type GetApiClient = (command: Command) => Promise<Client>;
 export type GetConfig = (command: Command) => Promise<Config>;
 export type GetOutput = (command: Command) => Output;
+export type GetCommentService = (command: Command) => Promise<CommentService>;
 export type GetProjectService = (command: Command) => Promise<ProjectService>;
 export type GetStorageService = (command: Command) => Promise<StorageService>;
 
@@ -43,6 +45,22 @@ export function createGetProjectService(
     const output = getOutput(command);
     const config = await getConfig(command);
     cachedService = new ProjectService(apiClient, output, config.projectId);
+
+    return cachedService;
+  };
+}
+
+export function createGetCommentService(getApiClient: GetApiClient, getConfig: GetConfig) {
+  let cachedService: CommentService | undefined;
+
+  return async (command: Command): Promise<CommentService> => {
+    if (cachedService) {
+      return cachedService;
+    }
+
+    const apiClient = await getApiClient(command);
+    const config = await getConfig(command);
+    cachedService = new CommentService(apiClient, config.projectId);
 
     return cachedService;
   };
