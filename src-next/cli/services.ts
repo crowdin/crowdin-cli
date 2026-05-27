@@ -1,9 +1,10 @@
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import type { Config } from '@/lib/config.ts';
-import { ProjectService } from './services/ProjectService.ts';
-import { StorageService } from './services/StorageService.ts';
-import type { Output } from './utils/output.ts';
+import { ProjectService } from '@/cli/services/ProjectService.ts';
+import { StorageService } from '@/cli/services/StorageService.ts';
+import type { Output } from '@/cli/utils/output.ts';
+import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 
 export type GetApiClient = (command: Command) => Promise<Client>;
 export type GetConfig = (command: Command) => Promise<Config>;
@@ -20,7 +21,7 @@ export function createGetApiClient(getConfig: GetConfig) {
     }
 
     const config = await getConfig(command);
-    cachedClient = new Client({ token: config.apiToken });
+    cachedClient = new Client({ token: config.apiToken }, { userAgent: buildUserAgent() });
 
     return cachedClient;
   };

@@ -7,6 +7,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import type { Output } from '@/cli/utils/output.ts';
+import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 import { generate } from '@/lib/config/yamlGenerator.ts';
 import patterns from '@/lib/export/patterns.ts';
 import basePath from './options/basePath.ts';
@@ -75,7 +76,10 @@ export default class InitCommand {
       apiToken = await this.getToken(output);
     }
 
-    const apiClient = new Client({ token: apiToken, organization: domain });
+    const apiClient = new Client(
+      { token: apiToken, organization: domain },
+      { userAgent: buildUserAgent() },
+    );
     await this.getAuthorizedUser(apiClient, output);
 
     const project = await this.selectProject(apiClient, options, output);
