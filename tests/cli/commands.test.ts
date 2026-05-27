@@ -5,7 +5,7 @@ describe('command registry', () => {
   test('registers expected top-level commands with unique names', () => {
     const names = commands.map((command) => command.name);
 
-    expect(names).toEqual(['upload', 'download', 'init', 'status', 'task', 'file', 'language', 'comment', 'config', 'project', 'distribution', 'test']);
+    expect(names).toEqual(['upload', 'download', 'init', 'status', 'string', 'task', 'file', 'language', 'comment', 'config', 'project', 'distribution', 'test']);
     expect(new Set(names).size).toBe(names.length);
   });
 
@@ -13,6 +13,7 @@ describe('command registry', () => {
     const upload = commands.find((command) => command.name === 'upload');
     const download = commands.find((command) => command.name === 'download');
     const status = commands.find((command) => command.name === 'status');
+    const string = commands.find((command) => command.name === 'string');
     const language = commands.find((command) => command.name === 'language');
     const task = commands.find((command) => command.name === 'task');
     const config = commands.find((command) => command.name === 'config');
@@ -24,6 +25,7 @@ describe('command registry', () => {
     expect(download?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['sources', 'translations']);
 
     expect(status?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['translation', 'proofreading']);
+    expect(string?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'add', 'delete', 'edit']);
     expect(task?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'add']);
     expect(language?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list']);
     expect(config?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['sources', 'translations', 'lint']);

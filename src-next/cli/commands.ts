@@ -7,6 +7,7 @@ import InitCommand from './commands/init/InitCommand.ts';
 import LanguageCommand from './commands/language/LanguageCommand.ts';
 import ProjectCommand from './commands/project/ProjectCommand.ts';
 import StatusCommand from './commands/status/StatusCommand.ts';
+import StringCommand from './commands/string/StringCommand.ts';
 import TaskCommand from './commands/task/TaskCommand.ts';
 import TestCommand from './commands/test/TestCommand.ts';
 import UploadCommand from './commands/upload/UploadCommand.ts';
@@ -17,6 +18,7 @@ import {
   createGetCommentService,
   createGetProjectService,
   createGetStorageService,
+  createGetStringService,
   createGetTaskService,
 } from './services.ts';
 import type { CommandDef } from './types.ts';
@@ -27,6 +29,7 @@ const getApiClient = createGetApiClient(getConfig);
 const getCommentService = createGetCommentService(getApiClient, getConfig);
 const getProjectService = createGetProjectService(getApiClient, getOutput, getConfig);
 const getStorageService = createGetStorageService(getApiClient);
+const getStringService = createGetStringService(getApiClient, getConfig);
 const getTaskService = createGetTaskService(getApiClient, getConfig);
 
 const commentCommand = new CommentCommand(getOutput, getCommentService);
@@ -49,6 +52,7 @@ const fileCommand = new FileCommand(
 const languageCommand = new LanguageCommand(getOutput, getProjectService, getApiClient);
 const projectCommand = new ProjectCommand(getOutput, getProjectService, getApiClient);
 const statusCommand = new StatusCommand(getOutput, getProjectService);
+const stringCommand = new StringCommand(getOutput, getStringService);
 const taskCommand = new TaskCommand(getOutput, getTaskService, getApiClient);
 const testCommand = new TestCommand(getOutput, getApiClient);
 const uploadCommand = new UploadCommand(
@@ -64,6 +68,7 @@ export const commands: CommandDef[] = [
   downloadCommand.getDefinition(),
   initCommand.getDefinition(),
   statusCommand.getDefinition(),
+  stringCommand.getDefinition(),
   taskCommand.getDefinition(),
   fileCommand.getDefinition(),
   languageCommand.getDefinition(),

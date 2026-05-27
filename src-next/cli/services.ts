@@ -4,6 +4,7 @@ import type { Config } from '@/lib/config.ts';
 import { CommentService } from '@/cli/services/CommentService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { StorageService } from '@/cli/services/StorageService.ts';
+import { StringService } from '@/cli/services/StringService.ts';
 import { TaskService } from '@/cli/services/TaskService.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
@@ -14,6 +15,7 @@ export type GetOutput = (command: Command) => Output;
 export type GetCommentService = (command: Command) => Promise<CommentService>;
 export type GetProjectService = (command: Command) => Promise<ProjectService>;
 export type GetStorageService = (command: Command) => Promise<StorageService>;
+export type GetStringService = (command: Command) => Promise<StringService>;
 export type GetTaskService = (command: Command) => Promise<TaskService>;
 
 export function createGetApiClient(getConfig: GetConfig) {
@@ -78,6 +80,22 @@ export function createGetStorageService(getApiClient: GetApiClient) {
 
     const apiClient = await getApiClient(command);
     cachedService = new StorageService(apiClient);
+
+    return cachedService;
+  };
+}
+
+export function createGetStringService(getApiClient: GetApiClient, getConfig: GetConfig) {
+  let cachedService: StringService | undefined;
+
+  return async (command: Command): Promise<StringService> => {
+    if (cachedService) {
+      return cachedService;
+    }
+
+    const apiClient = await getApiClient(command);
+    const config = await getConfig(command);
+    cachedService = new StringService(apiClient, config.projectId);
 
     return cachedService;
   };
