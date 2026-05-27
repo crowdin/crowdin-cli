@@ -10,7 +10,6 @@ import ProjectCommand from './commands/project/ProjectCommand.ts';
 import StatusCommand from './commands/status/StatusCommand.ts';
 import StringCommand from './commands/string/StringCommand.ts';
 import TaskCommand from './commands/task/TaskCommand.ts';
-import TestCommand from './commands/test/TestCommand.ts';
 import UploadCommand from './commands/upload/UploadCommand.ts';
 import { createGetConfig } from './config.ts';
 import { createGetOutput } from './output.ts';
@@ -47,7 +46,6 @@ const projectCommand = new ProjectCommand(getOutput, getProjectService, getApiCl
 const statusCommand = new StatusCommand(getOutput, getProjectService);
 const stringCommand = new StringCommand(getOutput, getStringService);
 const taskCommand = new TaskCommand(getOutput, getTaskService, getApiClient);
-const testCommand = new TestCommand(getOutput, getApiClient);
 const uploadCommand = new UploadCommand(getConfig, getOutput, getProjectService, getStorageService, getApiClient);
 
 export const commands: CommandDef[] = [
@@ -64,5 +62,4 @@ export const commands: CommandDef[] = [
   configCommand.getDefinition(),
   projectCommand.getDefinition(),
   distributionCommand.getDefinition(),
-  testCommand.getDefinition(),
 ];
