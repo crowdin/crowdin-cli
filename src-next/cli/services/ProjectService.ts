@@ -256,7 +256,7 @@ export class ProjectService {
     this.output.spinner('projects', 'start', 'Fetching projects');
 
     try {
-      const projects = await this.apiClient.projectsGroupsApi.listProjects({
+      const projects = await this.apiClient.projectsGroupsApi.withFetchAll().listProjects({
         hasManagerAccess: +hasManagerAccess,
       });
 

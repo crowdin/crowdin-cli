@@ -1,4 +1,5 @@
 import type { Command } from 'commander';
+import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetApiClient, GetOutput, GetProjectService } from '@/cli/services.ts';
@@ -70,17 +71,32 @@ export default class ProjectCommand {
   };
 
   listAction = async (command: Command) => {
+    const options = command.optsWithGlobals() as ProjectCommandOptions;
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
     const projects = await projectService.loadProjects(true);
 
+    if (!options.verbose) {
+      output.table(
+        projects.data.map(
+          (project) => ({
+            id: project.data.id,
+            name: project.data.name,
+          }),
+        ),
+      );
+
+      return;
+    }
+
     output.table(
-      projects.data.map(
-        (project) => ({
-          id: project.data.id,
-          name: project.data.name,
-        }),
-      ),
+      projects.data.map((project) => ({
+        id: project.data.id,
+        name: project.data.name,
+        type: project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED ? 'string-based' : 'file-based',
+        visibility: (project.data.visibility ?? 'private').toString().toLowerCase(),
+        lastActivity: this.formatLastActivity(project.data.lastActivity),
+      })),
     );
   };
 
@@ -94,32 +110,48 @@ export default class ProjectCommand {
       throw new CliError('Project name is required');
     }
 
-    const languageAccessPolicy: 'open' | 'moderate' = options.public ? 'open' : 'moderate';
-
-    const data = {
-      name,
-      sourceLanguageId: options.sourceLanguage || 'en',
-      targetLanguageIds: options.language ?? [],
-      languageAccessPolicy,
-      stringBased: options.stringBased || false,
-    };
+    const sourceLanguageId = options.sourceLanguage || 'en';
+    const targetLanguageIds = options.language ?? [];
+    const data: ProjectsGroupsModel.CreateProjectEnterpriseRequest | ProjectsGroupsModel.CreateProjectRequest = apiClient.organization
+      ? {
+          name,
+          sourceLanguageId,
+          targetLanguageIds,
+          ...(options.stringBased ? { type: 1 as const } : {}),
+        }
+      : {
+          name,
+          identifier: name,
+          sourceLanguageId,
+          targetLanguageIds,
+          visibility: options.public ? 'open' : 'private',
+          ...(options.stringBased ? { type: 1 as const } : {}),
+        };
 
     try {
-      const project = await apiClient.projectsGroupsApi.addProject({
-        name: data.name,
-        sourceLanguageId: data.sourceLanguageId,
-        targetLanguageIds: data.targetLanguageIds,
-        languageAccessPolicy: data.languageAccessPolicy,
-      });
+      const project = await apiClient.projectsGroupsApi.addProject(data);
 
-      output.table([
-        {
-          id: project.data.id,
-          name: project.data.name
-        }
-      ]);
+      output.log(`${project.data.id} ${project.data.name}`.trim());
     } catch (error) {
       throw toCliError(error, `Failed to add project`);
     }
   };
+
+  private formatLastActivity(lastActivity: unknown): string {
+    if (!lastActivity) {
+      return '';
+    }
+
+    if (lastActivity instanceof Date) {
+      return lastActivity.toISOString();
+    }
+
+    const parsedDate = new Date(String(lastActivity));
+
+    if (Number.isNaN(parsedDate.getTime())) {
+      return String(lastActivity);
+    }
+
+    return parsedDate.toISOString();
+  }
 }

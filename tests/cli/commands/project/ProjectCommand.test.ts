@@ -108,6 +108,47 @@ describe('ProjectCommand', () => {
     );
   });
 
+  test('lists verbose project details when verbose output is enabled', async () => {
+    const projectCommand = createProjectCommand();
+
+    commandContext = createCommandContext({
+      ...globalOptions,
+      verbose: true,
+    });
+
+    spyOn(apiClient.projectsGroupsApi, 'listProjects').mockResolvedValue({
+      data: [
+        {
+          data: {
+            id: 1,
+            name: 'Docs',
+            type: 1,
+            visibility: 'OPEN',
+            lastActivity: '2025-01-01T10:00:00.000Z',
+          },
+        },
+      ],
+    } as never);
+
+    await projectCommand.listAction(commandContext);
+
+    expect(console.log).toHaveBeenCalledWith(
+      JSON.stringify(
+        [
+          {
+            id: 1,
+            name: 'Docs',
+            type: 'string-based',
+            visibility: 'open',
+            lastActivity: '2025-01-01T10:00:00.000Z',
+          },
+        ],
+        null,
+        2,
+      ),
+    );
+  });
+
   test('adds project with requested options', async () => {
     const projectCommand = createProjectCommand();
     const addProject = spyOn(apiClient.projectsGroupsApi, 'addProject').mockResolvedValue({
@@ -127,8 +168,44 @@ describe('ProjectCommand', () => {
 
     await projectCommand.addAction(commandContext);
 
-    expect(addProject).toHaveBeenCalledWith({ name: 'New Project', sourceLanguageId: 'uk', targetLanguageIds: ['fr', 'de'], languageAccessPolicy: 'open' });
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 77, name: 'New Project' }], null, 2));
+    expect(addProject).toHaveBeenCalledWith({
+      name: 'New Project',
+      identifier: 'New Project',
+      sourceLanguageId: 'uk',
+      targetLanguageIds: ['fr', 'de'],
+      visibility: 'open',
+      type: 1,
+    });
+  });
+
+  test('does not send visibility when adding enterprise project', async () => {
+    const enterpriseApiClient = new Client({ token: config.apiToken, organization: 'acme' });
+    const projectCommand = new ProjectCommand(
+      () => output,
+      async () => projectService,
+      async () => enterpriseApiClient,
+    );
+    const addProject = spyOn(enterpriseApiClient.projectsGroupsApi, 'addProject').mockResolvedValue({
+      data: { id: 77, name: 'New Project' },
+    } as never);
+
+    commandContext = createCommandContext(
+      {
+        ...globalOptions,
+        sourceLanguage: 'uk',
+        language: ['fr', 'de'],
+        public: true,
+      },
+      ['New Project'],
+    );
+
+    await projectCommand.addAction(commandContext);
+
+    expect(addProject).toHaveBeenCalledWith({
+      name: 'New Project',
+      sourceLanguageId: 'uk',
+      targetLanguageIds: ['fr', 'de'],
+    });
   });
 
   test('requires project name', async () => {
