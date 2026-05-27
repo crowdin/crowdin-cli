@@ -519,7 +519,7 @@ describe('UploadCommand', () => {
 
     const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
     const projectService = {
-      branch: { getOrCreateBranch: mock(async () => undefined) },
+      branch: { getBranch: mock(async () => undefined), getOrCreateBranch: mock(async () => undefined) },
       loadProject: mock(async () => ({
         data: { id: 123, targetLanguages: [language('es', 'es', 'spa')] },
       })),
@@ -556,10 +556,51 @@ describe('UploadCommand', () => {
     expect(output.warning).not.toHaveBeenCalled();
   });
 
-  test('throws when specified language does not exist in project', async () => {
+  test('uploads translations only for specified language when --language is set', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+    await Bun.write(`${tempDir}/locale/fr/app.json`, '{}');
+
     const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
     const projectService = {
       branch: { getOrCreateBranch: mock(async () => undefined) },
+      loadProject: mock(async () => ({
+        data: {
+          id: 123,
+          targetLanguages: [language('es', 'es', 'spa'), language('fr', 'fr', 'fra')],
+        },
+      })),
+      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+      translation: { importProjectTranslation: mock(async () => undefined) },
+    };
+    const output = createOutputMock();
+    const command = createUploadCommand(tempDir, output, projectService, storageService, {});
+
+    await command.uploadTranslationsAction(commandContext({ language: 'fr' }));
+
+    expect(projectService.translation.importProjectTranslation).toHaveBeenCalledTimes(1);
+    expect(projectService.translation.importProjectTranslation).toHaveBeenCalledWith(
+      10,
+      77,
+      ['fr'],
+      'locale/fr/app.json',
+      undefined,
+      undefined,
+      undefined,
+    );
+  });
+
+  test('translations subcommand definition includes language and tree options', () => {
+    const command = createUploadCommand(tempDir, createOutputMock(), {}, {}, {});
+    const definition = command.getDefinition();
+    const translationsOpts = flatOptions(definition.subcommands?.find((s) => s.name === 'translations')?.options ?? []);
+    expect(translationsOpts.find((o) => o.name === 'language')).toBeDefined();
+    expect(translationsOpts.find((o) => o.name === 'tree')).toBeDefined();
+  });
+
+  test('throws when specified language does not exist in project', async () => {
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const projectService = {
+      branch: { getBranch: mock(async () => undefined), getOrCreateBranch: mock(async () => undefined) },
       loadProject: mock(async () => ({
         data: { id: 123, targetLanguages: [language('es', 'es', 'spa')] },
       })),
@@ -577,6 +618,7 @@ describe('UploadCommand', () => {
 function baseProjectServiceMock() {
   return {
     branch: {
+      getBranch: mock(async () => undefined as any),
       getOrCreateBranch: mock(async () => undefined as any),
     },
     loadProject: mock(async () => ({ data: { id: 123 } })),

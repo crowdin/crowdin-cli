@@ -1,5 +1,5 @@
 import path from 'node:path';
-import type { LanguagesModel, SourceFilesModel } from '@crowdin/crowdin-api-client';
+import type { LanguagesModel, ResponseObject, SourceFilesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { ProjectService } from '@/cli/services/ProjectService.ts';
@@ -24,6 +24,7 @@ import deleteObsolete from './options/deleteObsolete.ts';
 import excludedLanguage from './options/excludedLanguage.ts';
 import importEqSuggestions from './options/importEqSuggestions.ts';
 import label from './options/label.ts';
+import language from './options/language.ts';
 import noAutoUpdate from './options/noAutoUpdate.ts';
 import translateHidden from './options/translateHidden.ts';
 
@@ -48,20 +49,6 @@ interface UploadTranslationsOptions {
 interface SourceFileOptions {
   labels?: string[];
   excluded_target_languages?: string[];
-}
-
-interface ProjectFile {
-  data: {
-    id: number;
-    path: string;
-  };
-}
-
-interface ProjectDirectory {
-  data: {
-    id: number;
-    path: string;
-  };
 }
 
 export default class UploadCommand {
@@ -106,7 +93,16 @@ export default class UploadCommand {
         {
           name: 'translations',
           description: 'Upload translation files to a Crowdin project',
-          options: [branch, dryRun, autoApproveImported, importEqSuggestions, translateHidden, configOptionGroup],
+          options: [
+            branch,
+            language,
+            dryRun,
+            tree,
+            autoApproveImported,
+            importEqSuggestions,
+            translateHidden,
+            configOptionGroup,
+          ],
           action: this.uploadTranslationsAction,
         },
       ],
@@ -125,7 +121,9 @@ export default class UploadCommand {
     const storageService = await this.getStorageService(command);
     const apiClient = await this.getApiClient(command);
 
-    const branch = await projectService.branch.getOrCreateBranch(options.branch);
+    const branch = options.dryRun
+      ? await projectService.branch.getBranch(options.branch)
+      : await projectService.branch.getOrCreateBranch(options.branch);
     const branchId = branch?.id;
     const project = await projectService.loadProject();
     const projectFiles = await projectService.loadProjectFiles(branchId);
@@ -222,8 +220,8 @@ export default class UploadCommand {
   };
 
   private async deleteObsoleteProjectEntries(
-    projectFiles: ProjectFile[],
-    projectDirectories: ProjectDirectory[],
+    projectFiles: ResponseObject<SourceFilesModel.File>[],
+    projectDirectories: ResponseObject<SourceFilesModel.Directory>[],
     expectedProjectFilePaths: Set<string>,
     projectService: ProjectService,
     output: Output,
@@ -347,7 +345,9 @@ export default class UploadCommand {
     const storageService = await this.getStorageService(command);
     const translationPathResolver = new TranslationPathResolver(config);
 
-    const branch = await projectService.branch.getOrCreateBranch(options.branch);
+    const branch = options.dryRun
+      ? await projectService.branch.getBranch(options.branch)
+      : await projectService.branch.getOrCreateBranch(options.branch);
     const branchId = branch?.id;
     const project = await projectService.loadProject();
     const projectFiles = await projectService.loadProjectFiles(branchId);

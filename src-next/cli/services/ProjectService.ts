@@ -147,6 +147,18 @@ export class ProjectService {
   };
 
   branch = {
+    getBranch: async (name?: string) => {
+      if (!name || name === 'none') {
+        return undefined;
+      }
+
+      try {
+        const branches = await this.apiClient.sourceFilesApi.listProjectBranches(this.projectId, { name, limit: 500 });
+        return branches.data.find((branch) => branch.data.name === name)?.data;
+      } catch (error) {
+        throw toCliError(error, `Failed to find branch ${name}`);
+      }
+    },
     getOrCreateBranch: async (name?: string) => {
       if (!name || name === 'none') {
         return undefined;
