@@ -46,7 +46,7 @@
   "dependencies": {
     "@bomb.sh/tab": "^0.0.14",
     "@clack/prompts": "^1.4.0",
-    "@crowdin/crowdin-api-client": "^1.55.1",
+    "@crowdin/crowdin-api-client": "^1.55.3",
     "@toon-format/toon": "^2.1.0",
     "@types/adm-zip": "^0.5.8",
     "adm-zip": "^0.5.17",
