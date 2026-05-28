@@ -6,6 +6,7 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { openUrl } from '@/cli/utils/open.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 import { generate } from '@/lib/config/yamlGenerator.ts';
@@ -169,7 +170,7 @@ export default class InitCommand {
         },
       });
 
-      Bun.spawn(['open', authorizationUrl]);
+      openUrl(authorizationUrl);
     });
   }
 

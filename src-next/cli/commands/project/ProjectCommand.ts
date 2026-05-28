@@ -4,6 +4,7 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { openUrl } from '@/cli/utils/open.ts';
 import language from './options/language.ts';
 import languageAccessPolicy from './options/languageAccessPolicy.ts';
 import sourceLanguage from './options/sourceLanguage.ts';
@@ -63,7 +64,7 @@ export default class ProjectCommand {
     const projectService = await this.getProjectService(command);
     const project = await projectService.loadProject();
 
-    Bun.spawn(['open', project.data.webUrl]);
+    openUrl(project.data.webUrl);
 
     output.success(`Opened ${project.data.webUrl} in browser`);
   };

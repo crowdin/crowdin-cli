@@ -45,7 +45,7 @@ export default class TranslationPathResolver {
   private findExportPattern(file: BunFile): string {
     for (const patterns of this.config.files) {
       let sourcePattern = patterns.source;
-      if (sourcePattern.startsWith(path.sep)) {
+      if (sourcePattern.startsWith('/')) {
         sourcePattern = sourcePattern.slice(1);
       }
 

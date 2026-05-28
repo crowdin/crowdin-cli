@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import os from 'node:os';
 import type { Command } from 'commander';
 import BundleCommand from '@/cli/commands/bundle/BundleCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -268,6 +269,7 @@ describe('BundleCommand', () => {
       async () => bundleService as unknown as BundleService,
     );
 
+    spyOn(os, 'platform').mockReturnValue('darwin');
     await cmd.browseAction(createCommandContext({ ...globalOptions, format: 'text' }, ['1']));
 
     expect(Bun.spawn).toHaveBeenCalledWith(['open', 'https://crowdin.com/project/demo/bundles/10']);

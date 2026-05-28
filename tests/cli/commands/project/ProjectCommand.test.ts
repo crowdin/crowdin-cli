@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import os from 'node:os';
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import ProjectCommand from '@/cli/commands/project/ProjectCommand.ts';
@@ -77,6 +78,7 @@ describe('ProjectCommand', () => {
   test('opens current project in browser', async () => {
     const projectCommand = createProjectCommand();
 
+    spyOn(os, 'platform').mockReturnValue('darwin');
     spyOn(projectService, 'loadProject').mockResolvedValue({
       data: { id: 123, webUrl: 'https://crowdin.com/project/demo' },
     } as never);

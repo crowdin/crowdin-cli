@@ -137,7 +137,7 @@ export default class FileCommand {
     const pathDetails = path.parse(destPath);
 
     if (pathDetails.dir !== '') {
-      const directories = pathDetails.dir.split(path.sep);
+      const directories = pathDetails.dir.split('/');
 
       for (const directory of directories) {
         try {

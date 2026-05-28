@@ -1,4 +1,3 @@
-import path from 'node:path';
 import { Glob } from 'bun';
 import type { Config } from '../config.ts';
 
@@ -21,7 +20,8 @@ export default class SourceFileLoader {
 
   getFilePathsForPattern(pattern: string): string[] {
     let sourcePattern = pattern;
-    if (sourcePattern.startsWith(path.sep)) {
+
+    if (sourcePattern.startsWith('/')) {
       sourcePattern = sourcePattern.slice(1);
     }
 

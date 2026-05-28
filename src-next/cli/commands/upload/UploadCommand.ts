@@ -342,7 +342,7 @@ export default class UploadCommand {
     output: Output,
     branch?: SourceFilesModel.Branch,
   ) {
-    const directories = pathDetails.dir.split(path.sep);
+    const directories = pathDetails.dir.split('/');
     let directoryId: number | undefined;
 
     for (let index = 0; index < directories.length; index++) {

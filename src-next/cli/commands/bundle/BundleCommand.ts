@@ -4,6 +4,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { AddBundlePayload, BundleView } from '@/cli/services/BundleService.ts';
 import type { GetBundleService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef, OptionDef } from '@/cli/types.ts';
+import { openUrl } from '@/cli/utils/open.ts';
 import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
 
 const fileFormatOption: OptionDef = {
@@ -293,7 +294,8 @@ export default class BundleCommand {
     const bundleService = await this.getBundleService(command);
     const url = await bundleService.getBundleUrl(id);
 
-    Bun.spawn(['open', url]);
+    openUrl(url);
+
     output.success(`Opened ${url} in browser`);
   };
 
