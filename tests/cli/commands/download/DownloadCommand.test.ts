@@ -7,7 +7,10 @@ import type { Command } from 'commander';
 import DownloadCommand from '@/cli/commands/download/DownloadCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { BranchService } from '@/cli/services/BranchService.ts';
+import { FileService } from '@/cli/services/FileService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
+import { TranslationService } from '@/cli/services/TranslationService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 import type { Config } from '@/lib/config.ts';
 
@@ -31,6 +34,9 @@ describe('DownloadCommand', () => {
   let apiClient: Client;
   let output: Output;
   let projectService: ProjectService;
+  let branchService: BranchService;
+  let fileService: FileService;
+  let translationService: TranslationService;
   const globalOptions: GlobalOptions = {
     verbose: false,
     config: '',
@@ -68,6 +74,9 @@ describe('DownloadCommand', () => {
     apiClient = new Client({ token: config.apiToken });
     output = createOutput(globalOptions);
     projectService = new ProjectService(apiClient, output, config.projectId);
+    branchService = new BranchService(apiClient, config.projectId);
+    fileService = new FileService(apiClient, output, config.projectId);
+    translationService = new TranslationService(apiClient, output, config.projectId);
 
     commandContext = createCommandContext(globalOptions);
 
@@ -89,6 +98,9 @@ describe('DownloadCommand', () => {
       () => output,
       async () => projectService,
       async () => apiClient,
+      async () => branchService,
+      async () => fileService,
+      async () => translationService,
     );
   };
 

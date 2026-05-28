@@ -2,8 +2,19 @@ import path from 'node:path';
 import type { LanguagesModel, ResponseObject, SourceFilesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
-import type { ProjectService } from '@/cli/services/ProjectService.ts';
-import type { GetApiClient, GetConfig, GetOutput, GetProjectService, GetStorageService } from '@/cli/services.ts';
+import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
+import type {
+  GetApiClient,
+  GetBranchService,
+  GetConfig,
+  GetDirectoryService,
+  GetFileService,
+  GetLabelService,
+  GetOutput,
+  GetProjectService,
+  GetStorageService,
+  GetTranslationService,
+} from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { fileTree } from '@/cli/utils/fileTree.ts';
 import type { Output } from '@/cli/utils/output.ts';
@@ -61,6 +72,11 @@ export default class UploadCommand {
     private getProjectService: GetProjectService,
     private getStorageService: GetStorageService,
     private getApiClient: GetApiClient,
+    private getBranchService: GetBranchService,
+    private getDirectoryService: GetDirectoryService,
+    private getFileService: GetFileService,
+    private getLabelService: GetLabelService,
+    private getTranslationService: GetTranslationService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -123,25 +139,26 @@ export default class UploadCommand {
     const projectService = await this.getProjectService(command);
     const storageService = await this.getStorageService(command);
     const apiClient = await this.getApiClient(command);
-
+    const branchService = await this.getBranchService(command);
+    const directoryService = await this.getDirectoryService(command);
+    const fileService = await this.getFileService(command);
+    const labelService = await this.getLabelService(command);
     const branch = options.dryRun
-      ? await projectService.branch.getBranch(options.branch)
-      : await projectService.branch.getOrCreateBranch(options.branch);
+      ? await branchService.getBranch(options.branch)
+      : await branchService.getOrCreateBranch(options.branch);
     const branchId = branch?.id;
     const project = await projectService.loadProject();
-    const projectFiles = await projectService.loadProjectFiles(branchId);
+    const projectFiles = await fileService.loadProjectFiles(branchId);
     const projectFilePaths = new Map(projectFiles.data.map((file) => [file.data.path, file.data.id]));
-    const projectDirectoryList = await projectService.directory.loadProjectDirectories(branchId);
+    const projectDirectoryList = await directoryService.loadProjectDirectories(branchId);
     const projectDirectories = new Map(
       projectDirectoryList.map((directory) => [directory.data.path, directory.data.id]),
     );
     const sourceFileLoader = new SourceFileLoader(config);
-
     const patternFilePaths = config.files.map((patterns) => ({
       patterns,
       filePaths: sourceFileLoader.getFilePathsForPattern(patterns.source),
     }));
-
     const expectedProjectFilePaths = new Set(
       patternFilePaths.flatMap(({ filePaths }) => filePaths.map((filePath) => this.toProjectPath(filePath))),
     );
@@ -151,7 +168,8 @@ export default class UploadCommand {
         projectFiles.data,
         projectDirectoryList,
         expectedProjectFilePaths,
-        projectService,
+        fileService,
+        directoryService,
         output,
         Boolean(options.dryRun),
       );
@@ -170,7 +188,7 @@ export default class UploadCommand {
     for (const { patterns, filePaths } of patternFilePaths) {
       const fileOptions = this.resolveSourceFileOptions(patterns, options);
       const labelIds =
-        fileOptions.labels !== undefined ? await projectService.label.resolveLabelIds(fileOptions.labels) : undefined;
+        fileOptions.labels !== undefined ? await labelService.resolveLabelIds(fileOptions.labels) : undefined;
 
       for (const localFilePath of filePaths) {
         if (projectFilePaths.has(`/${localFilePath}`)) {
@@ -185,7 +203,7 @@ export default class UploadCommand {
           }
 
           const storage = await storageService.addStorage(Bun.file(path.join(config.basePath, localFilePath)));
-          await projectService.file.updateProjectFile(
+          await fileService.updateProjectFile(
             projectFilePaths.get(`/${localFilePath}`) as number,
             storage.data.id,
             localFilePath,
@@ -213,7 +231,7 @@ export default class UploadCommand {
           directoryId = await this.addProjectDirectories(
             pathDetails,
             projectDirectories,
-            projectService,
+            directoryService,
             output,
             branch,
           );
@@ -238,7 +256,8 @@ export default class UploadCommand {
     projectFiles: ResponseObject<SourceFilesModel.File>[],
     projectDirectories: ResponseObject<SourceFilesModel.Directory>[],
     expectedProjectFilePaths: Set<string>,
-    projectService: ProjectService,
+    fileService: Awaited<ReturnType<GetFileService>>,
+    directoryService: Awaited<ReturnType<GetDirectoryService>>,
     output: Output,
     dryRun: boolean,
   ) {
@@ -252,7 +271,7 @@ export default class UploadCommand {
       if (dryRun) {
         output.info(`File ${projectFilePath} would be deleted as obsolete`);
       } else {
-        await projectService.file.deleteProjectFile(projectFile.data.id, projectFilePath);
+        await fileService.deleteProjectFile(projectFile.data.id, projectFilePath);
         output.success(`File ${projectFilePath} deleted as obsolete`);
       }
     }
@@ -275,7 +294,7 @@ export default class UploadCommand {
       if (dryRun) {
         output.info(`Directory ${directoryPath} would be deleted as obsolete`);
       } else {
-        await projectService.directory.deleteProjectDirectory(directory.data.id, directoryPath);
+        await directoryService.deleteProjectDirectory(directory.data.id, directoryPath);
         output.success(`Directory ${directoryPath} deleted as obsolete`);
       }
     }
@@ -321,7 +340,7 @@ export default class UploadCommand {
   private async addProjectDirectories(
     pathDetails: ReturnType<typeof path.parse>,
     projectDirectories: Map<string, number>,
-    projectService: ProjectService,
+    directoryService: DirectoryService,
     output: Output,
     branch?: SourceFilesModel.Branch,
   ) {
@@ -337,7 +356,7 @@ export default class UploadCommand {
         continue;
       }
 
-      const projectDirectory = await projectService.directory.createProjectDirectory(
+      const projectDirectory = await directoryService.createProjectDirectory(
         directoryName,
         directoryId,
         directoryId ? undefined : branch?.id,
@@ -358,24 +377,32 @@ export default class UploadCommand {
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
     const storageService = await this.getStorageService(command);
+    const branchService = await this.getBranchService(command);
+    const fileService = await this.getFileService(command);
+    const translationService = await this.getTranslationService(command);
     const translationPathResolver = new TranslationPathResolver(config);
 
     const branch = options.dryRun
-      ? await projectService.branch.getBranch(options.branch)
-      : await projectService.branch.getOrCreateBranch(options.branch);
+      ? await branchService.getBranch(options.branch)
+      : await branchService.getOrCreateBranch(options.branch);
     const branchId = branch?.id;
     const project = await projectService.loadProject();
-    const projectFiles = await projectService.loadProjectFiles(branchId);
+    const projectFiles = await fileService.loadProjectFiles(branchId);
     const targetLanguages = this.filterTargetLanguages(project.data.targetLanguages, options.language);
 
     if (options.dryRun && options.tree) {
       const allPaths: string[] = [];
 
       for (const projectFile of projectFiles.data) {
+        const projectFilePath = projectFile.data.path.startsWith('/')
+          ? projectFile.data.path.slice(1)
+          : projectFile.data.path;
+
+        if (!translationPathResolver.canResolve(Bun.file(projectFilePath))) {
+          continue;
+        }
+
         for (const targetLanguage of targetLanguages) {
-          const projectFilePath = projectFile.data.path.startsWith('/')
-            ? projectFile.data.path.slice(1)
-            : projectFile.data.path;
           const filePath = translationPathResolver.resolve(Bun.file(projectFilePath), targetLanguage).slice(1);
           const localFilePath = path.join(config.basePath, filePath);
 
@@ -393,10 +420,15 @@ export default class UploadCommand {
     }
 
     for (const projectFile of projectFiles.data) {
+      const projectFilePath = projectFile.data.path.startsWith('/')
+        ? projectFile.data.path.slice(1)
+        : projectFile.data.path;
+
+      if (!translationPathResolver.canResolve(Bun.file(projectFilePath))) {
+        continue;
+      }
+
       for (const targetLanguage of targetLanguages) {
-        const projectFilePath = projectFile.data.path.startsWith('/')
-          ? projectFile.data.path.slice(1)
-          : projectFile.data.path;
         const filePath = translationPathResolver.resolve(Bun.file(projectFilePath), targetLanguage).slice(1);
         const localFilePath = path.join(config.basePath, filePath);
 
@@ -412,7 +444,7 @@ export default class UploadCommand {
 
         const storage = await storageService.addStorage(Bun.file(localFilePath));
 
-        await projectService.translation.importProjectTranslation(
+        await translationService.importProjectTranslation(
           storage.data.id,
           projectFile.data.id,
           [targetLanguage.id],

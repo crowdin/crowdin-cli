@@ -4,7 +4,10 @@ import type { Command } from 'commander';
 import StringCommand from '@/cli/commands/string/StringCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { ProjectService } from '@/cli/services/ProjectService.ts';
+import type { BranchService } from '@/cli/services/BranchService.ts';
+import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
+import type { FileService } from '@/cli/services/FileService.ts';
+import type { LabelService } from '@/cli/services/LabelService.ts';
 import type { StringService } from '@/cli/services/StringService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 
@@ -17,21 +20,15 @@ describe('StringCommand', () => {
     edit: ReturnType<typeof mock<StringService['edit']>>;
     delete: ReturnType<typeof mock<StringService['delete']>>;
   };
-  let projectService: {
-    branch: {
-      resolveBranchId: ReturnType<typeof mock<ProjectService['branch']['resolveBranchId']>>;
-    };
-    directory: {
-      resolveDirectoryId: ReturnType<typeof mock<ProjectService['directory']['resolveDirectoryId']>>;
-    };
-    label: {
-      resolveLabelIds: ReturnType<typeof mock<ProjectService['label']['resolveLabelIds']>>;
-      listLabelsMap: ReturnType<typeof mock<ProjectService['label']['listLabelsMap']>>;
-    };
-    file: {
-      resolveFileIds: ReturnType<typeof mock<ProjectService['file']['resolveFileIds']>>;
-      listProjectFilePaths: ReturnType<typeof mock<ProjectService['file']['listProjectFilePaths']>>;
-    };
+  let branchService: { resolveBranchId: ReturnType<typeof mock<BranchService['resolveBranchId']>> };
+  let directoryService: { resolveDirectoryId: ReturnType<typeof mock<DirectoryService['resolveDirectoryId']>> };
+  let labelService: {
+    resolveLabelIds: ReturnType<typeof mock<LabelService['resolveLabelIds']>>;
+    listLabelsMap: ReturnType<typeof mock<LabelService['listLabelsMap']>>;
+  };
+  let fileService: {
+    resolveFileIds: ReturnType<typeof mock<FileService['resolveFileIds']>>;
+    listProjectFilePaths: ReturnType<typeof mock<FileService['listProjectFilePaths']>>;
   };
   const globalOptions: GlobalOptions = {
     verbose: false,
@@ -53,7 +50,10 @@ describe('StringCommand', () => {
     return new StringCommand(
       () => output,
       async () => stringService as unknown as StringService,
-      async () => projectService as unknown as ProjectService,
+      async () => branchService as unknown as BranchService,
+      async () => directoryService as unknown as DirectoryService,
+      async () => fileService as unknown as FileService,
+      async () => labelService as unknown as LabelService,
     );
   };
 
@@ -91,21 +91,15 @@ describe('StringCommand', () => {
       edit: mock(async () => createStringModel({ id: 5, text: 'edited', identifier: 'k5' })),
       delete: mock(async () => {}),
     };
-    projectService = {
-      branch: {
-        resolveBranchId: mock(async () => undefined),
-      },
-      directory: {
-        resolveDirectoryId: mock(async () => undefined),
-      },
-      label: {
-        resolveLabelIds: mock(async () => undefined),
-        listLabelsMap: mock(async () => new Map<number, string>()),
-      },
-      file: {
-        resolveFileIds: mock(async () => ({ fileIds: [101], missingPaths: [] })),
-        listProjectFilePaths: mock(async () => new Map<number, string>([[101, '/content.md']])),
-      },
+    branchService = { resolveBranchId: mock(async () => undefined) };
+    directoryService = { resolveDirectoryId: mock(async () => undefined) };
+    labelService = {
+      resolveLabelIds: mock(async () => undefined),
+      listLabelsMap: mock(async () => new Map<number, string>()),
+    };
+    fileService = {
+      resolveFileIds: mock(async () => ({ fileIds: [101], missingPaths: [] })),
+      listProjectFilePaths: mock(async () => new Map<number, string>([[101, '/content.md']])),
     };
 
     spyOn(console, 'log').mockImplementation(() => {});
@@ -150,7 +144,10 @@ describe('StringCommand', () => {
       const cmd = new StringCommand(
         () => textOutput,
         async () => stringService as unknown as StringService,
-        async () => projectService as unknown as ProjectService,
+        async () => branchService as unknown as BranchService,
+        async () => directoryService as unknown as DirectoryService,
+        async () => fileService as unknown as FileService,
+        async () => labelService as unknown as LabelService,
       );
       const commandContext = createCommandContext({ ...globalOptions, format: 'text' });
       const successSpy = spyOn(textOutput, 'success');
@@ -191,7 +188,7 @@ describe('StringCommand', () => {
           context: 'Greeting',
         }),
       ]);
-      projectService.label.listLabelsMap.mockResolvedValue(new Map([[9, 'marketing']]));
+      labelService.listLabelsMap.mockResolvedValue(new Map([[9, 'marketing']]));
 
       await cmd.listAction(commandContext);
 
@@ -251,14 +248,17 @@ describe('StringCommand', () => {
       const cmd = new StringCommand(
         () => textOutput,
         async () => stringService as unknown as StringService,
-        async () => projectService as unknown as ProjectService,
+        async () => branchService as unknown as BranchService,
+        async () => directoryService as unknown as DirectoryService,
+        async () => fileService as unknown as FileService,
+        async () => labelService as unknown as LabelService,
       );
       const warningSpy = spyOn(textOutput, 'warning');
       const commandContext = createCommandContext(
         { ...globalOptions, format: 'text', file: ['a.yml', 'missing.yml'], identifier: 'k1' },
         ['hello'],
       );
-      projectService.file.resolveFileIds.mockResolvedValue({ fileIds: [101], missingPaths: ['missing.yml'] });
+      fileService.resolveFileIds.mockResolvedValue({ fileIds: [101], missingPaths: ['missing.yml'] });
 
       await cmd.addAction(commandContext);
 
@@ -275,7 +275,7 @@ describe('StringCommand', () => {
     test('creates string-based plural string', async () => {
       const cmd = createStringCommand();
       stringService.isStringsBasedProject.mockResolvedValue(true);
-      projectService.branch.resolveBranchId.mockResolvedValue(555);
+      branchService.resolveBranchId.mockResolvedValue(555);
       const commandContext = createCommandContext({ ...globalOptions, branch: 'main', one: 'One value' }, ['hello']);
 
       await cmd.addAction(commandContext);
@@ -313,7 +313,7 @@ describe('StringCommand', () => {
         { ...globalOptions, text: 'updated', context: 'ctx', hidden: true, label: ['l1'] },
         ['15'],
       );
-      projectService.label.resolveLabelIds.mockResolvedValue([5]);
+      labelService.resolveLabelIds.mockResolvedValue([5]);
 
       await cmd.editAction(commandContext);
 
@@ -342,7 +342,10 @@ describe('StringCommand', () => {
       const cmd = new StringCommand(
         () => textOutput,
         async () => stringService as unknown as StringService,
-        async () => projectService as unknown as ProjectService,
+        async () => branchService as unknown as BranchService,
+        async () => directoryService as unknown as DirectoryService,
+        async () => fileService as unknown as FileService,
+        async () => labelService as unknown as LabelService,
       );
       const successSpy = spyOn(textOutput, 'success');
       const commandContext = createCommandContext({ ...globalOptions, format: 'text' }, ['42']);

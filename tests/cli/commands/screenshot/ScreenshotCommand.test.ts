@@ -8,7 +8,10 @@ import type { Command } from 'commander';
 import ScreenshotCommand from '@/cli/commands/screenshot/ScreenshotCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { ProjectService } from '@/cli/services/ProjectService.ts';
+import type { BranchService } from '@/cli/services/BranchService.ts';
+import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
+import type { FileService } from '@/cli/services/FileService.ts';
+import type { LabelService } from '@/cli/services/LabelService.ts';
 import type { ScreenshotService } from '@/cli/services/ScreenshotService.ts';
 import type { StorageService } from '@/cli/services/StorageService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
@@ -26,23 +29,11 @@ describe('ScreenshotCommand', () => {
     delete: ReturnType<typeof mock<ScreenshotService['delete']>>;
     isAutoTagInProgressError: ReturnType<typeof mock<ScreenshotService['isAutoTagInProgressError']>>;
   };
-  let projectService: {
-    branch: {
-      getBranch: ReturnType<typeof mock<ProjectService['branch']['getBranch']>>;
-    };
-    file: {
-      resolveFileIds: ReturnType<typeof mock<ProjectService['file']['resolveFileIds']>>;
-    };
-    directory: {
-      resolveDirectoryId: ReturnType<typeof mock<ProjectService['directory']['resolveDirectoryId']>>;
-    };
-    label: {
-      resolveLabelIds: ReturnType<typeof mock<ProjectService['label']['resolveLabelIds']>>;
-    };
-  };
-  let storageService: {
-    addStorage: ReturnType<typeof mock<StorageService['addStorage']>>;
-  };
+  let branchService: { getBranch: ReturnType<typeof mock<BranchService['getBranch']>> };
+  let fileService: { resolveFileIds: ReturnType<typeof mock<FileService['resolveFileIds']>> };
+  let directoryService: { resolveDirectoryId: ReturnType<typeof mock<DirectoryService['resolveDirectoryId']>> };
+  let labelService: { resolveLabelIds: ReturnType<typeof mock<LabelService['resolveLabelIds']>> };
+  let storageService: { addStorage: ReturnType<typeof mock<StorageService['addStorage']>> };
   const globalOptions: GlobalOptions = {
     verbose: false,
     config: '',
@@ -68,8 +59,11 @@ describe('ScreenshotCommand', () => {
     return new ScreenshotCommand(
       () => output,
       async () => screenshotService as unknown as ScreenshotService,
-      async () => projectService as unknown as ProjectService,
       async () => storageService as unknown as StorageService,
+      async () => branchService as unknown as BranchService,
+      async () => directoryService as unknown as DirectoryService,
+      async () => fileService as unknown as FileService,
+      async () => labelService as unknown as LabelService,
     );
   };
 
@@ -105,20 +99,10 @@ describe('ScreenshotCommand', () => {
       delete: mock(async () => {}),
       isAutoTagInProgressError: mock(() => false),
     };
-    projectService = {
-      branch: {
-        getBranch: mock(async () => undefined),
-      },
-      file: {
-        resolveFileIds: mock(async () => ({ fileIds: [], missingPaths: [] })),
-      },
-      directory: {
-        resolveDirectoryId: mock(async () => undefined),
-      },
-      label: {
-        resolveLabelIds: mock(async () => undefined),
-      },
-    };
+    branchService = { getBranch: mock(async () => undefined) };
+    fileService = { resolveFileIds: mock(async () => ({ fileIds: [], missingPaths: [] })) };
+    directoryService = { resolveDirectoryId: mock(async () => undefined) };
+    labelService = { resolveLabelIds: mock(async () => undefined) };
     storageService = {
       addStorage: mock(
         async (_file: BunFile) =>
@@ -152,8 +136,11 @@ describe('ScreenshotCommand', () => {
     const cmd = new ScreenshotCommand(
       () => textOutput,
       async () => screenshotService as unknown as ScreenshotService,
-      async () => projectService as unknown as ProjectService,
       async () => storageService as unknown as StorageService,
+      async () => branchService as unknown as BranchService,
+      async () => directoryService as unknown as DirectoryService,
+      async () => fileService as unknown as FileService,
+      async () => labelService as unknown as LabelService,
     );
 
     await cmd.listAction(createCommandContext({ ...globalOptions, format: 'text' }));
@@ -187,8 +174,11 @@ describe('ScreenshotCommand', () => {
     const cmd = new ScreenshotCommand(
       () => textOutput,
       async () => screenshotService as unknown as ScreenshotService,
-      async () => projectService as unknown as ProjectService,
       async () => storageService as unknown as StorageService,
+      async () => branchService as unknown as BranchService,
+      async () => directoryService as unknown as DirectoryService,
+      async () => fileService as unknown as FileService,
+      async () => labelService as unknown as LabelService,
     );
 
     await cmd.deleteAction(createCommandContext({ ...globalOptions, format: 'text' }, ['101']));
@@ -203,8 +193,11 @@ describe('ScreenshotCommand', () => {
     const cmd = new ScreenshotCommand(
       () => textOutput,
       async () => screenshotService as unknown as ScreenshotService,
-      async () => projectService as unknown as ProjectService,
       async () => storageService as unknown as StorageService,
+      async () => branchService as unknown as BranchService,
+      async () => directoryService as unknown as DirectoryService,
+      async () => fileService as unknown as FileService,
+      async () => labelService as unknown as LabelService,
     );
     screenshotService.get.mockResolvedValue(createScreenshot(12, 'old.png'));
 
@@ -266,8 +259,8 @@ describe('ScreenshotCommand', () => {
     const cmd = createScreenshotCommand();
     const localPath = path.join(tempDirectory, 'welcome.png');
     await writeFile(localPath, 'image');
-    projectService.branch.getBranch.mockResolvedValue({ id: 9, name: 'main' } as never);
-    projectService.file.resolveFileIds.mockResolvedValue({ fileIds: [77], missingPaths: [] });
+    branchService.getBranch.mockResolvedValue({ id: 9, name: 'main' } as never);
+    fileService.resolveFileIds.mockResolvedValue({ fileIds: [77], missingPaths: [] });
     screenshotService.findByName.mockResolvedValue(createScreenshot(55, 'welcome.png', 1) as never);
     screenshotService.get.mockResolvedValue(createScreenshot(55, 'welcome.png', 3) as never);
 
@@ -275,7 +268,7 @@ describe('ScreenshotCommand', () => {
       createCommandContext({ ...globalOptions, autoTag: true, file: '/src/app.ts', label: ['web'] }, [localPath]),
     );
 
-    expect(projectService.label.resolveLabelIds).toHaveBeenCalledWith(['web']);
+    expect(labelService.resolveLabelIds).toHaveBeenCalledWith(['web']);
     expect(screenshotService.update).toHaveBeenCalledWith(
       55,
       expect.objectContaining({ name: 'welcome.png', storageId: 44 }),
@@ -306,8 +299,11 @@ describe('ScreenshotCommand', () => {
     const cmd = new ScreenshotCommand(
       () => textOutput,
       async () => screenshotService as unknown as ScreenshotService,
-      async () => projectService as unknown as ProjectService,
       async () => storageService as unknown as StorageService,
+      async () => branchService as unknown as BranchService,
+      async () => directoryService as unknown as DirectoryService,
+      async () => fileService as unknown as FileService,
+      async () => labelService as unknown as LabelService,
     );
     const localPath = path.join(tempDirectory, 'new.png');
     await writeFile(localPath, 'image');
@@ -325,8 +321,8 @@ describe('ScreenshotCommand', () => {
     const cmd = createScreenshotCommand();
     const localPath = path.join(tempDirectory, 'new.png');
     await writeFile(localPath, 'image');
-    projectService.file.resolveFileIds.mockResolvedValue({ fileIds: [], missingPaths: ['/missing.ts'] });
-    projectService.directory.resolveDirectoryId.mockImplementation(async (directoryPath?: string) => {
+    fileService.resolveFileIds.mockResolvedValue({ fileIds: [], missingPaths: ['/missing.ts'] });
+    directoryService.resolveDirectoryId.mockImplementation(async (directoryPath?: string) => {
       throw new CliError(`Project doesn't contain the '${directoryPath}' directory`);
     });
 
@@ -342,7 +338,7 @@ describe('ScreenshotCommand', () => {
     const cmd = createScreenshotCommand();
     const localPath = path.join(tempDirectory, 'new.png');
     await writeFile(localPath, 'image');
-    projectService.branch.getBranch.mockResolvedValue(undefined);
+    branchService.getBranch.mockResolvedValue(undefined);
 
     expect(
       cmd.uploadAction(createCommandContext({ ...globalOptions, autoTag: true, branch: 'dev' }, [localPath])),

@@ -2,7 +2,14 @@ import type { ResponseObject, TranslationStatusModel } from '@crowdin/crowdin-ap
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetOutput, GetProjectService } from '@/cli/services.ts';
+import type {
+  GetBranchService,
+  GetDirectoryService,
+  GetFileService,
+  GetOutput,
+  GetProgressService,
+  GetProjectService,
+} from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import branch from '../upload/options/branch.ts';
 import directory from './options/directory.ts';
@@ -27,6 +34,10 @@ export default class StatusCommand {
   constructor(
     private getOutput: GetOutput,
     private getProjectService: GetProjectService,
+    private getBranchService: GetBranchService,
+    private getDirectoryService: GetDirectoryService,
+    private getFileService: GetFileService,
+    private getProgressService: GetProgressService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -68,6 +79,10 @@ export default class StatusCommand {
     const options = command.optsWithGlobals() as StatusCommandOptions;
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
+    const branchService = await this.getBranchService(command);
+    const directoryService = await this.getDirectoryService(command);
+    const fileService = await this.getFileService(command);
+    const progressService = await this.getProgressService(command);
     const project = await projectService.loadProject();
     const languageId = options.language || null;
     const branchName = this.normalizeBranch(options.branch);
@@ -87,7 +102,7 @@ export default class StatusCommand {
     let progressData: LanguageProgress[];
 
     if (filePath) {
-      const projectFiles = await projectService.loadProjectFiles();
+      const projectFiles = await fileService.loadProjectFiles();
       const normalizedFilePath = this.normalizePath(filePath);
       const projectFile = projectFiles.data.find(
         (fileEntry) => this.normalizePath(fileEntry.data.path) === normalizedFilePath,
@@ -97,10 +112,10 @@ export default class StatusCommand {
         throw new CliError(`Project doesn't contain the '${filePath}' file`);
       }
 
-      const fileProgress = await projectService.progress.loadFileProgress(projectFile.data.id);
+      const fileProgress = await progressService.loadFileProgress(projectFile.data.id);
       progressData = fileProgress.data;
     } else if (directoryPath) {
-      const projectDirectories = await projectService.directory.loadProjectDirectories();
+      const projectDirectories = await directoryService.loadProjectDirectories();
       const normalizedDirectoryPath = this.normalizePath(directoryPath);
       const projectDirectory = projectDirectories.find(
         (directoryEntry) => this.normalizePath(directoryEntry.data.path) === normalizedDirectoryPath,
@@ -110,10 +125,10 @@ export default class StatusCommand {
         throw new CliError(`Project doesn't contain the '${directoryPath}' directory`);
       }
 
-      const directoryProgress = await projectService.progress.loadDirectoryProgress(projectDirectory.data.id);
+      const directoryProgress = await progressService.loadDirectoryProgress(projectDirectory.data.id);
       progressData = directoryProgress.data;
     } else if (branchName) {
-      const branches = await projectService.loadProjectBranches();
+      const branches = await branchService.listProjectBranches();
       const projectBranch = branches.data.find((branchEntry) => branchEntry.data.name === branchName);
 
       if (!projectBranch) {
@@ -122,10 +137,10 @@ export default class StatusCommand {
         );
       }
 
-      const branchProgress = await projectService.progress.loadBranchProgress(projectBranch.data.id);
+      const branchProgress = await progressService.loadBranchProgress(projectBranch.data.id);
       progressData = branchProgress.data;
     } else {
-      const projectProgress = await projectService.progress.loadProjectProgress();
+      const projectProgress = await progressService.loadProjectProgress();
       progressData = projectProgress.data;
     }
 

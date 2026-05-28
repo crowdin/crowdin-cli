@@ -23,7 +23,7 @@ describe('StorageService', () => {
 
   test('addStorage uploads binary payload for image files', async () => {
     const localFilePath = join(tempDir, 'test-screenshot.png');
-    await Bun.write(localFilePath, Bun.file('testing/test-screenshot.png'));
+    await Bun.write(localFilePath, Bun.file('tests/fixtures/services/StorageService/screenshot.png'));
 
     const addStorageSpy = spyOn(apiClient.uploadStorageApi, 'addStorage').mockResolvedValue({
       data: { id: 44, fileName: 'test-screenshot.png' },

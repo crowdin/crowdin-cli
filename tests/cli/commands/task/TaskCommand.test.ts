@@ -4,7 +4,8 @@ import type { Command } from 'commander';
 import TaskCommand from '@/cli/commands/task/TaskCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { ProjectService } from '@/cli/services/ProjectService.ts';
+import type { BranchService } from '@/cli/services/BranchService.ts';
+import type { FileService } from '@/cli/services/FileService.ts';
 import type { TaskService } from '@/cli/services/TaskService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 
@@ -14,14 +15,8 @@ describe('TaskCommand', () => {
     list: ReturnType<typeof mock<TaskService['list']>>;
     add: ReturnType<typeof mock<TaskService['add']>>;
   };
-  let projectService: {
-    branch: {
-      resolveBranchId: ReturnType<typeof mock<ProjectService['branch']['resolveBranchId']>>;
-    };
-    file: {
-      resolveFileIds: ReturnType<typeof mock<ProjectService['file']['resolveFileIds']>>;
-    };
-  };
+  let branchService: { resolveBranchId: ReturnType<typeof mock<BranchService['resolveBranchId']>> };
+  let fileService: { resolveFileIds: ReturnType<typeof mock<FileService['resolveFileIds']>> };
   let apiClient: { organization?: Client['organization'] };
   const globalOptions: GlobalOptions = {
     verbose: false,
@@ -43,8 +38,9 @@ describe('TaskCommand', () => {
     return new TaskCommand(
       () => output,
       async () => taskService as unknown as TaskService,
-      async () => projectService as unknown as ProjectService,
       async () => apiClient as Client,
+      async () => branchService as unknown as BranchService,
+      async () => fileService as unknown as FileService,
     );
   };
 
@@ -57,14 +53,8 @@ describe('TaskCommand', () => {
       list: mock(async () => []),
       add: mock(async () => createTask({})),
     };
-    projectService = {
-      branch: {
-        resolveBranchId: mock(async () => undefined),
-      },
-      file: {
-        resolveFileIds: mock(async () => ({ fileIds: [], missingPaths: [] })),
-      },
-    };
+    branchService = { resolveBranchId: mock(async () => undefined) };
+    fileService = { resolveFileIds: mock(async () => ({ fileIds: [], missingPaths: [] })) };
     apiClient = {};
 
     spyOn(console, 'log').mockImplementation(() => {});
@@ -162,8 +152,9 @@ describe('TaskCommand', () => {
       const cmd = new TaskCommand(
         () => textOutput,
         async () => taskService as unknown as TaskService,
-        async () => projectService as unknown as ProjectService,
         async () => apiClient as Client,
+        async () => branchService as unknown as BranchService,
+        async () => fileService as unknown as FileService,
       );
       const commandContext = createCommandContext({ ...globalOptions, format: 'text' });
       const successSpy = spyOn(textOutput, 'success');
@@ -243,8 +234,9 @@ describe('TaskCommand', () => {
       const cmd = new TaskCommand(
         () => textOutput,
         async () => taskService as unknown as TaskService,
-        async () => projectService as unknown as ProjectService,
         async () => apiClient as Client,
+        async () => branchService as unknown as BranchService,
+        async () => fileService as unknown as FileService,
       );
       const commandContext = createCommandContext(
         {
@@ -257,7 +249,7 @@ describe('TaskCommand', () => {
         ['Title'],
       );
       const warningSpy = spyOn(textOutput, 'warning');
-      projectService.file.resolveFileIds.mockResolvedValue({ fileIds: [], missingPaths: ['missing.yml'] });
+      fileService.resolveFileIds.mockResolvedValue({ fileIds: [], missingPaths: ['missing.yml'] });
 
       expect(cmd.addAction(commandContext)).rejects.toThrow(
         new CliError('No valid file specified for the task. At least one valid file is required'),
@@ -278,7 +270,7 @@ describe('TaskCommand', () => {
         },
         ['Translate docs'],
       );
-      projectService.file.resolveFileIds.mockResolvedValue({ fileIds: [55], missingPaths: [] });
+      fileService.resolveFileIds.mockResolvedValue({ fileIds: [55], missingPaths: [] });
       taskService.add.mockResolvedValue(createTask({ id: 99, title: 'Translate docs', targetLanguageId: 'de' }));
 
       await cmd.addAction(commandContext);
@@ -311,7 +303,7 @@ describe('TaskCommand', () => {
         },
         ['Enterprise task'],
       );
-      projectService.file.resolveFileIds.mockResolvedValue({ fileIds: [77], missingPaths: [] });
+      fileService.resolveFileIds.mockResolvedValue({ fileIds: [77], missingPaths: [] });
       taskService.add.mockResolvedValue(createTask({ id: 101, title: 'Enterprise task', targetLanguageId: 'it' }));
 
       await cmd.addAction(commandContext);

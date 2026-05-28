@@ -6,8 +6,16 @@ import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { ProjectService } from '@/cli/services/ProjectService.ts';
-import type { GetApiClient, GetConfig, GetOutput, GetProjectService } from '@/cli/services.ts';
+import type { BranchService } from '@/cli/services/BranchService.ts';
+import type {
+  GetApiClient,
+  GetBranchService,
+  GetConfig,
+  GetFileService,
+  GetOutput,
+  GetProjectService,
+  GetTranslationService,
+} from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { fileTree } from '@/cli/utils/fileTree.ts';
 import dryRun from '../common/options/dryRun.ts';
@@ -59,6 +67,9 @@ export default class DownloadCommand {
     private getOutput: GetOutput,
     private getProjectService: GetProjectService,
     private getApiClient: GetApiClient,
+    private getBranchService: GetBranchService,
+    private getFileService: GetFileService,
+    private getTranslationService: GetTranslationService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -111,10 +122,12 @@ export default class DownloadCommand {
     const config = await this.getConfig(command);
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
+    const fileService = await this.getFileService(command);
+    const branchService = await this.getBranchService(command);
     const apiClient = await this.getApiClient(command);
     const project = await projectService.loadProject();
-    const branchId = await this.resolveBranchId(options.branch, projectService);
-    const projectFiles = await projectService.loadProjectFiles(branchId);
+    const branchId = await this.resolveBranchId(options.branch, branchService);
+    const projectFiles = await fileService.loadProjectFiles(branchId);
 
     if (options.dryRun) {
       for (const file of projectFiles.data) {
@@ -189,6 +202,9 @@ export default class DownloadCommand {
     const config = await this.getConfig(command);
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
+    const fileService = await this.getFileService(command);
+    const branchService = await this.getBranchService(command);
+    const translationService = await this.getTranslationService(command);
     const apiClient = await this.getApiClient(command);
     const project = await projectService.loadProject();
 
@@ -222,10 +238,10 @@ export default class DownloadCommand {
       resolvedLanguageIds = targetLanguageIds.filter((id) => !options.excludeLanguage?.includes(id));
     }
 
-    const branchId = await this.resolveBranchId(options.branch, projectService);
+    const branchId = await this.resolveBranchId(options.branch, branchService);
 
     if (options.dryRun) {
-      const projectFiles = await projectService.loadProjectFiles(branchId);
+      const projectFiles = await fileService.loadProjectFiles(branchId);
       const paths = projectFiles.data.map((file) => (file.data.path || '').replace(/^\//, ''));
       const lines = options.tree ? fileTree(paths) : paths;
 
@@ -274,9 +290,9 @@ export default class DownloadCommand {
         branchId,
       };
 
-      build = await projectService.translation.buildProjectTranslations(pseudoRequest);
+      build = await translationService.buildProjectTranslations(pseudoRequest);
     } else {
-      build = await projectService.translation.buildProjectTranslations(buildRequest);
+      build = await translationService.buildProjectTranslations(buildRequest);
     }
 
     output.info('Downloading translations');
@@ -322,13 +338,13 @@ export default class DownloadCommand {
 
   private async resolveBranchId(
     branchName: string | undefined,
-    projectService: ProjectService,
+    branchService: BranchService,
   ): Promise<number | undefined> {
     if (!branchName || branchName === 'none') {
       return undefined;
     }
 
-    const branches = await projectService.loadProjectBranches();
+    const branches = await branchService.listProjectBranches();
     const matchedBranch = branches.data.find((b) => b.data.name === branchName);
 
     if (!matchedBranch) {

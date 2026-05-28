@@ -5,7 +5,15 @@ import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { ScreenshotView } from '@/cli/services/ScreenshotService.ts';
-import type { GetOutput, GetProjectService, GetScreenshotService, GetStorageService } from '@/cli/services.ts';
+import type {
+  GetBranchService,
+  GetDirectoryService,
+  GetFileService,
+  GetLabelService,
+  GetOutput,
+  GetScreenshotService,
+  GetStorageService,
+} from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 
@@ -27,8 +35,11 @@ export default class ScreenshotCommand {
   constructor(
     private getOutput: GetOutput,
     private getScreenshotService: GetScreenshotService,
-    private getProjectService: GetProjectService,
     private getStorageService: GetStorageService,
+    private getBranchService: GetBranchService,
+    private getDirectoryService: GetDirectoryService,
+    private getFileService: GetFileService,
+    private getLabelService: GetLabelService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -137,11 +148,14 @@ export default class ScreenshotCommand {
 
     const output = this.getOutput(command);
     const screenshotService = await this.getScreenshotService(command);
-    const projectService = await this.getProjectService(command);
     const storageService = await this.getStorageService(command);
+    const branchService = await this.getBranchService(command);
+    const directoryService = await this.getDirectoryService(command);
+    const fileService = await this.getFileService(command);
+    const labelService = await this.getLabelService(command);
     const image = Bun.file(filePath);
     const imageName = path.basename(filePath);
-    const branch = await projectService.branch.getBranch(options.branch);
+    const branch = await branchService.getBranch(options.branch);
 
     if (options.branch && !branch) {
       throw new CliError(`Project doesn't contain the '${options.branch}' branch`);
@@ -149,10 +163,10 @@ export default class ScreenshotCommand {
 
     const branchId = branch?.id;
     const fileId = options.file
-      ? await projectService.file.resolveFileIds([options.file], branchId).then(this.takeFirstFileId(options.file))
+      ? await fileService.resolveFileIds([options.file], branchId).then(this.takeFirstFileId(options.file))
       : undefined;
-    const directoryId = await projectService.directory.resolveDirectoryId(options.directory, branchId);
-    const labelIds = await projectService.label.resolveLabelIds(toArray(options.label));
+    const directoryId = await directoryService.resolveDirectoryId(options.directory, branchId);
+    const labelIds = await labelService.resolveLabelIds(toArray(options.label));
     const existingScreenshot = await screenshotService.findByName(imageName);
     const storage = await storageService.addStorage(image);
 

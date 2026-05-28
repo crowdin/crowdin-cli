@@ -18,14 +18,20 @@ import { createGetOutput } from './output.ts';
 import {
   createGetApiClient,
   createGetAppService,
+  createGetBranchService,
   createGetBundleService,
   createGetCommentService,
+  createGetDirectoryService,
   createGetDistributionService,
+  createGetFileService,
+  createGetLabelService,
+  createGetProgressService,
   createGetProjectService,
   createGetScreenshotService,
   createGetStorageService,
   createGetStringService,
   createGetTaskService,
+  createGetTranslationService,
 } from './services.ts';
 import type { CommandDef } from './types.ts';
 
@@ -41,22 +47,77 @@ const getScreenshotService = createGetScreenshotService(getApiClient, getConfig)
 const getStorageService = createGetStorageService(getApiClient);
 const getStringService = createGetStringService(getApiClient, getConfig);
 const getTaskService = createGetTaskService(getApiClient, getConfig);
+const getBranchService = createGetBranchService(getApiClient, getConfig);
+const getDirectoryService = createGetDirectoryService(getApiClient, getConfig);
+const getFileService = createGetFileService(getApiClient, getOutput, getConfig);
+const getLabelService = createGetLabelService(getApiClient, getConfig);
+const getProgressService = createGetProgressService(getApiClient, getOutput, getConfig);
+const getTranslationService = createGetTranslationService(getApiClient, getOutput, getConfig);
 
 const commentCommand = new CommentCommand(getOutput, getCommentService);
 const appCommand = new AppCommand(getOutput, getAppService);
 const bundleCommand = new BundleCommand(getOutput, getBundleService);
-const screenshotCommand = new ScreenshotCommand(getOutput, getScreenshotService, getProjectService, getStorageService);
+const screenshotCommand = new ScreenshotCommand(
+  getOutput,
+  getScreenshotService,
+  getStorageService,
+  getBranchService,
+  getDirectoryService,
+  getFileService,
+  getLabelService,
+);
 const initCommand = new InitCommand(getOutput);
 const configCommand = new ConfigCommand(getConfig, getOutput, getProjectService);
-const downloadCommand = new DownloadCommand(getConfig, getOutput, getProjectService, getApiClient);
+const downloadCommand = new DownloadCommand(
+  getConfig,
+  getOutput,
+  getProjectService,
+  getApiClient,
+  getBranchService,
+  getFileService,
+  getTranslationService,
+);
 const distributionCommand = new DistributionCommand(getOutput, getDistributionService);
-const fileCommand = new FileCommand(getConfig, getOutput, getProjectService, getStorageService, getApiClient);
+const fileCommand = new FileCommand(
+  getConfig,
+  getOutput,
+  getProjectService,
+  getStorageService,
+  getApiClient,
+  getDirectoryService,
+  getFileService,
+);
 const languageCommand = new LanguageCommand(getOutput, getProjectService, getApiClient);
 const projectCommand = new ProjectCommand(getOutput, getProjectService, getApiClient);
-const statusCommand = new StatusCommand(getOutput, getProjectService);
-const stringCommand = new StringCommand(getOutput, getStringService, getProjectService);
-const taskCommand = new TaskCommand(getOutput, getTaskService, getProjectService, getApiClient);
-const uploadCommand = new UploadCommand(getConfig, getOutput, getProjectService, getStorageService, getApiClient);
+const statusCommand = new StatusCommand(
+  getOutput,
+  getProjectService,
+  getBranchService,
+  getDirectoryService,
+  getFileService,
+  getProgressService,
+);
+const stringCommand = new StringCommand(
+  getOutput,
+  getStringService,
+  getBranchService,
+  getDirectoryService,
+  getFileService,
+  getLabelService,
+);
+const taskCommand = new TaskCommand(getOutput, getTaskService, getApiClient, getBranchService, getFileService);
+const uploadCommand = new UploadCommand(
+  getConfig,
+  getOutput,
+  getProjectService,
+  getStorageService,
+  getApiClient,
+  getBranchService,
+  getDirectoryService,
+  getFileService,
+  getLabelService,
+  getTranslationService,
+);
 
 export const commands: CommandDef[] = [
   uploadCommand.getDefinition(),

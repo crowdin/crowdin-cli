@@ -3,7 +3,7 @@ import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { TaskStatus } from '@/cli/services/TaskService.ts';
-import type { GetApiClient, GetOutput, GetProjectService, GetTaskService } from '@/cli/services.ts';
+import type { GetApiClient, GetBranchService, GetFileService, GetOutput, GetTaskService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { toArray, toNumberArray } from '@/cli/utils/parsing.ts';
 import branch from '../upload/options/branch.ts';
@@ -42,8 +42,9 @@ export default class TaskCommand {
   constructor(
     private getOutput: GetOutput,
     private getTaskService: GetTaskService,
-    private getProjectService: GetProjectService,
     private getApiClient: GetApiClient,
+    private getBranchService: GetBranchService,
+    private getFileService: GetFileService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -178,9 +179,10 @@ export default class TaskCommand {
 
     const output = this.getOutput(command);
     const taskService = await this.getTaskService(command);
-    const projectService = await this.getProjectService(command);
-    const branchId = await projectService.branch.resolveBranchId(options.branch);
-    const resolved = await projectService.file.resolveFileIds(files, branchId);
+    const branchService = await this.getBranchService(command);
+    const fileService = await this.getFileService(command);
+    const branchId = await branchService.resolveBranchId(options.branch);
+    const resolved = await fileService.resolveFileIds(files, branchId);
 
     for (const missing of resolved.missingPaths) {
       output.warning(`Project doesn't contain the '${missing}' file`);

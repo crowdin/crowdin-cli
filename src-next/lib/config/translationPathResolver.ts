@@ -25,6 +25,15 @@ export default class TranslationPathResolver {
     this.config = config;
   }
 
+  canResolve(file: BunFile): boolean {
+    try {
+      this.findExportPattern(file);
+      return true;
+    } catch {
+      return false;
+    }
+  }
+
   resolve(file: BunFile, language: any): string {
     const translationPattern = this.findExportPattern(file);
 

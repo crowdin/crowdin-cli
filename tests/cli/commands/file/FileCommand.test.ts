@@ -7,6 +7,8 @@ import type { Command } from 'commander';
 import FileCommand from '@/cli/commands/file/FileCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { DirectoryService } from '@/cli/services/DirectoryService.ts';
+import { FileService } from '@/cli/services/FileService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { StorageService } from '@/cli/services/StorageService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
@@ -33,6 +35,8 @@ describe('FileCommand', () => {
   let output: Output;
   let projectService: ProjectService;
   let storageService: StorageService;
+  let directoryService: DirectoryService;
+  let fileService: FileService;
   const globalOptions: GlobalOptions = {
     verbose: false,
     config: '',
@@ -62,6 +66,8 @@ describe('FileCommand', () => {
     output = createOutput(globalOptions);
     projectService = new ProjectService(apiClient, output, config.projectId);
     storageService = new StorageService(apiClient);
+    directoryService = new DirectoryService(apiClient, config.projectId);
+    fileService = new FileService(apiClient, output, config.projectId);
 
     commandContext = createCommandContext(globalOptions);
 
@@ -85,6 +91,8 @@ describe('FileCommand', () => {
       async () => projectService,
       async () => storageService,
       async () => apiClient,
+      async () => directoryService,
+      async () => fileService,
     );
   };
 
@@ -104,7 +112,7 @@ describe('FileCommand', () => {
     spyOn(projectService, 'loadProject').mockResolvedValue({
       data: { id: 123 },
     } as never);
-    spyOn(projectService, 'loadProjectFiles').mockResolvedValue({
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
       data: [{ data: { id: 1, path: '/docs/readme.md' } }, { data: { id: 2, path: '/docs/changelog.md' } }],
     } as never);
 
@@ -210,20 +218,28 @@ describe('FileCommand', () => {
   });
 
   test('deletes matching project file', async () => {
-    const fileCommand = createFileCommand();
+    const deleteProjectFile = mock(async () => undefined);
+    const mockFileService = {
+      loadProjectFiles: mock(async () => ({
+        data: [{ data: { id: 55, path: '/docs/readme.md' } }],
+      })),
+      deleteProjectFile,
+    };
+    const fileCommand = new FileCommand(
+      async (command: Command) => ({ ...config, basePath: tempDir }),
+      () => output,
+      async () => projectService as never,
+      async () => storageService,
+      async () => apiClient as never,
+      async () => directoryService,
+      async () => mockFileService as never,
+    );
 
-    spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
-      data: { id: 123 },
-    } as never);
-    spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-      data: [{ data: { id: 55, path: '/docs/readme.md' } }],
-    } as never);
-    const deleteFile = spyOn(apiClient.sourceFilesApi, 'deleteFile').mockResolvedValue(undefined as never);
-
+    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
     commandContext = createCommandContext(globalOptions, ['docs/readme.md']);
 
     await fileCommand.deleteAction(commandContext);
 
-    expect(deleteFile).toHaveBeenCalledWith(123, 55);
+    expect(deleteProjectFile).toHaveBeenCalledWith(55, '/docs/readme.md');
   });
 });

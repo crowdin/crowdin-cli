@@ -2,7 +2,14 @@ import type { PatchRequest, SourceStringsModel } from '@crowdin/crowdin-api-clie
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetOutput, GetProjectService, GetStringService } from '@/cli/services.ts';
+import type {
+  GetBranchService,
+  GetDirectoryService,
+  GetFileService,
+  GetLabelService,
+  GetOutput,
+  GetStringService,
+} from '@/cli/services.ts';
 import type { CommandDef, OptionDef } from '@/cli/types.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import branch from '../upload/options/branch.ts';
@@ -151,7 +158,10 @@ export default class StringCommand {
   constructor(
     private getOutput: GetOutput,
     private getStringService: GetStringService,
-    private getProjectService: GetProjectService,
+    private getBranchService: GetBranchService,
+    private getDirectoryService: GetDirectoryService,
+    private getFileService: GetFileService,
+    private getLabelService: GetLabelService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -242,17 +252,20 @@ export default class StringCommand {
 
     const output = this.getOutput(command);
     const stringService = await this.getStringService(command);
-    const projectService = await this.getProjectService(command);
+    const branchService = await this.getBranchService(command);
+    const directoryService = await this.getDirectoryService(command);
+    const fileService = await this.getFileService(command);
+    const labelService = await this.getLabelService(command);
     const isStringsBased = await stringService.isStringsBasedProject();
 
     if (isStringsBased && (filePath || directory)) {
       throw new CliError("The '--file' and '--directory' options are not supported for string-based projects");
     }
 
-    const branchId = await projectService.branch.resolveBranchId(options.branch);
-    const directoryId = await projectService.directory.resolveDirectoryId(directory, branchId);
-    const labelIds = await projectService.label.resolveLabelIds(labelNames, false);
-    const listFileId = filePath ? await this.resolveSingleFileId(projectService, filePath, branchId) : undefined;
+    const branchId = await branchService.resolveBranchId(options.branch);
+    const directoryId = await directoryService.resolveDirectoryId(directory, branchId);
+    const labelIds = await labelService.resolveLabelIds(labelNames, false);
+    const listFileId = filePath ? await this.resolveSingleFileId(fileService, filePath, branchId) : undefined;
     const strings = await stringService.list({
       ...(listFileId !== undefined ? { fileId: listFileId } : {}),
       ...(branchId !== undefined ? { branchId } : {}),
@@ -269,10 +282,8 @@ export default class StringCommand {
     }
 
     if (options.verbose) {
-      const labelsMap = await projectService.label.listLabelsMap();
-      const filePaths = !isStringsBased
-        ? await projectService.file.listProjectFilePaths(branchId)
-        : new Map<number, string>();
+      const labelsMap = await labelService.listLabelsMap();
+      const filePaths = !isStringsBased ? await fileService.listProjectFilePaths(branchId) : new Map<number, string>();
 
       output.table(
         strings.map((entry) => ({
@@ -313,11 +324,13 @@ export default class StringCommand {
 
     const output = this.getOutput(command);
     const stringService = await this.getStringService(command);
-    const projectService = await this.getProjectService(command);
+    const branchService = await this.getBranchService(command);
+    const fileService = await this.getFileService(command);
+    const labelService = await this.getLabelService(command);
     const files = toArray(options.file);
     const labels = toArray(options.label);
     const isStringsBased = await stringService.isStringsBasedProject();
-    const labelIds = await projectService.label.resolveLabelIds(labels);
+    const labelIds = await labelService.resolveLabelIds(labels);
     const isPlural = PLURAL_KEYS.some((key) => options[key] !== undefined);
     const requestText = isPlural ? this.buildPluralText(options) : text;
 
@@ -326,7 +339,7 @@ export default class StringCommand {
         throw new CliError("The '--file' option is not supported for string-based projects");
       }
 
-      const branchId = await projectService.branch.resolveBranchId(options.branch, true);
+      const branchId = await branchService.resolveBranchId(options.branch, true);
 
       if (branchId === undefined) {
         throw new CliError("The '--branch' option is required for string-based projects");
@@ -344,8 +357,8 @@ export default class StringCommand {
       throw new CliError("The '--file' value can not be empty");
     }
 
-    const branchId = await projectService.branch.resolveBranchId(options.branch);
-    const resolved = await projectService.file.resolveFileIds(files, branchId);
+    const branchId = await branchService.resolveBranchId(options.branch);
+    const resolved = await fileService.resolveFileIds(files, branchId);
 
     for (const missing of resolved.missingPaths) {
       output.warning(`Project doesn't contain the '${missing}' file`);
@@ -393,8 +406,8 @@ export default class StringCommand {
 
     const output = this.getOutput(command);
     const stringService = await this.getStringService(command);
-    const projectService = await this.getProjectService(command);
-    const labelIds = await projectService.label.resolveLabelIds(labelNames);
+    const labelService = await this.getLabelService(command);
+    const labelIds = await labelService.resolveLabelIds(labelNames);
     const patch = this.buildEditPatch(options, labelIds);
     const updated = await stringService.edit(id, patch);
 
@@ -413,11 +426,11 @@ export default class StringCommand {
   };
 
   private async resolveSingleFileId(
-    projectService: Awaited<ReturnType<GetProjectService>>,
+    fileService: Awaited<ReturnType<GetFileService>>,
     filePath: string,
     branchId?: number,
   ): Promise<number> {
-    const resolved = await projectService.file.resolveFileIds([filePath], branchId);
+    const resolved = await fileService.resolveFileIds([filePath], branchId);
     const [fileId] = resolved.fileIds;
 
     if (!fileId) {

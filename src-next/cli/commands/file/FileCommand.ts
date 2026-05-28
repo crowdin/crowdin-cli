@@ -3,7 +3,15 @@ import type { ResponseObject, SourceFilesModel, UploadStorageModel } from '@crow
 import type { Command } from 'commander';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetApiClient, GetConfig, GetOutput, GetProjectService, GetStorageService } from '@/cli/services.ts';
+import type {
+  GetApiClient,
+  GetConfig,
+  GetDirectoryService,
+  GetFileService,
+  GetOutput,
+  GetProjectService,
+  GetStorageService,
+} from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import destination from './options/destination.ts';
 import label from './options/label.ts';
@@ -23,6 +31,8 @@ export default class FileCommand {
     private getProjectService: GetProjectService,
     private getStorageService: GetStorageService,
     private getApiClient: GetApiClient,
+    private getDirectoryService: GetDirectoryService,
+    private getFileService: GetFileService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -92,8 +102,9 @@ export default class FileCommand {
   listAction = async (command: Command) => {
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
+    const fileService = await this.getFileService(command);
     await projectService.loadProject();
-    const projectFiles = await projectService.loadProjectFiles();
+    const projectFiles = await fileService.loadProjectFiles();
 
     output.table(projectFiles.data.map((file) => ({ id: file.data.id, path: file.data.path })));
   };
@@ -106,6 +117,7 @@ export default class FileCommand {
     const projectService = await this.getProjectService(command);
     const storageService = await this.getStorageService(command);
     const apiClient = await this.getApiClient(command);
+    const directoryService = await this.getDirectoryService(command);
     const destPath = options.dest || filePath;
     const fileType = options.type as SourceFilesModel.FileType | undefined;
     const parserVersion = options.parserVersion ? parseInt(options.parserVersion, 10) : undefined;
@@ -132,7 +144,7 @@ export default class FileCommand {
 
       for (const directory of directories) {
         try {
-          const projectDirectory = await projectService.directory.createProjectDirectory(directory, parentDirectoryId);
+          const projectDirectory = await directoryService.createProjectDirectory(directory, parentDirectoryId);
           parentDirectoryId = projectDirectory.data.id;
           output.success(`Directory ${directory} created`);
         } catch (error) {
@@ -174,6 +186,7 @@ export default class FileCommand {
     const config = await this.getConfig(command);
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
+    const fileService = await this.getFileService(command);
     const apiClient = await this.getApiClient(command);
 
     if (!filePath) {
@@ -181,7 +194,7 @@ export default class FileCommand {
     }
 
     const project = await projectService.loadProject();
-    const projectFiles = await projectService.loadProjectFiles();
+    const projectFiles = await fileService.loadProjectFiles();
 
     for (const projectFile of projectFiles.data) {
       if (projectFile.data.path === `${filePath}`) {
@@ -206,23 +219,21 @@ export default class FileCommand {
 
   deleteAction = async (command: Command) => {
     const [filePath] = command.args;
-    const config = await this.getConfig(command);
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
-    const apiClient = await this.getApiClient(command);
+    const fileService = await this.getFileService(command);
 
     if (!filePath) {
       throw new CliError('File path is required');
     }
 
     await projectService.loadProject();
-
-    const projectFiles = await projectService.loadProjectFiles();
+    const projectFiles = await fileService.loadProjectFiles();
 
     for (const file of projectFiles.data) {
       if (file.data.path === `/${filePath}`) {
         try {
-          await apiClient.sourceFilesApi.deleteFile(config.projectId, file.data.id);
+          await fileService.deleteProjectFile(file.data.id, file.data.path);
         } catch (error) {
           throw toCliError(error, `Failed to delete ${filePath}`);
         }

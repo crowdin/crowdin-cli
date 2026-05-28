@@ -4,6 +4,10 @@ import type { Command } from 'commander';
 import StatusCommand from '@/cli/commands/status/StatusCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { BranchService } from '@/cli/services/BranchService.ts';
+import { DirectoryService } from '@/cli/services/DirectoryService.ts';
+import { FileService } from '@/cli/services/FileService.ts';
+import { ProgressService } from '@/cli/services/ProgressService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 
@@ -60,11 +64,19 @@ describe('StatusCommand', () => {
   let apiClient: Client;
   let output: Output;
   let projectService: ProjectService;
+  let branchService: BranchService;
+  let directoryService: DirectoryService;
+  let fileService: FileService;
+  let progressService: ProgressService;
 
   beforeEach(() => {
     apiClient = new Client({ token: 'a'.repeat(80) });
     output = createOutput(globalOptions);
     projectService = new ProjectService(apiClient, output, 123);
+    branchService = new BranchService(apiClient, 123);
+    directoryService = new DirectoryService(apiClient, 123);
+    fileService = new FileService(apiClient, output, 123);
+    progressService = new ProgressService(apiClient, output, 123);
     commandContext = createCommandContext(globalOptions);
 
     spyOn(console, 'log').mockImplementation(() => {});
@@ -79,6 +91,10 @@ describe('StatusCommand', () => {
     return new StatusCommand(
       () => output,
       async () => projectService,
+      async () => branchService,
+      async () => directoryService,
+      async () => fileService,
+      async () => progressService,
     );
   };
 
@@ -86,7 +102,7 @@ describe('StatusCommand', () => {
     const statusCommand = createStatusCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    spyOn(projectService.progress, 'loadProjectProgress').mockResolvedValue({
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
       data: [createProgress('fr', 87, 75), createProgress('de', 92, 88)],
     } as never);
 
@@ -118,7 +134,7 @@ describe('StatusCommand', () => {
     });
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    spyOn(projectService.progress, 'loadProjectProgress').mockResolvedValue({
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
       data: [createProgress('fr', 99, 100)],
     } as never);
 
@@ -135,7 +151,7 @@ describe('StatusCommand', () => {
     });
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    spyOn(projectService.progress, 'loadProjectProgress').mockResolvedValue({
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
       data: [createProgress('fr', 0, 0, 0)],
     } as never);
 
@@ -150,10 +166,10 @@ describe('StatusCommand', () => {
     });
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    const loadProjectBranches = spyOn(projectService, 'loadProjectBranches').mockResolvedValue({
+    const loadProjectBranches = spyOn(branchService, 'listProjectBranches').mockResolvedValue({
       data: [{ data: { id: 15, name: 'release' } }],
     } as never);
-    const loadBranchProgress = spyOn(projectService.progress, 'loadBranchProgress').mockResolvedValue({
+    const loadBranchProgress = spyOn(progressService, 'loadBranchProgress').mockResolvedValue({
       data: [createProgress('fr', 100, 100)],
     } as never);
 
@@ -171,10 +187,10 @@ describe('StatusCommand', () => {
     });
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    spyOn(projectService, 'loadProjectFiles').mockResolvedValue({
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
       data: [{ data: { id: 33, path: '/docs/readme.md' } }],
     } as never);
-    const loadFileProgress = spyOn(projectService.progress, 'loadFileProgress').mockResolvedValue({
+    const loadFileProgress = spyOn(progressService, 'loadFileProgress').mockResolvedValue({
       data: [createProgress('fr', 100, 100)],
     } as never);
 
