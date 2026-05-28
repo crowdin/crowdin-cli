@@ -86,4 +86,32 @@ describe('TranslationService', () => {
       expect(translationService.buildProjectTranslations()).rejects.toThrow(CliError);
     });
   });
+
+  describe('getTranslationDownloadUrl', () => {
+    test('returns download URL for build', async () => {
+      spyOn(apiClient.translationsApi, 'downloadTranslations').mockResolvedValue({
+        data: { url: 'https://example.test/translations.zip' },
+      } as never);
+
+      const url = await translationService.getTranslationDownloadUrl(99);
+
+      expect(url).toBe('https://example.test/translations.zip');
+    });
+
+    test('calls API with projectId and buildId', async () => {
+      const spy = spyOn(apiClient.translationsApi, 'downloadTranslations').mockResolvedValue({
+        data: { url: 'https://example.test/translations.zip' },
+      } as never);
+
+      await translationService.getTranslationDownloadUrl(42);
+
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, 42);
+    });
+
+    test('wraps API error as CliError', async () => {
+      spyOn(apiClient.translationsApi, 'downloadTranslations').mockRejectedValue(new Error('gone'));
+
+      expect(translationService.getTranslationDownloadUrl(99)).rejects.toThrow(CliError);
+    });
+  });
 });

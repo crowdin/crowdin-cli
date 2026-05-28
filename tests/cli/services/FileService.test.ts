@@ -51,7 +51,7 @@ describe('FileService', () => {
 
       await fileService.loadProjectFiles(5);
 
-      expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: 5, limit: 500 });
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: 5 });
     });
 
     test('throws CliError when API fails', async () => {
@@ -162,6 +162,138 @@ describe('FileService', () => {
       spyOn(apiClient.sourceFilesApi, 'deleteFile').mockRejectedValue(new Error('not found'));
 
       expect(fileService.deleteProjectFile(99, '/gone.md')).rejects.toThrow(CliError);
+    });
+  });
+
+  describe('createProjectFile', () => {
+    test('calls createFile with projectId and request data', async () => {
+      const spy = spyOn(apiClient.sourceFilesApi, 'createFile').mockResolvedValue({
+        data: { id: 10, name: 'app.json' },
+      } as never);
+
+      await fileService.createProjectFile({
+        storageId: 99,
+        name: 'app.json',
+        directoryId: 5,
+        branchId: 3,
+        exportOptions: { exportPattern: '/locale/%locale%/%original_file_name%' },
+      });
+
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, {
+        storageId: 99,
+        name: 'app.json',
+        directoryId: 5,
+        branchId: 3,
+        exportOptions: { exportPattern: '/locale/%locale%/%original_file_name%' },
+      });
+    });
+
+    test('wraps API error as CliError', async () => {
+      spyOn(apiClient.sourceFilesApi, 'createFile').mockRejectedValue(new Error('conflict'));
+
+      expect(fileService.createProjectFile({ storageId: 1, name: 'app.json' })).rejects.toThrow(CliError);
+    });
+  });
+
+  describe('getSourceFileDownloadUrl', () => {
+    test('returns download URL for file', async () => {
+      spyOn(apiClient.sourceFilesApi, 'downloadFile').mockResolvedValue({
+        data: { url: 'https://example.test/app.json' },
+      } as never);
+
+      const url = await fileService.getSourceFileDownloadUrl(10);
+
+      expect(url).toBe('https://example.test/app.json');
+    });
+
+    test('calls API with projectId and fileId', async () => {
+      const spy = spyOn(apiClient.sourceFilesApi, 'downloadFile').mockResolvedValue({
+        data: { url: 'https://example.test/app.json' },
+      } as never);
+
+      await fileService.getSourceFileDownloadUrl(42);
+
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, 42);
+    });
+
+    test('wraps API error as CliError', async () => {
+      spyOn(apiClient.sourceFilesApi, 'downloadFile').mockRejectedValue(new Error('forbidden'));
+
+      expect(fileService.getSourceFileDownloadUrl(99)).rejects.toThrow(CliError);
+    });
+  });
+
+  describe('buildReviewedSources', () => {
+    test('polls until finished and returns build', async () => {
+      const build = { data: { id: 55, status: 'inProgress' } };
+      spyOn(apiClient.sourceFilesApi, 'buildReviewedSourceFiles').mockResolvedValue(build as never);
+      spyOn(apiClient.sourceFilesApi, 'checkReviewedSourceFilesBuildStatus')
+        .mockResolvedValueOnce({ data: { status: 'inProgress' } } as never)
+        .mockResolvedValueOnce({ data: { status: 'finished' } } as never);
+      spyOn(Bun, 'sleep').mockResolvedValue(undefined);
+
+      const result = await fileService.buildReviewedSources();
+
+      expect(result).toBe(build);
+    });
+
+    test('passes branchId to API', async () => {
+      const spy = spyOn(apiClient.sourceFilesApi, 'buildReviewedSourceFiles').mockResolvedValue({
+        data: { id: 55 },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'checkReviewedSourceFilesBuildStatus').mockResolvedValue({
+        data: { status: 'finished' },
+      } as never);
+
+      await fileService.buildReviewedSources(7);
+
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: 7 });
+    });
+
+    test('throws CliError when build status is "failed"', async () => {
+      spyOn(apiClient.sourceFilesApi, 'buildReviewedSourceFiles').mockResolvedValue({
+        data: { id: 55 },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'checkReviewedSourceFilesBuildStatus').mockResolvedValue({
+        data: { status: 'failed' },
+      } as never);
+      spyOn(Bun, 'sleep').mockResolvedValue(undefined);
+
+      expect(fileService.buildReviewedSources()).rejects.toThrow(new CliError('Reviewed sources build failed'));
+    });
+
+    test('wraps API error from buildReviewedSourceFiles as CliError', async () => {
+      spyOn(apiClient.sourceFilesApi, 'buildReviewedSourceFiles').mockRejectedValue(new Error('server error'));
+
+      expect(fileService.buildReviewedSources()).rejects.toThrow(CliError);
+    });
+  });
+
+  describe('getReviewedSourcesDownloadUrl', () => {
+    test('returns download URL for reviewed sources build', async () => {
+      spyOn(apiClient.sourceFilesApi, 'downloadReviewedSourceFiles').mockResolvedValue({
+        data: { url: 'https://example.test/reviewed.zip' },
+      } as never);
+
+      const url = await fileService.getReviewedSourcesDownloadUrl(55);
+
+      expect(url).toBe('https://example.test/reviewed.zip');
+    });
+
+    test('calls API with projectId and buildId', async () => {
+      const spy = spyOn(apiClient.sourceFilesApi, 'downloadReviewedSourceFiles').mockResolvedValue({
+        data: { url: 'https://example.test/reviewed.zip' },
+      } as never);
+
+      await fileService.getReviewedSourcesDownloadUrl(77);
+
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, 77);
+    });
+
+    test('wraps API error as CliError', async () => {
+      spyOn(apiClient.sourceFilesApi, 'downloadReviewedSourceFiles').mockRejectedValue(new Error('gone'));
+
+      expect(fileService.getReviewedSourcesDownloadUrl(55)).rejects.toThrow(CliError);
     });
   });
 });

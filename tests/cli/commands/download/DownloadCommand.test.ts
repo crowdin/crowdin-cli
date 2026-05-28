@@ -97,7 +97,6 @@ describe('DownloadCommand', () => {
       }),
       () => output,
       async () => projectService,
-      async () => apiClient,
       async () => branchService,
       async () => fileService,
       async () => translationService,
@@ -121,12 +120,9 @@ describe('DownloadCommand', () => {
       spyOn(apiClient.translationsApi, 'checkBuildStatus').mockResolvedValue({
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
-      spyOn(apiClient.translationsApi, 'downloadTranslations').mockResolvedValue({
-        data: { url: 'https://example.test/translations.zip' },
-      } as never);
+      spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
       spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
 
-      // Mock AdmZip to avoid actual zip parsing
       mock.module('adm-zip', () => {
         return {
           default: class {
@@ -139,7 +135,7 @@ describe('DownloadCommand', () => {
       await downloadCommand.translationsAction(commandContext);
 
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {});
-      expect(apiClient.translationsApi.downloadTranslations).toHaveBeenCalledWith(123, buildId);
+      expect(translationService.getTranslationDownloadUrl).toHaveBeenCalledWith(buildId);
     });
 
     test('fails when language and exclude-language are both specified', async () => {
@@ -199,9 +195,7 @@ describe('DownloadCommand', () => {
       spyOn(apiClient.translationsApi, 'checkBuildStatus').mockResolvedValue({
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
-      spyOn(apiClient.translationsApi, 'downloadTranslations').mockResolvedValue({
-        data: { url: 'https://example.test/translations.zip' },
-      } as never);
+      spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
       spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
 
       mock.module('adm-zip', () => {
@@ -241,9 +235,7 @@ describe('DownloadCommand', () => {
       spyOn(apiClient.translationsApi, 'checkBuildStatus').mockResolvedValue({
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
-      spyOn(apiClient.translationsApi, 'downloadTranslations').mockResolvedValue({
-        data: { url: 'https://example.test/translations.zip' },
-      } as never);
+      spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
       spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
 
       mock.module('adm-zip', () => {
@@ -284,9 +276,7 @@ describe('DownloadCommand', () => {
       spyOn(apiClient.translationsApi, 'checkBuildStatus').mockResolvedValue({
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
-      spyOn(apiClient.translationsApi, 'downloadTranslations').mockResolvedValue({
-        data: { url: 'https://example.test/translations.zip' },
-      } as never);
+      spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
       spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
 
       mock.module('adm-zip', () => {
@@ -360,9 +350,7 @@ describe('DownloadCommand', () => {
       spyOn(apiClient.translationsApi, 'checkBuildStatus').mockResolvedValue({
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
-      spyOn(apiClient.translationsApi, 'downloadTranslations').mockResolvedValue({
-        data: { url: 'https://example.test/translations.zip' },
-      } as never);
+      spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
       spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
 
       mock.module('adm-zip', () => {
@@ -408,182 +396,7 @@ describe('DownloadCommand', () => {
         new CliError('Branch nonexistent not found'),
       );
     });
-  });
 
-  describe('sources', () => {
-    test('downloads source files', async () => {
-      const downloadCommand = createDownloadCommand();
-
-      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
-        data: { id: 123 },
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [{ data: { id: 1, path: '/docs/readme.md' } }],
-      } as never);
-      const downloadFileSpy = spyOn(apiClient.sourceFilesApi, 'downloadFile').mockResolvedValue({
-        data: { url: 'https://example.test/readme.md' },
-      } as never);
-      const fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValue(new Response('source content'));
-
-      await downloadCommand.sourcesAction(commandContext);
-
-      expect(downloadFileSpy).toHaveBeenCalledWith(123, 1);
-      expect(fetchSpy).toHaveBeenCalledWith('https://example.test/readme.md');
-
-      const expectedPath = join(tempDir, 'docs', 'readme.md');
-      console.log('expectedPath:', expectedPath);
-
-      const exists = await Bun.file(expectedPath).exists();
-      console.log('file exists:', exists);
-
-      const writtenFile = await Bun.file(expectedPath).text();
-
-      expect(writtenFile).toBe('source content');
-    });
-
-    test('handles dry-run mode for sources', async () => {
-      const downloadCommand = createDownloadCommand();
-
-      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
-        data: { id: 123 },
-      } as never);
-      const listFiles = spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [{ data: { id: 1, path: '/docs/readme.md' } }],
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'downloadFile').mockResolvedValue({} as never);
-
-      commandContext = createCommandContext({
-        ...globalOptions,
-        dryRun: true,
-      });
-
-      await downloadCommand.sourcesAction(commandContext);
-
-      expect(listFiles).toHaveBeenCalledTimes(1);
-      expect(apiClient.sourceFilesApi.downloadFile).not.toHaveBeenCalled();
-    });
-
-    test('filters sources by branch', async () => {
-      const downloadCommand = createDownloadCommand();
-
-      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
-        data: { id: 123 },
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'listProjectBranches').mockResolvedValue({
-        data: [{ data: { id: 55, name: 'main' } }],
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [],
-      } as never);
-
-      commandContext = createCommandContext({
-        ...globalOptions,
-        branch: 'main',
-      });
-
-      await downloadCommand.sourcesAction(commandContext);
-
-      expect(apiClient.sourceFilesApi.listProjectFiles).toHaveBeenCalledWith(123, {
-        branchId: 55,
-        limit: 500,
-      });
-    });
-
-    test('fails when branch not found for sources', async () => {
-      const downloadCommand = createDownloadCommand();
-
-      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
-        data: { id: 123 },
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'listProjectBranches').mockResolvedValue({
-        data: [],
-      } as never);
-
-      commandContext = createCommandContext({
-        ...globalOptions,
-        branch: 'nonexistent',
-      });
-
-      expect(downloadCommand.sourcesAction(commandContext)).rejects.toThrow(
-        new CliError('Branch nonexistent not found'),
-      );
-    });
-
-    test('downloads reviewed source files', async () => {
-      const downloadCommand = createDownloadCommand();
-      const buildId = 77;
-
-      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
-        data: { id: 123 },
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [{ data: { id: 1, path: '/strings.xml' } }],
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'buildReviewedSourceFiles').mockResolvedValue({
-        data: { id: buildId, status: 'inProgress', progress: 0 },
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'checkReviewedSourceFilesBuildStatus').mockResolvedValue({
-        data: { id: buildId, status: 'finished', progress: 100 },
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'downloadReviewedSourceFiles').mockResolvedValue({
-        data: { url: 'https://example.test/reviewed.zip' },
-      } as never);
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip-content'));
-      mock.module('adm-zip', () => ({
-        default: class {
-          constructor() {}
-          extractAllTo() {}
-        },
-      }));
-
-      commandContext = createCommandContext({ ...globalOptions, reviewed: true });
-
-      await downloadCommand.sourcesAction(commandContext);
-
-      expect(apiClient.sourceFilesApi.buildReviewedSourceFiles).toHaveBeenCalledWith(123, { branchId: undefined });
-      expect(apiClient.sourceFilesApi.downloadReviewedSourceFiles).toHaveBeenCalledWith(123, buildId);
-    });
-
-    test('throws when reviewed sources build fails', async () => {
-      const downloadCommand = createDownloadCommand();
-      const buildId = 77;
-
-      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
-        data: { id: 123 },
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [],
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'buildReviewedSourceFiles').mockResolvedValue({
-        data: { id: buildId, status: 'inProgress', progress: 0 },
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'checkReviewedSourceFilesBuildStatus').mockResolvedValue({
-        data: { id: buildId, status: 'failed', progress: 0 },
-      } as never);
-
-      commandContext = createCommandContext({ ...globalOptions, reviewed: true });
-
-      expect(downloadCommand.sourcesAction(commandContext)).rejects.toThrow(
-        new CliError('Reviewed sources build failed'),
-      );
-    });
-
-    test('propagates API errors via toCliError for source download', async () => {
-      const downloadCommand = createDownloadCommand();
-
-      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
-        data: { id: 123 },
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [{ data: { id: 1, path: '/strings.xml' } }],
-      } as never);
-      spyOn(apiClient.sourceFilesApi, 'downloadFile').mockRejectedValue(new Error('Network error'));
-
-      expect(downloadCommand.sourcesAction(commandContext)).rejects.toThrow('Failed to download strings.xml');
-    });
-  });
-
-  describe('translations', () => {
     test('saves archive to basePath when keepArchive is true', async () => {
       const downloadCommand = createDownloadCommand();
       const buildId = 999;
@@ -600,9 +413,7 @@ describe('DownloadCommand', () => {
       spyOn(apiClient.translationsApi, 'checkBuildStatus').mockResolvedValue({
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
-      spyOn(apiClient.translationsApi, 'downloadTranslations').mockResolvedValue({
-        data: { url: 'https://example.test/translations.zip' },
-      } as never);
+      spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
       spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip-content'));
       mock.module('adm-zip', () => ({
         default: class {
@@ -639,6 +450,162 @@ describe('DownloadCommand', () => {
       expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
         new CliError('Translations build failed'),
       );
+    });
+  });
+
+  describe('sources', () => {
+    test('downloads source files', async () => {
+      const downloadCommand = createDownloadCommand();
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: { id: 123 },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/docs/readme.md' } }],
+      } as never);
+      const getDownloadUrlSpy = spyOn(fileService, 'getSourceFileDownloadUrl').mockResolvedValue(
+        'https://example.test/readme.md',
+      );
+      const fetchSpy = spyOn(globalThis, 'fetch').mockResolvedValue(new Response('source content'));
+
+      await downloadCommand.sourcesAction(commandContext);
+
+      expect(getDownloadUrlSpy).toHaveBeenCalledWith(1);
+      expect(fetchSpy).toHaveBeenCalledWith('https://example.test/readme.md');
+
+      const writtenFile = await Bun.file(join(tempDir, 'docs', 'readme.md')).text();
+      expect(writtenFile).toBe('source content');
+    });
+
+    test('handles dry-run mode for sources', async () => {
+      const downloadCommand = createDownloadCommand();
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: { id: 123 },
+      } as never);
+      const listFiles = spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/docs/readme.md' } }],
+      } as never);
+      const getDownloadUrl = spyOn(fileService, 'getSourceFileDownloadUrl').mockResolvedValue('https://example.test');
+
+      commandContext = createCommandContext({
+        ...globalOptions,
+        dryRun: true,
+      });
+
+      await downloadCommand.sourcesAction(commandContext);
+
+      expect(listFiles).toHaveBeenCalledTimes(1);
+      expect(getDownloadUrl).not.toHaveBeenCalled();
+    });
+
+    test('filters sources by branch', async () => {
+      const downloadCommand = createDownloadCommand();
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: { id: 123 },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectBranches').mockResolvedValue({
+        data: [{ data: { id: 55, name: 'main' } }],
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [],
+      } as never);
+
+      commandContext = createCommandContext({
+        ...globalOptions,
+        branch: 'main',
+      });
+
+      await downloadCommand.sourcesAction(commandContext);
+
+      expect(apiClient.sourceFilesApi.listProjectFiles).toHaveBeenCalledWith(123, {
+        branchId: 55,
+      });
+    });
+
+    test('fails when branch not found for sources', async () => {
+      const downloadCommand = createDownloadCommand();
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: { id: 123 },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectBranches').mockResolvedValue({
+        data: [],
+      } as never);
+
+      commandContext = createCommandContext({
+        ...globalOptions,
+        branch: 'nonexistent',
+      });
+
+      expect(downloadCommand.sourcesAction(commandContext)).rejects.toThrow(
+        new CliError('Branch nonexistent not found'),
+      );
+    });
+
+    test('downloads reviewed source files', async () => {
+      const downloadCommand = createDownloadCommand();
+      const buildId = 77;
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: { id: 123 },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/strings.xml' } }],
+      } as never);
+      const buildReviewedSpy = spyOn(fileService, 'buildReviewedSources').mockResolvedValue({
+        data: { id: buildId },
+      } as never);
+      const downloadUrlSpy = spyOn(fileService, 'getReviewedSourcesDownloadUrl').mockResolvedValue(
+        'https://example.test/reviewed.zip',
+      );
+      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip-content'));
+      mock.module('adm-zip', () => ({
+        default: class {
+          constructor() {}
+          extractAllTo() {}
+        },
+      }));
+
+      commandContext = createCommandContext({ ...globalOptions, reviewed: true });
+
+      await downloadCommand.sourcesAction(commandContext);
+
+      expect(buildReviewedSpy).toHaveBeenCalledWith(undefined);
+      expect(downloadUrlSpy).toHaveBeenCalledWith(buildId);
+    });
+
+    test('throws when reviewed sources build fails', async () => {
+      const downloadCommand = createDownloadCommand();
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: { id: 123 },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [],
+      } as never);
+      spyOn(fileService, 'buildReviewedSources').mockRejectedValue(new CliError('Reviewed sources build failed'));
+
+      commandContext = createCommandContext({ ...globalOptions, reviewed: true });
+
+      expect(downloadCommand.sourcesAction(commandContext)).rejects.toThrow(
+        new CliError('Reviewed sources build failed'),
+      );
+    });
+
+    test('propagates API errors via toCliError for source download', async () => {
+      const downloadCommand = createDownloadCommand();
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: { id: 123 },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/strings.xml' } }],
+      } as never);
+      spyOn(fileService, 'getSourceFileDownloadUrl').mockRejectedValue(new Error('Network error'));
+
+      expect(downloadCommand.sourcesAction(commandContext)).rejects.toThrow('Failed to download strings.xml');
     });
   });
 });

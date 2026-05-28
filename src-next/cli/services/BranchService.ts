@@ -13,7 +13,7 @@ export class BranchService {
     }
 
     try {
-      const branches = await this.apiClient.sourceFilesApi.listProjectBranches(this.projectId, { name, limit: 500 });
+      const branches = await this.apiClient.sourceFilesApi.withFetchAll().listProjectBranches(this.projectId, { name });
       return branches.data.find((branch) => branch.data.name === name)?.data;
     } catch (error) {
       throw toCliError(error, `Failed to find branch ${name}`);
@@ -26,7 +26,7 @@ export class BranchService {
     }
 
     try {
-      const branches = await this.apiClient.sourceFilesApi.listProjectBranches(this.projectId, { name, limit: 500 });
+      const branches = await this.apiClient.sourceFilesApi.withFetchAll().listProjectBranches(this.projectId, { name });
       const existingBranch = branches.data.find((branch) => branch.data.name === name);
 
       if (existingBranch !== undefined) {

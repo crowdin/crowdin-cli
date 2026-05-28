@@ -11,10 +11,9 @@ export class DirectoryService {
   async loadProjectDirectories(branchId?: number) {
     try {
       return (
-        await this.apiClient.sourceFilesApi.listProjectDirectories(this.projectId, {
+        await this.apiClient.sourceFilesApi.withFetchAll().listProjectDirectories(this.projectId, {
           branchId,
           recursion: '1', // TODO: Looks weird. API doc says should be integer or null
-          limit: 500,
         })
       ).data;
     } catch (error) {

@@ -4,7 +4,6 @@ import type { Command } from 'commander';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type {
-  GetApiClient,
   GetConfig,
   GetDirectoryService,
   GetFileService,
@@ -30,7 +29,6 @@ export default class FileCommand {
     private getOutput: GetOutput,
     private getProjectService: GetProjectService,
     private getStorageService: GetStorageService,
-    private getApiClient: GetApiClient,
     private getDirectoryService: GetDirectoryService,
     private getFileService: GetFileService,
   ) {}
@@ -112,12 +110,11 @@ export default class FileCommand {
   uploadAction = async (command: Command) => {
     const options = command.optsWithGlobals() as UploadFileCommandOptions;
     const [filePath] = command.args;
-    const config = await this.getConfig(command);
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
     const storageService = await this.getStorageService(command);
-    const apiClient = await this.getApiClient(command);
     const directoryService = await this.getDirectoryService(command);
+    const fileService = await this.getFileService(command);
     const destPath = options.dest || filePath;
     const fileType = options.type as SourceFilesModel.FileType | undefined;
     const parserVersion = options.parserVersion ? parseInt(options.parserVersion, 10) : undefined;
@@ -154,6 +151,7 @@ export default class FileCommand {
     }
 
     let storage: ResponseObject<UploadStorageModel.Storage>;
+
     try {
       const file = Bun.file(filePath);
       storage = await storageService.addStorage(file);
@@ -161,21 +159,13 @@ export default class FileCommand {
       throw toCliError(error, `Failed to upload ${filePath}`);
     }
 
-    try {
-      await apiClient.sourceFilesApi.createFile(config.projectId, {
-        storageId: storage.data.id,
-        name: destPath,
-        directoryId: parentDirectoryId,
-        type: fileType,
-        parserVersion,
-      });
-    } catch (error) {
-      if (error instanceof CliError) {
-        throw error;
-      }
-
-      throw toCliError(error, `Failed to create ${filePath}`);
-    }
+    await fileService.createProjectFile({
+      storageId: storage.data.id,
+      name: destPath,
+      directoryId: parentDirectoryId,
+      type: fileType,
+      parserVersion,
+    });
 
     output.success(`File ${filePath} created`);
   };
@@ -187,13 +177,12 @@ export default class FileCommand {
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
     const fileService = await this.getFileService(command);
-    const apiClient = await this.getApiClient(command);
 
     if (!filePath) {
       throw new CliError('File path is required');
     }
 
-    const project = await projectService.loadProject();
+    await projectService.loadProject();
     const projectFiles = await fileService.loadProjectFiles();
 
     for (const projectFile of projectFiles.data) {
@@ -201,10 +190,9 @@ export default class FileCommand {
         const destPath = options.dest || filePath;
 
         try {
-          const downloadLink = await apiClient.sourceFilesApi.downloadFile(project.data.id, projectFile.data.id);
-          await Bun.file(`${config.basePath}/${destPath}/${path.basename(filePath)}`).write(
-            await fetch(downloadLink.data.url),
-          );
+          const downloadUrl = await fileService.getSourceFileDownloadUrl(projectFile.data.id);
+          const fullFilePath = `${config.basePath}/${destPath}/${path.basename(filePath)}`;
+          await Bun.file(fullFilePath).write(await fetch(downloadUrl));
         } catch (error) {
           throw toCliError(error, `Failed to download ${filePath}`);
         }

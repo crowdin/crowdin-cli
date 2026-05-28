@@ -25,6 +25,7 @@ import {
   createGetDistributionService,
   createGetFileService,
   createGetLabelService,
+  createGetLanguageService,
   createGetProgressService,
   createGetProjectService,
   createGetScreenshotService,
@@ -53,6 +54,7 @@ const getFileService = createGetFileService(getApiClient, getOutput, getConfig);
 const getLabelService = createGetLabelService(getApiClient, getConfig);
 const getProgressService = createGetProgressService(getApiClient, getOutput, getConfig);
 const getTranslationService = createGetTranslationService(getApiClient, getOutput, getConfig);
+const getLanguageService = createGetLanguageService(getApiClient);
 
 const commentCommand = new CommentCommand(getOutput, getCommentService);
 const appCommand = new AppCommand(getOutput, getAppService);
@@ -72,7 +74,6 @@ const downloadCommand = new DownloadCommand(
   getConfig,
   getOutput,
   getProjectService,
-  getApiClient,
   getBranchService,
   getFileService,
   getTranslationService,
@@ -83,12 +84,11 @@ const fileCommand = new FileCommand(
   getOutput,
   getProjectService,
   getStorageService,
-  getApiClient,
   getDirectoryService,
   getFileService,
 );
-const languageCommand = new LanguageCommand(getOutput, getProjectService, getApiClient);
-const projectCommand = new ProjectCommand(getOutput, getProjectService, getApiClient);
+const languageCommand = new LanguageCommand(getOutput, getProjectService, getLanguageService);
+const projectCommand = new ProjectCommand(getOutput, getProjectService);
 const statusCommand = new StatusCommand(
   getOutput,
   getProjectService,
@@ -111,7 +111,6 @@ const uploadCommand = new UploadCommand(
   getOutput,
   getProjectService,
   getStorageService,
-  getApiClient,
   getBranchService,
   getDirectoryService,
   getFileService,

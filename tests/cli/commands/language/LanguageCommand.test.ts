@@ -4,6 +4,7 @@ import type { Command } from 'commander';
 import LanguageCommand from '@/cli/commands/language/LanguageCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import { LanguageService } from '@/cli/services/LanguageService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 
@@ -32,11 +33,13 @@ describe('LanguageCommand', () => {
   let apiClient: Client;
   let output: Output;
   let projectService: ProjectService;
+  let languageService: LanguageService;
 
   beforeEach(() => {
     apiClient = new Client({ token: 'a'.repeat(80) });
     output = createOutput(globalOptions);
     projectService = new ProjectService(apiClient, output, 123);
+    languageService = new LanguageService(apiClient);
     commandContext = createCommandContext(globalOptions);
 
     spyOn(console, 'log').mockImplementation(() => {});
@@ -51,7 +54,7 @@ describe('LanguageCommand', () => {
     return new LanguageCommand(
       () => output,
       async () => projectService,
-      async () => apiClient,
+      async () => languageService,
     );
   };
 

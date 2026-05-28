@@ -26,7 +26,7 @@ describe('DirectoryService', () => {
 
       const result = await directoryService.loadProjectDirectories();
 
-      expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: undefined, recursion: '1', limit: 500 });
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: undefined, recursion: '1' });
       expect(result).toHaveLength(2);
     });
 
@@ -37,7 +37,7 @@ describe('DirectoryService', () => {
 
       await directoryService.loadProjectDirectories(7);
 
-      expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: 7, recursion: '1', limit: 500 });
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: 7, recursion: '1' });
     });
 
     test('wraps API error as CliError', async () => {

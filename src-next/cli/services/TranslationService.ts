@@ -32,6 +32,15 @@ export class TranslationService {
     }
   }
 
+  async getTranslationDownloadUrl(buildId: number): Promise<string> {
+    try {
+      const response = await this.apiClient.translationsApi.downloadTranslations(this.projectId, buildId);
+      return response.data.url;
+    } catch (error) {
+      throw toCliError(error, 'Failed to download project translations');
+    }
+  }
+
   async buildProjectTranslations(request?: TranslationsModel.BuildRequest | TranslationsModel.PseudoBuildRequest) {
     this.output.spinner('build', 'start', 'Building translations...');
 

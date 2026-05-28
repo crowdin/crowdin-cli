@@ -61,7 +61,6 @@ describe('ProjectCommand', () => {
     return new ProjectCommand(
       () => output,
       async () => projectService,
-      async () => apiClient,
     );
   };
 
@@ -180,10 +179,10 @@ describe('ProjectCommand', () => {
 
   test('does not send visibility when adding enterprise project', async () => {
     const enterpriseApiClient = new Client({ token: config.apiToken, organization: 'acme' });
+    const enterpriseProjectService = new ProjectService(enterpriseApiClient, output, config.projectId);
     const projectCommand = new ProjectCommand(
       () => output,
-      async () => projectService,
-      async () => enterpriseApiClient,
+      async () => enterpriseProjectService,
     );
     const addProject = spyOn(enterpriseApiClient.projectsGroupsApi, 'addProject').mockResolvedValue({
       data: { id: 77, name: 'New Project' },

@@ -1,5 +1,5 @@
-import type { Client } from '@crowdin/crowdin-api-client';
-import CliError from '../errors/CliError.ts';
+import type { Client, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
+import CliError, { toCliError } from '../errors/CliError.ts';
 import type { Output } from '../utils/output.ts';
 
 export class ProjectService {
@@ -8,6 +8,20 @@ export class ProjectService {
     private output: Output,
     private projectId: number,
   ) {}
+
+  isEnterprise(): boolean {
+    return Boolean(this.apiClient.organization);
+  }
+
+  async addProject(
+    data: ProjectsGroupsModel.CreateProjectEnterpriseRequest | ProjectsGroupsModel.CreateProjectRequest,
+  ) {
+    try {
+      return await this.apiClient.projectsGroupsApi.addProject(data);
+    } catch (error) {
+      throw toCliError(error, 'Failed to add project');
+    }
+  }
 
   async loadProject() {
     this.output.spinner('project', 'start', 'Fetching project info');

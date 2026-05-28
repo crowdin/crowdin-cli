@@ -1,8 +1,8 @@
 import type { LanguagesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import CliError, { toCliError } from '@/cli/errors/CliError.ts';
+import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetApiClient, GetOutput, GetProjectService } from '@/cli/services.ts';
+import type { GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import all from './options/all.ts';
 import code from './options/code.ts';
@@ -27,7 +27,7 @@ export default class LanguageCommand {
   constructor(
     private getOutput: GetOutput,
     private getProjectService: GetProjectService,
-    private getApiClient: GetApiClient,
+    private getLanguageService: GetLanguageService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -54,7 +54,7 @@ export default class LanguageCommand {
     const options = command.optsWithGlobals() as LanguageCommandOptions;
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
-    const apiClient = await this.getApiClient(command);
+    const languageService = await this.getLanguageService(command);
     const codeFormat = options.code ?? 'id';
     const project = await projectService.loadProject();
     const projectData = project.data as {
@@ -75,18 +75,9 @@ export default class LanguageCommand {
       throw new CliError(message);
     }
 
-    let languages: LanguagesModel.Language[];
-
-    if (options.all) {
-      try {
-        const response = await apiClient.languagesApi.withFetchAll().listSupportedLanguages();
-        languages = response.data.map((entry) => entry.data);
-      } catch (error) {
-        throw toCliError(error, 'Failed to list supported languages');
-      }
-    } else {
-      languages = projectData.targetLanguages ?? [];
-    }
+    const languages = options.all
+      ? await languageService.listSupportedLanguages()
+      : (projectData.targetLanguages ?? []);
 
     output.table(
       languages.map((language) => ({

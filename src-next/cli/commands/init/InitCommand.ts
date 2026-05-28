@@ -226,7 +226,7 @@ export default class InitCommand {
     let projectId = options.projectId || null;
 
     if (projectId === null) {
-      const projects = await apiClient.projectsGroupsApi.listProjects({ hasManagerAccess: 1, limit: 500 });
+      const projects = await apiClient.projectsGroupsApi.withFetchAll().listProjects({ hasManagerAccess: 1 });
       projectId = (await select({
         message: 'Select project:',
         options: projects.data.map((project) => ({

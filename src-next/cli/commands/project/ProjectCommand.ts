@@ -1,8 +1,8 @@
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import CliError, { toCliError } from '@/cli/errors/CliError.ts';
+import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetApiClient, GetOutput, GetProjectService } from '@/cli/services.ts';
+import type { GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import language from './options/language.ts';
 import languageAccessPolicy from './options/languageAccessPolicy.ts';
@@ -20,7 +20,6 @@ export default class ProjectCommand {
   constructor(
     private getOutput: GetOutput,
     private getProjectService: GetProjectService,
-    private getApiClient: GetApiClient,
   ) {}
 
   getDefinition(): CommandDef {
@@ -101,7 +100,7 @@ export default class ProjectCommand {
     const options = command.optsWithGlobals() as ProjectCommandOptions;
     const [name] = command.args;
     const output = this.getOutput(command);
-    const apiClient = await this.getApiClient(command);
+    const projectService = await this.getProjectService(command);
 
     if (!name) {
       throw new CliError('Project name is required');
@@ -110,7 +109,7 @@ export default class ProjectCommand {
     const sourceLanguageId = options.sourceLanguage || 'en';
     const targetLanguageIds = options.language ?? [];
     const data: ProjectsGroupsModel.CreateProjectEnterpriseRequest | ProjectsGroupsModel.CreateProjectRequest =
-      apiClient.organization
+      projectService.isEnterprise()
         ? {
             name,
             sourceLanguageId,
@@ -126,13 +125,9 @@ export default class ProjectCommand {
             ...(options.stringBased ? { type: 1 as const } : {}),
           };
 
-    try {
-      const project = await apiClient.projectsGroupsApi.addProject(data);
+    const project = await projectService.addProject(data);
 
-      output.log(`${project.data.id} ${project.data.name}`.trim());
-    } catch (error) {
-      throw toCliError(error, `Failed to add project`);
-    }
+    output.log(`${project.data.id} ${project.data.name}`.trim());
   };
 
   private formatLastActivity(lastActivity: unknown): string {

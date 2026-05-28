@@ -8,7 +8,6 @@ import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
 import type {
-  GetApiClient,
   GetBranchService,
   GetConfig,
   GetFileService,
@@ -66,7 +65,6 @@ export default class DownloadCommand {
     private getConfig: GetConfig,
     private getOutput: GetOutput,
     private getProjectService: GetProjectService,
-    private getApiClient: GetApiClient,
     private getBranchService: GetBranchService,
     private getFileService: GetFileService,
     private getTranslationService: GetTranslationService,
@@ -124,8 +122,8 @@ export default class DownloadCommand {
     const projectService = await this.getProjectService(command);
     const fileService = await this.getFileService(command);
     const branchService = await this.getBranchService(command);
-    const apiClient = await this.getApiClient(command);
-    const project = await projectService.loadProject();
+
+    await projectService.loadProject();
     const branchId = await this.resolveBranchId(options.branch, branchService);
     const projectFiles = await fileService.loadProjectFiles(branchId);
 
@@ -138,29 +136,9 @@ export default class DownloadCommand {
     }
 
     if (options.reviewed) {
-      output.info('Building reviewed sources archive...');
-
-      const build = await apiClient.sourceFilesApi.buildReviewedSourceFiles(config.projectId, { branchId });
-
-      while (true) {
-        const buildStatus = await apiClient.sourceFilesApi.checkReviewedSourceFilesBuildStatus(
-          config.projectId,
-          build.data.id,
-        );
-
-        if (buildStatus.data.status === 'finished') {
-          break;
-        }
-
-        if (buildStatus.data.status === 'failed') {
-          throw new CliError('Reviewed sources build failed');
-        }
-
-        await Bun.sleep(2000);
-      }
-
-      const downloadLink = await apiClient.sourceFilesApi.downloadReviewedSourceFiles(config.projectId, build.data.id);
-      const response = await fetch(downloadLink.data.url);
+      const build = await fileService.buildReviewedSources(branchId);
+      const downloadUrl = await fileService.getReviewedSourcesDownloadUrl(build.data.id);
+      const response = await fetch(downloadUrl);
       const archivePath = path.join(config.basePath, 'crowdin-reviewed-sources.zip');
 
       await Bun.write(archivePath, response);
@@ -184,9 +162,8 @@ export default class DownloadCommand {
       const relativePath = (projectFile.data.path || '').replace(/^\//, '');
       try {
         const filePath = path.join(config.basePath, relativePath);
-
-        const downloadLink = await apiClient.sourceFilesApi.downloadFile(project.data.id, projectFile.data.id);
-        const response = await fetch(downloadLink.data.url);
+        const downloadUrl = await fileService.getSourceFileDownloadUrl(projectFile.data.id);
+        const response = await fetch(downloadUrl);
 
         await mkdir(path.dirname(filePath), { recursive: true });
         await Bun.write(filePath, response);
@@ -205,7 +182,6 @@ export default class DownloadCommand {
     const fileService = await this.getFileService(command);
     const branchService = await this.getBranchService(command);
     const translationService = await this.getTranslationService(command);
-    const apiClient = await this.getApiClient(command);
     const project = await projectService.loadProject();
 
     if (
@@ -297,14 +273,8 @@ export default class DownloadCommand {
 
     output.info('Downloading translations');
 
-    let response: Response;
-
-    try {
-      const downloadLink = await apiClient.translationsApi.downloadTranslations(config.projectId, build.data.id);
-      response = await fetch(downloadLink.data.url);
-    } catch (error) {
-      throw toCliError(error, 'Failed to download project translations');
-    }
+    const downloadUrl = await translationService.getTranslationDownloadUrl(build.data.id);
+    const response = await fetch(downloadUrl);
 
     output.info('Extracting archive');
 

@@ -90,7 +90,6 @@ describe('FileCommand', () => {
       () => output,
       async () => projectService,
       async () => storageService,
-      async () => apiClient,
       async () => directoryService,
       async () => fileService,
     );
@@ -205,9 +204,7 @@ describe('FileCommand', () => {
     spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
       data: [{ data: { id: 40, path: 'docs/readme.md' } }],
     } as never);
-    spyOn(apiClient.sourceFilesApi, 'downloadFile').mockResolvedValue({
-      data: { url: 'https://example.test/readme.md' },
-    } as never);
+    spyOn(fileService, 'getSourceFileDownloadUrl').mockResolvedValue('https://example.test/readme.md');
     spyOn(globalThis, 'fetch').mockResolvedValue(new Response('downloaded content'));
 
     commandContext = createCommandContext({ ...globalOptions, dest: 'downloads' }, ['docs/readme.md']);
@@ -230,7 +227,6 @@ describe('FileCommand', () => {
       () => output,
       async () => projectService as never,
       async () => storageService,
-      async () => apiClient as never,
       async () => directoryService,
       async () => mockFileService as never,
     );

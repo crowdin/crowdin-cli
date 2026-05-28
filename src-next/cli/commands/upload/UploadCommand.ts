@@ -4,7 +4,6 @@ import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import type {
-  GetApiClient,
   GetBranchService,
   GetConfig,
   GetDirectoryService,
@@ -71,7 +70,6 @@ export default class UploadCommand {
     private getOutput: GetOutput,
     private getProjectService: GetProjectService,
     private getStorageService: GetStorageService,
-    private getApiClient: GetApiClient,
     private getBranchService: GetBranchService,
     private getDirectoryService: GetDirectoryService,
     private getFileService: GetFileService,
@@ -138,16 +136,16 @@ export default class UploadCommand {
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
     const storageService = await this.getStorageService(command);
-    const apiClient = await this.getApiClient(command);
     const branchService = await this.getBranchService(command);
     const directoryService = await this.getDirectoryService(command);
     const fileService = await this.getFileService(command);
     const labelService = await this.getLabelService(command);
+
+    await projectService.loadProject();
     const branch = options.dryRun
       ? await branchService.getBranch(options.branch)
       : await branchService.getOrCreateBranch(options.branch);
     const branchId = branch?.id;
-    const project = await projectService.loadProject();
     const projectFiles = await fileService.loadProjectFiles(branchId);
     const projectFilePaths = new Map(projectFiles.data.map((file) => [file.data.path, file.data.id]));
     const projectDirectoryList = await directoryService.loadProjectDirectories(branchId);
@@ -237,7 +235,7 @@ export default class UploadCommand {
           );
         }
 
-        await apiClient.sourceFilesApi.createFile(project.data.id, {
+        await fileService.createProjectFile({
           storageId: storage.data.id,
           name: pathDetails.base,
           directoryId,

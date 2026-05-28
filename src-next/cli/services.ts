@@ -8,6 +8,7 @@ import { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import { DistributionService } from '@/cli/services/DistributionService.ts';
 import { FileService } from '@/cli/services/FileService.ts';
 import { LabelService } from '@/cli/services/LabelService.ts';
+import { LanguageService } from '@/cli/services/LanguageService.ts';
 import { ProgressService } from '@/cli/services/ProgressService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { ScreenshotService } from '@/cli/services/ScreenshotService.ts';
@@ -37,6 +38,7 @@ export type GetBundleService = (command: Command) => Promise<BundleService>;
 export type GetAppService = (command: Command) => Promise<AppService>;
 export type GetScreenshotService = (command: Command) => Promise<ScreenshotService>;
 export type GetTranslationService = (command: Command) => Promise<TranslationService>;
+export type GetLanguageService = (command: Command) => Promise<LanguageService>;
 
 export function createGetApiClient(getConfig: GetConfig) {
   let cachedClient: Client | undefined;
@@ -273,6 +275,21 @@ export function createGetProgressService(getApiClient: GetApiClient, getOutput: 
     const output = getOutput(command);
     const config = await getConfig(command);
     cachedService = new ProgressService(apiClient, output, config.projectId);
+
+    return cachedService;
+  };
+}
+
+export function createGetLanguageService(getApiClient: GetApiClient) {
+  let cachedService: LanguageService | undefined;
+
+  return async (command: Command): Promise<LanguageService> => {
+    if (cachedService) {
+      return cachedService;
+    }
+
+    const apiClient = await getApiClient(command);
+    cachedService = new LanguageService(apiClient);
 
     return cachedService;
   };
