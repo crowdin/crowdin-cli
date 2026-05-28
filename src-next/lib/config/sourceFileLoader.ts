@@ -32,6 +32,6 @@ export default class SourceFileLoader {
         cwd: this.config.basePath,
         onlyFiles: true,
       }),
-    );
+    ).sort();
   }
 }
