@@ -4,6 +4,7 @@ import { AppService } from '@/cli/services/AppService.ts';
 import { BundleService } from '@/cli/services/BundleService.ts';
 import { CommentService } from '@/cli/services/CommentService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
+import { ScreenshotService } from '@/cli/services/ScreenshotService.ts';
 import { StorageService } from '@/cli/services/StorageService.ts';
 import { StringService } from '@/cli/services/StringService.ts';
 import { TaskService } from '@/cli/services/TaskService.ts';
@@ -21,6 +22,7 @@ export type GetStringService = (command: Command) => Promise<StringService>;
 export type GetTaskService = (command: Command) => Promise<TaskService>;
 export type GetBundleService = (command: Command) => Promise<BundleService>;
 export type GetAppService = (command: Command) => Promise<AppService>;
+export type GetScreenshotService = (command: Command) => Promise<ScreenshotService>;
 
 export function createGetApiClient(getConfig: GetConfig) {
   let cachedClient: Client | undefined;
@@ -143,6 +145,22 @@ export function createGetAppService(getApiClient: GetApiClient) {
 
     const apiClient = await getApiClient(command);
     cachedService = new AppService(apiClient);
+
+    return cachedService;
+  };
+}
+
+export function createGetScreenshotService(getApiClient: GetApiClient, getConfig: GetConfig) {
+  let cachedService: ScreenshotService | undefined;
+
+  return async (command: Command): Promise<ScreenshotService> => {
+    if (cachedService) {
+      return cachedService;
+    }
+
+    const apiClient = await getApiClient(command);
+    const config = await getConfig(command);
+    cachedService = new ScreenshotService(apiClient, config.projectId);
 
     return cachedService;
   };

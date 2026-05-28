@@ -8,6 +8,7 @@ import FileCommand from './commands/file/FileCommand.ts';
 import InitCommand from './commands/init/InitCommand.ts';
 import LanguageCommand from './commands/language/LanguageCommand.ts';
 import ProjectCommand from './commands/project/ProjectCommand.ts';
+import ScreenshotCommand from './commands/screenshot/ScreenshotCommand.ts';
 import StatusCommand from './commands/status/StatusCommand.ts';
 import StringCommand from './commands/string/StringCommand.ts';
 import TaskCommand from './commands/task/TaskCommand.ts';
@@ -20,6 +21,7 @@ import {
   createGetBundleService,
   createGetCommentService,
   createGetProjectService,
+  createGetScreenshotService,
   createGetStorageService,
   createGetStringService,
   createGetTaskService,
@@ -33,6 +35,7 @@ const getCommentService = createGetCommentService(getApiClient, getConfig);
 const getAppService = createGetAppService(getApiClient);
 const getBundleService = createGetBundleService(getApiClient, getConfig);
 const getProjectService = createGetProjectService(getApiClient, getOutput, getConfig);
+const getScreenshotService = createGetScreenshotService(getApiClient, getConfig);
 const getStorageService = createGetStorageService(getApiClient);
 const getStringService = createGetStringService(getApiClient, getConfig);
 const getTaskService = createGetTaskService(getApiClient, getConfig);
@@ -40,6 +43,7 @@ const getTaskService = createGetTaskService(getApiClient, getConfig);
 const commentCommand = new CommentCommand(getOutput, getCommentService);
 const appCommand = new AppCommand(getOutput, getAppService);
 const bundleCommand = new BundleCommand(getOutput, getBundleService);
+const screenshotCommand = new ScreenshotCommand(getOutput, getScreenshotService, getProjectService, getStorageService);
 const initCommand = new InitCommand(getOutput);
 const configCommand = new ConfigCommand(getConfig, getOutput, getProjectService);
 const downloadCommand = new DownloadCommand(getConfig, getOutput, getProjectService, getApiClient);
@@ -57,6 +61,7 @@ export const commands: CommandDef[] = [
   downloadCommand.getDefinition(),
   appCommand.getDefinition(),
   bundleCommand.getDefinition(),
+  screenshotCommand.getDefinition(),
   initCommand.getDefinition(),
   statusCommand.getDefinition(),
   stringCommand.getDefinition(),

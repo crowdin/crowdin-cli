@@ -10,6 +10,7 @@ describe('command registry', () => {
       'download',
       'app',
       'bundle',
+      'screenshot',
       'init',
       'status',
       'string',
@@ -29,6 +30,7 @@ describe('command registry', () => {
     const download = commands.find((command) => command.name === 'download');
     const bundle = commands.find((command) => command.name === 'bundle');
     const status = commands.find((command) => command.name === 'status');
+    const screenshot = commands.find((command) => command.name === 'screenshot');
     const string = commands.find((command) => command.name === 'string');
     const language = commands.find((command) => command.name === 'language');
     const task = commands.find((command) => command.name === 'task');
@@ -48,6 +50,7 @@ describe('command registry', () => {
       'clone',
       'browse',
     ]);
+    expect(screenshot?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'upload', 'delete']);
     expect(status?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['translation', 'proofreading']);
     expect(string?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'add', 'delete', 'edit']);
     expect(task?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'add']);
