@@ -1,4 +1,3 @@
-import type { ApplicationsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -73,18 +72,21 @@ export default class AppCommand {
       return;
     }
 
-    output.table(this.toRows(apps), ['identifier', 'name']);
+    output.table(
+      apps.map((app) => ({ identifier: app.identifier, name: app.name })),
+      ['identifier', 'name'],
+    );
   };
 
   installAction = async (command: Command) => {
     const [identifier] = command.args;
-    const output = this.getOutput(command);
-    const appService = await this.getAppService(command);
 
     if (!identifier) {
       throw new CliError('Application identifier can not be empty');
     }
 
+    const output = this.getOutput(command);
+    const appService = await this.getAppService(command);
     const manifestUrl = await appService.findManifestUrl(identifier);
 
     if (!manifestUrl) {
@@ -96,23 +98,17 @@ export default class AppCommand {
   };
 
   uninstallAction = async (command: Command) => {
-    const options = command.optsWithGlobals() as UninstallOptions;
     const [identifier] = command.args;
-    const output = this.getOutput(command);
-    const appService = await this.getAppService(command);
 
     if (!identifier) {
       throw new CliError('Application identifier can not be empty');
     }
 
+    const options = command.optsWithGlobals() as UninstallOptions;
+    const output = this.getOutput(command);
+    const appService = await this.getAppService(command);
+
     await appService.uninstall(identifier, options.force ?? false);
     output.success(`Application ${identifier} has been uninstalled`);
   };
-
-  private toRows(apps: ApplicationsModel.Application[]): Record<string, string>[] {
-    return apps.map((app) => ({
-      identifier: app.identifier,
-      name: app.name,
-    }));
-  }
 }

@@ -4,6 +4,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { AddBundlePayload, BundleView } from '@/cli/services/BundleService.ts';
 import type { GetBundleService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef, OptionDef } from '@/cli/types.ts';
+import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
 
 const fileFormatOption: OptionDef = {
   name: 'file-format',
@@ -62,20 +63,7 @@ const multilingualOption: OptionDef = {
   description: 'Enable multilingual mode',
 };
 
-type BundleGlobalOptions = GlobalOptions;
-
-interface AddOptions extends BundleGlobalOptions {
-  fileFormat?: string;
-  source?: string | string[];
-  ignore?: string | string[];
-  translation?: string;
-  label?: number | number[];
-  includeSourceLanguage?: boolean;
-  includePseudoLanguage?: boolean;
-  multilingual?: boolean;
-}
-
-interface CloneOptions extends BundleGlobalOptions {
+interface BundleOptions extends GlobalOptions {
   name?: string;
   fileFormat?: string;
   source?: string | string[];
@@ -198,22 +186,13 @@ export default class BundleCommand {
       return;
     }
 
-    output.table(
-      bundles.map((bundle) => ({
-        id: bundle.id,
-        format: bundle.format ?? '',
-        translation: bundle.exportPattern ?? '',
-        name: bundle.name ?? '',
-      })),
-    );
+    output.table(bundles.map(this.toRow));
   };
 
   addAction = async (command: Command) => {
-    const options = command.opts() as AddOptions;
     const [name] = command.args;
-    const output = this.getOutput(command);
-    const bundleService = await this.getBundleService(command);
-    const sourcePatterns = this.toArray(options.source);
+    const options = command.opts() as BundleOptions;
+    const sourcePatterns = toArray(options.source);
 
     if (!name) {
       throw new CliError("Bundle name can't be empty");
@@ -231,27 +210,31 @@ export default class BundleCommand {
       throw new CliError("'--translation' can't be empty");
     }
 
+    const output = this.getOutput(command);
+    const bundleService = await this.getBundleService(command);
+    const ignorePatterns = toArray(options.ignore);
+    const labelIds = toNumberArray(options.label, "'--label' value must be numeric");
     const payload: AddBundlePayload = {
       name,
       format: options.fileFormat,
       sourcePatterns,
-      ...(this.toArray(options.ignore).length > 0 ? { ignorePatterns: this.toArray(options.ignore) } : {}),
+      ...(ignorePatterns.length > 0 ? { ignorePatterns } : {}),
       exportPattern: options.translation,
-      ...(this.toNumberArray(options.label).length > 0 ? { labelIds: this.toNumberArray(options.label) } : {}),
+      ...(labelIds.length > 0 ? { labelIds } : {}),
       includeProjectSourceLanguage: options.includeSourceLanguage ?? false,
       includeInContextPseudoLanguage: options.includePseudoLanguage ?? true,
       isMultilingual: options.multilingual ?? false,
     };
-    const createdBundle = await bundleService.add(payload);
+    const created = await bundleService.add(payload);
 
-    output.table([this.toListRow(createdBundle)]);
+    output.table([this.toRow(created)]);
   };
 
   deleteAction = async (command: Command) => {
     const [idArg] = command.args;
+    const id = parseNumericId(idArg, 'Bundle');
     const output = this.getOutput(command);
     const bundleService = await this.getBundleService(command);
-    const id = this.parseNumericId(idArg);
     const bundleToDelete = await bundleService.get(id);
 
     if (!bundleToDelete) {
@@ -268,89 +251,53 @@ export default class BundleCommand {
   };
 
   cloneAction = async (command: Command) => {
-    const options = command.opts() as CloneOptions;
     const [idArg] = command.args;
+    const id = parseNumericId(idArg, 'Bundle');
+    const options = command.opts() as BundleOptions;
     const output = this.getOutput(command);
     const bundleService = await this.getBundleService(command);
-    const id = this.parseNumericId(idArg);
-    const bundleToClone = await bundleService.get(id);
+    const source = await bundleService.get(id);
 
-    if (!bundleToClone) {
+    if (!source) {
       output.warning("Couldn't find bundle by the specified ID");
       return;
     }
 
-    const sourcePatterns = this.toArray(options.source);
-    const ignorePatterns = this.toArray(options.ignore);
-    const labelIds = this.toNumberArray(options.label);
+    const sourcePatterns = toArray(options.source);
+    const ignorePatterns = toArray(options.ignore);
+    const labelIds = toNumberArray(options.label, "'--label' value must be numeric");
     const payload: AddBundlePayload = {
-      name: options.name ?? `${bundleToClone.name ?? ''} (clone)`,
-      format: options.fileFormat ?? bundleToClone.format ?? '',
-      sourcePatterns: sourcePatterns.length > 0 ? sourcePatterns : (bundleToClone.sourcePatterns ?? []),
+      name: options.name ?? `${source.name ?? ''} (clone)`,
+      format: options.fileFormat ?? source.format ?? '',
+      sourcePatterns: sourcePatterns.length > 0 ? sourcePatterns : (source.sourcePatterns ?? []),
       ...(ignorePatterns.length > 0
         ? { ignorePatterns }
-        : bundleToClone.ignorePatterns !== undefined
-          ? { ignorePatterns: bundleToClone.ignorePatterns }
+        : source.ignorePatterns !== undefined
+          ? { ignorePatterns: source.ignorePatterns }
           : {}),
-      exportPattern: options.translation ?? bundleToClone.exportPattern ?? '',
-      ...(labelIds.length > 0
-        ? { labelIds }
-        : bundleToClone.labelIds !== undefined
-          ? { labelIds: bundleToClone.labelIds }
-          : {}),
-      includeProjectSourceLanguage:
-        options.includeSourceLanguage ?? bundleToClone.includeProjectSourceLanguage ?? false,
-      includeInContextPseudoLanguage:
-        options.includePseudoLanguage ?? bundleToClone.includeInContextPseudoLanguage ?? true,
-      isMultilingual: options.multilingual ?? bundleToClone.isMultilingual ?? false,
+      exportPattern: options.translation ?? source.exportPattern ?? '',
+      ...(labelIds.length > 0 ? { labelIds } : source.labelIds !== undefined ? { labelIds: source.labelIds } : {}),
+      includeProjectSourceLanguage: options.includeSourceLanguage ?? source.includeProjectSourceLanguage ?? false,
+      includeInContextPseudoLanguage: options.includePseudoLanguage ?? source.includeInContextPseudoLanguage ?? true,
+      isMultilingual: options.multilingual ?? source.isMultilingual ?? false,
     };
-    const clonedBundle = await bundleService.add(payload);
+    const cloned = await bundleService.add(payload);
 
-    output.table([this.toListRow(clonedBundle)]);
+    output.table([this.toRow(cloned)]);
   };
 
   browseAction = async (command: Command) => {
     const [idArg] = command.args;
+    const id = parseNumericId(idArg, 'Bundle');
     const output = this.getOutput(command);
     const bundleService = await this.getBundleService(command);
-    const id = this.parseNumericId(idArg);
     const url = await bundleService.getBundleUrl(id);
 
     Bun.spawn(['open', url]);
     output.success(`Opened ${url} in browser`);
   };
 
-  private parseNumericId(idArg: string | undefined): number {
-    if (!idArg) {
-      throw new CliError('Bundle id can not be empty');
-    }
-
-    const id = Number(idArg);
-
-    if (Number.isNaN(id)) {
-      throw new CliError('Bundle id must be numeric');
-    }
-
-    return id;
-  }
-
-  private toArray(value: string | string[] | undefined): string[] {
-    if (value === undefined || value === '') {
-      return [];
-    }
-
-    return Array.isArray(value) ? value : [value];
-  }
-
-  private toNumberArray(value: number | number[] | undefined): number[] {
-    if (value === undefined) {
-      return [];
-    }
-
-    return Array.isArray(value) ? value : [value];
-  }
-
-  private toListRow(bundle: BundleView): Record<string, unknown> {
+  private toRow(bundle: BundleView): Record<string, unknown> {
     return {
       id: bundle.id,
       format: bundle.format ?? '',

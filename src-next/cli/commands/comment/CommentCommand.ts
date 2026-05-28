@@ -4,6 +4,7 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetCommentService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { parseNumericId } from '@/cli/utils/parsing.ts';
 import issueType from './options/issueType.ts';
 import language from './options/language.ts';
 import status from './options/status.ts';
@@ -74,10 +75,8 @@ export default class CommentCommand {
   };
 
   addAction = async (command: Command) => {
-    const options = command.optsWithGlobals() as AddOptions;
     const [text] = command.args;
-    const output = this.getOutput(command);
-    const commentService = await this.getCommentService(command);
+    const options = command.optsWithGlobals() as AddOptions;
 
     if (!text) {
       throw new CliError('String comment text is required');
@@ -98,6 +97,8 @@ export default class CommentCommand {
       throw new CliError('Comment should not have the --issue-type parameter. It can only be used if --type=issue');
     }
 
+    const output = this.getOutput(command);
+    const commentService = await this.getCommentService(command);
     const comment = await commentService.add({
       text,
       stringId: Number(options.stringId),
@@ -130,7 +131,6 @@ export default class CommentCommand {
 
     if (comments.length === 0) {
       output.success('No comments found');
-
       return;
     }
 
@@ -156,19 +156,10 @@ export default class CommentCommand {
 
   resolveAction = async (command: Command) => {
     const [idArg] = command.args;
+    const id = parseNumericId(idArg, 'Comment');
+
     const output = this.getOutput(command);
     const commentService = await this.getCommentService(command);
-
-    if (!idArg) {
-      throw new CliError('Numeric ID of the string comment is required');
-    }
-
-    const id = Number(idArg);
-
-    if (Number.isNaN(id)) {
-      throw new CliError('Invalid comment ID: must be a number');
-    }
-
     const comment = await commentService.resolve(id);
 
     output.success(`A string issue #${comment.id} has been successfully resolved`);

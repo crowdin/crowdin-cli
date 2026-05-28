@@ -1,32 +1,25 @@
+import type { PatchRequest } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import CliError, { toCliError } from '@/cli/errors/CliError.ts';
+import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetApiClient, GetOutput, GetProjectService } from '@/cli/services.ts';
+import type { DistributionView } from '@/cli/services/DistributionService.ts';
+import type { GetDistributionService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { toNumberArray } from '@/cli/utils/parsing.ts';
 import bundleId from './options/bundleId.ts';
 import name from './options/name.ts';
 
-interface DistributionCommandOptions extends GlobalOptions {
+interface DistributionOptions extends GlobalOptions {
   name?: string;
   bundleId?: number | string | Array<number | string>;
 }
 
-interface DistributionRecord {
-  id?: number;
-  hash: string;
-  name?: string;
-}
-
-interface DistributionRelease {
-  status?: string;
-  progress?: number;
-}
+const RELEASE_PENDING_STATUSES = new Set(['success', 'finished', 'failed']);
 
 export default class DistributionCommand {
   constructor(
     private getOutput: GetOutput,
-    private getProjectService: GetProjectService,
-    private getApiClient: GetApiClient,
+    private getDistributionService: GetDistributionService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -85,181 +78,108 @@ export default class DistributionCommand {
 
   listAction = async (command: Command) => {
     const output = this.getOutput(command);
-    const apiClient = await this.getApiClient(command);
-    const projectService = await this.getProjectService(command);
-    const project = await projectService.loadProject();
+    const distributionService = await this.getDistributionService(command);
+    const distributions = await distributionService.list();
 
-    try {
-      const distributions = await apiClient.distributionsApi.listDistributions(project.data.id);
-      const entries = distributions.data.map((distribution) => {
-        const value = distribution.data.name ?? '';
-        return `${distribution.data.hash} ${value}`.trim();
-      });
-
-      if (entries.length > 0) {
-        output.log(entries.join('\n'));
-      }
-    } catch (error) {
-      throw toCliError(error, 'Failed to list distributions');
+    if (distributions.length === 0) {
+      output.success('No distributions found');
+      return;
     }
+
+    output.table(distributions.map(this.toRow));
   };
 
   addAction = async (command: Command) => {
-    const options = command.optsWithGlobals() as DistributionCommandOptions;
     const [distributionName] = command.args;
-    const apiClient = await this.getApiClient(command);
-    const projectService = await this.getProjectService(command);
-    const project = await projectService.loadProject();
-    const bundleIds = this.parseBundleIds(options.bundleId);
+    const options = command.optsWithGlobals() as DistributionOptions;
+    const bundleIds = toNumberArray(options.bundleId, 'Invalid bundle id');
 
     if (!distributionName) {
       throw new CliError('Distribution name is required');
     }
 
-    if (!bundleIds || bundleIds.length === 0) {
+    if (bundleIds.length === 0) {
       throw new CliError('Bundle IDs are required. Use --bundle-id <id> (can be specified multiple times)');
     }
 
-    try {
-      const distribution = await apiClient.distributionsApi.createDistribution(project.data.id, {
-        name: distributionName,
-        bundleIds,
-      });
+    const output = this.getOutput(command);
+    const distributionService = await this.getDistributionService(command);
+    const distribution = await distributionService.add(distributionName, bundleIds);
 
-      const value = distribution.data.name ?? '';
-      console.log(`${distribution.data.hash} ${value}`.trim());
-    } catch (error) {
-      throw toCliError(error, 'Failed to add distribution');
-    }
+    output.table([this.toRow(distribution)]);
   };
 
   editAction = async (command: Command) => {
-    const options = command.optsWithGlobals() as DistributionCommandOptions;
     const [hash] = command.args;
-    const output = this.getOutput(command);
-    const apiClient = await this.getApiClient(command);
-    const projectService = await this.getProjectService(command);
-    const project = await projectService.loadProject();
-    const bundleIds = this.parseBundleIds(options.bundleId);
-    const updates: Array<{ op: 'replace'; path: '/name' | '/bundleIds'; value: string | number[] }> = [];
+    const options = command.optsWithGlobals() as DistributionOptions;
+    const bundleIds = toNumberArray(options.bundleId, 'Invalid bundle id');
+    const patch: PatchRequest[] = [];
 
     if (!hash) {
       throw new CliError('Distribution hash is required');
     }
 
     if (options.name !== undefined) {
-      updates.push({
-        op: 'replace',
-        path: '/name',
-        value: options.name,
-      });
+      patch.push({ op: 'replace', path: '/name', value: options.name });
     }
 
-    if (bundleIds !== undefined) {
-      updates.push({
-        op: 'replace',
-        path: '/bundleIds',
-        value: bundleIds,
-      });
+    if (options.bundleId !== undefined) {
+      patch.push({ op: 'replace', path: '/bundleIds', value: bundleIds });
     }
 
-    if (updates.length === 0) {
+    if (patch.length === 0) {
       throw new CliError('Nothing to edit. Specify at least one option: --name, --bundle-id');
     }
 
-    try {
-      await this.getDistributionByHash(project.data.id, hash, command);
-      const distribution = await apiClient.distributionsApi.editDistribution(project.data.id, hash, updates);
-      const value = distribution.data.name ?? '';
-      output.log(`${distribution.data.hash} ${value}`.trim());
-    } catch (error) {
-      throw toCliError(error, `Failed to edit distribution ${hash}`);
-    }
+    const output = this.getOutput(command);
+    const distributionService = await this.getDistributionService(command);
+
+    await distributionService.getByHash(hash);
+    const updated = await distributionService.edit(hash, patch);
+
+    output.table([this.toRow(updated)]);
   };
 
   releaseAction = async (command: Command) => {
     const [hash] = command.args;
-    const output = this.getOutput(command);
-    const apiClient = await this.getApiClient(command);
-    const projectService = await this.getProjectService(command);
-    const project = await projectService.loadProject();
 
     if (!hash) {
       throw new CliError('Distribution hash is required');
     }
 
-    await this.getDistributionByHash(project.data.id, hash, command);
+    const output = this.getOutput(command);
+    const distributionService = await this.getDistributionService(command);
+
+    await distributionService.getByHash(hash);
     output.spinner('distributionRelease', 'start', `Releasing distribution ${hash}`);
 
     try {
-      let release = (await apiClient.distributionsApi.createDistributionRelease(project.data.id, hash))
-        .data as DistributionRelease;
+      let release = await distributionService.startRelease(hash);
 
-      while (this.isReleasePending(release.status)) {
+      while (!RELEASE_PENDING_STATUSES.has(release.status?.toLowerCase() ?? '')) {
         if (release.progress !== undefined) {
           output.spinner('distributionRelease', 'message', `Releasing distribution ${hash}: ${release.progress}%`);
         }
 
         await Bun.sleep(1000);
-        release = (await apiClient.distributionsApi.getDistributionRelease(project.data.id, hash))
-          .data as DistributionRelease;
+        release = await distributionService.getReleaseStatus(hash);
       }
 
-      if (this.isReleaseFailed(release.status)) {
+      if (release.status?.toLowerCase() === 'failed') {
         throw new CliError(`Distribution ${hash} release failed`);
       }
 
       output.spinner('distributionRelease', 'stop', `Distribution ${hash} released`);
-      output.success(`Distribution ${hash} released`);
     } catch (error) {
       output.spinner('distributionRelease', 'error', `Distribution ${hash} release failed`);
-      throw toCliError(error, `Failed to release distribution ${hash}`);
+      throw error;
     }
   };
 
-  private async getDistributionByHash(projectId: number, hash: string, command: Command): Promise<DistributionRecord> {
-    const apiClient = await this.getApiClient(command);
-
-    try {
-      const distributions = await apiClient.distributionsApi.listDistributions(projectId);
-      const distribution = distributions.data.find((entry) => entry.data.hash === hash)?.data;
-
-      if (!distribution) {
-        throw new CliError(`Distribution ${hash} not found`);
-      }
-
-      return distribution as DistributionRecord;
-    } catch (error) {
-      throw toCliError(error, `Failed to find distribution ${hash}`);
-    }
-  }
-
-  private parseBundleIds(value?: number | string | Array<number | string>): number[] | undefined {
-    if (value === undefined || value === '') {
-      return undefined;
-    }
-
-    const values = Array.isArray(value) ? value : [value];
-    const bundleIds = values.map((bundleId) => {
-      const parsed = typeof bundleId === 'number' ? bundleId : parseInt(bundleId, 10);
-
-      if (!Number.isInteger(parsed)) {
-        throw new CliError(`Invalid bundle ID: ${bundleId}`);
-      }
-
-      return parsed;
-    });
-
-    return bundleIds.length > 0 ? bundleIds : undefined;
-  }
-
-  private isReleasePending(status?: string): boolean {
-    const normalizedStatus = status?.toLowerCase() ?? '';
-
-    return normalizedStatus !== 'success' && normalizedStatus !== 'finished' && normalizedStatus !== 'failed';
-  }
-
-  private isReleaseFailed(status?: string): boolean {
-    return status?.toLowerCase() === 'failed';
+  private toRow(distribution: DistributionView): Record<string, unknown> {
+    return {
+      hash: distribution.hash,
+      name: distribution.name ?? '',
+    };
   }
 }

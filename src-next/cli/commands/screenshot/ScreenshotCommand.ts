@@ -4,9 +4,12 @@ import type { ScreenshotsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { ScreenshotService, ScreenshotView } from '@/cli/services/ScreenshotService.ts';
+import type { ScreenshotView } from '@/cli/services/ScreenshotService.ts';
 import type { GetOutput, GetProjectService, GetScreenshotService, GetStorageService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
+
+const ALLOWED_IMAGE_EXTENSIONS = new Set(['jpeg', 'jpg', 'png', 'gif']);
 
 interface ListOptions extends GlobalOptions {
   stringId?: number;
@@ -118,24 +121,24 @@ export default class ScreenshotCommand {
       return;
     }
 
-    output.table(screenshots.map((entry) => this.toRow(entry)));
+    output.table(screenshots.map(this.toRow));
   };
 
   uploadAction = async (command: Command) => {
-    const options = command.optsWithGlobals() as UploadOptions;
     const [filePath] = command.args;
-    const output = this.getOutput(command);
-    const screenshotService = await this.getScreenshotService(command);
-    const projectService = await this.getProjectService(command);
-    const storageService = await this.getStorageService(command);
+    const options = command.optsWithGlobals() as UploadOptions;
 
     if (!filePath) {
       throw new CliError('Screenshot file path can not be empty');
     }
 
-    await this.validateFile(filePath);
     this.validateUploadOptions(options);
+    await this.validateFile(filePath);
 
+    const output = this.getOutput(command);
+    const screenshotService = await this.getScreenshotService(command);
+    const projectService = await this.getProjectService(command);
+    const storageService = await this.getStorageService(command);
     const image = Bun.file(filePath);
     const imageName = path.basename(filePath);
     const branch = await projectService.branch.getBranch(options.branch);
@@ -145,25 +148,25 @@ export default class ScreenshotCommand {
     }
 
     const branchId = branch?.id;
-    const filesResponse = await projectService.loadProjectFiles(branchId);
-    const directories = await projectService.directory.loadProjectDirectories(branchId);
-    const fileId = options.file ? this.resolveFileId(options.file, filesResponse.data) : undefined;
-    const directoryId = options.directory ? this.resolveDirectoryId(options.directory, directories) : undefined;
-    const labelIds = await projectService.label.resolveLabelIds(this.toArray(options.label));
+    const fileId = options.file
+      ? await projectService.file.resolveFileIds([options.file], branchId).then(this.takeFirstFileId(options.file))
+      : undefined;
+    const directoryId = await projectService.directory.resolveDirectoryId(options.directory, branchId);
+    const labelIds = await projectService.label.resolveLabelIds(toArray(options.label));
     const existingScreenshot = await screenshotService.findByName(imageName);
     const storage = await storageService.addStorage(image);
 
     if (existingScreenshot) {
-      await this.updateScreenshot(
-        screenshotService,
-        existingScreenshot.id,
-        imageName,
-        storage.data.id,
-        options.autoTag ?? false,
-        branchId,
-        fileId,
-        directoryId,
-      );
+      await screenshotService.update(existingScreenshot.id, { name: imageName, storageId: storage.data.id });
+
+      if (options.autoTag) {
+        await screenshotService.replaceTags(existingScreenshot.id, {
+          autoTag: true,
+          ...(branchId !== undefined ? { branchId } : {}),
+          ...(fileId !== undefined ? { fileId } : {}),
+          ...(directoryId !== undefined ? { directoryId } : {}),
+        });
+      }
 
       const updatedScreenshot = await screenshotService.get(existingScreenshot.id);
 
@@ -199,9 +202,9 @@ export default class ScreenshotCommand {
 
   deleteAction = async (command: Command) => {
     const [idArg] = command.args;
+    const id = parseNumericId(idArg, 'Screenshot');
     const output = this.getOutput(command);
     const screenshotService = await this.getScreenshotService(command);
-    const id = this.parseNumericId(idArg);
     const screenshot = await screenshotService.get(id);
 
     if (!screenshot) {
@@ -214,21 +217,21 @@ export default class ScreenshotCommand {
   };
 
   private validateUploadOptions(options: UploadOptions): void {
-    if (options.file && !options.autoTag) {
-      throw new CliError("'--auto-tag' is required for '--file' option");
+    const targetingFlags: Array<[keyof UploadOptions, string]> = [
+      ['file', '--file'],
+      ['branch', '--branch'],
+      ['directory', '--directory'],
+    ];
+
+    for (const [key, flag] of targetingFlags) {
+      if (options[key] && !options.autoTag) {
+        throw new CliError(`'--auto-tag' is required for '${flag}' option`);
+      }
     }
 
-    if (options.branch && !options.autoTag) {
-      throw new CliError("'--auto-tag' is required for '--branch' option");
-    }
+    const selected = targetingFlags.filter(([key]) => Boolean(options[key]));
 
-    if (options.directory && !options.autoTag) {
-      throw new CliError("'--auto-tag' is required for '--directory' option");
-    }
-
-    const selectedTargetingOptions = [options.file, options.branch, options.directory].filter(Boolean);
-
-    if (selectedTargetingOptions.length > 1) {
+    if (selected.length > 1) {
       throw new CliError(
         "Only one of the following options can be used at a time: '--file', '--branch' or '--directory'",
       );
@@ -249,90 +252,22 @@ export default class ScreenshotCommand {
     }
 
     const extension = path.extname(filePath).slice(1).toLowerCase();
-    const allowed = new Set(['jpeg', 'jpg', 'png', 'gif']);
 
-    if (!allowed.has(extension)) {
+    if (!ALLOWED_IMAGE_EXTENSIONS.has(extension)) {
       throw new CliError('Wrong format of the file. Supported formats: jpeg, jpg, png, gif');
     }
   }
 
-  private async updateScreenshot(
-    screenshotService: ScreenshotService,
-    screenshotId: number,
-    imageName: string,
-    storageId: number,
-    autoTag: boolean,
-    branchId?: number,
-    fileId?: number,
-    directoryId?: number,
-  ): Promise<void> {
-    const request: ScreenshotsModel.UpdateScreenshotRequest = { name: imageName, storageId };
+  private takeFirstFileId(originalPath: string) {
+    return (resolved: { fileIds: number[]; missingPaths: string[] }): number => {
+      const [fileId] = resolved.fileIds;
 
-    await screenshotService.update(screenshotId, request);
+      if (fileId === undefined) {
+        throw new CliError(`Project doesn't contain the '${originalPath}' file`);
+      }
 
-    if (autoTag) {
-      const autoTagRequest: ScreenshotsModel.AutoTagRequest = {
-        autoTag: true,
-        ...(branchId !== undefined ? { branchId } : {}),
-        ...(fileId !== undefined ? { fileId } : {}),
-        ...(directoryId !== undefined ? { directoryId } : {}),
-      };
-
-      await screenshotService.replaceTags(screenshotId, autoTagRequest);
-    }
-  }
-
-  private resolveFileId(filePath: string, files: Array<{ data: { path: string; id: number } }>): number {
-    const normalizedFilePath = this.normalizePath(filePath);
-    const file = files.find((entry) => this.normalizePath(entry.data.path) === normalizedFilePath);
-
-    if (!file) {
-      throw new CliError(`Project doesn't contain the '${filePath}' file`);
-    }
-
-    return file.data.id;
-  }
-
-  private resolveDirectoryId(
-    directoryPath: string,
-    directories: Array<{ data: { path: string; id: number } }>,
-  ): number {
-    const normalizedDirectoryPath = this.normalizePath(directoryPath);
-    const directory = directories.find((entry) => this.normalizePath(entry.data.path) === normalizedDirectoryPath);
-
-    if (!directory) {
-      throw new CliError(`Project doesn't contain the '${directoryPath}' directory`);
-    }
-
-    return directory.data.id;
-  }
-
-  private normalizePath(value: string): string {
-    const normalizedValue = value.replaceAll('\\', '/').replace(/^\/+/, '');
-
-    return `/${normalizedValue}`;
-  }
-
-  private parseNumericId(idArg: string | undefined): number {
-    if (!idArg) {
-      throw new CliError('Screenshot id can not be empty');
-    }
-
-    const id = Number(idArg);
-
-    if (Number.isNaN(id)) {
-      throw new CliError('Screenshot id must be numeric');
-    }
-
-    return id;
-  }
-
-  private toArray(value?: string | string[]): string[] {
-    if (value === undefined || value === '') {
-      return [];
-    }
-
-    return Array.isArray(value) ? value : [value];
+      return fileId;
+    };
   }
 
   private toRow(screenshot: ScreenshotView): Record<string, unknown> {

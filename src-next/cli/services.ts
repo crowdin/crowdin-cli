@@ -3,6 +3,7 @@ import type { Command } from 'commander';
 import { AppService } from '@/cli/services/AppService.ts';
 import { BundleService } from '@/cli/services/BundleService.ts';
 import { CommentService } from '@/cli/services/CommentService.ts';
+import { DistributionService } from '@/cli/services/DistributionService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { ScreenshotService } from '@/cli/services/ScreenshotService.ts';
 import { StorageService } from '@/cli/services/StorageService.ts';
@@ -16,6 +17,7 @@ export type GetApiClient = (command: Command) => Promise<Client>;
 export type GetConfig = (command: Command) => Promise<Config>;
 export type GetOutput = (command: Command) => Output;
 export type GetCommentService = (command: Command) => Promise<CommentService>;
+export type GetDistributionService = (command: Command) => Promise<DistributionService>;
 export type GetProjectService = (command: Command) => Promise<ProjectService>;
 export type GetStorageService = (command: Command) => Promise<StorageService>;
 export type GetStringService = (command: Command) => Promise<StringService>;
@@ -161,6 +163,22 @@ export function createGetScreenshotService(getApiClient: GetApiClient, getConfig
     const apiClient = await getApiClient(command);
     const config = await getConfig(command);
     cachedService = new ScreenshotService(apiClient, config.projectId);
+
+    return cachedService;
+  };
+}
+
+export function createGetDistributionService(getApiClient: GetApiClient, getConfig: GetConfig) {
+  let cachedService: DistributionService | undefined;
+
+  return async (command: Command): Promise<DistributionService> => {
+    if (cachedService) {
+      return cachedService;
+    }
+
+    const apiClient = await getApiClient(command);
+    const config = await getConfig(command);
+    cachedService = new DistributionService(apiClient, config.projectId);
 
     return cachedService;
   };

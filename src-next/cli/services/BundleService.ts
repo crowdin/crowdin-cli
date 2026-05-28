@@ -1,4 +1,4 @@
-import type { BundlesModel, Client } from '@crowdin/crowdin-api-client';
+import { type BundlesModel, type Client, CrowdinError } from '@crowdin/crowdin-api-client';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 
 export type BundleView = BundlesModel.Bundle & {
@@ -36,7 +36,7 @@ export class BundleService {
       const response = await this.client.bundlesApi.getBundle(this.projectId, bundleId);
       return response.data;
     } catch (error) {
-      if (this.isNotFoundError(error)) {
+      if (error instanceof CrowdinError && Number(error.code) === 404) {
         return null;
       }
 
@@ -64,21 +64,5 @@ export class BundleService {
     }
 
     throw new CliError(`Bundle #${bundleId} URL is unavailable`);
-  }
-
-  private isNotFoundError(error: unknown): boolean {
-    if (error && typeof error === 'object') {
-      const maybeError = error as { statusCode?: number; status?: number; code?: string; message?: string };
-
-      if (maybeError.statusCode === 404 || maybeError.status === 404 || maybeError.code === 'NotFound') {
-        return true;
-      }
-    }
-
-    if (error instanceof Error) {
-      return error.message.toLowerCase().includes('not found');
-    }
-
-    return false;
   }
 }

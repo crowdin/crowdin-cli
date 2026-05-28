@@ -1,3 +1,4 @@
+import type { LanguagesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -20,22 +21,7 @@ interface LanguageCommandOptions extends GlobalOptions {
   all?: boolean;
 }
 
-interface LanguageData {
-  id: string;
-  name?: string;
-  locale?: string;
-  twoLettersCode?: string;
-  threeLettersCode?: string;
-  androidCode?: string;
-  osxCode?: string;
-  osxLocale?: string;
-}
-
-interface ProjectData {
-  targetLanguages?: LanguageData[];
-  languageMapping?: Record<string, Record<string, string>>;
-  managerAccess?: boolean;
-}
+type LanguageMapping = Record<string, Record<string, string>>;
 
 export default class LanguageCommand {
   constructor(
@@ -69,9 +55,13 @@ export default class LanguageCommand {
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
     const apiClient = await this.getApiClient(command);
-    const selectedCode = options.code ?? 'id';
+    const codeFormat = options.code ?? 'id';
     const project = await projectService.loadProject();
-    const projectData = project.data as ProjectData;
+    const projectData = project.data as {
+      targetLanguages?: LanguagesModel.Language[];
+      languageMapping?: LanguageMapping;
+      managerAccess?: boolean;
+    };
 
     // TODO: This options does not look right
     if (projectData.managerAccess === false) {
@@ -85,12 +75,12 @@ export default class LanguageCommand {
       throw new CliError(message);
     }
 
-    let languages: LanguageData[];
+    let languages: LanguagesModel.Language[];
 
     if (options.all) {
       try {
         const response = await apiClient.languagesApi.listSupportedLanguages({ offset: 500 });
-        languages = response.data.map((entry) => entry.data as LanguageData);
+        languages = response.data.map((entry) => entry.data);
       } catch (error) {
         throw toCliError(error, 'Failed to list supported languages');
       }
@@ -100,39 +90,33 @@ export default class LanguageCommand {
 
     output.table(
       languages.map((language) => ({
-        code: this.getCode(projectData.languageMapping, language, selectedCode),
+        code: this.getCode(projectData.languageMapping, language, codeFormat),
         name: language.name ?? '',
       })),
     );
   };
 
   private getCode(
-    languageMapping: ProjectData['languageMapping'],
-    language: LanguageData,
-    codeType: LanguageCodeFormat,
+    languageMapping: LanguageMapping | undefined,
+    language: LanguagesModel.Language,
+    codeFormat: LanguageCodeFormat,
   ): string {
-    const mappedCode = languageMapping?.[language.id]?.[codeType];
+    const mappedCode = languageMapping?.[language.id]?.[codeFormat];
 
     if (mappedCode) {
       return mappedCode;
     }
 
-    switch (codeType) {
-      case 'two_letters_code':
-        return language.twoLettersCode ?? language.id;
-      case 'three_letters_code':
-        return language.threeLettersCode ?? language.id;
-      case 'locale':
-        return language.locale ?? language.id;
-      case 'android_code':
-        return language.androidCode ?? language.id;
-      case 'osx_code':
-        return language.osxCode ?? language.id;
-      case 'osx_locale':
-        return language.osxLocale ?? language.id;
-      case 'id':
-      default:
-        return language.id;
-    }
+    const codes: Record<LanguageCodeFormat, string | undefined> = {
+      id: language.id,
+      two_letters_code: language.twoLettersCode,
+      three_letters_code: language.threeLettersCode,
+      locale: language.locale,
+      android_code: language.androidCode,
+      osx_code: language.osxCode,
+      osx_locale: language.osxLocale,
+    };
+
+    return codes[codeFormat] ?? language.id;
   }
 }

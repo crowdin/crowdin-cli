@@ -336,16 +336,14 @@ describe('CommentCommand', () => {
       const cmd = createCommentCommand();
       const commandContext = createCommandContext(globalOptions, []);
 
-      expect(cmd.resolveAction(commandContext)).rejects.toThrow(
-        new CliError('Numeric ID of the string comment is required'),
-      );
+      expect(cmd.resolveAction(commandContext)).rejects.toThrow(new CliError('Comment id can not be empty'));
     });
 
     test('throws when id is not a number', async () => {
       const cmd = createCommentCommand();
       const commandContext = createCommandContext(globalOptions, ['abc']);
 
-      expect(cmd.resolveAction(commandContext)).rejects.toThrow(new CliError('Invalid comment ID: must be a number'));
+      expect(cmd.resolveAction(commandContext)).rejects.toThrow(new CliError('Comment id must be numeric'));
     });
 
     test('propagates service errors', async () => {

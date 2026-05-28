@@ -2,8 +2,9 @@ import type { PatchRequest, SourceStringsModel } from '@crowdin/crowdin-api-clie
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetOutput, GetStringService } from '@/cli/services.ts';
+import type { GetOutput, GetProjectService, GetStringService } from '@/cli/services.ts';
 import type { CommandDef, OptionDef } from '@/cli/types.ts';
+import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import branch from '../upload/options/branch.ts';
 
 const identifierOption: OptionDef = {
@@ -110,6 +111,8 @@ const textOption: OptionDef = {
   description: 'Set new string text',
 };
 
+const PLURAL_KEYS = ['one', 'two', 'few', 'many', 'zero'] as const;
+
 interface ListOptions extends GlobalOptions {
   file?: string | string[];
   filter?: string;
@@ -148,6 +151,7 @@ export default class StringCommand {
   constructor(
     private getOutput: GetOutput,
     private getStringService: GetStringService,
+    private getProjectService: GetProjectService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -228,26 +232,27 @@ export default class StringCommand {
 
   listAction = async (command: Command) => {
     const options = command.optsWithGlobals() as ListOptions;
-    const output = this.getOutput(command);
-    const stringService = await this.getStringService(command);
-    const filePath = this.getSingleValue(options.file);
-    const labelNames = this.toArray(options.label);
+    const filePath = Array.isArray(options.file) ? options.file[0] : options.file;
+    const labelNames = toArray(options.label);
     const directory = options.directory;
 
     if (filePath && directory) {
       throw new CliError("The '--file' and '--directory' options can't be used together");
     }
 
-    const isStringsBasedProject = await stringService.isStringsBasedProject();
+    const output = this.getOutput(command);
+    const stringService = await this.getStringService(command);
+    const projectService = await this.getProjectService(command);
+    const isStringsBased = await stringService.isStringsBasedProject();
 
-    if (isStringsBasedProject && (filePath || directory)) {
+    if (isStringsBased && (filePath || directory)) {
       throw new CliError("The '--file' and '--directory' options are not supported for string-based projects");
     }
 
-    const branchId = await stringService.resolveBranchId(options.branch, false);
-    const directoryId = await stringService.resolveDirectoryId(directory, branchId);
-    const labelIds = await stringService.resolveLabelIds(labelNames, false);
-    const listFileId = filePath ? await this.resolveListFileId(stringService, filePath, branchId) : undefined;
+    const branchId = await projectService.branch.resolveBranchId(options.branch);
+    const directoryId = await projectService.directory.resolveDirectoryId(directory, branchId);
+    const labelIds = await projectService.label.resolveLabelIds(labelNames, false);
+    const listFileId = filePath ? await this.resolveSingleFileId(projectService, filePath, branchId) : undefined;
     const strings = await stringService.list({
       ...(listFileId !== undefined ? { fileId: listFileId } : {}),
       ...(branchId !== undefined ? { branchId } : {}),
@@ -264,10 +269,11 @@ export default class StringCommand {
     }
 
     if (options.verbose) {
-      const labelsMap = await stringService.listLabelsMap();
-      const filePaths = !isStringsBasedProject
-        ? await stringService.listProjectFilePaths(branchId)
+      const labelsMap = await projectService.label.listLabelsMap();
+      const filePaths = !isStringsBased
+        ? await projectService.file.listProjectFilePaths(branchId)
         : new Map<number, string>();
+
       output.table(
         strings.map((entry) => ({
           id: entry.id,
@@ -275,7 +281,7 @@ export default class StringCommand {
           text: this.extractText(entry),
           file: entry.fileId !== undefined ? (filePaths.get(entry.fileId) ?? '') : '',
           labels: (entry.labelIds ?? [])
-            .map((id: number) => labelsMap.get(id))
+            .map((id) => labelsMap.get(id))
             .filter(Boolean)
             .join(', '),
           context: entry.context ?? '',
@@ -294,12 +300,8 @@ export default class StringCommand {
   };
 
   addAction = async (command: Command) => {
-    const options = command.optsWithGlobals() as AddOptions;
     const [text] = command.args;
-    const output = this.getOutput(command);
-    const stringService = await this.getStringService(command);
-    const files = this.toArray(options.file);
-    const labels = this.toArray(options.label);
+    const options = command.optsWithGlobals() as AddOptions;
 
     if (!text) {
       throw new CliError('Source string text can not be empty');
@@ -309,27 +311,32 @@ export default class StringCommand {
       throw new CliError("'--max-length' cannot be lower than 0");
     }
 
-    const isStringsBasedProject = await stringService.isStringsBasedProject();
-    const labelIds = await stringService.resolveLabelIds(labels, true);
-    const isPluralString = this.isPlural(options);
+    const output = this.getOutput(command);
+    const stringService = await this.getStringService(command);
+    const projectService = await this.getProjectService(command);
+    const files = toArray(options.file);
+    const labels = toArray(options.label);
+    const isStringsBased = await stringService.isStringsBasedProject();
+    const labelIds = await projectService.label.resolveLabelIds(labels);
+    const isPlural = PLURAL_KEYS.some((key) => options[key] !== undefined);
+    const requestText = isPlural ? this.buildPluralText(options) : text;
 
-    if (isStringsBasedProject) {
+    if (isStringsBased) {
       if (files.length > 0) {
         throw new CliError("The '--file' option is not supported for string-based projects");
       }
 
-      const branchId = await stringService.resolveBranchId(options.branch, true);
+      const branchId = await projectService.branch.resolveBranchId(options.branch, true);
 
       if (branchId === undefined) {
         throw new CliError("The '--branch' option is required for string-based projects");
       }
 
-      const request = this.buildStringsBasedAddRequest(text, options, labelIds, branchId);
-      const result = isPluralString
-        ? await stringService.addPluralStringsBased(request)
-        : await stringService.addStringsBased(request);
+      const added = await stringService.add(
+        this.buildStringsBasedRequest(requestText, text, options, labelIds, branchId),
+      );
 
-      output.table([{ id: result.id, identifier: result.identifier ?? '', text: this.extractText(result) }]);
+      output.table([{ id: added.id, identifier: added.identifier ?? '', text: this.extractText(added) }]);
       return;
     }
 
@@ -337,22 +344,21 @@ export default class StringCommand {
       throw new CliError("The '--file' value can not be empty");
     }
 
-    const branchId = await stringService.resolveBranchId(options.branch, false);
-    const resolvedFiles = await stringService.resolveFileIds(files, branchId);
+    const branchId = await projectService.branch.resolveBranchId(options.branch);
+    const resolved = await projectService.file.resolveFileIds(files, branchId);
 
-    for (const missingPath of resolvedFiles.missingPaths) {
-      output.warning(`Project doesn't contain the '${missingPath}' file`);
+    for (const missing of resolved.missingPaths) {
+      output.warning(`Project doesn't contain the '${missing}' file`);
     }
 
-    if (resolvedFiles.fileIds.length === 0) {
+    if (resolved.fileIds.length === 0) {
       throw new CliError('No valid file specified for the string. At least one valid file is required');
     }
 
     const result: Array<{ id: number; identifier: string; text: string }> = [];
 
-    for (const fileId of resolvedFiles.fileIds) {
-      const request = this.buildFileBasedAddRequest(text, options, labelIds, fileId);
-      const added = isPluralString ? await stringService.addPlural(request) : await stringService.add(request);
+    for (const fileId of resolved.fileIds) {
+      const added = await stringService.add(this.buildFileBasedRequest(requestText, options, labelIds, fileId));
 
       result.push({
         id: added.id,
@@ -365,13 +371,11 @@ export default class StringCommand {
   };
 
   editAction = async (command: Command) => {
-    const options = command.optsWithGlobals() as EditOptions;
     const [idArg] = command.args;
-    const output = this.getOutput(command);
-    const stringService = await this.getStringService(command);
-    const id = this.parseNumericId(idArg, 'Source string id can not be empty');
-    const labelNames = this.toArray(options.label);
-    const hasAnyPatch =
+    const id = parseNumericId(idArg, 'Source string');
+    const options = command.optsWithGlobals() as EditOptions;
+    const labelNames = toArray(options.label);
+    const hasPatch =
       options.text !== undefined ||
       options.context !== undefined ||
       options.maxLength !== undefined ||
@@ -379,7 +383,7 @@ export default class StringCommand {
       options.identifier !== undefined ||
       labelNames.length > 0;
 
-    if (!hasAnyPatch) {
+    if (!hasPatch) {
       throw new CliError('No fields to update. Specify at least one option to edit');
     }
 
@@ -387,7 +391,10 @@ export default class StringCommand {
       throw new CliError("'--max-length' cannot be lower than 0");
     }
 
-    const labelIds = await stringService.resolveLabelIds(labelNames, true);
+    const output = this.getOutput(command);
+    const stringService = await this.getStringService(command);
+    const projectService = await this.getProjectService(command);
+    const labelIds = await projectService.label.resolveLabelIds(labelNames);
     const patch = this.buildEditPatch(options, labelIds);
     const updated = await stringService.edit(id, patch);
 
@@ -397,19 +404,20 @@ export default class StringCommand {
 
   deleteAction = async (command: Command) => {
     const [idArg] = command.args;
+    const id = parseNumericId(idArg, 'Source string');
     const output = this.getOutput(command);
     const stringService = await this.getStringService(command);
-    const id = this.parseNumericId(idArg, 'Source string id can not be empty');
+
     await stringService.delete(id);
     output.success(`Source string #${id} deleted`);
   };
 
-  private async resolveListFileId(
-    stringService: Awaited<ReturnType<GetStringService>>,
+  private async resolveSingleFileId(
+    projectService: Awaited<ReturnType<GetProjectService>>,
     filePath: string,
     branchId?: number,
   ): Promise<number> {
-    const resolved = await stringService.resolveFileIds([filePath], branchId);
+    const resolved = await projectService.file.resolveFileIds([filePath], branchId);
     const [fileId] = resolved.fileIds;
 
     if (!fileId) {
@@ -419,29 +427,14 @@ export default class StringCommand {
     return fileId;
   }
 
-  private parseNumericId(idArg: string | undefined, emptyMessage: string): number {
-    if (!idArg) {
-      throw new CliError(emptyMessage);
-    }
-
-    const id = Number(idArg);
-
-    if (Number.isNaN(id)) {
-      throw new CliError('Source string id must be numeric');
-    }
-
-    return id;
-  }
-
-  private buildFileBasedAddRequest(
-    text: string,
+  private buildFileBasedRequest(
+    text: string | SourceStringsModel.PluralText,
     options: AddOptions,
     labelIds: number[] | undefined,
     fileId: number,
   ): SourceStringsModel.CreateStringRequest {
-    const requestText = this.isPlural(options) ? this.buildPluralText(options) : text;
-    const request: SourceStringsModel.CreateStringRequest = {
-      text: requestText,
+    return {
+      text,
       fileId,
       ...(options.identifier ? { identifier: options.identifier } : {}),
       ...(options.maxLength !== undefined ? { maxLength: options.maxLength } : {}),
@@ -449,28 +442,24 @@ export default class StringCommand {
       ...(options.hidden !== undefined ? { isHidden: options.hidden } : {}),
       ...(labelIds && labelIds.length > 0 ? { labelIds } : {}),
     };
-
-    return request;
   }
 
-  private buildStringsBasedAddRequest(
-    text: string,
+  private buildStringsBasedRequest(
+    text: string | SourceStringsModel.PluralText,
+    fallbackIdentifier: string,
     options: AddOptions,
     labelIds: number[] | undefined,
     branchId: number,
   ): SourceStringsModel.CreateStringStringsBasedRequest {
-    const requestText = this.isPlural(options) ? this.buildPluralText(options) : text;
-    const request: SourceStringsModel.CreateStringStringsBasedRequest = {
-      text: requestText,
+    return {
+      text,
       branchId,
-      identifier: options.identifier ?? text,
+      identifier: options.identifier ?? fallbackIdentifier,
       ...(options.maxLength !== undefined ? { maxLength: options.maxLength } : {}),
       ...(options.context ? { context: options.context } : {}),
       ...(options.hidden !== undefined ? { isHidden: options.hidden } : {}),
       ...(labelIds && labelIds.length > 0 ? { labelIds } : {}),
     };
-
-    return request;
   }
 
   private buildEditPatch(options: EditOptions, labelIds: number[] | undefined): PatchRequest[] {
@@ -503,40 +492,18 @@ export default class StringCommand {
     return patch;
   }
 
-  private isPlural(options: AddOptions): boolean {
-    return (
-      options.one !== undefined ||
-      options.two !== undefined ||
-      options.few !== undefined ||
-      options.many !== undefined ||
-      options.zero !== undefined
-    );
-  }
-
   private buildPluralText(options: AddOptions): SourceStringsModel.PluralText {
-    return {
-      ...(options.one !== undefined ? { one: options.one } : {}),
-      ...(options.two !== undefined ? { two: options.two } : {}),
-      ...(options.few !== undefined ? { few: options.few } : {}),
-      ...(options.many !== undefined ? { many: options.many } : {}),
-      ...(options.zero !== undefined ? { zero: options.zero } : {}),
-    };
-  }
+    const plural: SourceStringsModel.PluralText = {};
 
-  private toArray(value: string | string[] | undefined): string[] {
-    if (value === undefined || value === '') {
-      return [];
+    for (const key of PLURAL_KEYS) {
+      const value = options[key];
+
+      if (value !== undefined) {
+        plural[key] = value;
+      }
     }
 
-    return Array.isArray(value) ? value : [value];
-  }
-
-  private getSingleValue(value: string | string[] | undefined): string | undefined {
-    if (value === undefined) {
-      return undefined;
-    }
-
-    return Array.isArray(value) ? value[0] : value;
+    return plural;
   }
 
   private extractText(entry: SourceStringsModel.String): string {

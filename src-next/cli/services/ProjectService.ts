@@ -1,6 +1,7 @@
 import type { Client, TranslationsModel } from '@crowdin/crowdin-api-client';
 import CliError, { toCliError } from '../errors/CliError.ts';
 import type { Output } from '../utils/output.ts';
+import { normalizePath } from '../utils/parsing.ts';
 
 export class ProjectService {
   constructor(
@@ -84,10 +85,36 @@ export class ProjectService {
         throw toCliError(error, `Failed to delete ${projectFilePath}`);
       }
     },
+    resolveFileIds: async (
+      rawPaths: string[],
+      branchId?: number,
+    ): Promise<{ fileIds: number[]; missingPaths: string[] }> => {
+      const fileIdsByPath = await this.loadFileIdsByPath(branchId);
+      const fileIds: number[] = [];
+      const missingPaths: string[] = [];
+
+      for (const rawPath of rawPaths) {
+        const fileId = fileIdsByPath.get(normalizePath(rawPath));
+
+        if (fileId === undefined) {
+          missingPaths.push(rawPath);
+          continue;
+        }
+
+        fileIds.push(fileId);
+      }
+
+      return { fileIds: Array.from(new Set(fileIds)), missingPaths };
+    },
+    listProjectFilePaths: async (branchId?: number): Promise<Map<number, string>> => {
+      const files = await this.fetchProjectFiles(branchId);
+
+      return new Map(files.map((file) => [file.id, normalizePath(file.path)]));
+    },
   };
 
   label = {
-    resolveLabelIds: async (titles: string[]) => {
+    resolveLabelIds: async (titles: string[], createMissing: boolean = true): Promise<number[] | undefined> => {
       if (titles.length === 0) {
         return undefined;
       }
@@ -100,18 +127,29 @@ export class ProjectService {
         for (const title of titles) {
           let labelId = labelIdsByTitle.get(title);
 
-          if (labelId === undefined) {
+          if (labelId === undefined && createMissing) {
             const label = await this.apiClient.labelsApi.addLabel(this.projectId, { title });
             labelId = label.data.id;
             labelIdsByTitle.set(title, labelId);
           }
 
-          labelIds.push(labelId);
+          if (labelId !== undefined) {
+            labelIds.push(labelId);
+          }
         }
 
         return labelIds;
       } catch (error) {
         throw toCliError(error, 'Failed to resolve labels');
+      }
+    },
+    listLabelsMap: async (): Promise<Map<number, string>> => {
+      try {
+        const response = await this.apiClient.labelsApi.listLabels(this.projectId);
+
+        return new Map(response.data.map((entry) => [entry.data.id, entry.data.title]));
+      } catch (error) {
+        throw toCliError(error, 'Failed to fetch labels');
       }
     },
   };
@@ -143,6 +181,21 @@ export class ProjectService {
       } catch (error) {
         throw toCliError(error, `Failed to delete directory ${directoryPath}`);
       }
+    },
+    resolveDirectoryId: async (directoryPath: string | undefined, branchId?: number): Promise<number | undefined> => {
+      if (!directoryPath) {
+        return undefined;
+      }
+
+      const expectedPath = normalizePath(directoryPath);
+      const directories = await this.directory.loadProjectDirectories(branchId);
+      const directory = directories.find((entry) => normalizePath(entry.data.path) === expectedPath);
+
+      if (!directory) {
+        throw new CliError(`Project doesn't contain the '${directoryPath}' directory`);
+      }
+
+      return directory.data.id;
     },
   };
 
@@ -176,6 +229,19 @@ export class ProjectService {
       } catch (error) {
         throw toCliError(error, `Failed to resolve branch ${name}`);
       }
+    },
+    resolveBranchId: async (name: string | undefined, createMissing: boolean = false): Promise<number | undefined> => {
+      const branch = createMissing ? await this.branch.getOrCreateBranch(name) : await this.branch.getBranch(name);
+
+      if (!name || name === 'none') {
+        return undefined;
+      }
+
+      if (!branch) {
+        throw new CliError(`Project doesn't contain the '${name}' branch`);
+      }
+
+      return branch.id;
     },
   };
 
@@ -296,6 +362,25 @@ export class ProjectService {
     } catch (error) {
       throw toCliError(error, `Failed to fetch branches for project ${this.projectId}`);
     }
+  }
+
+  private async fetchProjectFiles(branchId?: number): Promise<Array<{ id: number; path: string }>> {
+    try {
+      const response = await this.apiClient.sourceFilesApi.listProjectFiles(this.projectId, {
+        ...(branchId !== undefined ? { branchId } : {}),
+        limit: 500,
+      });
+
+      return response.data.map((entry) => ({ id: entry.data.id, path: entry.data.path }));
+    } catch (error) {
+      throw toCliError(error, 'Failed to fetch project files');
+    }
+  }
+
+  private async loadFileIdsByPath(branchId?: number): Promise<Map<string, number>> {
+    const files = await this.fetchProjectFiles(branchId);
+
+    return new Map(files.map((file) => [normalizePath(file.path), file.id]));
   }
 
   private getErrorMessage(prefix: string, error: unknown): string {

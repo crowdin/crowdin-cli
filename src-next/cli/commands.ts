@@ -20,6 +20,7 @@ import {
   createGetAppService,
   createGetBundleService,
   createGetCommentService,
+  createGetDistributionService,
   createGetProjectService,
   createGetScreenshotService,
   createGetStorageService,
@@ -34,6 +35,7 @@ const getApiClient = createGetApiClient(getConfig);
 const getCommentService = createGetCommentService(getApiClient, getConfig);
 const getAppService = createGetAppService(getApiClient);
 const getBundleService = createGetBundleService(getApiClient, getConfig);
+const getDistributionService = createGetDistributionService(getApiClient, getConfig);
 const getProjectService = createGetProjectService(getApiClient, getOutput, getConfig);
 const getScreenshotService = createGetScreenshotService(getApiClient, getConfig);
 const getStorageService = createGetStorageService(getApiClient);
@@ -47,13 +49,13 @@ const screenshotCommand = new ScreenshotCommand(getOutput, getScreenshotService,
 const initCommand = new InitCommand(getOutput);
 const configCommand = new ConfigCommand(getConfig, getOutput, getProjectService);
 const downloadCommand = new DownloadCommand(getConfig, getOutput, getProjectService, getApiClient);
-const distributionCommand = new DistributionCommand(getOutput, getProjectService, getApiClient);
+const distributionCommand = new DistributionCommand(getOutput, getDistributionService);
 const fileCommand = new FileCommand(getConfig, getOutput, getProjectService, getStorageService, getApiClient);
 const languageCommand = new LanguageCommand(getOutput, getProjectService, getApiClient);
 const projectCommand = new ProjectCommand(getOutput, getProjectService, getApiClient);
 const statusCommand = new StatusCommand(getOutput, getProjectService);
-const stringCommand = new StringCommand(getOutput, getStringService);
-const taskCommand = new TaskCommand(getOutput, getTaskService, getApiClient);
+const stringCommand = new StringCommand(getOutput, getStringService, getProjectService);
+const taskCommand = new TaskCommand(getOutput, getTaskService, getProjectService, getApiClient);
 const uploadCommand = new UploadCommand(getConfig, getOutput, getProjectService, getStorageService, getApiClient);
 
 export const commands: CommandDef[] = [
