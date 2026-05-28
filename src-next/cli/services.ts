@@ -1,5 +1,6 @@
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { AppService } from '@/cli/services/AppService.ts';
 import { BundleService } from '@/cli/services/BundleService.ts';
 import { CommentService } from '@/cli/services/CommentService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
@@ -19,6 +20,7 @@ export type GetStorageService = (command: Command) => Promise<StorageService>;
 export type GetStringService = (command: Command) => Promise<StringService>;
 export type GetTaskService = (command: Command) => Promise<TaskService>;
 export type GetBundleService = (command: Command) => Promise<BundleService>;
+export type GetAppService = (command: Command) => Promise<AppService>;
 
 export function createGetApiClient(getConfig: GetConfig) {
   let cachedClient: Client | undefined;
@@ -126,6 +128,21 @@ export function createGetBundleService(getApiClient: GetApiClient, getConfig: Ge
     const apiClient = await getApiClient(command);
     const config = await getConfig(command);
     cachedService = new BundleService(apiClient, config.projectId);
+
+    return cachedService;
+  };
+}
+
+export function createGetAppService(getApiClient: GetApiClient) {
+  let cachedService: AppService | undefined;
+
+  return async (command: Command): Promise<AppService> => {
+    if (cachedService) {
+      return cachedService;
+    }
+
+    const apiClient = await getApiClient(command);
+    cachedService = new AppService(apiClient);
 
     return cachedService;
   };

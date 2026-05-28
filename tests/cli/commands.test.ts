@@ -8,6 +8,7 @@ describe('command registry', () => {
     expect(names).toEqual([
       'upload',
       'download',
+      'app',
       'bundle',
       'init',
       'status',
@@ -19,7 +20,6 @@ describe('command registry', () => {
       'config',
       'project',
       'distribution',
-      'test',
     ]);
     expect(new Set(names).size).toBe(names.length);
   });
