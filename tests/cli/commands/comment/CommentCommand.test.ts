@@ -146,11 +146,28 @@ describe('CommentCommand', () => {
       expect(cmd.addAction(commandContext)).rejects.toThrow(new CliError("The '--string-id' option is required"));
     });
 
-    test('throws when --language is missing', async () => {
+    test('adds a comment without --language', async () => {
       const cmd = createCommentCommand();
-      const commandContext = createCommandContext({ ...globalOptions, stringId: '1' }, ['text']);
+      const commandContext = createCommandContext({ ...globalOptions, stringId: '42', type: 'comment' }, ['No lang']);
+      const addSpy = spyOn(commentService, 'add').mockResolvedValue({ id: 11, text: 'No lang' } as never);
 
-      expect(cmd.addAction(commandContext)).rejects.toThrow(new CliError("The '--language' option is required"));
+      await cmd.addAction(commandContext);
+
+      expect(addSpy).toHaveBeenCalledWith({
+        text: 'No lang',
+        stringId: 42,
+        type: 'comment',
+      });
+      expect(addSpy.mock.calls[0]![0]).not.toHaveProperty('targetLanguageId');
+    });
+
+    test('throws when --language is missing for --type=issue', async () => {
+      const cmd = createCommentCommand();
+      const commandContext = createCommandContext({ ...globalOptions, stringId: '1', type: 'issue' }, ['text']);
+
+      expect(cmd.addAction(commandContext)).rejects.toThrow(
+        new CliError("The '--language' option is required when --type=issue"),
+      );
     });
 
     test('throws when issue-type is provided for comment type', async () => {
@@ -178,6 +195,20 @@ describe('CommentCommand', () => {
       spyOn(commentService, 'add').mockRejectedValue(new CliError('Comment was not added'));
 
       expect(cmd.addAction(commandContext)).rejects.toThrow(new CliError('Comment was not added'));
+    });
+
+    test('omits targetLanguageId from service payload when --language is not provided', async () => {
+      const cmd = createCommentCommand();
+      const commandContext = createCommandContext({ ...globalOptions, stringId: '8' }, ['no-lang']);
+
+      const addSpy = spyOn(apiClient.stringCommentsApi, 'addStringComment').mockResolvedValue({
+        data: { id: 1, text: 'no-lang' },
+      } as never);
+
+      await cmd.addAction(commandContext);
+
+      const payload = addSpy.mock.calls[0]![1];
+      expect(payload).not.toHaveProperty('targetLanguageId');
     });
   });
 

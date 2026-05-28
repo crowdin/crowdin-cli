@@ -1,5 +1,5 @@
 ---
-name: live-cli-command-validation
+name: live-crowdin-cli-validation
 description: Validates CLI commands against live environments with safe setup and cleanup. Use when running `bun run dev ...` or equivalent against real services, validating subcommands in parallel, or diagnosing inconsistent results where some commands pass and others fail.
 ---
 

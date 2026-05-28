@@ -79,7 +79,7 @@ export default class LanguageCommand {
 
     if (options.all) {
       try {
-        const response = await apiClient.languagesApi.listSupportedLanguages({ offset: 500 });
+        const response = await apiClient.languagesApi.withFetchAll().listSupportedLanguages();
         languages = response.data.map((entry) => entry.data);
       } catch (error) {
         throw toCliError(error, 'Failed to list supported languages');

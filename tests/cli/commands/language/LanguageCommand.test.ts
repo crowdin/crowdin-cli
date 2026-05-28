@@ -105,17 +105,22 @@ describe('LanguageCommand', () => {
         managerAccess: true,
       },
     } as never);
-    const listSupportedLanguages = spyOn(apiClient.languagesApi, 'listSupportedLanguages').mockResolvedValue({
+    const listSupportedLanguages = mock().mockResolvedValue({
       data: [
         {
           data: { id: 'uk', name: 'Ukrainian', locale: 'uk-UA' },
         },
       ],
+    });
+    const withFetchAll = spyOn(apiClient.languagesApi, 'withFetchAll').mockReturnValue({
+      listSupportedLanguages,
     } as never);
 
     await languageCommand.listAction(commandContext);
 
+    expect(withFetchAll).toHaveBeenCalledTimes(1);
     expect(listSupportedLanguages).toHaveBeenCalledTimes(1);
+    expect(listSupportedLanguages).toHaveBeenCalledWith();
     expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ code: 'uk-UA', name: 'Ukrainian' }], null, 2));
   });
 
@@ -190,7 +195,9 @@ describe('LanguageCommand', () => {
         managerAccess: true,
       },
     } as never);
-    spyOn(apiClient.languagesApi, 'listSupportedLanguages').mockRejectedValue(new Error('network failure'));
+    spyOn(apiClient.languagesApi, 'withFetchAll').mockReturnValue({
+      listSupportedLanguages: mock().mockRejectedValue(new Error('network failure')),
+    } as never);
 
     expect(languageCommand.listAction(commandContext)).rejects.toThrow(
       new CliError('Failed to list supported languages. network failure'),

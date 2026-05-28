@@ -10,7 +10,7 @@ export class CommentService {
   async add(params: {
     text: string;
     stringId: number;
-    targetLanguageId: string;
+    targetLanguageId?: string;
     type: StringCommentsModel.Type;
     issueType?: StringCommentsModel.IssueType;
   }): Promise<StringCommentsModel.StringComment> {
@@ -18,10 +18,10 @@ export class CommentService {
       const response = await this.client.stringCommentsApi.addStringComment(this.projectId, {
         stringId: params.stringId,
         text: params.text,
-        targetLanguageId: params.targetLanguageId,
+        ...(params.targetLanguageId ? { targetLanguageId: params.targetLanguageId } : {}),
         type: params.type,
         ...(params.issueType ? { issueType: params.issueType } : {}),
-      });
+      } as StringCommentsModel.AddStringCommentRequest);
 
       return response.data;
     } catch (error) {

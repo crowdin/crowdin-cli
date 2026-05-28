@@ -86,12 +86,12 @@ export default class CommentCommand {
       throw new CliError("The '--string-id' option is required");
     }
 
-    if (!options.language) {
-      throw new CliError("The '--language' option is required");
-    }
-
     const type = (options.type ?? 'comment') as StringCommentsModel.Type;
     const issueTypeValue = options.issueType as StringCommentsModel.IssueType | undefined;
+
+    if (type === 'issue' && !options.language) {
+      throw new CliError("The '--language' option is required when --type=issue");
+    }
 
     if (type === 'comment' && issueTypeValue) {
       throw new CliError('Comment should not have the --issue-type parameter. It can only be used if --type=issue');
@@ -102,7 +102,7 @@ export default class CommentCommand {
     const comment = await commentService.add({
       text,
       stringId: Number(options.stringId),
-      targetLanguageId: options.language,
+      ...(options.language ? { targetLanguageId: options.language } : {}),
       type,
       ...(issueTypeValue ? { issueType: issueTypeValue } : {}),
     });
