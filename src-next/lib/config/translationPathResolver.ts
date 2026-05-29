@@ -1,4 +1,5 @@
 import path from 'node:path';
+import type { LanguagesModel } from '@crowdin/crowdin-api-client';
 import { type BunFile, Glob } from 'bun';
 import type { Config } from '../config.ts';
 import {
@@ -17,6 +18,7 @@ import {
   threeLettersCode,
   twoLettersCode,
 } from '../export/patterns.ts';
+import { toPosixPath } from '../utils/path.ts';
 
 export default class TranslationPathResolver {
   private config: Config;
@@ -34,7 +36,7 @@ export default class TranslationPathResolver {
     }
   }
 
-  resolve(file: BunFile, language: any): string {
+  resolve(file: BunFile, language: LanguagesModel.Language): string {
     const translationPattern = this.findExportPattern(file);
 
     return translationPattern.replaceAll(/%[a-z_]+%/gm, (match: string): string =>
@@ -55,8 +57,10 @@ export default class TranslationPathResolver {
         onlyFiles: true,
       });
 
-      for (const path of files) {
-        if (path === file.name) {
+      const normalizedFileName = file.name ? toPosixPath(file.name) : undefined;
+
+      for (const filePath of files) {
+        if (toPosixPath(filePath) === normalizedFileName) {
           return patterns.translation;
         }
       }
@@ -65,7 +69,7 @@ export default class TranslationPathResolver {
     throw new Error('Translation export pattern was not found');
   }
 
-  private getValueForExportPattern(exportPattern: string, file: BunFile, language: any): string {
+  private getValueForExportPattern(exportPattern: string, file: BunFile, language: LanguagesModel.Language): string {
     if (filePatterns.includes(exportPattern)) {
       if (exportPattern === fileExtension) {
         return path.parse(file.name!).ext.slice(1);

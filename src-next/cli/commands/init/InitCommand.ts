@@ -1,3 +1,4 @@
+import path from 'node:path';
 import { confirm, isCancel, select, text } from '@clack/prompts';
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
@@ -46,7 +47,7 @@ export default class InitCommand {
   defaultAction = async (command: Command) => {
     const options = command.optsWithGlobals() as InitCommandOptions;
     const output = this.getOutput(command);
-    const configFilePath = `${process.cwd()}/${options.destination}`;
+    const configFilePath = path.join(process.cwd(), options.destination);
 
     output.intro(`Generating Crowdin CLI configuration skeleton '${configFilePath}'`);
 

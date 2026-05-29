@@ -11,6 +11,7 @@ import type {
   GetProjectService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { toPosixPath } from '@/lib/utils/path.ts';
 import branch from '../upload/options/branch.ts';
 import directory from './options/directory.ts';
 import failIfIncompleteProofreading from './options/failIfIncompleteProofreading.ts';
@@ -183,7 +184,7 @@ export default class StatusCommand {
   }
 
   private normalizePath(value: string): string {
-    const normalizedValue = value.replaceAll('\\', '/');
+    const normalizedValue = toPosixPath(value);
 
     if (normalizedValue.startsWith('/')) {
       return normalizedValue;

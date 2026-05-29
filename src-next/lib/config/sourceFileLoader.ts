@@ -1,5 +1,6 @@
 import { Glob } from 'bun';
 import type { Config } from '../config.ts';
+import { toPosixPath } from '../utils/path.ts';
 
 export default class SourceFileLoader {
   private config: Config;
@@ -26,12 +27,11 @@ export default class SourceFileLoader {
     }
 
     const glob = new Glob(sourcePattern);
+    const files = glob.scanSync({
+      cwd: this.config.basePath,
+      onlyFiles: true,
+    });
 
-    return Array.from(
-      glob.scanSync({
-        cwd: this.config.basePath,
-        onlyFiles: true,
-      }),
-    ).sort();
+    return Array.from(files).map(toPosixPath).sort();
   }
 }

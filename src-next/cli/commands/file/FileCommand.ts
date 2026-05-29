@@ -12,6 +12,7 @@ import type {
   GetStorageService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { toPosixPath } from '@/lib/utils/path.ts';
 import destination from './options/destination.ts';
 import label from './options/label.ts';
 import parserVersion from './options/parserVersion.ts';
@@ -115,13 +116,14 @@ export default class FileCommand {
     const storageService = await this.getStorageService(command);
     const directoryService = await this.getDirectoryService(command);
     const fileService = await this.getFileService(command);
-    const destPath = options.dest || filePath;
     const fileType = options.type as SourceFilesModel.FileType | undefined;
     const parserVersion = options.parserVersion ? parseInt(options.parserVersion, 10) : undefined;
 
     if (!filePath) {
       throw new CliError('File path is required');
     }
+
+    const destPath = toPosixPath(options.dest || filePath);
 
     if (!destPath) {
       throw new CliError('Destination path is required');
@@ -172,26 +174,28 @@ export default class FileCommand {
 
   downloadAction = async (command: Command) => {
     const options = command.optsWithGlobals() as UploadFileCommandOptions;
-    const [filePath] = command.args;
+    const [rawFilePath] = command.args;
     const config = await this.getConfig(command);
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
     const fileService = await this.getFileService(command);
 
-    if (!filePath) {
+    if (!rawFilePath) {
       throw new CliError('File path is required');
     }
+
+    const filePath = toPosixPath(rawFilePath);
 
     await projectService.loadProject();
     const projectFiles = await fileService.loadProjectFiles();
 
     for (const projectFile of projectFiles.data) {
-      if (projectFile.data.path === `${filePath}`) {
+      if (projectFile.data.path === filePath) {
         const destPath = options.dest || filePath;
 
         try {
           const downloadUrl = await fileService.getSourceFileDownloadUrl(projectFile.data.id);
-          const fullFilePath = `${config.basePath}/${destPath}/${path.basename(filePath)}`;
+          const fullFilePath = path.join(config.basePath, destPath, path.basename(filePath));
           await Bun.file(fullFilePath).write(await fetch(downloadUrl));
         } catch (error) {
           throw toCliError(error, `Failed to download ${filePath}`);
@@ -206,14 +210,16 @@ export default class FileCommand {
   };
 
   deleteAction = async (command: Command) => {
-    const [filePath] = command.args;
+    const [rawFilePath] = command.args;
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
     const fileService = await this.getFileService(command);
 
-    if (!filePath) {
+    if (!rawFilePath) {
       throw new CliError('File path is required');
     }
+
+    const filePath = toPosixPath(rawFilePath);
 
     await projectService.loadProject();
     const projectFiles = await fileService.loadProjectFiles();

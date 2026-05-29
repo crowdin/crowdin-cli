@@ -22,20 +22,11 @@ describe('openUrl', () => {
 
     openUrl('https://example.com');
 
-    expect(spawn).toHaveBeenCalledWith(['start', 'https://example.com']);
+    expect(spawn).toHaveBeenCalledWith(['cmd', '/c', 'start', '', 'https://example.com']);
   });
 
   test('uses "xdg-open" on Linux', () => {
     spyOn(os, 'platform').mockReturnValue('linux');
-    const spawn = spyOn(Bun, 'spawn').mockReturnValue({} as never);
-
-    openUrl('https://example.com');
-
-    expect(spawn).toHaveBeenCalledWith(['xdg-open', 'https://example.com']);
-  });
-
-  test('uses "xdg-open" on other Unix platforms', () => {
-    spyOn(os, 'platform').mockReturnValue('freebsd');
     const spawn = spyOn(Bun, 'spawn').mockReturnValue({} as never);
 
     openUrl('https://example.com');

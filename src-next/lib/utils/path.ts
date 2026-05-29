@@ -1,0 +1,10 @@
+/**
+ * Converts backslash path separators to forward slashes.
+ *
+ * Crowdin project paths always use '/' regardless of OS. Use this whenever
+ * a path originates from the local filesystem (glob results, CLI arguments)
+ * and needs to be compared against or sent to the Crowdin API.
+ */
+export function toPosixPath(path: string): string {
+  return path.replaceAll('\\', '/');
+}

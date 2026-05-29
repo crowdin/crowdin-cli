@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { Command } from 'commander';
 import { ZodError, z } from 'zod';
 import CliError from '@/cli/errors/CliError.ts';
@@ -76,7 +77,7 @@ export default class ConfigCommand {
   lintAction = async (command: Command) => {
     const options = command.optsWithGlobals() as GlobalOptions;
     const output = this.getOutput(command);
-    const configPath = options.config || `${process.cwd()}/crowdin.yml`;
+    const configPath = options.config || path.join(process.cwd(), 'crowdin.yml');
 
     try {
       await loadFromFile(configPath);

@@ -1,3 +1,4 @@
+import path from 'node:path';
 import type { Command } from 'commander';
 import { loadFromFile } from '@/lib/config/yamlLoader.ts';
 import type { Config } from '@/lib/config.ts';
@@ -11,7 +12,7 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
   return async (command: Command): Promise<Config> => {
     const output = getOutput(command);
     const options = command.optsWithGlobals() as GlobalOptions & ConfigOptions;
-    const configPath = options.config || `${process.cwd()}/crowdin.yml`;
+    const configPath = options.config || path.join(process.cwd(), 'crowdin.yml');
 
     if (cachedConfig && cachedConfigPath === configPath) {
       return cachedConfig;

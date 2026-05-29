@@ -19,6 +19,7 @@ import { fileTree } from '@/cli/utils/fileTree.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
+import { toPosixPath } from '@/lib/utils/path.ts';
 import dryRun from '../common/options/dryRun.ts';
 import tree from '../common/options/tree.ts';
 import basePath from '../init/options/basePath.ts';
@@ -342,7 +343,7 @@ export default class UploadCommand {
     output: Output,
     branch?: SourceFilesModel.Branch,
   ) {
-    const directories = pathDetails.dir.split('/');
+    const directories = toPosixPath(pathDetails.dir).split('/');
     let directoryId: number | undefined;
 
     for (let index = 0; index < directories.length; index++) {

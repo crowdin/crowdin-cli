@@ -1,3 +1,5 @@
+import { toPosixPath } from '@/lib/utils/path.ts';
+
 const ELEM = '├─ ';
 const LAST_ELEM = '╰─ ';
 const DIR = '│  ';
@@ -40,7 +42,7 @@ export function fileTree(filePaths: string[]): string[] {
   const root = makeNode('.');
 
   for (const filePath of sorted) {
-    insertPath(root, filePath.split('/').filter(Boolean));
+    insertPath(root, toPosixPath(filePath).split('/').filter(Boolean));
   }
 
   const lines: string[] = ['.'];

@@ -17,6 +17,7 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { fileTree } from '@/cli/utils/fileTree.ts';
+import { toPosixPath } from '@/lib/utils/path.ts';
 import dryRun from '../common/options/dryRun.ts';
 import tree from '../common/options/tree.ts';
 import basePath from '../init/options/basePath.ts';
@@ -145,7 +146,7 @@ export default class DownloadCommand {
 
       const zip = new AdmZip(archivePath);
 
-      zip.extractAllTo(`${path.join(config.basePath)}/`, true);
+      zip.extractAllTo(toPosixPath(config.basePath), true);
 
       try {
         await rm(archivePath, { force: true });
