@@ -141,9 +141,13 @@ jobs:
 
       - name: Build and install the package
         run: |
-          sudo npm install --location=global jdeploy@6.0.20
+          sudo npm install --location=global jdeploy@6.1.4
           npm install
           jdeploy install
+
+      - name: Print jdeploy log on failure
+        if: failure()
+        run: cat ~/.jdeploy/log/jdeploy-local-install.log
 
       - name: Test crowdin command
         run: crowdin -V
