@@ -1,7 +1,6 @@
 import {
   cancel,
   intro,
-  log,
   outro,
   S_ERROR,
   S_INFO,
@@ -18,7 +17,10 @@ import { formatData } from './formatter.ts';
 export function createOutput(options: GlobalOptions) {
   const format = resolveOutputFormat(options.format);
 
-  updateClackSettings();
+  updateSettings({
+    // Disable guide lines globally
+    withGuide: false,
+  });
 
   return {
     spinners: {} as Record<string, SpinnerResult>,
@@ -52,27 +54,27 @@ export function createOutput(options: GlobalOptions) {
     },
     log(data: string): void {
       if (format === 'text') {
-        log.message(data);
+        console.log(data);
       }
     },
     success(message: string): void {
       if (format === 'text') {
-        log.message(message, { symbol: colors.green(S_SUCCESS) });
+        console.log(`${colors.green(S_SUCCESS)}  ${message}`);
       }
     },
     info(message: string): void {
       if (format === 'text') {
-        log.message(message, { symbol: colors.blue(S_INFO) });
+        console.log(`${colors.blue(S_INFO)}  ${message}`);
       }
     },
     error(message: string): void {
       if (format === 'text') {
-        log.message(message, { symbol: colors.red(S_ERROR) });
+        console.log(`${colors.red(S_ERROR)}  ${message}`);
       }
     },
     warning(message: string): void {
       if (format === 'text') {
-        log.message(message, { symbol: colors.yellow(S_WARN) });
+        console.log(`${colors.yellow(S_WARN)}  ${message}`);
       }
     },
     spinner(
@@ -105,13 +107,6 @@ function resolveOutputFormat(format?: string): 'json' | 'toon' | 'text' {
   }
 
   return 'text';
-}
-
-function updateClackSettings() {
-  updateSettings({
-    // Disable guide lines globally
-    withGuide: false,
-  });
 }
 
 export type Output = ReturnType<typeof createOutput>;
