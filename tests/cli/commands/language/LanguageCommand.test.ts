@@ -186,6 +186,33 @@ describe('LanguageCommand', () => {
     );
   });
 
+  test('lists project target languages with plain format outputs only codes', async () => {
+    const languageCommand = createLanguageCommand();
+    commandContext = createCommandContext({
+      ...globalOptions,
+      format: 'plain',
+    });
+    output = createOutput({ ...globalOptions, format: 'plain' });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({
+      data: {
+        managerAccess: true,
+        targetLanguages: [
+          { id: 'fr', name: 'French' },
+          { id: 'de', name: 'German' },
+        ],
+      },
+    } as never);
+
+    await new LanguageCommand(
+      () => output,
+      async () => projectService,
+      async () => languageService,
+    ).listAction(commandContext);
+
+    expect(console.log).toHaveBeenCalledWith('fr\nde');
+  });
+
   test('wraps supported languages API errors into CliError', async () => {
     const languageCommand = createLanguageCommand();
     commandContext = createCommandContext({

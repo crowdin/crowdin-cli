@@ -6,5 +6,5 @@ export default {
   type: 'string',
   description: 'Change output format',
   default: 'text',
-  choices: ['json', 'toon', 'text'],
+  choices: ['json', 'toon', 'text', 'plain'],
 } as OptionDef;

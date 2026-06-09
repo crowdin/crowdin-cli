@@ -101,8 +101,8 @@ export function createOutput(options: GlobalOptions) {
   };
 }
 
-function resolveOutputFormat(format?: string): 'json' | 'toon' | 'text' {
-  if (format === 'json' || format === 'toon') {
+function resolveOutputFormat(format?: string): 'json' | 'toon' | 'text' | 'plain' {
+  if (format === 'json' || format === 'toon' || format === 'plain') {
     return format;
   }
 
