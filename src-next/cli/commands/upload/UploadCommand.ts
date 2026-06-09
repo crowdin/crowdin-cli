@@ -19,6 +19,7 @@ import { fileTree } from '@/cli/utils/fileTree.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
+import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
 import dryRun from '../common/options/dryRun.ts';
 import tree from '../common/options/tree.ts';
@@ -184,21 +185,24 @@ export default class UploadCommand {
       return;
     }
 
+    // Shared per-path promise cache ensures concurrent tasks don't double-create directories
+    const directoryCreationPromises = new Map<string, Promise<number>>();
+
     for (const { patterns, filePaths } of patternFilePaths) {
       const fileOptions = this.resolveSourceFileOptions(patterns, options);
       const labelIds =
         fileOptions.labels !== undefined ? await labelService.resolveLabelIds(fileOptions.labels) : undefined;
 
-      for (const localFilePath of filePaths) {
+      const tasks = filePaths.map((localFilePath) => async () => {
         if (projectFilePaths.has(`/${localFilePath}`)) {
           if (options.noAutoUpdate) {
             output.info(`File ${localFilePath} already exists and will not be updated`);
-            continue;
+            return;
           }
 
           if (options.dryRun) {
             output.info(`File ${localFilePath} would be updated`);
-            continue;
+            return;
           }
 
           const storage = await storageService.addStorage(Bun.file(path.join(config.basePath, localFilePath)));
@@ -212,8 +216,7 @@ export default class UploadCommand {
           );
 
           output.success(`File ${localFilePath} updated`);
-
-          continue;
+          return;
         }
 
         const pathDetails = path.parse(localFilePath);
@@ -221,7 +224,7 @@ export default class UploadCommand {
 
         if (options.dryRun) {
           output.info(`File ${localFilePath} would be created`);
-          continue;
+          return;
         }
 
         const storage = await storageService.addStorage(Bun.file(path.join(config.basePath, localFilePath)));
@@ -230,6 +233,7 @@ export default class UploadCommand {
           directoryId = await this.addProjectDirectories(
             pathDetails,
             projectDirectories,
+            directoryCreationPromises,
             directoryService,
             output,
             branch,
@@ -247,6 +251,13 @@ export default class UploadCommand {
         });
 
         output.success(`File ${localFilePath} created`);
+      });
+
+      const results = await runConcurrently(tasks);
+      const firstError = results.find((r) => r.status === 'rejected');
+
+      if (firstError) {
+        throw (firstError as PromiseRejectedResult).reason;
       }
     }
   };
@@ -339,6 +350,7 @@ export default class UploadCommand {
   private async addProjectDirectories(
     pathDetails: ReturnType<typeof path.parse>,
     projectDirectories: Map<string, number>,
+    directoryCreationPromises: Map<string, Promise<number>>,
     directoryService: DirectoryService,
     output: Output,
     branch?: SourceFilesModel.Branch,
@@ -350,21 +362,30 @@ export default class UploadCommand {
       const directoryName = directories[index] as string;
       const directoryPath = `${branch ? `/${branch.name}` : ''}/${directories.slice(0, index + 1).join('/')}`;
 
+      // Check promise cache first (set atomically before any await, safe for concurrent callers)
+      if (directoryCreationPromises.has(directoryPath)) {
+        directoryId = await directoryCreationPromises.get(directoryPath);
+        continue;
+      }
+
       if (projectDirectories.has(directoryPath)) {
         directoryId = projectDirectories.get(directoryPath);
         continue;
       }
 
-      const projectDirectory = await directoryService.createProjectDirectory(
-        directoryName,
-        directoryId,
-        directoryId ? undefined : branch?.id,
-      );
+      const parentId = directoryId;
+      // Store promise synchronously before awaiting so concurrent tasks reuse it
+      const promise = directoryService
+        .createProjectDirectory(directoryName, parentId, parentId ? undefined : branch?.id)
+        .then((dir) => {
+          projectDirectories.set(dir.data.path, dir.data.id);
+          output.success(`Directory ${directoryName} created`);
+          return dir.data.id;
+        });
 
-      directoryId = projectDirectory.data.id;
-      projectDirectories.set(projectDirectory.data.path, projectDirectory.data.id);
+      directoryCreationPromises.set(directoryPath, promise);
 
-      output.success(`Directory ${directoryName} created`);
+      directoryId = await promise;
     }
 
     return directoryId;
@@ -418,6 +439,8 @@ export default class UploadCommand {
       return;
     }
 
+    const tasks: Array<() => Promise<void>> = [];
+
     for (const projectFile of projectFiles.data) {
       const projectFilePath = projectFile.data.path.startsWith('/')
         ? projectFile.data.path.slice(1)
@@ -431,30 +454,39 @@ export default class UploadCommand {
         const filePath = translationPathResolver.resolve(Bun.file(projectFilePath), targetLanguage).slice(1);
         const localFilePath = path.join(config.basePath, filePath);
 
-        if (!(await Bun.file(localFilePath).exists())) {
-          output.warning(`File ${filePath} does not exist in the specified location`);
-          continue;
-        }
+        tasks.push(async () => {
+          if (!(await Bun.file(localFilePath).exists())) {
+            output.warning(`File ${filePath} does not exist in the specified location`);
+            return;
+          }
 
-        if (options.dryRun) {
-          output.info(`File ${filePath} would be queued for translations import`);
-          continue;
-        }
+          if (options.dryRun) {
+            output.info(`File ${filePath} would be queued for translations import`);
+            return;
+          }
 
-        const storage = await storageService.addStorage(Bun.file(localFilePath));
+          const storage = await storageService.addStorage(Bun.file(localFilePath));
 
-        await translationService.importProjectTranslation(
-          storage.data.id,
-          projectFile.data.id,
-          [targetLanguage.id],
-          filePath,
-          options.autoApproveImported,
-          options.importEqSuggestions,
-          options.translateHidden,
-        );
+          await translationService.importProjectTranslation(
+            storage.data.id,
+            projectFile.data.id,
+            [targetLanguage.id],
+            filePath,
+            options.autoApproveImported,
+            options.importEqSuggestions,
+            options.translateHidden,
+          );
 
-        output.success(`File ${filePath} was queued for translations import`);
+          output.success(`File ${filePath} was queued for translations import`);
+        });
       }
+    }
+
+    const results = await runConcurrently(tasks);
+    const firstError = results.find((r) => r.status === 'rejected');
+
+    if (firstError) {
+      throw (firstError as PromiseRejectedResult).reason;
     }
   };
 
