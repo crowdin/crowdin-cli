@@ -626,7 +626,7 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
 
     private LinkedHashMap<BiPredicate<String, String>, ResponseException> errorHandlingForImportTranslations(Long storageId) {
         return new LinkedHashMap<BiPredicate<String, String>, ResponseException>() {{
-            put((code, message) -> code.equals("0") && message.equals("File is not allowed for the language specified"),
+            put((code, message) -> StringUtils.startsWith(message, "File is not allowed for the"),
                     new WrongLanguageException());
             put((code, message) -> message.contains("File from storage with id #" + storageId + " was not found"),
                     new RepeatException("File not found in the storage"));
