@@ -80,4 +80,30 @@ public class ObsoleteSourcesUtilsTest {
         assertEquals(1, obsoleteFiles.size());
         assertEquals(true, obsoleteFiles.containsKey(projectFilePath));
     }
+
+    // Issue: https://github.com/crowdin/crowdin-cli/issues/1028
+    @Test
+    public void testFindObsoleteProjectFileWithSquareBracketsInPath() {
+        String projectFilePath = Utils.normalizePath("packages/next/src/app/[locale]/(app)/agendas/locales/en.json");
+        Map<String, File> projectFilesFromApi = new HashMap<String, File>() {
+            {
+                put(projectFilePath, FileBuilder.standard()
+                        .setProjectId(projectId)
+                        .setIdentifiers("en.json", "json", fileId1, directoryId1, null)
+                        .setExportPattern("/%original_path%/%two_letters_code%.%file_extension%")
+                        .build());
+            }
+        };
+        boolean preserveHierarchy = true;
+        List<String> filesToUpload = Arrays.asList(projectFilePath);
+        String sourcePattern = Utils.normalizePath("/packages/next/src/**/locales/en.json");
+        String exportPattern = Utils.normalizePath("/%original_path%/%two_letters_code%.%file_extension%");
+        List<String> ignorePatterns = Arrays.asList();
+
+        Map<String, File> obsoleteFiles = ObsoleteSourcesUtils.findObsoleteProjectFiles(projectFilesFromApi,
+                preserveHierarchy,
+                filesToUpload, sourcePattern, exportPattern, ignorePatterns);
+
+        assertEquals(0, obsoleteFiles.size());
+    }
 }

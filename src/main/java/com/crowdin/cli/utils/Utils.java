@@ -121,7 +121,9 @@ public class Utils {
             return path.replaceAll("\\\\", "\\\\\\\\")
                 .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
                 .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE)
-                .replace(PLUS, PLUS_REGEX);
+                .replace(PLUS, PLUS_REGEX)
+                .replace(SQUARE_BRACKET_OPEN, SQUARE_BRACKET_OPEN_REGEX)
+                .replace(SQUARE_BRACKET_CLOSE, SQUARE_BRACKET_CLOSE_REGEX);
         } else {
             return null;
         }
