@@ -391,6 +391,30 @@ public class CrowdinProjectClientTest {
     }
 
     @Test
+    public void testUploadTranslationsDisabledLanguageLegacyError() {
+        ImportTranslationsRequest request = new ImportTranslationsRequest();
+        when(httpClientMock.post(eq(importTranslationsUrl), any(), any(), eq(ImportTranslationsStatusResponseObject.class)))
+            .thenThrow(HttpExceptionBuilder.build("0", "File is not allowed for the language specified"));
+
+        assertThrows(WrongLanguageException.class, () -> client.importTranslations(request));
+
+        verify(httpClientMock).post(eq(importTranslationsUrl), any(), any(), eq(ImportTranslationsStatusResponseObject.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
+    @Test
+    public void testUploadTranslationsDisabledLanguage422Error() {
+        ImportTranslationsRequest request = new ImportTranslationsRequest();
+        when(httpClientMock.post(eq(importTranslationsUrl), any(), any(), eq(ImportTranslationsStatusResponseObject.class)))
+            .thenThrow(HttpExceptionBuilder.build("422", "File is not allowed for the following languages: German"));
+
+        assertThrows(WrongLanguageException.class, () -> client.importTranslations(request));
+
+        verify(httpClientMock).post(eq(importTranslationsUrl), any(), any(), eq(ImportTranslationsStatusResponseObject.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
+    @Test
     public void testStartBuildingTranslation() throws ResponseException {
         ProjectBuildResponseObject response = new ProjectBuildResponseObject() {{
                 setData(new ProjectBuild());
