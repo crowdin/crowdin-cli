@@ -15,6 +15,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 import static com.crowdin.cli.utils.AssertUtils.assertPathsEqualIgnoringSeparator;
@@ -246,5 +247,13 @@ public class PlaceholderUtilTest {
         assertTrue(PlaceholderUtil.validStringPattern("src/" + PlaceholderUtil.PLACEHOLDER_LANGUAGE + "/" + PlaceholderUtil.PLACEHOLDER_FILE_NAME, PlaceholderUtil.ALL_PLACEHOLDERS));
         assertFalse(PlaceholderUtil.validStringPattern("src/" + PlaceholderUtil.PLACEHOLDER_LANGUAGE + "/" + PlaceholderUtil.PLACEHOLDER_FILE_NAME, PlaceholderUtil.FILE_PLACEHOLDERS));
         assertFalse(PlaceholderUtil.validStringPattern("src/" + PlaceholderUtil.PLACEHOLDER_LANGUAGE + "/%invalid%", PlaceholderUtil.ALL_PLACEHOLDERS));
+    }
+
+    // Issue: https://github.com/crowdin/crowdin-cli/issues/1028
+    @Test
+    public void testFormatSourcePatternForRegexTreatsRoundBracketsAsLiterals() {
+        String regex = PlaceholderUtil.formatSourcePatternForRegex("app/(group)/*.json");
+        assertEquals("app/\\(group\\)/[^/]+\\.json", regex);
+        assertTrue(Pattern.compile("^" + regex + "$").asPredicate().test("app/(group)/en.json"));
     }
 }
