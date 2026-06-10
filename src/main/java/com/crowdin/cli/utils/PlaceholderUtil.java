@@ -73,10 +73,14 @@ public class PlaceholderUtil {
     private static final String SET_CLOSE_BRACKET = "]";
     public static final String PLUS = "+";
     public static final String PLUS_REGEX = "\\+";
+    public static final String SQUARE_BRACKET_OPEN = "[";
+    public static final String SQUARE_BRACKET_OPEN_REGEX = "\\[";
+    public static final String SQUARE_BRACKET_CLOSE = "]";
+    public static final String SQUARE_BRACKET_CLOSE_REGEX = "\\]";
     public static final String ROUND_BRACKET_OPEN = "(";
+    public static final String ROUND_BRACKET_OPEN_REGEX = "\\(";
     public static final String ROUND_BRACKET_CLOSE = ")";
-    public static final String ESCAPE_ROUND_BRACKET_OPEN = isWindows() ? "^(" : "\\(";
-    public static final String ESCAPE_ROUND_BRACKET_CLOSE = isWindows() ? "^)" : "\\)";
+    public static final String ROUND_BRACKET_CLOSE_REGEX = "\\)";
     private static final String ESCAPE_DOT = isWindows() ? "^." : "\\.";
     private static final String ESCAPE_DOT_REGEX = "\\.";
     private static final String ESCAPE_DOT_PLACEHOLDER = "{ESCAPE_DOT}";
@@ -299,8 +303,8 @@ public class PlaceholderUtil {
             .replace(ESCAPE_ASTERISK_PLACEHOLDER, ESCAPE_ASTERISK);
 
         toFormat = toFormat
-            .replace(ROUND_BRACKET_OPEN, ESCAPE_ROUND_BRACKET_OPEN)
-            .replace(ROUND_BRACKET_CLOSE, ESCAPE_ROUND_BRACKET_CLOSE)
+            .replace(ROUND_BRACKET_OPEN, ROUND_BRACKET_OPEN_REGEX)
+            .replace(ROUND_BRACKET_CLOSE, ROUND_BRACKET_CLOSE_REGEX)
             .replace(ESCAPE_ASTERISK_REPLACEMENT_FROM, ESCAPE_ASTERISK_REPLACEMENT_TO);
 
         if (isWindows()) {
