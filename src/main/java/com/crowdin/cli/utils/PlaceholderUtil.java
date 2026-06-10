@@ -78,7 +78,9 @@ public class PlaceholderUtil {
     public static final String SQUARE_BRACKET_CLOSE = "]";
     public static final String SQUARE_BRACKET_CLOSE_REGEX = "\\]";
     public static final String ROUND_BRACKET_OPEN = "(";
+    public static final String ROUND_BRACKET_OPEN_REGEX = "\\(";
     public static final String ROUND_BRACKET_CLOSE = ")";
+    public static final String ROUND_BRACKET_CLOSE_REGEX = "\\)";
     public static final String ESCAPE_ROUND_BRACKET_OPEN = isWindows() ? "^(" : "\\(";
     public static final String ESCAPE_ROUND_BRACKET_CLOSE = isWindows() ? "^)" : "\\)";
     private static final String ESCAPE_DOT = isWindows() ? "^." : "\\.";

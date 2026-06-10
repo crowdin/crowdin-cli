@@ -83,6 +83,7 @@ public class UtilsTest {
     public void testRegexPath() {
         assertEquals("\\\\path\\\\to\\\\file", Utils.regexPath("\\path\\to\\file"));
         assertEquals("app/\\[locale\\]/file", Utils.regexPath("app/[locale]/file"));
+        assertEquals("app/\\(group\\)/file", Utils.regexPath("app/(group)/file"));
     }
 
     @Test
