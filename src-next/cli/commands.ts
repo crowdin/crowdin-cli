@@ -6,6 +6,7 @@ import ContextCommand from './commands/context/ContextCommand.ts';
 import DistributionCommand from './commands/distribution/DistributionCommand.ts';
 import DownloadCommand from './commands/download/DownloadCommand.ts';
 import FileCommand from './commands/file/FileCommand.ts';
+import GlossaryCommand from './commands/glossary/GlossaryCommand.ts';
 import InitCommand from './commands/init/InitCommand.ts';
 import LabelCommand from './commands/label/LabelCommand.ts';
 import LanguageCommand from './commands/language/LanguageCommand.ts';
@@ -27,6 +28,7 @@ import {
   createGetDirectoryService,
   createGetDistributionService,
   createGetFileService,
+  createGetGlossaryService,
   createGetLabelService,
   createGetLanguageService,
   createGetProgressService,
@@ -60,6 +62,7 @@ const getProgressService = createGetProgressService(getApiClient, getOutput, get
 const getTranslationService = createGetTranslationService(getApiClient, getOutput, getConfig);
 const getLanguageService = createGetLanguageService(getApiClient);
 const getTmService = createGetTmService(getApiClient, getOutput);
+const getGlossaryService = createGetGlossaryService(getApiClient, getOutput);
 
 const commentCommand = new CommentCommand(getOutput, getCommentService);
 const appCommand = new AppCommand(getOutput, getAppService);
@@ -113,6 +116,7 @@ const stringCommand = new StringCommand(
 );
 const taskCommand = new TaskCommand(getOutput, getTaskService, getApiClient, getBranchService, getFileService);
 const tmCommand = new TmCommand(getOutput, getTmService, getStorageService, getApiClient);
+const glossaryCommand = new GlossaryCommand(getOutput, getGlossaryService, getStorageService, getApiClient);
 const contextCommand = new ContextCommand(
   getOutput,
   getProjectService,
@@ -152,4 +156,5 @@ export const commands: CommandDef[] = [
   distributionCommand.getDefinition(),
   contextCommand.getDefinition(),
   tmCommand.getDefinition(),
+  glossaryCommand.getDefinition(),
 ];

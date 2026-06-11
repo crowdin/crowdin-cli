@@ -24,6 +24,7 @@ describe('command registry', () => {
       'distribution',
       'context',
       'tm',
+      'glossary',
     ]);
     expect(new Set(names).size).toBe(names.length);
   });
@@ -41,6 +42,7 @@ describe('command registry', () => {
     const config = commands.find((command) => command.name === 'config');
     const context = commands.find((command) => command.name === 'context');
     const tm = commands.find((command) => command.name === 'tm');
+    const glossary = commands.find((command) => command.name === 'glossary');
 
     expect(upload?.alias).toBe('push');
     expect(upload?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['sources', 'translations']);
@@ -70,5 +72,6 @@ describe('command registry', () => {
       'status',
     ]);
     expect(tm?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'download', 'upload']);
+    expect(glossary?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'download', 'upload']);
   });
 });

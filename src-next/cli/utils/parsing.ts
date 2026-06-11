@@ -46,3 +46,26 @@ export function toNumberArray(value: NumericInput, errorMessage: string): number
 export function normalizePath(value: string): string {
   return `/${toPosixPath(value).replace(/^\/+/, '')}`;
 }
+
+export function parseScheme(values: string[]): Record<string, number> | undefined {
+  if (values.length === 0) {
+    return undefined;
+  }
+
+  const scheme: Record<string, number> = {};
+
+  for (const value of values.flatMap((entry) => entry.split(','))) {
+    const [key, column, ...rest] = value.split('=');
+    const index = Number(column);
+
+    if (!key || column === undefined || rest.length > 0 || !Number.isInteger(index) || index < 0) {
+      throw new CliError(
+        `The '--scheme' parameter has an invalid value '${value}'. Expected format: <column>=<index> (e.g. en=0)`,
+      );
+    }
+
+    scheme[key] = index;
+  }
+
+  return scheme;
+}

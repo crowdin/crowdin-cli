@@ -1,64 +1,53 @@
 import { stat } from 'node:fs/promises';
 import path from 'node:path';
-import type { TranslationMemoryModel } from '@crowdin/crowdin-api-client';
+import type { GlossariesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetApiClient, GetOutput, GetStorageService, GetTmService } from '@/cli/services.ts';
+import type { GlossaryService } from '@/cli/services/GlossaryService.ts';
+import type { GetApiClient, GetGlossaryService, GetOutput, GetStorageService } from '@/cli/services.ts';
 import type { CommandDef, OptionDef } from '@/cli/types.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
 
-const TM_FORMATS: TranslationMemoryModel.Format[] = ['tmx', 'csv', 'xlsx'];
-const UPLOAD_EXTENSIONS = ['tmx', 'csv', 'xls', 'xlsx'];
+const GLOSSARY_FORMATS: GlossariesModel.GlossaryFormat[] = ['tbx', 'csv', 'xlsx'];
+const UPLOAD_EXTENSIONS = ['tbx', 'csv', 'xls', 'xlsx'];
 const SCHEME_EXTENSIONS = ['csv', 'xls', 'xlsx'];
-const DEFAULT_TM_NAME = 'Created in Crowdin CLI (%s)';
+const DEFAULT_GLOSSARY_NAME = 'Created in Crowdin CLI (%s)';
 
 // Java '--plain' is covered by the global '--format' option.
-// Java 'tm download --format' is renamed to '--file-format' because it would
-// clash with the global '--format' (output mode) option.
+// Java 'glossary download --format' is renamed to '--file-format' because it
+// would clash with the global '--format' (output mode) option.
 
 const fileFormatOption: OptionDef = {
   name: 'file-format',
   type: 'string',
-  description: 'Format of the file. Supported formats: tmx, csv, xlsx',
-  choices: [...TM_FORMATS],
-};
-
-const sourceLanguageIdOption: OptionDef = {
-  name: 'source-language-id',
-  type: 'string',
-  description: 'Defines source language in the language pair',
-};
-
-const targetLanguageIdOption: OptionDef = {
-  name: 'target-language-id',
-  type: 'string',
-  description: 'Defines target language in the language pair',
+  description: 'Format of the file. Supported formats: tbx, csv, xlsx',
+  choices: [...GLOSSARY_FORMATS],
 };
 
 const toOption: OptionDef = {
   name: 'to',
   type: 'string',
-  description: 'Path where the translation memory should be downloaded',
+  description: 'Path the glossary should be downloaded to',
 };
 
 const idOption: OptionDef = {
   name: 'id',
   type: 'string',
-  description: 'Translation memory identifier for uploading to the existing TM',
+  description: 'Glossary identifier for uploading to the existing glossary',
 };
 
 const languageOption: OptionDef = {
   name: 'language',
   type: 'string',
-  description: 'Translation Memory language identifier',
+  description: 'Glossary language identifier',
 };
 
 const schemeOption: OptionDef = {
   name: 'scheme',
   type: 'string',
   variadic: true,
-  description: 'Defines data columns scheme (required for CSV or XLS/XLSX files)',
+  description: 'Defines data columns scheme (used only for CSV or XLS/XLSX files configuration)',
 };
 
 const firstLineContainsHeaderOption: OptionDef = {
@@ -69,9 +58,7 @@ const firstLineContainsHeaderOption: OptionDef = {
 };
 
 interface DownloadOptions extends GlobalOptions {
-  sourceLanguageId?: string;
-  targetLanguageId?: string;
-  fileFormat?: TranslationMemoryModel.Format;
+  fileFormat?: GlossariesModel.GlossaryFormat;
   to?: string;
 }
 
@@ -82,39 +69,39 @@ interface UploadOptions extends GlobalOptions {
   firstLineContainsHeader?: boolean;
 }
 
-export default class TmCommand {
+export default class GlossaryCommand {
   constructor(
     private getOutput: GetOutput,
-    private getTmService: GetTmService,
+    private getGlossaryService: GetGlossaryService,
     private getStorageService: GetStorageService,
     private getApiClient: GetApiClient,
   ) {}
 
   getDefinition(): CommandDef {
     return {
-      name: 'tm',
-      description: 'Manage translation memories',
+      name: 'glossary',
+      description: 'Manage glossaries',
       subcommands: [
         {
           name: 'list',
-          description: 'Show a list of translation memories',
+          description: 'Show a list of glossaries',
           action: this.listAction,
         },
         {
           name: 'download',
-          description: 'Download translation memory',
+          description: 'Download glossary',
           arguments: [
             {
               name: 'id',
-              description: 'Translation memory identifier',
+              description: 'Glossary identifier',
             },
           ],
-          options: [sourceLanguageIdOption, targetLanguageIdOption, fileFormatOption, toOption],
+          options: [fileFormatOption, toOption],
           action: this.downloadAction,
         },
         {
           name: 'upload',
-          description: 'Upload translation memory to localization resources',
+          description: 'Upload glossary to localization resources',
           arguments: [
             {
               name: 'file',
@@ -134,55 +121,62 @@ export default class TmCommand {
   };
 
   listAction = async (command: Command) => {
+    const options = command.optsWithGlobals() as GlobalOptions;
     const output = this.getOutput(command);
-    const tmService = await this.getTmService(command);
-    const tms = await tmService.list();
+    const glossaryService = await this.getGlossaryService(command);
+    const glossaries = await glossaryService.list();
 
-    if (tms.length === 0) {
-      output.success('No translation memories found');
+    if (glossaries.length === 0) {
+      output.success('No glossaries found');
+      return;
+    }
+
+    if (options.verbose) {
+      output.table(
+        await Promise.all(
+          glossaries.map(async (glossary) => ({
+            id: glossary.id,
+            name: glossary.name,
+            terms: glossary.terms,
+            termList: await this.formatTermList(output, glossaryService, glossary),
+          })),
+        ),
+      );
       return;
     }
 
     output.table(
-      tms.map((tm) => ({
-        id: tm.id,
-        name: tm.name,
-        segments: tm.segmentsCount,
+      glossaries.map((glossary) => ({
+        id: glossary.id,
+        name: glossary.name,
+        terms: glossary.terms,
       })),
     );
   };
 
   downloadAction = async (command: Command) => {
     const [idArg] = command.args;
-    const id = parseNumericId(idArg, 'Translation memory');
+    const id = parseNumericId(idArg, 'Glossary');
     const options = command.optsWithGlobals() as DownloadOptions;
     let format = options.fileFormat;
 
     if (options.to !== undefined && format === undefined) {
       const extension = path.extname(options.to).replace(/^\./, '').toLowerCase();
 
-      if (!TM_FORMATS.includes(extension as TranslationMemoryModel.Format)) {
-        throw new CliError('Supported formats: tmx, csv, xlsx');
+      if (!GLOSSARY_FORMATS.includes(extension as GlossariesModel.GlossaryFormat)) {
+        throw new CliError('Supported formats: tbx, csv, xlsx');
       }
 
-      format = extension as TranslationMemoryModel.Format;
-    }
-
-    if (options.sourceLanguageId !== undefined && options.targetLanguageId === undefined) {
-      throw new CliError("'--target-language-id' must be specified along with '--source-language-id'");
-    }
-
-    if (options.sourceLanguageId === undefined && options.targetLanguageId !== undefined) {
-      throw new CliError("'--source-language-id' must be specified along with '--target-language-id'");
+      format = extension as GlossariesModel.GlossaryFormat;
     }
 
     const output = this.getOutput(command);
-    const tmService = await this.getTmService(command);
-    const tm = await tmService.get(id);
-    const to = options.to ?? `${tm.name}.${format ?? 'tmx'}`;
+    const glossaryService = await this.getGlossaryService(command);
+    const glossary = await glossaryService.get(id);
+    const to = options.to ?? `${glossary.name}.${format ?? 'tbx'}`;
 
-    const exportId = await tmService.export(tm.id, options.sourceLanguageId, options.targetLanguageId, format);
-    const downloadUrl = await tmService.getDownloadUrl(tm.id, exportId);
+    const exportId = await glossaryService.export(glossary.id, format);
+    const downloadUrl = await glossaryService.getDownloadUrl(glossary.id, exportId);
     const response = await fetch(downloadUrl);
 
     try {
@@ -198,7 +192,7 @@ export default class TmCommand {
     const [fileArg] = command.args as [string];
     const options = command.optsWithGlobals() as UploadOptions;
     const extension = path.extname(fileArg).replace(/^\./, '').toLowerCase();
-    const id = options.id === undefined ? undefined : parseNumericId(options.id, 'Translation memory');
+    const id = options.id === undefined ? undefined : parseNumericId(options.id, 'Glossary');
     const scheme = parseScheme(toArray(options.scheme));
     const fileStat = await stat(fileArg).catch(() => undefined);
 
@@ -211,14 +205,16 @@ export default class TmCommand {
       throw new CliError('The specified file is a directory');
     }
 
-    // The Java CLI checks 'csv' and 'xslx' (a typo of 'xlsx') here; the intent
-    // per the error message is CSV or XLS/XLSX files
-    if (scheme === undefined && SCHEME_EXTENSIONS.includes(extension)) {
-      throw new CliError('Scheme is required for CSV or XLS/XLSX files');
+    if (!UPLOAD_EXTENSIONS.includes(extension)) {
+      throw new CliError('Supported formats: tbx, csv, xlsx');
     }
 
-    if (!UPLOAD_EXTENSIONS.includes(extension)) {
-      throw new CliError('Supported formats: tmx, csv, xlsx');
+    if (!SCHEME_EXTENSIONS.includes(extension) && scheme !== undefined) {
+      throw new CliError('Scheme is used only for CSV or XLS/XLSX files');
+    }
+
+    if (SCHEME_EXTENSIONS.includes(extension) && scheme === undefined) {
+      throw new CliError('Scheme is required for CSV or XLS/XLSX files');
     }
 
     if (!SCHEME_EXTENSIONS.includes(extension) && options.firstLineContainsHeader !== undefined) {
@@ -226,27 +222,27 @@ export default class TmCommand {
     }
 
     if (id === undefined && options.language === undefined) {
-      throw new CliError("'--language' is required for creating new translation memory");
+      throw new CliError("'--language' is required for creating new glossary");
     }
 
     const output = this.getOutput(command);
-    const tmService = await this.getTmService(command);
+    const glossaryService = await this.getGlossaryService(command);
     const storageService = await this.getStorageService(command);
     const apiClient = await this.getApiClient(command);
     const isEnterprise = Boolean(apiClient.organization);
 
-    const tm =
+    const glossary =
       id !== undefined
-        ? await tmService.get(id)
-        : await tmService.add({
-            name: DEFAULT_TM_NAME.replace('%s', path.basename(fileArg)),
+        ? await glossaryService.get(id)
+        : await glossaryService.add({
+            name: DEFAULT_GLOSSARY_NAME.replace('%s', path.basename(fileArg)),
             languageId: options.language as string,
             ...(isEnterprise ? { groupId: 0 } : {}),
           });
 
     const storage = await storageService.addStorage(Bun.file(fileArg));
 
-    await tmService.import(tm.id, {
+    await glossaryService.import(glossary.id, {
       storageId: storage.data.id,
       ...(scheme !== undefined ? { scheme } : {}),
       ...(options.firstLineContainsHeader !== undefined
@@ -254,6 +250,29 @@ export default class TmCommand {
         : {}),
     });
 
-    output.success(`Imported in #${tm.id} '${tm.name}' translation memory`);
+    output.success(`Imported in #${glossary.id} '${glossary.name}' glossary`);
   };
+
+  // The Java CLI prints terms as separate lines below each glossary; here the
+  // terms are flattened into a table column to keep a single-table output
+  private async formatTermList(
+    output: ReturnType<GetOutput>,
+    glossaryService: GlossaryService,
+    glossary: GlossariesModel.Glossary,
+  ): Promise<string> {
+    if (glossary.terms === 0) {
+      return '';
+    }
+
+    const terms = await glossaryService.listTerms(glossary.id).catch(() => undefined);
+
+    if (terms === undefined) {
+      output.warning('You do not have permission to manage this glossary');
+      return '';
+    }
+
+    return terms
+      .map((term) => `#${term.id} ${term.text}: ${(term.description ?? '').replaceAll('\n', ' ')}`)
+      .join('; ');
+  }
 }

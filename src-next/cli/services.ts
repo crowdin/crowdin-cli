@@ -7,6 +7,7 @@ import { CommentService } from '@/cli/services/CommentService.ts';
 import { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import { DistributionService } from '@/cli/services/DistributionService.ts';
 import { FileService } from '@/cli/services/FileService.ts';
+import { GlossaryService } from '@/cli/services/GlossaryService.ts';
 import { LabelService } from '@/cli/services/LabelService.ts';
 import { LanguageService } from '@/cli/services/LanguageService.ts';
 import { ProgressService } from '@/cli/services/ProgressService.ts';
@@ -41,6 +42,7 @@ export type GetScreenshotService = (command: Command) => Promise<ScreenshotServi
 export type GetTranslationService = (command: Command) => Promise<TranslationService>;
 export type GetLanguageService = (command: Command) => Promise<LanguageService>;
 export type GetTmService = (command: Command) => Promise<TmService>;
+export type GetGlossaryService = (command: Command) => Promise<GlossaryService>;
 
 export function createGetApiClient(getConfig: GetConfig) {
   let cachedClient: Client | undefined;
@@ -308,6 +310,22 @@ export function createGetTmService(getApiClient: GetApiClient, getOutput: GetOut
     const apiClient = await getApiClient(command);
     const output = getOutput(command);
     cachedService = new TmService(apiClient, output);
+
+    return cachedService;
+  };
+}
+
+export function createGetGlossaryService(getApiClient: GetApiClient, getOutput: GetOutput) {
+  let cachedService: GlossaryService | undefined;
+
+  return async (command: Command): Promise<GlossaryService> => {
+    if (cachedService) {
+      return cachedService;
+    }
+
+    const apiClient = await getApiClient(command);
+    const output = getOutput(command);
+    cachedService = new GlossaryService(apiClient, output);
 
     return cachedService;
   };
