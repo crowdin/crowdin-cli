@@ -1,5 +1,15 @@
 # Changelog
 
+## [4.14.3](https://github.com/crowdin/crowdin-cli/compare/4.14.2...4.14.3) (2026-06-11)
+
+
+### Bug Fixes
+
+* allow trailing slash in the base_url ([#1023](https://github.com/crowdin/crowdin-cli/issues/1023)) ([a97d275](https://github.com/crowdin/crowdin-cli/commit/a97d2754f37933b08ace9a77ac92a56dac897d8d))
+* escape square brackets in `Utils.regexPath` (`--delete-obsolete` deleting valid files) ([#1029](https://github.com/crowdin/crowdin-cli/issues/1029)) ([8013009](https://github.com/crowdin/crowdin-cli/commit/80130099887d0b6f1b850e23cf12d37e59e7f731))
+* prevent premature timeout when uploading large translation files ([#1026](https://github.com/crowdin/crowdin-cli/issues/1026)) ([f7534dc](https://github.com/crowdin/crowdin-cli/commit/f7534dc31eec23eb9c01457364ab5ea6bd9aec90))
+* update error handling for import translations ([#1027](https://github.com/crowdin/crowdin-cli/issues/1027)) ([688f8ef](https://github.com/crowdin/crowdin-cli/commit/688f8efcab59e1ad14da71410b586d885f06da3b))
+
 ## [4.14.2](https://github.com/crowdin/crowdin-cli/compare/4.14.1...4.14.2) (2026-04-23)
 
 
