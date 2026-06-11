@@ -2,6 +2,7 @@ import AppCommand from './commands/app/AppCommand.ts';
 import BundleCommand from './commands/bundle/BundleCommand.ts';
 import CommentCommand from './commands/comment/CommentCommand.ts';
 import ConfigCommand from './commands/config/ConfigCommand.ts';
+import ContextCommand from './commands/context/ContextCommand.ts';
 import DistributionCommand from './commands/distribution/DistributionCommand.ts';
 import DownloadCommand from './commands/download/DownloadCommand.ts';
 import FileCommand from './commands/file/FileCommand.ts';
@@ -108,6 +109,14 @@ const stringCommand = new StringCommand(
   getLabelService,
 );
 const taskCommand = new TaskCommand(getOutput, getTaskService, getApiClient, getBranchService, getFileService);
+const contextCommand = new ContextCommand(
+  getOutput,
+  getProjectService,
+  getStringService,
+  getBranchService,
+  getFileService,
+  getLabelService,
+);
 const uploadCommand = new UploadCommand(
   getConfig,
   getOutput,
@@ -137,4 +146,5 @@ export const commands: CommandDef[] = [
   configCommand.getDefinition(),
   projectCommand.getDefinition(),
   distributionCommand.getDefinition(),
+  contextCommand.getDefinition(),
 ];

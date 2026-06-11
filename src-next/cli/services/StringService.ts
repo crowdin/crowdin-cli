@@ -40,6 +40,14 @@ export class StringService {
     }
   }
 
+  async batchEdit(patch: PatchRequest[]): Promise<void> {
+    try {
+      await this.client.sourceStringsApi.stringBatchOperations(this.projectId, patch);
+    } catch (error) {
+      throw toCliError(error, 'Failed to update source strings');
+    }
+  }
+
   async edit(stringId: number, patch: PatchRequest[]): Promise<SourceStringsModel.String> {
     try {
       const response = await this.client.sourceStringsApi.editString(this.projectId, stringId, patch);
