@@ -47,6 +47,11 @@ export function normalizePath(value: string): string {
   return `/${toPosixPath(value).replace(/^\/+/, '')}`;
 }
 
+// Symbols that are not allowed in Crowdin branch names are replaced with dots
+export function normalizeBranchName(value: string): string {
+  return value.replace(/[/\\:*?"<>|]/g, '.');
+}
+
 export function parseScheme(values: string[]): Record<string, number> | undefined {
   if (values.length === 0) {
     return undefined;

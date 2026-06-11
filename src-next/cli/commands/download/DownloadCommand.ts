@@ -315,13 +315,13 @@ export default class DownloadCommand {
       return undefined;
     }
 
-    const branches = await branchService.listProjectBranches();
-    const matchedBranch = branches.data.find((b) => b.data.name === branchName);
+    const branches = await branchService.list();
+    const matchedBranch = branches.find((branch) => branch.name === branchName);
 
     if (!matchedBranch) {
       throw new CliError(`Branch ${branchName} not found`);
     }
 
-    return matchedBranch.data.id;
+    return matchedBranch.id;
   }
 }

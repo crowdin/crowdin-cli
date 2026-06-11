@@ -129,8 +129,8 @@ export default class StatusCommand {
       const directoryProgress = await progressService.loadDirectoryProgress(projectDirectory.data.id);
       progressData = directoryProgress.data;
     } else if (branchName) {
-      const branches = await branchService.listProjectBranches();
-      const projectBranch = branches.data.find((branchEntry) => branchEntry.data.name === branchName);
+      const branches = await branchService.list();
+      const projectBranch = branches.find((branch) => branch.name === branchName);
 
       if (!projectBranch) {
         throw new CliError(
@@ -138,7 +138,7 @@ export default class StatusCommand {
         );
       }
 
-      const branchProgress = await progressService.loadBranchProgress(projectBranch.data.id);
+      const branchProgress = await progressService.loadBranchProgress(projectBranch.id);
       progressData = branchProgress.data;
     } else {
       const projectProgress = await progressService.loadProjectProgress();

@@ -16,6 +16,7 @@ describe('command registry', () => {
       'string',
       'task',
       'file',
+      'branch',
       'language',
       'label',
       'comment',

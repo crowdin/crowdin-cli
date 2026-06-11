@@ -166,9 +166,7 @@ describe('StatusCommand', () => {
     });
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
-    const loadProjectBranches = spyOn(branchService, 'listProjectBranches').mockResolvedValue({
-      data: [{ data: { id: 15, name: 'release' } }],
-    } as never);
+    const loadProjectBranches = spyOn(branchService, 'list').mockResolvedValue([{ id: 15, name: 'release' }] as never);
     const loadBranchProgress = spyOn(progressService, 'loadBranchProgress').mockResolvedValue({
       data: [createProgress('fr', 100, 100)],
     } as never);

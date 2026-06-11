@@ -1,4 +1,5 @@
 import AppCommand from './commands/app/AppCommand.ts';
+import BranchCommand from './commands/branch/BranchCommand.ts';
 import BundleCommand from './commands/bundle/BundleCommand.ts';
 import CommentCommand from './commands/comment/CommentCommand.ts';
 import ConfigCommand from './commands/config/ConfigCommand.ts';
@@ -95,6 +96,7 @@ const fileCommand = new FileCommand(
   getDirectoryService,
   getFileService,
 );
+const branchCommand = new BranchCommand(getOutput, getProjectService, getBranchService);
 const labelCommand = new LabelCommand(getOutput, getLabelService);
 const languageCommand = new LanguageCommand(getOutput, getProjectService, getLanguageService);
 const projectCommand = new ProjectCommand(getOutput, getProjectService);
@@ -148,6 +150,7 @@ export const commands: CommandDef[] = [
   stringCommand.getDefinition(),
   taskCommand.getDefinition(),
   fileCommand.getDefinition(),
+  branchCommand.getDefinition(),
   languageCommand.getDefinition(),
   labelCommand.getDefinition(),
   commentCommand.getDefinition(),
