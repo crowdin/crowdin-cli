@@ -14,6 +14,7 @@ import ScreenshotCommand from './commands/screenshot/ScreenshotCommand.ts';
 import StatusCommand from './commands/status/StatusCommand.ts';
 import StringCommand from './commands/string/StringCommand.ts';
 import TaskCommand from './commands/task/TaskCommand.ts';
+import TmCommand from './commands/tm/TmCommand.ts';
 import UploadCommand from './commands/upload/UploadCommand.ts';
 import { createGetConfig } from './config.ts';
 import { createGetOutput } from './output.ts';
@@ -34,6 +35,7 @@ import {
   createGetStorageService,
   createGetStringService,
   createGetTaskService,
+  createGetTmService,
   createGetTranslationService,
 } from './services.ts';
 import type { CommandDef } from './types.ts';
@@ -57,6 +59,7 @@ const getLabelService = createGetLabelService(getApiClient, getConfig);
 const getProgressService = createGetProgressService(getApiClient, getOutput, getConfig);
 const getTranslationService = createGetTranslationService(getApiClient, getOutput, getConfig);
 const getLanguageService = createGetLanguageService(getApiClient);
+const getTmService = createGetTmService(getApiClient, getOutput);
 
 const commentCommand = new CommentCommand(getOutput, getCommentService);
 const appCommand = new AppCommand(getOutput, getAppService);
@@ -109,6 +112,7 @@ const stringCommand = new StringCommand(
   getLabelService,
 );
 const taskCommand = new TaskCommand(getOutput, getTaskService, getApiClient, getBranchService, getFileService);
+const tmCommand = new TmCommand(getOutput, getTmService, getStorageService, getApiClient);
 const contextCommand = new ContextCommand(
   getOutput,
   getProjectService,
@@ -147,4 +151,5 @@ export const commands: CommandDef[] = [
   projectCommand.getDefinition(),
   distributionCommand.getDefinition(),
   contextCommand.getDefinition(),
+  tmCommand.getDefinition(),
 ];

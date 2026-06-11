@@ -15,6 +15,7 @@ import { ScreenshotService } from '@/cli/services/ScreenshotService.ts';
 import { StorageService } from '@/cli/services/StorageService.ts';
 import { StringService } from '@/cli/services/StringService.ts';
 import { TaskService } from '@/cli/services/TaskService.ts';
+import { TmService } from '@/cli/services/TmService.ts';
 import { TranslationService } from '@/cli/services/TranslationService.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
@@ -39,6 +40,7 @@ export type GetAppService = (command: Command) => Promise<AppService>;
 export type GetScreenshotService = (command: Command) => Promise<ScreenshotService>;
 export type GetTranslationService = (command: Command) => Promise<TranslationService>;
 export type GetLanguageService = (command: Command) => Promise<LanguageService>;
+export type GetTmService = (command: Command) => Promise<TmService>;
 
 export function createGetApiClient(getConfig: GetConfig) {
   let cachedClient: Client | undefined;
@@ -290,6 +292,22 @@ export function createGetLanguageService(getApiClient: GetApiClient) {
 
     const apiClient = await getApiClient(command);
     cachedService = new LanguageService(apiClient);
+
+    return cachedService;
+  };
+}
+
+export function createGetTmService(getApiClient: GetApiClient, getOutput: GetOutput) {
+  let cachedService: TmService | undefined;
+
+  return async (command: Command): Promise<TmService> => {
+    if (cachedService) {
+      return cachedService;
+    }
+
+    const apiClient = await getApiClient(command);
+    const output = getOutput(command);
+    cachedService = new TmService(apiClient, output);
 
     return cachedService;
   };

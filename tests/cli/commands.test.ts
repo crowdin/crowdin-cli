@@ -23,6 +23,7 @@ describe('command registry', () => {
       'project',
       'distribution',
       'context',
+      'tm',
     ]);
     expect(new Set(names).size).toBe(names.length);
   });
@@ -39,6 +40,7 @@ describe('command registry', () => {
     const task = commands.find((command) => command.name === 'task');
     const config = commands.find((command) => command.name === 'config');
     const context = commands.find((command) => command.name === 'context');
+    const tm = commands.find((command) => command.name === 'tm');
 
     expect(upload?.alias).toBe('push');
     expect(upload?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['sources', 'translations']);
@@ -67,5 +69,6 @@ describe('command registry', () => {
       'reset',
       'status',
     ]);
+    expect(tm?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'download', 'upload']);
   });
 });
