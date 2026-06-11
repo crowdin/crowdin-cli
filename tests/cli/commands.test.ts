@@ -17,6 +17,7 @@ describe('command registry', () => {
       'task',
       'file',
       'language',
+      'label',
       'comment',
       'config',
       'project',
@@ -33,6 +34,7 @@ describe('command registry', () => {
     const screenshot = commands.find((command) => command.name === 'screenshot');
     const string = commands.find((command) => command.name === 'string');
     const language = commands.find((command) => command.name === 'language');
+    const label = commands.find((command) => command.name === 'label');
     const task = commands.find((command) => command.name === 'task');
     const config = commands.find((command) => command.name === 'config');
 
@@ -55,6 +57,7 @@ describe('command registry', () => {
     expect(string?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'add', 'delete', 'edit']);
     expect(task?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'add']);
     expect(language?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list']);
+    expect(label?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'add', 'delete']);
     expect(config?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['sources', 'translations', 'lint']);
   });
 });

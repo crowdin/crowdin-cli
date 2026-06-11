@@ -6,6 +6,7 @@ import DistributionCommand from './commands/distribution/DistributionCommand.ts'
 import DownloadCommand from './commands/download/DownloadCommand.ts';
 import FileCommand from './commands/file/FileCommand.ts';
 import InitCommand from './commands/init/InitCommand.ts';
+import LabelCommand from './commands/label/LabelCommand.ts';
 import LanguageCommand from './commands/language/LanguageCommand.ts';
 import ProjectCommand from './commands/project/ProjectCommand.ts';
 import ScreenshotCommand from './commands/screenshot/ScreenshotCommand.ts';
@@ -87,6 +88,7 @@ const fileCommand = new FileCommand(
   getDirectoryService,
   getFileService,
 );
+const labelCommand = new LabelCommand(getOutput, getLabelService);
 const languageCommand = new LanguageCommand(getOutput, getProjectService, getLanguageService);
 const projectCommand = new ProjectCommand(getOutput, getProjectService);
 const statusCommand = new StatusCommand(
@@ -130,6 +132,7 @@ export const commands: CommandDef[] = [
   taskCommand.getDefinition(),
   fileCommand.getDefinition(),
   languageCommand.getDefinition(),
+  labelCommand.getDefinition(),
   commentCommand.getDefinition(),
   configCommand.getDefinition(),
   projectCommand.getDefinition(),

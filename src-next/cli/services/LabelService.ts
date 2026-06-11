@@ -1,4 +1,4 @@
-import type { Client } from '@crowdin/crowdin-api-client';
+import type { Client, LabelsModel } from '@crowdin/crowdin-api-client';
 import { toCliError } from '../errors/CliError.ts';
 
 export class LabelService {
@@ -7,13 +7,39 @@ export class LabelService {
     private projectId: number,
   ) {}
 
+  async list(): Promise<LabelsModel.Label[]> {
+    try {
+      const response = await this.apiClient.labelsApi.withFetchAll().listLabels(this.projectId);
+      return response.data.map((entry) => entry.data);
+    } catch (error) {
+      throw toCliError(error, 'Failed to list labels');
+    }
+  }
+
+  async add(title: string): Promise<LabelsModel.Label> {
+    try {
+      const response = await this.apiClient.labelsApi.addLabel(this.projectId, { title });
+      return response.data;
+    } catch (error) {
+      throw toCliError(error, `Failed to add label '${title}'`);
+    }
+  }
+
+  async delete(id: number): Promise<void> {
+    try {
+      await this.apiClient.labelsApi.deleteLabel(this.projectId, id);
+    } catch (error) {
+      throw toCliError(error, 'Failed to delete label');
+    }
+  }
+
   async resolveLabelIds(titles: string[], createMissing: boolean = true): Promise<number[] | undefined> {
     if (titles.length === 0) {
       return undefined;
     }
 
     try {
-      const labels = await this.apiClient.labelsApi.listLabels(this.projectId);
+      const labels = await this.apiClient.labelsApi.withFetchAll().listLabels(this.projectId);
       const labelIdsByTitle = new Map(labels.data.map((label) => [label.data.title, label.data.id]));
       const labelIds: number[] = [];
 
@@ -39,7 +65,7 @@ export class LabelService {
 
   async listLabelsMap(): Promise<Map<number, string>> {
     try {
-      const response = await this.apiClient.labelsApi.listLabels(this.projectId);
+      const response = await this.apiClient.labelsApi.withFetchAll().listLabels(this.projectId);
       return new Map(response.data.map((entry) => [entry.data.id, entry.data.title]));
     } catch (error) {
       throw toCliError(error, 'Failed to fetch labels');
