@@ -3,6 +3,7 @@ import { confirm, isCancel, select, text } from '@clack/prompts';
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { decodeJwt } from 'jose';
+import YAML from 'yaml';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput } from '@/cli/services.ts';
@@ -10,6 +11,7 @@ import type { CommandDef } from '@/cli/types.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
+import { DEFAULT_FILE_NAME, getApiTokenFilePathFor } from '@/lib/apiToken.ts';
 import { generate } from '@/lib/config/yamlGenerator.ts';
 import patterns from '@/lib/export/patterns.ts';
 import basePath from './options/basePath.ts';
@@ -84,10 +86,11 @@ export default class InitCommand {
     const projectDirectory = await this.selectProjectDirectory(options, output);
     const sourcePattern = await this.selectSourcePattern(options, output);
     const translationPattern = await this.selectTranslationPattern(options, output);
+    const apiTokenWritten = await this.writeApiToken(apiToken);
 
     const config = generate({
       projectId: project.data.id,
-      apiToken,
+      apiToken: apiTokenWritten ? undefined : apiToken,
       basePath: projectDirectory,
       baseUrl: domain ? `https://${domain}.api.crowdin.com` : options.baseUrl,
       preserveHierarchy: options.preserveHierarchy,
@@ -301,6 +304,26 @@ export default class InitCommand {
     this.cancelHandler(translationPattern, output);
 
     return translationPattern as string;
+  }
+
+  protected async writeApiToken(apiToken: string): Promise<boolean> {
+    const apiTokenFilePath = getApiTokenFilePathFor(DEFAULT_FILE_NAME);
+
+    try {
+      let existing: Record<string, unknown> = {};
+
+      if (await Bun.file(apiTokenFilePath).exists()) {
+        existing = YAML.parse(await Bun.file(apiTokenFilePath).text()) ?? {};
+      }
+
+      existing.api_token = apiToken;
+
+      await Bun.write(apiTokenFilePath, YAML.stringify(existing));
+
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   private cancelHandler(value: unknown, output: Output): void {

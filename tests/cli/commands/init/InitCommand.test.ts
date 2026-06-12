@@ -44,6 +44,8 @@ describe('InitCommand', () => {
     command.getAuthorizedUser = async () => ({ data: { id: 1 } });
     // @ts-expect-error
     command.selectProject = async () => ({ data: { id: 321 } });
+    // @ts-expect-error
+    command.writeApiToken = async () => true;
 
     const commandContext = {
       optsWithGlobals: () => ({
@@ -64,7 +66,7 @@ describe('InitCommand', () => {
     const config = await Bun.file(join(tempDir, destination)).text();
 
     expect(config).toContain('"project_id": "321"');
-    expect(config).toContain(`"api_token": "${apiToken}"`);
+    expect(config).not.toContain('"api_token"');
     expect(config).toContain('"base_path": "/workspace/app"');
     expect(config).toContain('"base_url": "https://api.crowdin.com"');
     expect(config).toContain('"preserve_hierarchy": false');
@@ -89,6 +91,8 @@ describe('InitCommand', () => {
     command.getAuthorizedUser = async () => ({ data: { id: 1 } });
     // @ts-expect-error
     command.selectProject = async () => ({ data: { id: 987 } });
+    // @ts-expect-error
+    command.writeApiToken = async () => true;
 
     const commandContext = {
       optsWithGlobals: () => ({

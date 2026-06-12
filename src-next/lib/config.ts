@@ -3,7 +3,7 @@ import { languagePatterns } from './export/patterns.ts';
 
 export const ConfigSchema = z.object({
   projectId: z.coerce.number().gt(0),
-  apiToken: z.string().min(80),
+  apiToken: z.string().min(80).optional(),
   basePath: z.string().default('.'),
   baseUrl: z.url({
     protocol: /^https?$/,

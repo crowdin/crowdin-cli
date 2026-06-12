@@ -1,6 +1,14 @@
 import type { Config } from '../config.ts';
 
 export function generate(config: Config): string {
+  const credentialLines = [`"project_id": "${config.projectId}"`];
+
+  if (config.apiToken !== undefined) {
+    credentialLines.push(`"api_token": "${config.apiToken}"`);
+  }
+
+  credentialLines.push(`"base_path": "${config.basePath}"`, `"base_url": "${config.baseUrl}"`);
+
   return `#
 # Basic Crowdin CLI configuration
 # See https://crowdin.github.io/crowdin-cli/configuration for more information
@@ -10,10 +18,7 @@ export function generate(config: Config): string {
 #
 # Your Crowdin credentials
 #
-"project_id": "${config.projectId}"
-"api_token": "${config.apiToken}"
-"base_path": "${config.basePath}"
-"base_url": "${config.baseUrl}"
+${credentialLines.join('\n')}
 
 #
 # Defines whether to preserve the original directory structure in the Crowdin project

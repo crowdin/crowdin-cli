@@ -15,7 +15,7 @@ export function loadFromString(string: string): Config {
 
   return ConfigSchema.parse({
     projectId: config.project_id,
-    apiToken: config.api_token,
+    apiToken: config.api_token ?? undefined,
     basePath: config.base_path,
     baseUrl: config.base_url,
     preserveHierarchy: config.preserve_hierarchy,
