@@ -13,6 +13,7 @@ import type { StorageService } from '@/cli/services/StorageService.ts';
 import type { TranslationService } from '@/cli/services/TranslationService.ts';
 import type { OptionDef, OptionGroupDef } from '@/cli/types.ts';
 import { ConfigSchema } from '@/lib/config.ts';
+import { computeChecksum } from '@/lib/upload/sourceCache.ts';
 
 function flatOptions(options: (OptionDef | OptionGroupDef)[]): OptionDef[] {
   return options.flatMap((item) => ('group' in item ? item.options : [item]));
@@ -351,6 +352,128 @@ describe('UploadCommand', () => {
     expect(directoryService.createProjectDirectory).not.toHaveBeenCalled();
     expect(output.success).toHaveBeenCalledWith('File src/app.json updated');
     expect(output.success).toHaveBeenCalledWith('File src/new.json created');
+  });
+
+  test('skips update when --cache is set and file checksum matches cached hash', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+
+    const checksum = await computeChecksum(Bun.file(`${tempDir}/src/app.json`));
+    await Bun.write(`${tempDir}/.crowdin/cache.json`, JSON.stringify({ sourceHashes: { 'src/app.json': checksum } }));
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const projectService = baseProjectServiceMock();
+    const fileService = {
+      ...baseFileServiceMock(),
+      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+    };
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      projectService,
+      storageService,
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+    );
+
+    await command.uploadSourcesAction(commandContext({ cache: true }));
+
+    expect(storageService.addStorage).not.toHaveBeenCalled();
+    expect(fileService.updateProjectFile).not.toHaveBeenCalled();
+    expect(output.info).toHaveBeenCalledWith('File src/app.json is unchanged, skipping');
+  });
+
+  test('updates file and refreshes cache entry when content changed with --cache', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{"key": "new value"}');
+    await Bun.write(
+      `${tempDir}/.crowdin/cache.json`,
+      JSON.stringify({ sourceHashes: { 'src/app.json': 'stale-hash' } }),
+    );
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const projectService = baseProjectServiceMock();
+    const fileService = {
+      ...baseFileServiceMock(),
+      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+    };
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      projectService,
+      storageService,
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+    );
+
+    await command.uploadSourcesAction(commandContext({ cache: true }));
+
+    expect(fileService.updateProjectFile).toHaveBeenCalled();
+    expect(output.success).toHaveBeenCalledWith('File src/app.json updated');
+
+    const expectedChecksum = await computeChecksum(Bun.file(`${tempDir}/src/app.json`));
+    const cache = await Bun.file(`${tempDir}/.crowdin/cache.json`).json();
+    expect(cache.sourceHashes['src/app.json']).toBe(expectedChecksum);
+  });
+
+  test('writes cache file with checksums for newly created files when --cache is set', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const projectService = baseProjectServiceMock();
+    const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      projectService,
+      storageService,
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+    );
+
+    await command.uploadSourcesAction(commandContext({ cache: true }));
+
+    expect(fileService.createProjectFile).toHaveBeenCalled();
+
+    const expectedChecksum = await computeChecksum(Bun.file(`${tempDir}/src/app.json`));
+    const cache = await Bun.file(`${tempDir}/.crowdin/cache.json`).json();
+    expect(cache.sourceHashes['src/app.json']).toBe(expectedChecksum);
+  });
+
+  test('does not read or write cache file when --cache is not set', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+    await Bun.write(
+      `${tempDir}/.crowdin/cache.json`,
+      JSON.stringify({ sourceHashes: { 'src/app.json': 'some-hash' } }),
+    );
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const projectService = baseProjectServiceMock();
+    const fileService = {
+      ...baseFileServiceMock(),
+      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+    };
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      projectService,
+      storageService,
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+    );
+
+    await command.uploadSourcesAction(commandContext({}));
+
+    expect(fileService.updateProjectFile).toHaveBeenCalled();
+
+    const cache = await Bun.file(`${tempDir}/.crowdin/cache.json`).json();
+    expect(cache.sourceHashes).toEqual({ 'src/app.json': 'some-hash' });
   });
 
   test('deletes obsolete project files and directories', async () => {

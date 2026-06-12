@@ -19,6 +19,7 @@ import { fileTree } from '@/cli/utils/fileTree.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
+import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
 import dryRun from '../common/options/dryRun.ts';
@@ -33,6 +34,7 @@ import token from '../init/options/token.ts';
 import translation from '../init/options/translation.ts';
 import autoApproveImported from './options/autoApproveImported.ts';
 import branch from './options/branch.ts';
+import cache from './options/cache.ts';
 import deleteObsolete from './options/deleteObsolete.ts';
 import excludedLanguage from './options/excludedLanguage.ts';
 import importEqSuggestions from './options/importEqSuggestions.ts';
@@ -49,6 +51,7 @@ interface UploadSourcesOptions {
   excludedLanguage?: string[];
   dryRun?: boolean;
   tree?: boolean;
+  cache?: boolean;
 }
 
 interface UploadTranslationsOptions {
@@ -91,6 +94,7 @@ export default class UploadCommand {
       excludedLanguage,
       deleteObsolete,
       noAutoUpdate,
+      cache,
       dryRun,
       tree,
       configOptionGroup,
@@ -185,6 +189,8 @@ export default class UploadCommand {
       return;
     }
 
+    const sourceHashes = options.cache && !options.dryRun ? await loadSourceCache(config.basePath, output) : undefined;
+
     // Shared per-path promise cache ensures concurrent tasks don't double-create directories
     const directoryCreationPromises = new Map<string, Promise<number>>();
 
@@ -194,6 +200,8 @@ export default class UploadCommand {
         fileOptions.labels !== undefined ? await labelService.resolveLabelIds(fileOptions.labels) : undefined;
 
       const tasks = filePaths.map((localFilePath) => async () => {
+        const localFile = Bun.file(path.join(config.basePath, localFilePath));
+
         if (projectFilePaths.has(`/${localFilePath}`)) {
           if (options.noAutoUpdate) {
             output.info(`File ${localFilePath} already exists and will not be updated`);
@@ -205,7 +213,18 @@ export default class UploadCommand {
             return;
           }
 
-          const storage = await storageService.addStorage(Bun.file(path.join(config.basePath, localFilePath)));
+          let checksum: string | undefined;
+
+          if (sourceHashes) {
+            checksum = await computeChecksum(localFile);
+
+            if (sourceHashes.get(localFilePath) === checksum) {
+              output.info(`File ${localFilePath} is unchanged, skipping`);
+              return;
+            }
+          }
+
+          const storage = await storageService.addStorage(localFile);
           await fileService.updateProjectFile(
             projectFilePaths.get(`/${localFilePath}`) as number,
             storage.data.id,
@@ -214,6 +233,10 @@ export default class UploadCommand {
             labelIds,
             fileOptions.excluded_target_languages,
           );
+
+          if (sourceHashes) {
+            sourceHashes.set(localFilePath, checksum as string);
+          }
 
           output.success(`File ${localFilePath} updated`);
           return;
@@ -227,7 +250,7 @@ export default class UploadCommand {
           return;
         }
 
-        const storage = await storageService.addStorage(Bun.file(path.join(config.basePath, localFilePath)));
+        const storage = await storageService.addStorage(localFile);
 
         if (pathDetails.dir !== '') {
           directoryId = await this.addProjectDirectories(
@@ -250,6 +273,10 @@ export default class UploadCommand {
           attachLabelIds: labelIds,
         });
 
+        if (sourceHashes) {
+          sourceHashes.set(localFilePath, await computeChecksum(localFile));
+        }
+
         output.success(`File ${localFilePath} created`);
       });
 
@@ -259,6 +286,10 @@ export default class UploadCommand {
       if (firstError) {
         throw (firstError as PromiseRejectedResult).reason;
       }
+    }
+
+    if (sourceHashes) {
+      await saveSourceCache(config.basePath, sourceHashes, output);
     }
   };
 
