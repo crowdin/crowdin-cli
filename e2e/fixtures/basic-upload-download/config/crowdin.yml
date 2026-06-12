@@ -1,0 +1,10 @@
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+
+base_path: "."
+base_url: "https://api.crowdin.com"
+preserve_hierarchy: true
+
+files:
+  - source: "sources/*.md"
+    translation: "translations/%locale%/%original_file_name%"

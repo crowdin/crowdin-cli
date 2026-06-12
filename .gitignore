@@ -4,7 +4,7 @@
 *.iml
 *.ipr
 *.iws
-crowdin.yml
+/crowdin.yml
 /testing
 dist
 node_modules
