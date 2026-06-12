@@ -7,10 +7,6 @@ import type { GetBranchService, GetOutput, GetProjectService } from '@/cli/servi
 import type { CommandDef, OptionDef } from '@/cli/types.ts';
 import { normalizeBranchName } from '@/cli/utils/parsing.ts';
 
-// Java '--plain' is covered by the global '--format' option.
-// Branch rows put the name first so '--format plain' prints branch names,
-// matching the Java '--plain' output.
-
 const BRANCH_PRIORITIES: SourceFilesModel.Priority[] = ['low', 'normal', 'high'];
 
 const addTitleOption: OptionDef = {
@@ -252,15 +248,16 @@ export default class BranchCommand {
     const output = this.getOutput(command);
     const branchService = await this.getBranchService(command);
     const branch = await this.findBranch(branchService, name);
-
     const patches: PatchRequest[] = [];
 
     if (options.name !== undefined) {
       patches.push({ op: 'replace', path: '/name', value: normalizeBranchName(options.name) });
     }
+
     if (options.title !== undefined) {
       patches.push({ op: 'replace', path: '/title', value: options.title });
     }
+
     if (options.priority !== undefined) {
       patches.push({ op: 'replace', path: '/priority', value: options.priority });
     }
@@ -368,7 +365,7 @@ export default class BranchCommand {
 
     const summary = await branchService.getMergeSummary(targetBranch.id, mergeId);
 
-    if (options.format !== undefined && options.format !== 'text') {
+    if (options.output !== undefined && options.output !== 'text') {
       output.table([{ targetBranchId: summary.targetBranchId, ...summary.details }]);
       return;
     }

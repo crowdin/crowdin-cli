@@ -21,7 +21,7 @@ describe('BundleCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   const createCommandContext = (
@@ -91,14 +91,14 @@ describe('BundleCommand', () => {
 
   describe('listAction', () => {
     test('prints empty message when no bundles found', async () => {
-      const textOutput = createOutput({ ...globalOptions, format: 'text' });
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const successSpy = spyOn(textOutput, 'success');
       const cmd = new BundleCommand(
         () => textOutput,
         async () => bundleService as unknown as BundleService,
       );
 
-      await cmd.listAction(createCommandContext({ ...globalOptions, format: 'text' }));
+      await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
       expect(successSpy).toHaveBeenCalledWith('No bundles found');
     });
@@ -130,7 +130,7 @@ describe('BundleCommand', () => {
       const cmd = createBundleCommand();
 
       expect(cmd.addAction(createCommandContext(globalOptions, ['bundle'], {}))).rejects.toThrow(
-        new CliError("'--file-format' can't be empty"),
+        new CliError("'--format' can't be empty"),
       );
       expect(cmd.addAction(createCommandContext(globalOptions, ['bundle'], { fileFormat: 'json' }))).rejects.toThrow(
         new CliError("'--source' can't be empty"),
@@ -182,7 +182,7 @@ describe('BundleCommand', () => {
     });
 
     test('warns when bundle not found', async () => {
-      const textOutput = createOutput({ ...globalOptions, format: 'text' });
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const warningSpy = spyOn(textOutput, 'warning');
       const cmd = new BundleCommand(
         () => textOutput,
@@ -190,14 +190,14 @@ describe('BundleCommand', () => {
       );
       bundleService.get.mockResolvedValue(null);
 
-      await cmd.deleteAction(createCommandContext({ ...globalOptions, format: 'text' }, ['1']));
+      await cmd.deleteAction(createCommandContext({ ...globalOptions, output: 'text' }, ['1']));
 
       expect(warningSpy).toHaveBeenCalledWith("Couldn't find bundle by the specified ID");
       expect(bundleService.delete).not.toHaveBeenCalled();
     });
 
     test('deletes existing bundle', async () => {
-      const textOutput = createOutput({ ...globalOptions, format: 'text' });
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const successSpy = spyOn(textOutput, 'success');
       const cmd = new BundleCommand(
         () => textOutput,
@@ -205,7 +205,7 @@ describe('BundleCommand', () => {
       );
       bundleService.get.mockResolvedValue(createBundleView({ id: 1, name: 'bundle' }));
 
-      await cmd.deleteAction(createCommandContext({ ...globalOptions, format: 'text' }, ['1']));
+      await cmd.deleteAction(createCommandContext({ ...globalOptions, output: 'text' }, ['1']));
 
       expect(bundleService.delete).toHaveBeenCalledWith(1);
       expect(successSpy).toHaveBeenCalledWith('Bundle #1 deleted');
@@ -214,7 +214,7 @@ describe('BundleCommand', () => {
 
   describe('cloneAction', () => {
     test('skips clone when source bundle is missing', async () => {
-      const textOutput = createOutput({ ...globalOptions, format: 'text' });
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const warningSpy = spyOn(textOutput, 'warning');
       const cmd = new BundleCommand(
         () => textOutput,
@@ -222,7 +222,7 @@ describe('BundleCommand', () => {
       );
       bundleService.get.mockResolvedValue(null);
 
-      await cmd.cloneAction(createCommandContext({ ...globalOptions, format: 'text' }, ['1']));
+      await cmd.cloneAction(createCommandContext({ ...globalOptions, output: 'text' }, ['1']));
 
       expect(warningSpy).toHaveBeenCalledWith("Couldn't find bundle by the specified ID");
       expect(bundleService.add).not.toHaveBeenCalled();
@@ -262,7 +262,7 @@ describe('BundleCommand', () => {
   });
 
   test('browseAction opens bundle URL in browser', async () => {
-    const textOutput = createOutput({ ...globalOptions, format: 'text' });
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const successSpy = spyOn(textOutput, 'success');
     const cmd = new BundleCommand(
       () => textOutput,
@@ -270,7 +270,7 @@ describe('BundleCommand', () => {
     );
 
     spyOn(os, 'platform').mockReturnValue('darwin');
-    await cmd.browseAction(createCommandContext({ ...globalOptions, format: 'text' }, ['1']));
+    await cmd.browseAction(createCommandContext({ ...globalOptions, output: 'text' }, ['1']));
 
     expect(Bun.spawn).toHaveBeenCalledWith(['open', 'https://crowdin.com/project/demo/bundles/10']);
     expect(successSpy).toHaveBeenCalledWith('Opened https://crowdin.com/project/demo/bundles/10 in browser');

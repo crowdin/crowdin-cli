@@ -26,7 +26,7 @@ describe('CommentCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   const createCommandContext = (options: unknown, args: string[] = []) => {
@@ -281,12 +281,12 @@ describe('CommentCommand', () => {
     });
 
     test('outputs success message when no comments found', async () => {
-      const textOutput = createOutput({ ...globalOptions, format: 'text' });
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const cmd = new CommentCommand(
         () => textOutput,
         async () => commentService,
       );
-      const commandContext = createCommandContext({ ...globalOptions, format: 'text' });
+      const commandContext = createCommandContext({ ...globalOptions, output: 'text' });
       const successSpy = spyOn(textOutput, 'success');
 
       spyOn(commentService, 'list').mockResolvedValue([]);
@@ -347,7 +347,7 @@ describe('CommentCommand', () => {
 
   describe('resolveAction', () => {
     test('resolves comment and outputs success message', async () => {
-      const textOutput = createOutput({ ...globalOptions, format: 'text' });
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const cmd = new CommentCommand(
         () => textOutput,
         async () => commentService,

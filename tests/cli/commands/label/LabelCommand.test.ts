@@ -19,7 +19,7 @@ describe('LabelCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   const createCommandContext = (options: GlobalOptions, args: string[] = []) => {
@@ -102,7 +102,7 @@ describe('LabelCommand', () => {
   test('prints empty message when no labels found', async () => {
     const labelCommand = createLabelCommand();
     labelService.list.mockResolvedValue([]);
-    output = createOutput({ ...globalOptions, format: 'text' });
+    output = createOutput({ ...globalOptions, output: 'text' });
 
     await labelCommand.listAction(createCommandContext(globalOptions));
 
@@ -132,7 +132,7 @@ describe('LabelCommand', () => {
   test('skips adding label that already exists', async () => {
     const labelCommand = createLabelCommand();
     labelService.list.mockResolvedValue([createLabel({ id: 12, title: 'main' })]);
-    output = createOutput({ ...globalOptions, format: 'text' });
+    output = createOutput({ ...globalOptions, output: 'text' });
 
     await labelCommand.addAction(createCommandContext(globalOptions, ['main']));
 
@@ -162,7 +162,7 @@ describe('LabelCommand', () => {
   test('deletes label by title', async () => {
     const labelCommand = createLabelCommand();
     labelService.list.mockResolvedValue([createLabel({ id: 12, title: 'main' })]);
-    output = createOutput({ ...globalOptions, format: 'text' });
+    output = createOutput({ ...globalOptions, output: 'text' });
 
     await labelCommand.deleteAction(createCommandContext(globalOptions, ['main']));
 

@@ -14,12 +14,8 @@ const UPLOAD_EXTENSIONS = ['tbx', 'csv', 'xls', 'xlsx'];
 const SCHEME_EXTENSIONS = ['csv', 'xls', 'xlsx'];
 const DEFAULT_GLOSSARY_NAME = 'Created in Crowdin CLI (%s)';
 
-// Java '--plain' is covered by the global '--format' option.
-// Java 'glossary download --format' is renamed to '--file-format' because it
-// would clash with the global '--format' (output mode) option.
-
-const fileFormatOption: OptionDef = {
-  name: 'file-format',
+const formatOption: OptionDef = {
+  name: 'format',
   type: 'string',
   description: 'Format of the file. Supported formats: tbx, csv, xlsx',
   choices: [...GLOSSARY_FORMATS],
@@ -96,7 +92,7 @@ export default class GlossaryCommand {
               description: 'Glossary identifier',
             },
           ],
-          options: [fileFormatOption, toOption],
+          options: [formatOption, toOption],
           action: this.downloadAction,
         },
         {

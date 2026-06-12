@@ -33,7 +33,7 @@ describe('GlossaryCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   const createCommandContext = (options: Record<string, unknown>, args: string[] = []) => {
@@ -103,7 +103,7 @@ describe('GlossaryCommand', () => {
       const optionNames = (subcommand.options ?? []).filter((option) => 'name' in option).map((option) => option.name);
 
       expect(optionNames).not.toContain('plain');
-      expect(optionNames).not.toContain('format');
+      expect(optionNames).not.toContain('output');
     }
   });
 
@@ -169,7 +169,7 @@ describe('GlossaryCommand', () => {
 
     test('warns when terms can not be listed in verbose mode', async () => {
       const glossaryCommand = createGlossaryCommand();
-      output = createOutput({ ...globalOptions, format: 'text' });
+      output = createOutput({ ...globalOptions, output: 'text' });
       glossaryService.list.mockResolvedValue([createGlossary()]);
       glossaryService.listTerms.mockRejectedValue(new CliError('Failed to list terms of glossary #42'));
 
@@ -183,7 +183,7 @@ describe('GlossaryCommand', () => {
     test('prints empty message when no glossaries found', async () => {
       const glossaryCommand = createGlossaryCommand();
       glossaryService.list.mockResolvedValue([]);
-      output = createOutput({ ...globalOptions, format: 'text' });
+      output = createOutput({ ...globalOptions, output: 'text' });
 
       await glossaryCommand.listAction(createCommandContext({}));
 
@@ -208,7 +208,7 @@ describe('GlossaryCommand', () => {
     test('downloads glossary by id with the default file name', async () => {
       const glossaryCommand = createGlossaryCommand();
       const write = spyOn(Bun, 'write').mockResolvedValue(0 as never);
-      output = createOutput({ ...globalOptions, format: 'text' });
+      output = createOutput({ ...globalOptions, output: 'text' });
 
       await glossaryCommand.downloadAction(createCommandContext({}, ['42']));
 
@@ -288,7 +288,7 @@ describe('GlossaryCommand', () => {
 
     test('uploads to the existing glossary by id', async () => {
       const glossaryCommand = createGlossaryCommand();
-      output = createOutput({ ...globalOptions, format: 'text' });
+      output = createOutput({ ...globalOptions, output: 'text' });
 
       await glossaryCommand.uploadAction(createCommandContext({ id: '42' }, [tbxFile]));
 

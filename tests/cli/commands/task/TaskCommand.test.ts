@@ -23,7 +23,7 @@ describe('TaskCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   const createCommandContext = (options: unknown, args: string[] = []) => {
@@ -148,7 +148,7 @@ describe('TaskCommand', () => {
     });
 
     test('prints empty message when no tasks are found', async () => {
-      const textOutput = createOutput({ ...globalOptions, format: 'text' });
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const cmd = new TaskCommand(
         () => textOutput,
         async () => taskService as unknown as TaskService,
@@ -156,7 +156,7 @@ describe('TaskCommand', () => {
         async () => branchService as unknown as BranchService,
         async () => fileService as unknown as FileService,
       );
-      const commandContext = createCommandContext({ ...globalOptions, format: 'text' });
+      const commandContext = createCommandContext({ ...globalOptions, output: 'text' });
       const successSpy = spyOn(textOutput, 'success');
       taskService.list.mockResolvedValue([]);
 
@@ -230,7 +230,7 @@ describe('TaskCommand', () => {
     });
 
     test('warns about missing files and fails when no valid files found', async () => {
-      const textOutput = createOutput({ ...globalOptions, format: 'text' });
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const cmd = new TaskCommand(
         () => textOutput,
         async () => taskService as unknown as TaskService,
@@ -241,7 +241,7 @@ describe('TaskCommand', () => {
       const commandContext = createCommandContext(
         {
           ...globalOptions,
-          format: 'text',
+          output: 'text',
           language: 'fr',
           file: ['missing.yml'],
           type: 'proofread',

@@ -75,25 +75,25 @@ function getExitCode(error: unknown): number {
 }
 
 function getOutputFormat(argv: string[]): GlobalOptions {
-  let format = 'text';
+  let outputFormat = 'text';
 
   for (let index = 0; index < argv.length; index++) {
     const arg = argv[index];
 
-    if (arg === '--format' || arg === '-f') {
+    if (arg === '--output' || arg === '-o') {
       const value = argv[index + 1];
 
       if (value === 'json' || value === 'toon' || value === 'text') {
-        format = value;
+        outputFormat = value;
         break;
       }
     }
 
-    if (arg?.startsWith('--format=')) {
-      const value = arg.slice('--format='.length);
+    if (arg?.startsWith('--output=')) {
+      const value = arg.slice('--output='.length);
 
       if (value === 'json' || value === 'toon' || value === 'text') {
-        format = value;
+        outputFormat = value;
         break;
       }
     }
@@ -104,6 +104,6 @@ function getOutputFormat(argv: string[]): GlobalOptions {
     config: '',
     progress: false,
     verbose: false,
-    format: format,
+    output: outputFormat,
   };
 }

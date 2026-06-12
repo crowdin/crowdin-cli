@@ -15,7 +15,7 @@ import { colors } from './colors.ts';
 import { formatData } from './formatter.ts';
 
 export function createOutput(options: GlobalOptions) {
-  const format = resolveOutputFormat(options.format);
+  const format = resolveOutputFormat(options.output);
 
   updateSettings({
     // Disable guide lines globally

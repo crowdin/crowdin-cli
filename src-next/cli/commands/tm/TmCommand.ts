@@ -13,12 +13,8 @@ const UPLOAD_EXTENSIONS = ['tmx', 'csv', 'xls', 'xlsx'];
 const SCHEME_EXTENSIONS = ['csv', 'xls', 'xlsx'];
 const DEFAULT_TM_NAME = 'Created in Crowdin CLI (%s)';
 
-// Java '--plain' is covered by the global '--format' option.
-// Java 'tm download --format' is renamed to '--file-format' because it would
-// clash with the global '--format' (output mode) option.
-
-const fileFormatOption: OptionDef = {
-  name: 'file-format',
+const formatOption: OptionDef = {
+  name: 'format',
   type: 'string',
   description: 'Format of the file. Supported formats: tmx, csv, xlsx',
   choices: [...TM_FORMATS],
@@ -109,7 +105,7 @@ export default class TmCommand {
               description: 'Translation memory identifier',
             },
           ],
-          options: [sourceLanguageIdOption, targetLanguageIdOption, fileFormatOption, toOption],
+          options: [sourceLanguageIdOption, targetLanguageIdOption, formatOption, toOption],
           action: this.downloadAction,
         },
         {

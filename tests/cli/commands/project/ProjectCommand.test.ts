@@ -33,7 +33,7 @@ describe('ProjectCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   const createCommandContext = (options: unknown, args: string[] = []) => {

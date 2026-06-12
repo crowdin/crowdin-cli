@@ -67,7 +67,7 @@ export default class LanguageCommand {
     if (projectData.managerAccess === false) {
       const message = 'You must have manager or developer role in the project to perform this action';
 
-      if (options.format === 'text') {
+      if (options.output === 'text') {
         output.warning(message);
         return;
       }

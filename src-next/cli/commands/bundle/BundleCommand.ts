@@ -7,8 +7,8 @@ import type { CommandDef, OptionDef } from '@/cli/types.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
 
-const fileFormatOption: OptionDef = {
-  name: 'file-format',
+const formatOption: OptionDef = {
+  name: 'format',
   type: 'string',
   description: 'Set bundle format',
 };
@@ -102,7 +102,7 @@ export default class BundleCommand {
             },
           ],
           options: [
-            fileFormatOption,
+            formatOption,
             sourceOption,
             ignoreOption,
             translationOption,
@@ -146,7 +146,7 @@ export default class BundleCommand {
           ],
           options: [
             nameOption,
-            fileFormatOption,
+            formatOption,
             sourceOption,
             ignoreOption,
             translationOption,
@@ -200,7 +200,7 @@ export default class BundleCommand {
     }
 
     if (!options.fileFormat) {
-      throw new CliError("'--file-format' can't be empty");
+      throw new CliError("'--format' can't be empty");
     }
 
     if (sourcePatterns.length === 0) {

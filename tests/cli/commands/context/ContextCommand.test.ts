@@ -33,7 +33,7 @@ describe('ContextCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'text',
+    output: 'text',
   };
 
   const createCommandContext = (options: unknown) => {

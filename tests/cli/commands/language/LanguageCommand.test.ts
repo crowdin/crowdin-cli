@@ -18,7 +18,7 @@ const globalOptions: GlobalOptions = {
   config: '',
   colors: false,
   progress: false,
-  format: 'json',
+  output: 'json',
 };
 
 const createCommandContext = (options: LanguageCommandTestOptions, args: string[] = []) => {
@@ -169,7 +169,7 @@ describe('LanguageCommand', () => {
     const languageCommand = createLanguageCommand();
     commandContext = createCommandContext({
       ...globalOptions,
-      format: 'text',
+      output: 'text',
     });
     const warning = spyOn(output, 'warning');
 
@@ -190,9 +190,9 @@ describe('LanguageCommand', () => {
     const languageCommand = createLanguageCommand();
     commandContext = createCommandContext({
       ...globalOptions,
-      format: 'plain',
+      output: 'plain',
     });
-    output = createOutput({ ...globalOptions, format: 'plain' });
+    output = createOutput({ ...globalOptions, output: 'plain' });
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
       data: {

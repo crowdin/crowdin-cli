@@ -29,9 +29,7 @@ const SINCE_FORMAT = /^\d{4}-\d{2}-\d{2}$/;
 const AVAILABLE_STATUSES = ['empty', 'ai', 'manual'];
 const DEFAULT_CONTEXT_FILE = 'crowdin-context.jsonl';
 
-// Java '--format' (file format) is intentionally not ported: 'jsonl' is the only
-// supported value and the flag would clash with the global '--format' option.
-// Java '--plain' is covered by the global '--format' option.
+// TODO: Java '--format' (file format) is intentionally not ported: 'jsonl' is the only supported value
 
 const toOption: OptionDef = {
   name: 'to',

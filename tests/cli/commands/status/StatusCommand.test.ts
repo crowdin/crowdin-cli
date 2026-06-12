@@ -24,7 +24,7 @@ const globalOptions: GlobalOptions = {
   config: '',
   colors: false,
   progress: false,
-  format: 'json',
+  output: 'json',
 };
 
 const createCommandContext = (options: StatusTestOptions) => {

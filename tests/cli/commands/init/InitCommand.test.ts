@@ -14,7 +14,7 @@ describe('InitCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
     destination: 'crowdin.yml',
   };
 
@@ -146,7 +146,7 @@ describe('InitCommand', () => {
       config: '',
       colors: false,
       progress: false,
-      format: 'json',
+      output: 'json',
       destination: 'crowdin.yml',
     };
 

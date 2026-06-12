@@ -21,7 +21,7 @@ describe('AppCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   const createCommandContext = (globalCommandOptions: unknown, args: string[] = []) => {
@@ -86,20 +86,20 @@ describe('AppCommand', () => {
   });
 
   test('listAction prints no applications message', async () => {
-    const textOutput = createOutput({ ...globalOptions, format: 'text' });
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const successSpy = spyOn(textOutput, 'success');
     const cmd = new AppCommand(
       () => textOutput,
       async () => appService as unknown as AppService,
     );
 
-    await cmd.listAction(createCommandContext({ ...globalOptions, format: 'text' }));
+    await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
     expect(successSpy).toHaveBeenCalledWith('No applications found');
   });
 
   test('listAction prints text output rows in text format', async () => {
-    const textOutput = createOutput({ ...globalOptions, format: 'text' });
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const cmd = new AppCommand(
       () => textOutput,
       async () => appService as unknown as AppService,
@@ -109,7 +109,7 @@ describe('AppCommand', () => {
       createApp({ identifier: 'slack', name: 'Slack' }),
     ]);
 
-    await cmd.listAction(createCommandContext({ ...globalOptions, format: 'text' }));
+    await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
     expect(console.table).toHaveBeenCalledTimes(1);
     expect(console.table).toHaveBeenCalledWith(
@@ -125,7 +125,7 @@ describe('AppCommand', () => {
     const cmd = createAppCommand();
     appService.list.mockResolvedValue([createApp({ identifier: 'github', name: 'GitHub' })]);
 
-    await cmd.listAction(createCommandContext({ ...globalOptions, format: 'json' }));
+    await cmd.listAction(createCommandContext({ ...globalOptions, output: 'json' }));
 
     expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ identifier: 'github', name: 'GitHub' }], null, 2));
   });
@@ -148,7 +148,7 @@ describe('AppCommand', () => {
   });
 
   test('installAction installs app by manifest URL', async () => {
-    const textOutput = createOutput({ ...globalOptions, format: 'text' });
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const successSpy = spyOn(textOutput, 'success');
     const cmd = new AppCommand(
       () => textOutput,
@@ -156,7 +156,7 @@ describe('AppCommand', () => {
     );
     appService.findManifestUrl.mockResolvedValue('https://example.com/manifest.json');
 
-    await cmd.installAction(createCommandContext({ ...globalOptions, format: 'text' }, ['github']));
+    await cmd.installAction(createCommandContext({ ...globalOptions, output: 'text' }, ['github']));
 
     expect(appService.findManifestUrl).toHaveBeenCalledWith('github');
     expect(appService.installByManifestUrl).toHaveBeenCalledWith('https://example.com/manifest.json');
@@ -172,14 +172,14 @@ describe('AppCommand', () => {
   });
 
   test('uninstallAction uninstalls app without force by default', async () => {
-    const textOutput = createOutput({ ...globalOptions, format: 'text' });
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const successSpy = spyOn(textOutput, 'success');
     const cmd = new AppCommand(
       () => textOutput,
       async () => appService as unknown as AppService,
     );
 
-    await cmd.uninstallAction(createCommandContext({ ...globalOptions, format: 'text' }, ['github']));
+    await cmd.uninstallAction(createCommandContext({ ...globalOptions, output: 'text' }, ['github']));
 
     expect(appService.uninstall).toHaveBeenCalledWith('github', false);
     expect(successSpy).toHaveBeenCalledWith('Application github has been uninstalled');

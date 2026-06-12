@@ -30,7 +30,7 @@ describe('BranchCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   const createCommandContext = (
@@ -159,7 +159,7 @@ describe('BranchCommand', () => {
 
     test('prints empty message when no branches found', async () => {
       const branchCommand = createBranchCommand();
-      output = createOutput({ ...globalOptions, format: 'text' });
+      output = createOutput({ ...globalOptions, output: 'text' });
 
       await branchCommand.listAction(createCommandContext());
 
@@ -218,7 +218,7 @@ describe('BranchCommand', () => {
     test('skips adding branch that already exists', async () => {
       const branchCommand = createBranchCommand();
       branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
-      output = createOutput({ ...globalOptions, format: 'text' });
+      output = createOutput({ ...globalOptions, output: 'text' });
 
       await branchCommand.addAction(createCommandContext({}, ['main']));
 
@@ -249,7 +249,7 @@ describe('BranchCommand', () => {
     test('deletes branch by name', async () => {
       const branchCommand = createBranchCommand();
       branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
-      output = createOutput({ ...globalOptions, format: 'text' });
+      output = createOutput({ ...globalOptions, output: 'text' });
 
       await branchCommand.deleteAction(createCommandContext({}, ['main']));
 
@@ -269,7 +269,7 @@ describe('BranchCommand', () => {
     test('skips deleting missing branch', async () => {
       const branchCommand = createBranchCommand();
       branchService.list.mockResolvedValue([]);
-      output = createOutput({ ...globalOptions, format: 'text' });
+      output = createOutput({ ...globalOptions, output: 'text' });
 
       await branchCommand.deleteAction(createCommandContext({}, ['main']));
 
@@ -486,9 +486,9 @@ describe('BranchCommand', () => {
         createStatus({ identifier: 'merge-id', status: 'created', progress: 0 }),
       );
       branchService.checkMergeStatus.mockResolvedValue(createStatus({ identifier: 'merge-id' }));
-      output = createOutput({ ...globalOptions, format: 'text' });
+      output = createOutput({ ...globalOptions, output: 'text' });
 
-      await branchCommand.mergeAction(createCommandContext({ format: 'text' }, ['dev', 'main']));
+      await branchCommand.mergeAction(createCommandContext({ output: 'text' }, ['dev', 'main']));
 
       expect(branchService.startMerge).toHaveBeenCalledWith(15, {
         sourceBranchId: 14,

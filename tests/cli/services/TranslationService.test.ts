@@ -12,7 +12,7 @@ const globalOptions: GlobalOptions = {
   config: '',
   colors: false,
   progress: false,
-  format: 'json',
+  output: 'json',
 };
 
 describe('TranslationService', () => {

@@ -12,7 +12,7 @@ const globalOptions: GlobalOptions = {
   config: '',
   colors: false,
   progress: false,
-  format: 'json',
+  output: 'json',
 };
 
 const mockFiles = [{ data: { id: 1, path: '/docs/readme.md' } }, { data: { id: 2, path: '/src/index.ts' } }];

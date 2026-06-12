@@ -39,7 +39,7 @@ describe('ScreenshotCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   const createCommandContext = (
@@ -131,7 +131,7 @@ describe('ScreenshotCommand', () => {
   });
 
   test('listAction prints empty message', async () => {
-    const textOutput = createOutput({ ...globalOptions, format: 'text' });
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const successSpy = spyOn(textOutput, 'success');
     const cmd = new ScreenshotCommand(
       () => textOutput,
@@ -143,7 +143,7 @@ describe('ScreenshotCommand', () => {
       async () => labelService as unknown as LabelService,
     );
 
-    await cmd.listAction(createCommandContext({ ...globalOptions, format: 'text' }));
+    await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
     expect(successSpy).toHaveBeenCalledWith('No screenshot found');
   });
@@ -169,7 +169,7 @@ describe('ScreenshotCommand', () => {
   });
 
   test('deleteAction warns for missing screenshot', async () => {
-    const textOutput = createOutput({ ...globalOptions, format: 'text' });
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const warningSpy = spyOn(textOutput, 'warning');
     const cmd = new ScreenshotCommand(
       () => textOutput,
@@ -181,14 +181,14 @@ describe('ScreenshotCommand', () => {
       async () => labelService as unknown as LabelService,
     );
 
-    await cmd.deleteAction(createCommandContext({ ...globalOptions, format: 'text' }, ['101']));
+    await cmd.deleteAction(createCommandContext({ ...globalOptions, output: 'text' }, ['101']));
 
     expect(warningSpy).toHaveBeenCalledWith("Couldn't find screenshot by the specified ID");
     expect(screenshotService.delete).not.toHaveBeenCalled();
   });
 
   test('deleteAction deletes existing screenshot', async () => {
-    const textOutput = createOutput({ ...globalOptions, format: 'text' });
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const successSpy = spyOn(textOutput, 'success');
     const cmd = new ScreenshotCommand(
       () => textOutput,
@@ -201,7 +201,7 @@ describe('ScreenshotCommand', () => {
     );
     screenshotService.get.mockResolvedValue(createScreenshot(12, 'old.png'));
 
-    await cmd.deleteAction(createCommandContext({ ...globalOptions, format: 'text' }, ['12']));
+    await cmd.deleteAction(createCommandContext({ ...globalOptions, output: 'text' }, ['12']));
 
     expect(screenshotService.delete).toHaveBeenCalledWith(12);
     expect(successSpy).toHaveBeenCalledWith("Screenshot '#12 old.png' deleted successfully");
@@ -294,7 +294,7 @@ describe('ScreenshotCommand', () => {
   });
 
   test('uploadAction prints warning for auto-tag-in-progress API response', async () => {
-    const textOutput = createOutput({ ...globalOptions, format: 'text' });
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const warningSpy = spyOn(textOutput, 'warning');
     const cmd = new ScreenshotCommand(
       () => textOutput,
@@ -310,7 +310,7 @@ describe('ScreenshotCommand', () => {
     screenshotService.upload.mockRejectedValue(new Error('Auto tag is currently in progress'));
     screenshotService.isAutoTagInProgressError.mockReturnValue(true);
 
-    await cmd.uploadAction(createCommandContext({ ...globalOptions, format: 'text' }, [localPath]));
+    await cmd.uploadAction(createCommandContext({ ...globalOptions, output: 'text' }, [localPath]));
 
     expect(warningSpy).toHaveBeenCalledWith(
       'Tags were not applied for new.png because auto tag is currently in progress',

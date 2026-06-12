@@ -35,7 +35,7 @@ describe('StringCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   const createCommandContext = (options: unknown, args: string[] = []) => {
@@ -140,7 +140,7 @@ describe('StringCommand', () => {
     });
 
     test('prints empty message when no strings found', async () => {
-      const textOutput = createOutput({ ...globalOptions, format: 'text' });
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const cmd = new StringCommand(
         () => textOutput,
         async () => stringService as unknown as StringService,
@@ -149,7 +149,7 @@ describe('StringCommand', () => {
         async () => fileService as unknown as FileService,
         async () => labelService as unknown as LabelService,
       );
-      const commandContext = createCommandContext({ ...globalOptions, format: 'text' });
+      const commandContext = createCommandContext({ ...globalOptions, output: 'text' });
       const successSpy = spyOn(textOutput, 'success');
       stringService.list.mockResolvedValue([]);
 
@@ -244,7 +244,7 @@ describe('StringCommand', () => {
     });
 
     test('creates file-based string and warns about missing files', async () => {
-      const textOutput = createOutput({ ...globalOptions, format: 'text' });
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const cmd = new StringCommand(
         () => textOutput,
         async () => stringService as unknown as StringService,
@@ -255,7 +255,7 @@ describe('StringCommand', () => {
       );
       const warningSpy = spyOn(textOutput, 'warning');
       const commandContext = createCommandContext(
-        { ...globalOptions, format: 'text', file: ['a.yml', 'missing.yml'], identifier: 'k1' },
+        { ...globalOptions, output: 'text', file: ['a.yml', 'missing.yml'], identifier: 'k1' },
         ['hello'],
       );
       fileService.resolveFileIds.mockResolvedValue({ fileIds: [101], missingPaths: ['missing.yml'] });
@@ -338,7 +338,7 @@ describe('StringCommand', () => {
     });
 
     test('deletes string by id', async () => {
-      const textOutput = createOutput({ ...globalOptions, format: 'text' });
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const cmd = new StringCommand(
         () => textOutput,
         async () => stringService as unknown as StringService,
@@ -348,7 +348,7 @@ describe('StringCommand', () => {
         async () => labelService as unknown as LabelService,
       );
       const successSpy = spyOn(textOutput, 'success');
-      const commandContext = createCommandContext({ ...globalOptions, format: 'text' }, ['42']);
+      const commandContext = createCommandContext({ ...globalOptions, output: 'text' }, ['42']);
 
       await cmd.deleteAction(commandContext);
 

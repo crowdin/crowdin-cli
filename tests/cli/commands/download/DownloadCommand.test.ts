@@ -42,7 +42,7 @@ describe('DownloadCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   type DownloadTestOptions = GlobalOptions & {

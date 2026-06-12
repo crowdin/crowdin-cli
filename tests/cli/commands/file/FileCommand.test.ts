@@ -42,7 +42,7 @@ describe('FileCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   type FileTestOptions = GlobalOptions & {
@@ -150,7 +150,7 @@ describe('FileCommand', () => {
     commandContext = createCommandContext(
       {
         ...globalOptions,
-        format: 'json',
+        output: 'json',
         dest: 'nested/translations/remote.json',
         type: 'json',
         parserVersion: '2',

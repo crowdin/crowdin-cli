@@ -22,7 +22,7 @@ describe('DistributionCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   type DistributionTestOptions = GlobalOptions & {

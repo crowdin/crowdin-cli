@@ -32,7 +32,7 @@ describe('TmCommand', () => {
     config: '',
     colors: false,
     progress: false,
-    format: 'json',
+    output: 'json',
   };
 
   const createCommandContext = (options: Record<string, unknown>, args: string[] = []) => {
@@ -103,7 +103,7 @@ describe('TmCommand', () => {
       const optionNames = (subcommand.options ?? []).filter((option) => 'name' in option).map((option) => option.name);
 
       expect(optionNames).not.toContain('plain');
-      expect(optionNames).not.toContain('format');
+      expect(optionNames).not.toContain('output');
     }
   });
 
@@ -133,7 +133,7 @@ describe('TmCommand', () => {
     test('prints empty message when no translation memories found', async () => {
       const tmCommand = createTmCommand();
       tmService.list.mockResolvedValue([]);
-      output = createOutput({ ...globalOptions, format: 'text' });
+      output = createOutput({ ...globalOptions, output: 'text' });
 
       await tmCommand.listAction(createCommandContext({}));
 
@@ -158,7 +158,7 @@ describe('TmCommand', () => {
     test('downloads translation memory by id with the default file name', async () => {
       const tmCommand = createTmCommand();
       const write = spyOn(Bun, 'write').mockResolvedValue(0 as never);
-      output = createOutput({ ...globalOptions, format: 'text' });
+      output = createOutput({ ...globalOptions, output: 'text' });
 
       await tmCommand.downloadAction(createCommandContext({}, ['42']));
 
@@ -258,7 +258,7 @@ describe('TmCommand', () => {
 
     test('uploads to the existing translation memory by id', async () => {
       const tmCommand = createTmCommand();
-      output = createOutput({ ...globalOptions, format: 'text' });
+      output = createOutput({ ...globalOptions, output: 'text' });
 
       await tmCommand.uploadAction(createCommandContext({ id: '42' }, [tmxFile]));
 
