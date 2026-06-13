@@ -85,8 +85,12 @@ class UploadTranslationsAction implements NewAction<PropertiesWithFiles, Project
             : project.getProjectLanguages(false);
 
         for (FileBean file : pb.getFiles()) {
+            LanguageMapping localLanguageMapping =
+                LanguageMapping.fromConfigFileLanguageMapping(file.getLanguagesMapping());
+            LanguageMapping languageMapping =
+                LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
             List<String> fileSourcesWithoutIgnores = SourcesUtils
-                .getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil)
+                .getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil, languageMapping)
                 .map(java.io.File::getAbsolutePath)
                 .collect(Collectors.toList());
 

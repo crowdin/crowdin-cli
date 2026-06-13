@@ -76,6 +76,55 @@ public class UploadTranslationsActionTest {
     }
 
     @Test
+    public void testUploadTranslation_IgnoreWithMappedLanguagePlaceholder_Project() throws ResponseException {
+        // With a custom language mapping %locale% resolves to "ukrainian". The ignore uses %locale%,
+        // so `upload translations` must apply the mapping (like `upload sources` does) to exclude the
+        // localized variant; otherwise it resolves %locale% to the default and uploads the file too.
+        // See https://github.com/crowdin/crowdin-cli/issues/1030
+        project.addFile(Utils.normalizePath("messages.po"), "Hello, World!");
+        project.addFile(Utils.normalizePath("messages-ukrainian.po"), "Hello, World!");
+        project.addFile(Utils.normalizePath("messages.po-CR-ukrainian"), "Hello, World!");
+        project.addFile(Utils.normalizePath("messages-ukrainian.po-CR-ukrainian"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+                .minimalBuiltPropertiesBean("*.po", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%", Arrays.asList("*-%locale%.po"))
+                .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                .addFile("messages.po", "gettext", 301L, null, null)
+                .addFile("messages-ukrainian.po", "gettext", 302L, null, null)
+                .addLanguageMapping("ua", "locale", "ukrainian")
+                .build();
+        build.setType(Type.FILES_BASED);
+        ImportTranslationsRequest request = new ImportTranslationsRequest() {{
+            setStorageId(1L);
+            setFileId(301L);
+            setImportEqSuggestions(false);
+            setAutoApproveImported(false);
+            setTranslateHidden(false);
+            setLanguageIds(List.of("ua"));
+        }};
+        ImportTranslationsStatus importTranslationsStatus = new ImportTranslationsStatus();
+        importTranslationsStatus.setStatus("finished");
+        importTranslationsStatus.setIdentifier("123");
+
+        when(client.downloadFullProject(null))
+                .thenReturn(build);
+        when(client.uploadStorage(eq("messages.po-CR-ukrainian"), any()))
+                .thenReturn(1L);
+        when(client.importTranslations(eq(request))).thenReturn(importTranslationsStatus);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadTranslationsAction(false, null, null, false, false, false, false, false, false);
+        assertDoesNotThrow(() -> action.act(Outputter.getDefault(), pb, client));
+
+        // Only messages.po is uploaded; messages-ukrainian.po is excluded by the mapped placeholder ignore.
+        verify(client).downloadFullProject(null);
+        verify(client).uploadStorage(eq("messages.po-CR-ukrainian"), any());
+        verify(client).importTranslations(eq(request));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
     public void testUploadBothTranslation_Project() throws ResponseException {
         project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
         project.addFile(Utils.normalizePath("first.po-CR-uk-UA"), "Hello, World!");
