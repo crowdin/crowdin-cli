@@ -7,7 +7,7 @@
       "dependencies": {
         "@bomb.sh/tab": "^0.0.14",
         "@clack/prompts": "^1.4.0",
-        "@crowdin/crowdin-api-client": "^1.55.3",
+        "@crowdin/crowdin-api-client": "^1.55.4",
         "@toon-format/toon": "^2.1.0",
         "adm-zip": "^0.5.17",
         "commander": "^15.0.0",
@@ -71,7 +71,7 @@
 
     "@colors/colors": ["@colors/colors@1.5.0", "", {}, "sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ=="],
 
-    "@crowdin/crowdin-api-client": ["@crowdin/crowdin-api-client@1.55.3", "", { "dependencies": { "axios": "1.16.1" } }, "sha512-GakpdUYd9YlZim12voUqJTaO3PyassP69jgDiCL5xVgqBQmYtFuNB+8QpupsOYVqiFNd2FuCk50cYBLS4OLmdQ=="],
+    "@crowdin/crowdin-api-client": ["@crowdin/crowdin-api-client@1.55.4", "", { "dependencies": { "axios": "1.16.1" } }, "sha512-mNAVxuQgW2j3NH/ktkjlFNsFrQL3OTvCnoxBe2hJYu0P2U/1qGFPWfqn2pZeh3eWYSioyg4QXlJQSacyER8jyg=="],
 
     "@fastify/busboy": ["@fastify/busboy@2.1.1", "", {}, "sha512-vBZP4NlzfOlerQTnba4aqZoMhE/a9HY7HRqoOPaETQcSQuWEIyZMHGfVu6w9wGtGK5fED5qRs2DteVCjOH60sA=="],
 
