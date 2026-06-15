@@ -1,4 +1,5 @@
 import AppCommand from './commands/app/AppCommand.ts';
+import AutoTranslateCommand from './commands/auto-translate/AutoTranslateCommand.ts';
 import BranchCommand from './commands/branch/BranchCommand.ts';
 import BundleCommand from './commands/bundle/BundleCommand.ts';
 import CommentCommand from './commands/comment/CommentCommand.ts';
@@ -97,6 +98,14 @@ const fileCommand = new FileCommand(
   getFileService,
 );
 const branchCommand = new BranchCommand(getOutput, getProjectService, getBranchService);
+const autoTranslateCommand = new AutoTranslateCommand(
+  getOutput,
+  getProjectService,
+  getBranchService,
+  getFileService,
+  getLabelService,
+  getTranslationService,
+);
 const labelCommand = new LabelCommand(getOutput, getLabelService);
 const languageCommand = new LanguageCommand(getOutput, getProjectService, getLanguageService);
 const projectCommand = new ProjectCommand(getOutput, getProjectService);
@@ -147,6 +156,7 @@ export const commands: CommandDef[] = [
   screenshotCommand.getDefinition(),
   initCommand.getDefinition(),
   statusCommand.getDefinition(),
+  autoTranslateCommand.getDefinition(),
   stringCommand.getDefinition(),
   taskCommand.getDefinition(),
   fileCommand.getDefinition(),

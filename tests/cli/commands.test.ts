@@ -13,6 +13,7 @@ describe('command registry', () => {
       'screenshot',
       'init',
       'status',
+      'auto-translate',
       'string',
       'task',
       'file',

@@ -41,6 +41,70 @@ export class TranslationService {
     }
   }
 
+  async getMtSupportedLanguageIds(engineId: number): Promise<string[]> {
+    try {
+      const response = await this.apiClient.machineTranslationApi.getMt(engineId);
+      return response.data.supportedLanguageIds ?? [];
+    } catch (error) {
+      throw toCliError(error, 'Failed to fetch the specified MT engine');
+    }
+  }
+
+  async preTranslate(
+    request: TranslationsModel.PreTranslateRequest | TranslationsModel.PreTranslateStringsRequest,
+    verbose: boolean,
+  ) {
+    this.output.spinner('preTranslate', 'start', 'Pre-translation is running...');
+
+    try {
+      const applied = await this.apiClient.translationsApi.applyPreTranslation(this.projectId, request);
+      let status = applied.data;
+
+      while (status.status.toLowerCase() !== 'finished') {
+        if (status.status.toLowerCase() === 'failed') {
+          throw new CliError('Failed to pre-translate the project. Please contact our support team for help');
+        }
+
+        const progress = Math.trunc(status.progress);
+        this.output.spinner(
+          'preTranslate',
+          'message',
+          verbose
+            ? `Pre-translation is completed by (${progress}%) (${status.identifier})`
+            : `Pre-translation is completed by (${progress}%)`,
+        );
+
+        await Bun.sleep(1000);
+
+        status = (await this.apiClient.translationsApi.preTranslationStatus(this.projectId, status.identifier)).data;
+      }
+
+      this.output.spinner(
+        'preTranslate',
+        'stop',
+        verbose ? `Pre-translation is finished (100%) (${status.identifier})` : 'Pre-translation is finished (100%)',
+      );
+
+      return status;
+    } catch (error) {
+      this.output.spinner(
+        'preTranslate',
+        'error',
+        'Failed to pre-translate the project. Please contact our support team for help',
+      );
+      throw toCliError(error, 'Failed to pre-translate the project. Please contact our support team for help');
+    }
+  }
+
+  async getPreTranslationReport(preTranslationId: string): Promise<TranslationsModel.PreTranslationReport> {
+    try {
+      const response = await this.apiClient.translationsApi.getPreTranslationReport(this.projectId, preTranslationId);
+      return response.data;
+    } catch (error) {
+      throw toCliError(error, 'Failed to fetch the pre-translation report');
+    }
+  }
+
   async buildProjectTranslations(request?: TranslationsModel.BuildRequest | TranslationsModel.PseudoBuildRequest) {
     this.output.spinner('build', 'start', 'Building translations...');
 

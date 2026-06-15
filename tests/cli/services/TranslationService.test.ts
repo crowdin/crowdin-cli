@@ -65,7 +65,7 @@ describe('TranslationService', () => {
 
       const result = await translationService.buildProjectTranslations();
 
-      expect(result).toBe(build);
+      expect(result).toBe(build as never);
     });
 
     test('throws CliError when build status is "failed"', async () => {
@@ -112,6 +112,76 @@ describe('TranslationService', () => {
       spyOn(apiClient.translationsApi, 'downloadTranslations').mockRejectedValue(new Error('gone'));
 
       expect(translationService.getTranslationDownloadUrl(99)).rejects.toThrow(CliError);
+    });
+  });
+
+  describe('getMtSupportedLanguageIds', () => {
+    test('returns the supported language ids of the engine', async () => {
+      const spy = spyOn(apiClient.machineTranslationApi, 'getMt').mockResolvedValue({
+        data: { supportedLanguageIds: ['ua', 'fr'] },
+      } as never);
+
+      const languageIds = await translationService.getMtSupportedLanguageIds(7);
+
+      expect(spy).toHaveBeenCalledWith(7);
+      expect(languageIds).toEqual(['ua', 'fr']);
+    });
+
+    test('wraps API error as CliError', async () => {
+      spyOn(apiClient.machineTranslationApi, 'getMt').mockRejectedValue(new Error('not found'));
+
+      expect(translationService.getMtSupportedLanguageIds(7)).rejects.toThrow(CliError);
+    });
+  });
+
+  describe('preTranslate', () => {
+    test('polls until finished and returns the final status', async () => {
+      const apply = spyOn(apiClient.translationsApi, 'applyPreTranslation').mockResolvedValue({
+        data: { identifier: '121', status: 'created', progress: 0 },
+      } as never);
+      const check = spyOn(apiClient.translationsApi, 'preTranslationStatus')
+        .mockResolvedValueOnce({ data: { identifier: '121', status: 'inProgress', progress: 50 } } as never)
+        .mockResolvedValueOnce({ data: { identifier: '121', status: 'finished', progress: 100 } } as never);
+      spyOn(Bun, 'sleep').mockResolvedValue(undefined);
+
+      const request = { languageIds: ['ua'], fileIds: [101] };
+      const status = await translationService.preTranslate(request, false);
+
+      expect(apply).toHaveBeenCalledWith(PROJECT_ID, request);
+      expect(check).toHaveBeenCalledWith(PROJECT_ID, '121');
+      expect(status.status).toBe('finished');
+    });
+
+    test('throws CliError when pre-translation fails', async () => {
+      spyOn(apiClient.translationsApi, 'applyPreTranslation').mockResolvedValue({
+        data: { identifier: '121', status: 'inProgress', progress: 10 },
+      } as never);
+      spyOn(apiClient.translationsApi, 'preTranslationStatus').mockResolvedValue({
+        data: { identifier: '121', status: 'failed', progress: 10 },
+      } as never);
+      spyOn(Bun, 'sleep').mockResolvedValue(undefined);
+
+      expect(translationService.preTranslate({ languageIds: ['ua'], fileIds: [101] }, false)).rejects.toThrow(CliError);
+    });
+  });
+
+  describe('getPreTranslationReport', () => {
+    test('returns the report data', async () => {
+      const report = { preTranslateType: 'tm', languages: [] };
+      const spy = spyOn(apiClient.translationsApi, 'getPreTranslationReport').mockResolvedValue({
+        data: report,
+      } as never);
+
+      const result = await translationService.getPreTranslationReport('121');
+
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, '121');
+      expect(result).toBe(report as never);
+    });
+
+    test('wraps API error as CliError', async () => {
+      spyOn(apiClient.translationsApi, 'getPreTranslationReport').mockRejectedValue(new Error('boom'));
+
+      expect(translationService.getPreTranslationReport('121')).rejects.toThrow(CliError);
     });
   });
 });
