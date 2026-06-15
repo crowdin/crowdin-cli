@@ -18,6 +18,26 @@ if (!hasProperty('mainClass')) {
 
 [compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
 
+// The CLI is compiled for Java 17, so on an older runtime the JVM fails to load the main class
+// with a raw UnsupportedClassVersionError before any of our code runs. The launcher source set is
+// compiled for an older release so it loads on any JVM, checks the version, and prints a clear
+// message instead (see com.crowdin.cli.Launcher). https://github.com/crowdin/crowdin-cli/issues/940
+sourceSets {
+    launcher {
+        java {
+            srcDirs = ['src/launcher/java']
+        }
+    }
+}
+
+sourceSets.launcher.compileClasspath += sourceSets.main.output + sourceSets.main.compileClasspath
+sourceSets.test.compileClasspath += sourceSets.launcher.output
+sourceSets.test.runtimeClasspath += sourceSets.launcher.output
+
+compileLauncherJava {
+    options.release = 8
+}
+
 repositories {
     mavenCentral()
     maven { url 'https://jitpack.io'}
@@ -65,14 +85,16 @@ wrapper {
 }
 
 jar {
+    from sourceSets.launcher.output
     manifest {
         attributes 'Implementation-Title': 'Crowdin CLI',
                 'Implementation-Version': archiveVersion,
-                'Main-Class': 'com.crowdin.cli.Cli'
+                'Main-Class': 'com.crowdin.cli.Launcher'
     }
 }
 
 shadowJar {
+    from sourceSets.launcher.output
     setArchivesBaseName('crowdin-cli')
     getArchiveClassifier().set('')
     minimize {
