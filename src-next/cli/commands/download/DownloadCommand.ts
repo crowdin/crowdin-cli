@@ -50,7 +50,7 @@ interface TranslationsOptions extends GlobalOptions {
   exportOnlyApproved?: boolean;
   keepArchive?: boolean;
   all?: boolean;
-  dryRun?: boolean;
+  dryrun?: boolean;
   tree?: boolean;
   ignoreMatch?: boolean;
 }
@@ -58,7 +58,7 @@ interface TranslationsOptions extends GlobalOptions {
 interface SourcesOptions extends GlobalOptions {
   branch?: string;
   reviewed?: boolean;
-  dryRun?: boolean;
+  dryrun?: boolean;
 }
 
 export default class DownloadCommand {
@@ -128,7 +128,7 @@ export default class DownloadCommand {
     const branchId = await this.resolveBranchId(options.branch, branchService);
     const projectFiles = await fileService.loadProjectFiles(branchId);
 
-    if (options.dryRun) {
+    if (options.dryrun) {
       for (const file of projectFiles.data) {
         output.log((file.data.path || '').replace(/^\//, ''));
       }
@@ -217,7 +217,7 @@ export default class DownloadCommand {
 
     const branchId = await this.resolveBranchId(options.branch, branchService);
 
-    if (options.dryRun) {
+    if (options.dryrun) {
       const projectFiles = await fileService.loadProjectFiles(branchId);
       const paths = projectFiles.data.map((file) => (file.data.path || '').replace(/^\//, ''));
       const lines = options.tree ? fileTree(paths) : paths;

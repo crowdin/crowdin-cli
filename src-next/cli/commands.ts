@@ -146,6 +146,7 @@ const uploadCommand = new UploadCommand(
   getFileService,
   getLabelService,
   getTranslationService,
+  getStringService,
 );
 
 export const commands: CommandDef[] = [

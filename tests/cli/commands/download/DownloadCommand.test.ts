@@ -20,6 +20,7 @@ const config: Config = {
   basePath: '.',
   baseUrl: 'https://api.crowdin.com',
   preserveHierarchy: true,
+  ignoreHiddenFiles: true,
   files: [
     {
       source: '/resources/en/*.json',
@@ -55,7 +56,7 @@ describe('DownloadCommand', () => {
     exportOnlyApproved?: boolean;
     keepArchive?: boolean;
     all?: boolean;
-    dryRun?: boolean;
+    dryrun?: boolean;
     tree?: boolean;
     ignoreMatch?: boolean;
     reviewed?: boolean;
@@ -322,7 +323,7 @@ describe('DownloadCommand', () => {
 
       commandContext = createCommandContext({
         ...globalOptions,
-        dryRun: true,
+        dryrun: true,
       });
 
       await downloadCommand.translationsAction(commandContext);
@@ -490,7 +491,7 @@ describe('DownloadCommand', () => {
 
       commandContext = createCommandContext({
         ...globalOptions,
-        dryRun: true,
+        dryrun: true,
       });
 
       await downloadCommand.sourcesAction(commandContext);

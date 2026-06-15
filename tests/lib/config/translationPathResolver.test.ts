@@ -130,7 +130,137 @@ describe('translation path resolver', () => {
       expect(actual).toBe(expected);
     }
   });
+
+  test('resolves translation path using per-file languagesMapping override', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/resources/en/readme.md`, 'readme');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/resources/en/*.md',
+          translation: '/resources/%two_letters_code%/%original_file_name%',
+          languages_mapping: {
+            two_letters_code: {
+              es: 'es-custom',
+            },
+          },
+        },
+      ],
+    });
+
+    const actual = new TranslationPathResolver(config).resolve(Bun.file('resources/en/readme.md'), language('es'));
+
+    expect(actual).toBe('/resources/es-custom/readme.md');
+  });
+
+  test('resolves translation path using server language mapping', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/resources/en/readme.md`, 'readme');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/resources/en/*.md',
+          translation: '/resources/%two_letters_code%/%original_file_name%',
+        },
+      ],
+    });
+
+    const serverMapping = { es: { two_letters_code: 'es-server' } } as never;
+    const actual = new TranslationPathResolver(config).resolve(
+      Bun.file('resources/en/readme.md'),
+      language('es'),
+      serverMapping,
+    );
+
+    expect(actual).toBe('/resources/es-server/readme.md');
+  });
+
+  test('per-file languagesMapping takes precedence over server mapping', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/resources/en/readme.md`, 'readme');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/resources/en/*.md',
+          translation: '/resources/%two_letters_code%/%original_file_name%',
+          languages_mapping: { two_letters_code: { es: 'es-local' } },
+        },
+      ],
+    });
+
+    const serverMapping = { es: { two_letters_code: 'es-server' } } as never;
+    const actual = new TranslationPathResolver(config).resolve(
+      Bun.file('resources/en/readme.md'),
+      language('es'),
+      serverMapping,
+    );
+
+    expect(actual).toBe('/resources/es-local/readme.md');
+  });
+
+  test('applies translationReplace to resolved translation file name', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/resources/en/readme.md`, 'readme');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/resources/en/*.md',
+          translation: '/resources/%two_letters_code%/%original_file_name%',
+          translation_replace: {
+            readme: 'guide',
+          },
+        },
+      ],
+    });
+
+    const actual = new TranslationPathResolver(config).resolve(Bun.file('resources/en/readme.md'), language('es'));
+
+    expect(actual).toBe('/resources/es/guide.md');
+  });
 });
+
+function language(id: string) {
+  return {
+    id,
+    name: id,
+    editorCode: id,
+    twoLettersCode: id,
+    threeLettersCode: `${id}${id}${id}`,
+    locale: `${id}-${id.toUpperCase()}`,
+    androidCode: id,
+    osxCode: id,
+    osxLocale: id,
+    pluralCategoryNames: ['one'],
+    pluralRules: '(n != 1)',
+    pluralExamples: ['0'],
+    textDirection: 'ltr',
+    dialectOf: id,
+  } as never;
+}
 
 async function mkdtemp(): Promise<string> {
   const basePath = `/tmp/crowdin-translation-path-resolver-${Date.now()}-${Math.random().toString(16).slice(2)}`;

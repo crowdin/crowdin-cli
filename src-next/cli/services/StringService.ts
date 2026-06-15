@@ -40,6 +40,22 @@ export class StringService {
     }
   }
 
+  async uploadStrings(request: SourceStringsModel.UploadStringsRequest) {
+    try {
+      return await this.client.sourceStringsApi.uploadStrings(this.projectId, request);
+    } catch (error) {
+      throw toCliError(error, 'Failed to upload strings');
+    }
+  }
+
+  async getUploadStringsStatus(uploadId: string) {
+    try {
+      return await this.client.sourceStringsApi.uploadStringsStatus(this.projectId, uploadId);
+    } catch (error) {
+      throw toCliError(error, 'Failed to get strings upload status');
+    }
+  }
+
   async batchEdit(patch: PatchRequest[]): Promise<void> {
     try {
       await this.client.sourceStringsApi.stringBatchOperations(this.projectId, patch);

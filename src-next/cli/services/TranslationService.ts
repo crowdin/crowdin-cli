@@ -1,6 +1,21 @@
-import type { Client, TranslationsModel } from '@crowdin/crowdin-api-client';
+import { type Client, CrowdinError, type TranslationsModel } from '@crowdin/crowdin-api-client';
 import CliError, { toCliError } from '../errors/CliError.ts';
 import type { Output } from '../utils/output.ts';
+
+// The API rejects an import when the storage file's detected language does not match the
+// requested target language. Java's CrowdinProjectClient matches this on the message prefix.
+const WRONG_LANGUAGE_MESSAGE_PREFIX = 'File is not allowed for the';
+
+export class WrongLanguageError extends Error {
+  constructor() {
+    super('File is not allowed for the requested target language');
+    this.name = 'WrongLanguageError';
+  }
+}
+
+function isWrongLanguageError(error: unknown): boolean {
+  return error instanceof CrowdinError && error.message.startsWith(WRONG_LANGUAGE_MESSAGE_PREFIX);
+}
 
 export class TranslationService {
   constructor(
@@ -28,7 +43,46 @@ export class TranslationService {
         translateHidden,
       });
     } catch (error) {
+      if (isWrongLanguageError(error)) {
+        throw new WrongLanguageError();
+      }
+
       throw toCliError(error, `Failed to import translations for file ${filePath}`);
+    }
+  }
+
+  async importProjectTranslationStringsBased(
+    storageId: number,
+    branchId: number,
+    languageIds: string[],
+    filePath: string,
+    autoApproveImported?: boolean,
+    importEqSuggestions?: boolean,
+    translateHidden?: boolean,
+  ) {
+    try {
+      return await this.apiClient.translationsApi.importTranslations(this.projectId, {
+        storageId,
+        branchId,
+        languageIds,
+        autoApproveImported,
+        importEqSuggestions,
+        translateHidden,
+      });
+    } catch (error) {
+      if (isWrongLanguageError(error)) {
+        throw new WrongLanguageError();
+      }
+
+      throw toCliError(error, `Failed to import translations for file ${filePath}`);
+    }
+  }
+
+  async getImportTranslationsStatus(importId: string) {
+    try {
+      return await this.apiClient.translationsApi.importTranslationsStatus(this.projectId, importId);
+    } catch (error) {
+      throw toCliError(error, 'Failed to get import translations status');
     }
   }
 

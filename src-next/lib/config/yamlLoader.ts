@@ -19,6 +19,7 @@ export function loadFromString(string: string): Config {
     basePath: config.base_path,
     baseUrl: config.base_url,
     preserveHierarchy: config.preserve_hierarchy,
+    ignoreHiddenFiles: config.ignore_hidden_files,
     files: config.files,
   });
 }

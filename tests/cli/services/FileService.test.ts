@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
-import { Client } from '@crowdin/crowdin-api-client';
+import { Client, CrowdinError } from '@crowdin/crowdin-api-client';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import { FileService } from '@/cli/services/FileService.ts';
+import { FileExistsError, FileInUpdateError, FileService } from '@/cli/services/FileService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 const PROJECT_ID = 123;
@@ -113,11 +113,21 @@ describe('FileService', () => {
     test('calls updateOrRestoreFile with correct args', async () => {
       const updateSpy = spyOn(apiClient.sourceFilesApi, 'updateOrRestoreFile').mockResolvedValue({} as never);
 
-      await fileService.updateProjectFile(10, 99, 'local.md', '%file_name%.md', [1, 2]);
+      await fileService.updateProjectFile(
+        10,
+        99,
+        'local.md',
+        { exportPattern: '%file_name%.md' },
+        undefined,
+        undefined,
+        [1, 2],
+      );
 
       expect(updateSpy).toHaveBeenCalledWith(PROJECT_ID, 10, {
         storageId: 99,
         exportOptions: { exportPattern: '%file_name%.md' },
+        importOptions: undefined,
+        updateOption: undefined,
         attachLabelIds: [1, 2],
       });
     });
@@ -126,7 +136,7 @@ describe('FileService', () => {
       spyOn(apiClient.sourceFilesApi, 'updateOrRestoreFile').mockResolvedValue({} as never);
       const editSpy = spyOn(apiClient.sourceFilesApi, 'editFile').mockResolvedValue({} as never);
 
-      await fileService.updateProjectFile(10, 99, 'local.md', undefined, undefined, ['fr', 'de']);
+      await fileService.updateProjectFile(10, 99, 'local.md', undefined, undefined, undefined, undefined, ['fr', 'de']);
 
       expect(editSpy).toHaveBeenCalledWith(PROJECT_ID, 10, [
         { op: 'replace', path: '/excludedTargetLanguages', value: ['fr', 'de'] },
@@ -146,6 +156,12 @@ describe('FileService', () => {
       spyOn(apiClient.sourceFilesApi, 'updateOrRestoreFile').mockRejectedValue(new Error('conflict'));
 
       expect(fileService.updateProjectFile(10, 99, 'local.md')).rejects.toThrow(CliError);
+    });
+
+    test('throws FileInUpdateError on a 409 conflict', async () => {
+      spyOn(apiClient.sourceFilesApi, 'updateOrRestoreFile').mockRejectedValue(new CrowdinError('Conflict', 409, {}));
+
+      expect(fileService.updateProjectFile(10, 99, 'local.md')).rejects.toBeInstanceOf(FileInUpdateError);
     });
   });
 
@@ -192,6 +208,12 @@ describe('FileService', () => {
       spyOn(apiClient.sourceFilesApi, 'createFile').mockRejectedValue(new Error('conflict'));
 
       expect(fileService.createProjectFile({ storageId: 1, name: 'app.json' })).rejects.toThrow(CliError);
+    });
+
+    test('throws FileExistsError when the API reports a name collision', async () => {
+      spyOn(apiClient.sourceFilesApi, 'createFile').mockRejectedValue(new CrowdinError('Name must be unique', 400, {}));
+
+      expect(fileService.createProjectFile({ storageId: 1, name: 'app.json' })).rejects.toBeInstanceOf(FileExistsError);
     });
   });
 

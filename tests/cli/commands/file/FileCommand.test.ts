@@ -20,6 +20,7 @@ const config: Config = {
   basePath: '.',
   baseUrl: 'https://api.crowdin.com',
   preserveHierarchy: true,
+  ignoreHiddenFiles: true,
   files: [
     {
       source: '/resources/en/*.json',

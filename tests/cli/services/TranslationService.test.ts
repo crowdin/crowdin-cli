@@ -1,8 +1,8 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
-import { Client } from '@crowdin/crowdin-api-client';
+import { Client, CrowdinError } from '@crowdin/crowdin-api-client';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import { TranslationService } from '@/cli/services/TranslationService.ts';
+import { TranslationService, WrongLanguageError } from '@/cli/services/TranslationService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 const PROJECT_ID = 123;
@@ -51,6 +51,16 @@ describe('TranslationService', () => {
       spyOn(apiClient.translationsApi, 'importTranslations').mockRejectedValue(new Error('forbidden'));
 
       expect(translationService.importProjectTranslation(10, 5, ['fr'], '/docs/readme.md')).rejects.toThrow(CliError);
+    });
+
+    test('throws WrongLanguageError when the file language does not match the target language', async () => {
+      spyOn(apiClient.translationsApi, 'importTranslations').mockRejectedValue(
+        new CrowdinError('File is not allowed for the target language', 400, {}),
+      );
+
+      expect(translationService.importProjectTranslation(10, 5, ['fr'], '/docs/readme.md')).rejects.toThrow(
+        WrongLanguageError,
+      );
     });
   });
 

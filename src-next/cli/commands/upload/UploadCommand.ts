@@ -1,8 +1,11 @@
 import path from 'node:path';
-import type { LanguagesModel, ResponseObject, SourceFilesModel } from '@crowdin/crowdin-api-client';
+import type { LanguagesModel, ResponseObject, SourceFilesModel, SourceStringsModel } from '@crowdin/crowdin-api-client';
+import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
+import { FileExistsError, FileInUpdateError } from '@/cli/services/FileService.ts';
+import { WrongLanguageError } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
   GetConfig,
@@ -12,6 +15,7 @@ import type {
   GetOutput,
   GetProjectService,
   GetStorageService,
+  GetStringService,
   GetTranslationService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
@@ -19,6 +23,17 @@ import { fileTree } from '@/cli/utils/fileTree.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
+import type { Config } from '@/lib/config.ts';
+import { languagePatterns } from '@/lib/export/patterns.ts';
+import {
+  buildExportOptions,
+  buildImportOptions,
+  buildStringsImportOptions,
+  getCommonPath,
+  prepareDest,
+  resolveContextPath,
+} from '@/lib/upload/fileOptions.ts';
+import { pollUntilFinished } from '@/lib/upload/pollUpload.ts';
 import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
@@ -49,7 +64,7 @@ interface UploadSourcesOptions {
   deleteObsolete?: boolean;
   noAutoUpdate?: boolean;
   excludedLanguage?: string[];
-  dryRun?: boolean;
+  dryrun?: boolean;
   tree?: boolean;
   cache?: boolean;
 }
@@ -60,7 +75,7 @@ interface UploadTranslationsOptions {
   autoApproveImported?: boolean;
   importEqSuggestions?: boolean;
   translateHidden?: boolean;
-  dryRun?: boolean;
+  dryrun?: boolean;
   tree?: boolean;
 }
 
@@ -68,6 +83,17 @@ interface SourceFileOptions {
   labels?: string[];
   excluded_target_languages?: string[];
 }
+
+interface TranslationUploadEntry {
+  translationPath: string;
+  languageIds: string[];
+  languageNames: string[];
+  fileId?: number;
+}
+
+// Java's UploadSources/UploadTranslations actions run every file, then fail with this generic
+// message if any individual upload errored (error.execution_contains_errors).
+const EXECUTION_FINISHED_WITH_ERRORS = 'Current execution finished with errors';
 
 export default class UploadCommand {
   constructor(
@@ -80,6 +106,7 @@ export default class UploadCommand {
     private getFileService: GetFileService,
     private getLabelService: GetLabelService,
     private getTranslationService: GetTranslationService,
+    private getStringService: GetStringService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -146,28 +173,60 @@ export default class UploadCommand {
     const directoryService = await this.getDirectoryService(command);
     const fileService = await this.getFileService(command);
     const labelService = await this.getLabelService(command);
+    const stringService = await this.getStringService(command);
+    const project = await projectService.loadProject();
+    const isStringsBasedProject = project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED;
+    const sourceFileLoader = new SourceFileLoader(config);
+    const patternFilePaths = config.files.map((patterns) => {
+      const localFilePaths = sourceFileLoader.getFilePathsForPattern(patterns.source, patterns.ignore);
+      const commonPath = config.preserveHierarchy ? '' : getCommonPath(localFilePaths);
 
-    await projectService.loadProject();
-    const branch = options.dryRun
+      return {
+        patterns,
+        fileOptions: this.resolveSourceFileOptions(patterns, options),
+        files: localFilePaths.map((localFilePath) => ({
+          localFilePath,
+          projectPath: this.resolveProjectPath(localFilePath, patterns, commonPath),
+        })),
+      };
+    });
+    const containsExcludedLanguages = patternFilePaths.some(
+      ({ fileOptions }) => (fileOptions.excluded_target_languages?.length ?? 0) > 0,
+    );
+
+    // Java warns and exits 0 by default; its non-zero exit only happened under the removed `--plain`
+    // flag, so this matches Java's default behavior.
+    if (!this.isManagerAccess(project) && (containsExcludedLanguages || options.deleteObsolete)) {
+      output.warning(
+        "You must have manager or developer role in the project to apply 'excluded-languages' or/and 'delete-obsolete' options",
+      );
+      return;
+    }
+
+    this.validateExcludedTargetLanguages(patternFilePaths, project.data.targetLanguages);
+
+    // Dry-run divergence: Java delegates `--dryrun` to a separate list action; here it is handled
+    // inline and reports the concrete would-create/update/delete actions instead of just listing files.
+    const branch = options.dryrun
       ? await branchService.getBranch(options.branch)
       : await branchService.getOrCreateBranch(options.branch);
+
+    if (isStringsBasedProject && !branch) {
+      throw new CliError('A branch is required to upload sources for a strings-based project');
+    }
+
     const branchId = branch?.id;
-    const projectFiles = await fileService.loadProjectFiles(branchId);
+    const projectFiles = isStringsBasedProject ? { data: [] } : await fileService.loadProjectFiles(branchId);
     const projectFilePaths = new Map(projectFiles.data.map((file) => [file.data.path, file.data.id]));
-    const projectDirectoryList = await directoryService.loadProjectDirectories(branchId);
+    const projectDirectoryList = isStringsBasedProject ? [] : await directoryService.loadProjectDirectories(branchId);
     const projectDirectories = new Map(
       projectDirectoryList.map((directory) => [directory.data.path, directory.data.id]),
     );
-    const sourceFileLoader = new SourceFileLoader(config);
-    const patternFilePaths = config.files.map((patterns) => ({
-      patterns,
-      filePaths: sourceFileLoader.getFilePathsForPattern(patterns.source),
-    }));
     const expectedProjectFilePaths = new Set(
-      patternFilePaths.flatMap(({ filePaths }) => filePaths.map((filePath) => this.toProjectPath(filePath))),
+      patternFilePaths.flatMap(({ files }) => files.map(({ projectPath }) => this.toProjectPath(projectPath))),
     );
 
-    if (options.deleteObsolete) {
+    if (options.deleteObsolete && !isStringsBasedProject) {
       await this.deleteObsoleteProjectEntries(
         projectFiles.data,
         projectDirectoryList,
@@ -175,12 +234,12 @@ export default class UploadCommand {
         fileService,
         directoryService,
         output,
-        Boolean(options.dryRun),
+        Boolean(options.dryrun),
       );
     }
 
-    if (options.dryRun && options.tree) {
-      const allPaths = patternFilePaths.flatMap(({ filePaths }) => filePaths);
+    if (options.dryrun && options.tree) {
+      const allPaths = patternFilePaths.flatMap(({ files }) => files.map(({ localFilePath }) => localFilePath));
 
       for (const line of fileTree(allPaths)) {
         output.log(line);
@@ -189,26 +248,106 @@ export default class UploadCommand {
       return;
     }
 
-    const sourceHashes = options.cache && !options.dryRun ? await loadSourceCache(config.basePath, output) : undefined;
+    const sourceHashes = options.cache && !options.dryrun ? await loadSourceCache(config.basePath, output) : undefined;
 
     // Shared per-path promise cache ensures concurrent tasks don't double-create directories
     const directoryCreationPromises = new Map<string, Promise<number>>();
+    // Shared cache so files sharing the same customSegmentation reuse the uploaded srx storage id
+    const srxStorageIds = new Map<string, Promise<number>>();
+    const seenFilePaths = new Set<string>();
+    let hasErrors = false;
 
-    for (const { patterns, filePaths } of patternFilePaths) {
-      const fileOptions = this.resolveSourceFileOptions(patterns, options);
+    for (const { patterns, fileOptions, files } of patternFilePaths) {
+      if (files.length === 0) {
+        throw new CliError(
+          `No sources found for '${patterns.source}' pattern. Check the source paths in your configuration file`,
+        );
+      }
+
+      if (isStringsBasedProject && patterns.context) {
+        output.warning('Context can not be used for string-based projects');
+      }
+
       const labelIds =
         fileOptions.labels !== undefined ? await labelService.resolveLabelIds(fileOptions.labels) : undefined;
 
-      const tasks = filePaths.map((localFilePath) => async () => {
+      let srxStorageIdPromise: Promise<number> | undefined;
+
+      if (patterns.custom_segmentation && !options.dryrun) {
+        if (!srxStorageIds.has(patterns.custom_segmentation)) {
+          srxStorageIds.set(
+            patterns.custom_segmentation,
+            storageService
+              .addStorage(Bun.file(path.join(config.basePath, patterns.custom_segmentation)))
+              .then((storage) => storage.data.id),
+          );
+        }
+
+        srxStorageIdPromise = srxStorageIds.get(patterns.custom_segmentation);
+      }
+
+      const tasks = files.map(({ localFilePath, projectPath }) => async () => {
+        if (seenFilePaths.has(projectPath)) {
+          output.warning(`Skipping file '${localFilePath}' because it is already uploading/uploaded`);
+          return;
+        }
+
+        seenFilePaths.add(projectPath);
+
         const localFile = Bun.file(path.join(config.basePath, localFilePath));
 
-        if (projectFilePaths.has(`/${localFilePath}`)) {
+        if (localFile.size === 0) {
+          output.warning(`File '${localFilePath}' was skipped since it is empty`);
+          return;
+        }
+
+        if (isStringsBasedProject) {
+          if (options.dryrun) {
+            output.info(`File ${localFilePath} would be uploaded`);
+            return;
+          }
+
+          let checksum: string | undefined;
+
+          if (sourceHashes) {
+            checksum = await computeChecksum(localFile);
+
+            if (sourceHashes.get(localFilePath) === checksum) {
+              output.info(`File '${localFilePath}' was skipped since it is up to date`);
+              return;
+            }
+          }
+
+          const storage = await storageService.addStorage(localFile);
+          const uploadResponse = await stringService.uploadStrings({
+            branchId: (branch as SourceFilesModel.Branch).id,
+            storageId: storage.data.id,
+            type: patterns.type as SourceStringsModel.UploadStringsType | undefined,
+            labelIds,
+            importOptions: buildStringsImportOptions(localFilePath, patterns),
+          });
+
+          await pollUntilFinished(
+            uploadResponse,
+            (uploadId) => stringService.getUploadStringsStatus(uploadId),
+            `Failed to upload strings for file ${localFilePath}`,
+          );
+
+          if (sourceHashes) {
+            sourceHashes.set(localFilePath, checksum ?? (await computeChecksum(localFile)));
+          }
+
+          output.success(`File '${localFilePath}'`);
+          return;
+        }
+
+        if (projectFilePaths.has(`/${projectPath}`)) {
           if (options.noAutoUpdate) {
             output.info(`File ${localFilePath} already exists and will not be updated`);
             return;
           }
 
-          if (options.dryRun) {
+          if (options.dryrun) {
             output.info(`File ${localFilePath} would be updated`);
             return;
           }
@@ -219,37 +358,51 @@ export default class UploadCommand {
             checksum = await computeChecksum(localFile);
 
             if (sourceHashes.get(localFilePath) === checksum) {
-              output.info(`File ${localFilePath} is unchanged, skipping`);
+              output.info(`File '${localFilePath}' was skipped since it is up to date`);
               return;
             }
           }
 
+          const srxStorageId = srxStorageIdPromise ? await srxStorageIdPromise : undefined;
           const storage = await storageService.addStorage(localFile);
-          await fileService.updateProjectFile(
-            projectFilePaths.get(`/${localFilePath}`) as number,
-            storage.data.id,
-            localFilePath,
-            patterns.translation,
-            labelIds,
-            fileOptions.excluded_target_languages,
-          );
+
+          try {
+            await fileService.updateProjectFile(
+              projectFilePaths.get(`/${projectPath}`) as number,
+              storage.data.id,
+              localFilePath,
+              buildExportOptions(localFilePath, patterns, patterns.translation),
+              buildImportOptions(localFilePath, patterns, srxStorageId),
+              patterns.update_option as SourceFilesModel.UpdateOption | undefined,
+              labelIds,
+              fileOptions.excluded_target_languages,
+            );
+          } catch (error) {
+            if (error instanceof FileInUpdateError) {
+              output.warning(`File '${localFilePath}' is currently being updated`);
+              return;
+            }
+
+            throw error;
+          }
 
           if (sourceHashes) {
             sourceHashes.set(localFilePath, checksum as string);
           }
 
-          output.success(`File ${localFilePath} updated`);
+          output.success(`File '${localFilePath}'`);
           return;
         }
 
-        const pathDetails = path.parse(localFilePath);
+        const pathDetails = path.parse(projectPath);
         let directoryId: number | undefined;
 
-        if (options.dryRun) {
+        if (options.dryrun) {
           output.info(`File ${localFilePath} would be created`);
           return;
         }
 
+        const srxStorageId = srxStorageIdPromise ? await srxStorageIdPromise : undefined;
         const storage = await storageService.addStorage(localFile);
 
         if (pathDetails.dir !== '') {
@@ -263,33 +416,54 @@ export default class UploadCommand {
           );
         }
 
-        await fileService.createProjectFile({
-          storageId: storage.data.id,
-          name: pathDetails.base,
-          directoryId,
-          branchId,
-          exportOptions: { exportPattern: patterns.translation },
-          excludedTargetLanguages: fileOptions.excluded_target_languages,
-          attachLabelIds: labelIds,
-        });
+        let context: string | undefined;
+
+        if (patterns.context) {
+          const contextPath = resolveContextPath(patterns.context, localFilePath);
+          context = await Bun.file(path.join(config.basePath, contextPath)).text();
+        }
+
+        try {
+          await fileService.createProjectFile({
+            storageId: storage.data.id,
+            name: pathDetails.base,
+            directoryId,
+            branchId,
+            context,
+            exportOptions: buildExportOptions(localFilePath, patterns, patterns.translation),
+            importOptions: buildImportOptions(localFilePath, patterns, srxStorageId),
+            type: patterns.type as SourceFilesModel.FileType | undefined,
+            excludedTargetLanguages: fileOptions.excluded_target_languages,
+            attachLabelIds: labelIds,
+          });
+        } catch (error) {
+          if (error instanceof FileExistsError) {
+            throw new CliError(`Project already contains the file '${projectPath}'`);
+          }
+
+          throw error;
+        }
 
         if (sourceHashes) {
           sourceHashes.set(localFilePath, await computeChecksum(localFile));
         }
 
-        output.success(`File ${localFilePath} created`);
+        output.success(`File '${localFilePath}'`);
       });
 
       const results = await runConcurrently(tasks);
-      const firstError = results.find((r) => r.status === 'rejected');
 
-      if (firstError) {
-        throw (firstError as PromiseRejectedResult).reason;
+      if (this.reportFailures(results, output)) {
+        hasErrors = true;
       }
     }
 
     if (sourceHashes) {
       await saveSourceCache(config.basePath, sourceHashes, output);
+    }
+
+    if (hasErrors) {
+      throw new CliError(EXECUTION_FINISHED_WITH_ERRORS);
     }
   };
 
@@ -356,6 +530,63 @@ export default class UploadCommand {
 
   private toProjectPath(filePath: string): string {
     return filePath.startsWith('/') ? filePath : `/${filePath}`;
+  }
+
+  /**
+   * Reports each rejected task (so per-file failures are visible) and returns whether any failed.
+   * Mirrors Java, which keeps processing every file and only aggregates the failure at the end.
+   */
+  private reportFailures(results: PromiseSettledResult<unknown>[], output: Output): boolean {
+    const failures = results.filter((result): result is PromiseRejectedResult => result.status === 'rejected');
+
+    for (const failure of failures) {
+      output.error(failure.reason instanceof Error ? failure.reason.message : String(failure.reason));
+    }
+
+    return failures.length > 0;
+  }
+
+  /**
+   * Maps a local source path to its path inside the Crowdin project, mirroring Java's
+   * UploadSourcesAction: an explicit `dest` wins, otherwise the common path is stripped unless
+   * `preserve_hierarchy` is enabled (in which case `commonPath` is empty).
+   */
+  private resolveProjectPath(localFilePath: string, patterns: { dest?: string }, commonPath: string): string {
+    if (patterns.dest) {
+      return prepareDest(patterns.dest, localFilePath);
+    }
+
+    if (commonPath && localFilePath.startsWith(commonPath)) {
+      return localFilePath.slice(commonPath.length);
+    }
+
+    return localFilePath;
+  }
+
+  private isManagerAccess(
+    project: ResponseObject<ProjectsGroupsModel.Project | ProjectsGroupsModel.ProjectSettings>,
+  ): boolean {
+    return 'languageMapping' in project.data;
+  }
+
+  private validateExcludedTargetLanguages(
+    patternFilePaths: { fileOptions: SourceFileOptions }[],
+    targetLanguages: LanguagesModel.Language[],
+  ) {
+    const validLanguageIds = new Set(targetLanguages.map((language) => language.id));
+    const unknownLanguageIds = new Set<string>();
+
+    for (const { fileOptions } of patternFilePaths) {
+      for (const languageId of fileOptions.excluded_target_languages ?? []) {
+        if (!validLanguageIds.has(languageId)) {
+          unknownLanguageIds.add(languageId);
+        }
+      }
+    }
+
+    if (unknownLanguageIds.size > 0) {
+      throw new CliError(`Project doesn't have '${Array.from(unknownLanguageIds).join("', '")}' language(s)`);
+    }
   }
 
   private resolveSourceFileOptions(patterns: SourceFileOptions, options: UploadSourcesOptions): SourceFileOptions {
@@ -432,34 +663,55 @@ export default class UploadCommand {
     const fileService = await this.getFileService(command);
     const translationService = await this.getTranslationService(command);
     const translationPathResolver = new TranslationPathResolver(config);
+    const project = await projectService.loadProject();
 
-    const branch = options.dryRun
+    if (!this.isManagerAccess(project)) {
+      output.warning('You must have manager or developer role in the project to perform this action');
+      return;
+    }
+
+    const targetLanguages = this.filterTargetLanguages(project.data.targetLanguages, options.language);
+    const serverLanguageMapping = 'languageMapping' in project.data ? project.data.languageMapping : undefined;
+
+    if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
+      await this.uploadTranslationsStringsBased(
+        options,
+        config,
+        output,
+        branchService,
+        storageService,
+        translationService,
+        translationPathResolver,
+        targetLanguages,
+        serverLanguageMapping,
+      );
+      return;
+    }
+
+    const branch = options.dryrun
       ? await branchService.getBranch(options.branch)
       : await branchService.getOrCreateBranch(options.branch);
     const branchId = branch?.id;
-    const project = await projectService.loadProject();
     const projectFiles = await fileService.loadProjectFiles(branchId);
-    const targetLanguages = this.filterTargetLanguages(project.data.targetLanguages, options.language);
+    const projectFilePaths = new Map(projectFiles.data.map((file) => [file.data.path, file.data.id]));
+    const sourceFileLoader = new SourceFileLoader(config);
 
-    if (options.dryRun && options.tree) {
+    const entries = this.buildTranslationEntries(
+      config,
+      sourceFileLoader,
+      translationPathResolver,
+      targetLanguages,
+      serverLanguageMapping,
+      output,
+      (projectPath) => projectFilePaths.get(this.toProjectPath(projectPath)),
+    );
+
+    if (options.dryrun && options.tree) {
       const allPaths: string[] = [];
 
-      for (const projectFile of projectFiles.data) {
-        const projectFilePath = projectFile.data.path.startsWith('/')
-          ? projectFile.data.path.slice(1)
-          : projectFile.data.path;
-
-        if (!translationPathResolver.canResolve(Bun.file(projectFilePath))) {
-          continue;
-        }
-
-        for (const targetLanguage of targetLanguages) {
-          const filePath = translationPathResolver.resolve(Bun.file(projectFilePath), targetLanguage).slice(1);
-          const localFilePath = path.join(config.basePath, filePath);
-
-          if (await Bun.file(localFilePath).exists()) {
-            allPaths.push(filePath);
-          }
+      for (const entry of entries) {
+        if (await Bun.file(path.join(config.basePath, entry.translationPath)).exists()) {
+          allPaths.push(entry.translationPath);
         }
       }
 
@@ -470,56 +722,224 @@ export default class UploadCommand {
       return;
     }
 
-    const tasks: Array<() => Promise<void>> = [];
+    const tasks = entries.map((entry) => async () => {
+      const localFilePath = path.join(config.basePath, entry.translationPath);
 
-    for (const projectFile of projectFiles.data) {
-      const projectFilePath = projectFile.data.path.startsWith('/')
-        ? projectFile.data.path.slice(1)
-        : projectFile.data.path;
+      if (!(await Bun.file(localFilePath).exists())) {
+        output.warning(`File ${entry.translationPath} does not exist in the specified location`);
+        return;
+      }
 
-      if (!translationPathResolver.canResolve(Bun.file(projectFilePath))) {
+      if (options.dryrun) {
+        output.info(`File ${entry.translationPath} would be queued for translations import`);
+        return;
+      }
+
+      const storage = await storageService.addStorage(Bun.file(localFilePath));
+
+      try {
+        await translationService.importProjectTranslation(
+          storage.data.id,
+          entry.fileId as number,
+          entry.languageIds,
+          entry.translationPath,
+          options.autoApproveImported,
+          options.importEqSuggestions,
+          options.translateHidden,
+        );
+      } catch (error) {
+        if (error instanceof WrongLanguageError) {
+          output.warning(
+            `Translation file '${entry.translationPath}' hasn't been uploaded since the following target language(s) ` +
+              `are not enabled for the source file in your Crowdin project: ${entry.languageNames.join('/')}`,
+          );
+          return;
+        }
+
+        throw error;
+      }
+
+      output.success(`File ${entry.translationPath} was queued for translations import`);
+    });
+
+    const results = await runConcurrently(tasks);
+
+    if (this.reportFailures(results, output)) {
+      throw new CliError(EXECUTION_FINISHED_WITH_ERRORS);
+    }
+  };
+
+  /**
+   * Builds the list of translation uploads from local source files, mirroring Java's
+   * UploadTranslationsAction: sources are resolved to project paths (honoring dest /
+   * preserve_hierarchy / ignore), and each source expands to one entry per target language —
+   * or a single multi-language entry when a `scheme` is set and the translation pattern has no
+   * language placeholder.
+   */
+  private buildTranslationEntries(
+    config: Config,
+    sourceFileLoader: SourceFileLoader,
+    translationPathResolver: TranslationPathResolver,
+    targetLanguages: LanguagesModel.Language[],
+    serverLanguageMapping: ProjectsGroupsModel.LanguageMapping | undefined,
+    output: Output,
+    resolveFileId?: (projectPath: string) => number | undefined,
+  ): TranslationUploadEntry[] {
+    const entries: TranslationUploadEntry[] = [];
+
+    for (const patterns of config.files) {
+      const localSourcePaths = sourceFileLoader.getFilePathsForPattern(patterns.source, patterns.ignore);
+
+      if (localSourcePaths.length === 0) {
+        output.error(
+          `No sources found for '${patterns.source}' pattern. Check the source paths in your configuration file`,
+        );
         continue;
       }
 
-      for (const targetLanguage of targetLanguages) {
-        const filePath = translationPathResolver.resolve(Bun.file(projectFilePath), targetLanguage).slice(1);
-        const localFilePath = path.join(config.basePath, filePath);
+      const commonPath = config.preserveHierarchy ? '' : getCommonPath(localSourcePaths);
 
-        tasks.push(async () => {
-          if (!(await Bun.file(localFilePath).exists())) {
-            output.warning(`File ${filePath} does not exist in the specified location`);
-            return;
+      for (const localSourcePath of localSourcePaths) {
+        const sourceFile = Bun.file(localSourcePath);
+
+        if (!translationPathResolver.canResolve(sourceFile)) {
+          continue;
+        }
+
+        let fileId: number | undefined;
+
+        if (resolveFileId) {
+          const projectPath = this.resolveProjectPath(localSourcePath, patterns, commonPath);
+          fileId = resolveFileId(projectPath);
+
+          if (fileId === undefined) {
+            output.warning(`Source file '${localSourcePath}' does not exist in the project`);
+            continue;
           }
+        }
 
-          if (options.dryRun) {
-            output.info(`File ${filePath} would be queued for translations import`);
-            return;
-          }
+        const firstLanguage = targetLanguages[0];
+        const isMultilingual =
+          patterns.scheme !== undefined &&
+          firstLanguage !== undefined &&
+          !this.translationHasLanguagePlaceholder(patterns.translation);
 
-          const storage = await storageService.addStorage(Bun.file(localFilePath));
+        if (isMultilingual) {
+          const translationPath = translationPathResolver
+            .resolve(sourceFile, firstLanguage, serverLanguageMapping)
+            .slice(1);
+          entries.push({
+            translationPath,
+            languageIds: targetLanguages.map((language) => language.id),
+            languageNames: targetLanguages.map((language) => language.name),
+            fileId,
+          });
+          continue;
+        }
 
-          await translationService.importProjectTranslation(
-            storage.data.id,
-            projectFile.data.id,
-            [targetLanguage.id],
-            filePath,
-            options.autoApproveImported,
-            options.importEqSuggestions,
-            options.translateHidden,
-          );
-
-          output.success(`File ${filePath} was queued for translations import`);
-        });
+        for (const targetLanguage of targetLanguages) {
+          const translationPath = translationPathResolver
+            .resolve(sourceFile, targetLanguage, serverLanguageMapping)
+            .slice(1);
+          entries.push({
+            translationPath,
+            languageIds: [targetLanguage.id],
+            languageNames: [targetLanguage.name],
+            fileId,
+          });
+        }
       }
     }
 
-    const results = await runConcurrently(tasks);
-    const firstError = results.find((r) => r.status === 'rejected');
+    return entries;
+  }
 
-    if (firstError) {
-      throw (firstError as PromiseRejectedResult).reason;
+  private translationHasLanguagePlaceholder(translation: string): boolean {
+    return languagePatterns.some((pattern) => translation.includes(pattern));
+  }
+
+  private async uploadTranslationsStringsBased(
+    options: UploadTranslationsOptions,
+    config: Config,
+    output: Output,
+    branchService: Awaited<ReturnType<GetBranchService>>,
+    storageService: Awaited<ReturnType<GetStorageService>>,
+    translationService: Awaited<ReturnType<GetTranslationService>>,
+    translationPathResolver: TranslationPathResolver,
+    targetLanguages: LanguagesModel.Language[],
+    serverLanguageMapping?: ProjectsGroupsModel.LanguageMapping,
+  ) {
+    const branch = await branchService.getBranch(options.branch);
+
+    if (!branch) {
+      throw new CliError('A branch is required to upload translations for a strings-based project');
     }
-  };
+
+    const sourceFileLoader = new SourceFileLoader(config);
+    const entries = this.buildTranslationEntries(
+      config,
+      sourceFileLoader,
+      translationPathResolver,
+      targetLanguages,
+      serverLanguageMapping,
+      output,
+    );
+
+    if (options.dryrun && options.tree) {
+      const allPaths: string[] = [];
+
+      for (const entry of entries) {
+        if (await Bun.file(path.join(config.basePath, entry.translationPath)).exists()) {
+          allPaths.push(entry.translationPath);
+        }
+      }
+
+      for (const line of fileTree(allPaths)) {
+        output.log(line);
+      }
+
+      return;
+    }
+
+    const tasks = entries.map((entry) => async () => {
+      const localFilePath = path.join(config.basePath, entry.translationPath);
+
+      if (!(await Bun.file(localFilePath).exists())) {
+        output.warning(`File ${entry.translationPath} does not exist in the specified location`);
+        return;
+      }
+
+      if (options.dryrun) {
+        output.info(`File ${entry.translationPath} would be queued for translations import`);
+        return;
+      }
+
+      const storage = await storageService.addStorage(Bun.file(localFilePath));
+      const importResponse = await translationService.importProjectTranslationStringsBased(
+        storage.data.id,
+        branch.id,
+        entry.languageIds,
+        entry.translationPath,
+        options.autoApproveImported,
+        options.importEqSuggestions,
+        options.translateHidden,
+      );
+
+      await pollUntilFinished(
+        importResponse,
+        (importId) => translationService.getImportTranslationsStatus(importId),
+        `Failed to import translations for file ${entry.translationPath}`,
+      );
+
+      output.success(`File ${entry.translationPath} was queued for translations import`);
+    });
+
+    const results = await runConcurrently(tasks);
+
+    if (this.reportFailures(results, output)) {
+      throw new CliError(EXECUTION_FINISHED_WITH_ERRORS);
+    }
+  }
 
   private filterTargetLanguages(
     targetLanguages: LanguagesModel.Language[],

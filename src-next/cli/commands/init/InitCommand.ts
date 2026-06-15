@@ -94,6 +94,7 @@ export default class InitCommand {
       basePath: projectDirectory,
       baseUrl: domain ? `https://${domain}.api.crowdin.com` : options.baseUrl,
       preserveHierarchy: options.preserveHierarchy,
+      ignoreHiddenFiles: true,
       files: [
         {
           source: sourcePattern,
