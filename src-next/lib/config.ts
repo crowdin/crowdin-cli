@@ -12,6 +12,15 @@ export const ConfigSchema = z
     }),
     preserveHierarchy: z.boolean().default(false),
     ignoreHiddenFiles: z.boolean().default(true),
+    exportLanguages: z.array(z.string()).optional(),
+    pseudoLocalization: z
+      .object({
+        length_correction: z.number().min(-50).max(100).optional(),
+        prefix: z.string().optional(),
+        suffix: z.string().optional(),
+        character_transformation: z.enum(['asian', 'european', 'arabic', 'cyrillic']).optional(),
+      })
+      .optional(),
     files: z.array(
       z.object({
         source: z.string().refine((arg) => arg.length > 0, {
@@ -50,6 +59,10 @@ export const ConfigSchema = z
         import_translations: z.boolean().optional(),
         languages_mapping: z.record(z.string(), z.record(z.string(), z.string())).optional(),
         translation_replace: z.record(z.string(), z.string()).optional(),
+        skip_untranslated_strings: z.boolean().optional(),
+        skip_untranslated_files: z.boolean().optional(),
+        export_only_approved: z.boolean().optional(),
+        export_strings_that_passed_workflow: z.boolean().optional(),
       }),
     ),
   })
@@ -70,6 +83,14 @@ export const ConfigSchema = z
           code: 'custom',
           message: "The 'translation' parameter should contain at least one language placeholder (e.g. %locale%)",
           path: ['files', index, 'translation'],
+        });
+      }
+
+      if (file.skip_untranslated_strings && file.skip_untranslated_files) {
+        ctx.addIssue({
+          code: 'custom',
+          message: 'You cannot skip strings and files at the same time. Please use one of these parameters instead.',
+          path: ['files', index],
         });
       }
     });

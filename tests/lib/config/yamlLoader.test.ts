@@ -62,4 +62,72 @@ files: [
 
     expect(config).toEqual(expected);
   });
+
+  test('loads export_languages and pseudo_localization', async () => {
+    const string = `"project_id": "750373"
+"api_token": "${'a'.repeat(80)}"
+"base_path": "."
+"base_url": "https://api.crowdin.com"
+"preserve_hierarchy": true
+"export_languages": ["fr", "es"]
+"pseudo_localization":
+  "length_correction": 10
+  "prefix": "["
+  "suffix": "]"
+  "character_transformation": "cyrillic"
+files: [
+  {
+    "source": "/resources/en/*.csv",
+    "translation": "/resources/%locale%/%original_file_name%",
+  }
+]`;
+
+    const config = loadFromString(string);
+
+    expect(config.exportLanguages).toEqual(['fr', 'es']);
+    expect(config.pseudoLocalization).toEqual({
+      length_correction: 10,
+      prefix: '[',
+      suffix: ']',
+      character_transformation: 'cyrillic',
+    });
+  });
+
+  test('rejects pseudo_localization length_correction out of bounds', async () => {
+    const string = `"project_id": "750373"
+"api_token": "${'a'.repeat(80)}"
+"base_path": "."
+"base_url": "https://api.crowdin.com"
+"preserve_hierarchy": true
+"pseudo_localization":
+  "length_correction": 200
+files: [
+  {
+    "source": "/resources/en/*.csv",
+    "translation": "/resources/%locale%/%original_file_name%",
+  }
+]`;
+
+    expect(() => loadFromString(string)).toThrow();
+  });
+
+  test('rejects a file that sets both skip_untranslated_strings and skip_untranslated_files', async () => {
+    const string = `"project_id": "750373"
+"api_token": "${'a'.repeat(80)}"
+"base_path": "."
+"base_url": "https://api.crowdin.com"
+"preserve_hierarchy": true
+files: [
+  {
+    "source": "/resources/en/*.csv",
+    "translation": "/resources/%locale%/%original_file_name%",
+    "skip_untranslated_strings": true,
+    "skip_untranslated_files": true,
+  }
+]`;
+
+    expect(() => loadFromString(string)).toThrow(
+      'You cannot skip strings and files at the same time. Please use one of these parameters instead.',
+    );
+  });
 });

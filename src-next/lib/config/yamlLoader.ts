@@ -20,6 +20,8 @@ export function loadFromString(string: string): Config {
     baseUrl: config.base_url,
     preserveHierarchy: config.preserve_hierarchy,
     ignoreHiddenFiles: config.ignore_hidden_files,
+    exportLanguages: config.export_languages,
+    pseudoLocalization: config.pseudo_localization,
     files: config.files,
   });
 }

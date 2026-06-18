@@ -1,7 +1,12 @@
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import type { ResponseObject, TranslationsModel } from '@crowdin/crowdin-api-client';
+import {
+  type LanguagesModel,
+  ProjectsGroupsModel,
+  type ResponseObject,
+  type TranslationsModel,
+} from '@crowdin/crowdin-api-client';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
@@ -17,6 +22,12 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { fileTree } from '@/cli/utils/fileTree.ts';
+import type { Output } from '@/cli/utils/output.ts';
+import { matchesExportPattern, matchesSourcePattern } from '@/lib/config/projectFileMatch.ts';
+import type { Config } from '@/lib/config.ts';
+import { buildAllProjectTranslations, sortOmittedFiles } from '@/lib/download/projectTranslations.ts';
+import { buildTranslationMapping } from '@/lib/download/translationMapping.ts';
+import { prepareDest } from '@/lib/upload/fileOptions.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
 import dryRun from '../common/options/dryRun.ts';
 import tree from '../common/options/tree.ts';
@@ -59,6 +70,13 @@ interface SourcesOptions extends GlobalOptions {
   branch?: string;
   reviewed?: boolean;
   dryrun?: boolean;
+}
+
+interface ExportCombo {
+  skipUntranslatedStrings: boolean;
+  skipUntranslatedFiles: boolean;
+  exportApprovedOnly: boolean;
+  exportStringsThatPassedWorkflow: boolean;
 }
 
 export default class DownloadCommand {
@@ -124,13 +142,32 @@ export default class DownloadCommand {
     const fileService = await this.getFileService(command);
     const branchService = await this.getBranchService(command);
 
-    await projectService.loadProject();
+    const project = await projectService.loadProject();
+
+    if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
+      throw new CliError('File management is not available for string-based projects');
+    }
+
+    if (options.reviewed && !projectService.isEnterprise()) {
+      output.warning('Operation is available only for Crowdin Enterprise');
+      return;
+    }
+
+    if (!config.preserveHierarchy) {
+      output.warning(
+        "Because the 'preserve_hierarchy' parameter is set to 'false':\n" +
+          '\t- CLI might download some unexpected files that match the pattern;\n' +
+          '\t- Source file hierarchy may not be preserved and will be the same as in Crowdin.',
+      );
+    }
+
     const branchId = await this.resolveBranchId(options.branch, branchService);
     const projectFiles = await fileService.loadProjectFiles(branchId);
+    const downloads = this.collectSourceDownloads(config, projectFiles.data, this.isManagerAccess(project), output);
 
     if (options.dryrun) {
-      for (const file of projectFiles.data) {
-        output.log((file.data.path || '').replace(/^\//, ''));
+      for (const download of downloads) {
+        output.log(download.relativePath);
       }
 
       return;
@@ -140,37 +177,67 @@ export default class DownloadCommand {
       const build = await fileService.buildReviewedSources(branchId);
       const downloadUrl = await fileService.getReviewedSourcesDownloadUrl(build.data.id);
       const response = await fetch(downloadUrl);
-      const archivePath = path.join(config.basePath, 'crowdin-reviewed-sources.zip');
-
-      await Bun.write(archivePath, response);
-
-      const zip = new AdmZip(archivePath);
-
-      zip.extractAllTo(toPosixPath(config.basePath), true);
+      const tempDir = await mkdtemp(path.join(tmpdir(), 'crowdin-reviewed-sources-'));
 
       try {
-        await rm(archivePath, { force: true });
-      } catch {
-        output.warning(`Failed to remove archive ${archivePath}`);
-      }
+        const archivePath = path.join(tempDir, 'reviewed.zip');
+        await Bun.write(archivePath, response);
 
-      output.success('Reviewed sources downloaded');
+        // The reviewed archive nests every file under a `<source_language_id>-REV` directory;
+        // strip that prefix so keys line up with the project file paths (mirrors Java).
+        const prefix = `${project.data.sourceLanguageId}-REV`;
+        const reviewedFiles = new Map<string, Uint8Array>();
+        const zip = new AdmZip(archivePath);
+
+        for (const entry of zip.getEntries()) {
+          if (entry.isDirectory) {
+            continue;
+          }
+
+          const name = toPosixPath(entry.entryName).replace(/^\//, '');
+
+          if (!name.startsWith(`${prefix}/`)) {
+            continue;
+          }
+
+          reviewedFiles.set(name.slice(prefix.length), entry.getData());
+        }
+
+        for (const download of downloads) {
+          const content = reviewedFiles.get(`/${download.relativePath}`);
+
+          if (!content) {
+            continue;
+          }
+
+          const filePath = path.join(config.basePath, download.destination);
+
+          await mkdir(path.dirname(filePath), { recursive: true });
+          await Bun.write(filePath, content);
+          output.success(`File ${download.relativePath} downloaded`);
+        }
+      } finally {
+        try {
+          await rm(tempDir, { recursive: true, force: true });
+        } catch {
+          output.warning(`Failed to clean up temp directory ${tempDir}`);
+        }
+      }
 
       return;
     }
 
-    for (const projectFile of projectFiles.data) {
-      const relativePath = (projectFile.data.path || '').replace(/^\//, '');
+    for (const download of downloads) {
       try {
-        const filePath = path.join(config.basePath, relativePath);
-        const downloadUrl = await fileService.getSourceFileDownloadUrl(projectFile.data.id);
+        const filePath = path.join(config.basePath, download.destination);
+        const downloadUrl = await fileService.getSourceFileDownloadUrl(download.fileId);
         const response = await fetch(downloadUrl);
 
         await mkdir(path.dirname(filePath), { recursive: true });
         await Bun.write(filePath, response);
-        output.success(`File ${relativePath} downloaded`);
+        output.success(`File ${download.relativePath} downloaded`);
       } catch (error) {
-        throw toCliError(error, `Failed to download ${relativePath}`);
+        throw toCliError(error, `Failed to download ${download.relativePath}`);
       }
     }
   };
@@ -185,6 +252,15 @@ export default class DownloadCommand {
     const translationService = await this.getTranslationService(command);
     const project = await projectService.loadProject();
 
+    if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
+      throw new CliError('File management is not available for string-based projects');
+    }
+
+    if (!this.isManagerAccess(project)) {
+      output.warning('You must have manager or developer role in the project to perform this action');
+      return;
+    }
+
     if (
       options.language &&
       options.language.length > 0 &&
@@ -194,8 +270,10 @@ export default class DownloadCommand {
       throw new CliError(`Options '--language' and '--exclude-language' can't be used together`);
     }
 
-    const targetLanguageIds = project.data.targetLanguages.map((l) => l.id);
+    const targetLanguages = project.data.targetLanguages;
+    const targetLanguageIds = targetLanguages.map((l) => l.id);
     let resolvedLanguageIds: string[] | undefined;
+    let resolvedLanguages: LanguagesModel.Language[] = targetLanguages;
 
     if (options.language && options.language.length > 0) {
       for (const langId of options.language) {
@@ -205,21 +283,57 @@ export default class DownloadCommand {
       }
 
       resolvedLanguageIds = options.language;
-    } else if (options.excludeLanguage && options.excludeLanguage.length > 0) {
-      for (const langId of options.excludeLanguage) {
+      resolvedLanguages = targetLanguages.filter((l) => options.language?.includes(l.id));
+    } else {
+      const exportLanguages = config.exportLanguages ?? [];
+
+      for (const langId of exportLanguages) {
         if (!targetLanguageIds.includes(langId)) {
           throw new CliError(`Language ${langId} does not exist in project`);
         }
       }
 
-      resolvedLanguageIds = targetLanguageIds.filter((id) => !options.excludeLanguage?.includes(id));
+      const excludeLanguages = options.excludeLanguage ?? [];
+
+      for (const langId of excludeLanguages) {
+        if (!targetLanguageIds.includes(langId)) {
+          throw new CliError(`Language ${langId} does not exist in project`);
+        }
+      }
+
+      // Base set = config export_languages if present, else all target languages; excludes subtract.
+      const baseLanguages =
+        exportLanguages.length > 0 ? targetLanguages.filter((l) => exportLanguages.includes(l.id)) : targetLanguages;
+      const forLanguages = baseLanguages.filter((l) => !excludeLanguages.includes(l.id));
+
+      // Java only pins targetLanguageIds on the build when export_languages or excludes narrow the set.
+      if (exportLanguages.length > 0 || excludeLanguages.length > 0) {
+        resolvedLanguageIds = forLanguages.map((l) => l.id);
+      }
+
+      resolvedLanguages = forLanguages;
     }
+
+    const serverLanguageMapping = 'languageMapping' in project.data ? project.data.languageMapping : undefined;
 
     const branchId = await this.resolveBranchId(options.branch, branchService);
 
     if (options.dryrun) {
-      const projectFiles = await fileService.loadProjectFiles(branchId);
-      const paths = projectFiles.data.map((file) => (file.data.path || '').replace(/^\//, ''));
+      // Java lists the resolved translation destination paths (per source x language), not the raw
+      // server source paths (ListTranslationsAction -> DryrunTranslations). Reuse the same mapping
+      // the real download uses; its values are exactly those local destination paths.
+      let serverSourcePaths: string[] | undefined;
+
+      if (options.all) {
+        const projectFiles = await fileService.loadProjectFiles(branchId);
+        serverSourcePaths = projectFiles.data.map((file) => (file.data.path || '').replace(/^\//, ''));
+      }
+
+      const mapping = buildTranslationMapping(config, resolvedLanguages, serverLanguageMapping, {
+        useServerSources: options.all,
+        serverSourcePaths,
+      });
+      const paths = [...new Set(mapping.byArchivePath.values())].sort();
       const lines = options.tree ? fileTree(paths) : paths;
 
       for (const line of lines) {
@@ -237,75 +351,385 @@ export default class DownloadCommand {
       output.info('Building translations');
     }
 
-    const buildRequest: TranslationsModel.BuildRequest = {};
+    const isOrganization = projectService.isEnterprise();
 
-    if (branchId !== undefined) {
-      buildRequest.branchId = branchId;
+    // Both skip flags together is invalid (Java params-level check, mirroring the per-file schema rule).
+    if (options.skipUntranslatedStrings && options.skipUntranslatedFiles) {
+      throw new CliError(
+        'You cannot skip strings and files at the same time. Please use one of these parameters instead.',
+      );
     }
 
-    if (resolvedLanguageIds !== undefined && resolvedLanguageIds.length > 0) {
-      buildRequest.targetLanguageIds = resolvedLanguageIds;
-    }
-
-    if (options.skipUntranslatedStrings) {
-      buildRequest.skipUntranslatedStrings = true;
-    }
-
-    if (options.skipUntranslatedFiles) {
-      buildRequest.skipUntranslatedFiles = true;
-    }
-
-    if (options.exportOnlyApproved) {
-      buildRequest.exportApprovedOnly = true;
-    }
-
-    let build: ResponseObject<TranslationsModel.Build>;
-
-    if (options.pseudo) {
-      const pseudoRequest: TranslationsModel.PseudoBuildRequest = {
-        pseudo: true,
-        branchId,
-      };
-
-      build = await translationService.buildProjectTranslations(pseudoRequest);
-    } else {
-      build = await translationService.buildProjectTranslations(buildRequest);
-    }
+    const buildGroups = this.buildExportGroups(config, options, branchId, resolvedLanguageIds, isOrganization, output);
+    const projectSkipUntranslatedFiles =
+      'skipUntranslatedFiles' in project.data ? Boolean(project.data.skipUntranslatedFiles) : false;
 
     output.info('Downloading translations');
 
-    const downloadUrl = await translationService.getTranslationDownloadUrl(build.data.id);
-    const response = await fetch(downloadUrl);
+    let projectFiles: Awaited<ReturnType<typeof fileService.loadProjectFiles>> | undefined;
+    let serverSourcePaths: string[] | undefined;
 
-    output.info('Extracting archive');
+    if (options.all) {
+      if (!config.preserveHierarchy) {
+        output.warning(
+          "Because the 'preserve_hierarchy' parameter is set to 'false' CLI might download some unexpected " +
+            'files that match the pattern',
+        );
+      }
 
-    const tempDir = await mkdtemp(path.join(tmpdir(), 'crowdin-translations-'));
+      projectFiles = await fileService.loadProjectFiles(branchId);
+      serverSourcePaths = projectFiles.data.map((file) => (file.data.path || '').replace(/^\//, ''));
+    }
+
+    const tempDirs: string[] = [];
+    // One omitted-entry list per build; reported as the cross-build intersection (Java totalOmittedFiles).
+    const perBuildOmitted: string[][] = [];
+    let anyFileDownloaded = false;
+    let skipUntranslatedFilesUsed = projectSkipUntranslatedFiles;
 
     try {
-      const archivePath = path.join(tempDir, 'translations.zip');
+      for (const [buildIndex, group] of buildGroups.entries()) {
+        if (group.request.skipUntranslatedFiles) {
+          skipUntranslatedFilesUsed = true;
+        }
 
-      await Bun.write(archivePath, response);
+        const build: ResponseObject<TranslationsModel.Build> = group.pseudo
+          ? await translationService.buildProjectTranslations(group.pseudo)
+          : await translationService.buildProjectTranslations(group.request);
 
-      const basePath = `${path.join(config.basePath)}/`;
-      const zip = new AdmZip(archivePath);
+        const downloadUrl = await translationService.getTranslationDownloadUrl(build.data.id);
+        const response = await fetch(downloadUrl);
 
-      zip.extractAllTo(basePath, true);
+        const tempDir = await mkdtemp(path.join(tmpdir(), 'crowdin-translations-'));
+        tempDirs.push(tempDir);
+        const archivePath = path.join(tempDir, 'translations.zip');
 
-      if (options.keepArchive) {
-        const savedArchivePath = path.join(config.basePath, 'crowdin-translations.zip');
-        await Bun.write(savedArchivePath, Bun.file(archivePath));
-        output.success(`Archive saved to ${savedArchivePath}`);
+        await Bun.write(archivePath, response);
+
+        const mapping = buildTranslationMapping(config, resolvedLanguages, serverLanguageMapping, {
+          useServerSources: options.all,
+          serverSourcePaths,
+          files: group.files,
+        });
+        const zip = new AdmZip(archivePath);
+        const omittedFiles: string[] = [];
+
+        for (const entry of zip.getEntries()) {
+          if (entry.isDirectory) {
+            continue;
+          }
+
+          const archiveRelPath = toPosixPath(entry.entryName).replace(/^\//, '');
+          const localPath = mapping.byArchivePath.get(archiveRelPath);
+
+          // Entries with no config mapping are "omitted" and reported below.
+          if (!localPath) {
+            omittedFiles.push(archiveRelPath);
+            continue;
+          }
+
+          const targetPath = path.join(config.basePath, localPath);
+
+          await mkdir(path.dirname(targetPath), { recursive: true });
+          await Bun.write(targetPath, entry.getData());
+          anyFileDownloaded = true;
+          output.success(`File ${localPath} extracted`);
+        }
+
+        perBuildOmitted.push(omittedFiles);
+
+        if (options.keepArchive) {
+          const name = buildGroups.length > 1 ? `crowdin-translations-${buildIndex}.zip` : 'crowdin-translations.zip';
+          const savedArchivePath = path.join(config.basePath, name);
+          await Bun.write(savedArchivePath, Bun.file(archivePath));
+          output.success(`Archive saved to ${savedArchivePath}`);
+        }
+      }
+
+      if (!options.ignoreMatch && perBuildOmitted.some((omitted) => omitted.length > 0)) {
+        const files = projectFiles ?? (await fileService.loadProjectFiles(branchId));
+        const allProjectTranslations = buildAllProjectTranslations(files.data, targetLanguages, serverLanguageMapping);
+
+        this.reportOmittedFiles(perBuildOmitted, allProjectTranslations, output, options.verbose ?? false);
+      }
+
+      if (!anyFileDownloaded) {
+        if (skipUntranslatedFilesUsed) {
+          output.warning(
+            "Couldn't find any file to download. Since you are using the 'Skip untranslated files' option, " +
+              'please make sure you have fully translated files',
+          );
+        } else {
+          throw new CliError("Couldn't find any file to download");
+        }
       }
     } finally {
-      try {
-        await rm(tempDir, { recursive: true, force: true });
-      } catch {
-        output.warning(`Failed to clean up temp directory ${tempDir}`);
+      for (const tempDir of tempDirs) {
+        try {
+          await rm(tempDir, { recursive: true, force: true });
+        } catch {
+          output.warning(`Failed to clean up temp directory ${tempDir}`);
+        }
       }
     }
 
     output.success('Done');
   };
+
+  /**
+   * Builds the list of translation builds to issue. `pseudo` always produces a single all-files
+   * build. Otherwise files are grouped by their effective export-option combo (mirroring Java's
+   * `distinct()` over the four per-file flags) so each combo is built once and only its own file
+   * groups are mapped from that archive. A CLI flag (when set) overrides the per-file config value
+   * on every file, forcing `true` — picocli/commander boolean flags can only force true, never false.
+   */
+  private buildExportGroups(
+    config: Config,
+    options: TranslationsOptions,
+    branchId: number | undefined,
+    resolvedLanguageIds: string[] | undefined,
+    isOrganization: boolean,
+    output: Output,
+  ): {
+    files: Config['files'];
+    request: TranslationsModel.BuildRequest;
+    pseudo?: TranslationsModel.PseudoBuildRequest;
+  }[] {
+    if (options.pseudo) {
+      const pseudo: TranslationsModel.PseudoBuildRequest = { pseudo: true, branchId };
+      const pseudoLocalization = config.pseudoLocalization;
+
+      if (pseudoLocalization) {
+        if (pseudoLocalization.length_correction !== undefined) {
+          pseudo.lengthTransformation = pseudoLocalization.length_correction;
+        }
+
+        if (pseudoLocalization.prefix !== undefined) {
+          pseudo.prefix = pseudoLocalization.prefix;
+        }
+
+        if (pseudoLocalization.suffix !== undefined) {
+          pseudo.suffix = pseudoLocalization.suffix;
+        }
+
+        if (pseudoLocalization.character_transformation !== undefined) {
+          pseudo.charTransformation = pseudoLocalization.character_transformation;
+        }
+      }
+
+      return [{ files: config.files, request: {}, pseudo }];
+    }
+
+    const effectiveCombo = (file: Config['files'][number]): ExportCombo => ({
+      skipUntranslatedStrings: options.skipUntranslatedStrings ? true : (file.skip_untranslated_strings ?? false),
+      skipUntranslatedFiles: options.skipUntranslatedFiles ? true : (file.skip_untranslated_files ?? false),
+      exportApprovedOnly: options.exportOnlyApproved ? true : (file.export_only_approved ?? false),
+      exportStringsThatPassedWorkflow: file.export_strings_that_passed_workflow ?? false,
+    });
+
+    // Group files by distinct combo, preserving first-seen order (mirrors Java distinct()).
+    const groups = new Map<string, { combo: ExportCombo; files: Config['files'] }>();
+
+    for (const file of config.files) {
+      const combo = effectiveCombo(file);
+      const key = JSON.stringify(combo);
+      const existing = groups.get(key);
+
+      if (existing) {
+        existing.files.push(file);
+      } else {
+        groups.set(key, { combo, files: [file] });
+      }
+    }
+
+    return [...groups.values()].map(({ combo, files }) => {
+      const request: TranslationsModel.BuildRequest = {};
+
+      if (branchId !== undefined) {
+        request.branchId = branchId;
+      }
+
+      if (resolvedLanguageIds !== undefined && resolvedLanguageIds.length > 0) {
+        request.targetLanguageIds = resolvedLanguageIds;
+      }
+
+      if (combo.skipUntranslatedStrings) {
+        request.skipUntranslatedStrings = true;
+      }
+
+      if (combo.skipUntranslatedFiles) {
+        request.skipUntranslatedFiles = true;
+      }
+
+      if (isOrganization) {
+        if (combo.exportApprovedOnly) {
+          request.exportWithMinApprovalsCount = 1;
+        }
+
+        if (combo.exportStringsThatPassedWorkflow) {
+          request.exportStringsThatPassedWorkflow = true;
+        }
+      } else {
+        if (combo.exportApprovedOnly) {
+          request.exportApprovedOnly = true;
+        }
+
+        if (combo.exportStringsThatPassedWorkflow) {
+          output.warning('Exporting strings that passed workflow is supported only for Crowdin Enterprise');
+        }
+      }
+
+      return { files, request };
+    });
+  }
+
+  /**
+   * Reports omitted archive entries across all builds. With multiple builds (one per export-option
+   * combo), Java reports only files omitted in EVERY build: per-source translation lists are
+   * intersected and the without-source list is intersected (mirrors Java's totalOmittedFiles
+   * retainAll). A source absent from any build's omitted set contributes an empty intersection.
+   */
+  private reportOmittedFiles(
+    perBuildOmitted: string[][],
+    allProjectTranslations: Map<string, string[]>,
+    output: Output,
+    verbose: boolean,
+  ): void {
+    const sorted = perBuildOmitted.map((omitted) => sortOmittedFiles(omitted, allProjectTranslations));
+    const faqLink = 'Visit the https://crowdin.github.io/crowdin-cli/faq for more details';
+
+    let totalWithSources: Map<string, string[]> | undefined;
+
+    for (const { withSources } of sorted) {
+      if (totalWithSources === undefined) {
+        totalWithSources = new Map([...withSources].map(([source, translations]) => [source, [...translations]]));
+        continue;
+      }
+
+      for (const [source, translations] of withSources) {
+        const current = totalWithSources.get(source);
+
+        if (current) {
+          totalWithSources.set(
+            source,
+            current.filter((translation) => translations.includes(translation)),
+          );
+        }
+      }
+
+      for (const source of totalWithSources.keys()) {
+        if (!withSources.has(source)) {
+          totalWithSources.set(source, []);
+        }
+      }
+    }
+
+    const withSourcesEntries = [...(totalWithSources ?? new Map<string, string[]>())].filter(
+      ([, translations]) => translations.length > 0,
+    );
+
+    if (withSourcesEntries.length > 0) {
+      output.warning(
+        "Downloaded translations don't match the current project configuration. The translations for the " +
+          'following sources will be omitted (use --verbose to get the list of the omitted translations):',
+      );
+
+      for (const [source, translations] of withSourcesEntries) {
+        output.log(`\t- ${source} (${translations.length})`);
+
+        if (verbose) {
+          for (const translation of translations) {
+            output.log(`\t\t- ${translation}`);
+          }
+        }
+      }
+
+      output.log(faqLink);
+    }
+
+    let totalWithoutSources = [...(sorted[0]?.withoutSources ?? [])];
+
+    for (const { withoutSources } of sorted) {
+      totalWithoutSources = totalWithoutSources.filter((file) => withoutSources.includes(file));
+    }
+
+    if (totalWithoutSources.length > 0) {
+      output.warning('Due to missing respective sources, the following translations will be omitted:');
+
+      for (const file of totalWithoutSources) {
+        output.log(`\t- ${file}`);
+      }
+
+      output.log(faqLink);
+    }
+  }
+
+  private isManagerAccess(
+    project: ResponseObject<ProjectsGroupsModel.Project | ProjectsGroupsModel.ProjectSettings>,
+  ): boolean {
+    return 'languageMapping' in project.data;
+  }
+
+  /**
+   * Resolves which project source files should be downloaded for `download sources`, scoping each
+   * config group to files matching its `dest ?? source` pattern (mirroring Java's
+   * DownloadSourcesAction filtering). With manager access the file's export pattern must also be
+   * compatible with the group `translation`. Files matching the group `ignore` patterns are dropped
+   * (mirrors SourcesUtils.filterProjectFiles' ignore predicate). Each matched file's destination
+   * applies `dest`.
+   */
+  private collectSourceDownloads(
+    config: Config,
+    projectFiles: { data: { id: number; path?: string; exportOptions?: unknown } }[],
+    managerAccess: boolean,
+    output: Output,
+  ): { fileId: number; relativePath: string; destination: string }[] {
+    const downloads: { fileId: number; relativePath: string; destination: string }[] = [];
+
+    for (const patterns of config.files) {
+      const searchPattern = patterns.dest ?? patterns.source;
+      const ignore = patterns.ignore ?? [];
+
+      const matched = projectFiles.filter((file) => {
+        const relativePath = (file.data.path || '').replace(/^\//, '');
+
+        if (!matchesSourcePattern(relativePath, searchPattern, config.preserveHierarchy)) {
+          return false;
+        }
+
+        if (ignore.some((pattern) => matchesSourcePattern(relativePath, pattern, config.preserveHierarchy))) {
+          return false;
+        }
+
+        if (managerAccess) {
+          const exportPattern = (file.data.exportOptions as { exportPattern?: string } | undefined)?.exportPattern;
+          if (!matchesExportPattern(exportPattern, patterns.translation, config.preserveHierarchy)) {
+            return false;
+          }
+        }
+
+        return true;
+      });
+
+      if (matched.length === 0) {
+        output.warning(
+          `No sources found for '${searchPattern}' pattern. Check the source paths in your configuration file`,
+        );
+        continue;
+      }
+
+      const sorted = [...matched].sort((a, b) => (a.data.path || '').localeCompare(b.data.path || ''));
+
+      for (const file of sorted) {
+        const relativePath = (file.data.path || '').replace(/^\//, '');
+        const destination = patterns.dest ? prepareDest(patterns.dest, relativePath) : relativePath;
+
+        downloads.push({ fileId: file.data.id, relativePath, destination });
+      }
+    }
+
+    return downloads;
+  }
 
   private async resolveBranchId(
     branchName: string | undefined,
