@@ -1,5 +1,12 @@
 import { describe, expect, test } from 'bun:test';
-import { globToRegex, matchesExportPattern, matchesSourcePattern } from '@/lib/config/projectFileMatch.ts';
+import {
+  containsPattern,
+  globToRegex,
+  matchesExportPattern,
+  matchesManagerSourceFile,
+  matchesSourcePattern,
+  replaceUnaryAsterisk,
+} from '@/lib/config/projectFileMatch.ts';
 
 describe('globToRegex', () => {
   test('translates glob wildcards and file placeholders', () => {
@@ -38,5 +45,130 @@ describe('matchesExportPattern', () => {
     // Stored export patterns keep their placeholders, which match the config pattern literally.
     expect(matchesExportPattern('/%locale%/messages.json', '/%locale%/*.json', true)).toBe(true);
     expect(matchesExportPattern('/%locale%/messages.xml', '/%locale%/*.json', true)).toBe(false);
+  });
+});
+
+describe('replaceUnaryAsterisk', () => {
+  test('substitutes the matched file segment into a wildcard source segment', () => {
+    expect(replaceUnaryAsterisk('/resources/en/*.json', 'uploaded/messages.json')).toBe('/resources/en/messages.json');
+  });
+
+  test('aligns from the right and keeps non-matching pattern segments literal', () => {
+    expect(replaceUnaryAsterisk('/resources/*/*.json', 'a/b/strings.json')).toBe('/resources/b/strings.json');
+  });
+
+  test('leaves ** segments untouched', () => {
+    expect(replaceUnaryAsterisk('/resources/**/*.json', 'x/y/messages.json')).toBe('/resources/**/messages.json');
+  });
+});
+
+describe('containsPattern', () => {
+  test('detects glob metacharacters', () => {
+    expect(containsPattern('*.json')).toBe(true);
+    expect(containsPattern('a/**/b')).toBe(true);
+    expect(containsPattern('file?.txt')).toBe(true);
+    expect(containsPattern('[abc].json')).toBe(true);
+    expect(containsPattern('messages.json')).toBe(false);
+  });
+});
+
+describe('matchesManagerSourceFile', () => {
+  const bean = (overrides: { source?: string; translation?: string; dest?: string } = {}) => ({
+    source: '/resources/en/*.json',
+    translation: '/%locale%/%original_file_name%',
+    ...overrides,
+  });
+
+  test('preserve_hierarchy=false: keeps files with no export pattern', () => {
+    expect(
+      matchesManagerSourceFile(bean(), 'resources/en/messages.json', undefined, '/resources/en/*.json', false),
+    ).toBe(true);
+  });
+
+  test('preserve_hierarchy=false: matches the translation (with /** optional) against the export pattern', () => {
+    const file = bean({ translation: '/%locale%/%original_file_name%' });
+
+    expect(
+      matchesManagerSourceFile(
+        file,
+        'resources/en/messages.json',
+        '/%locale%/%original_file_name%',
+        '/resources/en/*.json',
+        false,
+      ),
+    ).toBe(true);
+    expect(
+      matchesManagerSourceFile(
+        file,
+        'resources/en/messages.json',
+        '/strings/%original_file_name%',
+        '/resources/en/*.json',
+        false,
+      ),
+    ).toBe(false);
+  });
+
+  test('preserve_hierarchy=true: keeps when export pattern is a suffix of the translation', () => {
+    const file = bean();
+
+    expect(
+      matchesManagerSourceFile(
+        file,
+        'resources/en/messages.json',
+        '/%locale%/%original_file_name%',
+        '/resources/en/*.json',
+        true,
+      ),
+    ).toBe(true);
+    expect(
+      matchesManagerSourceFile(file, 'resources/en/messages.json', '/de/strings.json', '/resources/en/*.json', true),
+    ).toBe(false);
+  });
+
+  test('preserve_hierarchy=true with dest: file path must match the dest glob', () => {
+    const file = bean({ dest: '/uploaded/%original_file_name%' });
+
+    expect(
+      matchesManagerSourceFile(
+        file,
+        'uploaded/messages.json',
+        '/%locale%/%original_file_name%',
+        '/uploaded/%original_file_name%',
+        true,
+      ),
+    ).toBe(true);
+    expect(
+      matchesManagerSourceFile(
+        file,
+        'other/messages.json',
+        '/%locale%/%original_file_name%',
+        '/uploaded/%original_file_name%',
+        true,
+      ),
+    ).toBe(false);
+  });
+
+  test('preserve_hierarchy=true: a literal source name must equal the file name', () => {
+    // source has no wildcard, so containsPattern(sourceName) is false and the file name must match.
+    const file = bean({ source: '/resources/en/messages.json' });
+
+    expect(
+      matchesManagerSourceFile(
+        file,
+        'resources/en/messages.json',
+        '/%locale%/%original_file_name%',
+        '/resources/en/messages.json',
+        true,
+      ),
+    ).toBe(true);
+    expect(
+      matchesManagerSourceFile(
+        file,
+        'resources/en/other.json',
+        '/%locale%/%original_file_name%',
+        '/resources/en/messages.json',
+        true,
+      ),
+    ).toBe(false);
   });
 });

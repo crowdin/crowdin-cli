@@ -23,10 +23,11 @@ import type {
 import type { CommandDef } from '@/cli/types.ts';
 import { fileTree } from '@/cli/utils/fileTree.ts';
 import type { Output } from '@/cli/utils/output.ts';
-import { matchesExportPattern, matchesSourcePattern } from '@/lib/config/projectFileMatch.ts';
+import { matchesManagerSourceFile, matchesSourcePattern, replaceUnaryAsterisk } from '@/lib/config/projectFileMatch.ts';
 import type { Config } from '@/lib/config.ts';
 import { buildAllProjectTranslations, sortOmittedFiles } from '@/lib/download/projectTranslations.ts';
 import { buildTranslationMapping } from '@/lib/download/translationMapping.ts';
+import { originalPath } from '@/lib/export/patterns.ts';
 import { prepareDest } from '@/lib/upload/fileOptions.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
 import dryRun from '../common/options/dryRun.ts';
@@ -142,12 +143,8 @@ export default class DownloadCommand {
     const fileService = await this.getFileService(command);
     const branchService = await this.getBranchService(command);
 
-    const project = await projectService.loadProject();
-
-    if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
-      throw new CliError('File management is not available for string-based projects');
-    }
-
+    // Java order (DownloadSourcesAction): reviewed/enterprise guard, then preserve_hierarchy warning,
+    // then fetch the project and reject string-based ones.
     if (options.reviewed && !projectService.isEnterprise()) {
       output.warning('Operation is available only for Crowdin Enterprise');
       return;
@@ -159,6 +156,12 @@ export default class DownloadCommand {
           '\t- CLI might download some unexpected files that match the pattern;\n' +
           '\t- Source file hierarchy may not be preserved and will be the same as in Crowdin.',
       );
+    }
+
+    const project = await projectService.loadProject();
+
+    if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
+      throw new CliError('File management is not available for string-based projects');
     }
 
     const branchId = await this.resolveBranchId(options.branch, branchService);
@@ -270,25 +273,31 @@ export default class DownloadCommand {
       throw new CliError(`Options '--language' and '--exclude-language' can't be used together`);
     }
 
-    const targetLanguages = project.data.targetLanguages;
-    const targetLanguageIds = targetLanguages.map((l) => l.id);
+    // Java validates/downloads against getProjectLanguages(true) = target languages + the in-context
+    // pseudo language (when the project has one), not just the target languages.
+    const inContextPseudoLanguage =
+      'inContextPseudoLanguage' in project.data ? project.data.inContextPseudoLanguage : undefined;
+    const projectLanguages = inContextPseudoLanguage
+      ? [...project.data.targetLanguages, inContextPseudoLanguage]
+      : project.data.targetLanguages;
+    const projectLanguageIds = projectLanguages.map((l) => l.id);
     let resolvedLanguageIds: string[] | undefined;
-    let resolvedLanguages: LanguagesModel.Language[] = targetLanguages;
+    let resolvedLanguages: LanguagesModel.Language[] = projectLanguages;
 
     if (options.language && options.language.length > 0) {
       for (const langId of options.language) {
-        if (!targetLanguageIds.includes(langId)) {
+        if (!projectLanguageIds.includes(langId)) {
           throw new CliError(`Language ${langId} does not exist in project`);
         }
       }
 
       resolvedLanguageIds = options.language;
-      resolvedLanguages = targetLanguages.filter((l) => options.language?.includes(l.id));
+      resolvedLanguages = projectLanguages.filter((l) => options.language?.includes(l.id));
     } else {
       const exportLanguages = config.exportLanguages ?? [];
 
       for (const langId of exportLanguages) {
-        if (!targetLanguageIds.includes(langId)) {
+        if (!projectLanguageIds.includes(langId)) {
           throw new CliError(`Language ${langId} does not exist in project`);
         }
       }
@@ -296,14 +305,14 @@ export default class DownloadCommand {
       const excludeLanguages = options.excludeLanguage ?? [];
 
       for (const langId of excludeLanguages) {
-        if (!targetLanguageIds.includes(langId)) {
+        if (!projectLanguageIds.includes(langId)) {
           throw new CliError(`Language ${langId} does not exist in project`);
         }
       }
 
-      // Base set = config export_languages if present, else all target languages; excludes subtract.
+      // Base set = config export_languages if present, else all project languages; excludes subtract.
       const baseLanguages =
-        exportLanguages.length > 0 ? targetLanguages.filter((l) => exportLanguages.includes(l.id)) : targetLanguages;
+        exportLanguages.length > 0 ? projectLanguages.filter((l) => exportLanguages.includes(l.id)) : projectLanguages;
       const forLanguages = baseLanguages.filter((l) => !excludeLanguages.includes(l.id));
 
       // Java only pins targetLanguageIds on the build when export_languages or excludes narrow the set.
@@ -393,9 +402,17 @@ export default class DownloadCommand {
           skipUntranslatedFilesUsed = true;
         }
 
-        const build: ResponseObject<TranslationsModel.Build> = group.pseudo
-          ? await translationService.buildProjectTranslations(group.pseudo)
-          : await translationService.buildProjectTranslations(group.request);
+        let build: ResponseObject<TranslationsModel.Build>;
+
+        try {
+          build = group.pseudo
+            ? await translationService.buildProjectTranslations(group.pseudo)
+            : await translationService.buildProjectTranslations(group.request);
+        } catch {
+          // Mirrors Java's ProjectBuildFailedException handling: warn and abort gracefully.
+          output.warning("Didn't manage to build translations");
+          return;
+        }
 
         const downloadUrl = await translationService.getTranslationDownloadUrl(build.data.id);
         const response = await fetch(downloadUrl);
@@ -406,7 +423,9 @@ export default class DownloadCommand {
 
         await Bun.write(archivePath, response);
 
-        const mapping = buildTranslationMapping(config, resolvedLanguages, serverLanguageMapping, {
+        // Pseudo builds always map all target languages (Java ignores export_languages/exclude here).
+        const mappingLanguages = group.pseudo ? projectLanguages : resolvedLanguages;
+        const mapping = buildTranslationMapping(config, mappingLanguages, serverLanguageMapping, {
           useServerSources: options.all,
           serverSourcePaths,
           files: group.files,
@@ -448,7 +467,7 @@ export default class DownloadCommand {
 
       if (!options.ignoreMatch && perBuildOmitted.some((omitted) => omitted.length > 0)) {
         const files = projectFiles ?? (await fileService.loadProjectFiles(branchId));
-        const allProjectTranslations = buildAllProjectTranslations(files.data, targetLanguages, serverLanguageMapping);
+        const allProjectTranslations = buildAllProjectTranslations(files.data, projectLanguages, serverLanguageMapping);
 
         this.reportOmittedFiles(perBuildOmitted, allProjectTranslations, output, options.verbose ?? false);
       }
@@ -703,7 +722,9 @@ export default class DownloadCommand {
 
         if (managerAccess) {
           const exportPattern = (file.data.exportOptions as { exportPattern?: string } | undefined)?.exportPattern;
-          if (!matchesExportPattern(exportPattern, patterns.translation, config.preserveHierarchy)) {
+          if (
+            !matchesManagerSourceFile(patterns, relativePath, exportPattern, searchPattern, config.preserveHierarchy)
+          ) {
             return false;
           }
         }
@@ -722,13 +743,32 @@ export default class DownloadCommand {
 
       for (const file of sorted) {
         const relativePath = (file.data.path || '').replace(/^\//, '');
-        const destination = patterns.dest ? prepareDest(patterns.dest, relativePath) : relativePath;
+        const destination = this.resolveSourceDestination(patterns, relativePath);
 
         downloads.push({ fileId: file.data.id, relativePath, destination });
       }
     }
 
     return downloads;
+  }
+
+  /**
+   * Computes a source file's local destination, mirroring Java DownloadSourcesAction. With no `dest`
+   * the file keeps its project path. With `dest`: when `dest` has neither `**` nor `%original_path%`
+   * and `source` has `**`, the `dest` pattern is applied directly; otherwise the destination is
+   * derived from the `source` pattern via `replaceUnaryAsterisk` (substituting the real file
+   * segments) — both then resolve file-dependent placeholders.
+   */
+  private resolveSourceDestination(patterns: Config['files'][number], relativePath: string): string {
+    if (!patterns.dest) {
+      return relativePath;
+    }
+
+    if (!patterns.dest.includes('**') && !patterns.dest.includes(originalPath) && patterns.source.includes('**')) {
+      return prepareDest(patterns.dest, relativePath);
+    }
+
+    return prepareDest(replaceUnaryAsterisk(patterns.source, relativePath), relativePath);
   }
 
   private async resolveBranchId(

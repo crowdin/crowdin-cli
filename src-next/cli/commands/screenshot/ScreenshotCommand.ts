@@ -227,6 +227,7 @@ export default class ScreenshotCommand {
     }
 
     await screenshotService.delete(id);
+
     output.success(`Screenshot '#${id} ${screenshot.name}' deleted successfully`);
   };
 

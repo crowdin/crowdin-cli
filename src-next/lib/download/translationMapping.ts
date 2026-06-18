@@ -47,11 +47,19 @@ export function buildTranslationMapping(
       const localSet = new Set(localSourcePaths.map((p) => toPosixPath(p)));
       // Java filters by `dest` (when set) instead of `source` for server files.
       const searchPattern = patterns.dest ?? patterns.source;
+      const ignore = patterns.ignore ?? [];
 
       for (const serverPath of serverSourcePaths) {
-        if (!localSet.has(serverPath) && matchesSourcePattern(serverPath, searchPattern, config.preserveHierarchy)) {
-          sources.push(serverPath);
+        if (localSet.has(serverPath) || !matchesSourcePattern(serverPath, searchPattern, config.preserveHierarchy)) {
+          continue;
         }
+
+        // Local sources already drop ignored files via SourceFileLoader; apply the same to server-only ones.
+        if (ignore.some((pattern) => matchesSourcePattern(serverPath, pattern, config.preserveHierarchy))) {
+          continue;
+        }
+
+        sources.push(serverPath);
       }
     }
 

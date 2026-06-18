@@ -511,6 +511,54 @@ describe('DownloadCommand', () => {
       );
     });
 
+    test('accepts the in-context pseudo language as a valid project language', async () => {
+      const downloadCommand = createDownloadCommand();
+      const buildId = 999;
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: {
+          id: 123,
+          languageMapping: {},
+          targetLanguages: [{ id: 'fr' }],
+          inContextPseudoLanguage: { id: 'qa-pseudo' },
+        },
+      } as never);
+      spyOn(apiClient.translationsApi, 'buildProject').mockResolvedValue({
+        data: { id: buildId, status: 'finished', progress: 100 },
+      } as never);
+      spyOn(apiClient.translationsApi, 'checkBuildStatus').mockResolvedValue({
+        data: { id: buildId, status: 'finished', progress: 100 },
+      } as never);
+      spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
+      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
+
+      mock.module('adm-zip', () => {
+        return {
+          default: class {
+            constructor() {}
+            extractAllTo() {}
+            getEntries() {
+              return [];
+            }
+          },
+        };
+      });
+
+      commandContext = createCommandContext({
+        ...globalOptions,
+        language: ['qa-pseudo'],
+      });
+
+      // The in-context pseudo language is part of getProjectLanguages(true), so it validates and builds.
+      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
+        "Couldn't find any file to download",
+      );
+
+      expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {
+        targetLanguageIds: ['qa-pseudo'],
+      });
+    });
+
     test('passes build options to API', async () => {
       const downloadCommand = createDownloadCommand();
       const buildId = 999;
@@ -697,7 +745,7 @@ describe('DownloadCommand', () => {
       expect(await savedArchive.exists()).toBe(true);
     });
 
-    test('throws when translations build fails', async () => {
+    test('warns and aborts when translations build fails', async () => {
       const downloadCommand = createDownloadCommand();
       const buildId = 999;
 
@@ -714,10 +762,12 @@ describe('DownloadCommand', () => {
       spyOn(apiClient.translationsApi, 'checkBuildStatus').mockResolvedValue({
         data: { id: buildId, status: 'failed', progress: 0 },
       } as never);
+      const warningSpy = spyOn(output, 'warning');
 
-      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        new CliError('Translations build failed'),
-      );
+      // Build failure warns and aborts gracefully (Java ProjectBuildFailedException parity).
+      await downloadCommand.translationsAction(commandContext);
+
+      expect(warningSpy).toHaveBeenCalledWith("Didn't manage to build translations");
     });
   });
 
@@ -1002,6 +1052,64 @@ describe('DownloadCommand', () => {
       await downloadCommand.translationsAction(commandContext);
 
       expect(await Bun.file(join(tempDir, 'resources/fr-FR/other.json')).text()).toBe('server-only');
+    });
+
+    test('--all skips server source files matching an ignore pattern', async () => {
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+      mockBuildAndDownload([language('fr', 'fr-FR')]);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [
+          { data: { id: 1, path: '/resources/en/messages.json' } },
+          { data: { id: 2, path: '/resources/en/secret.json' } },
+        ],
+      } as never);
+      mockZipEntries([
+        { entryName: 'resources/fr-FR/messages.json', content: 'kept' },
+        { entryName: 'resources/fr-FR/secret.json', content: 'ignored' },
+      ]);
+
+      commandContext = createCommandContext({ ...globalOptions, all: true, ignoreMatch: true });
+
+      const downloadCommand = createCommandFor({
+        ...config,
+        files: [
+          {
+            source: '/resources/en/*.json',
+            translation: '/resources/%locale%/%original_file_name%',
+            ignore: ['/resources/en/secret.json'],
+          },
+        ],
+      });
+
+      await downloadCommand.translationsAction(commandContext);
+
+      // secret.json is server-only and matches the ignore pattern, so it is not mapped/written;
+      // the local messages.json source is still downloaded.
+      expect(await Bun.file(join(tempDir, 'resources/fr-FR/messages.json')).text()).toBe('kept');
+      expect(await Bun.file(join(tempDir, 'resources/fr-FR/secret.json')).exists()).toBe(false);
+    });
+
+    test('pseudo maps all target languages, ignoring export_languages', async () => {
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+      mockBuildAndDownload([language('fr', 'fr-FR'), language('de', 'de-DE')]);
+      mockZipEntries([
+        { entryName: 'resources/fr-FR/messages.json', content: 'fr' },
+        { entryName: 'resources/de-DE/messages.json', content: 'de' },
+      ]);
+
+      commandContext = createCommandContext({ ...globalOptions, pseudo: true });
+
+      const downloadCommand = createCommandFor({
+        ...config,
+        exportLanguages: ['fr'],
+        files: [{ source: '/resources/en/*.json', translation: '/resources/%locale%/%original_file_name%' }],
+      });
+
+      await downloadCommand.translationsAction(commandContext);
+
+      // export_languages would narrow to fr, but pseudo uses every target language.
+      expect(await Bun.file(join(tempDir, 'resources/fr-FR/messages.json')).text()).toBe('fr');
+      expect(await Bun.file(join(tempDir, 'resources/de-DE/messages.json')).text()).toBe('de');
     });
 
     test('--all warns when preserve_hierarchy is disabled', async () => {
@@ -1464,6 +1572,43 @@ describe('DownloadCommand', () => {
       expect(await Bun.file(join(tempDir, 'unrelated', 'notes.txt')).exists()).toBe(false);
     });
 
+    test('with manager access, filters out files whose export pattern does not match the translation', async () => {
+      const downloadCommand = createDownloadCommand();
+
+      // languageMapping marks manager access, enabling the export-pattern compatibility filter.
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: { id: 123, languageMapping: {} },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [
+          {
+            data: {
+              id: 1,
+              path: '/resources/en/messages.json',
+              exportOptions: { exportPattern: '/%locale%/%original_file_name%' },
+            },
+          },
+          {
+            data: {
+              id: 2,
+              path: '/resources/en/strings.json',
+              exportOptions: { exportPattern: '/somewhere-else/strings.json' },
+            },
+          },
+        ],
+      } as never);
+      const getDownloadUrlSpy = spyOn(fileService, 'getSourceFileDownloadUrl').mockResolvedValue(
+        'https://example.test/messages.json',
+      );
+      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('source content'));
+
+      await downloadCommand.sourcesAction(commandContext);
+
+      // Only file 1's export pattern is a suffix of the config translation, so file 2 is skipped.
+      expect(getDownloadUrlSpy).toHaveBeenCalledTimes(1);
+      expect(getDownloadUrlSpy).toHaveBeenCalledWith(1);
+    });
+
     test('skips source files matching an ignore pattern', async () => {
       const downloadCommand = new DownloadCommand(
         async () => ({
@@ -1504,7 +1649,42 @@ describe('DownloadCommand', () => {
       expect(getDownloadUrlSpy).toHaveBeenCalledWith(1);
     });
 
-    test('applies dest to the source download destination', async () => {
+    test('applies dest directly when source has ** and dest has no wildcard', async () => {
+      const downloadCommand = new DownloadCommand(
+        async () => ({
+          ...config,
+          basePath: tempDir,
+          files: [
+            {
+              source: '/resources/**/*.json',
+              translation: '/%locale%/%original_file_name%',
+              dest: '/uploaded/%original_file_name%',
+            },
+          ],
+        }),
+        () => output,
+        async () => projectService,
+        async () => branchService,
+        async () => fileService,
+        async () => translationService,
+      );
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: { id: 123 },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/uploaded/messages.json' } }],
+      } as never);
+      spyOn(fileService, 'getSourceFileDownloadUrl').mockResolvedValue('https://example.test/messages.json');
+      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('dest content'));
+
+      await downloadCommand.sourcesAction(commandContext);
+
+      // Branch (a): dest applied directly with placeholders resolved.
+      expect(await Bun.file(join(tempDir, 'uploaded', 'messages.json')).text()).toBe('dest content');
+    });
+
+    test('derives dest from the source pattern via replaceUnaryAsterisk when source has no **', async () => {
       const downloadCommand = new DownloadCommand(
         async () => ({
           ...config,
@@ -1531,11 +1711,13 @@ describe('DownloadCommand', () => {
         data: [{ data: { id: 1, path: '/uploaded/messages.json' } }],
       } as never);
       spyOn(fileService, 'getSourceFileDownloadUrl').mockResolvedValue('https://example.test/messages.json');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('dest content'));
+      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('source content'));
 
       await downloadCommand.sourcesAction(commandContext);
 
-      expect(await Bun.file(join(tempDir, 'uploaded', 'messages.json')).text()).toBe('dest content');
+      // Else branch: the filename segment is substituted into the source pattern, so the file lands
+      // at its source-side location (mirrors Java's replaceUnaryAsterisk).
+      expect(await Bun.file(join(tempDir, 'resources', 'en', 'messages.json')).text()).toBe('source content');
     });
 
     test('warns when a config pattern matches no project files', async () => {
@@ -1579,13 +1761,13 @@ describe('DownloadCommand', () => {
       );
     });
 
-    test('--reviewed warns and returns for non-enterprise projects', async () => {
+    test('--reviewed warns and returns for non-enterprise projects before loading the project', async () => {
       const downloadCommand = createDownloadCommand();
 
-      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
-        data: { id: 123 },
-      } as never);
       spyOn(projectService, 'isEnterprise').mockReturnValue(false);
+      // The enterprise guard runs before the project is fetched (Java ordering), so loadProject and
+      // the build are never reached.
+      const loadProjectSpy = spyOn(projectService, 'loadProject');
       const buildReviewedSpy = spyOn(fileService, 'buildReviewedSources');
       const warningSpy = spyOn(output, 'warning');
 
@@ -1594,6 +1776,7 @@ describe('DownloadCommand', () => {
       await downloadCommand.sourcesAction(commandContext);
 
       expect(warningSpy).toHaveBeenCalledWith('Operation is available only for Crowdin Enterprise');
+      expect(loadProjectSpy).not.toHaveBeenCalled();
       expect(buildReviewedSpy).not.toHaveBeenCalled();
     });
 
