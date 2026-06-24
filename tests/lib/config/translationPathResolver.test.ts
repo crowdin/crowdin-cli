@@ -131,6 +131,48 @@ describe('translation path resolver', () => {
     }
   });
 
+  test('expands ** in the translation pattern from the matched source subpath', async () => {
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath: '/tmp',
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/resources/en/**/*.md',
+          translation: '/resources/%two_letters_code%/**/%original_file_name%',
+        },
+      ],
+    });
+    const language = {
+      id: 'es',
+      name: 'Spanish',
+      twoLettersCode: 'es',
+      threeLettersCode: 'spa',
+      locale: 'es-ES',
+      androidCode: 'es-rES',
+      osxCode: 'es.lproj',
+      osxLocale: 'es',
+      editorCode: 'es',
+    } as never;
+    const resolver = new TranslationPathResolver(config);
+    const fileConfig = config.files[0] as never;
+
+    // Local destination expands ** to the matched subpath 'sub'.
+    expect(resolver.resolveWithConfig(fileConfig, 'resources/en/sub/readme.md', language, undefined)).toBe(
+      '/resources/es/sub/readme.md',
+    );
+
+    // Server/archive path (serverOnly) expands ** the same way.
+    expect(
+      resolver.resolveWithConfig(fileConfig, 'resources/en/sub/readme.md', language, undefined, {
+        serverOnly: true,
+        preserveHierarchy: true,
+      }),
+    ).toBe('/resources/es/sub/readme.md');
+  });
+
   test('resolves translation path using per-file languagesMapping override', async () => {
     const basePath = await mkdtemp();
     await Bun.write(`${basePath}/resources/en/readme.md`, 'readme');

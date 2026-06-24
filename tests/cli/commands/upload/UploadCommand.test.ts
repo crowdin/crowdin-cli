@@ -207,6 +207,37 @@ describe('UploadCommand', () => {
     });
   });
 
+  test('expands ** in the export pattern from the matched source subpath', async () => {
+    await Bun.write(`${tempDir}/src/sub/app.json`, '{}');
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      baseProjectServiceMock(),
+      storageService,
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+      baseLabelServiceMock(),
+      baseTranslationServiceMock(),
+      {
+        source: '/src/**/*.json',
+        translation: '/locale/%two_letters_code%/**/%original_file_name%',
+      },
+    );
+
+    await command.uploadSourcesAction(commandContext({}));
+
+    expect(fileService.createProjectFile).toHaveBeenCalledWith(
+      expect.objectContaining({
+        exportOptions: { exportPattern: '/locale/%two_letters_code%/sub/%original_file_name%' },
+      }),
+    );
+  });
+
   test('builds JavaScriptFileExportOptions with exportQuotes for .js files', async () => {
     await Bun.write(`${tempDir}/src/app.js`, 'module.exports = {};');
 

@@ -2,6 +2,7 @@ import path from 'node:path';
 import { SourceFilesModel, type SourceStringsModel } from '@crowdin/crowdin-api-client';
 import type { Config } from '@/lib/config.ts';
 import { fileExtension, fileName, originalFileName, originalPath } from '@/lib/export/patterns.ts';
+import { replaceDoubleAsterisk } from '@/lib/utils/doubleAsterisk.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
 
 type FileConfig = Config['files'][number];
@@ -14,10 +15,15 @@ export function buildExportOptions(
   exportPattern?: string,
 ): SourceFilesModel.ExportOptions {
   const extension = path.extname(localFilePath).toLowerCase();
+  // Expand `**` in the export pattern from the matched source subpath (mirrors Java buildExportOptions).
+  const resolvedExportPattern =
+    exportPattern !== undefined
+      ? replaceDoubleAsterisk(fileConfig.source, exportPattern, toPosixPath(localFilePath))
+      : exportPattern;
 
   if (extension === '.properties') {
     return {
-      exportPattern,
+      exportPattern: resolvedExportPattern,
       escapeQuotes: fileConfig.escape_quotes as SourceFilesModel.EscapeQuotes | undefined,
       escapeSpecialCharacters: fileConfig.escape_special_characters ?? 1,
     };
@@ -25,7 +31,7 @@ export function buildExportOptions(
 
   if (extension === '.js') {
     return {
-      exportPattern,
+      exportPattern: resolvedExportPattern,
       exportQuotes:
         fileConfig.export_quotes === 'double'
           ? SourceFilesModel.ExportQuotes.DOUBLE
@@ -35,7 +41,7 @@ export function buildExportOptions(
     };
   }
 
-  return { exportPattern };
+  return { exportPattern: resolvedExportPattern };
 }
 
 export function buildImportOptions(

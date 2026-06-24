@@ -148,6 +148,30 @@ describe('matchesManagerSourceFile', () => {
     ).toBe(false);
   });
 
+  test('preserve_hierarchy=true: expands ** before the export-pattern suffix check', () => {
+    const file = bean({ source: '/resources/en/**/*.json', translation: '/%locale%/**/%original_file_name%' });
+
+    // ** resolves to 'sub' from the file path, so only the matching export pattern is kept.
+    expect(
+      matchesManagerSourceFile(
+        file,
+        'resources/en/sub/messages.json',
+        '/%locale%/sub/%original_file_name%',
+        '/resources/en/**/*.json',
+        true,
+      ),
+    ).toBe(true);
+    expect(
+      matchesManagerSourceFile(
+        file,
+        'resources/en/sub/messages.json',
+        '/%locale%/elsewhere/%original_file_name%',
+        '/resources/en/**/*.json',
+        true,
+      ),
+    ).toBe(false);
+  });
+
   test('preserve_hierarchy=true: a literal source name must equal the file name', () => {
     // source has no wildcard, so containsPattern(sourceName) is false and the file name must match.
     const file = bean({ source: '/resources/en/messages.json' });

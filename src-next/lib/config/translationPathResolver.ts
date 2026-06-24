@@ -5,6 +5,7 @@ import type { Config } from '../config.ts';
 import { containsLanguagePlaceholder, languagePlaceholderValue } from '../export/languagePlaceholders.ts';
 import { fileExtension, fileName, filePatterns, originalFileName, originalPath } from '../export/patterns.ts';
 import { prepareDest } from '../upload/fileOptions.ts';
+import { replaceDoubleAsterisk } from '../utils/doubleAsterisk.ts';
 import { toPosixPath } from '../utils/path.ts';
 
 type FileConfig = Config['files'][number];
@@ -66,17 +67,27 @@ export default class TranslationPathResolver {
     // (mirrors Java's DownloadAction.doTranslationMapping).
     let placeholderPath = sourcePath;
     let pattern = fileConfig.translation;
+    // When `dest` replaces the pattern entirely it is used verbatim (no `**` expansion), mirroring
+    // Java's dest branch in doTranslationMapping.
+    let usingDest = false;
 
     if (options?.dest) {
       placeholderPath = prepareDest(options.dest, placeholderPath);
 
       if (!this.translationHasLanguagePlaceholder(fileConfig.translation)) {
         pattern = options.dest;
+        usingDest = true;
       }
     }
 
     if (serverOnly && options?.preserveHierarchy === false) {
       pattern = pattern.replaceAll(originalPath, '');
+    }
+
+    // Substitute the `**`-matched subpath into the (translation-derived) pattern before resolving
+    // placeholders, mirroring Java's TranslationsUtils.replaceDoubleAsterisk.
+    if (!usingDest) {
+      pattern = replaceDoubleAsterisk(fileConfig.source, pattern, sourcePath);
     }
 
     const translationPath = pattern.replaceAll(/%[a-z_]+%/gm, (match: string): string =>

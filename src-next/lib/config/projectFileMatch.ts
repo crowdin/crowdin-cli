@@ -1,3 +1,4 @@
+import { replaceDoubleAsterisk } from '../utils/doubleAsterisk.ts';
 import { toPosixPath } from '../utils/path.ts';
 
 /**
@@ -111,13 +112,9 @@ export function containsPattern(pattern: string): boolean {
  * - `preserveHierarchy` false: the group `translation` (with each `/**` made optional) must partially
  *   match the export pattern (Java's `Pattern.asPredicate`).
  * - `preserveHierarchy` true: when `dest` is set the file path must match the `dest` glob; otherwise
- *   the export pattern (when present) must be a suffix of the group `translation`. A matched file is
- *   then additionally gated by Java's `sourceName == fileName || containsPattern(sourceName) ||
- *   searchPattern.contains(path)` condition.
- *
- * Limitation: `**` inside `translation` under `preserveHierarchy: true` needs Java's
- * `replaceDoubleAsterisk` expansion (not ported, shared with the upload/translations `**` gap); such
- * files are kept permissively.
+ *   the file's export pattern (when present) must be a suffix of the group `translation` after `**` is
+ *   expanded from the project file path. A matched file is then additionally gated by Java's
+ *   `sourceName == fileName || containsPattern(sourceName) || searchPattern.contains(path)` condition.
  */
 export function matchesManagerSourceFile(
   fileBean: { source: string; translation: string; dest?: string },
@@ -143,10 +140,11 @@ export function matchesManagerSourceFile(
   if (fileBean.dest !== undefined) {
     const destPattern = noSepAtStart(normalizePath(fileBean.dest));
     matchesFileBean = new RegExp(`^${globToRegex(destPattern)}$`).test(noSepAtStart(normalizePath(filePath)));
-  } else if (fileBean.translation.includes('**')) {
-    matchesFileBean = true;
   } else {
-    matchesFileBean = normalizedExport === undefined || fileBean.translation.endsWith(normalizedExport);
+    // Expand `**` from the project file path, then require the file's export pattern to be a suffix of
+    // the resulting translation pattern (mirrors Java DownloadSourcesAction's manager-access filter).
+    const translationPattern = replaceDoubleAsterisk(fileBean.source, fileBean.translation, filePath);
+    matchesFileBean = normalizedExport === undefined || translationPattern.endsWith(normalizedExport);
   }
 
   if (!matchesFileBean) {
