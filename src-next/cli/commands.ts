@@ -79,7 +79,7 @@ const screenshotCommand = new ScreenshotCommand(
   getLabelService,
 );
 const initCommand = new InitCommand(getOutput);
-const configCommand = new ConfigCommand(getConfig, getOutput, getProjectService);
+const configCommand = new ConfigCommand(getConfig, getOutput, getProjectService, getLanguageService);
 const downloadCommand = new DownloadCommand(
   getConfig,
   getOutput,

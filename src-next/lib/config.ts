@@ -44,6 +44,9 @@ export const ConfigSchema = z
         type: z.string().optional(),
         context: z.string().optional(),
         scheme: z.union([z.string(), z.record(z.string(), z.number())]).optional(),
+        multilingual: z.boolean().optional(),
+        // Parsed for Java config parity but inert (Java reads `multilingual` only; this field is never consumed).
+        multilingual_spreadsheet: z.boolean().optional(),
         update_option: z
           .enum(['clear_translations_and_approvals', 'keep_translations', 'keep_translations_and_approvals'])
           .optional(),
@@ -77,8 +80,13 @@ export const ConfigSchema = z
         });
       }
 
-      // A language placeholder is required unless a `scheme` defines a multilingual file (Java parity).
-      if (file.scheme === undefined && !languagePatterns.some((pattern) => file.translation.includes(pattern))) {
+      // A language placeholder is required unless the file is multilingual — either via a `scheme`
+      // or an explicit `multilingual: true` (mirrors Java FileBean.checkProperties).
+      if (
+        file.scheme === undefined &&
+        !file.multilingual &&
+        !languagePatterns.some((pattern) => file.translation.includes(pattern))
+      ) {
         ctx.addIssue({
           code: 'custom',
           message: "The 'translation' parameter should contain at least one language placeholder (e.g. %locale%)",

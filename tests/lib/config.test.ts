@@ -102,4 +102,26 @@ describe('ConfigSchema files[] parity fields', () => {
 
     expect(config.files[0]?.dest).toBe('/foo/%original_file_name%');
   });
+
+  test('requires a language placeholder when not multilingual', () => {
+    expect(() => ConfigSchema.parse(baseConfig({ translation: '/locale/strings.xml' }))).toThrow(
+      'should contain at least one language placeholder',
+    );
+  });
+
+  test('allows a placeholder-free translation when multilingual is true', () => {
+    const config = ConfigSchema.parse(baseConfig({ translation: '/locale/strings.xml', multilingual: true }));
+
+    expect(config.files[0]?.multilingual).toBe(true);
+  });
+
+  test('parses multilingual_spreadsheet without relaxing the placeholder requirement', () => {
+    // multilingual_spreadsheet is accepted for Java parity but does not mark the file as multilingual.
+    expect(() =>
+      ConfigSchema.parse(baseConfig({ translation: '/locale/strings.xml', multilingual_spreadsheet: true })),
+    ).toThrow('should contain at least one language placeholder');
+
+    const config = ConfigSchema.parse(baseConfig({ multilingual_spreadsheet: true }));
+    expect(config.files[0]?.multilingual_spreadsheet).toBe(true);
+  });
 });

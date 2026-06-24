@@ -4,6 +4,27 @@ import { Glob } from 'bun';
 import type { Config } from '../config.ts';
 import { toPosixPath } from '../utils/path.ts';
 
+/**
+ * The shared parent directory of all given posix paths, including the trailing slash (or '' when
+ * there is none). Mirrors Java SourcesUtils.getCommonPath: take the longest common string prefix,
+ * then trim back to the last path separator so a partial file-name match is never stripped.
+ */
+export function commonPath(paths: string[]): string {
+  if (paths.length === 0) {
+    return '';
+  }
+
+  let prefix = paths[0] ?? '';
+  for (const value of paths) {
+    while (!value.startsWith(prefix)) {
+      prefix = prefix.slice(0, -1);
+    }
+  }
+
+  const lastSeparator = prefix.lastIndexOf('/');
+  return lastSeparator >= 0 ? prefix.slice(0, lastSeparator + 1) : '';
+}
+
 export default class SourceFileLoader {
   private config: Config;
 

@@ -618,6 +618,8 @@ describe('DownloadCommand', () => {
         },
       } as never);
       const buildProject = spyOn(apiClient.translationsApi, 'buildProject').mockResolvedValue({} as never);
+      // Dry-run now always loads the server file map to filter excluded target languages (Java parity).
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({ data: [] } as never);
       const logSpy = spyOn(output, 'log');
       await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
 
@@ -631,6 +633,38 @@ describe('DownloadCommand', () => {
       // Dry-run lists resolved translation destination paths, not raw server source paths.
       expect(logSpy).toHaveBeenCalledWith('resources/fr/messages.json');
       expect(buildProject).not.toHaveBeenCalled();
+    });
+
+    test('dry-run skips target languages excluded server-side for a source file', async () => {
+      const downloadCommand = createDownloadCommand();
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: {
+          id: 123,
+          languageMapping: {},
+          targetLanguages: [
+            { id: 'fr', locale: 'fr', twoLettersCode: 'fr', threeLettersCode: 'fre', name: 'French' },
+            { id: 'de', locale: 'de', twoLettersCode: 'de', threeLettersCode: 'ger', name: 'German' },
+          ],
+        },
+      } as never);
+      spyOn(apiClient.translationsApi, 'buildProject').mockResolvedValue({} as never);
+      // Server marks French as excluded for this file -> it must not appear in the listing.
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/resources/en/messages.json', excludedTargetLanguages: ['fr'] } }],
+      } as never);
+      const logSpy = spyOn(output, 'log');
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+
+      commandContext = createCommandContext({
+        ...globalOptions,
+        dryrun: true,
+      });
+
+      await downloadCommand.translationsAction(commandContext);
+
+      expect(logSpy).toHaveBeenCalledWith('resources/de/messages.json');
+      expect(logSpy).not.toHaveBeenCalledWith('resources/fr/messages.json');
     });
 
     test('filters by branch', async () => {

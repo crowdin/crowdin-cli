@@ -17,6 +17,13 @@ export interface TranslationMappingOptions {
   serverSourcePaths?: string[];
   /** Restrict the mapping to this subset of config file groups (one build per export-option combo). */
   files?: Config['files'];
+  /**
+   * Server-side excluded target languages per source path (basePath-relative posix key, no leading
+   * slash). A language listed for a source is skipped for that source, mirroring Java's
+   * DryrunTranslations.containsExcludedLanguage. Only the dry-run listing applies this (Java's real
+   * DownloadAction does not filter excluded languages).
+   */
+  excludedTargetLanguagesByPath?: Map<string, string[]>;
 }
 
 /**
@@ -64,7 +71,14 @@ export function buildTranslationMapping(
     }
 
     for (const sourcePath of sources) {
+      const excludedLanguages = options?.excludedTargetLanguagesByPath?.get(stripLeadingSlash(toPosixPath(sourcePath)));
+
       for (const language of languages) {
+        // Skip languages the server source file excludes (parity with DryrunTranslations).
+        if (excludedLanguages?.includes(language.id)) {
+          continue;
+        }
+
         const localPath = stripLeadingSlash(
           resolver.resolveWithConfig(patterns, sourcePath, language, serverLanguageMapping),
         );

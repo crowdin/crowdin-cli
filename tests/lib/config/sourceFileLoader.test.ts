@@ -2,7 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
+import SourceFileLoader, { commonPath } from '@/lib/config/sourceFileLoader.ts';
 import { type Config, ConfigSchema } from '@/lib/config.ts';
 
 function buildConfig(
@@ -25,6 +25,33 @@ function buildConfig(
     ...configOverrides,
   });
 }
+
+describe('commonPath', () => {
+  test('returns the shared parent directory with a trailing slash', () => {
+    expect(commonPath(['src/foo/a.json', 'src/foo/b.json'])).toBe('src/foo/');
+  });
+
+  test('trims back to the last separator when files diverge inside a directory', () => {
+    expect(commonPath(['src/foo/a.json', 'src/bar/b.json'])).toBe('src/');
+  });
+
+  test('does not strip a partial directory-name match', () => {
+    // Raw string prefix is "src/foo", but it must trim to "src/" so "foobar" is not cut mid-name.
+    expect(commonPath(['src/foo/a.json', 'src/foobar/b.json'])).toBe('src/');
+  });
+
+  test('returns the directory of a single file', () => {
+    expect(commonPath(['src/foo/a.json'])).toBe('src/foo/');
+  });
+
+  test('returns empty string for top-level files with no shared directory', () => {
+    expect(commonPath(['a.json', 'b.json'])).toBe('');
+  });
+
+  test('returns empty string for no files', () => {
+    expect(commonPath([])).toBe('');
+  });
+});
 
 describe('SourceFileLoader', () => {
   let tempDir: string;

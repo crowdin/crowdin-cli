@@ -331,16 +331,18 @@ export default class DownloadCommand {
       // Java lists the resolved translation destination paths (per source x language), not the raw
       // server source paths (ListTranslationsAction -> DryrunTranslations). Reuse the same mapping
       // the real download uses; its values are exactly those local destination paths.
-      let serverSourcePaths: string[] | undefined;
-
-      if (options.all) {
-        const projectFiles = await fileService.loadProjectFiles(branchId);
-        serverSourcePaths = projectFiles.data.map((file) => (file.data.path || '').replace(/^\//, ''));
-      }
+      // Java's ListTranslationsAction always loads the full server file map (independent of --all) so it
+      // can drop target languages excluded server-side per file (DryrunTranslations.containsExcludedLanguage).
+      const projectFiles = await fileService.loadProjectFiles(branchId);
+      const serverSourcePaths = options.all
+        ? projectFiles.data.map((file) => (file.data.path || '').replace(/^\//, ''))
+        : undefined;
+      const excludedTargetLanguagesByPath = this.buildExcludedTargetLanguagesByPath(projectFiles.data);
 
       const mapping = buildTranslationMapping(config, resolvedLanguages, serverLanguageMapping, {
         useServerSources: options.all,
         serverSourcePaths,
+        excludedTargetLanguagesByPath,
       });
       const paths = [...new Set(mapping.byArchivePath.values())].sort();
       const lines = options.tree ? fileTree(paths) : paths;
@@ -769,6 +771,25 @@ export default class DownloadCommand {
     }
 
     return prepareDest(replaceUnaryAsterisk(patterns.source, relativePath), relativePath);
+  }
+
+  // Maps each server source path (basePath-relative posix, no leading slash) to its excluded target
+  // languages, so the dry-run listing can skip those languages per file (Java parity).
+  private buildExcludedTargetLanguagesByPath(
+    projectFiles: { data: { path?: string; excludedTargetLanguages?: string[] } }[],
+  ): Map<string, string[]> {
+    const byPath = new Map<string, string[]>();
+
+    for (const file of projectFiles) {
+      const excluded = file.data.excludedTargetLanguages;
+      if (!excluded || excluded.length === 0) {
+        continue;
+      }
+
+      byPath.set(toPosixPath(file.data.path || '').replace(/^\//, ''), excluded);
+    }
+
+    return byPath;
   }
 
   private async resolveBranchId(
