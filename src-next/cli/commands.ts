@@ -68,7 +68,7 @@ const getGlossaryService = createGetGlossaryService(getApiClient, getOutput);
 
 const commentCommand = new CommentCommand(getOutput, getCommentService);
 const appCommand = new AppCommand(getOutput, getAppService);
-const bundleCommand = new BundleCommand(getOutput, getBundleService);
+const bundleCommand = new BundleCommand(getOutput, getBundleService, getConfig);
 const screenshotCommand = new ScreenshotCommand(
   getOutput,
   getScreenshotService,

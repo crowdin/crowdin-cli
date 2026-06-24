@@ -1,10 +1,14 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { mkdtemp, readFile, rm, stat } from 'node:fs/promises';
 import os from 'node:os';
+import path from 'node:path';
+import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import BundleCommand from '@/cli/commands/bundle/BundleCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { BundleService, BundleView } from '@/cli/services/BundleService.ts';
+import type { BundleExportStatus, BundleService, BundleView } from '@/cli/services/BundleService.ts';
+import type { GetConfig } from '@/cli/services.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 describe('BundleCommand', () => {
@@ -15,7 +19,11 @@ describe('BundleCommand', () => {
     get: ReturnType<typeof mock<BundleService['get']>>;
     delete: ReturnType<typeof mock<BundleService['delete']>>;
     getBundleUrl: ReturnType<typeof mock<BundleService['getBundleUrl']>>;
+    startExport: ReturnType<typeof mock<BundleService['startExport']>>;
+    checkExportStatus: ReturnType<typeof mock<BundleService['checkExportStatus']>>;
+    getDownloadUrl: ReturnType<typeof mock<BundleService['getDownloadUrl']>>;
   };
+  const config = { basePath: '/tmp/bundle-base', projectId: 1 } as unknown as Awaited<ReturnType<GetConfig>>;
   const globalOptions: GlobalOptions = {
     verbose: false,
     config: '',
@@ -37,12 +45,21 @@ describe('BundleCommand', () => {
     } as unknown as Command;
   };
 
-  const createBundleCommand = () => {
+  const createBundleCommand = (out: Output = output) => {
     return new BundleCommand(
-      () => output,
+      () => out,
       async () => bundleService as unknown as BundleService,
+      async () => config,
     );
   };
+
+  const createExportStatus = (overrides: Partial<BundleExportStatus>): BundleExportStatus =>
+    ({
+      identifier: 'export-1',
+      status: 'finished',
+      progress: 100,
+      ...overrides,
+    }) as BundleExportStatus;
 
   const createBundleView = (overrides: Partial<BundleView>): BundleView => ({
     id: 1,
@@ -69,6 +86,9 @@ describe('BundleCommand', () => {
       get: mock(async () => null),
       delete: mock(async () => {}),
       getBundleUrl: mock(async () => 'https://crowdin.com/project/demo/bundles/10'),
+      startExport: mock(async () => createExportStatus({})),
+      checkExportStatus: mock(async () => createExportStatus({})),
+      getDownloadUrl: mock(async () => 'https://crowdin.com/download/bundle.zip'),
     };
 
     spyOn(console, 'log').mockImplementation(() => {});
@@ -93,10 +113,7 @@ describe('BundleCommand', () => {
     test('prints empty message when no bundles found', async () => {
       const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const successSpy = spyOn(textOutput, 'success');
-      const cmd = new BundleCommand(
-        () => textOutput,
-        async () => bundleService as unknown as BundleService,
-      );
+      const cmd = createBundleCommand(textOutput);
 
       await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
@@ -184,10 +201,7 @@ describe('BundleCommand', () => {
     test('warns when bundle not found', async () => {
       const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const warningSpy = spyOn(textOutput, 'warning');
-      const cmd = new BundleCommand(
-        () => textOutput,
-        async () => bundleService as unknown as BundleService,
-      );
+      const cmd = createBundleCommand(textOutput);
       bundleService.get.mockResolvedValue(null);
 
       await cmd.deleteAction(createCommandContext({ ...globalOptions, output: 'text' }, ['1']));
@@ -199,10 +213,7 @@ describe('BundleCommand', () => {
     test('deletes existing bundle', async () => {
       const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const successSpy = spyOn(textOutput, 'success');
-      const cmd = new BundleCommand(
-        () => textOutput,
-        async () => bundleService as unknown as BundleService,
-      );
+      const cmd = createBundleCommand(textOutput);
       bundleService.get.mockResolvedValue(createBundleView({ id: 1, name: 'bundle' }));
 
       await cmd.deleteAction(createCommandContext({ ...globalOptions, output: 'text' }, ['1']));
@@ -216,10 +227,7 @@ describe('BundleCommand', () => {
     test('skips clone when source bundle is missing', async () => {
       const textOutput = createOutput({ ...globalOptions, output: 'text' });
       const warningSpy = spyOn(textOutput, 'warning');
-      const cmd = new BundleCommand(
-        () => textOutput,
-        async () => bundleService as unknown as BundleService,
-      );
+      const cmd = createBundleCommand(textOutput);
       bundleService.get.mockResolvedValue(null);
 
       await cmd.cloneAction(createCommandContext({ ...globalOptions, output: 'text' }, ['1']));
@@ -264,10 +272,7 @@ describe('BundleCommand', () => {
   test('browseAction opens bundle URL in browser', async () => {
     const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const successSpy = spyOn(textOutput, 'success');
-    const cmd = new BundleCommand(
-      () => textOutput,
-      async () => bundleService as unknown as BundleService,
-    );
+    const cmd = createBundleCommand(textOutput);
 
     spyOn(os, 'platform').mockReturnValue('darwin');
     await cmd.browseAction(createCommandContext({ ...globalOptions, output: 'text' }, ['1']));
@@ -276,11 +281,110 @@ describe('BundleCommand', () => {
     expect(successSpy).toHaveBeenCalledWith('Opened https://crowdin.com/project/demo/bundles/10 in browser');
   });
 
-  test('downloadAction is intentionally deferred', async () => {
-    const cmd = createBundleCommand();
+  describe('downloadAction', () => {
+    let tempRoot: string;
 
-    expect(cmd.downloadAction(createCommandContext(globalOptions, ['1']))).rejects.toThrow(
-      new CliError('Bundle download command is not implemented yet'),
-    );
+    const textOptions = (overrides: Record<string, unknown> = {}) => ({
+      ...globalOptions,
+      output: 'text',
+      ...overrides,
+    });
+
+    const mockArchive = (entries: Record<string, string> = { 'messages/en.json': '{"hello":"world"}' }) => {
+      const zip = new AdmZip();
+
+      for (const [name, content] of Object.entries(entries)) {
+        zip.addFile(name, Buffer.from(content));
+      }
+
+      spyOn(globalThis, 'fetch').mockResolvedValue(new Response(zip.toBuffer()));
+    };
+
+    beforeEach(async () => {
+      tempRoot = await mkdtemp(path.join(os.tmpdir(), 'bundle-download-'));
+      config.basePath = tempRoot;
+      spyOn(Bun, 'sleep').mockResolvedValue(undefined as never);
+      bundleService.get.mockResolvedValue(createBundleView({ id: 5, name: 'app' }));
+    });
+
+    afterEach(async () => {
+      await rm(tempRoot, { recursive: true, force: true });
+    });
+
+    test('warns and skips when bundle is missing', async () => {
+      const textOutput = createOutput(textOptions());
+      const warningSpy = spyOn(textOutput, 'warning');
+      const cmd = createBundleCommand(textOutput);
+      bundleService.get.mockResolvedValue(null);
+
+      await cmd.downloadAction(createCommandContext(textOptions(), ['5']));
+
+      expect(warningSpy).toHaveBeenCalledWith("Couldn't find bundle by the specified ID");
+      expect(bundleService.startExport).not.toHaveBeenCalled();
+    });
+
+    test('builds, downloads and extracts the bundle, then removes the archive', async () => {
+      mockArchive();
+      const cmd = createBundleCommand(createOutput(textOptions()));
+
+      await cmd.downloadAction(createCommandContext(textOptions(), ['5']));
+
+      expect(bundleService.startExport).toHaveBeenCalledWith(5);
+      expect(bundleService.getDownloadUrl).toHaveBeenCalledWith(5, 'export-1');
+
+      const extracted = await readFile(path.join(tempRoot, 'messages/en.json'), 'utf8');
+      expect(extracted).toBe('{"hello":"world"}');
+
+      // Archive removed by default (no --keep-archive).
+      expect(stat(path.join(tempRoot, 'bundle-export-1.zip'))).rejects.toThrow();
+    });
+
+    test('polls until the export finishes', async () => {
+      mockArchive();
+      bundleService.startExport.mockResolvedValue(createExportStatus({ status: 'inProgress', progress: 10 }));
+      bundleService.checkExportStatus
+        .mockResolvedValueOnce(createExportStatus({ status: 'inProgress', progress: 50 }))
+        .mockResolvedValueOnce(createExportStatus({ status: 'finished', progress: 100 }));
+      const cmd = createBundleCommand(createOutput(textOptions()));
+
+      await cmd.downloadAction(createCommandContext(textOptions(), ['5']));
+
+      expect(bundleService.checkExportStatus).toHaveBeenCalledTimes(2);
+      expect(bundleService.checkExportStatus).toHaveBeenCalledWith(5, 'export-1');
+    });
+
+    test('throws when the export fails', async () => {
+      bundleService.startExport.mockResolvedValue(createExportStatus({ status: 'failed' }));
+      const cmd = createBundleCommand(createOutput(textOptions()));
+
+      expect(cmd.downloadAction(createCommandContext(textOptions(), ['5']))).rejects.toThrow(
+        new CliError('Failed to build bundle'),
+      );
+    });
+
+    test('dryrun lists archive contents without writing files', async () => {
+      mockArchive();
+      const textOutput = createOutput(textOptions({ dryrun: true }));
+      const logSpy = spyOn(textOutput, 'log');
+      const cmd = createBundleCommand(textOutput);
+
+      await cmd.downloadAction(createCommandContext(textOptions({ dryrun: true }), ['5']));
+
+      expect(logSpy).toHaveBeenCalledWith('messages/en.json');
+      expect(stat(path.join(tempRoot, 'messages/en.json'))).rejects.toThrow();
+    });
+
+    test('keeps the archive with --keep-archive', async () => {
+      mockArchive();
+      const textOutput = createOutput(textOptions({ keepArchive: true }));
+      const successSpy = spyOn(textOutput, 'success');
+      const cmd = createBundleCommand(textOutput);
+
+      await cmd.downloadAction(createCommandContext(textOptions({ keepArchive: true }), ['5']));
+
+      const archivePath = path.join(tempRoot, 'bundle-export-1.zip');
+      expect((await stat(archivePath)).isFile()).toBe(true);
+      expect(successSpy).toHaveBeenCalledWith(`Archive saved to ${archivePath}`);
+    });
   });
 });

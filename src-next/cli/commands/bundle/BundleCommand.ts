@@ -1,11 +1,17 @@
+import { mkdir, rm } from 'node:fs/promises';
+import path from 'node:path';
+import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { AddBundlePayload, BundleView } from '@/cli/services/BundleService.ts';
-import type { GetBundleService, GetOutput } from '@/cli/services.ts';
+import type { GetBundleService, GetConfig, GetOutput } from '@/cli/services.ts';
 import type { CommandDef, OptionDef } from '@/cli/types.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
+import { toPosixPath } from '@/lib/utils/path.ts';
+import dryRun from '../common/options/dryRun.ts';
+import keepArchive from '../download/options/keepArchive.ts';
 
 const formatOption: OptionDef = {
   name: 'format',
@@ -74,12 +80,15 @@ interface BundleOptions extends GlobalOptions {
   includeSourceLanguage?: boolean;
   includePseudoLanguage?: boolean;
   multilingual?: boolean;
+  keepArchive?: boolean;
+  dryrun?: boolean;
 }
 
 export default class BundleCommand {
   constructor(
     private getOutput: GetOutput,
     private getBundleService: GetBundleService,
+    private getConfig: GetConfig,
   ) {}
 
   getDefinition(): CommandDef {
@@ -133,6 +142,7 @@ export default class BundleCommand {
               description: 'Numeric bundle identifier',
             },
           ],
+          options: [keepArchive, dryRun],
           action: this.downloadAction,
         },
         {
@@ -247,8 +257,78 @@ export default class BundleCommand {
     output.success(`Bundle #${id} deleted`);
   };
 
-  downloadAction = async (_command: Command) => {
-    throw new CliError('Bundle download command is not implemented yet');
+  downloadAction = async (command: Command) => {
+    const [idArg] = command.args;
+    const id = parseNumericId(idArg, 'Bundle');
+    const options = command.optsWithGlobals() as BundleOptions;
+    const output = this.getOutput(command);
+    const config = await this.getConfig(command);
+    const bundleService = await this.getBundleService(command);
+
+    const bundle = await bundleService.get(id);
+
+    if (!bundle) {
+      output.warning("Couldn't find bundle by the specified ID");
+      return;
+    }
+
+    // Trigger the export and poll until the server reports completion (mirrors Java's spinner loop).
+    output.spinner('bundle-build', 'start', 'Building bundle');
+    let status = await bundleService.startExport(id);
+
+    while (status.status.toLowerCase() !== 'finished') {
+      if (status.status.toLowerCase() === 'failed') {
+        output.spinner('bundle-build', 'error', 'Build has failed');
+        throw new CliError('Failed to build bundle');
+      }
+
+      output.spinner('bundle-build', 'message', `Building bundle: ${status.progress}%`);
+      await Bun.sleep(1000);
+      status = await bundleService.checkExportStatus(id, status.identifier);
+    }
+
+    output.spinner('bundle-build', 'stop', 'Building bundle: 100%');
+
+    // Archive and extracted files both land under basePath (matches `download` keep-archive behaviour).
+    const archivePath = path.join(config.basePath, `bundle-${status.identifier}.zip`);
+    const downloadUrl = await bundleService.getDownloadUrl(id, status.identifier);
+    const response = await fetch(downloadUrl);
+
+    await Bun.write(archivePath, response);
+    output.success(`Bundle #${bundle.id} (${bundle.name}) downloaded`);
+
+    const zip = new AdmZip(archivePath);
+    const entries = zip.getEntries().filter((entry) => !entry.isDirectory);
+
+    if (options.dryrun) {
+      // Dry run lists archive contents without writing anything to disk.
+      for (const entry of entries) {
+        output.log(toPosixPath(entry.entryName).replace(/^\//, ''));
+      }
+    } else {
+      for (const entry of entries) {
+        const relativePath = toPosixPath(entry.entryName).replace(/^\//, '');
+        const targetPath = path.join(config.basePath, relativePath);
+
+        await mkdir(path.dirname(targetPath), { recursive: true });
+        await Bun.write(targetPath, entry.getData());
+        output.success(relativePath);
+      }
+    }
+
+    if (options.keepArchive) {
+      if (options.output === 'plain') {
+        output.log(archivePath);
+      } else {
+        output.success(`Archive saved to ${archivePath}`);
+      }
+    } else {
+      try {
+        await rm(archivePath, { force: true });
+      } catch {
+        output.warning(`Failed to delete archive ${archivePath}`);
+      }
+    }
   };
 
   cloneAction = async (command: Command) => {
