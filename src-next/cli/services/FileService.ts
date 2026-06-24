@@ -59,10 +59,12 @@ export class FileService {
     updateOption?: SourceFilesModel.UpdateOption,
     attachLabelIds?: number[],
     excludedTargetLanguages?: string[],
+    name?: string,
   ) {
     try {
       await this.apiClient.sourceFilesApi.updateOrRestoreFile(this.projectId, fileId, {
         storageId,
+        name,
         exportOptions,
         importOptions,
         updateOption,

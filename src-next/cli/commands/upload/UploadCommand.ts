@@ -21,10 +21,12 @@ import type {
 import type { CommandDef } from '@/cli/types.ts';
 import { fileTree } from '@/cli/utils/fileTree.ts';
 import type { Output } from '@/cli/utils/output.ts';
+import { isPathMatch } from '@/cli/utils/pathMatcher.ts';
 import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
 import type { Config } from '@/lib/config.ts';
 import { languagePatterns } from '@/lib/export/patterns.ts';
+import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import {
   buildExportOptions,
   buildImportOptions,
@@ -231,6 +233,8 @@ export default class UploadCommand {
         projectFiles.data,
         projectDirectoryList,
         expectedProjectFilePaths,
+        config.files.map((patterns) => ({ source: patterns.source, ignore: patterns.ignore })),
+        config.preserveHierarchy,
         fileService,
         directoryService,
         output,
@@ -273,7 +277,8 @@ export default class UploadCommand {
 
       let srxStorageIdPromise: Promise<number> | undefined;
 
-      if (patterns.custom_segmentation && !options.dryrun) {
+      // Strings-based import options ignore srxStorageId, so skip uploading the srx storage there.
+      if (patterns.custom_segmentation && !options.dryrun && !isStringsBasedProject) {
         if (!srxStorageIds.has(patterns.custom_segmentation)) {
           srxStorageIds.set(
             patterns.custom_segmentation,
@@ -341,7 +346,9 @@ export default class UploadCommand {
           return;
         }
 
-        if (projectFilePaths.has(`/${projectPath}`)) {
+        const existingFile = fileLookup(`/${projectPath}`, projectFilePaths);
+
+        if (existingFile) {
           if (options.noAutoUpdate) {
             output.info(`File ${localFilePath} already exists and will not be updated`);
             return;
@@ -368,7 +375,7 @@ export default class UploadCommand {
 
           try {
             await fileService.updateProjectFile(
-              projectFilePaths.get(`/${projectPath}`) as number,
+              existingFile.id,
               storage.data.id,
               localFilePath,
               buildExportOptions(localFilePath, patterns, patterns.translation),
@@ -376,6 +383,8 @@ export default class UploadCommand {
               patterns.update_option as SourceFilesModel.UpdateOption | undefined,
               labelIds,
               fileOptions.excluded_target_languages,
+              // On a soft match the project file has a different name/extension; rename it to the source.
+              existingFile.exact ? undefined : path.parse(localFilePath).base,
             );
           } catch (error) {
             if (error instanceof FileInUpdateError) {
@@ -471,13 +480,35 @@ export default class UploadCommand {
     projectFiles: ResponseObject<SourceFilesModel.File>[],
     projectDirectories: ResponseObject<SourceFilesModel.Directory>[],
     expectedProjectFilePaths: Set<string>,
+    sourcePatterns: { source: string; ignore?: string[] }[],
+    preserveHierarchy: boolean,
     fileService: Awaited<ReturnType<GetFileService>>,
     directoryService: Awaited<ReturnType<GetDirectoryService>>,
     output: Output,
     dryRun: boolean,
   ) {
+    // Retain every project file the upload would match — including soft (extension-insensitive)
+    // matches — so a file that will be updated/renamed is never deleted as obsolete first.
+    const projectFilesByPath = new Map(
+      projectFiles.map((projectFile) => [this.toProjectPath(projectFile.data.path), projectFile.data.id]),
+    );
+    const retainedFileIds = new Set<number>();
+
+    for (const expectedPath of expectedProjectFilePaths) {
+      const match = fileLookup(expectedPath, projectFilesByPath);
+
+      if (match) {
+        retainedFileIds.add(match.id);
+      }
+    }
+
+    // Only delete files that fall under a configured `source` pattern (and aren't ignored). This
+    // scopes deletion to files this config manages, mirroring Java's ObsoleteSourcesUtils — files
+    // outside every source pattern are left untouched.
     const obsoleteFiles = projectFiles.filter(
-      (projectFile) => !expectedProjectFilePaths.has(this.toProjectPath(projectFile.data.path)),
+      (projectFile) =>
+        !retainedFileIds.has(projectFile.data.id) &&
+        this.isManagedBySourcePatterns(this.toProjectPath(projectFile.data.path), sourcePatterns, preserveHierarchy),
     );
 
     for (const projectFile of obsoleteFiles) {
@@ -513,6 +544,45 @@ export default class UploadCommand {
         output.success(`Directory ${directoryPath} deleted as obsolete`);
       }
     }
+  }
+
+  /**
+   * Whether a project file path is covered by any configured `source` pattern (and not ignored).
+   * With `preserve_hierarchy` the project path keeps its full hierarchy, so it is matched directly.
+   * Without it, project paths have their common prefix stripped, so the path is matched against every
+   * trailing slice of the source pattern (leading directories optional) — an approximation of Java's
+   * ObsoleteSourcesUtils regex with optional leading segments.
+   */
+  private isManagedBySourcePatterns(
+    projectPath: string,
+    sourcePatterns: { source: string; ignore?: string[] }[],
+    preserveHierarchy: boolean,
+  ): boolean {
+    return sourcePatterns.some(({ source, ignore }) => {
+      if (!this.matchesPattern(projectPath, source, preserveHierarchy)) {
+        return false;
+      }
+
+      return !(ignore ?? []).some((ignorePattern) =>
+        this.matchesPattern(projectPath, ignorePattern, preserveHierarchy),
+      );
+    });
+  }
+
+  private matchesPattern(projectPath: string, pattern: string, preserveHierarchy: boolean): boolean {
+    if (preserveHierarchy) {
+      return isPathMatch(projectPath, pattern);
+    }
+
+    const segments = (pattern.startsWith('/') ? pattern.slice(1) : pattern).split('/');
+
+    for (let index = 0; index < segments.length; index++) {
+      if (isPathMatch(projectPath, `/${segments.slice(index).join('/')}`)) {
+        return true;
+      }
+    }
+
+    return false;
   }
 
   private hasFileUnderDirectory(filePaths: Set<string>, directoryPath: string): boolean {
@@ -696,14 +766,14 @@ export default class UploadCommand {
     const projectFilePaths = new Map(projectFiles.data.map((file) => [file.data.path, file.data.id]));
     const sourceFileLoader = new SourceFileLoader(config);
 
-    const entries = this.buildTranslationEntries(
+    const { entries, hasErrors: entriesHaveErrors } = this.buildTranslationEntries(
       config,
       sourceFileLoader,
       translationPathResolver,
       targetLanguages,
       serverLanguageMapping,
       output,
-      (projectPath) => projectFilePaths.get(this.toProjectPath(projectPath)),
+      (projectPath) => fileLookup(this.toProjectPath(projectPath), projectFilePaths)?.id,
     );
 
     if (options.dryrun && options.tree) {
@@ -764,7 +834,9 @@ export default class UploadCommand {
 
     const results = await runConcurrently(tasks);
 
-    if (this.reportFailures(results, output)) {
+    // A dry run only previews; like Java's separate list action it never fails the process.
+    const failed = this.reportFailures(results, output);
+    if (!options.dryrun && (failed || entriesHaveErrors)) {
       throw new CliError(EXECUTION_FINISHED_WITH_ERRORS);
     }
   };
@@ -784,8 +856,9 @@ export default class UploadCommand {
     serverLanguageMapping: ProjectsGroupsModel.LanguageMapping | undefined,
     output: Output,
     resolveFileId?: (projectPath: string) => number | undefined,
-  ): TranslationUploadEntry[] {
+  ): { entries: TranslationUploadEntry[]; hasErrors: boolean } {
     const entries: TranslationUploadEntry[] = [];
+    let hasErrors = false;
 
     for (const patterns of config.files) {
       const localSourcePaths = sourceFileLoader.getFilePathsForPattern(patterns.source, patterns.ignore);
@@ -813,7 +886,9 @@ export default class UploadCommand {
           fileId = resolveFileId(projectPath);
 
           if (fileId === undefined) {
-            output.warning(`Source file '${localSourcePath}' does not exist in the project`);
+            // Java treats a source missing from the project as an error and exits non-zero.
+            output.error(`Source file '${localSourcePath}' does not exist in the project`);
+            hasErrors = true;
             continue;
           }
         }
@@ -851,7 +926,7 @@ export default class UploadCommand {
       }
     }
 
-    return entries;
+    return { entries, hasErrors };
   }
 
   private translationHasLanguagePlaceholder(translation: string): boolean {
@@ -876,7 +951,7 @@ export default class UploadCommand {
     }
 
     const sourceFileLoader = new SourceFileLoader(config);
-    const entries = this.buildTranslationEntries(
+    const { entries } = this.buildTranslationEntries(
       config,
       sourceFileLoader,
       translationPathResolver,
