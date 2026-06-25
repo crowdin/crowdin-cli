@@ -2,6 +2,7 @@ import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { TranslationMemoryModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { baseConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetApiClient, GetOutput, GetStorageService, GetTmService } from '@/cli/services.ts';
@@ -94,6 +95,7 @@ export default class TmCommand {
         {
           name: 'list',
           description: 'Show a list of translation memories',
+          options: [baseConfigGroup],
           action: this.listAction,
         },
         {
@@ -105,7 +107,7 @@ export default class TmCommand {
               description: 'Translation memory identifier',
             },
           ],
-          options: [sourceLanguageIdOption, targetLanguageIdOption, formatOption, toOption],
+          options: [sourceLanguageIdOption, targetLanguageIdOption, formatOption, toOption, baseConfigGroup],
           action: this.downloadAction,
         },
         {
@@ -117,7 +119,7 @@ export default class TmCommand {
               description: 'File to upload',
             },
           ],
-          options: [idOption, languageOption, schemeOption, firstLineContainsHeaderOption],
+          options: [idOption, languageOption, schemeOption, firstLineContainsHeaderOption, baseConfigGroup],
           action: this.uploadAction,
         },
       ],

@@ -1,5 +1,6 @@
 import type { StringCommentsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetCommentService, GetOutput } from '@/cli/services.ts';
@@ -45,13 +46,13 @@ export default class CommentCommand {
               description: 'String comment text',
             },
           ],
-          options: [stringId, language, type_, issueType],
+          options: [stringId, language, type_, issueType, projectConfigGroup],
           action: this.addAction,
         },
         {
           name: 'list',
           description: 'List comments',
-          options: [stringId, type_, issueType, status],
+          options: [stringId, type_, issueType, status, projectConfigGroup],
           action: this.listAction,
         },
         {
@@ -63,6 +64,7 @@ export default class CommentCommand {
               description: 'Numeric ID of the string comment',
             },
           ],
+          options: [projectConfigGroup],
           action: this.resolveAction,
         },
       ],

@@ -1,5 +1,6 @@
 import type { LanguagesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
@@ -38,7 +39,7 @@ export default class LanguageCommand {
         {
           name: 'list',
           description: 'List target languages in the current project',
-          options: [code, all],
+          options: [code, all, projectConfigGroup],
           action: this.listAction,
         },
       ],

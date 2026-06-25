@@ -52,8 +52,20 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
       cliOverrides.preserveHierarchy = options.preserveHierarchy;
     }
 
+    // Mirrors Java's PropertiesWithFilesBuilder: --source/--translation build a single-file override,
+    // and --dest folds into that same file (also forcing preserve_hierarchy on, as Java does).
     if (options.source && options.translation) {
-      cliOverrides.files = [{ source: options.source, translation: options.translation }];
+      cliOverrides.files = [
+        {
+          source: options.source,
+          translation: options.translation,
+          ...(options.destination ? { dest: options.destination } : {}),
+        },
+      ];
+
+      if (options.destination) {
+        cliOverrides.preserveHierarchy = true;
+      }
     }
 
     cachedConfig = ConfigSchema.parse({

@@ -1,6 +1,7 @@
 import path from 'node:path';
 import type { ResponseObject, SourceFilesModel, UploadStorageModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type {
@@ -42,6 +43,7 @@ export default class FileCommand {
         {
           name: 'list',
           description: 'Show a list of source files in the current project',
+          options: [projectConfigGroup],
           action: this.listAction,
         },
         {
@@ -63,6 +65,7 @@ export default class FileCommand {
             },
             type,
             parserVersion,
+            projectConfigGroup,
           ],
           action: this.uploadAction,
         },
@@ -75,7 +78,7 @@ export default class FileCommand {
               description: 'Crowdin file path for download',
             },
           ],
-          options: [destination],
+          options: [destination, projectConfigGroup],
           action: this.downloadAction,
         },
         {
@@ -87,6 +90,7 @@ export default class FileCommand {
               description: 'Path to the file in the Crowdin project',
             },
           ],
+          options: [projectConfigGroup],
           action: this.deleteAction,
         },
       ],

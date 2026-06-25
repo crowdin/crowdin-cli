@@ -39,16 +39,9 @@ import { pollUntilFinished } from '@/lib/upload/pollUpload.ts';
 import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
+import { filesConfigGroup } from '../common/options/configGroups.ts';
 import dryRun from '../common/options/dryRun.ts';
 import tree from '../common/options/tree.ts';
-import basePath from '../init/options/basePath.ts';
-import baseUrl from '../init/options/baseUrl.ts';
-import destination from '../init/options/destination.ts';
-import noPreserveHierarchy from '../init/options/noPreserveHierarchy.ts';
-import projectId from '../init/options/projectId.ts';
-import source from '../init/options/source.ts';
-import token from '../init/options/token.ts';
-import translation from '../init/options/translation.ts';
 import autoApproveImported from './options/autoApproveImported.ts';
 import branch from './options/branch.ts';
 import cache from './options/cache.ts';
@@ -112,11 +105,6 @@ export default class UploadCommand {
   ) {}
 
   getDefinition(): CommandDef {
-    const configOptionGroup = {
-      group: 'Config options:',
-      options: [token, baseUrl, basePath, projectId, source, translation, destination, noPreserveHierarchy],
-    };
-
     const uploadSourcesOptions = [
       branch,
       label,
@@ -126,7 +114,7 @@ export default class UploadCommand {
       cache,
       dryRun,
       tree,
-      configOptionGroup,
+      filesConfigGroup,
     ];
 
     return {
@@ -153,7 +141,7 @@ export default class UploadCommand {
             autoApproveImported,
             importEqSuggestions,
             translateHidden,
-            configOptionGroup,
+            filesConfigGroup,
           ],
           action: this.uploadTranslationsAction,
         },

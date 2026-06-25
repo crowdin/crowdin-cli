@@ -1,5 +1,75 @@
 import { describe, expect, test } from 'bun:test';
 import { commands } from '@/cli/commands.ts';
+import type { CommandDef, OptionDef, OptionGroupDef, SubcommandDef } from '@/cli/types.ts';
+
+const CONFIG_GROUP = 'Config options:';
+
+// Option-name sets per Java picocli param tier (BaseParams -> ProjectParams -> ParamsWithFiles).
+const BASE_TIER = ['token', 'base-url', 'base-path'];
+const PROJECT_TIER = [...BASE_TIER, 'project-id'];
+const FILES_TIER = [...PROJECT_TIER, 'source', 'translation', 'destination', 'no-preserve-hierarchy'];
+
+const TIER_OPTIONS: Record<'base' | 'project' | 'files', string[]> = {
+  base: BASE_TIER,
+  project: PROJECT_TIER,
+  files: FILES_TIER,
+};
+
+// Expected config tier for every registered command. `init` has its own options and is excluded.
+// A new command without an entry here fails `assigns a config tier to every command`.
+const COMMAND_TIER: Record<string, 'base' | 'project' | 'files'> = {
+  upload: 'files',
+  download: 'files',
+  'auto-translate': 'files',
+  config: 'files',
+  app: 'project',
+  branch: 'project',
+  bundle: 'project',
+  comment: 'project',
+  context: 'project',
+  distribution: 'project',
+  file: 'project',
+  language: 'project',
+  project: 'project',
+  screenshot: 'project',
+  status: 'project',
+  string: 'project',
+  task: 'project',
+  label: 'project',
+  glossary: 'base',
+  tm: 'base',
+};
+
+const COMMANDS_WITHOUT_CONFIG = new Set(['init']);
+
+// Parents whose own action performs a real operation (not a `command.help()` shim), so they carry
+// the config group themselves in addition to their subcommands.
+const REAL_ACTION_PARENTS = new Set(['upload', 'download', 'status']);
+
+function configGroupOptionNames(options: (OptionDef | OptionGroupDef)[] | undefined): string[] | undefined {
+  const group = options?.find((option): option is OptionGroupDef => 'group' in option && option.group === CONFIG_GROUP);
+
+  return group?.options.map((option) => option.name);
+}
+
+// Every node (subcommand, or leaf/real-action parent) that must expose the config group.
+function configBearingNodes(command: CommandDef): Array<{ label: string; options?: (OptionDef | OptionGroupDef)[] }> {
+  const nodes: Array<{ label: string; options?: (OptionDef | OptionGroupDef)[] }> = [];
+
+  if (command.subcommands?.length) {
+    for (const subcommand of command.subcommands as SubcommandDef[]) {
+      nodes.push({ label: `${command.name} ${subcommand.name}`, options: subcommand.options });
+    }
+
+    if (REAL_ACTION_PARENTS.has(command.name)) {
+      nodes.push({ label: command.name, options: command.options });
+    }
+  } else {
+    nodes.push({ label: command.name, options: command.options });
+  }
+
+  return nodes;
+}
 
 describe('command registry', () => {
   test('registers expected top-level commands with unique names', () => {
@@ -75,5 +145,44 @@ describe('command registry', () => {
     ]);
     expect(tm?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'download', 'upload']);
     expect(glossary?.subcommands?.map((subcommand) => subcommand.name)).toEqual(['list', 'download', 'upload']);
+  });
+});
+
+describe('config option groups', () => {
+  test('assigns a config tier to every command (except init)', () => {
+    for (const command of commands) {
+      if (COMMANDS_WITHOUT_CONFIG.has(command.name)) {
+        continue;
+      }
+
+      expect(COMMAND_TIER[command.name], `command '${command.name}' is missing a config tier`).toBeDefined();
+    }
+  });
+
+  test('exposes the expected config option group on every config-bearing node', () => {
+    for (const command of commands) {
+      if (COMMANDS_WITHOUT_CONFIG.has(command.name)) {
+        continue;
+      }
+
+      const expected = TIER_OPTIONS[COMMAND_TIER[command.name]];
+
+      for (const node of configBearingNodes(command)) {
+        expect(configGroupOptionNames(node.options), `'${node.label}' is missing its config option group`).toEqual(
+          expected,
+        );
+      }
+    }
+  });
+
+  test('does not attach a config group to init', () => {
+    const init = commands.find((command) => command.name === 'init');
+
+    expect(init).toBeDefined();
+    expect(configGroupOptionNames(init?.options)).toBeUndefined();
+
+    for (const subcommand of init?.subcommands ?? []) {
+      expect(configGroupOptionNames(subcommand.options)).toBeUndefined();
+    }
   });
 });

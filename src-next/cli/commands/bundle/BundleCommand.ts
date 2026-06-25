@@ -2,6 +2,7 @@ import { mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { AddBundlePayload, BundleView } from '@/cli/services/BundleService.ts';
@@ -99,6 +100,7 @@ export default class BundleCommand {
         {
           name: 'list',
           description: 'List bundles',
+          options: [projectConfigGroup],
           action: this.listAction,
         },
         {
@@ -119,6 +121,7 @@ export default class BundleCommand {
             includeSourceLanguageOption,
             { ...includePseudoLanguageOption, default: true },
             multilingualOption,
+            projectConfigGroup,
           ],
           action: this.addAction,
         },
@@ -131,6 +134,7 @@ export default class BundleCommand {
               description: 'Numeric bundle identifier',
             },
           ],
+          options: [projectConfigGroup],
           action: this.deleteAction,
         },
         {
@@ -142,7 +146,7 @@ export default class BundleCommand {
               description: 'Numeric bundle identifier',
             },
           ],
-          options: [keepArchive, dryRun],
+          options: [keepArchive, dryRun, projectConfigGroup],
           action: this.downloadAction,
         },
         {
@@ -164,6 +168,7 @@ export default class BundleCommand {
             includeSourceLanguageOption,
             includePseudoLanguageOption,
             multilingualOption,
+            projectConfigGroup,
           ],
           action: this.cloneAction,
         },
@@ -176,6 +181,7 @@ export default class BundleCommand {
               description: 'Numeric bundle identifier',
             },
           ],
+          options: [projectConfigGroup],
           action: this.browseAction,
         },
       ],

@@ -30,16 +30,9 @@ import { buildTranslationMapping } from '@/lib/download/translationMapping.ts';
 import { originalPath } from '@/lib/export/patterns.ts';
 import { prepareDest } from '@/lib/upload/fileOptions.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
+import { filesConfigGroup } from '../common/options/configGroups.ts';
 import dryRun from '../common/options/dryRun.ts';
 import tree from '../common/options/tree.ts';
-import basePath from '../init/options/basePath.ts';
-import baseUrl from '../init/options/baseUrl.ts';
-import destination from '../init/options/destination.ts';
-import noPreserveHierarchy from '../init/options/noPreserveHierarchy.ts';
-import projectId from '../init/options/projectId.ts';
-import source from '../init/options/source.ts';
-import token from '../init/options/token.ts';
-import translation from '../init/options/translation.ts';
 import branch from '../upload/options/branch.ts';
 import all from './options/all.ts';
 import excludeLanguage from './options/excludeLanguage.ts';
@@ -91,11 +84,6 @@ export default class DownloadCommand {
   ) {}
 
   getDefinition(): CommandDef {
-    const configOptionGroup = {
-      group: 'Config options:',
-      options: [token, baseUrl, basePath, projectId, source, translation, destination, noPreserveHierarchy],
-    };
-
     const translationsOptions = [
       branch,
       language,
@@ -109,7 +97,7 @@ export default class DownloadCommand {
       dryRun,
       tree,
       ignoreMatch,
-      configOptionGroup,
+      filesConfigGroup,
     ];
 
     return {
@@ -122,7 +110,7 @@ export default class DownloadCommand {
         {
           name: 'sources',
           description: 'Download sources from Crowdin',
-          options: [branch, reviewed, dryRun, configOptionGroup],
+          options: [branch, reviewed, dryRun, filesConfigGroup],
           action: this.sourcesAction,
         },
         {

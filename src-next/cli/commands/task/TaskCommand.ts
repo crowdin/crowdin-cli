@@ -1,5 +1,6 @@
 import type { TasksModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { TaskStatus } from '@/cli/services/TaskService.ts';
@@ -55,7 +56,7 @@ export default class TaskCommand {
         {
           name: 'list',
           description: 'List tasks',
-          options: [status, assigneeId],
+          options: [status, assigneeId, projectConfigGroup],
           action: this.listAction,
         },
         {
@@ -77,6 +78,7 @@ export default class TaskCommand {
             skipAssignedStrings,
             includePreTranslatedStringsOnly,
             label,
+            projectConfigGroup,
           ],
           action: this.addAction,
         },

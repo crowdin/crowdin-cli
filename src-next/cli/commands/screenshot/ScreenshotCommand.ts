@@ -2,6 +2,7 @@ import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { ScreenshotsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { ScreenshotView } from '@/cli/services/ScreenshotService.ts';
@@ -56,6 +57,7 @@ export default class ScreenshotCommand {
               type: 'number',
               description: 'Numeric string identifier',
             },
+            projectConfigGroup,
           ],
           action: this.listAction,
         },
@@ -98,6 +100,7 @@ export default class ScreenshotCommand {
               type: 'string',
               description: "Path to the directory in Crowdin. Requires the '--auto-tag' to be passed",
             },
+            projectConfigGroup,
           ],
           action: this.uploadAction,
         },
@@ -110,6 +113,7 @@ export default class ScreenshotCommand {
               description: 'Screenshot id',
             },
           ],
+          options: [projectConfigGroup],
           action: this.deleteAction,
         },
       ],

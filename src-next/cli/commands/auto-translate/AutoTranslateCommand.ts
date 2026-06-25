@@ -1,6 +1,7 @@
 import type { ProjectsGroupsModel, ResponseObject, TranslationsModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel as ProjectsGroups } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { filesConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type {
@@ -58,7 +59,7 @@ export default class AutoTranslateCommand {
       name: 'auto-translate',
       description: 'Pre-translate files via Machine Translation (MT), Translation Memory (TM), or AI',
       action: this.defaultAction,
-      options: this.getOptions(),
+      options: [...this.getOptions(), filesConfigGroup],
     };
   }
 

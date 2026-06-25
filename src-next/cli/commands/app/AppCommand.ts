@@ -1,4 +1,5 @@
 import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetAppService, GetOutput } from '@/cli/services.ts';
@@ -22,6 +23,7 @@ export default class AppCommand {
         {
           name: 'list',
           description: 'List installed apps',
+          options: [projectConfigGroup],
           action: this.listAction,
         },
         {
@@ -33,6 +35,7 @@ export default class AppCommand {
               description: 'Application identifier. You can find it on Crowdin Store',
             },
           ],
+          options: [projectConfigGroup],
           action: this.installAction,
         },
         {
@@ -50,6 +53,7 @@ export default class AppCommand {
               type: 'boolean',
               description: 'Force to uninstall application',
             },
+            projectConfigGroup,
           ],
           action: this.uninstallAction,
         },

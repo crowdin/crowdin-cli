@@ -1,5 +1,6 @@
 import { type PatchRequest, ProjectsGroupsModel, type SourceFilesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
@@ -91,6 +92,7 @@ export default class BranchCommand {
         {
           name: 'list',
           description: 'List branches in the current project',
+          options: [projectConfigGroup],
           action: this.listAction,
         },
         {
@@ -102,7 +104,7 @@ export default class BranchCommand {
               description: 'Branch name',
             },
           ],
-          options: [addTitleOption, exportPatternOption, addPriorityOption],
+          options: [addTitleOption, exportPatternOption, addPriorityOption, projectConfigGroup],
           action: this.addAction,
         },
         {
@@ -114,6 +116,7 @@ export default class BranchCommand {
               description: 'Branch name',
             },
           ],
+          options: [projectConfigGroup],
           action: this.deleteAction,
         },
         {
@@ -125,7 +128,7 @@ export default class BranchCommand {
               description: 'Branch name',
             },
           ],
-          options: [newNameOption, editTitleOption, editPriorityOption],
+          options: [newNameOption, editTitleOption, editPriorityOption, projectConfigGroup],
           action: this.editAction,
         },
         {
@@ -141,6 +144,7 @@ export default class BranchCommand {
               description: 'Target branch name',
             },
           ],
+          options: [projectConfigGroup],
           action: this.cloneAction,
         },
         {
@@ -156,7 +160,7 @@ export default class BranchCommand {
               description: 'Target branch name',
             },
           ],
-          options: [dryrunOption, deleteAfterMergeOption],
+          options: [dryrunOption, deleteAfterMergeOption, projectConfigGroup],
           action: this.mergeAction,
         },
       ],

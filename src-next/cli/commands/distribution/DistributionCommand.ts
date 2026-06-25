@@ -1,5 +1,6 @@
 import type { PatchRequest } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { DistributionView } from '@/cli/services/DistributionService.ts';
@@ -30,6 +31,7 @@ export default class DistributionCommand {
         {
           name: 'list',
           description: 'List distributions',
+          options: [projectConfigGroup],
           action: this.listAction,
         },
         {
@@ -41,7 +43,7 @@ export default class DistributionCommand {
               description: 'Distribution name',
             },
           ],
-          options: [bundleId],
+          options: [bundleId, projectConfigGroup],
           action: this.addAction,
         },
         {
@@ -53,7 +55,7 @@ export default class DistributionCommand {
               description: 'Distribution hash',
             },
           ],
-          options: [name, bundleId],
+          options: [name, bundleId, projectConfigGroup],
           action: this.editAction,
         },
         {
@@ -65,6 +67,7 @@ export default class DistributionCommand {
               description: 'Distribution hash',
             },
           ],
+          options: [projectConfigGroup],
           action: this.releaseAction,
         },
       ],

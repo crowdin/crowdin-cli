@@ -1,5 +1,6 @@
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput, GetProjectService } from '@/cli/services.ts';
@@ -31,11 +32,13 @@ export default class ProjectCommand {
         {
           name: 'browse',
           description: 'Open the current project in the web browser',
+          options: [projectConfigGroup],
           action: this.browseAction,
         },
         {
           name: 'list',
           description: 'List projects with manager access',
+          options: [projectConfigGroup],
           action: this.listAction,
         },
         {
@@ -47,7 +50,7 @@ export default class ProjectCommand {
               description: 'Project name',
             },
           ],
-          options: [language, sourceLanguage, languageAccessPolicy, stringBased],
+          options: [language, sourceLanguage, languageAccessPolicy, stringBased, projectConfigGroup],
           action: this.addAction,
         },
       ],

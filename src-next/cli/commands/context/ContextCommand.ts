@@ -1,6 +1,7 @@
 import type { PatchRequest, SourceStringsModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type {
@@ -214,13 +215,14 @@ export default class ContextCommand {
             croqlOption,
             sinceOption,
             statusOption,
+            projectConfigGroup,
           ],
           action: this.downloadAction,
         },
         {
           name: 'upload',
           description: 'Upload strings context',
-          options: [fromOption, overwriteOption, dryrunOption],
+          options: [fromOption, overwriteOption, dryrunOption, projectConfigGroup],
           action: this.uploadAction,
         },
         {
@@ -234,13 +236,22 @@ export default class ContextCommand {
             resetSinceOption,
             dryrunOption,
             allOption,
+            projectConfigGroup,
           ],
           action: this.resetAction,
         },
         {
           name: 'status',
           description: 'Show context coverage statistics',
-          options: [fileFilterOption, labelFilterOption, branchFilterOption, croqlOption, sinceOption, byFileOption],
+          options: [
+            fileFilterOption,
+            labelFilterOption,
+            branchFilterOption,
+            croqlOption,
+            sinceOption,
+            byFileOption,
+            projectConfigGroup,
+          ],
           action: this.statusAction,
         },
       ],

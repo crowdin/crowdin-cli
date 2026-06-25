@@ -1,6 +1,7 @@
 import path from 'node:path';
 import type { Command } from 'commander';
 import { ZodError, z } from 'zod';
+import { filesConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetConfig, GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
@@ -26,16 +27,19 @@ export default class ConfigCommand {
         {
           name: 'sources',
           description: 'List files matching wild-card patterns',
+          options: [filesConfigGroup],
           action: this.listSourcesAction,
         },
         {
           name: 'translations',
           description: 'List translation files that match the wild-card patterns',
+          options: [filesConfigGroup],
           action: this.listTranslationsAction,
         },
         {
           name: 'lint',
           description: 'Analyze your configuration file for possible errors',
+          options: [filesConfigGroup],
           action: this.lintAction,
         },
       ],

@@ -1,5 +1,6 @@
 import type { ResponseObject, TranslationStatusModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type {
@@ -46,18 +47,18 @@ export default class StatusCommand {
       name: 'status',
       description: 'Show translation and proofreading progress for a project',
       action: this.defaultAction,
-      options: [language, branch, file, directory, failIfIncompleteStatus],
+      options: [language, branch, file, directory, failIfIncompleteStatus, projectConfigGroup],
       subcommands: [
         {
           name: 'translation',
           description: 'Show translation progress for a project',
-          options: [language, branch, file, directory, failIfIncompleteTranslation],
+          options: [language, branch, file, directory, failIfIncompleteTranslation, projectConfigGroup],
           action: this.translationStatusAction,
         },
         {
           name: 'proofreading',
           description: 'Show proofreading progress for a project',
-          options: [language, branch, file, directory, failIfIncompleteProofreading],
+          options: [language, branch, file, directory, failIfIncompleteProofreading, projectConfigGroup],
           action: this.proofreadingStatusAction,
         },
       ],

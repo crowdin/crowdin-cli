@@ -1,5 +1,6 @@
 import type { PatchRequest, SourceStringsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type {
@@ -172,7 +173,16 @@ export default class StringCommand {
         {
           name: 'list',
           description: 'List project source strings',
-          options: [fileOption, filterOption, branch, labelOption, croqlOption, directoryOption, scopeOption],
+          options: [
+            fileOption,
+            filterOption,
+            branch,
+            labelOption,
+            croqlOption,
+            directoryOption,
+            scopeOption,
+            projectConfigGroup,
+          ],
           action: this.listAction,
         },
         {
@@ -197,6 +207,7 @@ export default class StringCommand {
             fewOption,
             manyOption,
             zeroOption,
+            projectConfigGroup,
           ],
           action: this.addAction,
         },
@@ -209,6 +220,7 @@ export default class StringCommand {
               description: 'Numeric source string identifier',
             },
           ],
+          options: [projectConfigGroup],
           action: this.deleteAction,
         },
         {
@@ -228,6 +240,7 @@ export default class StringCommand {
             labelOption,
             hiddenOption,
             noHiddenOption,
+            projectConfigGroup,
           ],
           action: this.editAction,
         },

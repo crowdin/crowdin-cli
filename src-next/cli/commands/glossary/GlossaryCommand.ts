@@ -2,6 +2,7 @@ import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { GlossariesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { baseConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
 import CliError, { toCliError } from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GlossaryService } from '@/cli/services/GlossaryService.ts';
@@ -81,6 +82,7 @@ export default class GlossaryCommand {
         {
           name: 'list',
           description: 'Show a list of glossaries',
+          options: [baseConfigGroup],
           action: this.listAction,
         },
         {
@@ -92,7 +94,7 @@ export default class GlossaryCommand {
               description: 'Glossary identifier',
             },
           ],
-          options: [formatOption, toOption],
+          options: [formatOption, toOption, baseConfigGroup],
           action: this.downloadAction,
         },
         {
@@ -104,7 +106,7 @@ export default class GlossaryCommand {
               description: 'File to upload',
             },
           ],
-          options: [idOption, languageOption, schemeOption, firstLineContainsHeaderOption],
+          options: [idOption, languageOption, schemeOption, firstLineContainsHeaderOption, baseConfigGroup],
           action: this.uploadAction,
         },
       ],
