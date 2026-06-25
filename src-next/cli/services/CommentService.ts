@@ -1,5 +1,5 @@
 import type { Client, StringCommentsModel } from '@crowdin/crowdin-api-client';
-import { toCliError } from '@/cli/errors/CliError.ts';
+import { toCliError } from '@/cli/errors/toCliError.ts';
 
 export class CommentService {
   constructor(

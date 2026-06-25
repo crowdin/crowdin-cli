@@ -1,5 +1,5 @@
 import type { Client, LanguagesModel } from '@crowdin/crowdin-api-client';
-import { toCliError } from '../errors/CliError.ts';
+import { toCliError } from '../errors/toCliError.ts';
 
 export class LanguageService {
   constructor(private apiClient: Client) {}

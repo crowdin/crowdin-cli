@@ -1,6 +1,6 @@
 import type { Client, PatchRequest, SourceStringsModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
-import { toCliError } from '@/cli/errors/CliError.ts';
+import { toCliError } from '@/cli/errors/toCliError.ts';
 
 export class StringService {
   constructor(

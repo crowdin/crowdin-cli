@@ -1,5 +1,6 @@
 import { type BundlesModel, type Client, CrowdinError, type Status } from '@crowdin/crowdin-api-client';
-import CliError, { toCliError } from '@/cli/errors/CliError.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import { toCliError } from '@/cli/errors/toCliError.ts';
 
 export type BundleView = BundlesModel.Bundle & {
   includeInContextPseudoLanguage?: boolean;

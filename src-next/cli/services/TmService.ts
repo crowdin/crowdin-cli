@@ -1,5 +1,6 @@
 import type { Client, TranslationMemoryModel } from '@crowdin/crowdin-api-client';
-import CliError, { toCliError } from '../errors/CliError.ts';
+import CliError from '../errors/CliError.ts';
+import { toCliError } from '../errors/toCliError.ts';
 import type { Output } from '../utils/output.ts';
 
 export class TmService {

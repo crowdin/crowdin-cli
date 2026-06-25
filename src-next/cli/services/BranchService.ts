@@ -1,6 +1,7 @@
 import type { Client, PatchRequest, SourceFilesModel } from '@crowdin/crowdin-api-client';
 import { CrowdinValidationError } from '@crowdin/crowdin-api-client';
-import CliError, { toCliError } from '../errors/CliError.ts';
+import CliError from '../errors/CliError.ts';
+import { toCliError } from '../errors/toCliError.ts';
 
 export class BranchService {
   constructor(

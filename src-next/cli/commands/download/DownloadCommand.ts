@@ -9,7 +9,8 @@ import {
 } from '@crowdin/crowdin-api-client';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
-import CliError, { toCliError } from '@/cli/errors/CliError.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
 import type {

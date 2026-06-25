@@ -1,5 +1,6 @@
 import type { Client } from '@crowdin/crowdin-api-client';
-import CliError, { toCliError } from '../errors/CliError.ts';
+import CliError from '../errors/CliError.ts';
+import { toCliError } from '../errors/toCliError.ts';
 import { normalizePath } from '../utils/parsing.ts';
 
 export class DirectoryService {

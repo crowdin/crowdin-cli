@@ -1,5 +1,5 @@
 import type { Client, TasksModel } from '@crowdin/crowdin-api-client';
-import { toCliError } from '@/cli/errors/CliError.ts';
+import { toCliError } from '@/cli/errors/toCliError.ts';
 
 export type TaskStatus = TasksModel.Status;
 export type TaskRecord = TasksModel.Task;

@@ -2,10 +2,12 @@ import path from 'node:path';
 import type { Command } from 'commander';
 import { ZodError, z } from 'zod';
 import { filesConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
-import CliError from '@/cli/errors/CliError.ts';
+import NotFoundError from '@/cli/errors/NotFoundError.ts';
+import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetConfig, GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import FileNotFoundError from '@/lib/common/errors/FileNotFoundError.ts';
 import SourceFileLoader, { commonPath } from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
 import { loadFromFile } from '@/lib/config/yamlLoader.ts';
@@ -98,8 +100,15 @@ export default class ConfigCommand {
       output.success('Configuration file looks good');
     } catch (error) {
       const message = this.getLintErrorMessage(error);
+
       output.error(message);
-      throw new CliError(message, 1, true);
+
+      // A missing config file is NotFound (102) like Java; invalid content is Validation (2).
+      if (error instanceof FileNotFoundError) {
+        throw new NotFoundError(message, true);
+      }
+
+      throw new ValidationError(message, true);
     }
   };
 

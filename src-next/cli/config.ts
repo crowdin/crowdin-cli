@@ -1,7 +1,9 @@
 import path from 'node:path';
 import type { Command } from 'commander';
 import YAML from 'yaml';
-import CliError from '@/cli/errors/CliError.ts';
+import { z } from 'zod';
+import NotFoundError from '@/cli/errors/NotFoundError.ts';
+import ValidationError from '@/cli/errors/ValidationError.ts';
 import { FILE_NAMES, getApiTokenFilePathFor } from '@/lib/apiToken.ts';
 import { loadFromFile } from '@/lib/config/yamlLoader.ts';
 import { type Config, ConfigSchema } from '@/lib/config.ts';
@@ -68,12 +70,19 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
       }
     }
 
-    cachedConfig = ConfigSchema.parse({
+    const parsed = ConfigSchema.safeParse({
       ...rawConfig,
       ...(apiToken ? { api_token: apiToken } : {}),
       ...filterUndefined(rawIdentity),
       ...cliOverrides,
     });
+
+    // Java throws ValidationException (exit 2) for an invalid config; surface zod errors as the same.
+    if (!parsed.success) {
+      throw new ValidationError(`Configuration file is invalid.\n${z.prettifyError(parsed.error)}`);
+    }
+
+    cachedConfig = parsed.data;
 
     return cachedConfig;
   };
@@ -100,7 +109,7 @@ async function loadApiTokenFile(output: Output): Promise<string | null> {
 
 async function loadIdentityFile(identityFilePath: string, output: Output): Promise<Identity> {
   if (!(await Bun.file(identityFilePath).exists())) {
-    throw new CliError(`Identity file not found: ${identityFilePath}`);
+    throw new NotFoundError(`Identity file not found: ${identityFilePath}`);
   }
 
   output.debug(`Loading credentials from ${identityFilePath} file`);

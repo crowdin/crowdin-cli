@@ -165,7 +165,13 @@ describe('config option groups', () => {
         continue;
       }
 
-      const expected = TIER_OPTIONS[COMMAND_TIER[command.name]];
+      const tier = COMMAND_TIER[command.name];
+
+      if (!tier) {
+        throw new Error(`command '${command.name}' is missing a config tier`);
+      }
+
+      const expected = TIER_OPTIONS[tier];
 
       for (const node of configBearingNodes(command)) {
         expect(configGroupOptionNames(node.options), `'${node.label}' is missing its config option group`).toEqual(

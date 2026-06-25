@@ -1,5 +1,5 @@
 import type { ApplicationsModel, Client } from '@crowdin/crowdin-api-client';
-import { toCliError } from '@/cli/errors/CliError.ts';
+import { toCliError } from '@/cli/errors/toCliError.ts';
 
 interface AppStoreResponse {
   data?: Array<{

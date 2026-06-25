@@ -1,7 +1,7 @@
 import path from 'node:path';
 import type { Client } from '@crowdin/crowdin-api-client';
 import type { BunFile } from 'bun';
-import { toCliError } from '@/cli/errors/CliError.ts';
+import { toCliError } from '@/cli/errors/toCliError.ts';
 
 export class StorageService {
   constructor(private apiClient: Client) {}

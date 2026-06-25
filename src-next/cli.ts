@@ -1,9 +1,9 @@
 #!/usr/bin/env bun
 
-import { Command } from 'commander';
+import { Command, CommanderError } from 'commander';
 import { buildCommand, buildOption, getHelpConfig } from './cli/builder.ts';
 import { commands } from './cli/commands.ts';
-import CliError from './cli/errors/CliError.ts';
+import CliError, { getExitCode } from './cli/errors/CliError.ts';
 import colorHook from './cli/hooks/color.ts';
 import getGlobalOptions, { type GlobalOptions } from './cli/options.ts';
 import { createOutput } from './cli/utils/output.ts';
@@ -37,7 +37,20 @@ function createProgram(): Command {
     program.addCommand(buildCommand(def));
   }
 
+  // Make commander throw CommanderError instead of calling process.exit itself, so the
+  // top-level catch owns the exit code. Applied recursively because a parse error on a
+  // subcommand (e.g. `crowdin file upload --bad`) is thrown in the subcommand's context.
+  applyExitOverride(program);
+
   return program;
+}
+
+function applyExitOverride(command: Command): void {
+  command.exitOverride();
+
+  for (const sub of command.commands) {
+    applyExitOverride(sub);
+  }
 }
 
 async function main() {
@@ -48,30 +61,20 @@ async function main() {
 try {
   await main();
 } catch (error) {
-  const output = createOutput(getOutputFormat(process.argv));
-  const message = error instanceof Error ? error.message : String(error);
+  // Commander already wrote its own output (help/version to stdout, usage errors to stderr),
+  // so don't reprint. Mirror Java/picocli: help & version exit 0, usage errors exit 2.
+  if (error instanceof CommanderError) {
+    process.exitCode = error.exitCode === 0 ? 0 : 2;
+  } else {
+    const output = createOutput(getOutputFormat(process.argv));
+    const message = error instanceof Error ? error.message : String(error);
 
-  if (!(error instanceof CliError && error.reported)) {
-    output.error(message);
-  }
-
-  process.exitCode = getExitCode(error);
-}
-
-function getExitCode(error: unknown): number {
-  if (error instanceof CliError) {
-    return error.exitCode;
-  }
-
-  if (typeof error === 'object' && error !== null && 'exitCode' in error) {
-    const exitCode = (error as { exitCode?: unknown }).exitCode;
-
-    if (typeof exitCode === 'number') {
-      return exitCode;
+    if (!(error instanceof CliError && error.reported)) {
+      output.error(message);
     }
-  }
 
-  return 1;
+    process.exitCode = getExitCode(error);
+  }
 }
 
 function getOutputFormat(argv: string[]): GlobalOptions {
