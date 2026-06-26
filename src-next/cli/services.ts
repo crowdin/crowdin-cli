@@ -1,5 +1,6 @@
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import ValidationError from '@/cli/errors/ValidationError.ts';
 import { AppService } from '@/cli/services/AppService.ts';
 import { BranchService } from '@/cli/services/BranchService.ts';
 import { BundleService } from '@/cli/services/BundleService.ts';
@@ -19,6 +20,7 @@ import { TaskService } from '@/cli/services/TaskService.ts';
 import { TmService } from '@/cli/services/TmService.ts';
 import { TranslationService } from '@/cli/services/TranslationService.ts';
 import type { Output } from '@/cli/utils/output.ts';
+import { proxyUrlFromEnv } from '@/cli/utils/proxy.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 import type { Config } from '@/lib/config.ts';
 
@@ -53,7 +55,25 @@ export function createGetApiClient(getConfig: GetConfig) {
     }
 
     const config = await getConfig(command);
-    cachedClient = new Client({ token: config.apiToken }, { userAgent: buildUserAgent() });
+
+    if (!config.apiToken) {
+      throw new ValidationError('API token is missing. Set it via --token, an identity file, or configuration.');
+    }
+
+    // Proxy parity with the Java CLI: HTTP_PROXY_HOST/PORT/USER/PASSWORD env vars.
+    // Bun's fetch honors HTTPS_PROXY/HTTP_PROXY (incl. credentials in the URL), so we
+    // translate the custom vars into the standard ones and force the fetch HTTP client.
+    const proxy = proxyUrlFromEnv();
+
+    if (proxy) {
+      process.env.HTTPS_PROXY ??= proxy;
+      process.env.HTTP_PROXY ??= proxy;
+    }
+
+    cachedClient = new Client(
+      { token: config.apiToken },
+      { userAgent: buildUserAgent(), ...(proxy ? { httpClientType: 'fetch' as const } : {}) },
+    );
 
     return cachedClient;
   };
