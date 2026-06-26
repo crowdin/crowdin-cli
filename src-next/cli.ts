@@ -6,6 +6,7 @@ import { commands } from './cli/commands.ts';
 import CliError, { getExitCode } from './cli/errors/CliError.ts';
 import colorHook from './cli/hooks/color.ts';
 import getGlobalOptions, { type GlobalOptions } from './cli/options.ts';
+import { expandArgFiles } from './cli/utils/argFiles.ts';
 import { createOutput } from './cli/utils/output.ts';
 
 const name = 'crowdin';
@@ -53,20 +54,23 @@ function applyExitOverride(command: Command): void {
   }
 }
 
-async function main() {
+async function main(argv: string[]) {
   const program = createProgram();
-  await program.parseAsync(process.argv);
+  await program.parseAsync(argv);
 }
 
+// Expand picocli-style @arg-files before commander sees the arguments.
+const argv = [...process.argv.slice(0, 2), ...expandArgFiles(process.argv.slice(2))];
+
 try {
-  await main();
+  await main(argv);
 } catch (error) {
   // Commander already wrote its own output (help/version to stdout, usage errors to stderr),
   // so don't reprint. Mirror Java/picocli: help & version exit 0, usage errors exit 2.
   if (error instanceof CommanderError) {
     process.exitCode = error.exitCode === 0 ? 0 : 2;
   } else {
-    const output = createOutput(getOutputFormat(process.argv));
+    const output = createOutput(getOutputFormat(argv));
     const message = error instanceof Error ? error.message : String(error);
 
     if (!(error instanceof CliError && error.reported)) {
