@@ -83,6 +83,15 @@ describe('SourceFileLoader', () => {
     expect(loader.getFilePaths().sort()).toEqual(['.hidden.json', 'app.json']);
   });
 
+  test('includes files under a hidden directory when ignore_hidden_files is disabled', async () => {
+    await Bun.write(`${tempDir}/app.json`, '{}');
+    await Bun.write(`${tempDir}/.config/nested.json`, '{}');
+
+    const loader = new SourceFileLoader(buildConfig(tempDir, {}, { ignoreHiddenFiles: false }));
+
+    expect(loader.getFilePaths().sort()).toEqual(['.config/nested.json', 'app.json']);
+  });
+
   test('excludes files matching an ignore pattern', async () => {
     await Bun.write(`${tempDir}/app.json`, '{}');
     await Bun.write(`${tempDir}/skip.json`, '{}');
