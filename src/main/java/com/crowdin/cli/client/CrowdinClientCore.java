@@ -128,6 +128,10 @@ abstract class CrowdinClientCore {
                 .collect(Collectors.joining("\n"));
             throw new RuntimeException(errorMessage);
         } catch (HttpException e) {
+            String httpResponse = e.getHttpResponse();
+            if (CrowdinJsonTransformer.looksLikeHtml(httpResponse)) {
+                throw new RuntimeException(formatHtmlResponseError(e, httpResponse));
+            }
             String code = (e.getError() != null && e.getError().code != null) ? e.getError().code : "<empty_code>";
             String message = (e.getError() != null && e.getError().message != null) ? e.getError().message : "<empty_message>";
             searchErrorHandler(errorHandlers, code, message);
@@ -139,6 +143,18 @@ abstract class CrowdinClientCore {
         } catch (Exception e) {
             throw e;
         }
+    }
+
+    private static String formatHtmlResponseError(HttpException e, String httpResponse) {
+        String code = (e.getError() != null && e.getError().code != null) ? e.getError().code : "<empty_code>";
+        String message = (e.getError() != null && e.getError().message != null) ? e.getError().message : "<empty_message>";
+        String errorMessage = String.format("Error from server: <Code: %s, Message: %s>%n%s",
+            code, message, RESOURCE_BUNDLE.getString("error.response.html"));
+        String bodyText = CrowdinJsonTransformer.extractBodyText(httpResponse);
+        if (StringUtils.isNotBlank(bodyText)) {
+            errorMessage += String.format("%nResponse: %s", bodyText);
+        }
+        return errorMessage;
     }
 
     private static <R extends Exception> void searchErrorHandler(Map<BiPredicate<String, String>, R> errorHandlers, String code, String message) throws R {

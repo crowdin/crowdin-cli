@@ -3,14 +3,14 @@ package com.crowdin.cli.client;
 import com.crowdin.cli.client.models.HttpExceptionBuilder;
 import com.crowdin.cli.utils.LanguageBuilder;
 import com.crowdin.client.core.http.HttpClient;
+import com.crowdin.client.core.http.exceptions.CrowdinApiException;
+import com.crowdin.client.core.http.exceptions.HttpException;
 import com.crowdin.client.core.http.impl.json.JacksonJsonTransformer;
 import com.crowdin.client.core.model.ClientConfig;
 import com.crowdin.client.core.model.Credentials;
 import com.crowdin.client.core.model.DownloadLink;
 import com.crowdin.client.core.model.DownloadLinkResponseObject;
 import com.crowdin.client.core.model.PatchRequest;
-import com.crowdin.client.languages.model.LanguageResponseList;
-import com.crowdin.client.languages.model.LanguageResponseObject;
 import com.crowdin.client.machinetranslationengines.model.MachineTranslationResponseObject;
 import com.crowdin.client.projectsgroups.model.AddProjectRequest;
 import com.crowdin.client.projectsgroups.model.Project;
@@ -565,6 +565,26 @@ public class CrowdinProjectClientTest {
             .delete(eq(deleteSourceStringUrl), any(), eq(Void.class));
 
         assertThrows(RuntimeException.class, () -> client.deleteSourceString(stringId));
+
+        verify(httpClientMock).delete(eq(deleteSourceStringUrl), any(), eq(Void.class));
+        verifyNoMoreInteractions(httpClientMock);
+    }
+
+    @Test
+    public void testHtmlErrorResponseIsReadable() {
+        String html = "<html>\n<head><title>403 Forbidden</title></head>\n<body>\n"
+            + "<center><h1>403 Forbidden</h1></center>\n</body>\n</html>\n";
+        HttpException htmlException = (HttpException) new CrowdinJsonTransformer(new JacksonJsonTransformer())
+            .parse(html, CrowdinApiException.class);
+        Mockito.doThrow(htmlException)
+            .when(httpClientMock)
+            .delete(eq(deleteSourceStringUrl), any(), eq(Void.class));
+
+        RuntimeException e = assertThrows(RuntimeException.class, () -> client.deleteSourceString(stringId));
+        assertTrue(e.getMessage().contains("Error from server: <Code: 403, Message: 403 Forbidden>"), e.getMessage());
+        assertTrue(e.getMessage().contains("HTML response"), e.getMessage());
+        assertTrue(e.getMessage().contains("Response: 403 Forbidden"), e.getMessage());
+        assertFalse(e.getMessage().contains("Unexpected character"), e.getMessage());
 
         verify(httpClientMock).delete(eq(deleteSourceStringUrl), any(), eq(Void.class));
         verifyNoMoreInteractions(httpClientMock);
