@@ -5,9 +5,10 @@ import { buildCommand, buildOption, getHelpConfig } from './cli/builder.ts';
 import { commands } from './cli/commands.ts';
 import CliError, { getExitCode } from './cli/errors/CliError.ts';
 import colorHook from './cli/hooks/color.ts';
-import getGlobalOptions, { type GlobalOptions } from './cli/options.ts';
+import getGlobalOptions from './cli/options.ts';
 import { expandArgFiles } from './cli/utils/argFiles.ts';
-import { createOutput } from './cli/utils/output.ts';
+import { checkNewVersion } from './cli/utils/checkVersion.ts';
+import { createOutput, getOutputFormatFromArgs } from './cli/utils/output.ts';
 
 const name = 'crowdin';
 const version = '5.0.0';
@@ -64,13 +65,16 @@ const argv = [...process.argv.slice(0, 2), ...expandArgFiles(process.argv.slice(
 
 try {
   await main(argv);
+  // Mirror Java Cli.main: after a successful real command, check for a newer release. Help, version,
+  // empty args and parse errors all throw CommanderError and land in catch, so they skip the check.
+  await checkNewVersion(createOutput(getOutputFormatFromArgs(argv)), version);
 } catch (error) {
   // Commander already wrote its own output (help/version to stdout, usage errors to stderr),
   // so don't reprint. Mirror Java/picocli: help & version exit 0, usage errors exit 2.
   if (error instanceof CommanderError) {
     process.exitCode = error.exitCode === 0 ? 0 : 2;
   } else {
-    const output = createOutput(getOutputFormat(argv));
+    const output = createOutput(getOutputFormatFromArgs(argv));
     const message = error instanceof Error ? error.message : String(error);
 
     if (!(error instanceof CliError && error.reported)) {
@@ -79,38 +83,4 @@ try {
 
     process.exitCode = getExitCode(error);
   }
-}
-
-function getOutputFormat(argv: string[]): GlobalOptions {
-  let outputFormat = 'text';
-
-  for (let index = 0; index < argv.length; index++) {
-    const arg = argv[index];
-
-    if (arg === '--output' || arg === '-o') {
-      const value = argv[index + 1];
-
-      if (value === 'json' || value === 'toon' || value === 'text') {
-        outputFormat = value;
-        break;
-      }
-    }
-
-    if (arg?.startsWith('--output=')) {
-      const value = arg.slice('--output='.length);
-
-      if (value === 'json' || value === 'toon' || value === 'text') {
-        outputFormat = value;
-        break;
-      }
-    }
-  }
-
-  return {
-    colors: false,
-    config: '',
-    progress: false,
-    verbose: false,
-    output: outputFormat,
-  };
 }

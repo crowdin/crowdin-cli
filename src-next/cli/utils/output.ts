@@ -14,6 +14,8 @@ import type { GlobalOptions } from '../options.ts';
 import { colors } from './colors.ts';
 import { formatData } from './formatter.ts';
 
+export const OUTPUT_FORMATS = ['json', 'toon', 'plain'];
+
 export function createOutput(options: GlobalOptions) {
   const format = resolveOutputFormat(options.output);
 
@@ -107,6 +109,44 @@ function resolveOutputFormat(format?: string): 'json' | 'toon' | 'text' | 'plain
   }
 
   return 'text';
+}
+
+/**
+ * Resolve the output format straight from argv, before commander parses. Used by the top-level
+ * error handler and the version check, both of which run outside any command action.
+ */
+export function getOutputFormatFromArgs(argv: string[]): GlobalOptions {
+  let outputFormat = 'text';
+
+  for (let index = 0; index < argv.length; index++) {
+    const arg = argv[index];
+
+    if (arg === '--output' || arg === '-o') {
+      const value = argv[index + 1];
+
+      if (value && OUTPUT_FORMATS.includes(value)) {
+        outputFormat = value;
+        break;
+      }
+    }
+
+    if (arg?.startsWith('--output=')) {
+      const value = arg.slice('--output='.length);
+
+      if (OUTPUT_FORMATS.includes(value)) {
+        outputFormat = value;
+        break;
+      }
+    }
+  }
+
+  return {
+    colors: false,
+    config: '',
+    progress: false,
+    verbose: false,
+    output: outputFormat,
+  };
 }
 
 export type Output = ReturnType<typeof createOutput>;
