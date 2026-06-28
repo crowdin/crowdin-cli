@@ -3,34 +3,22 @@ import getGlobalOptions from './options.ts';
 import type { CommandDef, OptionDef, OptionGroupDef } from './types.ts';
 import { colors } from './utils/colors.ts';
 
-export function getHelpConfig() {
-  return {
-    styleTitle: (str: string) => colors.bold(str),
-    styleCommandText: (str: string) => colors.cyan(str),
-    styleOptionText: (str: string) => {
-      if (str.startsWith('--')) {
-        return ' '.repeat(4) + colors.green(str);
-      }
-
-      return colors.green(str);
-    },
-    styleArgumentText: (str: string) => colors.yellow(str),
-    styleSubcommandText: (str: string) => colors.cyan(str),
-    subcommandTerm: (cmd: Command) => {
-      const args = cmd.registeredArguments.map((arg) => `<${arg.name()}>`).join(' ');
-      const alias = cmd.alias();
-
-      return cmd.name() + (alias ? `, ${alias}` : '') + (args ? ` ${args}` : '');
-    },
-  };
-}
-
 export function buildCommand(def: CommandDef): Command {
   const cmd = new Command(def.name);
 
   cmd.description(def.description);
   cmd.helpOption('-h, --help', 'Display help message and exit');
   cmd.configureHelp(getHelpConfig());
+
+  const usage = [
+    def.subcommands?.length ? '[command]' : '',
+    '[options]',
+    def.arguments?.map((arg) => `<${arg.name}>`).join(' ') ?? '',
+  ]
+    .filter(Boolean)
+    .join(' ');
+
+  cmd.usage(usage);
 
   if (def.alias) {
     cmd.alias(def.alias);
@@ -70,6 +58,47 @@ export function buildCommand(def: CommandDef): Command {
   });
 
   return cmd;
+}
+
+export function getHelpConfig() {
+  return {
+    styleTitle: (str: string) => colors.bold(str),
+    styleUsage: (str: string) =>
+      str
+        .split(' ')
+        .map((word) => {
+          if (word === '[command]') {
+            return colors.green(word);
+          }
+
+          if (word === '[options]') {
+            return colors.cyan(word);
+          }
+
+          if (word[0] === '[' || word[0] === '<') {
+            return colors.yellow(word);
+          }
+
+          return colors.cyan(word);
+        })
+        .join(' '),
+    styleCommandText: (str: string) => colors.cyan(str),
+    styleOptionText: (str: string) => {
+      if (str.startsWith('--')) {
+        return ' '.repeat(4) + colors.green(str);
+      }
+
+      return colors.green(str);
+    },
+    styleArgumentText: (str: string) => colors.yellow(str),
+    styleSubcommandText: (str: string) => colors.cyan(str),
+    subcommandTerm: (cmd: Command) => {
+      const args = cmd.registeredArguments.map((arg) => `<${arg.name()}>`).join(' ');
+      const alias = cmd.alias();
+
+      return cmd.name() + (alias ? `, ${alias}` : '') + (args ? ` ${args}` : '');
+    },
+  };
 }
 
 function isOptionGroup(item: OptionDef | OptionGroupDef): item is OptionGroupDef {

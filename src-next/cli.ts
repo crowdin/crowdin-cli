@@ -21,6 +21,7 @@ function createProgram(): Command {
 
   program
     .name(name)
+    .usage('[command] [options]')
     .version(version, '-V, --version', 'Display version information and exit')
     .description(description)
     .helpOption('-h, --help', 'Display help message and exit')
