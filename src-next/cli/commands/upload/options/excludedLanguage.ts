@@ -1,8 +1,0 @@
-import type { OptionDef } from '@/cli/types.ts';
-
-export default {
-  name: 'excluded-language',
-  type: 'string',
-  variadic: true,
-  description: 'Specify languages the sources should not be translated into. Can be specified multiple times',
-} as OptionDef;

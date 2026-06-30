@@ -1,7 +1,7 @@
 import path from 'node:path';
 import type { Command } from 'commander';
 import { ZodError, z } from 'zod';
-import { filesConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { filesConfigGroup } from '@/cli/commands/common/options.ts';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';

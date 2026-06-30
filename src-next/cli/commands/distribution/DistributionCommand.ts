@@ -1,14 +1,13 @@
 import type { PatchRequest } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { DistributionView } from '@/cli/services/DistributionService.ts';
 import type { GetDistributionService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { toNumberArray } from '@/cli/utils/parsing.ts';
-import bundleId from './options/bundleId.ts';
-import name from './options/name.ts';
+import { bundleId, name } from './options.ts';
 
 interface DistributionOptions extends GlobalOptions {
   name?: string;

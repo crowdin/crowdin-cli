@@ -1,6 +1,6 @@
 import type { ResponseObject, TranslationStatusModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type {
@@ -13,13 +13,14 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
-import branch from '../upload/options/branch.ts';
-import directory from './options/directory.ts';
-import failIfIncompleteProofreading from './options/failIfIncompleteProofreading.ts';
-import failIfIncompleteStatus from './options/failIfIncompleteStatus.ts';
-import failIfIncompleteTranslation from './options/failIfIncompleteTranslation.ts';
-import file from './options/file.ts';
-import language from './options/language.ts';
+import {
+  directory,
+  failIfIncompleteProofreading,
+  failIfIncompleteStatus,
+  failIfIncompleteTranslation,
+  file,
+  language,
+} from './options.ts';
 
 interface StatusCommandOptions extends GlobalOptions {
   language?: string;

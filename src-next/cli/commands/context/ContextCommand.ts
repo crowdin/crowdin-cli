@@ -1,7 +1,7 @@
 import type { PatchRequest, SourceStringsModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -13,7 +13,7 @@ import type {
   GetProjectService,
   GetStringService,
 } from '@/cli/services.ts';
-import type { CommandDef, OptionDef } from '@/cli/types.ts';
+import type { CommandDef } from '@/cli/types.ts';
 import {
   fullContext,
   getAiContextSection,
@@ -25,125 +25,31 @@ import {
 import type { Output } from '@/cli/utils/output.ts';
 import { toArray } from '@/cli/utils/parsing.ts';
 import { isPathMatch } from '@/cli/utils/pathMatcher.ts';
+import {
+  all as allOption,
+  branchFilter as branchFilterOption,
+  byFile as byFileOption,
+  croql as croqlOption,
+  dryrun as dryrunOption,
+  fileFilter as fileFilterOption,
+  from as fromOption,
+  labelFilter as labelFilterOption,
+  overwrite as overwriteOption,
+  resetBranch as resetBranchOption,
+  resetCroql as resetCroqlOption,
+  resetFile as resetFileOption,
+  resetLabel as resetLabelOption,
+  resetSince as resetSinceOption,
+  since as sinceOption,
+  status as statusOption,
+  to as toOption,
+} from './options.ts';
 
 const BATCH_SIZE = 100;
 const SINCE_FORMAT = /^\d{4}-\d{2}-\d{2}$/;
 const AVAILABLE_STATUSES = ['empty', 'ai', 'manual'];
-const DEFAULT_CONTEXT_FILE = 'crowdin-context.jsonl';
 
 // TODO: Java '--format' (file format) is intentionally not ported: 'jsonl' is the only supported value
-
-const toOption: OptionDef = {
-  name: 'to',
-  type: 'string',
-  default: DEFAULT_CONTEXT_FILE,
-  description: `File path to download the context to. Default: ${DEFAULT_CONTEXT_FILE}`,
-};
-
-const fileFilterOption: OptionDef = {
-  name: 'file',
-  short: 'f',
-  type: 'string',
-  variadic: true,
-  description: 'Filter strings by Crowdin file paths (glob) (multiple paths can be specified)',
-};
-
-const labelFilterOption: OptionDef = {
-  name: 'label',
-  type: 'string',
-  variadic: true,
-  description: 'Filter strings by labels (multiple labels can be specified)',
-};
-
-const branchFilterOption: OptionDef = {
-  name: 'branch',
-  short: 'b',
-  type: 'string',
-  description: 'Filter by branch name',
-};
-
-const croqlOption: OptionDef = {
-  name: 'croql',
-  type: 'string',
-  description: 'CroQL expression',
-};
-
-const sinceOption: OptionDef = {
-  name: 'since',
-  type: 'string',
-  description: 'Only strings created after this date (YYYY-MM-DD)',
-};
-
-const statusOption: OptionDef = {
-  name: 'status',
-  type: 'string',
-  description: 'Filter by context status. Supported values: empty, ai, manual',
-};
-
-const fromOption: OptionDef = {
-  name: 'from',
-  type: 'string',
-  default: DEFAULT_CONTEXT_FILE,
-  description: `The file path to upload the context from. Only files previously downloaded by the context download command are supported. Default: ${DEFAULT_CONTEXT_FILE}`,
-};
-
-const overwriteOption: OptionDef = {
-  name: 'overwrite',
-  type: 'boolean',
-  description: 'Also update strings where ai_context is empty (removes their AI section). Default: false',
-};
-
-const dryrunOption: OptionDef = {
-  name: 'dryrun',
-  type: 'boolean',
-  description: 'Preview changes without applying them',
-};
-
-const resetFileOption: OptionDef = {
-  name: 'file',
-  short: 'f',
-  type: 'string',
-  variadic: true,
-  description: 'Only reset strings from matching file paths (multiple paths can be specified)',
-};
-
-const resetLabelOption: OptionDef = {
-  name: 'label',
-  type: 'string',
-  variadic: true,
-  description: 'Only reset strings from matching labels (multiple labels can be specified)',
-};
-
-const resetBranchOption: OptionDef = {
-  name: 'branch',
-  short: 'b',
-  type: 'string',
-  description: 'Only reset strings from matching branch',
-};
-
-const resetCroqlOption: OptionDef = {
-  name: 'croql',
-  type: 'string',
-  description: 'Only reset strings from matching CroQL expression',
-};
-
-const resetSinceOption: OptionDef = {
-  name: 'since',
-  type: 'string',
-  description: 'Only reset strings that were created after this date (YYYY-MM-DD)',
-};
-
-const allOption: OptionDef = {
-  name: 'all',
-  type: 'boolean',
-  description: 'Required safety flag when no filter is specified',
-};
-
-const byFileOption: OptionDef = {
-  name: 'by-file',
-  type: 'boolean',
-  description: 'Break down stats per file',
-};
 
 interface FilterOptions extends GlobalOptions {
   file?: string | string[];

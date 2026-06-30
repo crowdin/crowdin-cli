@@ -2,69 +2,28 @@ import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { TranslationMemoryModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { baseConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { baseConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetApiClient, GetOutput, GetStorageService, GetTmService } from '@/cli/services.ts';
-import type { CommandDef, OptionDef } from '@/cli/types.ts';
+import type { CommandDef } from '@/cli/types.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
+import {
+  firstLineContainsHeader as firstLineContainsHeaderOption,
+  format as formatOption,
+  id as idOption,
+  language as languageOption,
+  scheme as schemeOption,
+  sourceLanguageId as sourceLanguageIdOption,
+  TM_FORMATS,
+  targetLanguageId as targetLanguageIdOption,
+  to as toOption,
+} from './options.ts';
 
-const TM_FORMATS: TranslationMemoryModel.Format[] = ['tmx', 'csv', 'xlsx'];
 const UPLOAD_EXTENSIONS = ['tmx', 'csv', 'xls', 'xlsx'];
 const SCHEME_EXTENSIONS = ['csv', 'xls', 'xlsx'];
 const DEFAULT_TM_NAME = 'Created in Crowdin CLI (%s)';
-
-const formatOption: OptionDef = {
-  name: 'format',
-  type: 'string',
-  description: 'Format of the file. Supported formats: tmx, csv, xlsx',
-  choices: [...TM_FORMATS],
-};
-
-const sourceLanguageIdOption: OptionDef = {
-  name: 'source-language-id',
-  type: 'string',
-  description: 'Defines source language in the language pair',
-};
-
-const targetLanguageIdOption: OptionDef = {
-  name: 'target-language-id',
-  type: 'string',
-  description: 'Defines target language in the language pair',
-};
-
-const toOption: OptionDef = {
-  name: 'to',
-  type: 'string',
-  description: 'Path where the translation memory should be downloaded',
-};
-
-const idOption: OptionDef = {
-  name: 'id',
-  type: 'string',
-  description: 'Translation memory identifier for uploading to the existing TM',
-};
-
-const languageOption: OptionDef = {
-  name: 'language',
-  type: 'string',
-  description: 'Translation Memory language identifier',
-};
-
-const schemeOption: OptionDef = {
-  name: 'scheme',
-  type: 'string',
-  variadic: true,
-  description: 'Defines data columns scheme (required for CSV or XLS/XLSX files)',
-};
-
-const firstLineContainsHeaderOption: OptionDef = {
-  name: 'first-line-contains-header',
-  type: 'boolean',
-  description:
-    "Defines whether the file contains the first-row header that shouldn't be imported (used only for CSV or XLS/XLSX files)",
-};
 
 interface DownloadOptions extends GlobalOptions {
   sourceLanguageId?: string;

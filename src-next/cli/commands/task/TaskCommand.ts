@@ -1,23 +1,24 @@
 import type { TasksModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { TaskStatus } from '@/cli/services/TaskService.ts';
 import type { GetApiClient, GetBranchService, GetFileService, GetOutput, GetTaskService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { toArray, toNumberArray } from '@/cli/utils/parsing.ts';
-import branch from '../upload/options/branch.ts';
-import assigneeId from './options/assigneeId.ts';
-import description from './options/description.ts';
-import file from './options/file.ts';
-import includePreTranslatedStringsOnly from './options/includePreTranslatedStringsOnly.ts';
-import label from './options/label.ts';
-import language from './options/language.ts';
-import skipAssignedStrings from './options/skipAssignedStrings.ts';
-import status from './options/status.ts';
-import type_ from './options/type.ts';
-import workflowStep from './options/workflowStep.ts';
+import {
+  assigneeId,
+  description,
+  file,
+  includePreTranslatedStringsOnly,
+  label,
+  language,
+  skipAssignedStrings,
+  status,
+  type as type_,
+  workflowStep,
+} from './options.ts';
 
 const TASK_STATUSES = new Set<TaskStatus>(['todo', 'in_progress', 'done', 'closed']);
 const TASK_TYPES = new Set(['translate', 'proofread']);

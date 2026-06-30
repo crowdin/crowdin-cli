@@ -1,12 +1,11 @@
 import type { LanguagesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import all from './options/all.ts';
-import code from './options/code.ts';
+import { all, code } from './options.ts';
 
 type LanguageCodeFormat =
   | 'id'

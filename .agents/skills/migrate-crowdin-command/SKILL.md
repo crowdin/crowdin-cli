@@ -48,7 +48,7 @@ They are the ground truth for current patterns; do not rely on memory or example
 | Java layer | TypeScript equivalent |
 |---|---|
 | `*Subcommand.java` (picocli) | `CommandDef` returned from `getDefinition()` |
-| `@CommandLine.Option` annotations | `OptionDef` objects in `options/*.ts` |
+| `@CommandLine.Option` annotations | named `OptionDef` consts in `<command>/options.ts` |
 | `*Action.java` | Arrow function methods on the command class |
 | `Actions` factory / DI | Constructor factory functions (`getConfig`, `getOutput`, `getProjectService`, …) |
 | `crowdin-api-client-java` | `@crowdin/crowdin-api-client` via `Client` wrapper |
@@ -83,7 +83,9 @@ Structure to follow: read `FileCommand.ts` or `StatusCommand.ts` for the current
 
 ### 3. Create option files
 
-Reuse shared options that already exist (check `src-next/cli/commands/*/options/`). For new options, add `src-next/cli/commands/<name>/options/<option>.ts`. For options used in only one place, inline the `OptionDef` in `getDefinition()`.
+One rule, no exceptions: every command-specific option is a named `OptionDef` const in a single `src-next/cli/commands/<name>/options.ts`, imported into the command file. Never inline `OptionDef`s in `getDefinition()`, and never use one-file-per-option dirs.
+
+Options shared by 2+ commands live in `src-next/cli/commands/common/options.ts` (e.g. `branch`, the config-tier primitives, and the `baseConfigGroup`/`projectConfigGroup`/`filesConfigGroup` groups); global options live in `src-next/cli/commands/global/options.ts`. Reuse these instead of redefining. If a command-body local would collide with an imported option name, alias on import (e.g. `import { source as sourceOption } from './options.ts'`).
 
 ### 4. Port action logic
 

@@ -31,20 +31,19 @@ import { buildTranslationMapping } from '@/lib/download/translationMapping.ts';
 import { originalPath } from '@/lib/export/patterns.ts';
 import { prepareDest } from '@/lib/upload/fileOptions.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
-import { filesConfigGroup } from '../common/options/configGroups.ts';
-import dryRun from '../common/options/dryRun.ts';
-import tree from '../common/options/tree.ts';
-import branch from '../upload/options/branch.ts';
-import all from './options/all.ts';
-import excludeLanguage from './options/excludeLanguage.ts';
-import exportOnlyApproved from './options/exportOnlyApproved.ts';
-import ignoreMatch from './options/ignoreMatch.ts';
-import keepArchive from './options/keepArchive.ts';
-import language from './options/language.ts';
-import pseudo from './options/pseudo.ts';
-import reviewed from './options/reviewed.ts';
-import skipUntranslatedFiles from './options/skipUntranslatedFiles.ts';
-import skipUntranslatedStrings from './options/skipUntranslatedStrings.ts';
+import { branch, dryRun, filesConfigGroup, tree } from '../common/options.ts';
+import {
+  all,
+  excludeLanguage,
+  exportOnlyApproved,
+  ignoreMatch,
+  keepArchive,
+  language,
+  pseudo,
+  reviewed,
+  skipUntranslatedFiles,
+  skipUntranslatedStrings,
+} from './options.ts';
 
 interface TranslationsOptions extends GlobalOptions {
   branch?: string;

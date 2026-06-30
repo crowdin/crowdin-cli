@@ -1,64 +1,22 @@
 import { type PatchRequest, ProjectsGroupsModel, type SourceFilesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { GetBranchService, GetOutput, GetProjectService } from '@/cli/services.ts';
-import type { CommandDef, OptionDef } from '@/cli/types.ts';
+import type { CommandDef } from '@/cli/types.ts';
 import { normalizeBranchName } from '@/cli/utils/parsing.ts';
-
-const BRANCH_PRIORITIES: SourceFilesModel.Priority[] = ['low', 'normal', 'high'];
-
-const addTitleOption: OptionDef = {
-  name: 'title',
-  type: 'string',
-  description: 'Provide more details for translators. The title is available in UI only',
-};
-
-const exportPatternOption: OptionDef = {
-  name: 'export-pattern',
-  type: 'string',
-  description: 'Branch export pattern. Defines branch name and path in resulting translations bundle',
-};
-
-const addPriorityOption: OptionDef = {
-  name: 'priority',
-  type: 'string',
-  description: 'Defines priority level for each branch',
-  choices: [...BRANCH_PRIORITIES],
-};
-
-const newNameOption: OptionDef = {
-  name: 'name',
-  type: 'string',
-  description: 'Rename branch',
-};
-
-const editTitleOption: OptionDef = {
-  name: 'title',
-  type: 'string',
-  description: 'Specify new title for the branch',
-};
-
-const editPriorityOption: OptionDef = {
-  name: 'priority',
-  type: 'string',
-  description: 'Specify new priority for the branch',
-  choices: [...BRANCH_PRIORITIES],
-};
-
-const dryrunOption: OptionDef = {
-  name: 'dryrun',
-  type: 'boolean',
-  description: 'Simulate merging without making any real changes',
-};
-
-const deleteAfterMergeOption: OptionDef = {
-  name: 'delete-after-merge',
-  type: 'boolean',
-  description: 'Whether to delete branch after merge',
-};
+import {
+  addPriority,
+  addTitle,
+  deleteAfterMerge,
+  dryrun,
+  editPriority,
+  editTitle,
+  exportPattern,
+  newName,
+} from './options.ts';
 
 interface AddOptions extends GlobalOptions {
   title?: string;
@@ -104,7 +62,7 @@ export default class BranchCommand {
               description: 'Branch name',
             },
           ],
-          options: [addTitleOption, exportPatternOption, addPriorityOption, projectConfigGroup],
+          options: [addTitle, exportPattern, addPriority, projectConfigGroup],
           action: this.addAction,
         },
         {
@@ -128,7 +86,7 @@ export default class BranchCommand {
               description: 'Branch name',
             },
           ],
-          options: [newNameOption, editTitleOption, editPriorityOption, projectConfigGroup],
+          options: [newName, editTitle, editPriority, projectConfigGroup],
           action: this.editAction,
         },
         {
@@ -160,7 +118,7 @@ export default class BranchCommand {
               description: 'Target branch name',
             },
           ],
-          options: [dryrunOption, deleteAfterMergeOption, projectConfigGroup],
+          options: [dryrun, deleteAfterMerge, projectConfigGroup],
           action: this.mergeAction,
         },
       ],

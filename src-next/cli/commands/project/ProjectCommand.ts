@@ -1,15 +1,12 @@
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { openUrl } from '@/cli/utils/open.ts';
-import language from './options/language.ts';
-import languageAccessPolicy from './options/languageAccessPolicy.ts';
-import sourceLanguage from './options/sourceLanguage.ts';
-import stringBased from './options/stringBased.ts';
+import { language, languageAccessPolicy, sourceLanguage, stringBased } from './options.ts';
 
 interface ProjectCommandOptions extends GlobalOptions {
   sourceLanguage?: string;

@@ -1,9 +1,4 @@
-import config from './commands/global/options/config.ts';
-import identity from './commands/global/options/identity.ts';
-import noColors from './commands/global/options/noColors.ts';
-import noProgress from './commands/global/options/noProgress.ts';
-import output from './commands/global/options/output.ts';
-import verbose from './commands/global/options/verbose.ts';
+import { config, identity, noColors, noProgress, output, verbose } from './commands/global/options.ts';
 import type { OptionDef } from './types.ts';
 
 export default function getGlobalOptions(): OptionDef[] {

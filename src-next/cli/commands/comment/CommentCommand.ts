@@ -1,16 +1,12 @@
 import type { StringCommentsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetCommentService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { parseNumericId } from '@/cli/utils/parsing.ts';
-import issueType from './options/issueType.ts';
-import language from './options/language.ts';
-import status from './options/status.ts';
-import stringId from './options/stringId.ts';
-import type_ from './options/type.ts';
+import { issueType, language, status, stringId, type as type_ } from './options.ts';
 
 interface AddOptions extends GlobalOptions {
   stringId?: string;

@@ -2,58 +2,27 @@ import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { GlossariesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { baseConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { baseConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GlossaryService } from '@/cli/services/GlossaryService.ts';
 import type { GetApiClient, GetGlossaryService, GetOutput, GetStorageService } from '@/cli/services.ts';
-import type { CommandDef, OptionDef } from '@/cli/types.ts';
+import type { CommandDef } from '@/cli/types.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
+import {
+  firstLineContainsHeader as firstLineContainsHeaderOption,
+  format as formatOption,
+  GLOSSARY_FORMATS,
+  id as idOption,
+  language as languageOption,
+  scheme as schemeOption,
+  to as toOption,
+} from './options.ts';
 
-const GLOSSARY_FORMATS: GlossariesModel.GlossaryFormat[] = ['tbx', 'csv', 'xlsx'];
 const UPLOAD_EXTENSIONS = ['tbx', 'csv', 'xls', 'xlsx'];
 const SCHEME_EXTENSIONS = ['csv', 'xls', 'xlsx'];
 const DEFAULT_GLOSSARY_NAME = 'Created in Crowdin CLI (%s)';
-
-const formatOption: OptionDef = {
-  name: 'format',
-  type: 'string',
-  description: 'Format of the file. Supported formats: tbx, csv, xlsx',
-  choices: [...GLOSSARY_FORMATS],
-};
-
-const toOption: OptionDef = {
-  name: 'to',
-  type: 'string',
-  description: 'Path the glossary should be downloaded to',
-};
-
-const idOption: OptionDef = {
-  name: 'id',
-  type: 'string',
-  description: 'Glossary identifier for uploading to the existing glossary',
-};
-
-const languageOption: OptionDef = {
-  name: 'language',
-  type: 'string',
-  description: 'Glossary language identifier',
-};
-
-const schemeOption: OptionDef = {
-  name: 'scheme',
-  type: 'string',
-  variadic: true,
-  description: 'Defines data columns scheme (used only for CSV or XLS/XLSX files configuration)',
-};
-
-const firstLineContainsHeaderOption: OptionDef = {
-  name: 'first-line-contains-header',
-  type: 'boolean',
-  description:
-    "Defines whether the file contains the first-row header that shouldn't be imported (used only for CSV or XLS/XLSX files)",
-};
 
 interface DownloadOptions extends GlobalOptions {
   fileFormat?: GlossariesModel.GlossaryFormat;

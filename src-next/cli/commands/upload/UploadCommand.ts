@@ -39,19 +39,18 @@ import { pollUntilFinished } from '@/lib/upload/pollUpload.ts';
 import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
-import { filesConfigGroup } from '../common/options/configGroups.ts';
-import dryRun from '../common/options/dryRun.ts';
-import tree from '../common/options/tree.ts';
-import autoApproveImported from './options/autoApproveImported.ts';
-import branch from './options/branch.ts';
-import cache from './options/cache.ts';
-import deleteObsolete from './options/deleteObsolete.ts';
-import excludedLanguage from './options/excludedLanguage.ts';
-import importEqSuggestions from './options/importEqSuggestions.ts';
-import label from './options/label.ts';
-import language from './options/language.ts';
-import noAutoUpdate from './options/noAutoUpdate.ts';
-import translateHidden from './options/translateHidden.ts';
+import { branch, dryRun, filesConfigGroup, tree } from '../common/options.ts';
+import {
+  autoApproveImported,
+  cache,
+  deleteObsolete,
+  excludedLanguage,
+  importEqSuggestions,
+  label,
+  language,
+  noAutoUpdate,
+  translateHidden,
+} from './options.ts';
 
 interface UploadSourcesOptions {
   branch?: string;

@@ -1,7 +1,7 @@
 import path from 'node:path';
 import type { ResponseObject, SourceFilesModel, UploadStorageModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -15,10 +15,7 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
-import destination from './options/destination.ts';
-import label from './options/label.ts';
-import parserVersion from './options/parserVersion.ts';
-import type from './options/type.ts';
+import { destination, label, parserVersion, type, uploadDest } from './options.ts';
 
 interface UploadFileCommandOptions extends GlobalOptions {
   dest?: string;
@@ -56,18 +53,7 @@ export default class FileCommand {
               description: 'Path to file to upload',
             },
           ],
-          options: [
-            label,
-            {
-              name: 'dest',
-              short: 'd',
-              type: 'string',
-              description: 'File destination in the Crowdin project',
-            },
-            type,
-            parserVersion,
-            projectConfigGroup,
-          ],
+          options: [label, uploadDest, type, parserVersion, projectConfigGroup],
           action: this.uploadAction,
         },
         {

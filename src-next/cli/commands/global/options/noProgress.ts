@@ -1,8 +1,0 @@
-import type { OptionDef } from '@/cli/types.ts';
-
-export default {
-  name: 'no-progress',
-  type: 'boolean',
-  description: 'Disable progress on executed command',
-  default: true,
-} as OptionDef;

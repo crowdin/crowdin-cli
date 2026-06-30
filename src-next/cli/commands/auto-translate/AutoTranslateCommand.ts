@@ -1,7 +1,7 @@
 import type { ProjectsGroupsModel, ResponseObject, TranslationsModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel as ProjectsGroups } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { filesConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { branch, filesConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type {
@@ -12,9 +12,25 @@ import type {
   GetProjectService,
   GetTranslationService,
 } from '@/cli/services.ts';
-import type { CommandDef, OptionDef } from '@/cli/types.ts';
+import type { CommandDef } from '@/cli/types.ts';
 import { normalizePath } from '@/cli/utils/parsing.ts';
-import branch from '../upload/options/branch.ts';
+import {
+  aiPrompt,
+  autoApproveOption,
+  directory,
+  duplicateTranslations,
+  engineId,
+  excludeLanguage,
+  file,
+  label,
+  language,
+  method,
+  noDuplicateTranslations,
+  noTranslateUntranslatedOnly,
+  noTranslateWithPerfectMatchOnly,
+  translateUntranslatedOnly,
+  translateWithPerfectMatchOnly,
+} from './options.ts';
 
 type Method = TranslationsModel.Method;
 type AutoApproveOption = TranslationsModel.AutoApproveOption;
@@ -59,105 +75,26 @@ export default class AutoTranslateCommand {
       name: 'auto-translate',
       description: 'Pre-translate files via Machine Translation (MT), Translation Memory (TM), or AI',
       action: this.defaultAction,
-      options: [...this.getOptions(), filesConfigGroup],
+      options: [
+        language,
+        excludeLanguage,
+        file,
+        method,
+        engineId,
+        branch,
+        directory,
+        autoApproveOption,
+        duplicateTranslations,
+        noDuplicateTranslations,
+        translateUntranslatedOnly,
+        noTranslateUntranslatedOnly,
+        translateWithPerfectMatchOnly,
+        noTranslateWithPerfectMatchOnly,
+        label,
+        aiPrompt,
+        filesConfigGroup,
+      ],
     };
-  }
-
-  private getOptions(): OptionDef[] {
-    return [
-      {
-        name: 'language',
-        short: 'l',
-        type: 'string',
-        variadic: true,
-        default: ['all'],
-        description:
-          'Languages to which pre-translation should be applied. Can be specified multiple times. Default: all',
-      },
-      {
-        name: 'exclude-language',
-        short: 'e',
-        type: 'string',
-        variadic: true,
-        description: 'Languages to exclude from pre-translation. Can be specified multiple times',
-      },
-      {
-        name: 'file',
-        type: 'string',
-        variadic: true,
-        description: 'Path to the file in the Crowdin project. Can be specified multiple times',
-      },
-      {
-        name: 'method',
-        type: 'string',
-        required: true,
-        description: 'Defines pre-translation method. Supported values: mt, tm, ai',
-      },
-      {
-        name: 'engine-id',
-        type: 'number',
-        description: 'Machine Translation engine Identifier',
-      },
-      branch,
-      {
-        name: 'directory',
-        type: 'string',
-        description: 'Path to the directory in Crowdin',
-      },
-      {
-        name: 'auto-approve-option',
-        type: 'string',
-        description:
-          'Defines which translations added by TM pre-translation should be auto-approved. Supported values: all, except-auto-substituted, perfect-match-only. Default: none',
-      },
-      // Negatable boolean: `--duplicate-translations` / `--no-duplicate-translations`.
-      // The positive and hidden negative flags share the `duplicateTranslations` property;
-      // leaving both unset keeps it `undefined` (tri-state), so it is only sent when specified.
-      {
-        name: 'duplicate-translations',
-        type: 'boolean',
-        description: 'Adds translations even if the same translation already exists',
-      },
-      {
-        name: 'no-duplicate-translations',
-        type: 'boolean',
-        hidden: true,
-        description: 'Skips adding a translation if the same one already exists',
-      },
-      {
-        name: 'translate-untranslated-only',
-        type: 'boolean',
-        description: 'Applies pre-translation for untranslated strings only',
-      },
-      {
-        name: 'no-translate-untranslated-only',
-        type: 'boolean',
-        hidden: true,
-        description: 'Applies pre-translation for all strings',
-      },
-      {
-        name: 'translate-with-perfect-match-only',
-        type: 'boolean',
-        description: 'Applies pre-translation only for the strings with perfect match',
-      },
-      {
-        name: 'no-translate-with-perfect-match-only',
-        type: 'boolean',
-        hidden: true,
-        description: 'Applies pre-translation regardless of perfect match',
-      },
-      {
-        name: 'label',
-        type: 'string',
-        variadic: true,
-        description: 'Filter strings to pre-translate by labels. Can be specified multiple times',
-      },
-      {
-        name: 'ai-prompt',
-        type: 'number',
-        description: "AI Prompt Identifier. Required for 'ai' method",
-      },
-    ];
   }
 
   defaultAction = async (command: Command) => {

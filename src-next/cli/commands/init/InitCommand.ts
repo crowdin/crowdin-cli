@@ -14,14 +14,8 @@ import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 import { DEFAULT_FILE_NAME, getApiTokenFilePathFor } from '@/lib/apiToken.ts';
 import { generate } from '@/lib/config/yamlGenerator.ts';
 import patterns from '@/lib/export/patterns.ts';
-import basePath from './options/basePath.ts';
-import baseUrl from './options/baseUrl.ts';
-import destination from './options/destination.ts';
-import noPreserveHierarchy from './options/noPreserveHierarchy.ts';
-import projectId from './options/projectId.ts';
-import source from './options/source.ts';
-import token from './options/token.ts';
-import translation from './options/translation.ts';
+import { basePath, baseUrl, noPreserveHierarchy, projectId, source, token, translation } from '../common/options.ts';
+import { destination } from './options.ts';
 
 interface InitCommandOptions extends GlobalOptions {
   destination: string;

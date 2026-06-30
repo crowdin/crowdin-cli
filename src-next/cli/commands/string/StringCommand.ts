@@ -1,6 +1,6 @@
 import type { PatchRequest, SourceStringsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type {
@@ -11,113 +11,27 @@ import type {
   GetOutput,
   GetStringService,
 } from '@/cli/services.ts';
-import type { CommandDef, OptionDef } from '@/cli/types.ts';
+import type { CommandDef } from '@/cli/types.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
-import branch from '../upload/options/branch.ts';
-
-const identifierOption: OptionDef = {
-  name: 'identifier',
-  type: 'string',
-  description: 'Set custom string identifier',
-};
-
-const maxLengthOption: OptionDef = {
-  name: 'max-length',
-  type: 'number',
-  description: 'Set maximum translations length',
-};
-
-const contextOption: OptionDef = {
-  name: 'context',
-  type: 'string',
-  description: 'Set context for translators',
-};
-
-const fileOption: OptionDef = {
-  name: 'file',
-  type: 'string',
-  variadic: true,
-  description: 'Set file paths in project',
-};
-
-const labelOption: OptionDef = {
-  name: 'label',
-  type: 'string',
-  variadic: true,
-  description: 'Specify label names',
-};
-
-const hiddenOption: OptionDef = {
-  name: 'hidden',
-  type: 'boolean',
-  description: 'Mark string as hidden',
-};
-
-const noHiddenOption: OptionDef = {
-  name: 'no-hidden',
-  type: 'boolean',
-  description: 'Unmark hidden flag',
-};
-
-const filterOption: OptionDef = {
-  name: 'filter',
-  type: 'string',
-  description: 'Filter strings by text',
-};
-
-const croqlOption: OptionDef = {
-  name: 'croql',
-  type: 'string',
-  description: 'Set CROQL query filter',
-};
-
-const directoryOption: OptionDef = {
-  name: 'directory',
-  type: 'string',
-  description: 'Set directory path',
-};
-
-const scopeOption: OptionDef = {
-  name: 'scope',
-  type: 'string',
-  description: 'Set search scope',
-};
-
-const oneOption: OptionDef = {
-  name: 'one',
-  type: 'string',
-  description: 'Plural form for one',
-};
-
-const twoOption: OptionDef = {
-  name: 'two',
-  type: 'string',
-  description: 'Plural form for two',
-};
-
-const fewOption: OptionDef = {
-  name: 'few',
-  type: 'string',
-  description: 'Plural form for few',
-};
-
-const manyOption: OptionDef = {
-  name: 'many',
-  type: 'string',
-  description: 'Plural form for many',
-};
-
-const zeroOption: OptionDef = {
-  name: 'zero',
-  type: 'string',
-  description: 'Plural form for zero',
-};
-
-const textOption: OptionDef = {
-  name: 'text',
-  type: 'string',
-  description: 'Set new string text',
-};
+import {
+  context as contextOption,
+  croql as croqlOption,
+  directory as directoryOption,
+  few as fewOption,
+  file as fileOption,
+  filter as filterOption,
+  hidden as hiddenOption,
+  identifier as identifierOption,
+  label as labelOption,
+  many as manyOption,
+  maxLength as maxLengthOption,
+  noHidden as noHiddenOption,
+  one as oneOption,
+  scope as scopeOption,
+  text as textOption,
+  two as twoOption,
+  zero as zeroOption,
+} from './options.ts';
 
 const PLURAL_KEYS = ['one', 'two', 'few', 'many', 'zero'] as const;
 

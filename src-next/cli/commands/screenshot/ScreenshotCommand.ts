@@ -2,7 +2,7 @@ import { stat } from 'node:fs/promises';
 import path from 'node:path';
 import type { ScreenshotsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { ScreenshotView } from '@/cli/services/ScreenshotService.ts';
@@ -17,6 +17,7 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
+import { autoTag, branch as branchOption, directory, file, label, stringId } from './options.ts';
 
 const ALLOWED_IMAGE_EXTENSIONS = new Set(['jpeg', 'jpg', 'png', 'gif']);
 
@@ -51,14 +52,7 @@ export default class ScreenshotCommand {
         {
           name: 'list',
           description: 'List screenshots',
-          options: [
-            {
-              name: 'string-id',
-              type: 'number',
-              description: 'Numeric string identifier',
-            },
-            projectConfigGroup,
-          ],
+          options: [stringId, projectConfigGroup],
           action: this.listAction,
         },
         {
@@ -70,38 +64,7 @@ export default class ScreenshotCommand {
               description: 'File path to add',
             },
           ],
-          options: [
-            {
-              name: 'auto-tag',
-              type: 'boolean',
-              description: 'Choose whether or not to tag screenshot automatically',
-            },
-            {
-              name: 'file',
-              short: 'f',
-              type: 'string',
-              description: "Path to the source file in Crowdin. Requires the '--auto-tag' to be passed",
-            },
-            {
-              name: 'branch',
-              short: 'b',
-              type: 'string',
-              description: "Branch name. Requires the '--auto-tag' to be passed",
-            },
-            {
-              name: 'label',
-              type: 'string',
-              variadic: true,
-              description: 'Attach labels to screenshot (multiple labels can be specified)',
-            },
-            {
-              name: 'directory',
-              short: 'd',
-              type: 'string',
-              description: "Path to the directory in Crowdin. Requires the '--auto-tag' to be passed",
-            },
-            projectConfigGroup,
-          ],
+          options: [autoTag, file, branchOption, label, directory, projectConfigGroup],
           action: this.uploadAction,
         },
         {

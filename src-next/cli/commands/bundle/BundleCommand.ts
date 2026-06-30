@@ -2,74 +2,28 @@ import { mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { AddBundlePayload, BundleView } from '@/cli/services/BundleService.ts';
 import type { GetBundleService, GetConfig, GetOutput } from '@/cli/services.ts';
-import type { CommandDef, OptionDef } from '@/cli/types.ts';
+import type { CommandDef } from '@/cli/types.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
-import dryRun from '../common/options/dryRun.ts';
-import keepArchive from '../download/options/keepArchive.ts';
-
-const formatOption: OptionDef = {
-  name: 'format',
-  type: 'string',
-  description: 'Set bundle format',
-};
-
-const sourceOption: OptionDef = {
-  name: 'source',
-  type: 'string',
-  variadic: true,
-  description: 'Set source patterns',
-};
-
-const ignoreOption: OptionDef = {
-  name: 'ignore',
-  type: 'string',
-  variadic: true,
-  description: 'Set ignore patterns',
-};
-
-const translationOption: OptionDef = {
-  name: 'translation',
-  type: 'string',
-  description: 'Set translation export pattern',
-};
-
-const labelOption: OptionDef = {
-  name: 'label',
-  type: 'number',
-  variadic: true,
-  description: 'Specify label identifiers',
-};
-
-const nameOption: OptionDef = {
-  name: 'name',
-  type: 'string',
-  description: 'Set bundle name',
-};
-
-const includeSourceLanguageOption: OptionDef = {
-  name: 'include-source-language',
-  type: 'boolean',
-  description: 'Include source language into bundle',
-};
-
-const includePseudoLanguageOption: OptionDef = {
-  name: 'include-pseudo-language',
-  type: 'boolean',
-  description: 'Include pseudo-language into bundle',
-};
-
-const multilingualOption: OptionDef = {
-  name: 'multilingual',
-  type: 'boolean',
-  description: 'Enable multilingual mode',
-};
+import { dryRun } from '../common/options.ts';
+import { keepArchive } from '../download/options.ts';
+import {
+  format as formatOption,
+  ignore as ignoreOption,
+  includePseudoLanguage as includePseudoLanguageOption,
+  includeSourceLanguage as includeSourceLanguageOption,
+  label as labelOption,
+  multilingual as multilingualOption,
+  name as nameOption,
+  source as sourceOption,
+  translation as translationOption,
+} from './options.ts';
 
 interface BundleOptions extends GlobalOptions {
   name?: string;

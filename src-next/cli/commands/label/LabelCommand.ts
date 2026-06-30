@@ -1,6 +1,6 @@
 import type { LabelsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GetLabelService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';

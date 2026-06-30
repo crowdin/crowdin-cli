@@ -1,9 +1,10 @@
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options/configGroups.ts';
+import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetAppService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { force } from './options.ts';
 
 interface UninstallOptions extends GlobalOptions {
   force?: boolean;
@@ -47,14 +48,7 @@ export default class AppCommand {
               description: 'Application identifier',
             },
           ],
-          options: [
-            {
-              name: 'force',
-              type: 'boolean',
-              description: 'Force to uninstall application',
-            },
-            projectConfigGroup,
-          ],
+          options: [force, projectConfigGroup],
           action: this.uninstallAction,
         },
       ],
