@@ -45,11 +45,11 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@bomb.sh/tab": "^0.0.14",
-    "@clack/prompts": "^1.4.0",
-    "@crowdin/crowdin-api-client": "^1.55.4",
+    "@bomb.sh/tab": "^0.0.17",
+    "@clack/prompts": "^1.6.0",
+    "@crowdin/crowdin-api-client": "^1.56.0",
     "@toon-format/toon": "^2.1.0",
-    "adm-zip": "^0.5.17",
+    "adm-zip": "^0.5.18",
     "commander": "^15.0.0",
     "jose": "^6.2.3",
     "yaml": "^2.8.3",
@@ -62,15 +62,15 @@
     "*.ts": "biome check --write"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.4.13",
+    "@biomejs/biome": "^2.5.1",
     "@semantic-release/changelog": "^6.0.3",
     "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
     "@types/adm-zip": "^0.5.8",
     "@types/bun": "latest",
     "husky": "^9.1.7",
-    "lint-staged": "^17.0.5",
-    "semantic-release": "^25.0.2",
+    "lint-staged": "^17.0.8",
+    "semantic-release": "^25.0.5",
     "semantic-release-replace-plugin": "^1.2.7"
   }
 }

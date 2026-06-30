@@ -70,9 +70,7 @@ export function createOutput(options: GlobalOptions) {
       }
     },
     error(message: string): void {
-      if (format === 'text') {
-        console.log(`${colors.red(S_ERROR)}  ${message}`);
-      }
+      console.log(`${colors.red(S_ERROR)}  ${message}`);
     },
     warning(message: string): void {
       if (format === 'text') {
@@ -96,6 +94,14 @@ export function createOutput(options: GlobalOptions) {
 
       if (!this.spinners[identifier]) {
         this.spinners[identifier] = spinner();
+      }
+
+      // clack hardcodes the spinner's error symbol (S_STEP_ERROR); clear it and
+      // render our own symbol line instead so error styling stays consistent.
+      if (operation === 'error') {
+        this.spinners[identifier].clear();
+        this.error(message);
+        return;
       }
 
       this.spinners[identifier][operation](message);

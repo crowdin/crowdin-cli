@@ -37,6 +37,7 @@ export class ProjectService {
       const message = this.getErrorMessage('Failed to fetch project info', error);
 
       this.output.spinner('project', 'error', message);
+
       throw new CliError(message, 1, true);
     }
   }
@@ -56,6 +57,7 @@ export class ProjectService {
       const message = this.getErrorMessage('Failed to fetch projects', error);
 
       this.output.spinner('projects', 'error', message);
+
       throw new CliError(message, 1, true);
     }
   }
