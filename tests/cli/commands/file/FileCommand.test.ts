@@ -9,6 +9,7 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import { FileService } from '@/cli/services/FileService.ts';
+import { LabelService } from '@/cli/services/LabelService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { StorageService } from '@/cli/services/StorageService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
@@ -38,6 +39,7 @@ describe('FileCommand', () => {
   let storageService: StorageService;
   let directoryService: DirectoryService;
   let fileService: FileService;
+  let labelService: LabelService;
   const globalOptions: GlobalOptions = {
     verbose: false,
     config: '',
@@ -51,6 +53,7 @@ describe('FileCommand', () => {
     dest?: string;
     type?: string;
     parserVersion?: string;
+    label?: string[];
   };
 
   const createCommandContext = (options: FileTestOptions, args: string[] = []) => {
@@ -69,6 +72,7 @@ describe('FileCommand', () => {
     storageService = new StorageService(apiClient);
     directoryService = new DirectoryService(apiClient, config.projectId);
     fileService = new FileService(apiClient, output, config.projectId);
+    labelService = new LabelService(apiClient, config.projectId);
 
     commandContext = createCommandContext(globalOptions);
 
@@ -93,6 +97,7 @@ describe('FileCommand', () => {
       async () => storageService,
       async () => directoryService,
       async () => fileService,
+      async () => labelService,
     );
   };
 
@@ -183,6 +188,45 @@ describe('FileCommand', () => {
     });
   });
 
+  test('resolves and attaches label ids when uploading with --label', async () => {
+    const fileCommand = createFileCommand();
+    const localFilePath = join(tempDir, 'remote.json');
+
+    await Bun.write(localFilePath, '{}');
+
+    spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(storageService, 'addStorage').mockResolvedValue({ data: { id: 99 } } as never);
+    const resolveLabelIds = spyOn(labelService, 'resolveLabelIds').mockResolvedValue([7, 8]);
+    const createFile = spyOn(apiClient.sourceFilesApi, 'createFile').mockResolvedValue({ data: { id: 777 } } as never);
+
+    commandContext = createCommandContext({ ...globalOptions, dest: 'remote.json', label: ['ui', 'web'] }, [
+      localFilePath,
+    ]);
+
+    await fileCommand.uploadAction(commandContext);
+
+    expect(resolveLabelIds).toHaveBeenCalledWith(['ui', 'web']);
+    expect(createFile).toHaveBeenCalledWith(123, expect.objectContaining({ attachLabelIds: [7, 8] }));
+  });
+
+  test('does not resolve labels when --label is absent', async () => {
+    const fileCommand = createFileCommand();
+    const localFilePath = join(tempDir, 'remote.json');
+
+    await Bun.write(localFilePath, '{}');
+
+    spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(storageService, 'addStorage').mockResolvedValue({ data: { id: 99 } } as never);
+    const resolveLabelIds = spyOn(labelService, 'resolveLabelIds');
+    spyOn(apiClient.sourceFilesApi, 'createFile').mockResolvedValue({ data: { id: 777 } } as never);
+
+    commandContext = createCommandContext({ ...globalOptions, dest: 'remote.json' }, [localFilePath]);
+
+    await fileCommand.uploadAction(commandContext);
+
+    expect(resolveLabelIds).not.toHaveBeenCalled();
+  });
+
   test('requires file type when parser version provided', async () => {
     const fileCommand = createFileCommand();
 
@@ -230,6 +274,7 @@ describe('FileCommand', () => {
       async () => storageService,
       async () => directoryService,
       async () => mockFileService as never,
+      async () => labelService,
     );
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);

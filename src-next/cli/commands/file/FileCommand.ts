@@ -9,6 +9,7 @@ import type {
   GetConfig,
   GetDirectoryService,
   GetFileService,
+  GetLabelService,
   GetOutput,
   GetProjectService,
   GetStorageService,
@@ -21,6 +22,7 @@ interface UploadFileCommandOptions extends GlobalOptions {
   dest?: string;
   type?: string;
   parserVersion?: string;
+  label?: string[];
 }
 
 export default class FileCommand {
@@ -31,6 +33,7 @@ export default class FileCommand {
     private getStorageService: GetStorageService,
     private getDirectoryService: GetDirectoryService,
     private getFileService: GetFileService,
+    private getLabelService: GetLabelService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -107,6 +110,7 @@ export default class FileCommand {
     const storageService = await this.getStorageService(command);
     const directoryService = await this.getDirectoryService(command);
     const fileService = await this.getFileService(command);
+    const labelService = await this.getLabelService(command);
     const fileType = options.type as SourceFilesModel.FileType | undefined;
     const parserVersion = options.parserVersion ? parseInt(options.parserVersion, 10) : undefined;
 
@@ -143,6 +147,8 @@ export default class FileCommand {
       }
     }
 
+    const labelIds = options.label?.length ? await labelService.resolveLabelIds(options.label) : undefined;
+
     let storage: ResponseObject<UploadStorageModel.Storage>;
 
     try {
@@ -158,6 +164,7 @@ export default class FileCommand {
       directoryId: parentDirectoryId,
       type: fileType,
       parserVersion,
+      attachLabelIds: labelIds,
     });
 
     output.success(`File ${filePath} created`);

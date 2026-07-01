@@ -96,6 +96,7 @@ const fileCommand = new FileCommand(
   getStorageService,
   getDirectoryService,
   getFileService,
+  getLabelService,
 );
 const branchCommand = new BranchCommand(getOutput, getProjectService, getBranchService);
 const autoTranslateCommand = new AutoTranslateCommand(

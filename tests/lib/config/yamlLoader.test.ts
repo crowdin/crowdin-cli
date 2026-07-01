@@ -1,4 +1,5 @@
 import { describe, expect, test } from 'bun:test';
+import InvalidConfigurationError from '@/lib/config/errors/InvalidConfigurationError.ts';
 import { loadFromString } from '@/lib/config/yamlLoader.ts';
 import { ConfigSchema } from '@/lib/config.ts';
 
@@ -129,5 +130,14 @@ files: [
     expect(() => loadFromString(string)).toThrow(
       'You cannot skip strings and files at the same time. Please use one of these parameters instead.',
     );
+  });
+
+  test('wraps malformed YAML syntax as an InvalidConfigurationError', () => {
+    // Unterminated flow sequence -> the YAML parser throws; the loader must surface exit-2 instead.
+    expect(() => loadFromString('files: [ { source: "a"')).toThrow(InvalidConfigurationError);
+  });
+
+  test('rejects an empty config as an InvalidConfigurationError', () => {
+    expect(() => loadFromString('')).toThrow(InvalidConfigurationError);
   });
 });

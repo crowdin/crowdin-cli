@@ -13,7 +13,19 @@ export async function loadFromFile(filePath: string): Promise<Config> {
 }
 
 export function loadFromString(string: string): Config {
-  const config = YAML.parse(string);
+  let config: Record<string, unknown>;
+
+  try {
+    config = YAML.parse(string);
+  } catch (error) {
+    // Java surfaces a broken config file as a validation failure (exit 2); mirror that
+    // instead of leaking the raw YAML parser error.
+    throw new InvalidConfigurationError('Configuration file has invalid YAML syntax.', { cause: error });
+  }
+
+  if (config === null || typeof config !== 'object') {
+    throw new InvalidConfigurationError('Configuration file is empty or malformed.');
+  }
 
   const parsed = ConfigSchema.safeParse({
     projectId: config.project_id,

@@ -72,7 +72,7 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
 
     const parsed = ConfigSchema.safeParse({
       ...rawConfig,
-      ...(apiToken ? { api_token: apiToken } : {}),
+      ...(apiToken ? { apiToken } : {}),
       ...filterUndefined(rawIdentity),
       ...cliOverrides,
     });
