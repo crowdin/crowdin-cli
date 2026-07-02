@@ -38,6 +38,7 @@
     "build-linux": "bun build src-next/cli.ts --compile --target=bun-linux-x64-baseline --outfile dist/crowdin-linux-x64-baseline",
     "build-windows": "bun build src-next/cli.ts --compile --target=bun-windows-x64-modern --outfile dist/crowdin-windows-x64-modern",
     "test": "bun test tests/ e2e/helpers/",
+    "test:coverage": "bun test --coverage tests/ e2e/helpers/",
     "test:e2e": "bun test e2e/suites/ --timeout 120000",
     "format": "biome format --write",
     "lint": "biome lint",

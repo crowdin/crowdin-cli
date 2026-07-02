@@ -1,0 +1,3 @@
+[test]
+coverageReporter = ["text", "lcov"]
+coverageSkipTestFiles = true
