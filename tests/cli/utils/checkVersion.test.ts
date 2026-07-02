@@ -39,6 +39,24 @@ describe('checkNewVersion', () => {
     expect(lines).toHaveLength(0);
   });
 
+  test('stays silent when the remote version is older (semver)', async () => {
+    mockFetch(async () => new Response('4.9.0\n'));
+    const { output, lines } = fakeOutput();
+
+    await checkNewVersion(output, '5.0.0');
+
+    expect(lines).toHaveLength(0);
+  });
+
+  test('stays silent on an unparseable remote version', async () => {
+    mockFetch(async () => new Response('not-a-version\n'));
+    const { output, lines } = fakeOutput();
+
+    await checkNewVersion(output, '5.0.0');
+
+    expect(lines).toHaveLength(0);
+  });
+
   test('stays silent on a non-ok response', async () => {
     mockFetch(async () => new Response('nope', { status: 404 }));
     const { output, lines } = fakeOutput();
