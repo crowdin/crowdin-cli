@@ -19,14 +19,34 @@ describe('expandArgFiles', () => {
     expect(expandArgFiles(['upload', 'sources', '-b', 'main'])).toEqual(['upload', 'sources', '-b', 'main']);
   });
 
-  test('splices file args in place, one per line', () => {
+  test('splices file args in place, newline-separated', () => {
     const path = file('basic.txt', 'upload\nsources\n-b\nmain\n');
-    expect(expandArgFiles(['@' + path, '--verbose'])).toEqual(['upload', 'sources', '-b', 'main', '--verbose']);
+    expect(expandArgFiles([`@${path}`, '--verbose'])).toEqual(['upload', 'sources', '-b', 'main', '--verbose']);
   });
 
-  test('skips empty lines and # comments, keeps inner spaces', () => {
-    const path = file('comments.txt', '# header\n\nupload sources\n  # indented comment\n--config /a b/c.yml\n');
-    expect(expandArgFiles(['@' + path])).toEqual(['upload sources', '--config /a b/c.yml']);
+  test('splits args on whitespace (default picocli mode, not one-per-line)', () => {
+    const path = file('spaced.txt', 'upload sources\t-b   main\n');
+    expect(expandArgFiles([`@${path}`])).toEqual(['upload', 'sources', '-b', 'main']);
+  });
+
+  test('skips empty lines and # comments, including trailing comments', () => {
+    const path = file('comments.txt', '# header\n\nupload sources\n  # indented comment\nedit # trailing\n');
+    expect(expandArgFiles([`@${path}`])).toEqual(['upload', 'sources', 'edit']);
+  });
+
+  test('quotes group whitespace into one arg and are stripped', () => {
+    const path = file('quotes.txt', '--config "/a b/c.yml"\n--name \'foo bar\'\n');
+    expect(expandArgFiles([`@${path}`])).toEqual(['--config', '/a b/c.yml', '--name', 'foo bar']);
+  });
+
+  test('backslash escapes inside quotes; # inside quotes is literal', () => {
+    const path = file('escapes.txt', '"c:\\\\Program Files" "a#b"\n');
+    expect(expandArgFiles([`@${path}`])).toEqual(['c:\\Program Files', 'a#b']);
+  });
+
+  test('quoted empty string is preserved as an empty arg', () => {
+    const path = file('empty.txt', '--title ""\n');
+    expect(expandArgFiles([`@${path}`])).toEqual(['--title', '']);
   });
 
   test('@@ escapes to a literal @arg without reading a file', () => {
@@ -44,15 +64,18 @@ describe('expandArgFiles', () => {
   test('expands nested arg files recursively', () => {
     const inner = file('inner.txt', '-b\nmain\n');
     const outer = file('outer.txt', `upload\n@${inner}\n`);
-    expect(expandArgFiles(['@' + outer])).toEqual(['upload', '-b', 'main']);
+
+    expect(expandArgFiles([`@${outer}`])).toEqual(['upload', '-b', 'main']);
   });
 
   test('breaks reference cycles without infinite recursion', () => {
     const a = join(dir, 'a.txt');
     const b = join(dir, 'b.txt');
+
     writeFileSync(a, `x\n@${b}\n`);
     writeFileSync(b, `y\n@${a}\n`);
+
     // a -> x, then b -> y, then @a is already on the stack so kept literal.
-    expect(expandArgFiles(['@' + a])).toEqual(['x', 'y', '@' + a]);
+    expect(expandArgFiles([`@${a}`])).toEqual(['x', 'y', '@' + a]);
   });
 });
