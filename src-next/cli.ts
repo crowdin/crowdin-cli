@@ -5,16 +5,11 @@ import { buildCommand, buildOption, getHelpConfig } from './cli/builder.ts';
 import { commands } from './cli/commands.ts';
 import CliError, { getExitCode } from './cli/errors/CliError.ts';
 import colorHook from './cli/hooks/color.ts';
+import { description, name, version } from './cli/meta.ts';
 import getGlobalOptions from './cli/options.ts';
 import { expandArgFiles } from './cli/utils/argFiles.ts';
 import { checkNewVersion } from './cli/utils/checkVersion.ts';
 import { createOutput, getOutputFormatFromArgs } from './cli/utils/output.ts';
-
-const name = 'crowdin';
-const version = '5.0.0';
-const description = `Crowdin CLI is a command-line tool that allows you to manage and synchronize 
-localization resources with your Crowdin project.
-Visit the official documentation for more details: https://crowdin.github.io/crowdin-cli`;
 
 function createProgram(): Command {
   const program = new Command();

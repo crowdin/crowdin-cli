@@ -49,7 +49,7 @@ As part of this release, the minimum Java version has been updated to **17 LTS**
 
 ### Pre-translate
 
-We've made significant changes to the [`pre-translate`](/commands/crowdin-pre-translate) command. The command now requires the <kbd>--file</kbd> parameter for file-based projects. The <kbd>--file</kbd> parameter determines which files to pre-translate. Previously, the command relied on the current configuration, and it was only possible to pre-translate the files that matched the configuration patterns. Now you can specify any file(s) in the Crowdin project to pre-translate.
+We've made significant changes to the [`pre-translate`](/commands/crowdin-auto-translate) command. The command now requires the <kbd>--file</kbd> parameter for file-based projects. The <kbd>--file</kbd> parameter determines which files to pre-translate. Previously, the command relied on the current configuration, and it was only possible to pre-translate the files that matched the configuration patterns. Now you can specify any file(s) in the Crowdin project to pre-translate.
 
 Tip: Use the [`file list`](/commands/crowdin-file-list) command to get the file paths in the current project.
 

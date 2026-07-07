@@ -4,7 +4,6 @@ plugins {
     id 'java'
     id 'io.github.goooler.shadow' //TODO find alternative
     id 'jacoco'
-    id 'org.asciidoctor.jvm.convert'
 }
 
 group 'com.crowdin'
@@ -100,13 +99,4 @@ jacocoTestReport {
     }
 
     getExecutionData().setFrom("$buildDir/jacoco/test.exec")
-}
-
-task generateManpageAsciiDoc(type: JavaExec) {
-    dependsOn(classes)
-    group = "Documentation"
-    description = "Generate AsciiDoc manpage"
-    classpath(configurations.compileClasspath, configurations.annotationProcessor, sourceSets.main.runtimeClasspath)
-    main 'picocli.codegen.docgen.manpage.ManPageGenerator'
-    args "com.crowdin.cli.commands.picocli.RootCommand", "--outdir=website/generated-picocli-docs", "-v" //, "--template-dir=website/mantemplates"
 }
