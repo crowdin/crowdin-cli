@@ -174,7 +174,8 @@ export class TranslationService {
         }
 
         if (buildProgress.data.status === 'failed') {
-          throw new CliError('Translations build failed');
+          const errorMessage = buildProgress.data.error?.message;
+          throw new CliError(errorMessage ? `Translations build failed: ${errorMessage}` : 'Translations build failed');
         }
 
         await Bun.sleep(2000);
