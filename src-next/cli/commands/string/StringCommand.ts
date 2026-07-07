@@ -13,25 +13,7 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
-import {
-  context as contextOption,
-  croql as croqlOption,
-  directory as directoryOption,
-  few as fewOption,
-  file as fileOption,
-  filter as filterOption,
-  hidden as hiddenOption,
-  identifier as identifierOption,
-  label as labelOption,
-  many as manyOption,
-  maxLength as maxLengthOption,
-  noHidden as noHiddenOption,
-  one as oneOption,
-  scope as scopeOption,
-  text as textOption,
-  two as twoOption,
-  zero as zeroOption,
-} from './options.ts';
+import { add, edit, list } from './options.ts';
 
 const PLURAL_KEYS = ['one', 'two', 'few', 'many', 'zero'] as const;
 
@@ -82,19 +64,19 @@ export default class StringCommand {
   getDefinition(): CommandDef {
     return {
       name: 'string',
-      description: 'Manage source strings',
+      description: 'Manage source strings in a Crowdin project',
       subcommands: [
         {
           name: 'list',
-          description: 'List project source strings',
+          description: 'Show a list of source strings',
           options: [
-            fileOption,
-            filterOption,
+            list.file,
+            list.filter,
             branch,
-            labelOption,
-            croqlOption,
-            directoryOption,
-            scopeOption,
+            list.label,
+            list.croql,
+            list.directory,
+            list.scope,
             projectConfigGroup,
           ],
           action: this.listAction,
@@ -105,33 +87,33 @@ export default class StringCommand {
           arguments: [
             {
               name: 'text',
-              description: 'Source string text',
+              description: 'Set text for the new source string',
             },
           ],
           options: [
-            identifierOption,
-            maxLengthOption,
-            contextOption,
-            fileOption,
-            labelOption,
+            add.identifier,
+            add.maxLength,
+            add.context,
+            add.file,
+            add.label,
             branch,
-            hiddenOption,
-            oneOption,
-            twoOption,
-            fewOption,
-            manyOption,
-            zeroOption,
+            add.hidden,
+            add.one,
+            add.two,
+            add.few,
+            add.many,
+            add.zero,
             projectConfigGroup,
           ],
           action: this.addAction,
         },
         {
           name: 'delete',
-          description: 'Delete source string by id',
+          description: 'Delete source string',
           arguments: [
             {
               name: 'id',
-              description: 'Numeric source string identifier',
+              description: 'Numeric string identifier',
             },
           ],
           options: [projectConfigGroup],
@@ -139,21 +121,21 @@ export default class StringCommand {
         },
         {
           name: 'edit',
-          description: 'Edit source string by id',
+          description: 'Edit existing source string',
           arguments: [
             {
               name: 'id',
-              description: 'Numeric source string identifier',
+              description: 'Numeric string identifier',
             },
           ],
           options: [
-            identifierOption,
-            textOption,
-            contextOption,
-            maxLengthOption,
-            labelOption,
-            hiddenOption,
-            noHiddenOption,
+            edit.identifier,
+            edit.text,
+            edit.context,
+            edit.maxLength,
+            edit.label,
+            edit.hidden,
+            edit.noHidden,
             projectConfigGroup,
           ],
           action: this.editAction,
@@ -324,7 +306,7 @@ export default class StringCommand {
       labelNames.length > 0;
 
     if (!hasPatch) {
-      throw new CliError('No fields to update. Specify at least one option to edit');
+      throw new CliError('Specify some parameters to edit the string');
     }
 
     if (options.maxLength !== undefined && options.maxLength < 0) {
@@ -338,7 +320,7 @@ export default class StringCommand {
     const patch = this.buildEditPatch(options, labelIds);
     const updated = await stringService.edit(id, patch);
 
-    output.success(`Source string #${id} updated`);
+    output.success(`Source string #${id} was updated successfully`);
     output.table([{ id: updated.id, identifier: updated.identifier ?? '', text: this.extractText(updated) }]);
   };
 
@@ -349,7 +331,7 @@ export default class StringCommand {
     const stringService = await this.getStringService(command);
 
     await stringService.delete(id);
-    output.success(`Source string #${id} deleted`);
+    output.success(`Source string #${id} was deleted successfully`);
   };
 
   private async resolveSingleFileId(

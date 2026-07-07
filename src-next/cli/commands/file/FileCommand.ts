@@ -16,7 +16,7 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
-import { destination, label, parserVersion, type, uploadDest } from './options.ts';
+import { download, upload } from './options.ts';
 
 interface UploadFileCommandOptions extends GlobalOptions {
   dest?: string;
@@ -39,7 +39,7 @@ export default class FileCommand {
   getDefinition(): CommandDef {
     return {
       name: 'file',
-      description: 'Manage source files and translations',
+      description: 'Manage source files and translations in a Crowdin project',
       subcommands: [
         {
           name: 'list',
@@ -56,7 +56,7 @@ export default class FileCommand {
               description: 'Path to file to upload',
             },
           ],
-          options: [label, uploadDest, type, parserVersion, projectConfigGroup],
+          options: [upload.label, upload.dest, upload.type, upload.parserVersion, projectConfigGroup],
           action: this.uploadAction,
         },
         {
@@ -68,7 +68,7 @@ export default class FileCommand {
               description: 'Crowdin file path for download',
             },
           ],
-          options: [destination, projectConfigGroup],
+          options: [download.dest, projectConfigGroup],
           action: this.downloadAction,
         },
         {
@@ -125,7 +125,7 @@ export default class FileCommand {
     }
 
     if (parserVersion !== undefined && fileType === undefined) {
-      throw new CliError('Type is required for parser version');
+      throw new CliError("'--type' is required for '--parser-version' option");
     }
 
     await projectService.loadProject();
@@ -167,7 +167,7 @@ export default class FileCommand {
       attachLabelIds: labelIds,
     });
 
-    output.success(`File ${filePath} created`);
+    output.success(`File '${destPath}'`);
   };
 
   downloadAction = async (command: Command) => {
@@ -199,12 +199,12 @@ export default class FileCommand {
           throw toCliError(error, `Failed to download ${filePath}`);
         }
 
-        output.success(`File ${filePath} downloaded`);
+        output.success(`File '${filePath}'`);
         return;
       }
     }
 
-    throw new CliError(`File ${filePath} not found in the Crowdin project`);
+    throw new CliError(`File '${filePath}' not found in the Crowdin project`);
   };
 
   deleteAction = async (command: Command) => {
@@ -230,11 +230,11 @@ export default class FileCommand {
           throw toCliError(error, `Failed to delete ${filePath}`);
         }
 
-        output.success(`File ${filePath} deleted`);
+        output.success(`File '${filePath}' deleted`);
         return;
       }
     }
 
-    throw new CliError(`File ${filePath} not found`);
+    throw new CliError(`File '${filePath}' not found in the Crowdin project`);
   };
 }

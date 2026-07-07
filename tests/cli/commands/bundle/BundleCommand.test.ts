@@ -358,7 +358,7 @@ describe('BundleCommand', () => {
       const cmd = createBundleCommand(createOutput(textOptions()));
 
       expect(cmd.downloadAction(createCommandContext(textOptions(), ['5']))).rejects.toThrow(
-        new CliError('Failed to build bundle'),
+        new CliError('Failed to build the bundle'),
       );
     });
 

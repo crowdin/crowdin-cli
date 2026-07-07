@@ -126,8 +126,9 @@ function isNewer(latest: string, current: string): boolean {
 
 function buildBanner(currentVersion: string, latest: string): string {
   const lines = [
-    `A new version of Crowdin CLI is available: ${currentVersion} -> ${latest}`,
-    'https://github.com/crowdin/crowdin-cli/releases/latest',
+    `New version of Crowdin CLI is available! ${currentVersion} -> ${latest}`,
+    'Changelog: https://github.com/crowdin/crowdin-cli/releases/latest',
+    'Please update for the best experience!',
   ];
   const width = Math.max(...lines.map((line) => line.length));
   const top = `╭─${'─'.repeat(width)}─╮`;

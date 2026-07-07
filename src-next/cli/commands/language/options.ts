@@ -11,5 +11,6 @@ export const code: OptionDef = {
   type: 'string',
   default: 'id',
   choices: ['id', 'two_letters_code', 'three_letters_code', 'locale', 'android_code', 'osx_code', 'osx_locale'],
-  description: 'The language code format in the output. Default: id',
+  description:
+    'The language code format in the output. Supported values: id, two_letters_code, three_letters_code, locale, android_code',
 };

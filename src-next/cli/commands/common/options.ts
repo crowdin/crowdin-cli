@@ -71,7 +71,7 @@ export const tree: OptionDef = {
   name: 'tree',
   type: 'boolean',
   default: false,
-  description: 'List contents of directories in a tree-like format in dryrun mode',
+  description: 'List contents of directories in a tree-like format',
 };
 
 export const branch: OptionDef = {

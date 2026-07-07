@@ -4,11 +4,11 @@ export const bundleId: OptionDef = {
   name: 'bundle-id',
   type: 'number',
   variadic: true,
-  description: 'Bundle identifier. Can be specified multiple times',
+  description: 'Bundle ID. Can be specified multiple times',
 };
 
 export const name: OptionDef = {
   name: 'name',
   type: 'string',
-  description: 'Distribution name',
+  description: 'New distribution name',
 };

@@ -9,7 +9,7 @@ export const status: OptionDef = {
 export const assigneeId: OptionDef = {
   name: 'assignee-id',
   type: 'number',
-  description: 'Filter by assignee identifier',
+  description: 'List tasks for specified assignee',
 };
 
 export const description: OptionDef = {

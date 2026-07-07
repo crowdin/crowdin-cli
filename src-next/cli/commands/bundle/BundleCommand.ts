@@ -49,7 +49,7 @@ export default class BundleCommand {
   getDefinition(): CommandDef {
     return {
       name: 'bundle',
-      description: 'Manage translation bundles',
+      description: 'Manage bundles',
       subcommands: [
         {
           name: 'list',
@@ -81,11 +81,11 @@ export default class BundleCommand {
         },
         {
           name: 'delete',
-          description: 'Delete bundle by id',
+          description: 'Delete bundle',
           arguments: [
             {
               name: 'id',
-              description: 'Numeric bundle identifier',
+              description: 'Id of the bundle to delete',
             },
           ],
           options: [projectConfigGroup],
@@ -93,11 +93,11 @@ export default class BundleCommand {
         },
         {
           name: 'download',
-          description: 'Download bundle by id',
+          description: 'Download bundle',
           arguments: [
             {
               name: 'id',
-              description: 'Numeric bundle identifier',
+              description: 'Numeric ID of the bundle',
             },
           ],
           options: [keepArchive, dryRun, projectConfigGroup],
@@ -105,11 +105,11 @@ export default class BundleCommand {
         },
         {
           name: 'clone',
-          description: 'Clone bundle by id',
+          description: 'Clone bundle',
           arguments: [
             {
               name: 'id',
-              description: 'Numeric bundle identifier',
+              description: 'Id of the bundle to clone',
             },
           ],
           options: [
@@ -128,11 +128,11 @@ export default class BundleCommand {
         },
         {
           name: 'browse',
-          description: 'Open bundle in browser',
+          description: 'Open bundle in the web browser',
           arguments: [
             {
               name: 'id',
-              description: 'Numeric bundle identifier',
+              description: 'Bundle id',
             },
           ],
           options: [projectConfigGroup],
@@ -239,7 +239,7 @@ export default class BundleCommand {
     while (status.status.toLowerCase() !== 'finished') {
       if (status.status.toLowerCase() === 'failed') {
         output.spinner('bundle-build', 'error', 'Build has failed');
-        throw new CliError('Failed to build bundle');
+        throw new CliError('Failed to build the bundle');
       }
 
       output.spinner('bundle-build', 'message', `Building bundle: ${status.progress}%`);
@@ -255,7 +255,7 @@ export default class BundleCommand {
     const response = await fetch(downloadUrl);
 
     await Bun.write(archivePath, response);
-    output.success(`Bundle #${bundle.id} (${bundle.name}) downloaded`);
+    output.success(`#${bundle.id} '${bundle.name}' has been successfully downloaded`);
 
     const zip = new AdmZip(archivePath);
     const entries = zip.getEntries().filter((entry) => !entry.isDirectory);

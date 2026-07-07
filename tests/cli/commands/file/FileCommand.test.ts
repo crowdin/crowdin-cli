@@ -233,7 +233,7 @@ describe('FileCommand', () => {
     commandContext = createCommandContext({ ...globalOptions, parserVersion: '2' }, ['example.json']);
 
     expect(fileCommand.uploadAction(commandContext)).rejects.toThrow(
-      new CliError('Type is required for parser version'),
+      new CliError("'--type' is required for '--parser-version' option"),
     );
   });
 

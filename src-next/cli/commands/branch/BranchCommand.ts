@@ -7,16 +7,7 @@ import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { GetBranchService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { normalizeBranchName } from '@/cli/utils/parsing.ts';
-import {
-  addPriority,
-  addTitle,
-  deleteAfterMerge,
-  dryrun,
-  editPriority,
-  editTitle,
-  exportPattern,
-  newName,
-} from './options.ts';
+import { add, edit, merge } from './options.ts';
 
 interface AddOptions extends GlobalOptions {
   title?: string;
@@ -62,7 +53,7 @@ export default class BranchCommand {
               description: 'Branch name',
             },
           ],
-          options: [addTitle, exportPattern, addPriority, projectConfigGroup],
+          options: [add.title, add.exportPattern, add.priority, projectConfigGroup],
           action: this.addAction,
         },
         {
@@ -86,7 +77,7 @@ export default class BranchCommand {
               description: 'Branch name',
             },
           ],
-          options: [newName, editTitle, editPriority, projectConfigGroup],
+          options: [edit.name, edit.title, edit.priority, projectConfigGroup],
           action: this.editAction,
         },
         {
@@ -118,7 +109,7 @@ export default class BranchCommand {
               description: 'Target branch name',
             },
           ],
-          options: [dryrun, deleteAfterMerge, projectConfigGroup],
+          options: [merge.dryrun, merge.deleteAfterMerge, projectConfigGroup],
           action: this.mergeAction,
         },
       ],

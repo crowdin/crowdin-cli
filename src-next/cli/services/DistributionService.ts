@@ -50,7 +50,7 @@ export class DistributionService {
     const distribution = distributions.find((entry) => entry.hash === hash);
 
     if (!distribution) {
-      throw new CliError(`Distribution ${hash} not found`);
+      throw new CliError("Couldn't find distribution with the specified hash");
     }
 
     return distribution;

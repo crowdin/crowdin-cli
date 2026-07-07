@@ -28,7 +28,7 @@ export default class ConfigCommand {
       subcommands: [
         {
           name: 'sources',
-          description: 'List files matching wild-card patterns',
+          description: 'List source files that match the wild-card patterns',
           options: [filesConfigGroup],
           action: this.listSourcesAction,
         },
@@ -97,7 +97,7 @@ export default class ConfigCommand {
     try {
       const config = await loadFromFile(configPath);
       await this.validateLanguagesMapping(config, command);
-      output.success('Configuration file looks good');
+      output.success('Your configuration file looks good');
     } catch (error) {
       const message = this.getLintErrorMessage(error);
 

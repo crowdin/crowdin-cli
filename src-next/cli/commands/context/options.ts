@@ -9,46 +9,6 @@ export const to: OptionDef = {
   description: `File path to download the context to. Default: ${DEFAULT_CONTEXT_FILE}`,
 };
 
-export const fileFilter: OptionDef = {
-  name: 'file',
-  short: 'f',
-  type: 'string',
-  variadic: true,
-  description: 'Filter strings by Crowdin file paths (glob) (multiple paths can be specified)',
-};
-
-export const labelFilter: OptionDef = {
-  name: 'label',
-  type: 'string',
-  variadic: true,
-  description: 'Filter strings by labels (multiple labels can be specified)',
-};
-
-export const branchFilter: OptionDef = {
-  name: 'branch',
-  short: 'b',
-  type: 'string',
-  description: 'Filter by branch name',
-};
-
-export const croql: OptionDef = {
-  name: 'croql',
-  type: 'string',
-  description: 'CroQL expression',
-};
-
-export const since: OptionDef = {
-  name: 'since',
-  type: 'string',
-  description: 'Only strings created after this date (YYYY-MM-DD)',
-};
-
-export const status: OptionDef = {
-  name: 'status',
-  type: 'string',
-  description: 'Filter by context status. Supported values: empty, ai, manual',
-};
-
 export const from: OptionDef = {
   name: 'from',
   type: 'string',
@@ -62,44 +22,10 @@ export const overwrite: OptionDef = {
   description: 'Also update strings where ai_context is empty (removes their AI section). Default: false',
 };
 
-export const dryrun: OptionDef = {
-  name: 'dryrun',
-  type: 'boolean',
-  description: 'Preview changes without applying them',
-};
-
-export const resetFile: OptionDef = {
-  name: 'file',
-  short: 'f',
+export const status: OptionDef = {
+  name: 'status',
   type: 'string',
-  variadic: true,
-  description: 'Only reset strings from matching file paths (multiple paths can be specified)',
-};
-
-export const resetLabel: OptionDef = {
-  name: 'label',
-  type: 'string',
-  variadic: true,
-  description: 'Only reset strings from matching labels (multiple labels can be specified)',
-};
-
-export const resetBranch: OptionDef = {
-  name: 'branch',
-  short: 'b',
-  type: 'string',
-  description: 'Only reset strings from matching branch',
-};
-
-export const resetCroql: OptionDef = {
-  name: 'croql',
-  type: 'string',
-  description: 'Only reset strings from matching CroQL expression',
-};
-
-export const resetSince: OptionDef = {
-  name: 'since',
-  type: 'string',
-  description: 'Only reset strings that were created after this date (YYYY-MM-DD)',
+  description: 'Filter by context status. Supported values: empty, ai, manual',
 };
 
 export const all: OptionDef = {
@@ -113,3 +39,69 @@ export const byFile: OptionDef = {
   type: 'boolean',
   description: 'Break down stats per file',
 };
+
+// download + status share the same string-filter set; reset uses its own wording
+// (Java crowdin.context.reset.*). Grouped so each flag's wording sits together.
+export const filter = {
+  file: {
+    name: 'file',
+    short: 'f',
+    type: 'string',
+    variadic: true,
+    description: 'Filter strings by Crowdin file paths (glob) (multiple paths can be specified)',
+  },
+  label: {
+    name: 'label',
+    type: 'string',
+    variadic: true,
+    description: 'Filter strings by labels (multiple labels can be specified)',
+  },
+  branch: {
+    name: 'branch',
+    short: 'b',
+    type: 'string',
+    description: 'Filter by branch name',
+  },
+  croql: {
+    name: 'croql',
+    type: 'string',
+    description: 'CroQL expression',
+  },
+  since: {
+    name: 'since',
+    type: 'string',
+    description: 'Only strings created after this date (YYYY-MM-DD)',
+  },
+} satisfies Record<string, OptionDef>;
+
+export const reset = {
+  file: {
+    name: 'file',
+    short: 'f',
+    type: 'string',
+    variadic: true,
+    description: 'Only reset strings from matching file paths (multiple paths can be specified)',
+  },
+  label: {
+    name: 'label',
+    type: 'string',
+    variadic: true,
+    description: 'Only reset strings from matching labels (multiple labels can be specified)',
+  },
+  branch: {
+    name: 'branch',
+    short: 'b',
+    type: 'string',
+    description: 'Only reset strings from matching branch',
+  },
+  croql: {
+    name: 'croql',
+    type: 'string',
+    description: 'Only reset strings from matching CroQL expression',
+  },
+  since: {
+    name: 'since',
+    type: 'string',
+    description: 'Only reset strings that were created after this date (YYYY-MM-DD)',
+  },
+} satisfies Record<string, OptionDef>;

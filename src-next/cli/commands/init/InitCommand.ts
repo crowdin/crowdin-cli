@@ -244,7 +244,7 @@ export default class InitCommand {
     try {
       const project = await apiClient.projectsGroupsApi.getProject(Number(projectId));
 
-      output.spinner('projectValidation', 'stop', 'Project validated successfully');
+      output.spinner('projectValidation', 'stop', 'Validation was successful');
 
       return project;
     } catch (error) {

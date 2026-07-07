@@ -303,7 +303,7 @@ describe('StringCommand', () => {
       const commandContext = createCommandContext(globalOptions, ['15']);
 
       expect(cmd.editAction(commandContext)).rejects.toThrow(
-        new CliError('No fields to update. Specify at least one option to edit'),
+        new CliError('Specify some parameters to edit the string'),
       );
     });
 
@@ -353,7 +353,7 @@ describe('StringCommand', () => {
       await cmd.deleteAction(commandContext);
 
       expect(stringService.delete).toHaveBeenCalledWith(42);
-      expect(successSpy).toHaveBeenCalledWith('Source string #42 deleted');
+      expect(successSpy).toHaveBeenCalledWith('Source string #42 was deleted successfully');
     });
   });
 });

@@ -4,7 +4,7 @@ export const verbose: OptionDef = {
   name: 'verbose',
   short: 'v',
   type: 'boolean',
-  description: 'Provide more information about command execution',
+  description: 'Provide more information about the command execution',
 };
 
 export const config: OptionDef = {
@@ -18,7 +18,7 @@ export const config: OptionDef = {
 export const identity: OptionDef = {
   name: 'identity',
   type: 'string',
-  description: 'Path to user-specific credentials',
+  description: 'Specify a path to user-specific credentials',
 };
 
 export const noColors: OptionDef = {

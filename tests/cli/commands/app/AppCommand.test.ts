@@ -160,7 +160,7 @@ describe('AppCommand', () => {
 
     expect(appService.findManifestUrl).toHaveBeenCalledWith('github');
     expect(appService.installByManifestUrl).toHaveBeenCalledWith('https://example.com/manifest.json');
-    expect(successSpy).toHaveBeenCalledWith('Application github has been installed');
+    expect(successSpy).toHaveBeenCalledWith('Application has been installed');
   });
 
   test('uninstallAction validates identifier', async () => {
@@ -182,7 +182,7 @@ describe('AppCommand', () => {
     await cmd.uninstallAction(createCommandContext({ ...globalOptions, output: 'text' }, ['github']));
 
     expect(appService.uninstall).toHaveBeenCalledWith('github', false);
-    expect(successSpy).toHaveBeenCalledWith('Application github has been uninstalled');
+    expect(successSpy).toHaveBeenCalledWith('Application has been uninstalled');
   });
 
   test('uninstallAction uninstalls app with --force', async () => {

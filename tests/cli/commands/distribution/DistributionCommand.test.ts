@@ -141,7 +141,7 @@ describe('DistributionCommand', () => {
     const commandContext = createCommandContext(globalOptions, ['hash-1']);
 
     expect(distributionCommand.editAction(commandContext)).rejects.toThrow(
-      new CliError('Nothing to edit. Specify at least one option: --name, --bundle-id'),
+      new CliError('Specify the parameters to edit the distribution'),
     );
   });
 

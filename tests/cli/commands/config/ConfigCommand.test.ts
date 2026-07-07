@@ -100,7 +100,7 @@ describe('ConfigCommand lint', () => {
     await createConfigCommand().lintAction(createCommandContext({ ...globalOptions, config: configPath }));
 
     expect(supported).toHaveBeenCalled();
-    expect(success).toHaveBeenCalledWith('Configuration file looks good');
+    expect(success).toHaveBeenCalledWith('Your configuration file looks good');
   });
 
   test('fails when a languages_mapping code is not a supported Crowdin language', async () => {
@@ -121,7 +121,7 @@ describe('ConfigCommand lint', () => {
     await createConfigCommand().lintAction(createCommandContext({ ...globalOptions, config: configPath }));
 
     expect(supported).not.toHaveBeenCalled();
-    expect(success).toHaveBeenCalledWith('Configuration file looks good');
+    expect(success).toHaveBeenCalledWith('Your configuration file looks good');
   });
 });
 

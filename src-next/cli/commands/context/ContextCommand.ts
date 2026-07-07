@@ -1,7 +1,7 @@
 import type { PatchRequest, SourceStringsModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { projectConfigGroup } from '@/cli/commands/common/options.ts';
+import { dryRun, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -27,20 +27,11 @@ import { toArray } from '@/cli/utils/parsing.ts';
 import { isPathMatch } from '@/cli/utils/pathMatcher.ts';
 import {
   all as allOption,
-  branchFilter as branchFilterOption,
   byFile as byFileOption,
-  croql as croqlOption,
-  dryrun as dryrunOption,
-  fileFilter as fileFilterOption,
+  filter,
   from as fromOption,
-  labelFilter as labelFilterOption,
   overwrite as overwriteOption,
-  resetBranch as resetBranchOption,
-  resetCroql as resetCroqlOption,
-  resetFile as resetFileOption,
-  resetLabel as resetLabelOption,
-  resetSince as resetSinceOption,
-  since as sinceOption,
+  reset,
   status as statusOption,
   to as toOption,
 } from './options.ts';
@@ -116,11 +107,11 @@ export default class ContextCommand {
           description: 'Download strings context to a separate file for enrichment by AI Agent',
           options: [
             toOption,
-            fileFilterOption,
-            labelFilterOption,
-            branchFilterOption,
-            croqlOption,
-            sinceOption,
+            filter.file,
+            filter.label,
+            filter.branch,
+            filter.croql,
+            filter.since,
             statusOption,
             projectConfigGroup,
           ],
@@ -129,19 +120,19 @@ export default class ContextCommand {
         {
           name: 'upload',
           description: 'Upload strings context',
-          options: [fromOption, overwriteOption, dryrunOption, projectConfigGroup],
+          options: [fromOption, overwriteOption, dryRun, projectConfigGroup],
           action: this.uploadAction,
         },
         {
           name: 'reset',
           description: 'Remove AI-generated context from strings, preserving manual context',
           options: [
-            resetFileOption,
-            resetLabelOption,
-            resetBranchOption,
-            resetCroqlOption,
-            resetSinceOption,
-            dryrunOption,
+            reset.file,
+            reset.label,
+            reset.branch,
+            reset.croql,
+            reset.since,
+            dryRun,
             allOption,
             projectConfigGroup,
           ],
@@ -151,11 +142,11 @@ export default class ContextCommand {
           name: 'status',
           description: 'Show context coverage statistics',
           options: [
-            fileFilterOption,
-            labelFilterOption,
-            branchFilterOption,
-            croqlOption,
-            sinceOption,
+            filter.file,
+            filter.label,
+            filter.branch,
+            filter.croql,
+            filter.since,
             byFileOption,
             projectConfigGroup,
           ],

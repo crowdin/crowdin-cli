@@ -103,19 +103,19 @@ export default class DownloadCommand {
     return {
       name: 'download',
       alias: 'pull',
-      description: 'Download the latest translations from Crowdin',
+      description: 'Download the latest translations from Crowdin to the specified place',
       options: translationsOptions,
       action: this.translationsAction,
       subcommands: [
         {
           name: 'sources',
-          description: 'Download sources from Crowdin',
+          description: 'Download sources from Crowdin to the specified place',
           options: [branch, reviewed, dryRun, filesConfigGroup],
           action: this.sourcesAction,
         },
         {
           name: 'translations',
-          description: 'Download the latest translations from Crowdin',
+          description: 'Download the latest translations from Crowdin to the specified place',
           options: translationsOptions,
           action: this.translationsAction,
         },
@@ -205,7 +205,7 @@ export default class DownloadCommand {
 
           await mkdir(path.dirname(filePath), { recursive: true });
           await Bun.write(filePath, content);
-          output.success(`File ${download.relativePath} downloaded`);
+          output.success(`File '${download.relativePath}'`);
         }
       } finally {
         try {
@@ -226,7 +226,7 @@ export default class DownloadCommand {
 
         await mkdir(path.dirname(filePath), { recursive: true });
         await Bun.write(filePath, response);
-        output.success(`File ${download.relativePath} downloaded`);
+        output.success(`File '${download.relativePath}'`);
       } catch (error) {
         throw toCliError(error, `Failed to download ${download.relativePath}`);
       }
@@ -258,7 +258,7 @@ export default class DownloadCommand {
       options.excludeLanguage &&
       options.excludeLanguage.length > 0
     ) {
-      throw new CliError(`Options '--language' and '--exclude-language' can't be used together`);
+      throw new CliError(`The '--language' and '--exclude-language' options can't be used simultaneously`);
     }
 
     // Java validates/downloads against getProjectLanguages(true) = target languages + the in-context
@@ -275,7 +275,7 @@ export default class DownloadCommand {
     if (options.language && options.language.length > 0) {
       for (const langId of options.language) {
         if (!projectLanguageIds.includes(langId)) {
-          throw new CliError(`Language ${langId} does not exist in project`);
+          throw new CliError(`Language '${langId}' doesn't exist in the project. Try specifying another language code`);
         }
       }
 
@@ -286,7 +286,7 @@ export default class DownloadCommand {
 
       for (const langId of exportLanguages) {
         if (!projectLanguageIds.includes(langId)) {
-          throw new CliError(`Language ${langId} does not exist in project`);
+          throw new CliError(`Language '${langId}' doesn't exist in the project. Try specifying another language code`);
         }
       }
 
@@ -294,7 +294,7 @@ export default class DownloadCommand {
 
       for (const langId of excludeLanguages) {
         if (!projectLanguageIds.includes(langId)) {
-          throw new CliError(`Language ${langId} does not exist in project`);
+          throw new CliError(`Language '${langId}' doesn't exist in the project. Try specifying another language code`);
         }
       }
 

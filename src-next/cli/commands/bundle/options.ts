@@ -3,56 +3,56 @@ import type { OptionDef } from '@/cli/types.ts';
 export const format: OptionDef = {
   name: 'format',
   type: 'string',
-  description: 'Set bundle format',
+  description: 'Defines export file format',
 };
 
 export const source: OptionDef = {
   name: 'source',
   type: 'string',
   variadic: true,
-  description: 'Set source patterns',
+  description: 'Source pattern. Could be specified multiple times',
 };
 
 export const ignore: OptionDef = {
   name: 'ignore',
   type: 'string',
   variadic: true,
-  description: 'Set ignore patterns',
+  description: 'Ignore pattern. Could be specified multiple times',
 };
 
 export const translation: OptionDef = {
   name: 'translation',
   type: 'string',
-  description: 'Set translation export pattern',
+  description: 'Bundle export pattern. Defines bundle name in resulting translations bundle',
 };
 
 export const label: OptionDef = {
   name: 'label',
   type: 'number',
   variadic: true,
-  description: 'Specify label identifiers',
+  description: 'Label identifier. Could be specified multiple times',
 };
 
 export const name: OptionDef = {
   name: 'name',
   type: 'string',
-  description: 'Set bundle name',
+  description: 'Bundle name',
 };
 
 export const includeSourceLanguage: OptionDef = {
   name: 'include-source-language',
   type: 'boolean',
-  description: 'Include source language into bundle',
+  description: 'Add project source language to bundle',
 };
 
 export const includePseudoLanguage: OptionDef = {
   name: 'include-pseudo-language',
   type: 'boolean',
-  description: 'Include pseudo-language into bundle',
+  description: 'Add In-Context pseudo-language to bundle',
 };
 
 export const multilingual: OptionDef = {
   name: 'multilingual',
   type: 'boolean',
-  description: 'Enable multilingual mode',
+  description: 'Export translations in multilingual file',
 };

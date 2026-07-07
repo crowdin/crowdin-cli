@@ -1,105 +1,142 @@
 import type { OptionDef } from '@/cli/types.ts';
 
-export const identifier: OptionDef = {
-  name: 'identifier',
-  type: 'string',
-  description: 'Set custom string identifier',
-};
+// Java uses per-subcommand descriptionKeys (crowdin.string.<sub>.<opt>), so the
+// wording differs between list/add/edit for the same flag. Grouped by subcommand
+// so each flag's per-command wording sits together and drift stays visible.
 
-export const maxLength: OptionDef = {
-  name: 'max-length',
-  type: 'number',
-  description: 'Set maximum translations length',
-};
+// add/edit --label share the same wording (Java `params.label`).
+const labelDescription = 'Attach labels to strings (multiple labels can be specified)';
 
-export const context: OptionDef = {
-  name: 'context',
-  type: 'string',
-  description: 'Set context for translators',
-};
+export const list = {
+  file: {
+    name: 'file',
+    type: 'string',
+    variadic: true,
+    description: 'Filter strings by file path in Crowdin',
+  },
+  filter: {
+    name: 'filter',
+    type: 'string',
+    description: 'Filter strings by identifier, text or context',
+  },
+  croql: {
+    name: 'croql',
+    type: 'string',
+    description: 'Filter strings by CroQL expression',
+  },
+  directory: {
+    name: 'directory',
+    type: 'string',
+    description: "Path to the directory in Crowdin to filter strings (can't be used together with file or branch)",
+  },
+  scope: {
+    name: 'scope',
+    type: 'string',
+    description: 'Specify field to be the target of filtering. It can be one scope or a list of comma-separated scopes',
+  },
+  label: {
+    name: 'label',
+    type: 'string',
+    variadic: true,
+    description: 'Filter strings by labels (multiple labels can be specified)',
+  },
+} satisfies Record<string, OptionDef>;
 
-export const file: OptionDef = {
-  name: 'file',
-  type: 'string',
-  variadic: true,
-  description: 'Set file paths in project',
-};
+export const add = {
+  identifier: {
+    name: 'identifier',
+    type: 'string',
+    description: 'Set an identifier for the new source string',
+  },
+  maxLength: {
+    name: 'max-length',
+    type: 'number',
+    description: 'Set a max. length of the translated text for the new source string',
+  },
+  context: {
+    name: 'context',
+    type: 'string',
+    description: 'Add a context for the new source string',
+  },
+  file: {
+    name: 'file',
+    type: 'string',
+    variadic: true,
+    description: 'Specify a file path to add the new source string to. Multiple files can be specified',
+  },
+  label: {
+    name: 'label',
+    type: 'string',
+    variadic: true,
+    description: labelDescription,
+  },
+  hidden: {
+    name: 'hidden',
+    type: 'boolean',
+    description: 'Specifies whether the added strings should be hidden or not',
+  },
+  one: {
+    name: 'one',
+    type: 'string',
+    description: 'Plural form one (singular)',
+  },
+  two: {
+    name: 'two',
+    type: 'string',
+    description: 'Plural form two (dual)',
+  },
+  few: {
+    name: 'few',
+    type: 'string',
+    description: 'Plural form few (paucal)',
+  },
+  many: {
+    name: 'many',
+    type: 'string',
+    description: 'Plural form many',
+  },
+  zero: {
+    name: 'zero',
+    type: 'string',
+    description: 'Plural form zero',
+  },
+} satisfies Record<string, OptionDef>;
 
-export const label: OptionDef = {
-  name: 'label',
-  type: 'string',
-  variadic: true,
-  description: 'Specify label names',
-};
-
-export const hidden: OptionDef = {
-  name: 'hidden',
-  type: 'boolean',
-  description: 'Mark string as hidden',
-};
-
-export const noHidden: OptionDef = {
-  name: 'no-hidden',
-  type: 'boolean',
-  description: 'Unmark hidden flag',
-};
-
-export const filter: OptionDef = {
-  name: 'filter',
-  type: 'string',
-  description: 'Filter strings by text',
-};
-
-export const croql: OptionDef = {
-  name: 'croql',
-  type: 'string',
-  description: 'Set CROQL query filter',
-};
-
-export const directory: OptionDef = {
-  name: 'directory',
-  type: 'string',
-  description: 'Set directory path',
-};
-
-export const scope: OptionDef = {
-  name: 'scope',
-  type: 'string',
-  description: 'Set search scope',
-};
-
-export const one: OptionDef = {
-  name: 'one',
-  type: 'string',
-  description: 'Plural form for one',
-};
-
-export const two: OptionDef = {
-  name: 'two',
-  type: 'string',
-  description: 'Plural form for two',
-};
-
-export const few: OptionDef = {
-  name: 'few',
-  type: 'string',
-  description: 'Plural form for few',
-};
-
-export const many: OptionDef = {
-  name: 'many',
-  type: 'string',
-  description: 'Plural form for many',
-};
-
-export const zero: OptionDef = {
-  name: 'zero',
-  type: 'string',
-  description: 'Plural form for zero',
-};
-
-export const text: OptionDef = {
-  name: 'text',
-  type: 'string',
-  description: 'Set new string text',
-};
+export const edit = {
+  identifier: {
+    name: 'identifier',
+    type: 'string',
+    description: 'Specify new identifier for the source string',
+  },
+  text: {
+    name: 'text',
+    type: 'string',
+    description: 'Specify new text for the source string',
+  },
+  context: {
+    name: 'context',
+    type: 'string',
+    description: 'Set new context for source string',
+  },
+  maxLength: {
+    name: 'max-length',
+    type: 'number',
+    description: 'Set a new max. length of the translated text for the source string',
+  },
+  label: {
+    name: 'label',
+    type: 'string',
+    variadic: true,
+    description: labelDescription,
+  },
+  hidden: {
+    name: 'hidden',
+    type: 'boolean',
+    description: 'Change the visibility of the source string',
+  },
+  noHidden: {
+    name: 'no-hidden',
+    type: 'boolean',
+    description: 'Unmark hidden flag',
+  },
+} satisfies Record<string, OptionDef>;

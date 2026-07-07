@@ -29,9 +29,29 @@ describe('mapCrowdinError', () => {
   });
 
   test('keeps the contextual fallback message and appends the api message', () => {
+    const error = mapCrowdinError(new CrowdinError('not found', 404, {}), 'Failed to create file readme.md');
+
+    expect(error.message).toBe('Failed to create file readme.md. not found');
+  });
+
+  test('replaces a 401 with the curated auth message (drops the contextual fallback)', () => {
     const error = mapCrowdinError(new CrowdinError('token expired', 401, {}), 'Failed to create file readme.md');
 
-    expect(error.message).toBe('Failed to create file readme.md. token expired');
+    expect(error).toBeInstanceOf(AuthorizationError);
+    expect(error.message).toBe("Couldn't authorize. Check your 'api_token'");
+  });
+
+  test.each([
+    'ECONNREFUSED',
+    'ENOTFOUND',
+    'EAI_AGAIN',
+  ])('maps a wrapped connection error (%s) to the curated base_url hint', (token) => {
+    // A bad base_url arrives as a CrowdinError with code 500 whose message is the raw connection token.
+    const error = mapCrowdinError(new CrowdinError(token, 500, {}), 'Failed to fetch project');
+
+    expect(error.constructor).toBe(CliError);
+    expect(error.exitCode).toBe(ExitCode.GENERIC);
+    expect(error.message).toBe("Invalid url. check your 'base_url'");
   });
 });
 

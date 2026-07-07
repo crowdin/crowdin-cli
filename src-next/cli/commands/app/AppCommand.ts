@@ -92,7 +92,7 @@ export default class AppCommand {
     }
 
     await appService.installByManifestUrl(manifestUrl);
-    output.success(`Application ${identifier} has been installed`);
+    output.success('Application has been installed');
   };
 
   uninstallAction = async (command: Command) => {
@@ -107,6 +107,6 @@ export default class AppCommand {
     const appService = await this.getAppService(command);
 
     await appService.uninstall(identifier, options.force ?? false);
-    output.success(`Application ${identifier} has been uninstalled`);
+    output.success('Application has been uninstalled');
   };
 }

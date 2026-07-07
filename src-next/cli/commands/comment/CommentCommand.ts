@@ -6,7 +6,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetCommentService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { parseNumericId } from '@/cli/utils/parsing.ts';
-import { issueType, language, status, stringId, type as type_ } from './options.ts';
+import { add, list } from './options.ts';
 
 interface AddOptions extends GlobalOptions {
   stringId?: string;
@@ -42,13 +42,13 @@ export default class CommentCommand {
               description: 'String comment text',
             },
           ],
-          options: [stringId, language, type_, issueType, projectConfigGroup],
+          options: [add.stringId, add.language, add.type, add.issueType, projectConfigGroup],
           action: this.addAction,
         },
         {
           name: 'list',
           description: 'List comments',
-          options: [stringId, type_, issueType, status, projectConfigGroup],
+          options: [list.stringId, list.type, list.issueType, list.status, projectConfigGroup],
           action: this.listAction,
         },
         {

@@ -130,7 +130,7 @@ export default class DistributionCommand {
     }
 
     if (patch.length === 0) {
-      throw new CliError('Nothing to edit. Specify at least one option: --name, --bundle-id');
+      throw new CliError('Specify the parameters to edit the distribution');
     }
 
     const output = this.getOutput(command);
@@ -168,12 +168,12 @@ export default class DistributionCommand {
       }
 
       if (release.status?.toLowerCase() === 'failed') {
-        throw new CliError(`Distribution ${hash} release failed`);
+        throw new CliError('Distribution release failed');
       }
 
-      output.spinner('distributionRelease', 'stop', `Distribution ${hash} released`);
+      output.spinner('distributionRelease', 'stop', `Distribution '${hash}' has been successfully released`);
     } catch (error) {
-      output.spinner('distributionRelease', 'error', `Distribution ${hash} release failed`);
+      output.spinner('distributionRelease', 'error', 'Distribution release failed');
       throw error;
     }
   };

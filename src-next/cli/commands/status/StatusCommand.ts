@@ -13,14 +13,7 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
-import {
-  directory,
-  failIfIncompleteProofreading,
-  failIfIncompleteStatus,
-  failIfIncompleteTranslation,
-  file,
-  language,
-} from './options.ts';
+import { directory, file, proofreading, status, translation } from './options.ts';
 
 interface StatusCommandOptions extends GlobalOptions {
   language?: string;
@@ -48,18 +41,18 @@ export default class StatusCommand {
       name: 'status',
       description: 'Show translation and proofreading progress for a project',
       action: this.defaultAction,
-      options: [language, branch, file, directory, failIfIncompleteStatus, projectConfigGroup],
+      options: [status.language, branch, file, directory, status.failIfIncomplete, projectConfigGroup],
       subcommands: [
         {
           name: 'translation',
           description: 'Show translation progress for a project',
-          options: [language, branch, file, directory, failIfIncompleteTranslation, projectConfigGroup],
+          options: [translation.language, branch, file, directory, translation.failIfIncomplete, projectConfigGroup],
           action: this.translationStatusAction,
         },
         {
           name: 'proofreading',
           description: 'Show proofreading progress for a project',
-          options: [language, branch, file, directory, failIfIncompleteProofreading, projectConfigGroup],
+          options: [proofreading.language, branch, file, directory, proofreading.failIfIncomplete, projectConfigGroup],
           action: this.proofreadingStatusAction,
         },
       ],

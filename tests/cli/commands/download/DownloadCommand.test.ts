@@ -164,7 +164,7 @@ describe('DownloadCommand', () => {
       });
 
       expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        new CliError("Options '--language' and '--exclude-language' can't be used together"),
+        new CliError("The '--language' and '--exclude-language' options can't be used simultaneously"),
       );
     });
 
@@ -207,7 +207,7 @@ describe('DownloadCommand', () => {
       });
 
       expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        new CliError('Language es does not exist in project'),
+        new CliError("Language 'es' doesn't exist in the project. Try specifying another language code"),
       );
     });
 
@@ -507,7 +507,7 @@ describe('DownloadCommand', () => {
       } as never);
 
       expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        new CliError('Language xx does not exist in project'),
+        new CliError("Language 'xx' doesn't exist in the project. Try specifying another language code"),
       );
     });
 
