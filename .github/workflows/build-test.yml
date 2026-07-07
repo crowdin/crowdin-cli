@@ -89,25 +89,17 @@ jobs:
           cache: 'npm'
           cache-dependency-path: website/package-lock.json
 
-      - uses: actions/setup-java@v5
+      - uses: oven-sh/setup-bun@v2
         with:
-          distribution: temurin
-          java-version: 17
-          cache: 'gradle'
-
-      - name: Install asciidoctor and pandoc
-        run: |
-          sudo apt install -y asciidoctor
-          wget https://github.com/jgm/pandoc/releases/download/3.1.2/pandoc-3.1.2-1-amd64.deb
-          sudo dpkg -i pandoc-3.1.2-1-amd64.deb
-
-      - name: Generate Docs
-        run: |
-          chmod +x prepare-docs.sh
-          ./prepare-docs.sh
-        shell: bash
+          bun-version: latest
 
       - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Generate Docs
+        run: bun run docs
+
+      - name: Install website dependencies
         working-directory: website
         run: npm ci
 

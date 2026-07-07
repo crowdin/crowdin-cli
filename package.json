@@ -40,6 +40,7 @@
     "test": "bun test tests/ e2e/helpers/",
     "test:coverage": "bun test --coverage tests/ e2e/helpers/",
     "test:e2e": "bun test e2e/suites/ --timeout 120000",
+    "docs": "bun run src-next/scripts/generate-docs.ts",
     "format": "biome format --write",
     "lint": "biome lint",
     "check": "biome check --write",
