@@ -1,12 +1,14 @@
 import path from 'node:path';
 import type { Command } from 'commander';
 import { ZodError, z } from 'zod';
-import { filesConfigGroup } from '@/cli/commands/common/options.ts';
+import { filesConfigGroup, tree as treeOption } from '@/cli/commands/common/options.ts';
+import ForbiddenError from '@/cli/errors/ForbiddenError.ts';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetConfig, GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { fileTree } from '@/cli/utils/fileTree.ts';
 import FileNotFoundError from '@/lib/common/errors/FileNotFoundError.ts';
 import SourceFileLoader, { commonPath } from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
@@ -29,13 +31,13 @@ export default class ConfigCommand {
         {
           name: 'sources',
           description: 'List source files that match the wild-card patterns',
-          options: [filesConfigGroup],
+          options: [treeOption, filesConfigGroup],
           action: this.listSourcesAction,
         },
         {
           name: 'translations',
           description: 'List translation files that match the wild-card patterns',
-          options: [filesConfigGroup],
+          options: [treeOption, filesConfigGroup],
           action: this.listTranslationsAction,
         },
         {
@@ -67,26 +69,72 @@ export default class ConfigCommand {
       .map((localFilePath) => (localFilePath.startsWith(prefix) ? localFilePath.slice(prefix.length) : localFilePath))
       .sort();
 
+    if (command.optsWithGlobals().tree) {
+      for (const line of fileTree(displayedPaths)) {
+        output.log(line);
+      }
+
+      return;
+    }
+
     output.table(displayedPaths.map((file) => ({ file })));
   };
 
   listTranslationsAction = async (command: Command) => {
+    const options = command.optsWithGlobals();
+    const plainView = options.output === 'plain';
     const config = await this.getConfig(command);
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
     const project = await projectService.loadProject();
+
+    // Only managers/developers get a ProjectSettings response, so its presence is the access probe
+    // (mirrors Java ListTranslationsAction's isManagerAccess guard).
+    if (!('translateDuplicates' in project.data)) {
+      const message = 'You must have manager or developer role in the project to perform this action';
+
+      if (plainView) {
+        throw new ForbiddenError(message, true);
+      }
+
+      output.warning(message);
+      return;
+    }
+
+    // Server-side language mapping and the in-context pseudo-language come from project settings,
+    // matching Java's getLanguageMapping() + getProjectLanguages(withInContextLang=true).
+    const settings = project.data;
+    const serverLanguageMapping = settings.languageMapping;
+    const languages = [...settings.targetLanguages];
+
+    if (settings.inContext && settings.inContextPseudoLanguage) {
+      languages.push(settings.inContextPseudoLanguage);
+    }
+
     const translationPathResolver = new TranslationPathResolver(config);
     const sourceFilePaths = new SourceFileLoader(config).getFilePaths();
-    const translationFilePaths: Array<{ file: string }> = [];
+    const translationFilePaths = new Set<string>();
 
-    for (const targetLanguage of project.data.targetLanguages.sort((a, b) => a.name.localeCompare(b.name))) {
+    for (const targetLanguage of languages) {
       for (const sourceFilePath of sourceFilePaths) {
-        const filePath = translationPathResolver.resolve(Bun.file(sourceFilePath), targetLanguage).slice(1);
-        translationFilePaths.push({ file: filePath });
+        const filePath = translationPathResolver
+          .resolve(Bun.file(sourceFilePath), targetLanguage, serverLanguageMapping)
+          .slice(1);
+        translationFilePaths.add(filePath);
       }
     }
 
-    output.table(translationFilePaths);
+    const displayedPaths = [...translationFilePaths].sort();
+
+    if (options.tree) {
+      for (const line of fileTree(displayedPaths)) {
+        output.log(line);
+      }
+
+      return;
+    }
+
+    output.table(displayedPaths.map((file) => ({ file })));
   };
 
   lintAction = async (command: Command) => {
@@ -96,7 +144,16 @@ export default class ConfigCommand {
 
     try {
       const config = await loadFromFile(configPath);
+
+      // Without an explicit base_path, source patterns resolve relative to the config file's
+      // directory (mirrors Java's CONFIG_FILE_PATH base), so the on-disk source check is accurate.
+      if (config.basePath === '.') {
+        config.basePath = path.dirname(configPath);
+      }
+
+      this.checkSourceFilesExist(config);
       await this.validateLanguagesMapping(config, command);
+
       output.success('Your configuration file looks good');
     } catch (error) {
       const message = this.getLintErrorMessage(error);
@@ -111,6 +168,20 @@ export default class ConfigCommand {
       throw new ValidationError(message, true);
     }
   };
+
+  // Lint-only check: every `source` pattern must match at least one file on disk
+  // (mirrors Java PropertiesWithFiles.checkSourceFilesExist, gated to CheckType.LINT).
+  private checkSourceFilesExist(config: Config): void {
+    const loader = new SourceFileLoader(config);
+
+    for (const file of config.files) {
+      if (loader.getFilePathsForPattern(file.source, file.ignore).length === 0) {
+        throw new Error(
+          `No source files found for '${file.source}' pattern. Verify the path exists and matches files in your project`,
+        );
+      }
+    }
+  }
 
   // Lint-only check: every `languages_mapping` source-language key must be a real Crowdin language id
   // (mirrors Java PropertiesWithFiles.checkProperties, which validates against listSupportedLanguages).
