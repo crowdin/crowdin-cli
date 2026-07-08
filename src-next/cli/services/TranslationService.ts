@@ -79,11 +79,38 @@ export class TranslationService {
     }
   }
 
+  async importXliffTranslation(storageId: number, languageIds: string[], filePath: string) {
+    try {
+      await this.apiClient.translationsApi.importTranslations(this.projectId, {
+        storageId,
+        languageIds,
+      });
+    } catch (error) {
+      if (isWrongLanguageError(error)) {
+        throw new WrongLanguageError();
+      }
+
+      throw toCliError(error, `Failed to import translations for file ${filePath}`);
+    }
+  }
+
   async getImportTranslationsStatus(importId: string) {
     try {
       return await this.apiClient.translationsApi.importTranslationsStatus(this.projectId, importId);
     } catch (error) {
       throw toCliError(error, 'Failed to get import translations status');
+    }
+  }
+
+  async buildProjectFileTranslation(fileId: number, targetLanguageId: string): Promise<string> {
+    try {
+      const response = await this.apiClient.translationsApi.buildProjectFileTranslation(this.projectId, fileId, {
+        targetLanguageId,
+      });
+
+      return response.data.url;
+    } catch (error) {
+      throw toCliError(error, `Failed to build file translation for language ${targetLanguageId}`);
     }
   }
 
