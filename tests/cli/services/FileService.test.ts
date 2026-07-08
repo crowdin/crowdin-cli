@@ -1,8 +1,10 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
 import { Client, CrowdinError } from '@crowdin/crowdin-api-client';
 import CliError from '@/cli/errors/CliError.ts';
+import FileExistsError from '@/cli/errors/FileExistsError.ts';
+import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import { FileExistsError, FileInUpdateError, FileService } from '@/cli/services/FileService.ts';
+import { FileService } from '@/cli/services/FileService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 
 const PROJECT_ID = 123;

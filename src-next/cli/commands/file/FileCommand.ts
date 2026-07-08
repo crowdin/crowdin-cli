@@ -6,10 +6,11 @@ import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch as branchOption, projectConfigGroup, tree as treeOption } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
+import FileExistsError from '@/cli/errors/FileExistsError.ts';
+import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
+import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import { FileExistsError, FileInUpdateError } from '@/cli/services/FileService.ts';
-import { WrongLanguageError } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
   GetConfig,

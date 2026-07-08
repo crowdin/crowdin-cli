@@ -1,22 +1,8 @@
-import { type Client, CrowdinError, type TranslationsModel } from '@crowdin/crowdin-api-client';
+import type { Client, TranslationsModel } from '@crowdin/crowdin-api-client';
 import CliError from '../errors/CliError.ts';
 import { toCliError } from '../errors/toCliError.ts';
+import WrongLanguageError from '../errors/WrongLanguageError.ts';
 import type { Output } from '../utils/output.ts';
-
-// The API rejects an import when the storage file's detected language does not match the
-// requested target language. Java's CrowdinProjectClient matches this on the message prefix.
-const WRONG_LANGUAGE_MESSAGE_PREFIX = 'File is not allowed for the';
-
-export class WrongLanguageError extends Error {
-  constructor() {
-    super('File is not allowed for the requested target language');
-    this.name = 'WrongLanguageError';
-  }
-}
-
-function isWrongLanguageError(error: unknown): boolean {
-  return error instanceof CrowdinError && error.message.startsWith(WRONG_LANGUAGE_MESSAGE_PREFIX);
-}
 
 export class TranslationService {
   constructor(
@@ -44,7 +30,7 @@ export class TranslationService {
         translateHidden,
       });
     } catch (error) {
-      if (isWrongLanguageError(error)) {
+      if (WrongLanguageError.matches(error)) {
         throw new WrongLanguageError();
       }
 
@@ -71,7 +57,7 @@ export class TranslationService {
         translateHidden,
       });
     } catch (error) {
-      if (isWrongLanguageError(error)) {
+      if (WrongLanguageError.matches(error)) {
         throw new WrongLanguageError();
       }
 
@@ -86,7 +72,7 @@ export class TranslationService {
         languageIds,
       });
     } catch (error) {
-      if (isWrongLanguageError(error)) {
+      if (WrongLanguageError.matches(error)) {
         throw new WrongLanguageError();
       }
 

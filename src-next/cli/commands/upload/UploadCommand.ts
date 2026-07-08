@@ -3,9 +3,10 @@ import type { LanguagesModel, ResponseObject, SourceFilesModel, SourceStringsMod
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
+import FileExistsError from '@/cli/errors/FileExistsError.ts';
+import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
+import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
 import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
-import { FileExistsError, FileInUpdateError } from '@/cli/services/FileService.ts';
-import { WrongLanguageError } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
   GetConfig,
