@@ -29,6 +29,7 @@ import type { Config } from '@/lib/config.ts';
 import { buildAllProjectTranslations, sortOmittedFiles } from '@/lib/download/projectTranslations.ts';
 import { buildTranslationMapping } from '@/lib/download/translationMapping.ts';
 import { originalPath } from '@/lib/export/patterns.ts';
+import { hasManagerAccess } from '@/lib/project/access.ts';
 import { prepareDest } from '@/lib/upload/fileOptions.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
 import { branch, dryRun, filesConfigGroup, tree } from '../common/options.ts';
@@ -154,7 +155,7 @@ export default class DownloadCommand {
 
     const branchId = await this.resolveBranchId(options.branch, branchService);
     const projectFiles = await fileService.loadProjectFiles(branchId);
-    const downloads = this.collectSourceDownloads(config, projectFiles.data, this.isManagerAccess(project), output);
+    const downloads = this.collectSourceDownloads(config, projectFiles.data, hasManagerAccess(project), output);
 
     if (options.dryrun) {
       for (const download of downloads) {
@@ -247,7 +248,7 @@ export default class DownloadCommand {
       throw new CliError('File management is not available for string-based projects');
     }
 
-    if (!this.isManagerAccess(project)) {
+    if (!hasManagerAccess(project)) {
       output.warning('You must have manager or developer role in the project to perform this action');
       return;
     }
@@ -311,8 +312,7 @@ export default class DownloadCommand {
       resolvedLanguages = forLanguages;
     }
 
-    const serverLanguageMapping = 'languageMapping' in project.data ? project.data.languageMapping : undefined;
-
+    const serverLanguageMapping = hasManagerAccess(project) ? project.data.languageMapping : undefined;
     const branchId = await this.resolveBranchId(options.branch, branchService);
 
     if (options.dryrun) {
@@ -671,12 +671,6 @@ export default class DownloadCommand {
 
       output.log(faqLink);
     }
-  }
-
-  private isManagerAccess(
-    project: ResponseObject<ProjectsGroupsModel.Project | ProjectsGroupsModel.ProjectSettings>,
-  ): boolean {
-    return 'languageMapping' in project.data;
   }
 
   /**

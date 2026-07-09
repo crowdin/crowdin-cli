@@ -8,3 +8,11 @@
 export function toPosixPath(path: string): string {
   return path.replaceAll('\\', '/');
 }
+
+/**
+ * Ensures a Crowdin project path is absolute (leading '/'), the form the API and
+ * path comparisons expect.
+ */
+export function toProjectPath(filePath: string): string {
+  return filePath.startsWith('/') ? filePath : `/${filePath}`;
+}

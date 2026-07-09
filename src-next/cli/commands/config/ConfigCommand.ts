@@ -8,7 +8,7 @@ import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetConfig, GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { fileTree } from '@/cli/utils/fileTree.ts';
+import { printFileTree } from '@/cli/utils/fileTree.ts';
 import FileNotFoundError from '@/lib/common/errors/FileNotFoundError.ts';
 import SourceFileLoader, { commonPath } from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
@@ -70,10 +70,7 @@ export default class ConfigCommand {
       .sort();
 
     if (command.optsWithGlobals().tree) {
-      for (const line of fileTree(displayedPaths)) {
-        output.log(line);
-      }
-
+      printFileTree(displayedPaths, output);
       return;
     }
 
@@ -127,10 +124,7 @@ export default class ConfigCommand {
     const displayedPaths = [...translationFilePaths].sort();
 
     if (options.tree) {
-      for (const line of fileTree(displayedPaths)) {
-        output.log(line);
-      }
-
+      printFileTree(displayedPaths, output);
       return;
     }
 

@@ -111,6 +111,27 @@ function omitUndefined<T extends Record<string, unknown>>(value: T): T | undefin
   return Object.keys(result).length > 0 ? result : undefined;
 }
 
+/**
+ * Maps a local source path to its path inside the Crowdin project, mirroring Java's
+ * UploadSourcesAction: an explicit `dest` wins, otherwise the common path is stripped unless
+ * `preserve_hierarchy` is enabled (in which case `commonPath` is empty).
+ */
+export function resolveProjectPath(localFilePath: string, patterns: { dest?: string }, commonPath: string): string {
+  if (patterns.dest) {
+    return prepareDest(patterns.dest, localFilePath);
+  }
+
+  if (commonPath && localFilePath.startsWith(commonPath)) {
+    return localFilePath.slice(commonPath.length);
+  }
+
+  return localFilePath;
+}
+
+export function resolveContextPath(pattern: string, localFilePath: string): string {
+  return replaceFileDependentPlaceholders(pattern, localFilePath);
+}
+
 export function replaceFileDependentPlaceholders(pattern: string, localFilePath: string): string {
   const parsed = path.parse(localFilePath);
 
@@ -128,10 +149,6 @@ export function replaceFileDependentPlaceholders(pattern: string, localFilePath:
         return match;
     }
   });
-}
-
-export function resolveContextPath(pattern: string, localFilePath: string): string {
-  return replaceFileDependentPlaceholders(pattern, localFilePath);
 }
 
 /**

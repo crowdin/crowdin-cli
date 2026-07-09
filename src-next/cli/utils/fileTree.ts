@@ -1,4 +1,5 @@
 import { toPosixPath } from '@/lib/utils/path.ts';
+import type { Output } from './output.ts';
 
 const ELEM = '├─ ';
 const LAST_ELEM = '╰─ ';
@@ -53,4 +54,10 @@ export function fileTree(filePaths: string[]): string[] {
   }
 
   return lines;
+}
+
+export function printFileTree(filePaths: string[], output: Output) {
+  for (const line of fileTree(filePaths)) {
+    output.log(line);
+  }
 }

@@ -24,8 +24,9 @@ import type {
   GetTranslationService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { fileTree } from '@/cli/utils/fileTree.ts';
+import { printFileTree } from '@/cli/utils/fileTree.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
+import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { pollUntilFinished } from '@/lib/upload/pollUpload.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
@@ -144,10 +145,10 @@ export default class FileCommand {
     const files = projectFiles.data.map((file) => ({ id: file.data.id, path: file.data.path.replace(/^\/+/, '') }));
 
     if (options.tree) {
-      for (const line of fileTree(files.map((file) => file.path))) {
-        output.log(line);
-      }
-
+      printFileTree(
+        files.map((file) => file.path),
+        output,
+      );
       return;
     }
 
@@ -305,7 +306,7 @@ export default class FileCommand {
     const languageId = options.language as string;
 
     // Manager/developer role is exposed as `languageMapping` only on the settings-bearing response.
-    if (!('languageMapping' in project.data)) {
+    if (!hasManagerAccess(project)) {
       output.warning('You must have manager or developer role in the project to perform this action');
       return;
     }
@@ -483,7 +484,7 @@ export default class FileCommand {
       return;
     }
 
-    if (!('languageMapping' in project.data)) {
+    if (!hasManagerAccess(project)) {
       output.warning('You must have manager or developer role in the project to perform this action');
       return;
     }
@@ -532,7 +533,7 @@ export default class FileCommand {
       return;
     }
 
-    if (!('languageMapping' in project.data)) {
+    if (!hasManagerAccess(project)) {
       output.warning('You must have manager or developer role in the project to perform this action');
       return;
     }
