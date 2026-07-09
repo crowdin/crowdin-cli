@@ -5,6 +5,7 @@ import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
 import FileExistsError from '@/cli/errors/FileExistsError.ts';
 import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
 import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import type {
   GetBranchService,
@@ -34,10 +35,10 @@ import { deleteObsoleteProjectEntries } from '@/lib/upload/obsoleteEntries.ts';
 import { pollUntilFinished } from '@/lib/upload/pollUpload.ts';
 import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
-import { toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
+import { toPosixPath, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
 
-interface UploadSourcesOptions {
+interface UploadSourcesOptions extends GlobalOptions {
   branch?: string;
   label?: string[];
   deleteObsolete?: boolean;
@@ -149,6 +150,16 @@ export default class UploadSourcesCommand {
         output,
       );
 
+      return;
+    }
+
+    // Java DryrunSources plain view: bare sorted source paths, one per line (no per-file messages).
+    if (options.dryrun && options.output === 'plain') {
+      const paths = toSortedRelativePaths(
+        patternFilePaths.flatMap(({ files }) => files.map(({ localFilePath }) => localFilePath)),
+      );
+
+      output.table(paths);
       return;
     }
 

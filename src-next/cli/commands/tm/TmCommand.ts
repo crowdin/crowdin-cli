@@ -96,17 +96,13 @@ export default class TmCommand {
     const tmService = await this.getTmService(command);
     const tms = await tmService.list();
 
-    if (tms.length === 0) {
-      output.success('No translation memories found');
-      return;
-    }
-
-    output.table(
+    output.list(
       tms.map((tm) => ({
         id: tm.id,
         name: tm.name,
         segments: tm.segmentsCount,
       })),
+      { empty: 'No translation memories found', plainColumns: ['name'] },
     );
   };
 

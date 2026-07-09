@@ -124,6 +124,8 @@ export default class TaskCommand {
           words: task.wordsCount ?? '',
           deadline: task.deadline ? String(task.deadline) : 'NoDueDate',
         })),
+        undefined,
+        ['id', 'title'],
       );
       return;
     }
@@ -134,6 +136,8 @@ export default class TaskCommand {
         languageId: task.targetLanguageId ?? '',
         title: task.title,
       })),
+      undefined,
+      ['id', 'title'],
     );
   };
 

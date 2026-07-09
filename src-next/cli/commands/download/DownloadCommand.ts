@@ -31,7 +31,7 @@ import { buildTranslationMapping } from '@/lib/download/translationMapping.ts';
 import { originalPath } from '@/lib/export/patterns.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { prepareDest } from '@/lib/upload/fileOptions.ts';
-import { toPosixPath } from '@/lib/utils/path.ts';
+import { stripLeadingSlashes, toPosixPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
 import { branch, dryRun, filesConfigGroup, tree } from '../common/options.ts';
 import {
   all,
@@ -158,8 +158,15 @@ export default class DownloadCommand {
     const downloads = this.collectSourceDownloads(config, projectFiles.data, hasManagerAccess(project), output);
 
     if (options.dryrun) {
-      for (const download of downloads) {
-        output.log(download.relativePath);
+      // Java Dryrun: slash-strip + sort the paths; plain view prints them bare (no icon/message).
+      const paths = toSortedRelativePaths(downloads.map((download) => download.relativePath));
+
+      if (options.output === 'plain') {
+        output.table(paths);
+      } else {
+        for (const relativePath of paths) {
+          output.log(relativePath);
+        }
       }
 
       return;
@@ -186,7 +193,7 @@ export default class DownloadCommand {
             continue;
           }
 
-          const name = toPosixPath(entry.entryName).replace(/^\//, '');
+          const name = stripLeadingSlashes(toPosixPath(entry.entryName));
 
           if (!name.startsWith(`${prefix}/`)) {
             continue;
@@ -323,7 +330,7 @@ export default class DownloadCommand {
       // can drop target languages excluded server-side per file (DryrunTranslations.containsExcludedLanguage).
       const projectFiles = await fileService.loadProjectFiles(branchId);
       const serverSourcePaths = options.all
-        ? projectFiles.data.map((file) => (file.data.path || '').replace(/^\//, ''))
+        ? projectFiles.data.map((file) => stripLeadingSlashes(file.data.path || ''))
         : undefined;
       const excludedTargetLanguagesByPath = this.buildExcludedTargetLanguagesByPath(projectFiles.data);
 
@@ -377,7 +384,7 @@ export default class DownloadCommand {
       }
 
       projectFiles = await fileService.loadProjectFiles(branchId);
-      serverSourcePaths = projectFiles.data.map((file) => (file.data.path || '').replace(/^\//, ''));
+      serverSourcePaths = projectFiles.data.map((file) => stripLeadingSlashes(file.data.path || ''));
     }
 
     const tempDirs: string[] = [];
@@ -428,7 +435,7 @@ export default class DownloadCommand {
             continue;
           }
 
-          const archiveRelPath = toPosixPath(entry.entryName).replace(/^\//, '');
+          const archiveRelPath = stripLeadingSlashes(toPosixPath(entry.entryName));
           const localPath = mapping.byArchivePath.get(archiveRelPath);
 
           // Entries with no config mapping are "omitted" and reported below.
@@ -694,7 +701,7 @@ export default class DownloadCommand {
       const ignore = patterns.ignore ?? [];
 
       const matched = projectFiles.filter((file) => {
-        const relativePath = (file.data.path || '').replace(/^\//, '');
+        const relativePath = stripLeadingSlashes(file.data.path || '');
 
         if (!matchesSourcePattern(relativePath, searchPattern, config.preserveHierarchy)) {
           return false;
@@ -726,7 +733,7 @@ export default class DownloadCommand {
       const sorted = [...matched].sort((a, b) => (a.data.path || '').localeCompare(b.data.path || ''));
 
       for (const file of sorted) {
-        const relativePath = (file.data.path || '').replace(/^\//, '');
+        const relativePath = stripLeadingSlashes(file.data.path || '');
         const destination = this.resolveSourceDestination(patterns, relativePath);
 
         downloads.push({ fileId: file.data.id, relativePath, destination });
@@ -768,7 +775,7 @@ export default class DownloadCommand {
         continue;
       }
 
-      byPath.set(toPosixPath(file.data.path || '').replace(/^\//, ''), excluded);
+      byPath.set(stripLeadingSlashes(toPosixPath(file.data.path || '')), excluded);
     }
 
     return byPath;

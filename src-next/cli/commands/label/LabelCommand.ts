@@ -60,12 +60,7 @@ export default class LabelCommand {
     const labelService = await this.getLabelService(command);
     const labels = await labelService.list();
 
-    if (labels.length === 0) {
-      output.success('No labels found');
-      return;
-    }
-
-    output.table(labels.map(this.toRow));
+    output.list(labels.map(this.toRow), { empty: 'No labels found', plainColumns: ['title'] });
   };
 
   addAction = async (command: Command) => {

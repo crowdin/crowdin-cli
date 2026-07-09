@@ -83,12 +83,7 @@ export default class DistributionCommand {
     const distributionService = await this.getDistributionService(command);
     const distributions = await distributionService.list();
 
-    if (distributions.length === 0) {
-      output.success('No distributions found');
-      return;
-    }
-
-    output.table(distributions.map(this.toRow));
+    output.list(distributions.map(this.toRow), { empty: 'No distributions found', plainColumns: ['hash', 'name'] });
   };
 
   addAction = async (command: Command) => {

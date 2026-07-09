@@ -12,6 +12,7 @@ import type {
   GetProjectService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import type { Output } from '@/cli/utils/output.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
 import { directory, file, proofreading, status, translation } from './options.ts';
 
@@ -175,7 +176,41 @@ export default class StatusCommand {
       this.throwIfIncomplete(show, filteredProgressData);
     }
 
+    if (options.output === 'plain') {
+      this.outputPlainReport(filteredProgressData, show, output);
+      return;
+    }
+
     output.table(progress);
+  }
+
+  private outputPlainReport(data: LanguageProgress[], show: ProgressView, output: Output) {
+    // Java StatusAction plain view: per-language "<lang> <percent>" lines, translated
+    // section then proofread section, each headed only when both are shown (show=all).
+    const lines: string[] = [];
+    const both = show === 'all';
+
+    if (show === 'all' || show === 'translated') {
+      if (both) {
+        lines.push('Translated:');
+      }
+
+      for (const entry of data) {
+        lines.push(`${entry.data.languageId} ${this.getTranslationProgress(entry)}`);
+      }
+    }
+
+    if (show === 'all' || show === 'proofread') {
+      if (both) {
+        lines.push('Proofread:');
+      }
+
+      for (const entry of data) {
+        lines.push(`${entry.data.languageId} ${this.getApprovalProgress(entry)}`);
+      }
+    }
+
+    output.report(lines);
   }
 
   private normalizePath(value: string): string {

@@ -1,5 +1,5 @@
 import CliError from '@/cli/errors/CliError.ts';
-import { toPosixPath } from '@/lib/utils/path.ts';
+import { stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 
 export function parseNumericId(value: string | undefined, entityName: string): number {
   if (!value) {
@@ -44,7 +44,7 @@ export function toNumberArray(value: NumericInput, errorMessage: string): number
 }
 
 export function normalizePath(value: string): string {
-  return `/${toPosixPath(value).replace(/^\/+/, '')}`;
+  return `/${stripLeadingSlashes(toPosixPath(value))}`;
 }
 
 // Symbols that are not allowed in Crowdin branch names are replaced with dots

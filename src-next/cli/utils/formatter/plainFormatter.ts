@@ -1,9 +1,18 @@
-export function formatPlain(data: unknown): string {
+export function formatPlain(data: unknown, cols?: string[]): string {
   if (Array.isArray(data)) {
-    return data.map((item) => plainValue(item)).join('\n');
+    return data.map((item) => plainRow(item, cols)).join('\n');
   }
 
-  return plainValue(data);
+  return plainRow(data, cols);
+}
+
+function plainRow(value: unknown, cols?: string[]): string {
+  if (cols && value !== null && typeof value === 'object' && !Array.isArray(value)) {
+    const row = value as Record<string, unknown>;
+    return cols.map((key) => String(row[key] ?? '')).join(' ');
+  }
+
+  return plainValue(value);
 }
 
 function plainValue(value: unknown): string {

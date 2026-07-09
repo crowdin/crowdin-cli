@@ -39,6 +39,7 @@ import {
 const BATCH_SIZE = 100;
 const SINCE_FORMAT = /^\d{4}-\d{2}-\d{2}$/;
 const AVAILABLE_STATUSES = ['empty', 'ai', 'manual'];
+const CONTEXT_STATUS_FOOTER = "Run 'crowdin context download --status=empty' to export strings needing context.";
 
 // TODO: Java '--format' (file format) is intentionally not ported: 'jsonl' is the only supported value
 
@@ -298,49 +299,110 @@ export default class ContextCommand {
 
     const output = this.getOutput(command);
     const { project, isStringsBased, strings, filePaths } = await this.fetchFilteredStrings(command, options);
+    const byFile = Boolean(options.byFile) && !isStringsBased;
 
-    output.log(`Context Status for Project "${project.name}" (ID: ${project.id})`);
-    output.log('');
-
-    if (options.byFile && !isStringsBased) {
-      const groupedByFile = new Map<string, SourceStringsModel.String[]>();
-
-      for (const entry of strings) {
-        const path = filePaths.get(entry.fileId) ?? '';
-        const group = groupedByFile.get(path) ?? [];
-
-        group.push(entry);
-        groupedByFile.set(path, group);
-      }
-
-      output.table(
-        [...groupedByFile.entries()].map(([file, group]) => {
-          const stats = this.calculateStats(group);
-
-          return {
-            file,
-            total: stats.total,
-            aiContext: `${stats.withAi} (${stats.withAiPercentage}%)`,
-            missing: stats.total - stats.withAi,
-          };
-        }),
-      );
-    } else {
-      const stats = this.calculateStats(strings);
-
-      output.table([
-        {
-          totalStrings: stats.total,
-          withAiContext: `${stats.withAi} (${stats.withAiPercentage}%)`,
-          withoutAiContext: `${stats.withoutAi} (${stats.withoutAiPercentage}%)`,
-          withManualContext: `${stats.withManual} (${stats.withManualPercentage}%)`,
-        },
-      ]);
+    // Plain view mirrors Java's line-based report (padded columns, no console.table grid).
+    if (options.output === 'plain') {
+      output.report(byFile ? this.byFileReport(project, strings, filePaths) : this.summaryReport(project, strings));
+      return;
     }
 
+    // Text wraps a console.table grid in prose header/footer; json/toon emit the rows only
+    // (output.log is text-gated).
+    output.log(this.reportTitle(project));
     output.log('');
-    output.log("Run 'crowdin context download --status=empty' to export strings needing context.");
+    output.table(byFile ? this.byFileRows(strings, filePaths) : this.summaryRow(strings));
+    output.log('');
+    output.log(CONTEXT_STATUS_FOOTER);
   };
+
+  private groupByFile(
+    strings: SourceStringsModel.String[],
+    filePaths: Map<number, string>,
+  ): Map<string, SourceStringsModel.String[]> {
+    const grouped = new Map<string, SourceStringsModel.String[]>();
+
+    for (const entry of strings) {
+      const path = filePaths.get(entry.fileId) ?? '';
+      const group = grouped.get(path) ?? [];
+
+      group.push(entry);
+      grouped.set(path, group);
+    }
+
+    return grouped;
+  }
+
+  private byFileRows(strings: SourceStringsModel.String[], filePaths: Map<number, string>) {
+    return [...this.groupByFile(strings, filePaths).entries()].map(([file, group]) => {
+      const stats = this.calculateStats(group);
+
+      return {
+        file,
+        total: stats.total,
+        aiContext: `${stats.withAi} (${stats.withAiPercentage}%)`,
+        missing: stats.total - stats.withAi,
+      };
+    });
+  }
+
+  private summaryRow(strings: SourceStringsModel.String[]) {
+    const stats = this.calculateStats(strings);
+
+    return {
+      totalStrings: stats.total,
+      withAiContext: `${stats.withAi} (${stats.withAiPercentage}%)`,
+      withoutAiContext: `${stats.withoutAi} (${stats.withoutAiPercentage}%)`,
+      withManualContext: `${stats.withManual} (${stats.withManualPercentage}%)`,
+    };
+  }
+
+  // Java ContextStatusAction byFile report: columns padded to the longest file path.
+  private byFileReport(
+    project: ProjectsGroupsModel.Project,
+    strings: SourceStringsModel.String[],
+    filePaths: Map<number, string>,
+  ): string[] {
+    const grouped = this.groupByFile(strings, filePaths);
+    const width = Math.max(0, ...[...grouped.keys()].map((path) => path.length));
+    const lines = [
+      this.reportTitle(project),
+      '',
+      `${'File'.padEnd(width)}   ${'Total'.padStart(8)}   ${'AI Context'.padStart(14)}   ${'Missing'.padStart(8)}`,
+    ];
+
+    for (const [path, group] of grouped) {
+      const stats = this.calculateStats(group);
+      const aiContext = `${String(stats.withAi).padStart(6)} (${stats.withAiPercentage}%)`;
+
+      lines.push(
+        `${path.padEnd(width)}   ${String(stats.total).padStart(8)}   ${aiContext}   ${String(stats.total - stats.withAi).padStart(8)}`,
+      );
+    }
+
+    lines.push('', CONTEXT_STATUS_FOOTER);
+
+    return lines;
+  }
+
+  private summaryReport(project: ProjectsGroupsModel.Project, strings: SourceStringsModel.String[]): string[] {
+    const stats = this.calculateStats(strings);
+
+    return [
+      this.reportTitle(project),
+      '',
+      `Total strings:       ${stats.total}`,
+      `With AI context:     ${stats.withAi} (${stats.withAiPercentage}%)`,
+      `Without AI context:  ${stats.withoutAi} (${stats.withoutAiPercentage}%)`,
+      `With manual context: ${stats.withManual} (${stats.withManualPercentage}%)`,
+      '',
+      CONTEXT_STATUS_FOOTER,
+    ];
+  }
+
+  private reportTitle(project: ProjectsGroupsModel.Project): string {
+    return `Context Status for Project "${project.name}" (ID: ${project.id})`;
+  }
 
   private async fetchFilteredStrings(command: Command, options: FilterOptions): Promise<FilteredStrings> {
     const projectService = await this.getProjectService(command);

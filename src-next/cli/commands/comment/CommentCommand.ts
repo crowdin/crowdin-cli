@@ -112,9 +112,8 @@ export default class CommentCommand {
     const options = command.optsWithGlobals() as ListOptions;
     const output = this.getOutput(command);
     const commentService = await this.getCommentService(command);
-
-    let type = options.type as StringCommentsModel.Type | undefined;
     const status = options.status as StringCommentsModel.IssueStatus | undefined;
+    let type = options.type as StringCommentsModel.Type | undefined;
 
     if (status && !type) {
       type = 'issue';

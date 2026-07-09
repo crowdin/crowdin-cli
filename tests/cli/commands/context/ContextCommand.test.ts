@@ -568,14 +568,12 @@ describe('ContextCommand', () => {
         "Run 'crowdin context download --status=empty' to export strings needing context.",
       );
       expect(console.table).toHaveBeenCalledWith(
-        [
-          {
-            totalStrings: 3,
-            withAiContext: '1 (33.33%)',
-            withoutAiContext: '2 (66.67%)',
-            withManualContext: '2 (66.67%)',
-          },
-        ],
+        {
+          totalStrings: 3,
+          withAiContext: '1 (33.33%)',
+          withoutAiContext: '2 (66.67%)',
+          withManualContext: '2 (66.67%)',
+        },
         undefined,
       );
     });
@@ -610,19 +608,18 @@ describe('ContextCommand', () => {
       const command = createContextCommand();
 
       mockProject(1);
+
       stringService.list.mockResolvedValue([createString({ id: 1, context: AI_CONTEXT('manual', 'ai') })]);
 
       await command.statusAction(createCommandContext({ byFile: true }));
 
       expect(console.table).toHaveBeenCalledWith(
-        [
-          {
-            totalStrings: 1,
-            withAiContext: '1 (100.00%)',
-            withoutAiContext: '0 (0.00%)',
-            withManualContext: '1 (100.00%)',
-          },
-        ],
+        {
+          totalStrings: 1,
+          withAiContext: '1 (100.00%)',
+          withoutAiContext: '0 (0.00%)',
+          withManualContext: '1 (100.00%)',
+        },
         undefined,
       );
     });

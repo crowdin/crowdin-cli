@@ -94,12 +94,7 @@ export default class ScreenshotCommand {
     const screenshotService = await this.getScreenshotService(command);
     const screenshots = await screenshotService.list(options.stringId);
 
-    if (screenshots.length === 0) {
-      output.success('No screenshot found');
-      return;
-    }
-
-    output.table(screenshots.map(this.toRow));
+    output.list(screenshots.map(this.toRow), { empty: 'No screenshot found', plainColumns: ['id', 'name'] });
   };
 
   uploadAction = async (command: Command) => {

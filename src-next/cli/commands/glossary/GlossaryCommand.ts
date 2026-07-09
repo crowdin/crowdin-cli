@@ -109,6 +109,8 @@ export default class GlossaryCommand {
             termList: await this.formatTermList(output, glossaryService, glossary),
           })),
         ),
+        undefined,
+        ['name'],
       );
       return;
     }
@@ -119,6 +121,8 @@ export default class GlossaryCommand {
         name: glossary.name,
         terms: glossary.terms,
       })),
+      undefined,
+      ['name'],
     );
   };
 

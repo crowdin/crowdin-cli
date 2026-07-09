@@ -7,6 +7,7 @@ import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { GetBranchService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { normalizeBranchName } from '@/cli/utils/parsing.ts';
+import { stripLeadingSlashes } from '@/lib/utils/path.ts';
 import { add, edit, merge } from './options.ts';
 
 interface AddOptions extends GlobalOptions {
@@ -126,12 +127,7 @@ export default class BranchCommand {
     const branchService = await this.getBranchService(command);
     const branches = await branchService.list();
 
-    if (branches.length === 0) {
-      output.success('No branches found');
-      return;
-    }
-
-    output.table(branches.map(this.toRow));
+    output.list(branches.map(this.toRow), { empty: 'No branches found' });
   };
 
   addAction = async (command: Command) => {
@@ -353,7 +349,7 @@ export default class BranchCommand {
 
   private toRow(branch: SourceFilesModel.Branch): Record<string, unknown> {
     return {
-      name: branch.name.replace(/^[/\\]+/, ''),
+      name: stripLeadingSlashes(branch.name),
       id: branch.id,
     };
   }

@@ -194,6 +194,35 @@ export default class StringCommand {
       const labelsMap = await labelService.listLabelsMap();
       const filePaths = !isStringsBased ? await fileService.listProjectFilePaths(branchId) : new Map<number, string>();
 
+      // Java StringListAction plain verbose: id line, then indented file/labels/context lines.
+      if (options.output === 'plain') {
+        const lines: string[] = [];
+
+        for (const entry of strings) {
+          lines.push(String(entry.id));
+
+          if (!isStringsBased && entry.fileId !== undefined) {
+            lines.push(`\t- file: ${filePaths.get(entry.fileId) ?? ''}`);
+          }
+
+          const labels = (entry.labelIds ?? [])
+            .map((id) => labelsMap.get(id))
+            .filter(Boolean)
+            .join(', ');
+
+          if (labels) {
+            lines.push(`\t- labels: ${labels}`);
+          }
+
+          if (entry.context != null) {
+            lines.push(`\t- context: ${entry.context.trim().replaceAll('\n', '\n\t\t')}`);
+          }
+        }
+
+        output.table(lines);
+        return;
+      }
+
       output.table(
         strings.map((entry) => ({
           id: entry.id,
@@ -206,6 +235,8 @@ export default class StringCommand {
             .join(', '),
           context: entry.context ?? '',
         })),
+        undefined,
+        ['id'],
       );
       return;
     }
@@ -216,6 +247,8 @@ export default class StringCommand {
         identifier: entry.identifier ?? '',
         text: this.extractText(entry),
       })),
+      undefined,
+      ['id'],
     );
   };
 

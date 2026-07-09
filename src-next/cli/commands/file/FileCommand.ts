@@ -29,7 +29,7 @@ import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.t
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { pollUntilFinished } from '@/lib/upload/pollUpload.ts';
-import { toPosixPath } from '@/lib/utils/path.ts';
+import { stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 import { download, upload } from './options.ts';
 
 interface UploadFileCommandOptions extends GlobalOptions {
@@ -142,7 +142,13 @@ export default class FileCommand {
     const branchId = await branchService.resolveBranchId(options.branch);
     const projectFiles = await fileService.loadProjectFiles(branchId);
     // Java strips leading slashes from displayed paths (FileListAction).
-    const files = projectFiles.data.map((file) => ({ id: file.data.id, path: file.data.path.replace(/^\/+/, '') }));
+    const files = projectFiles.data.map((file) => ({
+      id: file.data.id,
+      path: stripLeadingSlashes(file.data.path),
+      type: file.data.type,
+      parserVersion: file.data.parserVersion,
+      revisionId: file.data.revisionId,
+    }));
 
     if (options.tree) {
       printFileTree(
@@ -152,7 +158,9 @@ export default class FileCommand {
       return;
     }
 
-    output.table(files);
+    // Java FileListAction: verbose adds type/parserVersion/revisionId columns.
+    const columns = options.verbose ? ['id', 'path', 'type', 'parserVersion', 'revisionId'] : ['id', 'path'];
+    output.table(files, columns, columns);
   };
 
   uploadAction = async (command: Command) => {
@@ -448,7 +456,7 @@ export default class FileCommand {
         );
         parentId = created.data.id;
         // Java message.directory: "Directory '<path>'" (cumulative path, no leading slash).
-        output.success(`Directory '${cumulative.replace(/^\/+/, '')}'`);
+        output.success(`Directory '${stripLeadingSlashes(cumulative)}'`);
       } catch (error) {
         throw toCliError(error, `Failed to create directory ${segment}`);
       }

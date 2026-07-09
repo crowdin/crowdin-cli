@@ -65,14 +65,9 @@ export default class AppCommand {
     const appService = await this.getAppService(command);
     const apps = await appService.list();
 
-    if (apps.length === 0) {
-      output.success('No applications found');
-      return;
-    }
-
-    output.table(
+    output.list(
       apps.map((app) => ({ identifier: app.identifier, name: app.name })),
-      ['identifier', 'name'],
+      { empty: 'No applications found', tableProperties: ['identifier', 'name'] },
     );
   };
 

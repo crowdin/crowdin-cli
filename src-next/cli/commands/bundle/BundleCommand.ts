@@ -10,7 +10,7 @@ import type { GetBundleService, GetConfig, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
-import { toPosixPath } from '@/lib/utils/path.ts';
+import { stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 import { dryRun } from '../common/options.ts';
 import { keepArchive } from '../download/options.ts';
 import {
@@ -152,12 +152,7 @@ export default class BundleCommand {
     const bundleService = await this.getBundleService(command);
     const bundles = await bundleService.list();
 
-    if (bundles.length === 0) {
-      output.success('No bundles found');
-      return;
-    }
-
-    output.table(bundles.map(this.toRow));
+    output.list(bundles.map(this.toRow), { empty: 'No bundles found', plainColumns: ['id', 'name'] });
   };
 
   addAction = async (command: Command) => {
@@ -263,15 +258,16 @@ export default class BundleCommand {
     if (options.dryrun) {
       // Dry run lists archive contents without writing anything to disk.
       for (const entry of entries) {
-        output.log(toPosixPath(entry.entryName).replace(/^\//, ''));
+        output.log(stripLeadingSlashes(toPosixPath(entry.entryName)));
       }
     } else {
       for (const entry of entries) {
-        const relativePath = toPosixPath(entry.entryName).replace(/^\//, '');
+        const relativePath = stripLeadingSlashes(toPosixPath(entry.entryName));
         const targetPath = path.join(config.basePath, relativePath);
 
         await mkdir(path.dirname(targetPath), { recursive: true });
         await Bun.write(targetPath, entry.getData());
+
         output.success(relativePath);
       }
     }

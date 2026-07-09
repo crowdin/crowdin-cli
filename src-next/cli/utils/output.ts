@@ -41,13 +41,36 @@ export function createOutput(options: GlobalOptions) {
         cancel(message);
       }
     },
-    table(data: unknown, tableProperties?: string[]): void {
+    table(data: unknown, tableProperties?: string[], plainCols?: string[]): void {
       if (format === 'text') {
         console.table(data, tableProperties);
         return;
       }
 
-      console.log(formatData(data, format));
+      console.log(formatData(data, format, plainCols));
+    },
+    list(
+      rows: unknown[],
+      { empty, tableProperties, plainColumns }: { empty: string; tableProperties?: string[]; plainColumns?: string[] },
+    ): void {
+      if (rows.length === 0) {
+        this.success(empty);
+        return;
+      }
+
+      this.table(rows, tableProperties, plainColumns);
+    },
+    // Human-readable, line-based report (e.g. status screens). Prints in text and plain
+    // (plain routes through the formatter so it isn't gated); suppressed in json/toon.
+    report(lines: string[]): void {
+      if (format === 'plain') {
+        console.log(formatData(lines, 'plain'));
+        return;
+      }
+
+      for (const line of lines) {
+        this.log(line);
+      }
     },
     debug(data: string): void {
       if (options.verbose) {
