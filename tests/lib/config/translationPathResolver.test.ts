@@ -125,7 +125,7 @@ describe('translation path resolver', () => {
     await Bun.write(`${basePath}/resources/emails/en/welcome.md`, 'welcome');
 
     for (const { config, file, language, expected } of dataProvider) {
-      const actual = new TranslationPathResolver(config).resolve(Bun.file(file.path), language);
+      const actual = new TranslationPathResolver(config).resolve(Bun.file(file.path), language as never);
 
       expect(actual).toBe(expected);
     }

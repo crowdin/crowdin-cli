@@ -39,7 +39,7 @@ describe('CommentCommand', () => {
   };
 
   beforeEach(() => {
-    apiClient = new Client({ token: config.apiToken });
+    apiClient = new Client({ token: config.apiToken ?? '' });
     output = createOutput(globalOptions);
     commentService = new CommentService(apiClient, config.projectId);
 

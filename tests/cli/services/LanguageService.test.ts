@@ -30,8 +30,8 @@ describe('LanguageService', () => {
       const result = await languageService.listSupportedLanguages();
 
       expect(result).toHaveLength(2);
-      expect(result[0].id).toBe('fr');
-      expect(result[1].name).toBe('German');
+      expect(result[0]!.id).toBe('fr');
+      expect(result[1]!.name).toBe('German');
     });
 
     test('calls withFetchAll().listSupportedLanguages', async () => {

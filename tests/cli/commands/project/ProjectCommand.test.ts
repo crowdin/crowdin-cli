@@ -45,7 +45,7 @@ describe('ProjectCommand', () => {
   };
 
   beforeEach(() => {
-    apiClient = new Client({ token: config.apiToken });
+    apiClient = new Client({ token: config.apiToken ?? '' });
     output = createOutput(globalOptions);
     projectService = new ProjectService(apiClient, output, config.projectId);
     commandContext = createCommandContext(globalOptions);
@@ -181,7 +181,7 @@ describe('ProjectCommand', () => {
   });
 
   test('does not send visibility when adding enterprise project', async () => {
-    const enterpriseApiClient = new Client({ token: config.apiToken, organization: 'acme' });
+    const enterpriseApiClient = new Client({ token: config.apiToken ?? '', organization: 'acme' });
     const enterpriseProjectService = new ProjectService(enterpriseApiClient, output, config.projectId);
     const projectCommand = new ProjectCommand(
       () => output,

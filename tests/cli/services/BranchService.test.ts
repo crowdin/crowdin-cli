@@ -36,7 +36,7 @@ describe('BranchService', () => {
 
       const result = await branchService.getBranch('release');
 
-      expect(result).toEqual({ id: 11, name: 'release' });
+      expect(result).toEqual({ id: 11, name: 'release' } as never);
     });
 
     test('returns undefined when name not found', async () => {
@@ -75,7 +75,7 @@ describe('BranchService', () => {
 
       const result = await branchService.getOrCreateBranch('feat/x');
 
-      expect(result).toEqual({ id: 5, name: 'feat/x' });
+      expect(result).toEqual({ id: 5, name: 'feat/x' } as never);
       expect(createBranch).not.toHaveBeenCalled();
     });
 
@@ -87,7 +87,7 @@ describe('BranchService', () => {
 
       const result = await branchService.getOrCreateBranch('new-branch');
 
-      expect(result).toEqual({ id: 99, name: 'new-branch' });
+      expect(result).toEqual({ id: 99, name: 'new-branch' } as never);
     });
   });
 

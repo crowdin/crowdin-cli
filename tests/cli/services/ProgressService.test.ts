@@ -39,7 +39,7 @@ describe('ProgressService', () => {
       const result = await progressService.loadProjectProgress();
 
       expect(result.data).toHaveLength(1);
-      expect(result.data[0].data.languageId).toBe('fr');
+      expect(result.data[0]!.data.languageId).toBe('fr');
     });
 
     test('throws CliError when API fails', async () => {

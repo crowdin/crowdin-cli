@@ -63,6 +63,12 @@ describe('FileCommand', () => {
     label?: string[];
     branch?: string;
     tree?: boolean;
+    noAutoUpdate?: boolean;
+    cleanupMode?: boolean;
+    updateStrings?: boolean;
+    context?: string;
+    language?: string;
+    xliff?: boolean;
   };
 
   const createCommandContext = (options: FileTestOptions, args: string[] = []) => {
@@ -75,7 +81,7 @@ describe('FileCommand', () => {
   beforeEach(async () => {
     tempDir = await mkdtemp(join(tmpdir(), 'crowdin-file-command-'));
 
-    apiClient = new Client({ token: config.apiToken });
+    apiClient = new Client({ token: config.apiToken ?? '' });
     output = createOutput(globalOptions);
     projectService = new ProjectService(apiClient, output, config.projectId);
     storageService = new StorageService(apiClient);

@@ -72,7 +72,7 @@ describe('DownloadCommand', () => {
   beforeEach(async () => {
     tempDir = await mkdtemp(join(tmpdir(), 'crowdin-download-command-'));
 
-    apiClient = new Client({ token: config.apiToken });
+    apiClient = new Client({ token: config.apiToken ?? '' });
     output = createOutput(globalOptions);
     projectService = new ProjectService(apiClient, output, config.projectId);
     branchService = new BranchService(apiClient, config.projectId);
