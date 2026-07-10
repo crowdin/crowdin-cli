@@ -17,6 +17,10 @@ import patterns from '@/lib/export/patterns.ts';
 import { basePath, baseUrl, noPreserveHierarchy, projectId, source, token, translation } from '../common/options.ts';
 import { destination } from './options.ts';
 
+const CROWDIN_OAUTH_CLIENT_ID = 'wQEqvhU3vLOa2XicmUyT';
+const CROWDIN_OAUTH_HOST = 'localhost';
+const CROWDIN_OAUTH_PORT = 46221;
+
 interface InitCommandOptions extends GlobalOptions {
   destination: string;
   token?: string;
@@ -121,19 +125,17 @@ export default class InitCommand {
       return null;
     }
 
-    const port = 46221;
-    const hostname = 'localhost';
     const authorizationUrl =
       `https://accounts.crowdin.com/oauth/authorize?` +
-      `client_id=${process.env.CROWDIN_OAUTH_CLIENT_ID}&` +
-      `redirect_uri=http://${hostname}:${port}/callback&` +
+      `client_id=${CROWDIN_OAUTH_CLIENT_ID}&` +
+      `redirect_uri=http://${CROWDIN_OAUTH_HOST}:${CROWDIN_OAUTH_PORT}/callback&` +
       `response_type=token&` +
       `scope=project`;
 
     return new Promise<{ accessToken: string; domain: string | null }>((resolve, reject) => {
       const server = Bun.serve({
-        port,
-        hostname,
+        port: CROWDIN_OAUTH_PORT,
+        hostname: CROWDIN_OAUTH_HOST,
         fetch(req) {
           const url = new URL(req.url);
 
