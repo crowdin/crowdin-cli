@@ -23,6 +23,7 @@ import type { Output } from '@/cli/utils/output.ts';
 import { proxyUrlFromEnv } from '@/cli/utils/proxy.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 import type { Config } from '@/lib/config.ts';
+import { buildCredentials } from '@/lib/organization/credentials.ts';
 
 export type GetApiClient = (command: Command) => Promise<Client>;
 export type GetConfig = (command: Command) => Promise<Config>;
@@ -70,10 +71,10 @@ export function createGetApiClient(getConfig: GetConfig) {
       process.env.HTTP_PROXY ??= proxy;
     }
 
-    cachedClient = new Client(
-      { token: config.apiToken },
-      { userAgent: buildUserAgent(), ...(proxy ? { httpClientType: 'fetch' as const } : {}) },
-    );
+    cachedClient = new Client(buildCredentials(config.apiToken, config.baseUrl), {
+      userAgent: buildUserAgent(),
+      ...(proxy ? { httpClientType: 'fetch' as const } : {}),
+    });
 
     return cachedClient;
   };

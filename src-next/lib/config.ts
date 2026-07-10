@@ -6,10 +6,12 @@ export const ConfigSchema = z
     projectId: z.coerce.number().gt(0),
     apiToken: z.string().min(80).optional(),
     basePath: z.string().default('.'),
-    baseUrl: z.url({
-      protocol: /^https?$/,
-      hostname: /crowdin\.com$/,
-    }),
+    baseUrl: z
+      .url({
+        protocol: /^https?$/,
+        hostname: /crowdin\.com$/,
+      })
+      .default('https://api.crowdin.com'),
     preserveHierarchy: z.boolean().default(false),
     ignoreHiddenFiles: z.boolean().default(true),
     exportLanguages: z.array(z.string()).optional(),

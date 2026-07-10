@@ -116,30 +116,6 @@ describe('InitCommand', () => {
     expect(config).toContain('"base_url": "https://enterprise.api.crowdin.com"');
   });
 
-  test('extracts enterprise domain from base url like java implementation', () => {
-    const command = new InitCommand(() => createOutput(globalOptions)) as unknown as {
-      extractEnterpriseDomainFromUrl(baseUrl: string): string | undefined;
-    };
-
-    const cases: Array<[string, string | undefined]> = [
-      ['https://Daanya.crowdin.com', 'Daanya'],
-      ['https://Daanya.api.crowdin.com', 'Daanya'],
-      ['https://crowdin.com', undefined],
-      ['https://api.crowdin.com', undefined],
-      ['https://apicustom.crowdin.com', 'apicustom'],
-      ['https://apicustom.api.crowdin.com', 'apicustom'],
-      ['andriy.crowdin.com', 'andriy'],
-      ['https://organizzzation.daanya.crowdin.dev', 'organizzzation'],
-      ['https://daanya.crowdin.dev', undefined],
-      ['https://98011165-2619304c.test.crowdin.com', undefined],
-      ['https://myorg.e-test.crowdin.com', 'myorg'],
-    ];
-
-    for (const [baseUrl, expected] of cases) {
-      expect(command.extractEnterpriseDomainFromUrl(baseUrl)).toBe(expected);
-    }
-  });
-
   test('does not overwrite existing config file', async () => {
     const globalOptions = {
       verbose: false,

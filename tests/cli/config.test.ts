@@ -72,6 +72,27 @@ describe('createGetConfig', () => {
     expect(config.files).toHaveLength(1);
   });
 
+  test("keeps the config file's base_url when --base-url is not passed", async () => {
+    // Regression: the --base-url option must not carry a default, or it would always
+    // clobber the config file's enterprise base_url and route requests to api.crowdin.com.
+    await Bun.write(
+      configPath,
+      CONFIG_YAML.replace('base_url: https://api.crowdin.com', 'base_url: https://acme.crowdin.com'),
+    );
+
+    const config = await getConfig()(makeCommand({}));
+
+    expect(config.baseUrl).toBe('https://acme.crowdin.com');
+  });
+
+  test('defaults base_url to api.crowdin.com when the config omits it', async () => {
+    await Bun.write(configPath, CONFIG_YAML.replace('base_url: https://api.crowdin.com\n', ''));
+
+    const config = await getConfig()(makeCommand({}));
+
+    expect(config.baseUrl).toBe('https://api.crowdin.com');
+  });
+
   test('CLI overrides win over config file values', async () => {
     const config = await getConfig()(
       makeCommand({ token: ALT_TOKEN, projectId: 222, basePath: '/tmp/base', baseUrl: 'https://acme.crowdin.com' }),

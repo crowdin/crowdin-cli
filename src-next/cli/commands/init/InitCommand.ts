@@ -14,6 +14,7 @@ import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 import { DEFAULT_FILE_NAME, getApiTokenFilePathFor } from '@/lib/apiToken.ts';
 import { generate } from '@/lib/config/yamlGenerator.ts';
 import patterns from '@/lib/export/patterns.ts';
+import { getOrganization } from '@/lib/organization/credentials.ts';
 import { basePath, baseUrl, noPreserveHierarchy, projectId, source, token, translation } from '../common/options.ts';
 import { destination } from './options.ts';
 
@@ -61,7 +62,7 @@ export default class InitCommand {
     }
 
     let apiToken: string | undefined = options.token ?? undefined;
-    let domain: string | undefined = options.baseUrl ? this.extractEnterpriseDomainFromUrl(options.baseUrl) : undefined;
+    let domain: string | undefined = options.baseUrl ? getOrganization(options.baseUrl) : undefined;
 
     if (apiToken === undefined) {
       const authorization = await this.authorizeViaBrowser(output);
@@ -190,18 +191,6 @@ export default class InitCommand {
     this.cancelHandler(domain, output);
 
     return domain as string;
-  }
-
-  private extractEnterpriseDomainFromUrl(baseUrl: string) {
-    const organization = baseUrl
-      .replace(/^https?:?\/?\/?/, '')
-      .replace(/(\.?[^.]+)?\.?crowdin\.dev(\/api\/v2)?\/?$/, '')
-      .replace(/\.?api\./g, '')
-      .replace(/\.?crowdin\.com(\/api\/v2)?\/?$/, '')
-      .replace(/.+\.test$/, '')
-      .replace(/\.e-test$/, '');
-
-    return organization.length === 0 ? undefined : organization;
   }
 
   private async getAuthorizedUser(apiClient: Client, output: Output) {

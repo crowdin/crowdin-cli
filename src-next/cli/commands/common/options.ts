@@ -13,7 +13,6 @@ export const baseUrl: OptionDef = {
   name: 'base-url',
   type: 'string',
   description: 'Base URL of Crowdin server for API requests execution',
-  default: 'https://api.crowdin.com',
 };
 
 export const basePath: OptionDef = {
