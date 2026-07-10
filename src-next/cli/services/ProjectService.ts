@@ -1,5 +1,4 @@
 import type { Client, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
-import CliError from '../errors/CliError.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import type { Output } from '../utils/output.ts';
 
@@ -34,11 +33,12 @@ export class ProjectService {
 
       return project;
     } catch (error) {
-      const message = this.getErrorMessage('Failed to fetch project info', error);
+      const cliError = toCliError(error, 'Failed to fetch project info');
 
-      this.output.spinner('project', 'error', message);
+      this.output.spinner('project', 'error', cliError.message);
 
-      throw new CliError(message, 1, true);
+      cliError.reported = true;
+      throw cliError;
     }
   }
 
@@ -54,19 +54,12 @@ export class ProjectService {
 
       return projects;
     } catch (error) {
-      const message = this.getErrorMessage('Failed to fetch projects', error);
+      const cliError = toCliError(error, 'Failed to fetch projects');
 
-      this.output.spinner('projects', 'error', message);
+      this.output.spinner('projects', 'error', cliError.message);
 
-      throw new CliError(message, 1, true);
+      cliError.reported = true;
+      throw cliError;
     }
-  }
-
-  private getErrorMessage(prefix: string, error: unknown): string {
-    if (error instanceof Error) {
-      return `${prefix}. ${error.message}`;
-    }
-
-    return prefix;
   }
 }

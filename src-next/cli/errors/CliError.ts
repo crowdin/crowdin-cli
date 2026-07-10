@@ -12,7 +12,7 @@ export default class CliError extends Error {
   constructor(
     message: string,
     public readonly exitCode: number = ExitCode.GENERIC,
-    public readonly reported: boolean = false,
+    public reported: boolean = false,
   ) {
     super(message);
     this.name = 'CliError';
