@@ -107,6 +107,22 @@ export default class UploadSourcesCommand {
       return;
     }
 
+    // These options have no effect on strings-based projects (the strings upload request ignores
+    // them), so warn instead of silently doing nothing. Mirrors the existing `context` warning.
+    if (isStringsBasedProject) {
+      if (containsExcludedLanguages) {
+        output.warning("'excluded-languages' option can not be used for string-based projects");
+      }
+
+      if (options.deleteObsolete) {
+        output.warning("'delete-obsolete' option can not be used for string-based projects");
+      }
+
+      if (options.noAutoUpdate) {
+        output.warning("'no-auto-update' option can not be used for string-based projects");
+      }
+    }
+
     this.validateExcludedTargetLanguages(patternFilePaths, project.data.targetLanguages);
 
     // Dry-run divergence: Java delegates `--dryrun` to a separate list action; here it is handled
