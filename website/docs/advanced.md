@@ -37,7 +37,7 @@ There are a few ways to attach labels to the uploaded strings using the Crowdin 
 2. Specify Labels as the [crowdin upload sources](/commands/crowdin-upload-sources) command options:
 
     ```bash
-    crowdin upload sources -s "..." -t "..." --label "main-menu" -- label "application"
+    crowdin upload sources -s "..." -t "..." --label "main-menu" --label "application"
     ```
 
 ### Excluding target languages for uploaded sources
@@ -281,12 +281,12 @@ files: [
 
 ### Ignore hidden files during upload sources
 
-To ignore hidden files during sources upload, add the following to your configuration file:
+By default, Crowdin CLI skips hidden files - and entire hidden directories, such as `.github/` - when uploading sources. This behavior is controlled by the `ignore_hidden_files` setting, which defaults to `true`.
+
+To upload hidden files and directories instead, set it to `false`:
 
 ```yml title="crowdin.yml"
 settings: {
     "ignore_hidden_files": false
 }
 ```
-
-Default value - `true`.

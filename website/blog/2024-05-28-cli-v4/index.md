@@ -33,17 +33,17 @@ As part of this release, the minimum Java version has been updated to **17 LTS**
 
 ## New command options
 
-| <div style={{width:150 + 'px'}}>Command</div> | Option/Description                                                                                                 |
-|-----------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| `init`                                        | <kbd>--quiet</kbd> option to skip interactive input prompts                                                        |
-| `string add`                                  | <kbd>--branch</kbd> option to specify the branch to which the new string should be added                           |
-| `string list`                                 | <kbd>--directory</kbd> and <kbd>--scope</kbd> options to filter strings by directory and scope                     |
-| `pre-translate`                               | <kbd>--file</kbd> option to specify the file(s) in the Crowdin project to pre-translate                            |
-| `pre-translate`                               | <kbd>ai</kbd> method and <kbd>--ai-prompt</kbd> parameter to allow pre-translation via AI                          |
-| `file upload`                                 | <kbd>--type</kbd> and <kbd>--parser-version</kbd> options to specify the file type and parser version respectively |
-| `file upload`                                 | <kbd>--context</kbd> option to provide a context about the whole file                                              |
-| `file list`                                   | <kbd>--verbose</kbd> option to show more information about the files                                               |
-| `language list`                               | <kbd>--all</kbd> option to list all languages for the current account                                              |
+| Command         | Option/Description                                                                                                 |
+|-----------------|--------------------------------------------------------------------------------------------------------------------|
+| `init`          | <kbd>--quiet</kbd> option to skip interactive input prompts                                                        |
+| `string add`    | <kbd>--branch</kbd> option to specify the branch to which the new string should be added                           |
+| `string list`   | <kbd>--directory</kbd> and <kbd>--scope</kbd> options to filter strings by directory and scope                     |
+| `pre-translate` | <kbd>--file</kbd> option to specify the file(s) in the Crowdin project to pre-translate                            |
+| `pre-translate` | <kbd>ai</kbd> method and <kbd>--ai-prompt</kbd> parameter to allow pre-translation via AI                          |
+| `file upload`   | <kbd>--type</kbd> and <kbd>--parser-version</kbd> options to specify the file type and parser version respectively |
+| `file upload`   | <kbd>--context</kbd> option to provide a context about the whole file                                              |
+| `file list`     | <kbd>--verbose</kbd> option to show more information about the files                                               |
+| `language list` | <kbd>--all</kbd> option to list all languages for the current account                                              |
 
 ## Command updates
 

@@ -63,18 +63,3 @@ Empty strings keys appear after translations download for JSON file format ([#45
 **Answer:**
 
 This is caused by using the *Skip untranslated strings* export option when some translations are missing. By default, Crowdin will export these keys but the value will be empty. If you need such untranslated strings to be trimmed completely from the exported JSON files, please [contact](https://crowdin.com/contacts) our Customer Success Service.
-
-### PKIX path building failed
-
-Crowdin CLI fails with an error `Java unable to find valid certification path to api.crowdin.com. ... PKIX path building failed`.
-
-**Answer:**
-
-This is an issue with the certificates and is not related to the CLI. Try the following options:
-
-1) Renew the certificate on your PC: the mentioned errors could be related to the old certificate version;
-2) Try to run the same CLI commands using another PC or laptop;
-3) Run the CLI from the same machine, but fully change the directory and path (as the example: run CLI from another local disk instead of the current one, because there is a chance it's connected with disk permissions);
-4) Connect to another network and try to run the same command;
-
-[**Read more**](https://stackoverflow.com/questions/21076179/pkix-path-building-failed-and-unable-to-find-valid-certification-path-to-requ).

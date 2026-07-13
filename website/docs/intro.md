@@ -4,15 +4,17 @@ slug: /
 
 # Introduction
 
-Welcome to the official documentation site for Crowdin CLI - a powerful command-line tool that simplifies the management of your localization projects on Crowdin. With Crowdin CLI, you can easily upload source files, download translations, and keep your localized content up-to-date with just a few simple commands.
+Welcome to the official documentation site for Crowdin CLI - a fast, dependency-free command-line tool for managing your localization projects on Crowdin. Upload source files, download translations, and keep your localized content up-to-date with just a few simple commands.
 
-So, whether you're looking to streamline your localization process, improve your team's collaboration, or simply save time and effort, Crowdin CLI is the tool for you.
+Crowdin CLI is fast, portable, and easy to automate. It runs the same on your machine and in CI, and its scriptable output fits naturally into build pipelines and AI agent workflows.
 
-- Automate the process of updating your source files in your Crowdin project
+With Crowdin CLI you can:
+
+- Automate updating your source files in your Crowdin project
 - Download translations from Crowdin and automatically save them in the correct locations
 - Upload all your existing translations to Crowdin in minutes
 
-This is a cross-platform, and it runs in a terminal on Linux based and macOS operating systems or in Command Prompt on Windows
+Crowdin CLI is cross-platform: it runs in a terminal on Linux and macOS, or in Command Prompt on Windows.
 
 [![Docker Pulls](https://img.shields.io/docker/pulls/crowdin/cli?logo=docker&cacheSeconds=2000)](https://hub.docker.com/r/crowdin/cli)
 [![npm](https://img.shields.io/npm/dt/@crowdin/cli?logo=npm&cacheSeconds=2000)](https://www.npmjs.com/package/@crowdin/cli)
@@ -30,19 +32,22 @@ This is a cross-platform, and it runs in a terminal on Linux based and macOS ope
 
 ## Features
 
+- Interactive generation of a configuration file
 - Upload source files and existing translations to a Crowdin project
 - Download the latest translations from Crowdin to the specified place
-- Multithreading for source and translation files upload
+- Concurrent upload of source and translation files
 - Show translation and proofreading progress for a project
 - Manage source strings in a Crowdin project
 - Manage glossaries and translation memories
 - Manage tasks in a Crowdin project
 - Manage source files and branches in the current project
-- Run Pre-Translation
+- Machine-readable output for scripts and AI agent workflows
+- Manage project context
+- Run auto-translation via MT, TM, or AI
+- Cached source uploads that skip files unchanged since the last run
+- Polished interactive prompts - select menus, spinners, and graceful cancellation
 - Bash/Zsh command completion
-- Process indicators, loading states, emojis
 - HTTP Proxy support including authorization
-- Interactive generation of a configuration file
 - and more.
 
 ## Usage
@@ -57,14 +62,17 @@ crowdin some-command [CONFIG OPTIONS] [OPTIONS]
 
 Here are the common options for all CLI commands:
 
-| <div style={{width:170 + 'px'}}>Option</div> | Description                                                |
-|----------------------------------------------|------------------------------------------------------------|
-| `-h`, `--help`                               | Show the help message and exit                             |
-| `--no-colors`                                | Disable colors and styles                                  |
-| `--no-progress`                              | Disable progress on executed command                       |
-| `-v`, `--verbose`                            | Show more information on the command execution             |
-| `-V`, `--version`                            | Print version information and exit                         |
-| `--debug`                                    | Provide additional debugging information in case of errors |
+| Option               | Description                                                       |
+|----------------------|-------------------------------------------------------------------|
+| `-h`, `--help`       | Show the help message and exit                                    |
+| `--no-colors`        | Disable colors and styles                                         |
+| `--no-progress`      | Disable progress on executed command                              |
+| `-v`, `--verbose`    | Show more information on the command execution                    |
+| `-V`, `--version`    | Print version information and exit                                |
+| `--debug`            | Provide additional debugging information in case of errors        |
+| `-o`, `--output`=*…* | Change the output format (choices: `json`, `toon`, `plain`)       |
+| `-c`, `--config`=*…* | Specify a path to the configuration file (default: `crowdin.yml`) |
+| `--identity`=*…*     | Specify a path to user-specific credentials                       |
 
 ### Config options
 
@@ -72,20 +80,14 @@ Crowdin CLI config options provide an alternative way to pass options that can b
 
 Here are the common config options for all CLI commands:
 
-| <div style={{width:170 + 'px'}}>Option</div> | Description                                                                                                                                                             |
-|----------------------------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| `-T`, `--token`=*…*                          | Personal Access Token required for authentication                                                                                                                       |
-| `--base-url`=*…*                             | Base URL of Crowdin server for API requests execution (`https://api.crowdin.com` for crowdin.com, `https://{organization-name}.api.crowdin.com` for Crowdin Enterprise) |
-| `--base-path`=*…*                            | Path to your project directory on a local machine (default: `.`)                                                                                                        |
-| `-i`, `--project-id`=*…*                     | Numerical ID of the Crowdin project                                                                                                                                     |
+| Option                   | Description                                                                                                                                                             |
+|--------------------------|-------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
+| `-T`, `--token`=*…*      | Personal Access Token required for authentication                                                                                                                       |
+| `--base-url`=*…*         | Base URL of Crowdin server for API requests execution (`https://api.crowdin.com` for crowdin.com, `https://{organization-name}.api.crowdin.com` for Crowdin Enterprise) |
+| `--base-path`=*…*        | Path to your project directory on a local machine (default: `.`)                                                                                                        |
+| `-i`, `--project-id`=*…* | Numerical ID of the Crowdin project                                                                                                                                     |
 
 Some commands have their own config options.
-
-## Requirements
-
-Check that you have **Java 17** or newer installed. Type `java -version` command in the terminal (Command Prompt on Windows) to check Java version.
-
-If you don’t have Java installed, download it from [Oracle’s website](https://www.oracle.com/java/technologies/downloads/).
 
 ## Further Reading
 

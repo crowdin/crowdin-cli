@@ -9,8 +9,7 @@ crowdin init \
   -i "1" \
   -T "personal-access-token" \
   -s "/locales/**/*" \
-  -t "/%two_letters_code%/%original_file_name%" \
-  --preserve-hierarchy
+  -t "/%two_letters_code%/%original_file_name%"
 ```
 
 As a result, the configuration file will be filled with the passed parameters.
