@@ -11,6 +11,12 @@ const BASE_URL_PATTERNS = [
   /^https:\/\/.+\.e-test\.crowdin\.com$/,
 ];
 
+// Documented config `update_option` values → API enum (Java PropertiesBeanUtils.getUpdateOption).
+const UPDATE_OPTION_MAP = {
+  update_as_unapproved: 'keep_translations',
+  update_without_changes: 'keep_translations_and_approvals',
+} as const;
+
 // Strips a trailing /api, /api/v2, or slash (Java BaseProperties normalizes with removePattern).
 function normalizeBaseUrl(url: string): string {
   return url.replace(/\/(api(\/|\/v2\/?)?)?$/, '');
@@ -79,8 +85,10 @@ export const ConfigSchema = z
         multilingual: coercedBoolean.optional(),
         // Parsed for Java config parity but inert (Java reads `multilingual` only; this field is never consumed).
         multilingual_spreadsheet: coercedBoolean.optional(),
+        // Java parity: only the documented config values are accepted, normalized to the API enum.
         update_option: z
-          .enum(['clear_translations_and_approvals', 'keep_translations', 'keep_translations_and_approvals'])
+          .enum(Object.keys(UPDATE_OPTION_MAP) as [keyof typeof UPDATE_OPTION_MAP])
+          .transform((value) => UPDATE_OPTION_MAP[value])
           .optional(),
         escape_quotes: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]).optional(),
         escape_special_characters: z.union([z.literal(0), z.literal(1)]).optional(),

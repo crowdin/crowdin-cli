@@ -416,7 +416,7 @@ describe('UploadSourcesCommand', () => {
       {
         source: '/src/*.properties',
         escape_quotes: 2,
-        update_option: 'keep_translations_and_approvals',
+        update_option: 'update_without_changes',
       },
     );
 

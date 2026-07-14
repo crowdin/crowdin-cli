@@ -23,7 +23,7 @@ describe('ConfigSchema files[] parity fields', () => {
       baseConfig({
         context: '/context/app.txt',
         scheme: 'identifier,source_phrase,context',
-        update_option: 'keep_translations_and_approvals',
+        update_option: 'update_without_changes',
         escape_quotes: 3,
         escape_special_characters: 1,
         export_quotes: 'double',
@@ -62,6 +62,15 @@ describe('ConfigSchema files[] parity fields', () => {
     const config = ConfigSchema.parse(baseConfig({ scheme: { identifier: 0, source_phrase: 1 } }));
 
     expect(config.files[0]?.scheme).toEqual({ identifier: 0, source_phrase: 1 });
+  });
+
+  test('maps documented Java update_option values to the API enum', () => {
+    expect(ConfigSchema.parse(baseConfig({ update_option: 'update_as_unapproved' })).files[0]?.update_option).toBe(
+      'keep_translations',
+    );
+    expect(ConfigSchema.parse(baseConfig({ update_option: 'update_without_changes' })).files[0]?.update_option).toBe(
+      'keep_translations_and_approvals',
+    );
   });
 
   test('rejects an invalid update_option value', () => {
