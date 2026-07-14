@@ -130,7 +130,7 @@ abstract class CrowdinClientCore {
         } catch (HttpException e) {
             String httpResponse = e.getHttpResponse();
             if (CrowdinJsonTransformer.looksLikeHtml(httpResponse)) {
-                throw new RuntimeException(formatHtmlResponseError(e, httpResponse));
+                throw new RuntimeException(formatHtmlResponseError(e, httpResponse), e);
             }
             String code = (e.getError() != null && e.getError().code != null) ? e.getError().code : "<empty_code>";
             String message = (e.getError() != null && e.getError().message != null) ? e.getError().message : "<empty_message>";
