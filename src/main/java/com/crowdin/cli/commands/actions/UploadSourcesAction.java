@@ -110,6 +110,26 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
         Map<String, Long> finalDirectoryPaths = directoryPaths;
         Map<String, FileInfo> finalPaths = paths;
 
+        Set<String> allLocalFilePaths = new HashSet<>();
+        if (!isStringsBasedProject) {
+            for (FileBean fileBean : pb.getFiles()) {
+                LanguageMapping lm = LanguageMapping.populate(
+                    LanguageMapping.fromConfigFileLanguageMapping(fileBean.getLanguagesMapping()),
+                    project.getLanguageMapping());
+                List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), fileBean.getSource(), fileBean.getIgnore(), placeholderUtil, lm)
+                    .map(File::getAbsolutePath)
+                    .collect(Collectors.toList());
+                String commonPath = pb.getPreserveHierarchy() ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
+                for (String src : sources) {
+                    String filePath = (fileBean.getDest() != null)
+                        ? PropertiesBeanUtils.prepareDest(fileBean.getDest(), StringUtils.removeStart(src, pb.getBasePath()), placeholderUtil)
+                        : StringUtils.removeStart(src, pb.getBasePath() + commonPath);
+                    String fileFullPath = (branchName != null ? BranchUtils.normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "") + filePath;
+                    allLocalFilePaths.add(fileFullPath);
+                }
+            }
+        }
+
         List<String> uploadedSources = new ArrayList<>();
 
         Map<String, Long> labels = client.listLabels().stream()
@@ -205,7 +225,9 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             uploadedSources.add(fileFullPath);
                         }
 
-                        Map.Entry<FileInfo, Boolean> projectFile = !isStringsBasedProject ? ProjectFilesUtils.fileLookup(fileFullPath, finalPaths) : null;
+                        Map.Entry<FileInfo, Boolean> projectFile = !isStringsBasedProject
+                                ? ProjectFilesUtils.fileLookup(fileFullPath, finalPaths, allLocalFilePaths)
+                                : null;
                         if (!isStringsBasedProject && autoUpdate && projectFile != null) {
                             if (this.wasNotChanged(out, pb, sourceHashes, source)) {
                                 return (Runnable) () -> { };
