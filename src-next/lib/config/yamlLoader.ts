@@ -34,13 +34,16 @@ export function parseYaml(string: string): Record<string, unknown> {
 // Maps a raw YAML config record's literal keys to ConfigSchema input (snake_case -> camelCase).
 // Env-variable resolution is a separate pipeline layer (see cli/config.ts), not here.
 export function mapConfig(raw: Record<string, unknown>): Record<string, unknown> {
+  // Java nests ignore_hidden_files under a `settings:` map (SettingsBean).
+  const settings = (raw.settings ?? {}) as Record<string, unknown>;
+
   return {
     projectId: raw.project_id,
     apiToken: raw.api_token,
     basePath: raw.base_path,
     baseUrl: raw.base_url,
     preserveHierarchy: raw.preserve_hierarchy,
-    ignoreHiddenFiles: raw.ignore_hidden_files,
+    ignoreHiddenFiles: settings.ignore_hidden_files,
     exportLanguages: raw.export_languages,
     pseudoLocalization: raw.pseudo_localization,
     files: raw.files,

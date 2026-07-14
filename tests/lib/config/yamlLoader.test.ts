@@ -42,4 +42,12 @@ describe('mapConfig', () => {
     });
     expect(out).not.toHaveProperty('api_token_env');
   });
+
+  test('reads ignore_hidden_files nested under the settings block (Java SettingsBean)', () => {
+    expect(mapConfig({ settings: { ignore_hidden_files: false } }).ignoreHiddenFiles).toBe(false);
+  });
+
+  test('ignores a top-level ignore_hidden_files (Java only nests it under settings)', () => {
+    expect(mapConfig({ ignore_hidden_files: false }).ignoreHiddenFiles).toBeUndefined();
+  });
 });
