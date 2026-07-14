@@ -191,7 +191,9 @@ export default class InitCommand {
         },
       });
 
-      openUrl(authorizationUrl);
+      if (!openUrl(authorizationUrl)) {
+        output.warning(`Error opening a web browser. Please open the following link manually:\n${authorizationUrl}`);
+      }
     });
   }
 

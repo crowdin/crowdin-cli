@@ -29,8 +29,18 @@ describe('openUrl', () => {
     spyOn(os, 'platform').mockReturnValue('linux');
     const spawn = spyOn(Bun, 'spawn').mockReturnValue({} as never);
 
-    openUrl('https://example.com');
+    const result = openUrl('https://example.com');
 
     expect(spawn).toHaveBeenCalledWith(['xdg-open', 'https://example.com']);
+    expect(result).toBe(true);
+  });
+
+  test('returns false when opener binary is missing (e.g. xdg-open on headless Linux)', () => {
+    spyOn(os, 'platform').mockReturnValue('linux');
+    spyOn(Bun, 'spawn').mockImplementation(() => {
+      throw new Error('Executable not found in $PATH: "xdg-open"');
+    });
+
+    expect(openUrl('https://example.com')).toBe(false);
   });
 });
