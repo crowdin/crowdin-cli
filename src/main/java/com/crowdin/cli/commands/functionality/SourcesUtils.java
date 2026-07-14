@@ -159,15 +159,15 @@ public class SourcesUtils {
             LanguageMapping serverLanguageMapping,
             String branchName
     ) {
-        LanguageMapping languageMapping = LanguageMapping.populate(
-            LanguageMapping.fromConfigFileLanguageMapping(fileBean.getLanguagesMapping()), serverLanguageMapping);
+        LanguageMapping localLanguageMapping = LanguageMapping.fromConfigFileLanguageMapping(fileBean.getLanguagesMapping());
+        LanguageMapping languageMapping = LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
 
         List<String> sources = getFiles(basePath, fileBean.getSource(), fileBean.getIgnore(), placeholderUtil, languageMapping)
-            .map(File::getAbsolutePath)
-            .collect(Collectors.toList());
+                .map(File::getAbsolutePath)
+                .collect(Collectors.toList());
 
         String commonPath = preserveHierarchy ? "" : getCommonPath(sources, basePath);
-        String branchPrefix = branchName != null ? BranchUtils.normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "";
+        String branchPrefix = BranchUtils.getBranchPrefix(branchName);
         Map<String, String> result = new LinkedHashMap<>();
 
         for (String source : sources) {

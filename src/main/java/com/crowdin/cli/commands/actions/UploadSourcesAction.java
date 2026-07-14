@@ -154,7 +154,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                 Map<String, String> sourceToFullPath = SourcesUtils.getUploadFilePaths(
                     file, pb.getBasePath(), pb.getPreserveHierarchy(), placeholderUtil, project.getLanguageMapping(), branchName);
                 List<String> sources = new ArrayList<>(sourceToFullPath.keySet());
-                String branchPrefix = branchName != null ? BranchUtils.normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "";
+                String branchPrefix = BranchUtils.getBranchPrefix(branchName);
                 if (deleteObsolete) {
                     List<String> filesToUpdate = sources.stream()
                         .map(source -> StringUtils.removeStart(sourceToFullPath.get(source), branchPrefix))
