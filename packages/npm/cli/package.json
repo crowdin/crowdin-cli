@@ -12,7 +12,7 @@
   "license": "MIT",
   "preferGlobal": true,
   "bin": {
-    "crowdin": "./bin/crowdin.js"
+    "crowdin": "bin/crowdin.js"
   },
   "files": [
     "bin"

@@ -103,7 +103,7 @@ describe('launcher process', () => {
 
 describe('launcher manifest', () => {
   it('declares the launcher script as the crowdin bin', () => {
-    expect(launcherPkg.bin).toEqual({ crowdin: './bin/crowdin.js' });
+    expect(launcherPkg.bin).toEqual({ crowdin: 'bin/crowdin.js' });
     expect(launcherPkg.files).toEqual(['bin']);
   });
 
