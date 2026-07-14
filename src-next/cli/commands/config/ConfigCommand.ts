@@ -1,18 +1,15 @@
-import path from 'node:path';
 import type { Command } from 'commander';
 import { ZodError, z } from 'zod';
 import { filesConfigGroup, tree as treeOption } from '@/cli/commands/common/options.ts';
 import ForbiddenError from '@/cli/errors/ForbiddenError.ts';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
-import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetConfig, GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
 import FileNotFoundError from '@/lib/common/errors/FileNotFoundError.ts';
 import SourceFileLoader, { commonPath } from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
-import { loadFromFile } from '@/lib/config/yamlLoader.ts';
 import type { Config } from '@/lib/config.ts';
 
 export default class ConfigCommand {
@@ -132,18 +129,13 @@ export default class ConfigCommand {
   };
 
   lintAction = async (command: Command) => {
-    const options = command.optsWithGlobals() as GlobalOptions;
     const output = this.getOutput(command);
-    const configPath = options.config || path.join(process.cwd(), 'crowdin.yml');
 
     try {
-      const config = await loadFromFile(configPath);
-
-      // Without an explicit base_path, source patterns resolve relative to the config file's
-      // directory (mirrors Java's CONFIG_FILE_PATH base), so the on-disk source check is accurate.
-      if (config.basePath === '.') {
-        config.basePath = path.dirname(configPath);
-      }
+      // Full resolution pipeline (config file + env vars + token/identity/CLI), same as every
+      // other command. getConfig already resolves base_path relative to the config file's dir,
+      // so on-disk source checks are accurate.
+      const config = await this.getConfig(command);
 
       this.checkSourceFilesExist(config);
       await this.validateLanguagesMapping(config, command);

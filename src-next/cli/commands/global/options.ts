@@ -11,8 +11,8 @@ export const config: OptionDef = {
   name: 'config',
   short: 'c',
   type: 'string',
+  // No default: when omitted, cli/config.ts picks the first existing crowdin.yml / crowdin.yaml.
   description: 'Specify a path to the configuration file',
-  default: 'crowdin.yml',
 };
 
 export const identity: OptionDef = {

@@ -125,3 +125,62 @@ describe('ConfigSchema files[] parity fields', () => {
     expect(config.files[0]?.multilingual_spreadsheet).toBe(true);
   });
 });
+
+describe('ConfigSchema boolean coercion (Java setBooleanPropertyIfExists parity)', () => {
+  test('coerces 0/1 (and string forms) to booleans', () => {
+    const config = ConfigSchema.parse({
+      ...baseConfig({ content_segmentation: 1, import_translations: 0 }),
+      preserveHierarchy: 1,
+      ignoreHiddenFiles: '0',
+    });
+
+    expect(config.preserveHierarchy).toBe(true);
+    expect(config.ignoreHiddenFiles).toBe(false);
+    expect(config.files[0]?.content_segmentation).toBe(true);
+    expect(config.files[0]?.import_translations).toBe(false);
+  });
+
+  test('still rejects a non-boolean-ish value', () => {
+    expect(() => ConfigSchema.parse({ ...baseConfig(), preserveHierarchy: 'yes' })).toThrow();
+  });
+});
+
+describe('ConfigSchema base_url (Java isUrlValid / normalization parity)', () => {
+  const withBaseUrl = (baseUrl: string) => ({ ...baseConfig(), baseUrl });
+  const parseBaseUrl = (baseUrl: string) => ConfigSchema.parse(withBaseUrl(baseUrl)).baseUrl;
+
+  test('defaults to https://api.crowdin.com when omitted', () => {
+    const { baseUrl: _omit, ...noBaseUrl } = withBaseUrl('');
+    expect(ConfigSchema.parse(noBaseUrl).baseUrl).toBe('https://api.crowdin.com');
+  });
+
+  test.each([
+    'https://api.crowdin.com',
+    'https://crowdin.com',
+    'https://acme.crowdin.com',
+    'https://acme.api.crowdin.com',
+    'https://org.crowdin.dev',
+    'https://org.env.crowdin.dev',
+    'https://foo.test.crowdin.com',
+    'https://foo.e-test.crowdin.com',
+  ])('accepts %s', (url) => {
+    expect(parseBaseUrl(url)).toBe(url);
+  });
+
+  test.each([
+    ['https://acme.crowdin.com/api/v2', 'https://acme.crowdin.com'],
+    ['https://api.crowdin.com/api', 'https://api.crowdin.com'],
+    ['https://acme.crowdin.com/', 'https://acme.crowdin.com'],
+  ])('normalizes %s -> %s', (input, expected) => {
+    expect(parseBaseUrl(input)).toBe(expected);
+  });
+
+  test.each([
+    'https://evil.example.com',
+    'https://evilcrowdin.com', // no dot before crowdin.com
+    'http://api.crowdin.com', // http rejected (Java requires https)
+    'https://acme.crowdin.com/api/v3', // unknown suffix not normalized away
+  ])('rejects %s', (url) => {
+    expect(() => parseBaseUrl(url)).toThrow();
+  });
+});

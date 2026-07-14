@@ -1,19 +1,20 @@
 import YAML from 'yaml';
-import { z } from 'zod';
 import FileNotFoundError from '../common/errors/FileNotFoundError.ts';
-import { type Config, ConfigSchema } from '../config.ts';
 import InvalidConfigurationError from './errors/InvalidConfigurationError.ts';
 
-export async function loadFromFile(filePath: string): Promise<Config> {
+// Reads and YAML-parses a config file to a raw record, without validation or env resolution.
+// The full resolution pipeline (mapping, env, all sources, validation) lives in cli/config.ts,
+// so validation happens once, after everything is merged (mirrors Java build()).
+export async function loadRawFromFile(filePath: string): Promise<Record<string, unknown>> {
   if (!(await Bun.file(filePath).exists())) {
     throw new FileNotFoundError(`File ${filePath} does not exist`);
   }
 
-  return loadFromString(await Bun.file(filePath).text());
+  return parseYaml(await Bun.file(filePath).text());
 }
 
-export function loadFromString(string: string): Config {
-  let config: Record<string, unknown>;
+export function parseYaml(string: string): Record<string, unknown> {
+  let config: unknown;
 
   try {
     config = YAML.parse(string);
@@ -27,22 +28,21 @@ export function loadFromString(string: string): Config {
     throw new InvalidConfigurationError('Configuration file is empty or malformed.');
   }
 
-  const parsed = ConfigSchema.safeParse({
-    projectId: config.project_id,
-    apiToken: config.api_token ?? undefined,
-    basePath: config.base_path,
-    baseUrl: config.base_url,
-    preserveHierarchy: config.preserve_hierarchy,
-    ignoreHiddenFiles: config.ignore_hidden_files,
-    exportLanguages: config.export_languages,
-    pseudoLocalization: config.pseudo_localization,
-    files: config.files,
-  });
+  return config as Record<string, unknown>;
+}
 
-  // Java throws ValidationException (exit 2) for an invalid config; surface zod errors as the same.
-  if (!parsed.success) {
-    throw new InvalidConfigurationError(z.prettifyError(parsed.error), { cause: parsed.error });
-  }
-
-  return parsed.data;
+// Maps a raw YAML config record's literal keys to ConfigSchema input (snake_case -> camelCase).
+// Env-variable resolution is a separate pipeline layer (see cli/config.ts), not here.
+export function mapConfig(raw: Record<string, unknown>): Record<string, unknown> {
+  return {
+    projectId: raw.project_id,
+    apiToken: raw.api_token,
+    basePath: raw.base_path,
+    baseUrl: raw.base_url,
+    preserveHierarchy: raw.preserve_hierarchy,
+    ignoreHiddenFiles: raw.ignore_hidden_files,
+    exportLanguages: raw.export_languages,
+    pseudoLocalization: raw.pseudo_localization,
+    files: raw.files,
+  };
 }

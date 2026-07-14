@@ -11,9 +11,9 @@ import type { CommandDef } from '@/cli/types.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
-import { DEFAULT_FILE_NAME, getApiTokenFilePathFor } from '@/lib/apiToken.ts';
 import { generate } from '@/lib/config/yamlGenerator.ts';
 import patterns from '@/lib/export/patterns.ts';
+import { DEFAULT_IDENTITY_FILE, getIdentityFilePath } from '@/lib/identityFiles.ts';
 import { getOrganization } from '@/lib/organization/credentials.ts';
 import { basePath, baseUrl, noPreserveHierarchy, projectId, source, token, translation } from '../common/options.ts';
 import { destination } from './options.ts';
@@ -293,7 +293,7 @@ export default class InitCommand {
   }
 
   protected async writeApiToken(apiToken: string): Promise<boolean> {
-    const apiTokenFilePath = getApiTokenFilePathFor(DEFAULT_FILE_NAME);
+    const apiTokenFilePath = getIdentityFilePath(DEFAULT_IDENTITY_FILE);
 
     try {
       let existing: Record<string, unknown> = {};

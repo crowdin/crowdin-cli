@@ -1,10 +1,11 @@
 import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
 import { mkdtemp } from 'node:fs/promises';
-import { tmpdir } from 'node:os';
+import os, { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import ConfigCommand from '@/cli/commands/config/ConfigCommand.ts';
+import { createGetConfig } from '@/cli/config.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import { LanguageService } from '@/cli/services/LanguageService.ts';
@@ -68,6 +69,9 @@ describe('ConfigCommand lint', () => {
     spyOn(console, 'log').mockImplementation(() => {});
     spyOn(console, 'table').mockImplementation(() => {});
 
+    // Isolate token-file discovery from the real ~/.crowdin.yml (tempDir has none).
+    spyOn(os, 'homedir').mockReturnValue(tempDir);
+
     // lint scans the config directory for matching source files, so the `/src/*.json` pattern needs a hit.
     await Bun.write(join(tempDir, 'src/messages.json'), '{}');
   });
@@ -78,9 +82,7 @@ describe('ConfigCommand lint', () => {
 
   const createConfigCommand = () =>
     new ConfigCommand(
-      async () => {
-        throw new Error('getConfig is not used by lint');
-      },
+      createGetConfig(() => output),
       () => output,
       async () => projectService,
       async () => languageService,
