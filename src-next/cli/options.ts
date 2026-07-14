@@ -22,6 +22,6 @@ export type ConfigOptions = {
   projectId?: number;
   source?: string;
   translation?: string;
-  destination?: string;
+  dest?: string;
   preserveHierarchy?: boolean;
 };

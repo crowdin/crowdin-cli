@@ -197,12 +197,28 @@ function cliLayer(options: GlobalOptions & ConfigOptions): Partial<Config> {
       {
         source: options.source,
         translation: options.translation,
-        ...(options.destination ? { dest: options.destination } : {}),
+        ...(options.dest ? { dest: options.dest } : {}),
       },
     ];
 
-    if (options.destination) {
+    if (options.dest) {
       layer.preserveHierarchy = true;
+    }
+  } else {
+    // Mirrors Java PropertiesWithFilesBuilder: --source/--translation must come as a pair, and --dest
+    // is meaningless without both. Accumulate like Java's messages.addError so both surface at once.
+    const errors: string[] = [];
+
+    if (Boolean(options.source) !== Boolean(options.translation)) {
+      errors.push("Both the 'source' and the 'translation' must be specified in the parameters");
+    }
+
+    if (options.dest) {
+      errors.push("'dest' must be specified with both 'source' and 'translation' parameters");
+    }
+
+    if (errors.length > 0) {
+      throw new InvalidConfigurationError(errors.join('\n'));
     }
   }
 

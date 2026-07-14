@@ -216,12 +216,20 @@ describe('createGetConfig', () => {
       makeCommand({
         source: '/only/*.md',
         translation: '/tr/%two_letters_code%/%original_file_name%',
-        destination: '/dest',
+        dest: '/dest',
       }),
     );
 
     expect(config.preserveHierarchy).toBe(true);
     expect(config.files[0]?.dest).toBe('/dest');
+  });
+
+  test('throws when only one of --source/--translation is given', async () => {
+    await expect(getConfig()(makeCommand({ source: '/only/*.md' }))).rejects.toBeInstanceOf(InvalidConfigurationError);
+  });
+
+  test('throws when --dest is given without --source and --translation', async () => {
+    await expect(getConfig()(makeCommand({ dest: '/dest' }))).rejects.toBeInstanceOf(InvalidConfigurationError);
   });
 
   test('rejects an invalid merged config with an InvalidConfigurationError', async () => {

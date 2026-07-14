@@ -42,12 +42,12 @@ export const translation: OptionDef = {
   description: 'Path to the translation files',
 };
 
-// Config-options `--dest` for file-based commands. Distinct from init's `destination` (which saves the
-// config skeleton, defaulting to crowdin.yml): here it overrides the in-project file destination, so it
-// must have no default — otherwise the value would always override the configured `dest`.
+// Config-option `--dest` for file-based commands (Java ParamsWithFiles.destParam: long-only, no `-d`).
+// Distinct from init's `--destination` (which saves the config skeleton, defaulting to crowdin.yml):
+// here it overrides the in-project file destination, so it must have no default — otherwise the value
+// would always override the configured `dest`.
 export const destination: OptionDef = {
-  name: 'destination',
-  short: 'd',
+  name: 'dest',
   type: 'string',
   description: 'Specify file name in Crowdin',
 };

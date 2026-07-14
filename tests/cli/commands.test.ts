@@ -7,7 +7,7 @@ const CONFIG_GROUP = 'Config options:';
 // Option-name sets per Java picocli param tier (BaseParams -> ProjectParams -> ParamsWithFiles).
 const BASE_TIER = ['token', 'base-url', 'base-path'];
 const PROJECT_TIER = [...BASE_TIER, 'project-id'];
-const FILES_TIER = [...PROJECT_TIER, 'source', 'translation', 'destination', 'no-preserve-hierarchy'];
+const FILES_TIER = [...PROJECT_TIER, 'source', 'translation', 'dest', 'no-preserve-hierarchy'];
 
 const TIER_OPTIONS: Record<'base' | 'project' | 'files', string[]> = {
   base: BASE_TIER,
