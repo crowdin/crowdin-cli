@@ -10,7 +10,6 @@ on:
         default: 'all'
         options:
           - 'all'
-          - 'npm'
           - 'aur'
           - 'homebrew'
           - 'chocolatey'
@@ -76,41 +75,8 @@ jobs:
             build/libs/crowdin_completion
             version.txt
 
-  npm:
-    runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'npm'
-    needs: assets
-    permissions:
-      contents: read
-      id-token: write
-    steps:
-      - uses: actions/checkout@v6
-
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          registry-url: https://registry.npmjs.org/
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
-      - name: Lint and format check
-        run: bunx biome check
-
-      - name: Run tests
-        run: bun test
-
-      - name: Test crowdin command
-        run: bun run src-next/cli.ts --version
-
-      - name: Publish the package
-        run: npm publish --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+  # npm publishing for the v5 beta line lives in publish-next.yml (manual dispatch on the
+  # next branch). The v4 npm flow remains on main.
 
   aur:
     runs-on: ubuntu-latest

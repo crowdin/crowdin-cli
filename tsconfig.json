@@ -15,6 +15,7 @@
       "@/*": ["src-next/*"]
     },
     "allowImportingTsExtensions": true,
+    "resolveJsonModule": true,
     "verbatimModuleSyntax": true,
     "noEmit": true,
 

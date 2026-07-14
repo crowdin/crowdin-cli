@@ -23,6 +23,6 @@
   },
   "files": {
     "ignoreUnknown": false,
-    "includes": ["src-next/**/*.ts", "tests/**/*.ts", "e2e/**/*.ts"]
+    "includes": ["src-next/**/*.ts", "tests/**/*.ts", "e2e/**/*.ts", "packages/npm/cli/bin/*.js"]
   }
 }

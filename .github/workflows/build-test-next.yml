@@ -2,9 +2,9 @@ name: Build and Test Next CLI
 
 on:
   push:
-    branches: [ '*' ]
+    branches: ["*"]
   pull_request:
-    branches: [ 'main' ]
+    branches: ["main"]
   workflow_dispatch:
 
 permissions:
@@ -51,16 +51,5 @@ jobs:
       - name: Install dependencies
         run: bun install --frozen-lockfile
 
-      - name: Build native binary (host target)
-        run: bun run build
-
-      - name: Build Linux binary
-        run: bun run build-linux
-
-      - name: Build Windows binary
-        run: bun run build-windows
-
-      - uses: actions/upload-artifact@v7
-        with:
-          name: next-cli-binaries
-          path: dist/*
+      - name: Build all platform binaries
+        run: bun run build:all

@@ -1,0 +1,99 @@
+name: Publish Next (npm)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  id-token: write
+
+concurrency:
+  group: publish-next
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    if: github.ref == 'refs/heads/next'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint and format check
+        run: bunx biome check
+
+      - name: Run tests
+        run: bun run test
+
+      - name: Build linux binary
+        run: bun run build:linux-x64
+
+      - name: Smoke test binary version
+        run: |
+          version=$(bun -e "console.log(require('./packages/npm/cli/package.json').version)")
+          out=$(./packages/npm/linux-x64/bin/crowdin --version)
+          echo "manifest version: $version / binary version: $out"
+          test "$out" = "$version"
+
+  publish-platforms:
+    needs: verify
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - darwin-arm64
+          - darwin-x64
+          - linux-x64
+          - linux-arm64
+          - linux-x64-musl
+          - linux-arm64-musl
+          - win32-x64
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+
+      - name: Update npm
+        run: npm install -g npm@11.18.0
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build binary
+        run: bun run build:${{ matrix.package }}
+
+      - name: Publish
+        run: npm publish packages/npm/${{ matrix.package }}
+
+  # Last: the launcher pins exact platform-package versions, so it must never be
+  # published before its binaries.
+  publish-cli:
+    needs: publish-platforms
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+
+      - name: Update npm
+        run: npm install -g npm@11.18.0
+
+      - name: Publish
+        run: npm publish packages/npm/cli

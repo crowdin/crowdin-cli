@@ -1,0 +1,25 @@
+{
+  "name": "@crowdin/cli-darwin-x64",
+  "version": "5.0.0-next.0",
+  "description": "The macOS x64 64-bit binary for Crowdin CLI.",
+  "homepage": "https://crowdin.github.io/crowdin-cli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crowdin/crowdin-cli.git"
+  },
+  "license": "MIT",
+  "preferUnplugged": true,
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "files": [
+    "bin"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "tag": "next"
+  }
+}

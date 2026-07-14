@@ -1,42 +1,27 @@
 {
-  "name": "@crowdin/cli",
+  "name": "crowdin-cli",
+  "private": true,
   "type": "module",
   "author": "Crowdin",
-  "description": "Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project",
+  "description": "Development workspace for Crowdin CLI. The published npm packages live in packages/npm/",
   "homepage": "https://crowdin.github.io/crowdin-cli",
-  "preferGlobal": true,
   "repository": {
     "type": "git",
     "url": "git+https://github.com/crowdin/crowdin-cli.git"
   },
-  "version": "4.14.3",
-  "bin": {
-    "crowdin": "./src-next/cli.ts"
-  },
-  "files": [
-    "src-next",
-    "tests"
-  ],
+  "version": "5.0.0-next.0",
   "license": "MIT",
-  "keywords": [
-    "Crowdin",
-    "CLI",
-    "Client",
-    "Sync",
-    "Localization",
-    "Translation",
-    "Automation",
-    "Integration",
-    "CI/CD",
-    "Command-line interface",
-    "Synchronization",
-    "Translation management"
-  ],
   "scripts": {
     "dev": "bun run src-next/cli.ts",
     "build": "bun build src-next/cli.ts --compile --outfile dist/crowdin",
-    "build-linux": "bun build src-next/cli.ts --compile --target=bun-linux-x64-baseline --outfile dist/crowdin-linux-x64-baseline",
-    "build-windows": "bun build src-next/cli.ts --compile --target=bun-windows-x64-modern --outfile dist/crowdin-windows-x64-modern",
+    "build:darwin-arm64": "bun build src-next/cli.ts --compile --target=bun-darwin-arm64 --outfile packages/npm/darwin-arm64/bin/crowdin",
+    "build:darwin-x64": "bun build src-next/cli.ts --compile --target=bun-darwin-x64 --outfile packages/npm/darwin-x64/bin/crowdin",
+    "build:linux-x64": "bun build src-next/cli.ts --compile --target=bun-linux-x64-baseline --outfile packages/npm/linux-x64/bin/crowdin",
+    "build:linux-arm64": "bun build src-next/cli.ts --compile --target=bun-linux-arm64 --outfile packages/npm/linux-arm64/bin/crowdin",
+    "build:linux-x64-musl": "bun build src-next/cli.ts --compile --target=bun-linux-x64-musl-baseline --outfile packages/npm/linux-x64-musl/bin/crowdin",
+    "build:linux-arm64-musl": "bun build src-next/cli.ts --compile --target=bun-linux-arm64-musl --outfile packages/npm/linux-arm64-musl/bin/crowdin",
+    "build:win32-x64": "bun build src-next/cli.ts --compile --target=bun-windows-x64-baseline --outfile packages/npm/win32-x64/bin/crowdin.exe",
+    "build:all": "bun run build:darwin-arm64 && bun run build:darwin-x64 && bun run build:linux-x64 && bun run build:linux-arm64 && bun run build:linux-x64-musl && bun run build:linux-arm64-musl && bun run build:win32-x64",
     "test": "bun test tests/ e2e/helpers/",
     "test:coverage": "bun test --coverage tests/ e2e/helpers/",
     "test:e2e": "bun test e2e/suites/ --timeout 120000",
@@ -57,9 +42,6 @@
     "yaml": "^2.8.3",
     "zod": "^4.3.6"
   },
-  "peerDependencies": {
-    "typescript": "^5"
-  },
   "lint-staged": {
     "*.ts": "biome check --write"
   },
@@ -73,6 +55,7 @@
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
     "semantic-release": "^25.0.5",
-    "semantic-release-replace-plugin": "^1.2.7"
+    "semantic-release-replace-plugin": "^1.2.7",
+    "typescript": "^5"
   }
 }

@@ -1,0 +1,28 @@
+{
+  "name": "@crowdin/cli-linux-x64-musl",
+  "version": "5.0.0-next.0",
+  "description": "The Linux x64 64-bit (musl) binary for Crowdin CLI.",
+  "homepage": "https://crowdin.github.io/crowdin-cli",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/crowdin/crowdin-cli.git"
+  },
+  "license": "MIT",
+  "preferUnplugged": true,
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "libc": [
+    "musl"
+  ],
+  "files": [
+    "bin"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "tag": "next"
+  }
+}
