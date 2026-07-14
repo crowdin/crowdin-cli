@@ -1488,6 +1488,7 @@ describe('DownloadCommand', () => {
 
       expect(apiClient.sourceFilesApi.listProjectFiles).toHaveBeenCalledWith(123, {
         branchId: 55,
+        recursion: '1',
       });
     });
 

@@ -97,6 +97,7 @@ export class FileService {
     try {
       const projectFiles = await this.apiClient.sourceFilesApi.withFetchAll().listProjectFiles(this.projectId, {
         branchId,
+        recursion: '1',
       });
 
       this.output.spinner('projectFiles', 'stop', 'Project files fetched');
@@ -119,6 +120,7 @@ export class FileService {
     try {
       const response = await this.apiClient.sourceFilesApi.withFetchAll().listProjectFiles(this.projectId, {
         ...(branchId !== undefined ? { branchId } : {}),
+        recursion: '1',
       });
 
       return response.data.map((entry) => ({ id: entry.data.id, path: entry.data.path }));

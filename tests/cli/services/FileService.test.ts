@@ -53,7 +53,17 @@ describe('FileService', () => {
 
       await fileService.loadProjectFiles(5);
 
-      expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: 5 });
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: 5, recursion: '1' });
+    });
+
+    test('requests recursively so files in subdirectories are included (bug #10)', async () => {
+      const spy = spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [],
+      } as never);
+
+      await fileService.loadProjectFiles();
+
+      expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: undefined, recursion: '1' });
     });
 
     test('throws CliError when API fails', async () => {
