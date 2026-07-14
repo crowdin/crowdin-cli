@@ -22,6 +22,20 @@ async function runCli(args: string[], cwd: string): Promise<number> {
   return await proc.exited;
 }
 
+async function captureCli(args: string[], cwd: string): Promise<string> {
+  const proc = Bun.spawn(['bun', CLI, ...args], {
+    cwd,
+    env: { ...process.env, NO_COLOR: '1' },
+    stdout: 'pipe',
+    stderr: 'pipe',
+  });
+
+  const [stdout, stderr] = await Promise.all([new Response(proc.stdout).text(), new Response(proc.stderr).text()]);
+  await proc.exited;
+
+  return stdout + stderr;
+}
+
 beforeAll(async () => {
   workspace = await mkdtemp(join(tmpdir(), 'crowdin-exitcode-'));
 });
@@ -74,5 +88,36 @@ describe('exit codes (offline, end-to-end)', () => {
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
+  });
+});
+
+describe('--debug (hidden) stack traces, end-to-end', () => {
+  test('without --debug prints a one-line error, no stack frames', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'crowdin-debug-off-'));
+
+    try {
+      const out = await captureCli(['file', 'list'], dir);
+      expect(out).toContain('does not exist');
+      expect(out).not.toMatch(/^\s+at /m);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('with --debug prints the full stack trace', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'crowdin-debug-on-'));
+
+    try {
+      const out = await captureCli(['file', 'list', '--debug'], dir);
+      expect(out).toContain('does not exist');
+      expect(out).toMatch(/^\s+at /m);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('--debug is hidden from help', async () => {
+    const out = await captureCli(['--help'], workspace);
+    expect(out).not.toContain('--debug');
   });
 });

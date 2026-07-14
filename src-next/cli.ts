@@ -70,10 +70,15 @@ try {
   if (error instanceof CommanderError) {
     process.exitCode = error.exitCode === 0 ? 0 : 2;
   } else {
-    const output = createOutput(getOutputFormatFromArgs(argv));
+    const globalOptions = getOutputFormatFromArgs(argv);
+    const output = createOutput(globalOptions);
     const message = error instanceof Error ? error.message : String(error);
 
-    if (!(error instanceof CliError && error.reported)) {
+    if (globalOptions.debug && error instanceof Error && error.stack) {
+      // --debug: print the full stack trace (message included) instead of the one-liner.
+      // ponytail: top-level only; per-file worker-thread stacks stay deferred with upload/download.
+      console.error(error.stack);
+    } else if (!(error instanceof CliError && error.reported)) {
       output.error(message);
     }
 

@@ -175,6 +175,9 @@ export function getOutputFormatFromArgs(argv: string[]): GlobalOptions {
     progress: false,
     verbose: false,
     output: outputFormat,
+    // Scanned from argv (not parsed opts) because the top-level error handler runs outside any
+    // command action, where parsing may have thrown. Mirrors Java's originalArgs().contains("--debug").
+    debug: argv.includes('--debug'),
   };
 }
 

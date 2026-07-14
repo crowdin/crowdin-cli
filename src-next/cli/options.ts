@@ -1,8 +1,8 @@
-import { config, identity, noColors, noProgress, output, verbose } from './commands/global/options.ts';
+import { config, debug, identity, noColors, noProgress, output, verbose } from './commands/global/options.ts';
 import type { OptionDef } from './types.ts';
 
 export default function getGlobalOptions(): OptionDef[] {
-  return [verbose, config, identity, noColors, noProgress, output];
+  return [verbose, config, identity, noColors, noProgress, output, debug];
 }
 
 export type GlobalOptions = {
@@ -12,6 +12,7 @@ export type GlobalOptions = {
   colors: boolean;
   progress: boolean;
   output: string;
+  debug?: boolean;
 };
 
 export type ConfigOptions = {
