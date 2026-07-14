@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import type { Command } from 'commander';
 import { createGetConfig } from '@/cli/config.ts';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
@@ -100,7 +100,7 @@ describe('createGetConfig', () => {
 
     expect(config.apiToken).toBe(ALT_TOKEN);
     expect(config.projectId).toBe(222);
-    expect(config.basePath).toBe('/tmp/base');
+    expect(config.basePath).toBe(resolve(tempDir, '/tmp/base')); // resolved against the config file's dir
     expect(config.baseUrl).toBe('https://acme.crowdin.com');
   });
 
@@ -126,7 +126,7 @@ describe('createGetConfig', () => {
     expect(config.apiToken).toBe(ALT_TOKEN);
     expect(config.projectId).toBe(444);
     expect(config.baseUrl).toBe('https://acme.crowdin.com');
-    expect(config.basePath).toBe('/id/base');
+    expect(config.basePath).toBe(resolve(tempDir, '/id/base')); // resolved against the config file's dir
   });
 
   test('identity file resolves `*_env` keys', async () => {
