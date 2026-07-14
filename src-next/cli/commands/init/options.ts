@@ -9,3 +9,10 @@ export const destination: OptionDef = {
   default: 'crowdin.yml',
   description: 'Place where the configuration skeleton should be saved',
 };
+
+export const quiet: OptionDef = {
+  name: 'quiet',
+  type: 'boolean',
+  default: false,
+  description: 'Generate the configuration skeleton without interactive prompts',
+};

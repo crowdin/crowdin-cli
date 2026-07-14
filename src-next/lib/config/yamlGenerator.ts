@@ -1,6 +1,16 @@
-import type { Config } from '../config.ts';
+// generate() only stringifies these fields, so it takes a minimal input rather
+// than the full zod Config — lets `init --quiet` pass an empty project id.
+export interface GenerateInput {
+  projectId: string | number;
+  apiToken?: string;
+  basePath: string;
+  baseUrl: string;
+  preserveHierarchy: boolean;
+  ignoreHiddenFiles?: boolean;
+  files: { source: string; translation: string }[];
+}
 
-export function generate(config: Config): string {
+export function generate(config: GenerateInput): string {
   const credentialLines = [`"project_id": "${config.projectId}"`];
 
   if (config.apiToken !== undefined) {
@@ -29,7 +39,7 @@ ${credentialLines.join('\n')}
 ${generateFilesSection(config.files)}`;
 }
 
-function generateFilesSection(files: Config['files']) {
+function generateFilesSection(files: GenerateInput['files']) {
   return `#
 # Files configuration.
 # See https://support.crowdin.com/developer/configuration-file/ for all available options

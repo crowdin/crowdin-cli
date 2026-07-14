@@ -16,7 +16,7 @@ import patterns from '@/lib/export/patterns.ts';
 import { DEFAULT_IDENTITY_FILE, getIdentityFilePath } from '@/lib/identityFiles.ts';
 import { getOrganization } from '@/lib/organization/credentials.ts';
 import { basePath, baseUrl, noPreserveHierarchy, projectId, source, token, translation } from '../common/options.ts';
-import { destination } from './options.ts';
+import { destination, quiet } from './options.ts';
 
 const CROWDIN_OAUTH_CLIENT_ID = 'wQEqvhU3vLOa2XicmUyT';
 const CROWDIN_OAUTH_HOST = 'localhost';
@@ -31,9 +31,15 @@ interface InitCommandOptions extends GlobalOptions {
   source?: string;
   translation?: string;
   preserveHierarchy: boolean;
+  quiet: boolean;
 }
 
 export default class InitCommand {
+  private readonly successMessage =
+    'Your configuration skeleton has been successfully generated. ' +
+    'Specify your source and translation paths in the files section. ' +
+    'For more details see https://crowdin.github.io/crowdin-cli/configuration';
+
   constructor(private getOutput: GetOutput) {}
 
   getDefinition(): CommandDef {
@@ -41,7 +47,7 @@ export default class InitCommand {
       name: 'init',
       description: 'Generate Crowdin CLI configuration skeleton',
       action: this.defaultAction,
-      options: [destination, token, projectId, basePath, baseUrl, source, translation, noPreserveHierarchy],
+      options: [destination, token, projectId, basePath, baseUrl, source, translation, noPreserveHierarchy, quiet],
     };
   }
 
@@ -58,6 +64,23 @@ export default class InitCommand {
           `Fill it out accordingly to the following requirements: ` +
           `https://developer.crowdin.com/configuration-file/#configuration-file-structure`,
       );
+      return;
+    }
+
+    if (options.quiet) {
+      const config = generate({
+        projectId: options.projectId ?? '',
+        apiToken: options.token,
+        basePath: options.basePath ?? '',
+        baseUrl: options.baseUrl || 'https://api.crowdin.com',
+        preserveHierarchy: options.preserveHierarchy,
+        ignoreHiddenFiles: true,
+        files: [{ source: options.source ?? '', translation: options.translation ?? '' }],
+      });
+
+      await Bun.write(configFilePath, config);
+
+      output.outro(this.successMessage);
       return;
     }
 
@@ -104,11 +127,7 @@ export default class InitCommand {
 
     await Bun.write(configFilePath, config);
 
-    output.outro(
-      'Your configuration skeleton has been successfully generated. ' +
-        'Specify your source and translation paths in the files section. ' +
-        'For more details see https://crowdin.github.io/crowdin-cli/configuration',
-    );
+    output.outro(this.successMessage);
   };
 
   private async getToken(output: Output) {
