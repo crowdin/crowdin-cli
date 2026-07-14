@@ -18,7 +18,7 @@ import { printFileTree } from '@/cli/utils/fileTree.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
-import type { Config } from '@/lib/config.ts';
+import { assertFilesConfigured, type Config } from '@/lib/config.ts';
 import { languagePatterns } from '@/lib/export/patterns.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
@@ -66,6 +66,9 @@ export default class UploadTranslationsCommand {
     const fileService = await this.getFileService(command);
     const translationService = await this.getTranslationService(command);
     const translationPathResolver = new TranslationPathResolver(config);
+
+    assertFilesConfigured(config);
+
     const project = await projectService.loadProject();
 
     if (!hasManagerAccess(project)) {

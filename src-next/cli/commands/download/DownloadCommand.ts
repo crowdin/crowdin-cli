@@ -25,7 +25,7 @@ import type { CommandDef } from '@/cli/types.ts';
 import { fileTree } from '@/cli/utils/fileTree.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { matchesManagerSourceFile, matchesSourcePattern, replaceUnaryAsterisk } from '@/lib/config/projectFileMatch.ts';
-import type { Config } from '@/lib/config.ts';
+import { assertFilesConfigured, type Config } from '@/lib/config.ts';
 import { buildAllProjectTranslations, sortOmittedFiles } from '@/lib/download/projectTranslations.ts';
 import { buildTranslationMapping } from '@/lib/download/translationMapping.ts';
 import { originalPath } from '@/lib/export/patterns.ts';
@@ -131,6 +131,8 @@ export default class DownloadCommand {
     const projectService = await this.getProjectService(command);
     const fileService = await this.getFileService(command);
     const branchService = await this.getBranchService(command);
+
+    assertFilesConfigured(config);
 
     // Java order (DownloadSourcesAction): reviewed/enterprise guard, then preserve_hierarchy warning,
     // then fetch the project and reject string-based ones.
@@ -249,6 +251,9 @@ export default class DownloadCommand {
     const fileService = await this.getFileService(command);
     const branchService = await this.getBranchService(command);
     const translationService = await this.getTranslationService(command);
+
+    assertFilesConfigured(config);
+
     const project = await projectService.loadProject();
 
     if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {

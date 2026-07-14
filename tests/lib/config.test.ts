@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { ConfigSchema } from '@/lib/config.ts';
+import { assertFilesConfigured, ConfigSchema } from '@/lib/config.ts';
 
 function baseConfig(fileOverrides: Record<string, unknown> = {}) {
   return {
@@ -16,6 +16,24 @@ function baseConfig(fileOverrides: Record<string, unknown> = {}) {
     ],
   };
 }
+
+describe('files section optional (bug #5) + guard', () => {
+  const credsOnly = { projectId: 123, apiToken: 'a'.repeat(80), baseUrl: 'https://api.crowdin.com' };
+
+  test('credential-only config parses with files defaulting to []', () => {
+    expect(ConfigSchema.parse(credsOnly).files).toEqual([]);
+  });
+
+  test('assertFilesConfigured throws Java-parity message when files empty', () => {
+    expect(() => assertFilesConfigured(ConfigSchema.parse(credsOnly))).toThrow(
+      "Required section 'files' is missing (or empty) in the configuration file",
+    );
+  });
+
+  test('assertFilesConfigured passes when files present', () => {
+    expect(() => assertFilesConfigured(ConfigSchema.parse(baseConfig()))).not.toThrow();
+  });
+});
 
 describe('ConfigSchema files[] parity fields', () => {
   test('parses a config with all new file fields set', () => {

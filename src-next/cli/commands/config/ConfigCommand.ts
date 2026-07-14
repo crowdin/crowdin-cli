@@ -10,7 +10,7 @@ import { printFileTree } from '@/cli/utils/fileTree.ts';
 import FileNotFoundError from '@/lib/common/errors/FileNotFoundError.ts';
 import SourceFileLoader, { commonPath } from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
-import type { Config } from '@/lib/config.ts';
+import { assertFilesConfigured, type Config } from '@/lib/config.ts';
 
 export default class ConfigCommand {
   constructor(
@@ -56,6 +56,9 @@ export default class ConfigCommand {
     const config = await this.getConfig(command);
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
+
+    assertFilesConfigured(config);
+
     await projectService.loadProject();
     const localFilePaths = new SourceFileLoader(config).getFilePaths();
 
@@ -80,6 +83,9 @@ export default class ConfigCommand {
     const config = await this.getConfig(command);
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
+
+    assertFilesConfigured(config);
+
     const project = await projectService.loadProject();
 
     // Only managers/developers get a ProjectSettings response, so its presence is the access probe
@@ -136,6 +142,8 @@ export default class ConfigCommand {
       // other command. getConfig already resolves base_path relative to the config file's dir,
       // so on-disk source checks are accurate.
       const config = await this.getConfig(command);
+
+      assertFilesConfigured(config);
 
       this.checkSourceFilesExist(config);
       await this.validateLanguagesMapping(config, command);

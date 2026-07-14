@@ -21,6 +21,7 @@ import type {
 import { printFileTree } from '@/cli/utils/fileTree.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
+import { assertFilesConfigured } from '@/lib/config.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import {
@@ -78,6 +79,9 @@ export default class UploadSourcesCommand {
     const fileService = await this.getFileService(command);
     const labelService = await this.getLabelService(command);
     const stringService = await this.getStringService(command);
+
+    assertFilesConfigured(config);
+
     const project = await projectService.loadProject();
     const isStringsBasedProject = project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED;
     const sourceFileLoader = new SourceFileLoader(config);
