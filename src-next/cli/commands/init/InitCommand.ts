@@ -114,7 +114,7 @@ export default class InitCommand {
       projectId: project.data.id,
       apiToken: apiTokenWritten ? undefined : apiToken,
       basePath: projectDirectory,
-      baseUrl: domain ? `https://${domain}.api.crowdin.com` : options.baseUrl,
+      baseUrl: domain ? `https://${domain}.api.crowdin.com` : options.baseUrl || 'https://api.crowdin.com',
       preserveHierarchy: options.preserveHierarchy,
       ignoreHiddenFiles: true,
       files: [
