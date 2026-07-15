@@ -52,7 +52,7 @@ public class BranchUtils {
     }
 
     public static String getBranchPrefix(String branchName) {
-        return branchName != null ? normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "";
+        return StringUtils.isNotEmpty(branchName) ? normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "";
     }
 
     public static String normalizeBranchName(String branch) {
