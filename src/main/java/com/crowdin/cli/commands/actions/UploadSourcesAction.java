@@ -80,6 +80,10 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             }
         }
 
+        if (isStringsBasedProject && deleteObsolete && !plainView) {
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.delete_obsolete.not_supported_string_based")));
+        }
+
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getProjectLanguages(false), pb.getBasePath());
 
         Branch branch = (branchName != null) ? BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView) : null;
@@ -156,7 +160,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                 Map<String, String> sourceToFullPath = uploadFilePaths.get(file);
                 List<String> sources = new ArrayList<>(sourceToFullPath.keySet());
                 String branchPrefix = BranchUtils.getBranchPrefix(branchName);
-                if (deleteObsolete) {
+                if (deleteObsolete && !isStringsBasedProject) {
                     List<String> filesToUpdate = sources.stream()
                         .map(source -> StringUtils.removeStart(sourceToFullPath.get(source), branchPrefix))
                         .collect(Collectors.toList());
@@ -455,7 +459,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             })
             .collect(Collectors.toList());
         ConcurrencyUtil.executeAndWaitSingleThread(tasks, debug);
-        if (deleteObsolete) {
+        if (deleteObsolete && !isStringsBasedProject) {
             deleteObsoleteProjectFilesSubAction.postAct();
         }
         if (errorsPresented.get()) {
