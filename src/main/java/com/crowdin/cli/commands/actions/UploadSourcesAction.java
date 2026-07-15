@@ -80,6 +80,10 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             }
         }
 
+        if (isStringsBasedProject && deleteObsolete && !plainView) {
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.delete_obsolete.not_supported_string_based")));
+        }
+
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getProjectLanguages(false), pb.getBasePath());
 
         Branch branch = (branchName != null) ? BranchUtils.getOrCreateBranch(out, branchName, client, project, plainView) : null;
@@ -109,6 +113,15 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
 
         Map<String, Long> finalDirectoryPaths = directoryPaths;
         Map<String, FileInfo> finalPaths = paths;
+
+        Map<FileBean, Map<String, String>> uploadFilePaths = new HashMap<>();
+        pb.getFiles().forEach(fileBean -> uploadFilePaths.put(fileBean,
+            SourcesUtils.getUploadFilePaths(fileBean, pb.getBasePath(), pb.getPreserveHierarchy(), placeholderUtil, project.getLanguageMapping(), branchName)));
+
+        Set<String> allLocalFilePaths = new HashSet<>();
+        if (!isStringsBasedProject) {
+            uploadFilePaths.values().forEach(m -> allLocalFilePaths.addAll(m.values()));
+        }
 
         List<String> uploadedSources = new ArrayList<>();
 
@@ -144,18 +157,12 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                     out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.file_context_for_string_based_project")));
                 }
 
-                LanguageMapping localLanguageMapping = LanguageMapping.fromConfigFileLanguageMapping(file.getLanguagesMapping());
-                LanguageMapping serverLanguageMapping = project.getLanguageMapping();
-                LanguageMapping languageMapping = LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
-                List<String> sources = SourcesUtils.getFiles(pb.getBasePath(), file.getSource(), file.getIgnore(), placeholderUtil, languageMapping)
-                    .map(File::getAbsolutePath)
-                    .collect(Collectors.toList());
-                String commonPath =
-                    (pb.getPreserveHierarchy()) ? "" : SourcesUtils.getCommonPath(sources, pb.getBasePath());
-                if (deleteObsolete) {
-                    List<String> filesToUpdate = sources.stream().map(source -> (file.getDest() != null)
-                            ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil)
-                            : StringUtils.removeStart(source, pb.getBasePath() + commonPath))
+                Map<String, String> sourceToFullPath = uploadFilePaths.get(file);
+                List<String> sources = new ArrayList<>(sourceToFullPath.keySet());
+                String branchPrefix = BranchUtils.getBranchPrefix(branchName);
+                if (deleteObsolete && !isStringsBasedProject) {
+                    List<String> filesToUpdate = sources.stream()
+                        .map(source -> StringUtils.removeStart(sourceToFullPath.get(source), branchPrefix))
                         .collect(Collectors.toList());
                     if (file.getDest() != null) {
                         String sourcePattern = PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(file.getSource(), pb.getBasePath()), placeholderUtil);
@@ -188,10 +195,8 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                 List<Runnable> taskss = sources.stream()
                     .map(source -> {
                         final File sourceFile = new File(source);
-                        final String filePath = (file.getDest() != null)
-                                ? PropertiesBeanUtils.prepareDest(file.getDest(), StringUtils.removeStart(source, pb.getBasePath()), placeholderUtil)
-                                : StringUtils.removeStart(source, pb.getBasePath() + commonPath);
-                        final String fileFullPath = (branchName != null ? BranchUtils.normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "") + filePath;
+                        final String fileFullPath = sourceToFullPath.get(source);
+                        final String filePath = StringUtils.removeStart(fileFullPath, branchPrefix);
                         final String fileName = fileFullPath.substring(fileFullPath.lastIndexOf(Utils.PATH_SEPARATOR) + 1);
 
                         synchronized (uploadedSources) {
@@ -205,7 +210,9 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                             uploadedSources.add(fileFullPath);
                         }
 
-                        Map.Entry<FileInfo, Boolean> projectFile = !isStringsBasedProject ? ProjectFilesUtils.fileLookup(fileFullPath, finalPaths) : null;
+                        Map.Entry<FileInfo, Boolean> projectFile = !isStringsBasedProject
+                                ? ProjectFilesUtils.fileLookup(fileFullPath, finalPaths, allLocalFilePaths)
+                                : null;
                         if (!isStringsBasedProject && autoUpdate && projectFile != null) {
                             if (this.wasNotChanged(out, pb, sourceHashes, source)) {
                                 return (Runnable) () -> { };
@@ -452,7 +459,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             })
             .collect(Collectors.toList());
         ConcurrencyUtil.executeAndWaitSingleThread(tasks, debug);
-        if (deleteObsolete) {
+        if (deleteObsolete && !isStringsBasedProject) {
             deleteObsoleteProjectFilesSubAction.postAct();
         }
         if (errorsPresented.get()) {

@@ -1,5 +1,15 @@
 # Changelog
 
+## [4.14.4](https://github.com/crowdin/crowdin-cli/compare/4.14.3...4.14.4) (2026-07-15)
+
+
+### Bug Fixes
+
+* correct Java version check and PATH setup in install scripts ([#1044](https://github.com/crowdin/crowdin-cli/issues/1044)) ([0c28481](https://github.com/crowdin/crowdin-cli/commit/0c284812bb382d63c22d676d12a0cd0461223a1e)), closes [#840](https://github.com/crowdin/crowdin-cli/issues/840) [#707](https://github.com/crowdin/crowdin-cli/issues/707)
+* delete obsolete usage for string based projects ([#1047](https://github.com/crowdin/crowdin-cli/issues/1047)) ([9bb1a8c](https://github.com/crowdin/crowdin-cli/commit/9bb1a8c49112f31675cb759e1e0f2a81d71c42b3))
+* identical file names upload ([#1042](https://github.com/crowdin/crowdin-cli/issues/1042)) ([69ed001](https://github.com/crowdin/crowdin-cli/commit/69ed0018a43a7778edddaadda0b46aa66bf9b51b))
+* respect ignore patterns with language placeholders on upload translations ([#1032](https://github.com/crowdin/crowdin-cli/issues/1032)) ([7a9fbdf](https://github.com/crowdin/crowdin-cli/commit/7a9fbdf25bbe2febd4fad2a37f812ec6d93bb1b3))
+
 ## [4.14.3](https://github.com/crowdin/crowdin-cli/compare/4.14.2...4.14.3) (2026-06-11)
 
 

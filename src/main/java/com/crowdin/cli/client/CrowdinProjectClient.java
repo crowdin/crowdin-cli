@@ -78,6 +78,8 @@ class CrowdinProjectClient extends CrowdinClientCore implements ProjectClient {
 
         boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
         if (isStringsBasedProject) {
+            project.setFiles(new ArrayList<>());
+            project.setDirectories(new ArrayList<>());
             return;
         }
         project.setFiles(executeRequestFullList((limit, offset) -> this.client.getSourceFilesApi()

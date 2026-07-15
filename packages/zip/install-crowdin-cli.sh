@@ -18,7 +18,7 @@ if [[ "$_java" ]]; then
 
     version=$("$_java" -version 2>&1 | head -1 | cut -d'"' -f2 | sed '/^1\./s///' | cut -d'.' -f1)
 
-    if [ $version -gt 7 ]; then
+    if [ "$version" -ge 17 ]; then
         echo Your Java version is "$version" - OK
 
         echo "Installing Crowdin CLI..."
@@ -32,7 +32,7 @@ if [[ "$_java" ]]; then
 
         sh -c "cat > /usr/local/bin/crowdin << EOF
 #!/bin/bash
-exec /usr/bin/java -jar '/usr/local/bin/crowdin-cli.jar' \"\\\$@\"
+exec '$_java' -jar '/usr/local/bin/crowdin-cli.jar' \"\\\$@\"
 EOF"
         chmod +x /usr/local/bin/crowdin
 
@@ -49,7 +49,7 @@ EOF"
         chmod +x /usr/local/bin/crowdin_uninstall
 
     else
-        echo Your Java version is "$version" - needs to be updated. You can download it from https://www.oracle.com/java/technologies/downloads/
+        echo Your Java version is "$version" - Crowdin CLI requires Java 17 or newer. You can download it from https://www.oracle.com/java/technologies/downloads/
     fi
 fi
 

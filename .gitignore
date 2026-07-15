@@ -29,3 +29,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 packages/npm/*/bin/
 !packages/npm/cli/bin/
 docs/superpowers/
+temp

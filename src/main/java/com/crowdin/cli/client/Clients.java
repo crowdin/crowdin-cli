@@ -74,7 +74,7 @@ public final class Clients {
             ? new Credentials(apiToken, organization, baseUrl)
             : new Credentials(apiToken, organization);
         ClientConfig clientConfig = ClientConfig.builder()
-            .jsonTransformer(new JacksonJsonTransformer())
+            .jsonTransformer(new CrowdinJsonTransformer(new JacksonJsonTransformer()))
             .userAgent(Utils.buildUserAgent())
             .httpTimeoutMs(TIMEOUT)
             .build();

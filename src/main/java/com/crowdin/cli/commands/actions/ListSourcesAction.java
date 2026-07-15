@@ -13,6 +13,9 @@ import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.console.ConsoleSpinner;
 import com.crowdin.client.sourcefiles.model.Branch;
 
+import com.crowdin.client.projectsgroups.model.Type;
+
+import java.util.Objects;
 import java.util.Optional;
 
 import static com.crowdin.cli.BaseCli.RESOURCE_BUNDLE;
@@ -40,6 +43,8 @@ class ListSourcesAction implements NewAction<PropertiesWithFiles, ProjectClient>
             this.noProgress, this.plainView, (deleteObsolete) ? () -> client.downloadFullProject(this.branchName) : client::downloadProjectInfo);
         PlaceholderUtil placeholderUtil = new PlaceholderUtil(project.getProjectLanguages(false), pb.getBasePath());
 
+        boolean isStringsBasedProject = Objects.equals(project.getType(), Type.STRINGS_BASED);
+
         if (!project.isManagerAccess() && deleteObsolete) {
             if (!plainView) {
                 out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.no_manager_access_in_upload_sources_dryrun")));
@@ -49,7 +54,9 @@ class ListSourcesAction implements NewAction<PropertiesWithFiles, ProjectClient>
             }
         }
 
-        if (deleteObsolete) {
+        if (deleteObsolete && isStringsBasedProject) {
+            out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.delete_obsolete.not_supported_string_based")));
+        } else if (deleteObsolete) {
             CrowdinProjectFull projectFull = (CrowdinProjectFull) project;
             Long branchId = Optional.ofNullable(((CrowdinProjectFull) project).getBranch())
                 .map(Branch::getId)
