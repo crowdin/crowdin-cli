@@ -45,9 +45,24 @@ export function buildCommand(def: CommandDef): Command {
     cmd.argument(`<${arg.name}>`, arg.description, arg?.default);
   });
 
+  // A command group runs its default action (usually showing help) when invoked bare, so commander
+  // would otherwise treat an unknown subcommand as an excess positional ("too many arguments").
+  // Let the stray token reach the action and report it as an unknown command instead (Java picocli
+  // parity: "Unknown subcommand 'X'"). Guarded by !arguments so a group that ever declares its own
+  // positionals is left to commander's normal argument handling.
+  const unknownSubcommandDetected = Boolean(def.subcommands?.length) && !def.arguments?.length;
+
+  if (unknownSubcommandDetected) {
+    cmd.allowExcessArguments();
+  }
+
   if (def.action) {
     cmd.action(async (...args: unknown[]) => {
       const command = args[args.length - 1] as Command;
+
+      if (unknownSubcommandDetected && command.args.length > 0) {
+        command.error(`unknown command '${command.args[0]}'`, { exitCode: 1, code: 'commander.unknownCommand' });
+      }
 
       await def.action?.(command);
     });

@@ -21,7 +21,15 @@ function createProgram(): Command {
     .description(description)
     .helpOption('-h, --help', 'Display help message and exit')
     .configureHelp(getHelpConfig())
-    .action(() => program.help());
+    // Report an unknown top-level command instead of commander's "too many arguments" (see builder.ts).
+    .allowExcessArguments()
+    .action(() => {
+      if (program.args.length > 0) {
+        program.error(`unknown command '${program.args[0]}'`, { exitCode: 1, code: 'commander.unknownCommand' });
+      }
+
+      program.help();
+    });
 
   for (const opt of getGlobalOptions()) {
     program.addOption(buildOption(opt));

@@ -65,6 +65,20 @@ describe('exit codes (offline, end-to-end)', () => {
     expect(await runCli(['boguscmd'], workspace)).toBe(2);
   });
 
+  // an unknown command/subcommand must read as "unknown command", not commander's
+  // confusing "too many arguments" (Java picocli parity: "Unknown subcommand 'X'").
+  test('unknown root command reports "unknown command", not "too many arguments"', async () => {
+    const out = await captureCli(['definitely-not-a-command'], workspace);
+    expect(out).toContain("unknown command 'definitely-not-a-command'");
+    expect(out).not.toContain('too many arguments');
+  });
+
+  test('unknown subcommand on a group reports "unknown command"', async () => {
+    const out = await captureCli(['bundle', 'frobnicate'], workspace);
+    expect(out).toContain("unknown command 'frobnicate'");
+    expect(out).not.toContain('too many arguments');
+  });
+
   test('unknown option on a subcommand exits 2 (usage error)', async () => {
     expect(await runCli(['file', '--bogus'], workspace)).toBe(2);
   });
