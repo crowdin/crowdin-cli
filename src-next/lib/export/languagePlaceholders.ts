@@ -1,5 +1,6 @@
 import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import {
+  androidCode,
   languageId,
   language as languagePattern,
   languagePatterns,
@@ -19,6 +20,7 @@ const PLACEHOLDER_MAPPING_KEYS: Record<string, string[]> = {
   [localeWithUnderscore]: ['locale_with_underscore'],
   [threeLettersCode]: ['three_letters_code'],
   [twoLettersCode]: ['two_letters_code'],
+  [androidCode]: ['android_code'],
   [osxCode]: ['osx_code'],
   [osxLocale]: ['osx_locale'],
   [languageId]: ['language_id'],
@@ -91,6 +93,8 @@ export function languagePlaceholderValue(
       return language.threeLettersCode;
     case twoLettersCode:
       return language.twoLettersCode;
+    case androidCode:
+      return language.androidCode;
     case osxCode:
       return language.osxCode;
     case osxLocale:

@@ -73,7 +73,7 @@ describe('createGetConfig', () => {
   });
 
   test("keeps the config file's base_url when --base-url is not passed", async () => {
-    // Regression: the --base-url option must not carry a default, or it would always
+    // the --base-url option must not carry a default, or it would always
     // clobber the config file's enterprise base_url and route requests to api.crowdin.com.
     await Bun.write(
       configPath,

@@ -3,7 +3,7 @@ import { CrowdinError } from '@crowdin/crowdin-api-client';
 import { ExitCode } from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 
-// Regression (#8): the same 401 must yield the same exit code and message from every command. Java
+// the same 401 must yield the same exit code and message from every command. Java
 // mapped HTTP status → exit code centrally (CrowdinClientCore); a service hardcoding exit 1 broke parity.
 describe('toCliError HTTP status mapping', () => {
   test.each([

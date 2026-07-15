@@ -20,6 +20,7 @@ export const languagePatterns = [
   localeWithUnderscore,
   threeLettersCode,
   twoLettersCode,
+  androidCode,
   osxCode,
   osxLocale,
   languageId,

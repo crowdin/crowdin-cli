@@ -212,7 +212,7 @@ describe('ConfigSchema base_url (Java isUrlValid / normalization parity)', () =>
   });
 });
 
-// Regression: a present-but-short --token must not be rejected as an invalid config file. Java never
+// a present-but-short --token must not be rejected as an invalid config file. Java never
 // length-checks the token (only rejects empty), letting the API return 401 for a bad one.
 describe('ConfigSchema apiToken', () => {
   const parse = (apiToken: unknown) => ConfigSchema.safeParse({ projectId: 123, apiToken });
