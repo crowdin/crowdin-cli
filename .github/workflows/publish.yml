@@ -10,6 +10,7 @@ on:
         default: 'all'
         options:
           - 'all'
+          - 'npm'
           - 'aur'
           - 'homebrew'
           - 'chocolatey'
@@ -24,59 +25,142 @@ on:
     types: [released]
 
 jobs:
-  assets:
+  # The npm flow (verify -> publish-platforms -> publish-cli -> assets) publishes the
+  # v5 packages to npm and creates a GitHub pre-release with the standalone binaries.
+  verify:
+    if: github.ref == 'refs/heads/next' && github.event.inputs.package == 'npm'
     runs-on: ubuntu-latest
-    outputs:
-      checksum: ${{ steps.shasum.outputs.hash }}
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-java@v5
+      - uses: oven-sh/setup-bun@v2
         with:
-          distribution: temurin
-          java-version: 17
-          cache: 'gradle'
+          bun-version: latest
 
-      - name: Generate autocomplete script
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Lint and format check
+        run: bunx biome check
+
+      - name: Run tests
+        run: bun run test
+
+      - name: Build linux binary
+        run: bun run build:linux-x64
+
+      - name: Smoke test binary version
         run: |
-          ./gradlew shadowJar
-          cd build/libs
-          java -cp crowdin-cli-*.jar picocli.AutoComplete com.crowdin.cli.commands.picocli.RootCommand
+          version=$(bun -e "console.log(require('./packages/npm/cli/package.json').version)")
+          out=$(./packages/npm/linux-x64/bin/crowdin --version)
+          echo "manifest version: $version / binary version: $out"
+          test "$out" = "$version"
 
-      - name: Build zip package
-        if: github.event_name == 'release'
+  publish-platforms:
+    needs: verify
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        package:
+          - darwin-arm64
+          - darwin-x64
+          - linux-x64
+          - linux-arm64
+          - linux-x64-musl
+          - linux-arm64-musl
+          - win32-x64
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+
+      - name: Update npm
+        run: npm install -g npm@11.18.0
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Build binary
+        run: bun run build:${{ matrix.package }}
+
+      - name: Publish
+        run: npm publish packages/npm/${{ matrix.package }}
+
+  # Last: the launcher pins exact platform-package versions, so it must never be published before its binaries
+  publish-cli:
+    needs: publish-platforms
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+
+      - name: Update npm
+        run: npm install -g npm@11.18.0
+
+      - name: Publish
+        run: npm publish packages/npm/cli
+
+  assets:
+    # Builds the standalone binaries and creates the GitHub release (as a pre-release while v5 is in beta) once the npm packages are published
+    needs: publish-cli
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Read version
+        id: version
         run: |
-          mkdir ${{ github.ref_name }}
-          cp build/libs/crowdin-cli-*.jar ${{ github.ref_name }}/crowdin-cli.jar
-          cp build/libs/crowdin_completion ${{ github.ref_name }}/crowdin_completion
-          cp packages/zip/* ${{ github.ref_name }}/
-          zip -r crowdin-cli.zip ${{ github.ref_name }} && chmod 0644 crowdin-cli.zip
-          rm -rf ${{ github.ref_name }}
+          version=$(bun -e "console.log(require('./packages/npm/cli/package.json').version)")
+          echo "version=$version" >> $GITHUB_OUTPUT
 
-      - name: Generate shasum
-        id: shasum
-        if: github.event_name == 'release'
+      - name: Build binaries
+        run: bun run build:all
+
+      - name: Stage release assets
         run: |
-          echo hash=$(shasum -a 256 crowdin-cli.zip | cut -f 1 -d " ") >> $GITHUB_OUTPUT
-          touch crowdin-cli_checksum.sha256
-          shasum -a 256 crowdin-cli.zip > crowdin-cli_checksum.sha256
+          mkdir release-assets
+          for platform in darwin-arm64 darwin-x64 linux-x64 linux-arm64 linux-x64-musl linux-arm64-musl; do
+            cp packages/npm/$platform/bin/crowdin release-assets/crowdin-$platform
+          done
+          cp packages/npm/win32-x64/bin/crowdin.exe release-assets/crowdin-win32-x64.exe
+          cd release-assets
+          shasum -a 256 crowdin-* > crowdin-cli_checksums.sha256
+          echo ${{ steps.version.outputs.version }} > version.txt
 
-      - name: Generate version.txt file
-        if: github.event_name == 'release'
-        run: echo ${{ github.ref_name }} > version.txt
-
-      - name: Upload asset
+      - name: Create pre-release
         uses: softprops/action-gh-release@v2
-        if: github.event_name == 'release'
         with:
-          files: |
-            crowdin-cli.zip
-            crowdin-cli_checksum.sha256
-            build/libs/crowdin_completion
-            version.txt
-
-  # npm publishing for the v5 beta line lives in publish-next.yml (manual dispatch on the
-  # next branch). The v4 npm flow remains on main.
+          tag_name: ${{ steps.version.outputs.version }}
+          target_commitish: ${{ github.sha }}
+          prerelease: true
+          files: release-assets/*
 
   aur:
     runs-on: ubuntu-latest
@@ -123,14 +207,7 @@ jobs:
         run: |
           mv packages/chocolatey chocolatey
 
-      # We need to update the checksum in the 'chocolateyinstall.ps1' file.
       # In case of manual deploy from branch, don't forget to update the checksum manually before deploying (get it from the latest release assets).
-      - name: Update checksum
-        if: github.event_name == 'release'
-        run: |
-          echo "New Hash: ${{ needs.assets.outputs.checksum }}\n"
-          sed -i "s/checksum      = '.*'/checksum      = '${{ needs.assets.outputs.checksum }}'/g" chocolatey/tools/chocolateyinstall.ps1
-
       - name: check chocolateyinstall.ps1
         run: cat chocolatey/tools/chocolateyinstall.ps1
 
