@@ -1,5 +1,6 @@
 #!/usr/bin/env bun
 
+import tab from '@bomb.sh/tab/commander';
 import { Command, CommanderError } from 'commander';
 import { buildCommand, buildOption, getHelpConfig } from './cli/builder.ts';
 import { commands } from './cli/commands.ts';
@@ -43,6 +44,10 @@ function createProgram(): Command {
     program.addCommand(buildCommand(def));
   }
 
+  // Register shell completion: adds a `complete` subcommand and mirrors the whole command/option
+  // tree (including choices) for zsh/bash/fish/powershell. Must run after all commands are added.
+  tab(program);
+
   // Make commander throw CommanderError instead of calling process.exit itself, so the
   // top-level catch owns the exit code. Applied recursively because a parse error on a
   // subcommand (e.g. `crowdin file upload --bad`) is thrown in the subcommand's context.
@@ -64,14 +69,21 @@ async function main(argv: string[]) {
   await program.parseAsync(argv);
 }
 
+// Completion requests fire on every TAB keystroke: skip @arg-file expansion (a partial token isn't a
+// file) and the network version check, and keep the raw args intact for the completion protocol.
+const rawArgs = process.argv.slice(2);
+const isCompletion = rawArgs[0] === 'complete';
+
 // Expand picocli-style @arg-files before commander sees the arguments.
-const argv = [...process.argv.slice(0, 2), ...expandArgFiles(process.argv.slice(2))];
+const argv = [...process.argv.slice(0, 2), ...(isCompletion ? rawArgs : expandArgFiles(rawArgs))];
 
 try {
   await main(argv);
   // Mirror Java Cli.main: after a successful real command, check for a newer release. Help, version,
   // empty args and parse errors all throw CommanderError and land in catch, so they skip the check.
-  await checkNewVersion(createOutput(getOutputFormatFromArgs(argv)), version);
+  if (!isCompletion) {
+    await checkNewVersion(createOutput(getOutputFormatFromArgs(argv)), version);
+  }
 } catch (error) {
   // Commander already wrote its own output (help/version to stdout, usage errors to stderr),
   // so don't reprint. Mirror Java/picocli: help & version exit 0, usage errors exit 2.

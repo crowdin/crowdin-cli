@@ -34,6 +34,39 @@ Crowdin CLI 5.0 is a complete rewrite from Java to TypeScript, powered by [Bun](
 
 > **Note:** This is a **pre-release**. Expect rough edges and possible breaking changes between pre-releases. Additional distribution channels (Homebrew, Chocolatey, Docker, standalone binaries) will arrive as 5.0 approaches general availability.
 
+## Shell completion
+
+Crowdin CLI ships completions for `zsh`, `bash`, `fish`, and `powershell`. Add the matching line to your shell config so the script is sourced fresh on each shell start:
+
+```bash
+# zsh
+echo 'source <(crowdin complete zsh)' >> ~/.zshrc
+
+# bash
+echo 'source <(crowdin complete bash)' >> ~/.bashrc
+
+# fish
+echo 'crowdin complete fish | source' >> ~/.config/fish/config.fish
+
+# powershell
+echo 'crowdin complete powershell | Out-String | Invoke-Expression' >> $PROFILE
+```
+
+Restart your shell (or `source` the config file) and press `<TAB>` after `crowdin` to complete commands, flags, and option values.
+
+Prefer not to run the CLI on every shell start? Write the script to your shell's completions directory instead (no config edit, but re-run it after upgrades):
+
+```bash
+# zsh (a writable directory on your $fpath)
+crowdin complete zsh > "${fpath[1]}/_crowdin"
+
+# bash
+crowdin complete bash > ~/.local/share/bash-completion/completions/crowdin
+
+# fish
+crowdin complete fish > ~/.config/fish/completions/crowdin.fish
+```
+
 ## Documentation
 
 - [Crowdin CLI documentation](https://crowdin.github.io/crowdin-cli)
