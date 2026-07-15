@@ -7,7 +7,7 @@ ECHO Setting CROWDIN_HOME environment variable
 setx /M CROWDIN_HOME "%cd%"
 
 ECHO Adding the current directory to PATH environment variable
-setx /M PATH "%PATH%;%cd%"
+powershell -NoProfile -Command "$p = [Environment]::GetEnvironmentVariable('Path', 'Machine'); if (($p -split ';') -notcontains '%cd%') { [Environment]::SetEnvironmentVariable('Path', $p.TrimEnd(';') + ';%cd%', 'Machine') }"
 
 if "%_JAVACMD"=="" (
   if not "%JAVA_HOME%"=="" (
