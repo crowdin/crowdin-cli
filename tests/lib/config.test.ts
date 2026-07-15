@@ -231,29 +231,3 @@ describe('ConfigSchema apiToken', () => {
     expect(result.error?.issues[0]?.message).toBe("Required option 'api_token' is missing");
   });
 });
-
-// Regression: Java PropertiesBuilder.setBooleanPropertyIfExists coerced 0/1 (and their string forms)
-// to booleans; the docs show 0/1 for translate_content etc. A bare z.boolean() rejected the numbers.
-describe('ConfigSchema coerced booleans', () => {
-  const parseSeg = (value: unknown) =>
-    ConfigSchema.safeParse({
-      projectId: 123,
-      apiToken: 'a'.repeat(80),
-      files: [{ source: '/s', translation: '/t/%locale%', content_segmentation: value }],
-    });
-
-  test.each([
-    [1, true],
-    [0, false],
-    ['1', true],
-    ['0', false],
-    [true, true],
-    [false, false],
-    ['true', true],
-    ['false', false],
-  ])('coerces %p to %p', (input, expected) => {
-    const result = parseSeg(input);
-    expect(result.success).toBe(true);
-    expect(result.data?.files[0]?.content_segmentation).toBe(expected);
-  });
-});

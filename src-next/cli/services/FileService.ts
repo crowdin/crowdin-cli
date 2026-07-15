@@ -104,10 +104,12 @@ export class FileService {
 
       return projectFiles;
     } catch (error) {
-      const message =
-        error instanceof Error ? `Failed to fetch project files. ${error.message}` : 'Failed to fetch project files';
-      this.output.spinner('projectFiles', 'error', message);
-      throw toCliError(error, 'Failed to fetch project files');
+      const cliError = toCliError(error, 'Failed to fetch project files');
+
+      this.output.spinner('projectFiles', 'error', cliError.message);
+
+      cliError.reported = true;
+      throw cliError;
     }
   }
 

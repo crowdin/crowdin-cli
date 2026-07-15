@@ -1,5 +1,4 @@
 import type { Client } from '@crowdin/crowdin-api-client';
-import CliError from '../errors/CliError.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import type { Output } from '../utils/output.ts';
 
@@ -20,12 +19,12 @@ export class ProgressService {
 
       return projectProgress;
     } catch (error) {
-      const message =
-        error instanceof Error
-          ? `Failed to fetch project progress. ${error.message}`
-          : 'Failed to fetch project progress';
-      this.output.spinner('projectProgress', 'error', message);
-      throw new CliError(message, 1, true);
+      const cliError = toCliError(error, 'Failed to fetch project progress');
+
+      this.output.spinner('projectProgress', 'error', cliError.message);
+
+      cliError.reported = true;
+      throw cliError;
     }
   }
 
