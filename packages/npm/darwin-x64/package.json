@@ -1,6 +1,6 @@
 {
   "name": "@crowdin/cli-darwin-x64",
-  "version": "5.0.0-next.0",
+  "version": "5.0.0-next.1",
   "description": "The macOS x64 64-bit binary for Crowdin CLI.",
   "homepage": "https://crowdin.github.io/crowdin-cli",
   "repository": {

@@ -1,6 +1,6 @@
 {
   "name": "@crowdin/cli-win32-x64",
-  "version": "5.0.0-next.0",
+  "version": "5.0.0-next.1",
   "description": "The Windows x64 64-bit binary for Crowdin CLI.",
   "homepage": "https://crowdin.github.io/crowdin-cli",
   "repository": {

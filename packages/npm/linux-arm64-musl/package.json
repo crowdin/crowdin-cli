@@ -1,6 +1,6 @@
 {
   "name": "@crowdin/cli-linux-arm64-musl",
-  "version": "5.0.0-next.0",
+  "version": "5.0.0-next.1",
   "description": "The Linux ARM 64-bit (musl) binary for Crowdin CLI.",
   "homepage": "https://crowdin.github.io/crowdin-cli",
   "repository": {
