@@ -211,3 +211,49 @@ describe('ConfigSchema base_url (Java isUrlValid / normalization parity)', () =>
     expect(() => parseBaseUrl(url)).toThrow();
   });
 });
+
+// Regression: a present-but-short --token must not be rejected as an invalid config file. Java never
+// length-checks the token (only rejects empty), letting the API return 401 for a bad one.
+describe('ConfigSchema apiToken', () => {
+  const parse = (apiToken: unknown) => ConfigSchema.safeParse({ projectId: 123, apiToken });
+
+  test('accepts a short token (validity is the API job, not the config)', () => {
+    expect(parse('SHORTTOKEN_1234567').success).toBe(true);
+  });
+
+  test('accepts an omitted token', () => {
+    expect(ConfigSchema.safeParse({ projectId: 123 }).success).toBe(true);
+  });
+
+  test('rejects an empty token, matching Java missed_api_token', () => {
+    const result = parse('');
+    expect(result.success).toBe(false);
+    expect(result.error?.issues[0]?.message).toBe("Required option 'api_token' is missing");
+  });
+});
+
+// Regression: Java PropertiesBuilder.setBooleanPropertyIfExists coerced 0/1 (and their string forms)
+// to booleans; the docs show 0/1 for translate_content etc. A bare z.boolean() rejected the numbers.
+describe('ConfigSchema coerced booleans', () => {
+  const parseSeg = (value: unknown) =>
+    ConfigSchema.safeParse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      files: [{ source: '/s', translation: '/t/%locale%', content_segmentation: value }],
+    });
+
+  test.each([
+    [1, true],
+    [0, false],
+    ['1', true],
+    ['0', false],
+    [true, true],
+    [false, false],
+    ['true', true],
+    ['false', false],
+  ])('coerces %p to %p', (input, expected) => {
+    const result = parseSeg(input);
+    expect(result.success).toBe(true);
+    expect(result.data?.files[0]?.content_segmentation).toBe(expected);
+  });
+});
