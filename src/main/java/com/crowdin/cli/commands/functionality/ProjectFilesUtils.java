@@ -32,6 +32,10 @@ public class ProjectFilesUtils {
     }
 
     public static <T> Map.Entry<T, Boolean> fileLookup(String filePath, Map<String, T> files) {
+        return fileLookup(filePath, files, Set.of());
+    }
+
+    public static <T> Map.Entry<T, Boolean> fileLookup(String filePath, Map<String, T> files, Set<String> localFilePaths) {
         if (files.containsKey(filePath)) {
             return new AbstractMap.SimpleEntry<>(files.get(filePath), true);
         }
@@ -39,9 +43,11 @@ public class ProjectFilesUtils {
         T fallback = null;
 
         for (var entry : files.entrySet()) {
-            if (ProjectFilesUtils.equalsIgnoreExtension(filePath, entry.getKey())) {
+            if (ProjectFilesUtils.equalsIgnoreExtension(filePath, entry.getKey())
+                    && !localFilePaths.contains(entry.getKey())) {
                 return new AbstractMap.SimpleEntry<>(entry.getValue(), false);
-            } else if (ProjectFilesUtils.equalsIgnoreExtraExtension(filePath, entry.getKey())) {
+            } else if (ProjectFilesUtils.equalsIgnoreExtraExtension(filePath, entry.getKey())
+                    && !localFilePaths.contains(entry.getKey())) {
                 //storing it as a fallback because perfect match should have higher priority
                 fallback = entry.getValue();
             }
