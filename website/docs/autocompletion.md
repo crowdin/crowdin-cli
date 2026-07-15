@@ -4,21 +4,44 @@ description: Enable autocompletion so that the Crowdin CLI automatically complet
 
 # Autocompletion
 
-The bash completion script provided by Crowdin CLI is a utility that provides suggestions for Crowdin CLI commands and options within the terminal. This script can significantly improve the productivity of users who frequently work with Crowdin CLI by reducing the need to manually type commands and options.
+Crowdin CLI can generate shell completion scripts that suggest commands, subcommands, options, and option values as you type. This can significantly improve productivity by reducing the need to manually type or look up commands and options.
 
-To use the Crowdin CLI bash completion script, the user needs to run it in their bash shell. This can be done by using the `crowdin completion` command:
+Completions are available for `zsh`, `bash`, `fish`, and `powershell`. The `crowdin complete <shell>` command prints the completion script for the given shell.
+
+## Quick setup
+
+Add the matching line to your shell config so the script is sourced fresh on each shell start:
 
 ```bash
-source <(crowdin completion)
+# zsh
+echo 'source <(crowdin complete zsh)' >> ~/.zshrc
+
+# bash
+echo 'source <(crowdin complete bash)' >> ~/.bashrc
+
+# fish
+echo 'crowdin complete fish | source' >> ~/.config/fish/config.fish
+
+# powershell
+echo 'crowdin complete powershell | Out-String | Invoke-Expression' >> $PROFILE
 ```
 
-Once the script is sourced, the user can start typing a Crowdin CLI command, and then hit the <kbd>Tab</kbd> key to get a list of possible completions. The list will include all valid options and arguments for the command, based on the user's input.
+Restart your shell (or `source` the config file), then start typing a Crowdin CLI command and hit the <kbd>Tab</kbd> key to get a list of possible completions based on your input.
 
-:::info
-For [DEB](/installation#debian), [RPM](/installation#rpm), and [ArchLinux](/installation#arch-linux) packages of Crowdin CLI, the bash completion script will be automatically installed along with the main package during the installation process.
-:::
+## Installing to a completions directory
 
-You can also [download](https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin_completion) the bash completion script from the latest release of a Crowdin CLI GitHub repository or find it in the [Standalone version zip archive](/installation#standalone-version).
+If you'd rather not run the CLI on every shell start, write the script to your shell's completions directory instead. This adds nothing to your shell config, but you need to re-run it after upgrading the CLI:
+
+```bash
+# zsh (a writable directory on your $fpath)
+crowdin complete zsh > "${fpath[1]}/_crowdin"
+
+# bash
+crowdin complete bash > ~/.local/share/bash-completion/completions/crowdin
+
+# fish
+crowdin complete fish > ~/.config/fish/completions/crowdin.fish
+```
 
 ## Further Reading
 

@@ -87,6 +87,16 @@ The `upload sources` <kbd>--cache</kbd> option is no longer experimental - it ha
 
 Read more about it [here](/commands/crowdin-upload-sources).
 
+### Shell autocompletion
+
+Crowdin CLI 5.0 ships completions for `zsh`, `bash`, `fish`, and `powershell` - not just bash. Press <kbd>Tab</kbd> to complete commands, subcommands, options, and option values. Setup is a single line in your shell config:
+
+```bash
+echo 'source <(crowdin complete zsh)' >> ~/.zshrc
+```
+
+See the [Autocompletion](/autocompletion) page for the other shells and setup options.
+
 ### Smarter update notifications
 
 The CLI used to check for a new version on every run. Now the check happens at most once a day, compares versions properly, and never slows down or fails your command - network hiccups are silently ignored.
