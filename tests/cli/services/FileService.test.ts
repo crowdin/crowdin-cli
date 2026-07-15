@@ -56,7 +56,7 @@ describe('FileService', () => {
       expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: 5, recursion: '1' });
     });
 
-    test('requests recursively so files in subdirectories are included (bug #10)', async () => {
+    test('requests recursively so files in subdirectories are included', async () => {
       const spy = spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
         data: [],
       } as never);

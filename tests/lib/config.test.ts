@@ -17,7 +17,7 @@ function baseConfig(fileOverrides: Record<string, unknown> = {}) {
   };
 }
 
-describe('files section optional (bug #5) + guard', () => {
+describe('files section optional + guard', () => {
   const credsOnly = { projectId: 123, apiToken: 'a'.repeat(80), baseUrl: 'https://api.crowdin.com' };
 
   test('credential-only config parses with files defaulting to []', () => {
