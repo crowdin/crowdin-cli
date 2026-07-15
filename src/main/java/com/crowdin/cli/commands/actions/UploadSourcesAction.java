@@ -110,11 +110,13 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
         Map<String, Long> finalDirectoryPaths = directoryPaths;
         Map<String, FileInfo> finalPaths = paths;
 
+        Map<FileBean, Map<String, String>> uploadFilePaths = new HashMap<>();
+        pb.getFiles().forEach(fileBean -> uploadFilePaths.put(fileBean,
+            SourcesUtils.getUploadFilePaths(fileBean, pb.getBasePath(), pb.getPreserveHierarchy(), placeholderUtil, project.getLanguageMapping(), branchName)));
+
         Set<String> allLocalFilePaths = new HashSet<>();
         if (!isStringsBasedProject) {
-            pb.getFiles().forEach(fileBean ->
-                allLocalFilePaths.addAll(SourcesUtils.getUploadFilePaths(
-                    fileBean, pb.getBasePath(), pb.getPreserveHierarchy(), placeholderUtil, project.getLanguageMapping(), branchName).values()));
+            uploadFilePaths.values().forEach(m -> allLocalFilePaths.addAll(m.values()));
         }
 
         List<String> uploadedSources = new ArrayList<>();
@@ -151,8 +153,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                     out.println(WARNING.withIcon(RESOURCE_BUNDLE.getString("message.file_context_for_string_based_project")));
                 }
 
-                Map<String, String> sourceToFullPath = SourcesUtils.getUploadFilePaths(
-                    file, pb.getBasePath(), pb.getPreserveHierarchy(), placeholderUtil, project.getLanguageMapping(), branchName);
+                Map<String, String> sourceToFullPath = uploadFilePaths.get(file);
                 List<String> sources = new ArrayList<>(sourceToFullPath.keySet());
                 String branchPrefix = BranchUtils.getBranchPrefix(branchName);
                 if (deleteObsolete) {
