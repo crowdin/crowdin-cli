@@ -25,6 +25,21 @@ describe('openUrl', () => {
     expect(spawn).toHaveBeenCalledWith(['cmd', '/c', 'start', '', 'https://example.com']);
   });
 
+  test('escapes "&" for cmd.exe on Windows', () => {
+    spyOn(os, 'platform').mockReturnValue('win32');
+    const spawn = spyOn(Bun, 'spawn').mockReturnValue({} as never);
+
+    openUrl('https://example.com/oauth?response_type=token&scope=project');
+
+    expect(spawn).toHaveBeenCalledWith([
+      'cmd',
+      '/c',
+      'start',
+      '',
+      'https://example.com/oauth?response_type=token^&scope=project',
+    ]);
+  });
+
   test('uses "xdg-open" on Linux', () => {
     spyOn(os, 'platform').mockReturnValue('linux');
     const spawn = spyOn(Bun, 'spawn').mockReturnValue({} as never);
