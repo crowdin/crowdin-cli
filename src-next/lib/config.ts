@@ -40,7 +40,10 @@ const coercedBoolean = z.preprocess((value) => {
 export const ConfigSchema = z
   .object({
     projectId: z.coerce.number().gt(0),
-    apiToken: z.string().min(80).optional(),
+    // Java only rejects an empty token (BaseProperties: isEmpty → missed_api_token); token length/
+    // validity is the API's job (401), not the config's. A local min-length check wrongly blamed the
+    // config file for a short --token flag, so match Java: reject only empty, let the API judge the rest.
+    apiToken: z.string().min(1, "Required option 'api_token' is missing").optional(),
     basePath: z.string().default('.'),
     baseUrl: z
       .string()
