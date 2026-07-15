@@ -11,10 +11,7 @@ import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
-import java.util.AbstractMap;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -90,5 +87,29 @@ public class ProjectFilesUtilsTest {
         assertEquals(new AbstractMap.SimpleEntry<>(file4, false), ProjectFilesUtils.fileLookup(file4, Map.of(file5, file4)));
         assertNull(ProjectFilesUtils.fileLookup(file3, Map.of(file1, file1, file2, file2)));
         assertNull(ProjectFilesUtils.fileLookup("path/to/test", Map.of(file1, file1, file2, file2)));
+    }
+
+    @Test
+    public void testFileLookupSkipsSoftMatchWhenSiblingIsLocalFile() {
+        // Remote only has Foo.stringsdict; local batch includes both Foo.strings and Foo.stringsdict.
+        // fileLookup for Foo.strings must NOT soft-match remote Foo.stringsdict — that file
+        // belongs to the local Foo.stringsdict upload.
+        String strings    = "de.lproj/Foo.strings";
+        String stringsdict = "de.lproj/Foo.stringsdict";
+
+        Set<String> localFiles = Set.of(strings, stringsdict);
+        Map<String, String> remotePaths = Map.of(stringsdict, stringsdict);
+
+        // Without the local-file guard the old code would return stringsdict as a soft match.
+        assertNull(ProjectFilesUtils.fileLookup(strings, remotePaths, localFiles));
+
+        // The rename use-case must still work: local Foo.txt, remote only Foo.json — soft-match fires.
+        String localTxt  = "path/to/Foo.txt";
+        String remoteJson = "path/to/Foo.json";
+        Set<String> localFilesRename = Set.of(localTxt);
+        assertEquals(
+            new AbstractMap.SimpleEntry<>(remoteJson, false),
+            ProjectFilesUtils.fileLookup(localTxt, Map.of(remoteJson, remoteJson), localFilesRename)
+        );
     }
 }

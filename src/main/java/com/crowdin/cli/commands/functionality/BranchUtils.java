@@ -3,6 +3,7 @@ package com.crowdin.cli.commands.functionality;
 import com.crowdin.cli.client.CrowdinProjectFull;
 import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.utils.Utils;
 import com.crowdin.cli.utils.console.ExecutionStatus;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.Branch;
@@ -48,6 +49,10 @@ public class BranchUtils {
         return branches.stream()
                 .filter(branch -> normalizedName.equals(branch.getName()))
                 .findFirst();
+    }
+
+    public static String getBranchPrefix(String branchName) {
+        return StringUtils.isNotEmpty(branchName) ? normalizeBranchName(branchName) + Utils.PATH_SEPARATOR : "";
     }
 
     public static String normalizeBranchName(String branch) {

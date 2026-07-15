@@ -4,6 +4,7 @@ import com.crowdin.cli.client.LanguageMapping;
 import com.crowdin.cli.properties.helper.FileHelper;
 import com.crowdin.cli.utils.PlaceholderUtil;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.cli.properties.FileBean;
 import lombok.NonNull;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -11,7 +12,9 @@ import org.apache.commons.lang3.StringUtils;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -145,6 +148,35 @@ public class SourcesUtils {
         String commonPrefix = StringUtils.getCommonPrefix(sources.toArray(new String[0]));
         String result = commonPrefix.substring(0, commonPrefix.lastIndexOf(Utils.PATH_SEPARATOR) + 1);
         result = StringUtils.removeStart(result, basePath);
+        return result;
+    }
+
+    public static Map<String, String> getUploadFilePaths(
+            FileBean fileBean,
+            String basePath,
+            boolean preserveHierarchy,
+            PlaceholderUtil placeholderUtil,
+            LanguageMapping serverLanguageMapping,
+            String branchName
+    ) {
+        LanguageMapping localLanguageMapping = LanguageMapping.fromConfigFileLanguageMapping(fileBean.getLanguagesMapping());
+        LanguageMapping languageMapping = LanguageMapping.populate(localLanguageMapping, serverLanguageMapping);
+
+        List<String> sources = getFiles(basePath, fileBean.getSource(), fileBean.getIgnore(), placeholderUtil, languageMapping)
+                .map(File::getAbsolutePath)
+                .collect(Collectors.toList());
+
+        String commonPath = preserveHierarchy ? "" : getCommonPath(sources, basePath);
+        String branchPrefix = BranchUtils.getBranchPrefix(branchName);
+        Map<String, String> result = new LinkedHashMap<>();
+
+        for (String source : sources) {
+            String filePath = (fileBean.getDest() != null)
+                ? PropertiesBeanUtils.prepareDest(fileBean.getDest(), StringUtils.removeStart(source, basePath), placeholderUtil)
+                : StringUtils.removeStart(source, basePath + commonPath);
+            result.put(source, branchPrefix + filePath);
+        }
+
         return result;
     }
 
