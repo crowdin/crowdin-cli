@@ -1,6 +1,6 @@
 {
   "name": "@crowdin/cli",
-  "version": "5.0.0-next.1",
+  "version": "5.0.0-next.2",
   "type": "module",
   "author": "Crowdin",
   "description": "Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project",
@@ -39,12 +39,12 @@
     "Translation management"
   ],
   "optionalDependencies": {
-    "@crowdin/cli-darwin-arm64": "5.0.0-next.1",
-    "@crowdin/cli-darwin-x64": "5.0.0-next.1",
-    "@crowdin/cli-linux-x64": "5.0.0-next.1",
-    "@crowdin/cli-linux-arm64": "5.0.0-next.1",
-    "@crowdin/cli-linux-x64-musl": "5.0.0-next.1",
-    "@crowdin/cli-linux-arm64-musl": "5.0.0-next.1",
-    "@crowdin/cli-win32-x64": "5.0.0-next.1"
+    "@crowdin/cli-darwin-arm64": "5.0.0-next.2",
+    "@crowdin/cli-darwin-x64": "5.0.0-next.2",
+    "@crowdin/cli-linux-x64": "5.0.0-next.2",
+    "@crowdin/cli-linux-arm64": "5.0.0-next.2",
+    "@crowdin/cli-linux-x64-musl": "5.0.0-next.2",
+    "@crowdin/cli-linux-arm64-musl": "5.0.0-next.2",
+    "@crowdin/cli-win32-x64": "5.0.0-next.2"
   }
 }
