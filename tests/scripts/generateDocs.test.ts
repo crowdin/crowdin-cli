@@ -58,7 +58,7 @@ describe('buildPages', () => {
         '',
         '## Synopsis',
         '',
-        '    crowdin branch add <name> [CONFIG OPTIONS] [OPTIONS]',
+        '    crowdin branch add <name> [OPTIONS]',
         '',
         '## Arguments',
         '',
