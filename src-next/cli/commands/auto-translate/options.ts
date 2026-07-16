@@ -6,7 +6,7 @@ export const language: OptionDef = {
   type: 'string',
   variadic: true,
   default: ['all'],
-  description: 'Languages to which pre-translation should be applied. Can be specified multiple times. Default: all',
+  description: 'Languages to which auto-translation should be applied. Can be specified multiple times. Default: all',
 };
 
 export const excludeLanguage: OptionDef = {
@@ -14,7 +14,7 @@ export const excludeLanguage: OptionDef = {
   short: 'e',
   type: 'string',
   variadic: true,
-  description: 'Languages to exclude from pre-translation. Can be specified multiple times',
+  description: 'Languages to exclude from auto-translation. Can be specified multiple times',
 };
 
 export const file: OptionDef = {
@@ -28,7 +28,7 @@ export const method: OptionDef = {
   name: 'method',
   type: 'string',
   required: true,
-  description: 'Defines pre-translation method. Supported values: mt, tm, ai',
+  description: 'Defines auto-translation method. Supported values: mt, tm, ai',
 };
 
 export const engineId: OptionDef = {
@@ -47,7 +47,7 @@ export const autoApproveOption: OptionDef = {
   name: 'auto-approve-option',
   type: 'string',
   description:
-    'Defines which translations added by TM pre-translation should be auto-approved. Supported values: all, except-auto-substituted, perfect-match-only. Default: none',
+    'Defines which translations added by TM auto-translation should be auto-approved. Supported values: all, except-auto-substituted, perfect-match-only. Default: none',
 };
 
 // Negatable boolean: `--duplicate-translations` / `--no-duplicate-translations`.
@@ -69,34 +69,34 @@ export const noDuplicateTranslations: OptionDef = {
 export const translateUntranslatedOnly: OptionDef = {
   name: 'translate-untranslated-only',
   type: 'boolean',
-  description: 'Applies pre-translation for untranslated strings only',
+  description: 'Applies auto-translation for untranslated strings only',
 };
 
 export const noTranslateUntranslatedOnly: OptionDef = {
   name: 'no-translate-untranslated-only',
   type: 'boolean',
   hidden: true,
-  description: 'Applies pre-translation for all strings',
+  description: 'Applies auto-translation for all strings',
 };
 
 export const translateWithPerfectMatchOnly: OptionDef = {
   name: 'translate-with-perfect-match-only',
   type: 'boolean',
-  description: 'Applies pre-translation only for the strings with perfect match',
+  description: 'Applies auto-translation only for the strings with perfect match',
 };
 
 export const noTranslateWithPerfectMatchOnly: OptionDef = {
   name: 'no-translate-with-perfect-match-only',
   type: 'boolean',
   hidden: true,
-  description: 'Applies pre-translation regardless of perfect match',
+  description: 'Applies auto-translation regardless of perfect match',
 };
 
 export const label: OptionDef = {
   name: 'label',
   type: 'string',
   variadic: true,
-  description: 'Filter strings to pre-translate by labels. Can be specified multiple times',
+  description: 'Filter strings to auto-translate by labels. Can be specified multiple times',
 };
 
 export const aiPrompt: OptionDef = {

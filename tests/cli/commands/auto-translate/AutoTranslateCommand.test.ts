@@ -105,7 +105,7 @@ describe('AutoTranslateCommand', () => {
     );
   };
 
-  test('pre-translates the specified file with labels on a files-based project', async () => {
+  test('auto-translates the specified file with labels on a files-based project', async () => {
     const command = createCommand();
     commandContext = createCommandContext({
       ...globalOptions,
@@ -133,7 +133,7 @@ describe('AutoTranslateCommand', () => {
     expect(request.method).toBe('tm');
   });
 
-  test('pre-translates all files in a directory', async () => {
+  test('auto-translates all files in a directory', async () => {
     const command = createCommand();
     commandContext = createCommandContext({
       ...globalOptions,
@@ -155,7 +155,7 @@ describe('AutoTranslateCommand', () => {
     expect(request.languageIds).toEqual(['ua']);
   });
 
-  test('pre-translates all project files when no file or directory is given', async () => {
+  test('auto-translates all project files when no file or directory is given', async () => {
     const command = createCommand();
     commandContext = createCommandContext({
       ...globalOptions,
@@ -175,7 +175,7 @@ describe('AutoTranslateCommand', () => {
     expect(request.fileIds).toEqual([101, 102]);
   });
 
-  test('pre-translates a strings-based project using branch ids', async () => {
+  test('auto-translates a strings-based project using branch ids', async () => {
     const command = createCommand();
     commandContext = createCommandContext({
       ...globalOptions,
@@ -257,7 +257,7 @@ describe('AutoTranslateCommand', () => {
 
     await command.defaultAction(commandContext);
 
-    expect(warning).toHaveBeenCalledWith("'--auto-approve-option' is used only for the TM Pre-Translation method");
+    expect(warning).toHaveBeenCalledWith("'--auto-approve-option' is used only for the TM Auto-Translation method");
     const request = preTranslate.mock.calls[0]?.[0] as unknown as Record<string, unknown>;
     expect(request.autoApproveOption).toBeUndefined();
   });
@@ -282,7 +282,7 @@ describe('AutoTranslateCommand', () => {
     expect(request.autoApproveOption).toBe('perfectMatchOnly');
   });
 
-  test('warns about missing labels but still pre-translates', async () => {
+  test('warns about missing labels but still auto-translates', async () => {
     const command = createCommand();
     commandContext = createCommandContext({
       ...globalOptions,
@@ -305,7 +305,7 @@ describe('AutoTranslateCommand', () => {
     expect(request.labelIds).toEqual([91]);
   });
 
-  test('prints a verbose pre-translation report', async () => {
+  test('prints a verbose auto-translation report', async () => {
     const command = createCommand();
     commandContext = createCommandContext({
       ...globalOptions,
@@ -388,7 +388,7 @@ describe('AutoTranslateCommand', () => {
       });
 
       expect(command.defaultAction(commandContext)).rejects.toThrow(
-        new CliError("'--translate-with-perfect-match-only' only works with the TM pre-translation method"),
+        new CliError("'--translate-with-perfect-match-only' only works with the TM auto-translation method"),
       );
     });
 
@@ -488,7 +488,7 @@ describe('AutoTranslateCommand', () => {
       );
     });
 
-    test('throws when no files are found to pre-translate', async () => {
+    test('throws when no files are found to auto-translate', async () => {
       const command = createCommand();
       commandContext = createCommandContext({ ...globalOptions, method: 'tm', branch: 'main' });
 
@@ -497,11 +497,11 @@ describe('AutoTranslateCommand', () => {
       spyOn(fileService, 'loadProjectFiles').mockResolvedValue({ data: [] } as never);
 
       expect(command.defaultAction(commandContext)).rejects.toThrow(
-        new CliError("Couldn't find any files to Pre-Translate in the current project"),
+        new CliError("Couldn't find any files to Auto-Translate in the current project"),
       );
     });
 
-    test('warns for missing files and fails after pre-translating the found ones', async () => {
+    test('warns for missing files and fails after auto-translating the found ones', async () => {
       const command = createCommand();
       commandContext = createCommandContext({
         ...globalOptions,
@@ -524,7 +524,7 @@ describe('AutoTranslateCommand', () => {
       expect(preTranslate).toHaveBeenCalled();
     });
 
-    test('propagates API errors from the pre-translation service', async () => {
+    test('propagates API errors from the auto-translation service', async () => {
       const command = createCommand();
       commandContext = createCommandContext({ ...globalOptions, method: 'tm', branch: 'main' });
 
@@ -532,11 +532,11 @@ describe('AutoTranslateCommand', () => {
       spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
       spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
       spyOn(translationService, 'preTranslate').mockRejectedValue(
-        new CliError('Failed to pre-translate the project. Please contact our support team for help'),
+        new CliError('Failed to auto-translate the project. Please contact our support team for help'),
       );
 
       expect(command.defaultAction(commandContext)).rejects.toThrow(
-        new CliError('Failed to pre-translate the project. Please contact our support team for help'),
+        new CliError('Failed to auto-translate the project. Please contact our support team for help'),
       );
     });
   });

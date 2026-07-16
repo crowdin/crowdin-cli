@@ -73,7 +73,7 @@ export default class AutoTranslateCommand {
   getDefinition(): CommandDef {
     return {
       name: 'auto-translate',
-      description: 'Pre-translate files via Machine Translation (MT), Translation Memory (TM), or AI',
+      description: 'Auto-translate files via Machine Translation (MT), Translation Memory (TM), or AI',
       action: this.defaultAction,
       options: [
         language,
@@ -131,7 +131,7 @@ export default class AutoTranslateCommand {
     }
 
     if (translateMethod !== 'tm' && perfectMatchOnly !== undefined) {
-      throw new CliError("'--translate-with-perfect-match-only' only works with the TM pre-translation method");
+      throw new CliError("'--translate-with-perfect-match-only' only works with the TM auto-translation method");
     }
 
     const autoApprove = this.resolveAutoApproveOption(options.autoApproveOption, translateMethod, output);
@@ -240,7 +240,7 @@ export default class AutoTranslateCommand {
     }
 
     if (fileIds.length === 0) {
-      throw new CliError("Couldn't find any files to Pre-Translate in the current project");
+      throw new CliError("Couldn't find any files to Auto-Translate in the current project");
     }
 
     const request: TranslationsModel.PreTranslateRequest = {
@@ -288,7 +288,7 @@ export default class AutoTranslateCommand {
     }
 
     if (translateMethod === 'mt') {
-      output.warning("'--auto-approve-option' is used only for the TM Pre-Translation method");
+      output.warning("'--auto-approve-option' is used only for the TM Auto-Translation method");
       return undefined;
     }
 

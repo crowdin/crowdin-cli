@@ -122,7 +122,7 @@ export class TranslationService {
     request: TranslationsModel.PreTranslateRequest | TranslationsModel.PreTranslateStringsRequest,
     verbose: boolean,
   ) {
-    this.output.spinner('preTranslate', 'start', 'Pre-translation is running...');
+    this.output.spinner('preTranslate', 'start', 'Auto-translation is running...');
 
     try {
       const applied = await this.apiClient.translationsApi.applyPreTranslation(this.projectId, request);
@@ -130,7 +130,7 @@ export class TranslationService {
 
       while (status.status.toLowerCase() !== 'finished') {
         if (status.status.toLowerCase() === 'failed') {
-          throw new CliError('Failed to pre-translate the project. Please contact our support team for help');
+          throw new CliError('Failed to auto-translate the project. Please contact our support team for help');
         }
 
         const progress = Math.trunc(status.progress);
@@ -138,8 +138,8 @@ export class TranslationService {
           'preTranslate',
           'message',
           verbose
-            ? `Pre-translation is completed by (${progress}%) (${status.identifier})`
-            : `Pre-translation is completed by (${progress}%)`,
+            ? `Auto-translation is completed by (${progress}%) (${status.identifier})`
+            : `Auto-translation is completed by (${progress}%)`,
         );
 
         await Bun.sleep(1000);
@@ -150,7 +150,7 @@ export class TranslationService {
       this.output.spinner(
         'preTranslate',
         'stop',
-        verbose ? `Pre-translation is finished (100%) (${status.identifier})` : 'Pre-translation is finished (100%)',
+        verbose ? `Auto-translation is finished (100%) (${status.identifier})` : 'Auto-translation is finished (100%)',
       );
 
       return status;
@@ -158,9 +158,9 @@ export class TranslationService {
       this.output.spinner(
         'preTranslate',
         'error',
-        'Failed to pre-translate the project. Please contact our support team for help',
+        'Failed to auto-translate the project. Please contact our support team for help',
       );
-      throw toCliError(error, 'Failed to pre-translate the project. Please contact our support team for help');
+      throw toCliError(error, 'Failed to auto-translate the project. Please contact our support team for help');
     }
   }
 
@@ -169,7 +169,7 @@ export class TranslationService {
       const response = await this.apiClient.translationsApi.getPreTranslationReport(this.projectId, preTranslationId);
       return response.data;
     } catch (error) {
-      throw toCliError(error, 'Failed to fetch the pre-translation report');
+      throw toCliError(error, 'Failed to fetch the auto-translation report');
     }
   }
 
