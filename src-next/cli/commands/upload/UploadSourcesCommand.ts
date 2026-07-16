@@ -19,7 +19,7 @@ import type {
   GetStringService,
 } from '@/cli/services.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
-import type { Output } from '@/cli/utils/output.ts';
+import { OUTPUT_FORMATS, type Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
 import { assertFilesConfigured } from '@/lib/config.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
@@ -164,7 +164,8 @@ export default class UploadSourcesCommand {
       );
     }
 
-    if (options.dryrun && options.tree) {
+    // Tree is interactive-only; a machine --output (json/toon/plain) is a parseable contract and wins.
+    if (options.dryrun && options.tree && !OUTPUT_FORMATS.includes(options.output ?? '')) {
       printFileTree(
         patternFilePaths.flatMap(({ files }) => files.map(({ localFilePath }) => localFilePath)),
         output,
@@ -173,8 +174,9 @@ export default class UploadSourcesCommand {
       return;
     }
 
-    // Java DryrunSources plain view: bare sorted source paths, one per line (no per-file messages).
-    if (options.dryrun && options.output === 'plain') {
+    // Machine formats emit the bare sorted source paths (Java DryrunSources plain view); output.table
+    // serializes per format so json/toon/plain all stay parseable instead of the per-file messages.
+    if (options.dryrun && OUTPUT_FORMATS.includes(options.output ?? '')) {
       const paths = toSortedRelativePaths(
         patternFilePaths.flatMap(({ files }) => files.map(({ localFilePath }) => localFilePath)),
       );

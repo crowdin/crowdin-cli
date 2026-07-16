@@ -23,7 +23,7 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { fileTree } from '@/cli/utils/fileTree.ts';
-import type { Output } from '@/cli/utils/output.ts';
+import { OUTPUT_FORMATS, type Output } from '@/cli/utils/output.ts';
 import { matchesManagerSourceFile, matchesSourcePattern, replaceUnaryAsterisk } from '@/lib/config/projectFileMatch.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
 import { buildAllProjectTranslations, sortOmittedFiles } from '@/lib/download/projectTranslations.ts';
@@ -345,6 +345,14 @@ export default class DownloadCommand {
         excludedTargetLanguagesByPath,
       });
       const paths = [...new Set(mapping.byArchivePath.values())].sort();
+
+      // Machine formats (json/toon/plain) win over tree and serialize via output.table so they stay
+      // parseable; output.log is text-only, so the tree/bare-path listing is the interactive default.
+      if (OUTPUT_FORMATS.includes(options.output ?? '')) {
+        output.table(paths);
+        return;
+      }
+
       const lines = options.tree ? fileTree(paths) : paths;
 
       for (const line of lines) {
@@ -453,6 +461,7 @@ export default class DownloadCommand {
 
           await mkdir(path.dirname(targetPath), { recursive: true });
           await Bun.write(targetPath, entry.getData());
+
           anyFileDownloaded = true;
           output.success(`File ${localPath} extracted`);
         }
@@ -462,7 +471,9 @@ export default class DownloadCommand {
         if (options.keepArchive) {
           const name = buildGroups.length > 1 ? `crowdin-translations-${buildIndex}.zip` : 'crowdin-translations.zip';
           const savedArchivePath = path.join(config.basePath, name);
+
           await Bun.write(savedArchivePath, Bun.file(archivePath));
+
           output.success(`Archive saved to ${savedArchivePath}`);
         }
       }

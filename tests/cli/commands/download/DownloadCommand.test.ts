@@ -625,6 +625,7 @@ describe('DownloadCommand', () => {
 
       commandContext = createCommandContext({
         ...globalOptions,
+        output: 'text',
         dryrun: true,
       });
 
@@ -658,6 +659,7 @@ describe('DownloadCommand', () => {
 
       commandContext = createCommandContext({
         ...globalOptions,
+        output: 'text',
         dryrun: true,
       });
 

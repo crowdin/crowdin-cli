@@ -202,6 +202,35 @@ describe('FileCommand', () => {
     expect(logged.some((line: string) => line.includes('readme.md'))).toBe(true);
   });
 
+  test('--tree is ignored under a machine --output so the format stays parseable', async () => {
+    const jsonOutput = createOutput({ ...globalOptions, output: 'json' });
+    const tableSpy = spyOn(jsonOutput, 'table');
+    const fileCommand = new FileCommand(
+      async () => ({ ...config, basePath: tempDir }),
+      () => jsonOutput,
+      async () => projectService,
+      async () => storageService,
+      async () => directoryService,
+      async () => fileService,
+      async () => labelService,
+      async () => branchService,
+      async () => translationService,
+      async () => stringService,
+    );
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(branchService, 'resolveBranchId').mockResolvedValue(undefined);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 1, path: '/docs/readme.md' } }],
+    } as never);
+
+    await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'json', tree: true }));
+
+    expect(tableSpy).toHaveBeenCalled();
+    const logged = (console.log as unknown as ReturnType<typeof mock>).mock.calls.map((call) => call[0]);
+    expect(logged.some((line: string) => typeof line === 'string' && line.includes('╰─'))).toBe(false);
+  });
+
   test('uploads file and creates nested directories', async () => {
     const fileCommand = createFileCommand();
     const localFilePath = join(tempDir, 'readme.json');
