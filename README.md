@@ -8,6 +8,9 @@
 
 # Crowdin CLI [![Tweet](https://img.shields.io/twitter/url/http/shields.io.svg?style=social)](https://twitter.com/intent/tweet?url=https%3A%2F%2Fgithub.com%2Fcrowdin%2Fcrowdin-cli&text=Crowdin%20CLI%20is%20an%20open-source%20command-line%20tool%20that%20allows%20you%20to%20manage%20and%20synchronize%20your%20localization%20resources%20with%20your%20Crowdin%20project)&nbsp;[![GitHub Repo stars](https://img.shields.io/github/stars/crowdin/crowdin-cli?style=social&cacheSeconds=1800)](https://github.com/crowdin/crowdin-cli/stargazers)
 
+> [!TIP]
+> **Crowdin CLI 5.0 pre-release is here!** 🚀 A complete rewrite in TypeScript, powered by [Bun](https://bun.sh) - instant startup, no Java required, and JSON/TOON output built for scripts and AI agents. Your commands and `crowdin.yml` stay the same. Try it with `npm install -g @crowdin/cli@next` and [share your feedback](https://github.com/crowdin/crowdin-cli/discussions/1043)!
+
 Crowdin CLI is a command line tool that allows you to manage and synchronize your localization resources with your Crowdin project. Using CLI, you can:
 
 - automate the process of updating your source files in your Crowdin project
