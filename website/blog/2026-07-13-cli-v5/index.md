@@ -81,11 +81,19 @@ $ crowdin file list --output toon
 The TOON version is about **60% smaller** in characters and even cheaper in LLM tokens.
 :::
 
-### Cached uploads are now stable
+### More control over auto-translation
 
-The `upload sources` <kbd>--cache</kbd> option is no longer experimental - it has proven reliable and convenient. With <kbd>--cache</kbd>, the CLI remembers checksums of your source files and skips files that haven't changed since the last run, making repeated uploads much faster in large projects.
+The `auto-translate` command (formerly `pre-translate`) now exposes the full power of the Crowdin API with a set of new options:
 
-Read more about it [here](/commands/crowdin-upload-sources).
+- <kbd>--scope</kbd> - choose which strings to auto-translate: `untranslated`, `translated`, or `all`.
+- <kbd>--priority</kbd> - set the auto-translation queue priority: `low`, `normal`, or `high`.
+- <kbd>--skip-approved-translations</kbd> - leave strings that already have approved translations untouched.
+- <kbd>--replace-translations-option</kbd> and <kbd>--reset-approval-status</kbd> - control what happens to existing translations and their approvals.
+- <kbd>--translation-modified-before</kbd> - re-translate only strings whose translations were modified before the given date.
+- <kbd>--exclude-label</kbd> - the counterpart to <kbd>--label</kbd>: skip strings with the specified labels.
+- <kbd>--source-language</kbd> - auto-translate from the specified source language.
+
+See the [auto-translate](/commands/crowdin-auto-translate) command reference for details.
 
 ### Shell autocompletion
 
@@ -122,6 +130,18 @@ The command has been renamed. There is no alias, so update your scripts:
 ```diff
 -crowdin pre-translate --method tm
 +crowdin auto-translate --method tm
+```
+
+### `auto-translate`: `--translate-untranslated-only` removed
+
+The <kbd>--translate-untranslated-only</kbd> option (deprecated on the API side) and its <kbd>--no-translate-untranslated-only</kbd> form were removed in favor of the new, more flexible <kbd>--scope</kbd> option. Translating only untranslated strings is the default, so the positive form can simply be dropped:
+
+```diff
+-crowdin auto-translate --method tm --translate-untranslated-only
++crowdin auto-translate --method tm
+
+-crowdin auto-translate --method tm --no-translate-untranslated-only
++crowdin auto-translate --method tm --scope all
 ```
 
 ### `--plain` is now `--output plain`

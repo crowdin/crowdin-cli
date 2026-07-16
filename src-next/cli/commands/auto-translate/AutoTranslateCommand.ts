@@ -20,20 +20,27 @@ import {
   directory,
   duplicateTranslations,
   engineId,
+  excludeLabel,
   excludeLanguage,
   file,
   label,
   language,
   method,
   noDuplicateTranslations,
-  noTranslateUntranslatedOnly,
   noTranslateWithPerfectMatchOnly,
-  translateUntranslatedOnly,
+  priority,
+  replaceTranslationsOption,
+  resetApprovalStatus,
+  scope,
+  skipApprovedTranslations,
+  sourceLanguage,
   translateWithPerfectMatchOnly,
+  translationModifiedBefore,
 } from './options.ts';
 
 type Method = TranslationsModel.Method;
 type AutoApproveOption = TranslationsModel.AutoApproveOption;
+type ReplaceTranslationsOption = TranslationsModel.ReplaceTranslationsOption;
 
 interface AutoTranslateCommandOptions extends GlobalOptions {
   language?: string[];
@@ -45,9 +52,16 @@ interface AutoTranslateCommandOptions extends GlobalOptions {
   directory?: string;
   autoApproveOption?: string;
   duplicateTranslations?: boolean;
-  translateUntranslatedOnly?: boolean;
+  skipApprovedTranslations?: boolean;
+  scope?: string;
+  priority?: string;
+  translationModifiedBefore?: string;
+  replaceTranslationsOption?: string;
+  resetApprovalStatus?: boolean;
   translateWithPerfectMatchOnly?: boolean;
   label?: string[];
+  excludeLabel?: string[];
+  sourceLanguage?: string;
   aiPrompt?: number;
 }
 
@@ -58,6 +72,12 @@ const AUTO_APPROVE_OPTIONS: Record<string, AutoApproveOption> = {
   'except-auto-substituted': 'exceptAutoSubstituted',
   'perfect-match-only': 'perfectMatchOnly',
   none: 'none',
+};
+
+const REPLACE_TRANSLATIONS_OPTIONS: Record<string, ReplaceTranslationsOption> = {
+  none: 'none',
+  'auto-translated': 'autoTranslated',
+  all: 'all',
 };
 
 export default class AutoTranslateCommand {
@@ -86,11 +106,17 @@ export default class AutoTranslateCommand {
         autoApproveOption,
         duplicateTranslations,
         noDuplicateTranslations,
-        translateUntranslatedOnly,
-        noTranslateUntranslatedOnly,
+        skipApprovedTranslations,
+        scope,
+        priority,
+        translationModifiedBefore,
+        replaceTranslationsOption,
+        resetApprovalStatus,
         translateWithPerfectMatchOnly,
         noTranslateWithPerfectMatchOnly,
         label,
+        excludeLabel,
+        sourceLanguage,
         aiPrompt,
         filesConfigGroup,
       ],
@@ -114,8 +140,12 @@ export default class AutoTranslateCommand {
     const directoryPath = options.directory ? normalizePath(options.directory) : undefined;
     const languageIds = options.language;
     const excludeLanguageIds = options.excludeLanguage;
-    const { duplicateTranslations: duplicate, translateUntranslatedOnly: untranslatedOnly } = options;
+    const { duplicateTranslations: duplicate, skipApprovedTranslations, resetApprovalStatus } = options;
     const perfectMatchOnly = options.translateWithPerfectMatchOnly;
+    const scope = options.scope as TranslationsModel.Scope | undefined;
+    const priority = options.priority as TranslationsModel.Priority | undefined;
+    const { translationModifiedBefore, sourceLanguage: sourceLanguageId } = options;
+    const replaceTranslations = this.resolveReplaceTranslationsOption(options.replaceTranslationsOption);
 
     // Validation order mirrors the Java `checkOptions` method.
     if (directoryPath && files.length > 0) {
@@ -153,6 +183,7 @@ export default class AutoTranslateCommand {
       output,
     );
     const labelIds = await this.prepareLabelIds(options.label, labelService, output);
+    const excludeLabelIds = await this.prepareLabelIds(options.excludeLabel, labelService, output);
 
     const branchName = this.normalizeBranch(options.branch);
 
@@ -174,9 +205,16 @@ export default class AutoTranslateCommand {
         engineId: engineIdValue,
         autoApproveOption: autoApprove,
         duplicateTranslations: duplicate,
-        translateUntranslatedOnly: untranslatedOnly,
+        skipApprovedTranslations,
+        scope,
+        priority,
+        translationModifiedBefore,
+        replaceTranslationsOption: replaceTranslations,
+        resetApprovalStatus,
         translateWithPerfectMatchOnly: perfectMatchOnly,
         labelIds,
+        excludeLabelIds,
+        sourceLanguageId,
         aiPromptId,
       };
 
@@ -250,9 +288,16 @@ export default class AutoTranslateCommand {
       engineId: engineIdValue,
       autoApproveOption: autoApprove,
       duplicateTranslations: duplicate,
-      translateUntranslatedOnly: untranslatedOnly,
+      skipApprovedTranslations,
+      scope,
+      priority,
+      translationModifiedBefore,
+      replaceTranslationsOption: replaceTranslations,
+      resetApprovalStatus,
       translateWithPerfectMatchOnly: perfectMatchOnly,
       labelIds,
+      excludeLabelIds,
+      sourceLanguageId,
       aiPromptId,
     };
 
@@ -297,6 +342,22 @@ export default class AutoTranslateCommand {
     if (!resolved) {
       throw new CliError(
         "Wrong '--auto-approve-option' parameter. Supported values: all, except-auto-substituted, perfect-match-only, none",
+      );
+    }
+
+    return resolved;
+  }
+
+  private resolveReplaceTranslationsOption(value: string | undefined): ReplaceTranslationsOption | undefined {
+    if (!value) {
+      return undefined;
+    }
+
+    const resolved = REPLACE_TRANSLATIONS_OPTIONS[value];
+
+    if (!resolved) {
+      throw new CliError(
+        "Wrong '--replace-translations-option' parameter. Supported values: none, auto-translated, all",
       );
     }
 

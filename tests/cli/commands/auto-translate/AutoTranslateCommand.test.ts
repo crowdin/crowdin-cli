@@ -21,9 +21,16 @@ type AutoTranslateTestOptions = GlobalOptions & {
   directory?: string;
   autoApproveOption?: string;
   duplicateTranslations?: boolean;
-  translateUntranslatedOnly?: boolean;
+  skipApprovedTranslations?: boolean;
+  scope?: string;
+  priority?: string;
+  translationModifiedBefore?: string;
+  replaceTranslationsOption?: string;
+  resetApprovalStatus?: boolean;
   translateWithPerfectMatchOnly?: boolean;
   label?: string[];
+  excludeLabel?: string[];
+  sourceLanguage?: string;
   aiPrompt?: number;
 };
 
@@ -282,6 +289,107 @@ describe('AutoTranslateCommand', () => {
     expect(request.autoApproveOption).toBe('perfectMatchOnly');
   });
 
+  test('passes the extended auto-translation request fields', async () => {
+    const command = createCommand();
+    commandContext = createCommandContext({
+      ...globalOptions,
+      method: 'tm',
+      language: ['ua'],
+      branch: 'main',
+      scope: 'all',
+      priority: 'high',
+      skipApprovedTranslations: true,
+      resetApprovalStatus: true,
+      translationModifiedBefore: '2026-01-01T00:00:00Z',
+      sourceLanguage: 'en',
+    });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
+    spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
+
+    await command.defaultAction(commandContext);
+
+    const request = preTranslate.mock.calls[0]?.[0] as unknown as Record<string, unknown>;
+    expect(request.scope).toBe('all');
+    expect(request.priority).toBe('high');
+    expect(request.skipApprovedTranslations).toBe(true);
+    expect(request.resetApprovalStatus).toBe(true);
+    expect(request.translationModifiedBefore).toBe('2026-01-01T00:00:00Z');
+    expect(request.sourceLanguageId).toBe('en');
+    expect('translateUntranslatedOnly' in request).toBe(false);
+  });
+
+  test('maps replace-translations-option to the API value', async () => {
+    const command = createCommand();
+    commandContext = createCommandContext({
+      ...globalOptions,
+      method: 'tm',
+      branch: 'main',
+      replaceTranslationsOption: 'auto-translated',
+    });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
+    spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
+
+    await command.defaultAction(commandContext);
+
+    const request = preTranslate.mock.calls[0]?.[0] as unknown as Record<string, unknown>;
+    expect(request.replaceTranslationsOption).toBe('autoTranslated');
+  });
+
+  test('resolves exclude-label titles to excludeLabelIds', async () => {
+    const command = createCommand();
+    commandContext = createCommandContext({
+      ...globalOptions,
+      method: 'tm',
+      branch: 'main',
+      label: ['label_1'],
+      excludeLabel: ['label_2'],
+    });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
+    spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+    spyOn(labelService, 'list').mockResolvedValue([
+      { id: 91, title: 'label_1' },
+      { id: 92, title: 'label_2' },
+    ] as never);
+    const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
+
+    await command.defaultAction(commandContext);
+
+    const request = preTranslate.mock.calls[0]?.[0] as unknown as Record<string, unknown>;
+    expect(request.labelIds).toEqual([91]);
+    expect(request.excludeLabelIds).toEqual([92]);
+  });
+
+  test('passes the extended request fields for strings-based projects', async () => {
+    const command = createCommand();
+    commandContext = createCommandContext({
+      ...globalOptions,
+      method: 'tm',
+      branch: 'main',
+      scope: 'translated',
+      priority: 'low',
+    });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(stringsBasedProject as never);
+    spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
+    const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
+
+    await command.defaultAction(commandContext);
+
+    const request = preTranslate.mock.calls[0]?.[0] as unknown as Record<string, unknown>;
+    expect(request.branchIds).toEqual([81]);
+    expect(request.scope).toBe('translated');
+    expect(request.priority).toBe('low');
+    expect('translateUntranslatedOnly' in request).toBe(false);
+  });
+
   test('warns about missing labels but still auto-translates', async () => {
     const command = createCommand();
     commandContext = createCommandContext({
@@ -427,6 +535,15 @@ describe('AutoTranslateCommand', () => {
         new CliError(
           "Wrong '--auto-approve-option' parameter. Supported values: all, except-auto-substituted, perfect-match-only, none",
         ),
+      );
+    });
+
+    test('throws when replace-translations-option is invalid', async () => {
+      const command = createCommand();
+      commandContext = createCommandContext({ ...globalOptions, method: 'tm', replaceTranslationsOption: 'wrong' });
+
+      expect(command.defaultAction(commandContext)).rejects.toThrow(
+        new CliError("Wrong '--replace-translations-option' parameter. Supported values: none, auto-translated, all"),
       );
     });
 

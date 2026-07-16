@@ -66,17 +66,44 @@ export const noDuplicateTranslations: OptionDef = {
   description: 'Skips adding a translation if the same one already exists',
 };
 
-export const translateUntranslatedOnly: OptionDef = {
-  name: 'translate-untranslated-only',
+export const skipApprovedTranslations: OptionDef = {
+  name: 'skip-approved-translations',
   type: 'boolean',
-  description: 'Applies auto-translation for untranslated strings only',
+  description: 'Skips strings that already have an approved translation',
 };
 
-export const noTranslateUntranslatedOnly: OptionDef = {
-  name: 'no-translate-untranslated-only',
+export const scope: OptionDef = {
+  name: 'scope',
+  type: 'string',
+  choices: ['untranslated', 'translated', 'all'],
+  description: 'Defines strings that should be auto-translated. Default: untranslated',
+};
+
+export const priority: OptionDef = {
+  name: 'priority',
+  type: 'string',
+  choices: ['low', 'normal', 'high'],
+  description: 'Defines the auto-translation priority. Default: normal',
+};
+
+export const translationModifiedBefore: OptionDef = {
+  name: 'translation-modified-before',
+  type: 'string',
+  description:
+    'Re-translates strings only if their translations were modified before the given date-time (e.g. 2024-01-01T00:00:00Z)',
+};
+
+export const replaceTranslationsOption: OptionDef = {
+  name: 'replace-translations-option',
+  type: 'string',
+  choices: ['none', 'auto-translated', 'all'],
+  description: 'Defines whether to replace existing translations. Default: none',
+};
+
+export const resetApprovalStatus: OptionDef = {
+  name: 'reset-approval-status',
   type: 'boolean',
-  hidden: true,
-  description: 'Applies auto-translation for all strings',
+  description: 'Removes approval from existing translations that get replaced',
 };
 
 export const translateWithPerfectMatchOnly: OptionDef = {
@@ -97,6 +124,19 @@ export const label: OptionDef = {
   type: 'string',
   variadic: true,
   description: 'Filter strings to auto-translate by labels. Can be specified multiple times',
+};
+
+export const excludeLabel: OptionDef = {
+  name: 'exclude-label',
+  type: 'string',
+  variadic: true,
+  description: 'Exclude strings with the specified labels from auto-translation. Can be specified multiple times',
+};
+
+export const sourceLanguage: OptionDef = {
+  name: 'source-language',
+  type: 'string',
+  description: 'Auto-translate from the specified source language',
 };
 
 export const aiPrompt: OptionDef = {
