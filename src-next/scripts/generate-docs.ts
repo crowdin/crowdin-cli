@@ -84,20 +84,13 @@ function groupTitle(group: string): string {
     .join(' ');
 }
 
-function synopsis(
-  path: string[],
-  node: { arguments?: ArgumentDef[]; subcommands?: SubcommandDef[] },
-  groups: OptionGroupDef[],
-): string {
+function synopsis(path: string[], node: { arguments?: ArgumentDef[]; subcommands?: SubcommandDef[] }): string {
   const parts = [...path];
   for (const arg of node.arguments ?? []) {
     parts.push(`<${arg.name}>`);
   }
   if (node.subcommands?.length) {
     parts.push('[SUBCOMMAND]');
-  }
-  for (const group of groups) {
-    parts.push(`[${groupTitle(group.group).toUpperCase()}]`);
   }
   parts.push('[OPTIONS]');
   return `    ${parts.join(' ')}`;
@@ -122,7 +115,7 @@ function renderPage(node: PageNode, globalOptions: OptionDef[], isRoot: boolean)
 
   sections.push([`# ${node.path.join(' ')}`]);
   sections.push(['## Description', '', ...node.description.split('\n')]);
-  sections.push(['## Synopsis', '', synopsis(node.path, node, groups)]);
+  sections.push(['## Synopsis', '', synopsis(node.path, node)]);
 
   if (node.subcommands?.length) {
     const entries = node.subcommands.flatMap((sub, i) => {
