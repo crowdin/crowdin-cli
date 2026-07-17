@@ -12,8 +12,8 @@ export function buildCommand(def: CommandDef): Command {
 
   const usage = [
     def.subcommands?.length ? '[command]' : '',
-    '[options]',
     def.arguments?.map((arg) => `<${arg.name}>`).join(' ') ?? '',
+    '[options]',
   ]
     .filter(Boolean)
     .join(' ');
