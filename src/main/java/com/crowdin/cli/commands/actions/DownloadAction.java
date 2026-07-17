@@ -440,7 +440,7 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                         build = client.checkBuildingTranslation(build.getId());
 
                         if (build.getStatus().equalsIgnoreCase("failed")) {
-                            throw new RuntimeException(RESOURCE_BUNDLE.getString("message.spinner.build_has_failed"));
+                            throw new RuntimeException(getBuildFailedMessage(build));
                         }
                     }
                     ConsoleSpinner.update(String.format(RESOURCE_BUNDLE.getString("message.building_translation"), 100));
@@ -451,6 +451,15 @@ class DownloadAction implements NewAction<PropertiesWithFiles, ProjectClient> {
                 return build;
             }
         );
+    }
+
+    private static String getBuildFailedMessage(ProjectBuild build) {
+        if (build.getError() != null && StringUtils.isNotEmpty(build.getError().getMessage())) {
+            return String.format(
+                RESOURCE_BUNDLE.getString("message.spinner.build_has_failed_with_error"),
+                build.getError().getMessage());
+        }
+        return RESOURCE_BUNDLE.getString("message.spinner.build_has_failed");
     }
 
     private Pair<Map<File, File>, List<String>> sortFiles(
