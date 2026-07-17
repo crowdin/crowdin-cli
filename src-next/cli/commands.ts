@@ -51,7 +51,7 @@ const { getConfig, getProjectConfig } = createGetConfig(getOutput);
 // takes getProjectConfig, which is where the project_id requirement lives.
 const getApiClient = createGetApiClient(getConfig);
 const getCommentService = createGetCommentService(getApiClient, getProjectConfig);
-const getAppService = createGetAppService(getApiClient, getProjectConfig);
+const getAppService = createGetAppService(getApiClient);
 const getBundleService = createGetBundleService(getApiClient, getProjectConfig);
 const getDistributionService = createGetDistributionService(getApiClient, getProjectConfig);
 const getProjectService = createGetProjectService(getApiClient, getOutput, getProjectConfig);

@@ -37,9 +37,12 @@ describe('createGetConfig', () => {
     output: 'json',
   };
 
-  const makeCommand = (options: Partial<GlobalOptions & ConfigOptions>): Command =>
+  // `options` mirrors commander's own list: getConfig reads it to tell the config tier apart
+  // (--source marks the files tier, --project-id the project tier), so a bare fake is not enough.
+  const makeCommand = (options: Partial<GlobalOptions & ConfigOptions>, declared: string[] = []): Command =>
     ({
       optsWithGlobals: () => ({ ...globalOptions, config: configPath, ...options }),
+      options: declared.map((name) => ({ attributeName: () => name })),
     }) as unknown as Command;
 
   const getConfig = () => createGetConfig(() => output).getConfig;
@@ -94,13 +97,16 @@ describe('createGetConfig', () => {
   });
 
   test('CLI overrides win over config file values', async () => {
+    const cliBasePath = join(tempDir, 'cli-base');
+    await mkdir(cliBasePath);
+
     const config = await getConfig()(
-      makeCommand({ token: ALT_TOKEN, projectId: 222, basePath: '/tmp/base', baseUrl: 'https://acme.crowdin.com' }),
+      makeCommand({ token: ALT_TOKEN, projectId: 222, basePath: cliBasePath, baseUrl: 'https://acme.crowdin.com' }),
     );
 
     expect(config.apiToken).toBe(ALT_TOKEN);
     expect(config.projectId).toBe(222);
-    expect(config.basePath).toBe(resolve(tempDir, '/tmp/base')); // resolved against the config file's dir
+    expect(config.basePath).toBe(resolve(tempDir, cliBasePath)); // an absolute path stands on its own
     expect(config.baseUrl).toBe('https://acme.crowdin.com');
   });
 
@@ -116,9 +122,11 @@ describe('createGetConfig', () => {
 
   test('identity file supplies all four credential fields, not just the token', async () => {
     const identityPath = join(tempDir, 'identity.yml');
+    const identityBasePath = join(tempDir, 'id-base');
+    await mkdir(identityBasePath);
     await Bun.write(
       identityPath,
-      `api_token: "${ALT_TOKEN}"\nproject_id: 444\nbase_url: https://acme.crowdin.com\nbase_path: /id/base\n`,
+      `api_token: "${ALT_TOKEN}"\nproject_id: 444\nbase_url: https://acme.crowdin.com\nbase_path: ${identityBasePath}\n`,
     );
 
     const config = await getConfig()(makeCommand({ identity: identityPath }));
@@ -126,7 +134,7 @@ describe('createGetConfig', () => {
     expect(config.apiToken).toBe(ALT_TOKEN);
     expect(config.projectId).toBe(444);
     expect(config.baseUrl).toBe('https://acme.crowdin.com');
-    expect(config.basePath).toBe(resolve(tempDir, '/id/base')); // resolved against the config file's dir
+    expect(config.basePath).toBe(resolve(tempDir, identityBasePath)); // an absolute path stands on its own
   });
 
   test('identity file resolves `*_env` keys', async () => {
@@ -332,6 +340,7 @@ describe('createGetConfig', () => {
   });
 
   test('resolves a relative base_path against the config file directory', async () => {
+    await mkdir(join(tempDir, 'sub'));
     await Bun.write(configPath, `${CONFIG_YAML}base_path: ./sub\n`);
 
     const config = await getConfig()(makeCommand({}));
@@ -340,11 +349,52 @@ describe('createGetConfig', () => {
   });
 
   test('expands a leading ~ in base_path to the home directory', async () => {
+    await mkdir(join(homeDir, 'l10n'));
     await Bun.write(configPath, `${CONFIG_YAML}base_path: ~/l10n\n`);
 
     const config = await getConfig()(makeCommand({}));
 
     expect(config.basePath).toBe(join(homeDir, 'l10n')); // homedir is mocked to homeDir
+  });
+
+  test('reports a base_path that does not exist', async () => {
+    await Bun.write(configPath, `${CONFIG_YAML}base_path: ./nope\n`);
+
+    const promise = getConfig()(makeCommand({}));
+
+    expect(promise).rejects.toThrow(/The base path .*nope was not found/);
+  });
+
+  test('reports a base_path that is a file, not a directory', async () => {
+    await Bun.write(join(tempDir, 'a-file'), 'x');
+    await Bun.write(configPath, `${CONFIG_YAML}base_path: ./a-file\n`);
+
+    const promise = getConfig()(makeCommand({}));
+
+    expect(promise).rejects.toThrow(/should be a directory/);
+  });
+
+  // Java collects every config problem into one ValidationException instead of failing on the first,
+  // so a single run tells you everything to fix (BaseProperties/ProjectProperties.checkProperties).
+  test('reports a bad base_path and a missing project_id together', async () => {
+    await Bun.write(configPath, `api_token: "${TOKEN}"\nbase_path: ./nope\n`);
+
+    const promise = getConfig()(makeCommand({}, ['projectId']));
+
+    expect(promise).rejects.toThrow(
+      /Configuration file is invalid[\s\S]*was not found[\s\S]*Required option 'project_id' is missing/,
+    );
+  });
+
+  // The project tier is the command's declared option set: no --project-id, no requirement
+  // (Java runs glossary/tm on BaseProperties, which has no project_id at all).
+  test('does not require project_id for a command that does not declare it', async () => {
+    await Bun.write(configPath, `api_token: "${TOKEN}"\n`);
+
+    const config = await getConfig()(makeCommand({}));
+
+    expect(config.projectId).toBeUndefined();
+    expect(config.apiToken).toBe(TOKEN);
   });
 
   test('resolves the default base_path (.) to the config file directory', async () => {
@@ -363,6 +413,7 @@ describe('createGetConfig', () => {
     try {
       const config = await getConfig()({
         optsWithGlobals: () => ({ ...globalOptions, config: '' }),
+        options: [],
       } as unknown as Command);
       expect(config.projectId).toBe(111);
     } finally {

@@ -39,7 +39,7 @@
     "adm-zip": "^0.5.18",
     "commander": "^15.0.0",
     "jose": "^6.2.3",
-    "yaml": "^2.8.3",
+    "js-yaml": "^4.3.0",
     "zod": "^4.3.6"
   },
   "lint-staged": {
@@ -52,6 +52,7 @@
     "@semantic-release/git": "^10.0.1",
     "@types/adm-zip": "^0.5.8",
     "@types/bun": "latest",
+    "@types/js-yaml": "^4.0.9",
     "husky": "^9.1.7",
     "lint-staged": "^17.0.8",
     "semantic-release": "^25.0.5",

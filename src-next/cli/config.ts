@@ -1,7 +1,8 @@
+import { statSync } from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import type { Command } from 'commander';
-import YAML from 'yaml';
+import { load as loadYaml } from 'js-yaml';
 import { z } from 'zod';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import InvalidConfigurationError from '@/lib/config/errors/InvalidConfigurationError.ts';
@@ -16,25 +17,29 @@ import type { Output } from './utils/output.ts';
 // load surfaces a not-found error naming it.
 const DEFAULT_CONFIG_FILES = ['crowdin.yml', 'crowdin.yaml'] as const;
 
+type LoadedConfig = { config: Config; fromFile: boolean };
+
 export function createGetConfig(getOutput: (command: Command) => Output) {
-  let cachedConfig: Config | undefined;
+  let cachedLoad: LoadedConfig | undefined;
   let cachedConfigPath: string | undefined;
 
   // Java's BaseProperties: the config file is read when present, but credentials may come entirely
   // from flags or the environment, so a missing default file is not an error. Only the files tier
   // (and an explicit --config) insists the file be there.
-  const getConfig = async (command: Command): Promise<Config> => {
+  const loadConfig = async (command: Command): Promise<LoadedConfig> => {
     const output = getOutput(command);
     const options = command.optsWithGlobals() as GlobalOptions & ConfigOptions;
     const configPath = await resolveConfigPath(options.config);
 
-    if (cachedConfig && cachedConfigPath === configPath) {
-      return cachedConfig;
+    if (cachedLoad && cachedConfigPath === configPath) {
+      return cachedLoad;
     }
 
     output.debug(`Loading configuration from ${configPath} file`);
 
-    const raw = (await needsConfigFile(command, options, configPath)) ? await loadRawFromFile(configPath) : {};
+    const readConfigFile = await needsConfigFile(command, options, configPath);
+    const raw = readConfigFile ? await loadRawFromFile(configPath) : {};
+    const identity = await identityLayer(options, output);
 
     // Single resolution pipeline, lowest priority first. Every scenario — CROWDIN_* fallback,
     // config file, `*_env` vars, ~/.crowdin.yml token, --identity file, CLI flags — is a layer
@@ -47,22 +52,30 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
       envFallbackLayer(),
       mapConfig(raw),
       envKeyLayer(raw),
-      await identityLayer(options, output),
+      identity ?? {},
       cliLayer(options),
     ]);
 
     // Java resolves base_path relative to the config file's directory, expanding a leading `~`
-    // (BaseProperties.populateWithDefaultValues). Skip Java's toRealPath/exists check so config
-    // validation stays filesystem-independent.
+    // (BaseProperties.populateWithDefaultValues).
     config.basePath = resolveBasePath(config.basePath, configPath);
 
-    cachedConfig = config;
+    cachedLoad = { config, fromFile: readConfigFile || identity !== undefined };
     cachedConfigPath = configPath;
 
-    return cachedConfig;
+    return cachedLoad;
   };
 
-  // Java's ProjectProperties: the same config, plus the project_id requirement.
+  const getConfig = async (command: Command): Promise<Config> => {
+    const { config, fromFile } = await loadConfig(command);
+
+    checkResolvedConfig(config, command, fromFile);
+
+    return config;
+  };
+
+  // Java's ProjectProperties. checkResolvedConfig already reports a missing project_id for every
+  // command that declares --project-id, so this only narrows the type for the services that read it.
   const getProjectConfig = async (command: Command): Promise<ProjectConfig> => {
     const config = await getConfig(command);
 
@@ -72,6 +85,37 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
   };
 
   return { getConfig, getProjectConfig };
+}
+
+// The checks Java defers until every source is merged and base_path is resolved
+// (BaseProperties/ProjectProperties.checkProperties). Java collects them into one ValidationException
+// rather than failing on the first, so a single run tells you everything that needs fixing.
+function checkResolvedConfig(config: Config, command: Command, fromFile: boolean): void {
+  const errors: string[] = [];
+  const basePath = statSync(config.basePath, { throwIfNoEntry: false });
+
+  if (!basePath) {
+    errors.push(
+      `The base path ${config.basePath} was not found. Check your 'base_path' for possible typos and/or capitalization mismatches`,
+    );
+  } else if (!basePath.isDirectory()) {
+    errors.push(`The base path '${config.basePath}' should be a directory. Specify the path to your project directory`);
+  }
+
+  if (requiresProjectId(command) && config.projectId === undefined) {
+    errors.push("Required option 'project_id' is missing");
+  }
+
+  if (errors.length === 0) {
+    return;
+  }
+
+  // Java picks the title by whether any file was read at all (PropertiesBuilder.build).
+  const title = fromFile
+    ? 'Configuration file is invalid. Check the following parameters in your configuration file:'
+    : 'Configuration is invalid. Check the following parameters:';
+
+  throw new InvalidConfigurationError([title, ...errors.map((error) => `\t- ${error}`)].join('\n'));
 }
 
 // Mirrors Java PropertiesBuilders: the file tier reads the config file when it exists or when no
@@ -89,10 +133,20 @@ async function needsConfigFile(
   return isFilesTier(command) && !options.source && !options.translation;
 }
 
-// The command's own option set is the tier marker: only filesConfigGroup carries --source
-// (see cli/commands/common/options.ts), so it cannot drift from the tiers declared there.
+// The command's own option set is the tier marker, the way Java's params tier is fixed by the
+// subcommand's ArgGroup: only filesConfigGroup carries --source, and only the project/files groups
+// carry --project-id (see cli/commands/common/options.ts), so this cannot drift from the tiers
+// declared there.
 function isFilesTier(command: Command): boolean {
-  return command.options.some((option) => option.attributeName() === 'source');
+  return hasOption(command, 'source');
+}
+
+function requiresProjectId(command: Command): boolean {
+  return hasOption(command, 'projectId');
+}
+
+function hasOption(command: Command, attributeName: string): boolean {
+  return command.options.some((option) => option.attributeName() === attributeName);
 }
 
 async function resolveConfigPath(explicit: string | undefined): Promise<string> {
@@ -181,7 +235,12 @@ function credentialLayer(raw: Record<string, unknown>): Record<string, unknown> 
 // otherwise the first existing default (~/.crowdin.yml, then ~/.crowdin.yaml). It contributes all
 // four credential fields (with `*_env` resolution), overriding the config file but not CLI flags.
 // A `--identity` file that does not exist is an error; missing default files are simply skipped.
-async function identityLayer(options: GlobalOptions & ConfigOptions, output: Output): Promise<Record<string, unknown>> {
+// Returns undefined when no identity file was read, which (with the config file) decides whether an
+// invalid config is reported as "Configuration file is invalid" or "Configuration is invalid".
+async function identityLayer(
+  options: GlobalOptions & ConfigOptions,
+  output: Output,
+): Promise<Record<string, unknown> | undefined> {
   let identityPath = options.identity;
 
   if (identityPath) {
@@ -193,13 +252,13 @@ async function identityLayer(options: GlobalOptions & ConfigOptions, output: Out
   }
 
   if (!identityPath) {
-    return {};
+    return undefined;
   }
 
   output.debug(`Loading credentials from ${identityPath} file`);
 
   // Java tolerates an empty identity file (unlike an empty config file), so parse leniently.
-  const parsed = YAML.parse(await Bun.file(identityPath).text());
+  const parsed = loadYaml(await Bun.file(identityPath).text());
 
   return parsed && typeof parsed === 'object' ? credentialLayer(parsed as Record<string, unknown>) : {};
 }

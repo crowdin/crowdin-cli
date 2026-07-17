@@ -25,6 +25,7 @@ const createCommandContext = (options: GlobalOptions & { config: string }) => {
   return {
     optsWithGlobals: () => options,
     args: [],
+    options: [],
   } as unknown as Command;
 };
 
@@ -114,8 +115,8 @@ describe('ConfigCommand lint', () => {
 
     const promise = createConfigCommand().lintAction(createCommandContext({ ...globalOptions, config: configPath }));
 
-    await expect(promise).rejects.toBeInstanceOf(CliError);
-    await expect(promise).rejects.toThrow('https://developer.crowdin.com/language-codes');
+    expect(promise).rejects.toBeInstanceOf(CliError);
+    expect(promise).rejects.toThrow('https://developer.crowdin.com/language-codes');
   });
 
   test('fails when a source pattern matches no files on disk', async () => {
@@ -124,8 +125,8 @@ describe('ConfigCommand lint', () => {
 
     const promise = createConfigCommand().lintAction(createCommandContext({ ...globalOptions, config: configPath }));
 
-    await expect(promise).rejects.toBeInstanceOf(CliError);
-    await expect(promise).rejects.toThrow("No source files found for '/missing/*.json'");
+    expect(promise).rejects.toBeInstanceOf(CliError);
+    expect(promise).rejects.toThrow("No source files found for '/missing/*.json'");
   });
 
   test('skips the supported-languages API call when no file declares languages_mapping', async () => {
@@ -237,17 +238,17 @@ describe('ConfigCommand translations', () => {
     mock.restore();
   });
 
-  const config = (): ProjectConfig =>
-    ConfigSchema.parse({
-      projectId: 123,
-      apiToken: 'a'.repeat(80),
-      basePath: tempDir,
-      baseUrl: 'https://api.crowdin.com',
-      files: [{ source: '/**/*.json', translation: '/l/%two_letters_code%/%original_file_name%' }],
-    }) as ProjectConfig;
-
   const run = async (project: unknown, options: Partial<GlobalOptions & { tree: boolean }> = {}) => {
     spyOn(projectService, 'loadProject').mockResolvedValue(project as never);
+
+    const config = (): ProjectConfig =>
+      ConfigSchema.parse({
+        projectId: 123,
+        apiToken: 'a'.repeat(80),
+        basePath: tempDir,
+        baseUrl: 'https://api.crowdin.com',
+        files: [{ source: '/**/*.json', translation: '/l/%two_letters_code%/%original_file_name%' }],
+      }) as ProjectConfig;
     const table = spyOn(output, 'table');
     const warning = spyOn(output, 'warning');
     const log = spyOn(output, 'log');
@@ -261,6 +262,7 @@ describe('ConfigCommand translations', () => {
     await command.listTranslationsAction(
       createCommandContext({ ...globalOptions, config: '', ...options } as GlobalOptions & { config: string }),
     );
+
     return { table, warning, log };
   };
 
@@ -283,7 +285,7 @@ describe('ConfigCommand translations', () => {
   });
 
   test('throws Forbidden without manager access in plain output', async () => {
-    await expect(run({ data: { targetLanguages: [] } }, { output: 'plain' })).rejects.toBeInstanceOf(CliError);
+    expect(run({ data: { targetLanguages: [] } }, { output: 'plain' })).rejects.toBeInstanceOf(CliError);
   });
 
   test('renders a tree with --tree', async () => {

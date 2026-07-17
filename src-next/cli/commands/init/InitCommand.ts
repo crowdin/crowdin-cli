@@ -3,7 +3,7 @@ import { confirm, isCancel, select, text } from '@clack/prompts';
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { decodeJwt } from 'jose';
-import YAML from 'yaml';
+import { dump as dumpYaml, load as loadYaml } from 'js-yaml';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput } from '@/cli/services.ts';
@@ -320,12 +320,12 @@ export default class InitCommand {
       let existing: Record<string, unknown> = {};
 
       if (await Bun.file(apiTokenFilePath).exists()) {
-        existing = YAML.parse(await Bun.file(apiTokenFilePath).text()) ?? {};
+        existing = (loadYaml(await Bun.file(apiTokenFilePath).text()) as Record<string, unknown>) ?? {};
       }
 
       existing.api_token = apiToken;
 
-      await Bun.write(apiTokenFilePath, YAML.stringify(existing));
+      await Bun.write(apiTokenFilePath, dumpYaml(existing));
 
       return true;
     } catch {

@@ -185,10 +185,7 @@ export function createGetBundleService(getApiClient: GetApiClient, getProjectCon
   };
 }
 
-// The application endpoints are organization-level, so AppService never uses the project_id — but
-// Java runs the app commands on ActCommandProject, whose ProjectClient parses one, so they still
-// fail without it. Resolve the project config to keep that requirement.
-export function createGetAppService(getApiClient: GetApiClient, getProjectConfig: GetProjectConfig) {
+export function createGetAppService(getApiClient: GetApiClient) {
   let cachedService: AppService | undefined;
 
   return async (command: Command): Promise<AppService> => {
@@ -197,7 +194,7 @@ export function createGetAppService(getApiClient: GetApiClient, getProjectConfig
     }
 
     const apiClient = await getApiClient(command);
-    await getProjectConfig(command);
+
     cachedService = new AppService(apiClient);
 
     return cachedService;

@@ -19,6 +19,29 @@ describe('parseYaml', () => {
   test('rejects an empty config as an InvalidConfigurationError', () => {
     expect(() => parseYaml('')).toThrow(InvalidConfigurationError);
   });
+
+  // Java (SnakeYAML) accepts a flow collection whose lines are not indented past its block key, and
+  // real Crowdin configs are written this way. Spec-strict parsers reject it: the `yaml` package with
+  // BAD_INDENT, js-yaml 5 with "deficient indentation". Both would drop the second entry or throw.
+  test('parses a flow collection dedented to column 0, as SnakeYAML does', () => {
+    const raw = parseYaml(
+      [
+        'files: [{',
+        '    "source": "/en/**/*.json",',
+        '    "translation": "/%locale%/**/%original_file_name%"',
+        '}, {',
+        '    "source": "/en/**/*.xml",',
+        '    "translation": "/%locale%/**/%original_file_name%"',
+        '}]',
+        '',
+      ].join('\n'),
+    );
+
+    expect(raw.files).toEqual([
+      { source: '/en/**/*.json', translation: '/%locale%/**/%original_file_name%' },
+      { source: '/en/**/*.xml', translation: '/%locale%/**/%original_file_name%' },
+    ]);
+  });
 });
 
 describe('mapConfig', () => {

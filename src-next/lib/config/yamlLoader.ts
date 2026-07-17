@@ -1,4 +1,13 @@
-import YAML from 'yaml';
+// js-yaml, not `yaml`: Java parses configs with SnakeYAML, which accepts input a spec-strict parser
+// rejects — notably a flow collection whose lines are not indented past its block key (`files: [{`
+// closing with `}` back at column 0), a style real Crowdin configs use. The `yaml` package raises
+// BAD_INDENT for that from the composer, ungated by any parse option (version/strict/schema), and
+// Bun.YAML rejects it too.
+//
+// Held at js-yaml 4 on purpose: 5.0.0 started enforcing the same indentation rule ("deficient
+// indentation") and would reintroduce the failure. Verify against a config in that style before
+// taking the 5.x bump.
+import { load as loadYaml } from 'js-yaml';
 import FileNotFoundError from '../common/errors/FileNotFoundError.ts';
 import InvalidConfigurationError from './errors/InvalidConfigurationError.ts';
 
@@ -17,7 +26,7 @@ export function parseYaml(string: string): Record<string, unknown> {
   let config: unknown;
 
   try {
-    config = YAML.parse(string);
+    config = loadYaml(string);
   } catch (error) {
     // Java surfaces a broken config file as a validation failure (exit 2); mirror that
     // instead of leaking the raw YAML parser error.
