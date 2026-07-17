@@ -1,8 +1,17 @@
-import type { Client, TranslationsModel } from '@crowdin/crowdin-api-client';
+import type { Client, Status, TranslationsModel } from '@crowdin/crowdin-api-client';
+import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 import CliError from '../errors/CliError.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import WrongLanguageError from '../errors/WrongLanguageError.ts';
 import type { Output } from '../utils/output.ts';
+
+// Reported once per poll, so each command can word its own progress line (Java words them
+// differently per command: verbose-only for `upload translations`, always for `file upload`).
+export type ImportProgress = (
+  status: Status<
+    TranslationsModel.ImportTranslationsStatusAttributes | TranslationsModel.ImportTranslationsStringsStatusAttributes
+  >,
+) => void;
 
 export class TranslationService {
   constructor(
@@ -19,26 +28,13 @@ export class TranslationService {
     autoApproveImported?: boolean,
     importEqSuggestions?: boolean,
     translateHidden?: boolean,
+    onProgress?: ImportProgress,
   ) {
-    try {
-      return await this.apiClient.translationsApi.importTranslations(this.projectId, {
-        storageId,
-        fileId,
-        languageIds,
-        autoApproveImported,
-        importEqSuggestions,
-        translateHidden,
-      });
-    } catch (error) {
-      if (WrongLanguageError.matches(error)) {
-        throw new WrongLanguageError();
-      }
-
-      throw toCliError(
-        error,
-        `Failed to upload the translation file '${filePath}'. Please contact our support team for help`,
-      );
-    }
+    return await this.importAndWait(
+      { storageId, fileId, languageIds, autoApproveImported, importEqSuggestions, translateHidden },
+      filePath,
+      onProgress,
+    );
   }
 
   async importProjectTranslationStringsBased(
@@ -49,47 +45,54 @@ export class TranslationService {
     autoApproveImported?: boolean,
     importEqSuggestions?: boolean,
     translateHidden?: boolean,
+    onProgress?: ImportProgress,
   ) {
+    return await this.importAndWait(
+      { storageId, branchId, languageIds, autoApproveImported, importEqSuggestions, translateHidden },
+      filePath,
+      onProgress,
+    );
+  }
+
+  async importXliffTranslation(
+    storageId: number,
+    languageIds: string[],
+    filePath: string,
+    onProgress?: ImportProgress,
+  ) {
+    return await this.importAndWait({ storageId, languageIds }, filePath, onProgress);
+  }
+
+  // The import is queued server-side, so the request alone proves nothing: wait for the status to
+  // finish before returning, the way Java's executeAsyncAction does. Keeping the wait here means a
+  // caller cannot mistake "queued" for "done" — the bug that shipped when commands had to remember.
+  private async importAndWait(
+    request: TranslationsModel.ImportTranslationsRequest | TranslationsModel.ImportTranslationsStringsRequest,
+    filePath: string,
+    onProgress?: ImportProgress,
+  ) {
+    const failureMessage = `Failed to upload the translation file '${filePath}'. Please contact our support team for help`;
+    let response: Awaited<ReturnType<Client['translationsApi']['importTranslations']>>;
+
     try {
-      return await this.apiClient.translationsApi.importTranslations(this.projectId, {
-        storageId,
-        branchId,
-        languageIds,
-        autoApproveImported,
-        importEqSuggestions,
-        translateHidden,
-      });
+      response = await this.apiClient.translationsApi.importTranslations(this.projectId, request);
     } catch (error) {
       if (WrongLanguageError.matches(error)) {
         throw new WrongLanguageError();
       }
 
-      throw toCliError(
-        error,
-        `Failed to upload the translation file '${filePath}'. Please contact our support team for help`,
-      );
+      throw toCliError(error, failureMessage);
     }
+
+    return await pollUntilFinished(
+      response,
+      (importId) => this.getImportTranslationsStatus(importId),
+      failureMessage,
+      onProgress,
+    );
   }
 
-  async importXliffTranslation(storageId: number, languageIds: string[], filePath: string) {
-    try {
-      return await this.apiClient.translationsApi.importTranslations(this.projectId, {
-        storageId,
-        languageIds,
-      });
-    } catch (error) {
-      if (WrongLanguageError.matches(error)) {
-        throw new WrongLanguageError();
-      }
-
-      throw toCliError(
-        error,
-        `Failed to upload the translation file '${filePath}'. Please contact our support team for help`,
-      );
-    }
-  }
-
-  async getImportTranslationsStatus(importId: string) {
+  private async getImportTranslationsStatus(importId: string) {
     try {
       return await this.apiClient.translationsApi.importTranslationsStatus(this.projectId, importId);
     } catch (error) {
@@ -143,6 +146,7 @@ export class TranslationService {
         }
 
         const progress = Math.trunc(status.progress);
+
         this.output.spinner(
           'preTranslate',
           'message',

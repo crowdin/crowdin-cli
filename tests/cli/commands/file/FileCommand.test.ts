@@ -446,13 +446,16 @@ describe('FileCommand', () => {
 
     await fileCommand.uploadAction(commandContext);
 
-    expect(uploadStrings).toHaveBeenCalledWith({
-      branchId: 7,
-      storageId: 99,
-      labelIds: undefined,
-      cleanupMode: true,
-      updateStrings: true,
-    });
+    expect(uploadStrings).toHaveBeenCalledWith(
+      {
+        branchId: 7,
+        storageId: 99,
+        labelIds: undefined,
+        cleanupMode: true,
+        updateStrings: true,
+      },
+      localFilePath,
+    );
   });
 
   test('requires a branch for strings-based upload', async () => {
@@ -511,12 +514,22 @@ describe('FileCommand', () => {
 
     await fileCommand.uploadAction(commandContext);
 
-    expect(importProjectTranslation).toHaveBeenCalledWith(99, 40, ['uk'], localFilePath);
+    expect(importProjectTranslation).toHaveBeenCalledWith(
+      99,
+      40,
+      ['uk'],
+      localFilePath,
+      undefined,
+      undefined,
+      undefined,
+      expect.any(Function),
+    );
   });
 
-  // The import is queued server-side, so Java waits for the status to finish before reporting the
-  // file as uploaded (executeAsyncAction). Without the poll a failed import still reports success.
-  test('polls the import status and reports progress when uploading a translation', async () => {
+  // The service polls to completion; the command's job is the init line plus a progress line per
+  // poll. Java prints these percent lines regardless of --verbose, appending the identifier only
+  // under --verbose (unlike `upload translations`, which gates the whole line behind --verbose).
+  test('prints the init line and a progress line per poll when uploading a translation', async () => {
     const fileCommand = createFileCommand();
     const localFilePath = join(tempDir, 'main.json');
 
@@ -529,56 +542,22 @@ describe('FileCommand', () => {
     spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
       data: [{ data: { id: 40, path: '/main.json' } }],
     } as never);
-    spyOn(translationService, 'importProjectTranslation').mockResolvedValue({
-      data: { identifier: 'import-1', status: 'created', progress: 0 },
-    } as never);
+    // The service invokes onProgress for each poll; drive it here so the command's wiring is tested.
+    spyOn(translationService, 'importProjectTranslation').mockImplementation((async (
+      ...args: Parameters<typeof translationService.importProjectTranslation>
+    ) => {
+      args[7]?.({ progress: 50, identifier: 'import-1' } as never);
+    }) as never);
 
-    const statuses = [
-      { data: { identifier: 'import-1', status: 'in_progress', progress: 50 } },
-      { data: { identifier: 'import-1', status: 'finished', progress: 100 } },
-    ];
-    const status = spyOn(translationService, 'getImportTranslationsStatus').mockImplementation(
-      async () => statuses.shift() as never,
-    );
     const log = spyOn(output, 'log');
 
     commandContext = createCommandContext({ ...globalOptions, language: 'uk', dest: 'main.json' }, [localFilePath]);
 
     await fileCommand.uploadAction(commandContext);
 
-    expect(status).toHaveBeenCalledWith('import-1');
-    expect(status).toHaveBeenCalledTimes(2);
     expect(log).toHaveBeenCalledWith(`Importing translations for file '${localFilePath}'`);
-    // Java prints the percent lines here regardless of --verbose, identifier only when verbose.
     expect(log).toHaveBeenCalledWith(`Importing translations for file '${localFilePath}' (50%)`);
     expect(log).not.toHaveBeenCalledWith(`Importing translations for file '${localFilePath}' (50%) (import-1)`);
-  });
-
-  test('fails the translation upload when the import status reports failure', async () => {
-    const fileCommand = createFileCommand();
-    const localFilePath = join(tempDir, 'main.json');
-
-    await Bun.write(localFilePath, '{}');
-
-    spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
-      data: { id: 123, languageMapping: {}, targetLanguages: [{ id: 'uk' }], type: 0 },
-    } as never);
-    spyOn(storageService, 'addStorage').mockResolvedValue({ data: { id: 99 } } as never);
-    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
-      data: [{ data: { id: 40, path: '/main.json' } }],
-    } as never);
-    spyOn(translationService, 'importProjectTranslation').mockResolvedValue({
-      data: { identifier: 'import-1', status: 'failed', progress: 0 },
-    } as never);
-
-    const success = spyOn(output, 'success');
-
-    commandContext = createCommandContext({ ...globalOptions, language: 'uk', dest: 'main.json' }, [localFilePath]);
-
-    expect(fileCommand.uploadAction(commandContext)).rejects.toThrow(
-      `Failed to upload the translation file '${localFilePath}'. Please contact our support team for help`,
-    );
-    expect(success).not.toHaveBeenCalled();
   });
 
   test('imports an xliff translation without resolving a source file', async () => {
@@ -600,7 +579,7 @@ describe('FileCommand', () => {
 
     await fileCommand.uploadAction(commandContext);
 
-    expect(importXliff).toHaveBeenCalledWith(99, ['uk'], localFilePath);
+    expect(importXliff).toHaveBeenCalledWith(99, ['uk'], localFilePath, expect.any(Function));
   });
 
   test('requires --language for an xliff upload', async () => {

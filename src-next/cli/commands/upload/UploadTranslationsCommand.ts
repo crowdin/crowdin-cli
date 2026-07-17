@@ -23,7 +23,6 @@ import { languagePatterns } from '@/lib/export/patterns.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { getCommonPath, resolveProjectPath } from '@/lib/upload/fileOptions.ts';
-import { pollUntilFinished } from '@/lib/upload/pollUpload.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import { toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
@@ -142,7 +141,8 @@ export default class UploadTranslationsCommand {
       try {
         output.log(this.importingMessage(entry.translationPath));
 
-        const importResponse = await translationService.importProjectTranslation(
+        // importProjectTranslation returns only once the server-side import has finished.
+        await translationService.importProjectTranslation(
           storage.data.id,
           entry.fileId as number,
           entry.languageIds,
@@ -150,15 +150,6 @@ export default class UploadTranslationsCommand {
           options.autoApproveImported,
           options.importEqSuggestions,
           options.translateHidden,
-        );
-
-        // The import is async server-side, so the request only queues it. Java waits for the status
-        // to finish before reporting the file as uploaded (executeAsyncActionWithoutSpinner), which
-        // is what surfaces a failed import instead of a false success.
-        await pollUntilFinished(
-          importResponse,
-          (importId) => translationService.getImportTranslationsStatus(importId),
-          this.uploadFailedMessage(entry.translationPath),
           (status) => output.debug(this.progressMessage(entry.translationPath, status)),
         );
       } catch (error) {
@@ -345,7 +336,7 @@ export default class UploadTranslationsCommand {
 
       output.log(this.importingMessage(entry.translationPath));
 
-      const importResponse = await translationService.importProjectTranslationStringsBased(
+      await translationService.importProjectTranslationStringsBased(
         storage.data.id,
         branch.id,
         entry.languageIds,
@@ -353,12 +344,6 @@ export default class UploadTranslationsCommand {
         options.autoApproveImported,
         options.importEqSuggestions,
         options.translateHidden,
-      );
-
-      await pollUntilFinished(
-        importResponse,
-        (importId) => translationService.getImportTranslationsStatus(importId),
-        this.uploadFailedMessage(entry.translationPath),
         (status) => output.debug(this.progressMessage(entry.translationPath, status)),
       );
 
@@ -398,10 +383,5 @@ export default class UploadTranslationsCommand {
   // with the import identifier appended.
   private progressMessage(translationPath: string, status: { progress: number; identifier: string }): string {
     return `Importing translations for file '${translationPath}' (${status.progress}%) (${status.identifier})`;
-  }
-
-  // Java's error.upload_translation, used for both a failed request and a failed import status.
-  private uploadFailedMessage(translationPath: string): string {
-    return `Failed to upload the translation file '${translationPath}'. Please contact our support team for help`;
   }
 }

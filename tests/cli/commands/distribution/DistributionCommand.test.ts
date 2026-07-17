@@ -14,8 +14,7 @@ describe('DistributionCommand', () => {
     add: ReturnType<typeof mock<DistributionService['add']>>;
     edit: ReturnType<typeof mock<DistributionService['edit']>>;
     getByHash: ReturnType<typeof mock<DistributionService['getByHash']>>;
-    startRelease: ReturnType<typeof mock<DistributionService['startRelease']>>;
-    getReleaseStatus: ReturnType<typeof mock<DistributionService['getReleaseStatus']>>;
+    releaseDistribution: ReturnType<typeof mock<DistributionService['releaseDistribution']>>;
   };
   const globalOptions: GlobalOptions = {
     verbose: false,
@@ -54,8 +53,7 @@ describe('DistributionCommand', () => {
       add: mock(async () => createDistribution()),
       edit: mock(async () => createDistribution()),
       getByHash: mock(async () => createDistribution()),
-      startRelease: mock(async () => ({ status: 'success', progress: 100 })),
-      getReleaseStatus: mock(async () => ({ status: 'success', progress: 100 })),
+      releaseDistribution: mock(async () => undefined),
     };
 
     spyOn(console, 'log').mockImplementation(() => {});
@@ -97,11 +95,11 @@ describe('DistributionCommand', () => {
 
   test('lists distributions', async () => {
     const distributionCommand = createDistributionCommand();
+
     distributionService.list.mockResolvedValue([
       createDistribution({ hash: 'hash-1', name: 'CDN one' }),
       createDistribution({ hash: 'hash-2', name: 'CDN two' }),
     ]);
-
     await distributionCommand.listAction(createCommandContext(globalOptions));
 
     expect(console.log).toHaveBeenCalledWith(
@@ -118,9 +116,9 @@ describe('DistributionCommand', () => {
 
   test('adds distribution with bundle IDs', async () => {
     const distributionCommand = createDistributionCommand();
-    distributionService.add.mockResolvedValue(createDistribution({ hash: 'hash-1', name: 'CDN' }));
     const commandContext = createCommandContext({ ...globalOptions, bundleId: ['4', '7'] }, ['CDN']);
 
+    distributionService.add.mockResolvedValue(createDistribution({ hash: 'hash-1', name: 'CDN' }));
     await distributionCommand.addAction(commandContext);
 
     expect(distributionService.add).toHaveBeenCalledWith('CDN', [4, 7]);
@@ -147,9 +145,9 @@ describe('DistributionCommand', () => {
 
   test('edits distribution name and bundle IDs', async () => {
     const distributionCommand = createDistributionCommand();
-    distributionService.edit.mockResolvedValue(createDistribution({ hash: 'hash-1', name: 'New' }));
     const commandContext = createCommandContext({ ...globalOptions, name: 'New', bundleId: ['8', '9'] }, ['hash-1']);
 
+    distributionService.edit.mockResolvedValue(createDistribution({ hash: 'hash-1', name: 'New' }));
     await distributionCommand.editAction(commandContext);
 
     expect(distributionService.edit).toHaveBeenCalledWith('hash-1', [
@@ -158,16 +156,24 @@ describe('DistributionCommand', () => {
     ]);
   });
 
-  test('releases distribution and polls until success', async () => {
+  test('releases the distribution', async () => {
     const distributionCommand = createDistributionCommand();
-    distributionService.startRelease.mockResolvedValue({ status: 'inProgress', progress: 20 });
-    distributionService.getReleaseStatus.mockResolvedValue({ status: 'success', progress: 100 });
     const commandContext = createCommandContext(globalOptions, ['hash-1']);
 
     await distributionCommand.releaseAction(commandContext);
 
-    expect(distributionService.startRelease).toHaveBeenCalledWith('hash-1');
-    expect(distributionService.getReleaseStatus).toHaveBeenCalledWith('hash-1');
-    expect(Bun.sleep).toHaveBeenCalledWith(1000);
+    expect(distributionService.getByHash).toHaveBeenCalledWith('hash-1');
+    expect(distributionService.releaseDistribution).toHaveBeenCalledWith('hash-1', expect.any(Function));
+  });
+
+  test('surfaces a failed release', async () => {
+    const distributionCommand = createDistributionCommand();
+    const commandContext = createCommandContext(globalOptions, ['hash-1']);
+
+    distributionService.releaseDistribution.mockRejectedValue(new CliError('Distribution release failed'));
+
+    expect(distributionCommand.releaseAction(commandContext)).rejects.toThrow(
+      new CliError('Distribution release failed'),
+    );
   });
 });

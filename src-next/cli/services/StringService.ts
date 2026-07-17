@@ -1,6 +1,9 @@
-import type { Client, PatchRequest, SourceStringsModel } from '@crowdin/crowdin-api-client';
+import type { Client, PatchRequest, SourceStringsModel, Status } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import { toCliError } from '@/cli/errors/toCliError.ts';
+import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
+
+export type UploadStringsProgress = (status: Status<SourceStringsModel.UploadStringsStatus>) => void;
 
 export class StringService {
   constructor(
@@ -40,15 +43,30 @@ export class StringService {
     }
   }
 
-  async uploadStrings(request: SourceStringsModel.UploadStringsRequest) {
+  // Returns only once the server-side upload has finished. filePath names the file in the failure
+  // message; onProgress reports each poll so the caller can print its own progress line.
+  async uploadStrings(
+    request: SourceStringsModel.UploadStringsRequest,
+    filePath: string,
+    onProgress?: UploadStringsProgress,
+  ) {
+    let response: Awaited<ReturnType<Client['sourceStringsApi']['uploadStrings']>>;
+
     try {
-      return await this.client.sourceStringsApi.uploadStrings(this.projectId, request);
+      response = await this.client.sourceStringsApi.uploadStrings(this.projectId, request);
     } catch (error) {
       throw toCliError(error, 'Failed to upload strings');
     }
+
+    return await pollUntilFinished(
+      response,
+      (uploadId) => this.getUploadStringsStatus(uploadId),
+      `Failed to upload strings for file ${filePath}`,
+      onProgress,
+    );
   }
 
-  async getUploadStringsStatus(uploadId: string) {
+  private async getUploadStringsStatus(uploadId: string) {
     try {
       return await this.client.sourceStringsApi.uploadStringsStatus(this.projectId, uploadId);
     } catch (error) {

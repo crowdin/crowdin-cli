@@ -11,8 +11,9 @@ export async function pollUntilFinished<T>(
 ): Promise<ResponseObject<Status<T>>> {
   let current = initial;
 
-  while (current.data.status !== 'finished') {
-    if (current.data.status === 'failed') {
+  // Case-insensitive: some endpoints return "finished"/"failed", others capitalize (e.g. bundle export).
+  while (current.data.status.toLowerCase() !== 'finished') {
+    if (current.data.status.toLowerCase() === 'failed') {
       throw new CliError(failureMessage);
     }
 
@@ -20,7 +21,7 @@ export async function pollUntilFinished<T>(
 
     current = await poll(current.data.identifier);
 
-    if (current.data.status !== 'failed') {
+    if (current.data.status.toLowerCase() !== 'failed') {
       onProgress?.(current.data);
     }
   }

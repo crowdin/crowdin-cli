@@ -591,7 +591,10 @@ describe('UploadSourcesCommand', () => {
 
     expect(output.warning).toHaveBeenCalledWith('Context can not be used for string-based projects');
     expect(fileService.createProjectFile).not.toHaveBeenCalled();
-    expect(stringService.uploadStrings).toHaveBeenCalledWith(expect.objectContaining({ branchId: 5 }));
+    expect(stringService.uploadStrings).toHaveBeenCalledWith(
+      expect.objectContaining({ branchId: 5 }),
+      expect.any(String),
+    );
   });
 
   test('warns and skips when project has no manager access and delete-obsolete/excluded-languages requested', async () => {
@@ -1353,13 +1356,8 @@ describe('UploadSourcesCommand', () => {
       getOrCreateBranch: mock(async () => ({ id: 5, name: 'main' })),
     };
 
-    let pollCalls = 0;
     const stringService = {
-      uploadStrings: mock(async () => ({ data: { identifier: 'upload-1', status: 'in_progress', progress: 0 } })),
-      getUploadStringsStatus: mock(async () => {
-        pollCalls++;
-        return { data: { identifier: 'upload-1', status: 'finished', progress: 100 } };
-      }),
+      uploadStrings: mock(async () => undefined),
     };
 
     const output = createOutputMock();
@@ -1380,8 +1378,10 @@ describe('UploadSourcesCommand', () => {
 
     await command.uploadSourcesAction(commandContext({}));
 
-    expect(stringService.uploadStrings).toHaveBeenCalledWith(expect.objectContaining({ branchId: 5, storageId: 10 }));
-    expect(pollCalls).toBe(1);
+    expect(stringService.uploadStrings).toHaveBeenCalledWith(
+      expect.objectContaining({ branchId: 5, storageId: 10 }),
+      'src/app.json',
+    );
     expect(output.success).toHaveBeenCalledWith("File 'src/app.json'");
   });
 
@@ -1428,9 +1428,12 @@ describe('UploadSourcesCommand', () => {
       getBranch: mock(async () => ({ id: 5, name: 'main' })),
       getOrCreateBranch: mock(async () => ({ id: 5, name: 'main' })),
     };
+    // A failed status makes the service throw (StringService.test covers the poll); the command
+    // aggregates it into the generic execution error and reports the per-file message.
     const stringService = {
-      uploadStrings: mock(async () => ({ data: { identifier: 'upload-1', status: 'in_progress', progress: 0 } })),
-      getUploadStringsStatus: mock(async () => ({ data: { identifier: 'upload-1', status: 'failed', progress: 0 } })),
+      uploadStrings: mock(async () => {
+        throw new CliError('Failed to upload strings for file src/app.json');
+      }),
     };
     const output = createOutputMock();
     const command = createUploadCommand(
@@ -1503,9 +1506,12 @@ describe('UploadSourcesCommand', () => {
     await command.uploadSourcesAction(commandContext({}));
 
     expect(directoryService.createProjectDirectory).not.toHaveBeenCalled();
+
     const createCalls = fileService.createProjectFile.mock.calls as SourceFilesModel.CreateFileRequest[][];
     const names = createCalls.map((call) => call[0]?.name).sort();
+
     expect(names).toEqual(['a.json', 'b.json']);
+
     for (const call of createCalls) {
       expect(call[0]?.directoryId).toBeUndefined();
     }

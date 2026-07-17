@@ -9,6 +9,9 @@ interface ReleaseStatus {
   progress?: number;
 }
 
+// The release poll stops on any of these; only "failed" is an error (Java treats success/finished alike).
+const RELEASE_TERMINAL_STATUSES = new Set(['success', 'finished', 'failed']);
+
 export class DistributionService {
   constructor(
     private client: Client,
@@ -56,23 +59,37 @@ export class DistributionService {
     return distribution;
   }
 
-  async startRelease(hash: string): Promise<ReleaseStatus> {
-    try {
-      const response = await this.client.distributionsApi.createDistributionRelease(this.projectId, hash);
+  // Release is async server-side: start it, then poll until the status leaves the pending state.
+  // This state machine differs from the finished/failed one pollUntilFinished handles — the status
+  // is optional and a terminal "success" is distinct from "finished" — so the loop lives here.
+  // onProgress reports each poll's percentage so the command can update its spinner.
+  async releaseDistribution(hash: string, onProgress?: (progress: number) => void): Promise<void> {
+    let release: ReleaseStatus;
 
-      return response.data as ReleaseStatus;
+    try {
+      release = (await this.client.distributionsApi.createDistributionRelease(this.projectId, hash))
+        .data as ReleaseStatus;
     } catch (error) {
       throw toCliError(error, `Failed to release distribution ${hash}`);
     }
-  }
 
-  async getReleaseStatus(hash: string): Promise<ReleaseStatus> {
-    try {
-      const response = await this.client.distributionsApi.getDistributionRelease(this.projectId, hash);
+    while (!RELEASE_TERMINAL_STATUSES.has(release.status?.toLowerCase() ?? '')) {
+      if (release.progress !== undefined) {
+        onProgress?.(release.progress);
+      }
 
-      return response.data as ReleaseStatus;
-    } catch (error) {
-      throw toCliError(error, `Failed to fetch release status for ${hash}`);
+      await Bun.sleep(1000);
+
+      try {
+        release = (await this.client.distributionsApi.getDistributionRelease(this.projectId, hash))
+          .data as ReleaseStatus;
+      } catch (error) {
+        throw toCliError(error, `Failed to fetch release status for ${hash}`);
+      }
+    }
+
+    if (release.status?.toLowerCase() === 'failed') {
+      throw new CliError('Distribution release failed');
     }
   }
 }

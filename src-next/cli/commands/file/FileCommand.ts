@@ -11,6 +11,7 @@ import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import type { ImportProgress } from '@/cli/services/TranslationService.ts';
 import type {
   GetBranchService,
   GetConfig,
@@ -29,7 +30,6 @@ import { OUTPUT_FORMATS } from '@/cli/utils/output.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
-import { pollUntilFinished } from '@/lib/upload/pollUpload.ts';
 import { stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 import { download, upload } from './options.ts';
 
@@ -327,35 +327,32 @@ export default class FileCommand {
     const isStringsBased = project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED;
     const storage = await this.uploadToStorage(storageService, localFile, filePath);
 
+    // Java passes the percent message unconditionally here (unlike upload translations, where it is
+    // verbose-only), and appends the identifier only under --verbose.
+    const onProgress: ImportProgress = (status) =>
+      output.log(
+        `Importing translations for file '${filePath}' (${status.progress}%)` +
+          (options.verbose ? ` (${status.identifier})` : ''),
+      );
+
     try {
       output.log(`Importing translations for file '${filePath}'`);
 
-      const importResponse = options.xliff
-        ? await translationService.importXliffTranslation(storage.data.id, [languageId], filePath)
-        : await this.importFileTranslation(
-            command,
-            options,
-            filePath,
-            destPath,
-            languageId,
-            isStringsBased,
-            storage.data.id,
-          );
-
-      // The import is queued server-side, so the request alone proves nothing. Java waits for the
-      // status to finish before reporting the file as uploaded (executeAsyncAction).
-      await pollUntilFinished(
-        importResponse,
-        (importId) => translationService.getImportTranslationsStatus(importId),
-        `Failed to upload the translation file '${filePath}'. Please contact our support team for help`,
-        // Java passes the percent message unconditionally here (unlike upload translations, where it
-        // is verbose-only), and appends the identifier only under --verbose.
-        (status) =>
-          output.log(
-            `Importing translations for file '${filePath}' (${status.progress}%)` +
-              (options.verbose ? ` (${status.identifier})` : ''),
-          ),
-      );
+      // These return only once the server-side import has finished.
+      if (options.xliff) {
+        await translationService.importXliffTranslation(storage.data.id, [languageId], filePath, onProgress);
+      } else {
+        await this.importFileTranslation(
+          command,
+          options,
+          filePath,
+          destPath,
+          languageId,
+          isStringsBased,
+          storage.data.id,
+          onProgress,
+        );
+      }
     } catch (error) {
       if (error instanceof WrongLanguageError) {
         output.warning(
@@ -381,6 +378,7 @@ export default class FileCommand {
     languageId: string,
     isStringsBased: boolean,
     storageId: number,
+    onProgress: ImportProgress,
   ) => {
     const fileService = await this.getFileService(command);
     const branchService = await this.getBranchService(command);
@@ -392,7 +390,16 @@ export default class FileCommand {
         throw new CliError('Branch is required for string-based projects');
       }
 
-      return await translationService.importProjectTranslationStringsBased(storageId, branchId, [languageId], filePath);
+      return await translationService.importProjectTranslationStringsBased(
+        storageId,
+        branchId,
+        [languageId],
+        filePath,
+        undefined,
+        undefined,
+        undefined,
+        onProgress,
+      );
     }
 
     const wantedPath = destPath.startsWith('/') ? destPath : `/${destPath}`;
@@ -403,7 +410,16 @@ export default class FileCommand {
       throw new CliError(`File '${wantedPath}' not found in the Crowdin project`);
     }
 
-    return await translationService.importProjectTranslation(storageId, sourceFile.data.id, [languageId], filePath);
+    return await translationService.importProjectTranslation(
+      storageId,
+      sourceFile.data.id,
+      [languageId],
+      filePath,
+      undefined,
+      undefined,
+      undefined,
+      onProgress,
+    );
   };
 
   // Source upload for strings-based projects: branch is mandatory; upload + poll to completion
@@ -425,18 +441,17 @@ export default class FileCommand {
     const storageService = await this.getStorageService(command);
     const stringService = await this.getStringService(command);
     const storage = await this.uploadToStorage(storageService, localFile, filePath);
-    const uploadResponse = await stringService.uploadStrings({
-      branchId,
-      storageId: storage.data.id,
-      labelIds,
-      cleanupMode: options.cleanupMode,
-      updateStrings: options.updateStrings,
-    });
 
-    await pollUntilFinished(
-      uploadResponse,
-      (uploadId) => stringService.getUploadStringsStatus(uploadId),
-      `Failed to upload strings for file ${filePath}`,
+    // Returns only once the upload has finished server-side.
+    await stringService.uploadStrings(
+      {
+        branchId,
+        storageId: storage.data.id,
+        labelIds,
+        cleanupMode: options.cleanupMode,
+        updateStrings: options.updateStrings,
+      },
+      filePath,
     );
 
     output.success(`File '${destPath}'`);

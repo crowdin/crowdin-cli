@@ -58,26 +58,18 @@ export function baseLabelServiceMock() {
   };
 }
 
+// The services now own the poll and return only when finished, so the mocks resolve to nothing —
+// commands await completion rather than a status object.
 export function baseTranslationServiceMock() {
   return {
-    importProjectTranslation: mock(async () => ({
-      data: { identifier: 'import-1', status: 'finished', progress: 100 },
-    })),
-    importProjectTranslationStringsBased: mock(async () => ({
-      data: { identifier: 'import-1', status: 'finished', progress: 100 },
-    })),
-    getImportTranslationsStatus: mock(async () => ({
-      data: { identifier: 'import-1', status: 'finished', progress: 100 },
-    })),
+    importProjectTranslation: mock(async () => undefined),
+    importProjectTranslationStringsBased: mock(async () => undefined),
   };
 }
 
 export function baseStringServiceMock() {
   return {
-    uploadStrings: mock(async () => ({ data: { identifier: 'upload-1', status: 'finished', progress: 100 } })),
-    getUploadStringsStatus: mock(async () => ({
-      data: { identifier: 'upload-1', status: 'finished', progress: 100 },
-    })),
+    uploadStrings: mock(async () => undefined),
   };
 }
 

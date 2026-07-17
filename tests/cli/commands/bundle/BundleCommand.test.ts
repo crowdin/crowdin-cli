@@ -7,7 +7,7 @@ import type { Command } from 'commander';
 import BundleCommand from '@/cli/commands/bundle/BundleCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { BundleExportStatus, BundleService, BundleView } from '@/cli/services/BundleService.ts';
+import type { BundleService, BundleView } from '@/cli/services/BundleService.ts';
 import type { GetConfig } from '@/cli/services.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 
@@ -19,8 +19,7 @@ describe('BundleCommand', () => {
     get: ReturnType<typeof mock<BundleService['get']>>;
     delete: ReturnType<typeof mock<BundleService['delete']>>;
     getBundleUrl: ReturnType<typeof mock<BundleService['getBundleUrl']>>;
-    startExport: ReturnType<typeof mock<BundleService['startExport']>>;
-    checkExportStatus: ReturnType<typeof mock<BundleService['checkExportStatus']>>;
+    exportBundle: ReturnType<typeof mock<BundleService['exportBundle']>>;
     getDownloadUrl: ReturnType<typeof mock<BundleService['getDownloadUrl']>>;
   };
   const config = { basePath: '/tmp/bundle-base', projectId: 1 } as unknown as Awaited<ReturnType<GetConfig>>;
@@ -53,14 +52,6 @@ describe('BundleCommand', () => {
     );
   };
 
-  const createExportStatus = (overrides: Partial<BundleExportStatus>): BundleExportStatus =>
-    ({
-      identifier: 'export-1',
-      status: 'finished',
-      progress: 100,
-      ...overrides,
-    }) as BundleExportStatus;
-
   const createBundleView = (overrides: Partial<BundleView>): BundleView => ({
     id: 1,
     name: 'bundle',
@@ -86,8 +77,7 @@ describe('BundleCommand', () => {
       get: mock(async () => null),
       delete: mock(async () => {}),
       getBundleUrl: mock(async () => 'https://crowdin.com/project/demo/bundles/10'),
-      startExport: mock(async () => createExportStatus({})),
-      checkExportStatus: mock(async () => createExportStatus({})),
+      exportBundle: mock(async () => 'export-1'),
       getDownloadUrl: mock(async () => 'https://crowdin.com/download/bundle.zip'),
     };
 
@@ -320,7 +310,7 @@ describe('BundleCommand', () => {
       await cmd.downloadAction(createCommandContext(textOptions(), ['5']));
 
       expect(warningSpy).toHaveBeenCalledWith("Couldn't find bundle by the specified ID");
-      expect(bundleService.startExport).not.toHaveBeenCalled();
+      expect(bundleService.exportBundle).not.toHaveBeenCalled();
     });
 
     test('builds, downloads and extracts the bundle, then removes the archive', async () => {
@@ -329,7 +319,7 @@ describe('BundleCommand', () => {
 
       await cmd.downloadAction(createCommandContext(textOptions(), ['5']));
 
-      expect(bundleService.startExport).toHaveBeenCalledWith(5);
+      expect(bundleService.exportBundle).toHaveBeenCalledWith(5, expect.any(Function));
       expect(bundleService.getDownloadUrl).toHaveBeenCalledWith(5, 'export-1');
 
       const extracted = await readFile(path.join(tempRoot, 'messages/en.json'), 'utf8');
@@ -339,22 +329,9 @@ describe('BundleCommand', () => {
       expect(stat(path.join(tempRoot, 'bundle-export-1.zip'))).rejects.toThrow();
     });
 
-    test('polls until the export finishes', async () => {
-      mockArchive();
-      bundleService.startExport.mockResolvedValue(createExportStatus({ status: 'inProgress', progress: 10 }));
-      bundleService.checkExportStatus
-        .mockResolvedValueOnce(createExportStatus({ status: 'inProgress', progress: 50 }))
-        .mockResolvedValueOnce(createExportStatus({ status: 'finished', progress: 100 }));
-      const cmd = createBundleCommand(createOutput(textOptions()));
-
-      await cmd.downloadAction(createCommandContext(textOptions(), ['5']));
-
-      expect(bundleService.checkExportStatus).toHaveBeenCalledTimes(2);
-      expect(bundleService.checkExportStatus).toHaveBeenCalledWith(5, 'export-1');
-    });
-
     test('throws when the export fails', async () => {
-      bundleService.startExport.mockResolvedValue(createExportStatus({ status: 'failed' }));
+      bundleService.exportBundle.mockRejectedValue(new CliError('Failed to build the bundle'));
+
       const cmd = createBundleCommand(createOutput(textOptions()));
 
       expect(cmd.downloadAction(createCommandContext(textOptions(), ['5']))).rejects.toThrow(

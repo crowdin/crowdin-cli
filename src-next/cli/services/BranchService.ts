@@ -1,7 +1,11 @@
 import type { Client, PatchRequest, SourceFilesModel } from '@crowdin/crowdin-api-client';
 import { CrowdinValidationError } from '@crowdin/crowdin-api-client';
+import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 import CliError from '../errors/CliError.ts';
 import { toCliError } from '../errors/toCliError.ts';
+
+// Reports each poll's percentage so the command can render its own progress (Java updates a spinner).
+export type ProgressCallback = (progress: number) => void;
 
 export class BranchService {
   constructor(
@@ -89,9 +93,18 @@ export class BranchService {
     }
   }
 
-  async startClone(branchId: number, request: SourceFilesModel.CloneBranchRequest) {
+  // Clone is async server-side: start it, wait for the status to finish, then return the new branch.
+  // Keeping the wait here means a caller can't act on a half-cloned branch. onProgress reports each
+  // poll's percentage so the command can update its spinner.
+  async cloneBranch(
+    branchId: number,
+    request: SourceFilesModel.CloneBranchRequest,
+    onProgress?: ProgressCallback,
+  ): Promise<SourceFilesModel.Branch> {
+    let started: Awaited<ReturnType<Client['sourceFilesApi']['clonedBranch']>>;
+
     try {
-      return (await this.apiClient.sourceFilesApi.clonedBranch(this.projectId, branchId, request)).data;
+      started = await this.apiClient.sourceFilesApi.clonedBranch(this.projectId, branchId, request);
     } catch (error) {
       if (error instanceof CrowdinValidationError && error.message.includes('Name must be unique')) {
         throw new CliError(`Branch '${request.title ?? request.name}' already exists in the project`);
@@ -99,17 +112,16 @@ export class BranchService {
 
       throw toCliError(error, 'Failed to clone the branch');
     }
-  }
 
-  async checkCloneStatus(branchId: number, cloneId: string) {
-    try {
-      return (await this.apiClient.sourceFilesApi.checkBranchClonedStatus(this.projectId, branchId, cloneId)).data;
-    } catch (error) {
-      throw toCliError(error, 'Failed to clone the branch');
-    }
-  }
+    const cloneId = started.data.identifier;
 
-  async getClonedBranch(branchId: number, cloneId: string): Promise<SourceFilesModel.Branch> {
+    await pollUntilFinished(
+      started,
+      (id) => this.apiClient.sourceFilesApi.checkBranchClonedStatus(this.projectId, branchId, id),
+      'Failed to clone the branch',
+      (status) => onProgress?.(status.progress),
+    );
+
     try {
       return (await this.apiClient.sourceFilesApi.getClonedBranch(this.projectId, branchId, cloneId)).data;
     } catch (error) {
@@ -117,23 +129,29 @@ export class BranchService {
     }
   }
 
-  async startMerge(branchId: number, request: SourceFilesModel.MergeBranchRequest) {
+  // Same shape as cloneBranch: start, wait, then return the merge summary.
+  async mergeBranch(
+    branchId: number,
+    request: SourceFilesModel.MergeBranchRequest,
+    onProgress?: ProgressCallback,
+  ): Promise<SourceFilesModel.MergeBranchSummary> {
+    let started: Awaited<ReturnType<Client['sourceFilesApi']['mergeBranch']>>;
+
     try {
-      return (await this.apiClient.sourceFilesApi.mergeBranch(this.projectId, branchId, request)).data;
+      started = await this.apiClient.sourceFilesApi.mergeBranch(this.projectId, branchId, request);
     } catch (error) {
       throw toCliError(error, 'Failed to merge the branch');
     }
-  }
 
-  async checkMergeStatus(branchId: number, mergeId: string) {
-    try {
-      return (await this.apiClient.sourceFilesApi.checkBranchMergeStatus(this.projectId, branchId, mergeId)).data;
-    } catch (error) {
-      throw toCliError(error, 'Failed to merge the branch');
-    }
-  }
+    const mergeId = started.data.identifier;
 
-  async getMergeSummary(branchId: number, mergeId: string): Promise<SourceFilesModel.MergeBranchSummary> {
+    await pollUntilFinished(
+      started,
+      (id) => this.apiClient.sourceFilesApi.checkBranchMergeStatus(this.projectId, branchId, id),
+      'Failed to merge the branch',
+      (status) => onProgress?.(status.progress),
+    );
+
     try {
       return (await this.apiClient.sourceFilesApi.getBranchMergeSummary(this.projectId, branchId, mergeId)).data;
     } catch (error) {

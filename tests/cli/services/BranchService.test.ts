@@ -12,6 +12,7 @@ describe('BranchService', () => {
   beforeEach(() => {
     apiClient = new Client({ token: 'a'.repeat(80) });
     branchService = new BranchService(apiClient, PROJECT_ID);
+    spyOn(Bun, 'sleep').mockResolvedValue(undefined);
   });
 
   afterEach(() => {
@@ -206,117 +207,134 @@ describe('BranchService', () => {
     });
   });
 
-  describe('clone', () => {
-    test('startClone starts cloning and returns status', async () => {
-      const spy = spyOn(apiClient.sourceFilesApi, 'clonedBranch').mockResolvedValue({
+  describe('cloneBranch', () => {
+    // The clone is async server-side; cloneBranch must wait for the status to finish before
+    // returning the new branch, reporting each poll's progress along the way.
+    test('starts, polls until finished, then returns the cloned branch', async () => {
+      const start = spyOn(apiClient.sourceFilesApi, 'clonedBranch').mockResolvedValue({
         data: { identifier: 'clone-id', status: 'created', progress: 0 },
       } as never);
+      const statuses = [
+        { data: { identifier: 'clone-id', status: 'in_progress', progress: 50 } },
+        { data: { identifier: 'clone-id', status: 'finished', progress: 100 } },
+      ];
+      const statusSpy = spyOn(apiClient.sourceFilesApi, 'checkBranchClonedStatus').mockImplementation(
+        async () => statuses.shift() as never,
+      );
+      const getCloned = spyOn(apiClient.sourceFilesApi, 'getClonedBranch').mockResolvedValue({
+        data: { id: 20, name: 'cloned' },
+      } as never);
+      const progress: number[] = [];
 
-      const result = await branchService.startClone(14, { name: 'cloned' });
+      const result = await branchService.cloneBranch(14, { name: 'cloned' }, (p) => progress.push(p));
 
-      expect(spy).toHaveBeenCalledWith(PROJECT_ID, 14, { name: 'cloned' });
-      expect(result).toEqual({ identifier: 'clone-id', status: 'created', progress: 0 } as never);
+      expect(start).toHaveBeenCalledWith(PROJECT_ID, 14, { name: 'cloned' });
+      expect(statusSpy).toHaveBeenCalledWith(PROJECT_ID, 14, 'clone-id');
+      expect(statusSpy).toHaveBeenCalledTimes(2);
+      expect(progress).toEqual([50, 100]);
+      expect(getCloned).toHaveBeenCalledWith(PROJECT_ID, 14, 'clone-id');
+      expect(result).toEqual({ id: 20, name: 'cloned' } as never);
     });
 
-    test('startClone reports already existing branch', async () => {
+    test('throws when the clone status reports failure', async () => {
+      spyOn(apiClient.sourceFilesApi, 'clonedBranch').mockResolvedValue({
+        data: { identifier: 'clone-id', status: 'created', progress: 0 },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'checkBranchClonedStatus').mockResolvedValue({
+        data: { identifier: 'clone-id', status: 'failed', progress: 0 },
+      } as never);
+      const getCloned = spyOn(apiClient.sourceFilesApi, 'getClonedBranch');
+
+      expect(branchService.cloneBranch(14, { name: 'cloned' })).rejects.toThrow(
+        new CliError('Failed to clone the branch'),
+      );
+      expect(getCloned).not.toHaveBeenCalled();
+    });
+
+    test('reports an already existing branch', async () => {
       spyOn(apiClient.sourceFilesApi, 'clonedBranch').mockRejectedValue(
         new CrowdinValidationError('Name must be unique', [], {}),
       );
 
-      expect(branchService.startClone(14, { name: 'cloned' })).rejects.toThrow(
+      expect(branchService.cloneBranch(14, { name: 'cloned' })).rejects.toThrow(
         new CliError("Branch 'cloned' already exists in the project"),
       );
     });
 
-    test('startClone uses title for already exists message when set', async () => {
+    test('uses title for the already exists message when set', async () => {
       spyOn(apiClient.sourceFilesApi, 'clonedBranch').mockRejectedValue(
         new CrowdinValidationError('Name must be unique', [], {}),
       );
 
-      expect(branchService.startClone(14, { name: 'feature.x', title: 'feature/x' })).rejects.toThrow(
+      expect(branchService.cloneBranch(14, { name: 'feature.x', title: 'feature/x' })).rejects.toThrow(
         new CliError("Branch 'feature/x' already exists in the project"),
       );
     });
 
-    test('startClone wraps API error as CliError', async () => {
+    test('wraps a start error as CliError', async () => {
       spyOn(apiClient.sourceFilesApi, 'clonedBranch').mockRejectedValue(new Error('boom'));
 
-      expect(branchService.startClone(14, { name: 'cloned' })).rejects.toThrow(
+      expect(branchService.cloneBranch(14, { name: 'cloned' })).rejects.toThrow(
         new CliError('Failed to clone the branch. boom'),
       );
     });
-
-    test('checkCloneStatus returns status', async () => {
-      const spy = spyOn(apiClient.sourceFilesApi, 'checkBranchClonedStatus').mockResolvedValue({
-        data: { identifier: 'clone-id', status: 'finished', progress: 100 },
-      } as never);
-
-      const result = await branchService.checkCloneStatus(14, 'clone-id');
-
-      expect(spy).toHaveBeenCalledWith(PROJECT_ID, 14, 'clone-id');
-      expect(result).toEqual({ identifier: 'clone-id', status: 'finished', progress: 100 } as never);
-    });
-
-    test('getClonedBranch returns the cloned branch', async () => {
-      const spy = spyOn(apiClient.sourceFilesApi, 'getClonedBranch').mockResolvedValue({
-        data: { id: 20, name: 'cloned' },
-      } as never);
-
-      const result = await branchService.getClonedBranch(14, 'clone-id');
-
-      expect(spy).toHaveBeenCalledWith(PROJECT_ID, 14, 'clone-id');
-      expect(result).toEqual({ id: 20, name: 'cloned' } as never);
-    });
   });
 
-  describe('merge', () => {
-    test('startMerge starts merging and returns status', async () => {
-      const spy = spyOn(apiClient.sourceFilesApi, 'mergeBranch').mockResolvedValue({
+  describe('mergeBranch', () => {
+    const summary = {
+      status: 'merged',
+      sourceBranchId: 14,
+      targetBranchId: 15,
+      dryRun: false,
+      details: { added: 1, deleted: 2, updated: 3, conflicted: 0 },
+    };
+
+    test('starts, polls until finished, then returns the merge summary', async () => {
+      const request = { sourceBranchId: 14, deleteAfterMerge: false, dryRun: false };
+      const start = spyOn(apiClient.sourceFilesApi, 'mergeBranch').mockResolvedValue({
         data: { identifier: 'merge-id', status: 'created', progress: 0 },
       } as never);
-      const request = { sourceBranchId: 14, deleteAfterMerge: false, dryRun: false };
-
-      const result = await branchService.startMerge(15, request);
-
-      expect(spy).toHaveBeenCalledWith(PROJECT_ID, 15, request);
-      expect(result).toEqual({ identifier: 'merge-id', status: 'created', progress: 0 } as never);
-    });
-
-    test('startMerge wraps API error as CliError', async () => {
-      spyOn(apiClient.sourceFilesApi, 'mergeBranch').mockRejectedValue(new Error('boom'));
-
-      expect(branchService.startMerge(15, { sourceBranchId: 14 })).rejects.toThrow(
-        new CliError('Failed to merge the branch. boom'),
+      const statuses = [
+        { data: { identifier: 'merge-id', status: 'in_progress', progress: 50 } },
+        { data: { identifier: 'merge-id', status: 'finished', progress: 100 } },
+      ];
+      const statusSpy = spyOn(apiClient.sourceFilesApi, 'checkBranchMergeStatus').mockImplementation(
+        async () => statuses.shift() as never,
       );
-    });
-
-    test('checkMergeStatus returns status', async () => {
-      const spy = spyOn(apiClient.sourceFilesApi, 'checkBranchMergeStatus').mockResolvedValue({
-        data: { identifier: 'merge-id', status: 'finished', progress: 100 },
-      } as never);
-
-      const result = await branchService.checkMergeStatus(15, 'merge-id');
-
-      expect(spy).toHaveBeenCalledWith(PROJECT_ID, 15, 'merge-id');
-      expect(result).toEqual({ identifier: 'merge-id', status: 'finished', progress: 100 } as never);
-    });
-
-    test('getMergeSummary returns the merge summary', async () => {
-      const summary = {
-        status: 'merged',
-        sourceBranchId: 14,
-        targetBranchId: 15,
-        dryRun: false,
-        details: { added: 1, deleted: 2, updated: 3, conflicted: 0 },
-      };
-      const spy = spyOn(apiClient.sourceFilesApi, 'getBranchMergeSummary').mockResolvedValue({
+      const getSummary = spyOn(apiClient.sourceFilesApi, 'getBranchMergeSummary').mockResolvedValue({
         data: summary,
       } as never);
 
-      const result = await branchService.getMergeSummary(15, 'merge-id');
+      const result = await branchService.mergeBranch(15, request);
 
-      expect(spy).toHaveBeenCalledWith(PROJECT_ID, 15, 'merge-id');
+      expect(start).toHaveBeenCalledWith(PROJECT_ID, 15, request);
+      expect(statusSpy).toHaveBeenCalledWith(PROJECT_ID, 15, 'merge-id');
+      expect(statusSpy).toHaveBeenCalledTimes(2);
+      expect(getSummary).toHaveBeenCalledWith(PROJECT_ID, 15, 'merge-id');
       expect(result).toEqual(summary as never);
+    });
+
+    test('throws when the merge status reports failure', async () => {
+      spyOn(apiClient.sourceFilesApi, 'mergeBranch').mockResolvedValue({
+        data: { identifier: 'merge-id', status: 'created', progress: 0 },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'checkBranchMergeStatus').mockResolvedValue({
+        data: { identifier: 'merge-id', status: 'failed', progress: 0 },
+      } as never);
+      const getSummary = spyOn(apiClient.sourceFilesApi, 'getBranchMergeSummary');
+
+      expect(branchService.mergeBranch(15, { sourceBranchId: 14 })).rejects.toThrow(
+        new CliError('Failed to merge the branch'),
+      );
+      expect(getSummary).not.toHaveBeenCalled();
+    });
+
+    test('wraps a start error as CliError', async () => {
+      spyOn(apiClient.sourceFilesApi, 'mergeBranch').mockRejectedValue(new Error('boom'));
+
+      expect(branchService.mergeBranch(15, { sourceBranchId: 14 })).rejects.toThrow(
+        new CliError('Failed to merge the branch. boom'),
+      );
     });
   });
 });

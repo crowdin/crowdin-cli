@@ -33,7 +33,6 @@ import {
   resolveProjectPath,
 } from '@/lib/upload/fileOptions.ts';
 import { deleteObsoleteProjectEntries } from '@/lib/upload/obsoleteEntries.ts';
-import { pollUntilFinished } from '@/lib/upload/pollUpload.ts';
 import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import { toPosixPath, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
@@ -256,18 +255,16 @@ export default class UploadSourcesCommand {
           }
 
           const storage = await storageService.addStorage(localFile);
-          const uploadResponse = await stringService.uploadStrings({
-            branchId: (branch as SourceFilesModel.Branch).id,
-            storageId: storage.data.id,
-            type: patterns.type as SourceStringsModel.UploadStringsType | undefined,
-            labelIds,
-            importOptions: buildStringsImportOptions(localFilePath, patterns),
-          });
 
-          await pollUntilFinished(
-            uploadResponse,
-            (uploadId) => stringService.getUploadStringsStatus(uploadId),
-            `Failed to upload strings for file ${localFilePath}`,
+          await stringService.uploadStrings(
+            {
+              branchId: (branch as SourceFilesModel.Branch).id,
+              storageId: storage.data.id,
+              type: patterns.type as SourceStringsModel.UploadStringsType | undefined,
+              labelIds,
+              importOptions: buildStringsImportOptions(localFilePath, patterns),
+            },
+            localFilePath,
           );
 
           if (sourceHashes) {

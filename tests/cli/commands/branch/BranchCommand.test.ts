@@ -15,12 +15,8 @@ describe('BranchCommand', () => {
     add: ReturnType<typeof mock<BranchService['add']>>;
     delete: ReturnType<typeof mock<BranchService['delete']>>;
     edit: ReturnType<typeof mock<BranchService['edit']>>;
-    startClone: ReturnType<typeof mock<BranchService['startClone']>>;
-    checkCloneStatus: ReturnType<typeof mock<BranchService['checkCloneStatus']>>;
-    getClonedBranch: ReturnType<typeof mock<BranchService['getClonedBranch']>>;
-    startMerge: ReturnType<typeof mock<BranchService['startMerge']>>;
-    checkMergeStatus: ReturnType<typeof mock<BranchService['checkMergeStatus']>>;
-    getMergeSummary: ReturnType<typeof mock<BranchService['getMergeSummary']>>;
+    cloneBranch: ReturnType<typeof mock<BranchService['cloneBranch']>>;
+    mergeBranch: ReturnType<typeof mock<BranchService['mergeBranch']>>;
   };
   let projectService: {
     loadProject: ReturnType<typeof mock<ProjectService['loadProject']>>;
@@ -46,9 +42,6 @@ describe('BranchCommand', () => {
   const createBranch = (overrides: Partial<SourceFilesModel.Branch> = {}): SourceFilesModel.Branch =>
     ({ id: 14, name: 'main', title: '', ...overrides }) as SourceFilesModel.Branch;
 
-  const createStatus = (overrides: Partial<{ identifier: string; status: string; progress: number }> = {}) =>
-    ({ identifier: 'status-id', status: 'finished', progress: 100, ...overrides }) as never;
-
   const stringsBasedProject = {
     data: { type: ProjectsGroupsModel.Type.STRINGS_BASED },
   } as Awaited<ReturnType<ProjectService['loadProject']>>;
@@ -71,12 +64,8 @@ describe('BranchCommand', () => {
       add: mock(async () => createBranch()),
       delete: mock(async () => {}),
       edit: mock(async () => createBranch()),
-      startClone: mock(async () => createStatus()),
-      checkCloneStatus: mock(async () => createStatus()),
-      getClonedBranch: mock(async () => createBranch()),
-      startMerge: mock(async () => createStatus()),
-      checkMergeStatus: mock(async () => createStatus()),
-      getMergeSummary: mock(
+      cloneBranch: mock(async () => createBranch()),
+      mergeBranch: mock(
         async () =>
           ({
             status: 'merged',
@@ -368,7 +357,7 @@ describe('BranchCommand', () => {
       expect(branchCommand.cloneAction(createCommandContext({}, ['main']))).rejects.toThrow(
         new CliError('Source and target branch names are required'),
       );
-      expect(branchService.startClone).not.toHaveBeenCalled();
+      expect(branchService.cloneBranch).not.toHaveBeenCalled();
     });
 
     test('is only available for string-based projects', async () => {
@@ -378,7 +367,7 @@ describe('BranchCommand', () => {
       expect(branchCommand.cloneAction(createCommandContext({}, ['main', 'clone']))).rejects.toThrow(
         new CliError('This command is only available for string-based projects'),
       );
-      expect(branchService.startClone).not.toHaveBeenCalled();
+      expect(branchService.cloneBranch).not.toHaveBeenCalled();
     });
 
     test('throws when source branch does not exist', async () => {
@@ -390,20 +379,14 @@ describe('BranchCommand', () => {
       );
     });
 
-    test('clones branch and polls until finished', async () => {
+    test('clones the branch and prints the result', async () => {
       const branchCommand = createBranchCommand();
       branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
-      branchService.startClone.mockResolvedValue(
-        createStatus({ identifier: 'clone-id', status: 'created', progress: 0 }),
-      );
-      branchService.checkCloneStatus.mockResolvedValue(createStatus({ identifier: 'clone-id' }));
-      branchService.getClonedBranch.mockResolvedValue(createBranch({ id: 20, name: 'cloned' }));
+      branchService.cloneBranch.mockResolvedValue(createBranch({ id: 20, name: 'cloned' }));
 
       await branchCommand.cloneAction(createCommandContext({}, ['main', 'cloned']));
 
-      expect(branchService.startClone).toHaveBeenCalledWith(14, { name: 'cloned' });
-      expect(branchService.checkCloneStatus).toHaveBeenCalledWith(14, 'clone-id');
-      expect(branchService.getClonedBranch).toHaveBeenCalledWith(14, 'clone-id');
+      expect(branchService.cloneBranch).toHaveBeenCalledWith(14, { name: 'cloned' }, expect.any(Function));
       expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ name: 'cloned', id: 20 }], null, 2));
     });
 
@@ -413,24 +396,27 @@ describe('BranchCommand', () => {
 
       await branchCommand.cloneAction(createCommandContext({}, ['main', 'feature/x']));
 
-      expect(branchService.startClone).toHaveBeenCalledWith(14, { name: 'feature.x', title: 'feature/x' });
+      expect(branchService.cloneBranch).toHaveBeenCalledWith(
+        14,
+        { name: 'feature.x', title: 'feature/x' },
+        expect.any(Function),
+      );
     });
 
     test('throws when clone fails', async () => {
       const branchCommand = createBranchCommand();
       branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
-      branchService.startClone.mockResolvedValue(createStatus({ status: 'failed', progress: 0 }));
+      branchService.cloneBranch.mockRejectedValue(new CliError('Failed to clone the branch'));
 
       expect(branchCommand.cloneAction(createCommandContext({}, ['main', 'cloned']))).rejects.toThrow(
         new CliError('Failed to clone the branch'),
       );
-      expect(branchService.getClonedBranch).not.toHaveBeenCalled();
     });
 
     test('propagates already exists error from the service', async () => {
       const branchCommand = createBranchCommand();
       branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
-      branchService.startClone.mockRejectedValue(new CliError("Branch 'cloned' already exists in the project"));
+      branchService.cloneBranch.mockRejectedValue(new CliError("Branch 'cloned' already exists in the project"));
 
       expect(branchCommand.cloneAction(createCommandContext({}, ['main', 'cloned']))).rejects.toThrow(
         new CliError("Branch 'cloned' already exists in the project"),
@@ -445,7 +431,7 @@ describe('BranchCommand', () => {
       expect(branchCommand.mergeAction(createCommandContext({}, ['main']))).rejects.toThrow(
         new CliError('Source and target branch names are required'),
       );
-      expect(branchService.startMerge).not.toHaveBeenCalled();
+      expect(branchService.mergeBranch).not.toHaveBeenCalled();
     });
 
     test('is only available for string-based projects', async () => {
@@ -455,7 +441,7 @@ describe('BranchCommand', () => {
       expect(branchCommand.mergeAction(createCommandContext({}, ['dev', 'main']))).rejects.toThrow(
         new CliError('This command is only available for string-based projects'),
       );
-      expect(branchService.startMerge).not.toHaveBeenCalled();
+      expect(branchService.mergeBranch).not.toHaveBeenCalled();
     });
 
     test('throws when source branch does not exist', async () => {
@@ -478,25 +464,20 @@ describe('BranchCommand', () => {
 
     test('merges branches and prints summary in text format', async () => {
       const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'text' });
+
       branchService.list.mockResolvedValue([
         createBranch({ id: 14, name: 'dev' }),
         createBranch({ id: 15, name: 'main' }),
       ]);
-      branchService.startMerge.mockResolvedValue(
-        createStatus({ identifier: 'merge-id', status: 'created', progress: 0 }),
-      );
-      branchService.checkMergeStatus.mockResolvedValue(createStatus({ identifier: 'merge-id' }));
-      output = createOutput({ ...globalOptions, output: 'text' });
 
       await branchCommand.mergeAction(createCommandContext({ output: 'text' }, ['dev', 'main']));
 
-      expect(branchService.startMerge).toHaveBeenCalledWith(15, {
-        sourceBranchId: 14,
-        deleteAfterMerge: false,
-        dryRun: false,
-      });
-      expect(branchService.checkMergeStatus).toHaveBeenCalledWith(15, 'merge-id');
-      expect(branchService.getMergeSummary).toHaveBeenCalledWith(15, 'merge-id');
+      expect(branchService.mergeBranch).toHaveBeenCalledWith(
+        15,
+        { sourceBranchId: 14, deleteAfterMerge: false, dryRun: false },
+        expect.any(Function),
+      );
       expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Merged branch 'dev' into 'main'"));
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('Merge summary: added: 1, deleted: 2, updated: 3, conflicted: 0'),
@@ -512,11 +493,11 @@ describe('BranchCommand', () => {
 
       await branchCommand.mergeAction(createCommandContext({ dryrun: true, deleteAfterMerge: true }, ['dev', 'main']));
 
-      expect(branchService.startMerge).toHaveBeenCalledWith(15, {
-        sourceBranchId: 14,
-        deleteAfterMerge: true,
-        dryRun: true,
-      });
+      expect(branchService.mergeBranch).toHaveBeenCalledWith(
+        15,
+        { sourceBranchId: 14, deleteAfterMerge: true, dryRun: true },
+        expect.any(Function),
+      );
     });
 
     test('prints merge summary with target branch id first in structured formats', async () => {
@@ -535,16 +516,16 @@ describe('BranchCommand', () => {
 
     test('throws when merge fails', async () => {
       const branchCommand = createBranchCommand();
+
       branchService.list.mockResolvedValue([
         createBranch({ id: 14, name: 'dev' }),
         createBranch({ id: 15, name: 'main' }),
       ]);
-      branchService.startMerge.mockResolvedValue(createStatus({ status: 'failed', progress: 0 }));
+      branchService.mergeBranch.mockRejectedValue(new CliError('Failed to merge the branch'));
 
       expect(branchCommand.mergeAction(createCommandContext({}, ['dev', 'main']))).rejects.toThrow(
         new CliError('Failed to merge the branch'),
       );
-      expect(branchService.getMergeSummary).not.toHaveBeenCalled();
     });
   });
 });

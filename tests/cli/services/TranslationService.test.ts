@@ -33,8 +33,10 @@ describe('TranslationService', () => {
   });
 
   describe('importProjectTranslation', () => {
+    const finished = { data: { identifier: 'import-1', status: 'finished', progress: 100 } };
+
     test('calls API with all required args', async () => {
-      const spy = spyOn(apiClient.translationsApi, 'importTranslations').mockResolvedValue({} as never);
+      const spy = spyOn(apiClient.translationsApi, 'importTranslations').mockResolvedValue(finished as never);
 
       await translationService.importProjectTranslation(10, 5, ['fr', 'de'], '/docs/readme.md', true, false, true);
 
@@ -46,6 +48,47 @@ describe('TranslationService', () => {
         importEqSuggestions: false,
         translateHidden: true,
       });
+    });
+
+    // The import is queued server-side; the service must wait for the status to finish before
+    // returning, so a caller cannot mistake "queued" for "done".
+    test('polls the import status until it finishes, reporting each poll', async () => {
+      spyOn(apiClient.translationsApi, 'importTranslations').mockResolvedValue({
+        data: { identifier: 'import-1', status: 'created', progress: 0 },
+      } as never);
+      const statuses = [{ data: { identifier: 'import-1', status: 'in_progress', progress: 50 } }, finished];
+      const statusSpy = spyOn(apiClient.translationsApi, 'importTranslationsStatus').mockImplementation(
+        async () => statuses.shift() as never,
+      );
+      const progress: number[] = [];
+
+      await translationService.importProjectTranslation(
+        10,
+        5,
+        ['fr'],
+        '/docs/readme.md',
+        undefined,
+        undefined,
+        undefined,
+        (status) => progress.push(status.progress),
+      );
+
+      expect(statusSpy).toHaveBeenCalledWith(PROJECT_ID, 'import-1');
+      expect(statusSpy).toHaveBeenCalledTimes(2);
+      expect(progress).toEqual([50, 100]);
+    });
+
+    test('throws when the import status reports failure', async () => {
+      spyOn(apiClient.translationsApi, 'importTranslations').mockResolvedValue({
+        data: { identifier: 'import-1', status: 'created', progress: 0 },
+      } as never);
+      spyOn(apiClient.translationsApi, 'importTranslationsStatus').mockResolvedValue({
+        data: { identifier: 'import-1', status: 'failed', progress: 0 },
+      } as never);
+
+      expect(translationService.importProjectTranslation(10, 5, ['fr'], '/docs/readme.md')).rejects.toThrow(
+        "Failed to upload the translation file '/docs/readme.md'. Please contact our support team for help",
+      );
     });
 
     test('wraps API error as CliError', async () => {

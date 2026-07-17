@@ -237,30 +237,18 @@ export default class BranchCommand {
 
     output.spinner('branch-clone', 'start', 'Cloning branch');
 
-    let cloneId: string;
+    let clonedBranch: SourceFilesModel.Branch;
 
     try {
-      let status = await branchService.startClone(sourceBranch.id, request);
-
-      while (status.status !== 'finished') {
-        if (status.status === 'failed') {
-          throw new CliError('Failed to clone the branch');
-        }
-
-        output.spinner('branch-clone', 'message', `Cloning branch (${status.progress}%)`);
-        await Bun.sleep(1000);
-
-        status = await branchService.checkCloneStatus(sourceBranch.id, status.identifier);
-      }
+      clonedBranch = await branchService.cloneBranch(sourceBranch.id, request, (progress) =>
+        output.spinner('branch-clone', 'message', `Cloning branch (${progress}%)`),
+      );
 
       output.spinner('branch-clone', 'stop', 'Cloning branch (100%)');
-      cloneId = status.identifier;
     } catch (error) {
       output.spinner('branch-clone', 'error', 'Failed to clone the branch');
       throw error;
     }
-
-    const clonedBranch = await branchService.getClonedBranch(sourceBranch.id, cloneId);
 
     output.table([this.toRow(clonedBranch)]);
   };
@@ -289,30 +277,18 @@ export default class BranchCommand {
 
     output.spinner('branch-merge', 'start', 'Merging branch');
 
-    let mergeId: string;
+    let summary: SourceFilesModel.MergeBranchSummary;
 
     try {
-      let status = await branchService.startMerge(targetBranch.id, request);
-
-      while (status.status !== 'finished') {
-        if (status.status === 'failed') {
-          throw new CliError('Failed to merge the branch');
-        }
-
-        output.spinner('branch-merge', 'message', `Merging branch (${status.progress}%)`);
-        await Bun.sleep(1000);
-
-        status = await branchService.checkMergeStatus(targetBranch.id, status.identifier);
-      }
+      summary = await branchService.mergeBranch(targetBranch.id, request, (progress) =>
+        output.spinner('branch-merge', 'message', `Merging branch (${progress}%)`),
+      );
 
       output.spinner('branch-merge', 'stop', 'Merging branch (100%)');
-      mergeId = status.identifier;
     } catch (error) {
       output.spinner('branch-merge', 'error', 'Failed to merge the branch');
       throw error;
     }
-
-    const summary = await branchService.getMergeSummary(targetBranch.id, mergeId);
 
     if (options.output !== undefined && options.output !== 'text') {
       output.table([{ targetBranchId: summary.targetBranchId, ...summary.details }]);

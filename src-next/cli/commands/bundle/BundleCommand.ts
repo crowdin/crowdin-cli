@@ -227,26 +227,25 @@ export default class BundleCommand {
       return;
     }
 
-    // Trigger the export and poll until the server reports completion (mirrors Java's spinner loop).
+    // Trigger the export and wait for the server to finish (the service owns the poll).
     output.spinner('bundle-build', 'start', 'Building bundle');
-    let status = await bundleService.startExport(id);
 
-    while (status.status.toLowerCase() !== 'finished') {
-      if (status.status.toLowerCase() === 'failed') {
-        output.spinner('bundle-build', 'error', 'Build has failed');
-        throw new CliError('Failed to build the bundle');
-      }
+    let exportId: string;
 
-      output.spinner('bundle-build', 'message', `Building bundle: ${status.progress}%`);
-      await Bun.sleep(1000);
-      status = await bundleService.checkExportStatus(id, status.identifier);
+    try {
+      exportId = await bundleService.exportBundle(id, (progress) =>
+        output.spinner('bundle-build', 'message', `Building bundle: ${progress}%`),
+      );
+
+      output.spinner('bundle-build', 'stop', 'Building bundle: 100%');
+    } catch (error) {
+      output.spinner('bundle-build', 'error', 'Build has failed');
+      throw error;
     }
 
-    output.spinner('bundle-build', 'stop', 'Building bundle: 100%');
-
     // Archive and extracted files both land under basePath (matches `download` keep-archive behaviour).
-    const archivePath = path.join(config.basePath, `bundle-${status.identifier}.zip`);
-    const downloadUrl = await bundleService.getDownloadUrl(id, status.identifier);
+    const archivePath = path.join(config.basePath, `bundle-${exportId}.zip`);
+    const downloadUrl = await bundleService.getDownloadUrl(id, exportId);
     const response = await fetch(downloadUrl);
 
     await Bun.write(archivePath, response);

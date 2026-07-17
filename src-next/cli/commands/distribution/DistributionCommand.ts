@@ -14,8 +14,6 @@ interface DistributionOptions extends GlobalOptions {
   bundleId?: number | string | Array<number | string>;
 }
 
-const RELEASE_PENDING_STATUSES = new Set(['success', 'finished', 'failed']);
-
 export default class DistributionCommand {
   constructor(
     private getOutput: GetOutput,
@@ -148,23 +146,13 @@ export default class DistributionCommand {
     const distributionService = await this.getDistributionService(command);
 
     await distributionService.getByHash(hash);
+
     output.spinner('distributionRelease', 'start', `Releasing distribution ${hash}`);
 
     try {
-      let release = await distributionService.startRelease(hash);
-
-      while (!RELEASE_PENDING_STATUSES.has(release.status?.toLowerCase() ?? '')) {
-        if (release.progress !== undefined) {
-          output.spinner('distributionRelease', 'message', `Releasing distribution ${hash}: ${release.progress}%`);
-        }
-
-        await Bun.sleep(1000);
-        release = await distributionService.getReleaseStatus(hash);
-      }
-
-      if (release.status?.toLowerCase() === 'failed') {
-        throw new CliError('Distribution release failed');
-      }
+      await distributionService.releaseDistribution(hash, (progress) =>
+        output.spinner('distributionRelease', 'message', `Releasing distribution ${hash}: ${progress}%`),
+      );
 
       output.spinner('distributionRelease', 'stop', `Distribution '${hash}' has been successfully released`);
     } catch (error) {

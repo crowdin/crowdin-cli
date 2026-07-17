@@ -3,7 +3,9 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
+import CliError from '@/cli/errors/CliError.ts';
 import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
+import type { TranslationService } from '@/cli/services/TranslationService.ts';
 import {
   baseBranchServiceMock,
   baseDirectoryServiceMock,
@@ -97,6 +99,7 @@ describe('UploadTranslationsCommand', () => {
       undefined,
       undefined,
       undefined,
+      expect.any(Function),
     );
   });
 
@@ -151,13 +154,14 @@ describe('UploadTranslationsCommand', () => {
       true,
       true,
       true,
+      expect.any(Function),
     );
     expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
   });
 
-  // The import is queued server-side, so Java waits for the status to finish before calling the file
-  // uploaded. Without the poll a failed import still reports success.
-  test('polls the import status until it finishes before reporting success', async () => {
+  // The service polls to completion (TranslationService.test covers it); the command prints the init
+  // line always and a per-poll percent line only under --verbose (output.debug gates it).
+  test('prints the init line and gates the per-poll progress line behind --verbose', async () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
@@ -171,16 +175,12 @@ describe('UploadTranslationsCommand', () => {
       ...baseFileServiceMock(),
       loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
     };
-    const statuses = [
-      { data: { identifier: 'import-1', status: 'in_progress', progress: 50 } },
-      { data: { identifier: 'import-1', status: 'finished', progress: 100 } },
-    ];
     const translationService = {
       ...baseTranslationServiceMock(),
-      importProjectTranslation: mock(async () => ({
-        data: { identifier: 'import-1', status: 'created', progress: 0 },
-      })),
-      getImportTranslationsStatus: mock(async () => statuses.shift()),
+      // Drive the service's onProgress callback so the command's wiring is exercised.
+      importProjectTranslation: mock(async (...args: Parameters<TranslationService['importProjectTranslation']>) => {
+        args[7]?.({ progress: 50, identifier: 'import-1' } as never);
+      }),
     };
     const output = createOutputMock();
     const command = createUploadCommand(
@@ -197,18 +197,12 @@ describe('UploadTranslationsCommand', () => {
 
     await command.uploadTranslationsAction(commandContext({}));
 
-    expect(translationService.getImportTranslationsStatus).toHaveBeenCalledWith('import-1');
-    expect(translationService.getImportTranslationsStatus).toHaveBeenCalledTimes(2);
     expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
-
-    // Java prints the init line for every file (verbose or not) and the percent lines only under
-    // --verbose, which output.debug gates.
     expect(output.log).toHaveBeenCalledWith("Importing translations for file 'locale/es/app.json'");
     expect(output.debug).toHaveBeenCalledWith("Importing translations for file 'locale/es/app.json' (50%) (import-1)");
-    expect(output.debug).toHaveBeenCalledWith("Importing translations for file 'locale/es/app.json' (100%) (import-1)");
   });
 
-  test('fails the upload when the import status reports failure', async () => {
+  test('surfaces a failed import and reports no success', async () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
@@ -222,11 +216,14 @@ describe('UploadTranslationsCommand', () => {
       ...baseFileServiceMock(),
       loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
     };
+    // A failed status makes the service throw (TranslationService.test covers the poll).
     const translationService = {
       ...baseTranslationServiceMock(),
-      importProjectTranslation: mock(async () => ({
-        data: { identifier: 'import-1', status: 'failed', progress: 0 },
-      })),
+      importProjectTranslation: mock(async () => {
+        throw new CliError(
+          "Failed to upload the translation file 'locale/es/app.json'. Please contact our support team for help",
+        );
+      }),
     };
     const output = createOutputMock();
     const command = createUploadCommand(
@@ -291,6 +288,7 @@ describe('UploadTranslationsCommand', () => {
       undefined,
       undefined,
       undefined,
+      expect.any(Function),
     );
     expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
   });
@@ -321,7 +319,6 @@ describe('UploadTranslationsCommand', () => {
         if (languageIds.includes('es')) {
           throw new WrongLanguageError();
         }
-        return { data: { identifier: 'import-1', status: 'finished', progress: 100 } };
       }),
     };
     const output = createOutputMock();
@@ -426,6 +423,7 @@ describe('UploadTranslationsCommand', () => {
       undefined,
       undefined,
       undefined,
+      expect.any(Function),
     );
     expect(translationService.importProjectTranslation).toHaveBeenCalledWith(
       expect.any(Number),
@@ -435,6 +433,7 @@ describe('UploadTranslationsCommand', () => {
       undefined,
       undefined,
       undefined,
+      expect.any(Function),
     );
     expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
     expect(output.success).toHaveBeenCalledWith("File 'locale/fr/app.json'");
@@ -578,6 +577,7 @@ describe('UploadTranslationsCommand', () => {
       undefined,
       undefined,
       undefined,
+      expect.any(Function),
     );
   });
 
@@ -647,6 +647,7 @@ describe('UploadTranslationsCommand', () => {
       undefined,
       undefined,
       undefined,
+      expect.any(Function),
     );
     expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
   });
@@ -723,6 +724,7 @@ describe('UploadTranslationsCommand', () => {
       undefined,
       undefined,
       undefined,
+      expect.any(Function),
     );
   });
 
@@ -801,6 +803,7 @@ describe('UploadTranslationsCommand', () => {
       undefined,
       undefined,
       undefined,
+      expect.any(Function),
     );
   });
 
@@ -848,6 +851,7 @@ describe('UploadTranslationsCommand', () => {
       undefined,
       undefined,
       undefined,
+      expect.any(Function),
     );
   });
 

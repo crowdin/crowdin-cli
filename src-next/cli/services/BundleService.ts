@@ -1,6 +1,7 @@
-import { type BundlesModel, type Client, CrowdinError, type Status } from '@crowdin/crowdin-api-client';
+import { type BundlesModel, type Client, CrowdinError } from '@crowdin/crowdin-api-client';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
+import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 
 export type BundleView = BundlesModel.Bundle & {
   includeInContextPseudoLanguage?: boolean;
@@ -8,30 +9,10 @@ export type BundleView = BundlesModel.Bundle & {
 
 export type AddBundlePayload = BundlesModel.CreateBundleRequest;
 
-export type BundleExportStatus = Status<BundlesModel.ExportAttributes>;
-
 // Mirrors Java's executeRequestWithPossibleRetries: retry the export start on a transient
 // "another export in progress" / server / network error before giving up.
 const EXPORT_RETRY_ATTEMPTS = 3;
 const EXPORT_RETRY_DELAY_MS = 3000;
-
-function isRetryableExportError(error: unknown): boolean {
-  if (!(error instanceof CrowdinError)) {
-    return false;
-  }
-
-  if (error.code >= 500 && error.code <= 599) {
-    return true;
-  }
-
-  const message = error.message ?? '';
-
-  return (
-    message.includes("Another export is currently in progress. Please wait until it's finished.") ||
-    message.includes('Request aborted') ||
-    message.includes('Connection reset')
-  );
-}
 
 export class BundleService {
   constructor(
@@ -92,17 +73,32 @@ export class BundleService {
     throw new CliError(`Bundle #${bundleId} URL is unavailable`);
   }
 
-  async startExport(bundleId: number): Promise<BundleExportStatus> {
+  // Export is async server-side: start it (retrying a transient in-progress/5xx/network error),
+  // wait for the status to finish, then return the export identifier for the download. onProgress
+  // reports each poll's percentage so the command can update its spinner.
+  async exportBundle(bundleId: number, onProgress?: (progress: number) => void): Promise<string> {
+    const started = await this.startExport(bundleId);
+
+    const finished = await pollUntilFinished(
+      started,
+      (exportId) => this.client.bundlesApi.checkBundleExportStatus(this.projectId, bundleId, exportId),
+      'Failed to build the bundle',
+      (status) => onProgress?.(status.progress),
+    );
+
+    return finished.data.identifier;
+  }
+
+  private async startExport(bundleId: number) {
     let lastError: unknown;
 
     for (let attempt = 1; attempt <= EXPORT_RETRY_ATTEMPTS; attempt++) {
       try {
-        const response = await this.client.bundlesApi.exportBundle(this.projectId, bundleId);
-        return response.data;
+        return await this.client.bundlesApi.exportBundle(this.projectId, bundleId);
       } catch (error) {
         lastError = error;
 
-        if (attempt < EXPORT_RETRY_ATTEMPTS && isRetryableExportError(error)) {
+        if (attempt < EXPORT_RETRY_ATTEMPTS && this.isRetryableExportError(error)) {
           await Bun.sleep(EXPORT_RETRY_DELAY_MS);
           continue;
         }
@@ -114,13 +110,22 @@ export class BundleService {
     throw toCliError(lastError, `Failed to build bundle #${bundleId}`);
   }
 
-  async checkExportStatus(bundleId: number, exportId: string): Promise<BundleExportStatus> {
-    try {
-      const response = await this.client.bundlesApi.checkBundleExportStatus(this.projectId, bundleId, exportId);
-      return response.data;
-    } catch (error) {
-      throw toCliError(error, `Failed to check bundle #${bundleId} export status`);
+  private isRetryableExportError(error: unknown): boolean {
+    if (!(error instanceof CrowdinError)) {
+      return false;
     }
+
+    if (error.code >= 500 && error.code <= 599) {
+      return true;
+    }
+
+    const message = error.message ?? '';
+
+    return (
+      message.includes("Another export is currently in progress. Please wait until it's finished.") ||
+      message.includes('Request aborted') ||
+      message.includes('Connection reset')
+    );
   }
 
   async getDownloadUrl(bundleId: number, exportId: string): Promise<string> {
