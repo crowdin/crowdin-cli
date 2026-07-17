@@ -10,7 +10,7 @@ import type { StorageService } from '@/cli/services/StorageService.ts';
 import type { StringService } from '@/cli/services/StringService.ts';
 import type { TranslationService } from '@/cli/services/TranslationService.ts';
 import type { OptionDef, OptionGroupDef } from '@/cli/types.ts';
-import { ConfigSchema } from '@/lib/config.ts';
+import { ConfigSchema, type ProjectConfig } from '@/lib/config.ts';
 
 export function flatOptions(options: (OptionDef | OptionGroupDef)[]): OptionDef[] {
   return options.flatMap((item) => ('group' in item ? item.options : [item]));
@@ -107,7 +107,7 @@ export function createUploadCommand(
       },
     ],
     ...configOverrides,
-  });
+  }) as ProjectConfig;
 
   return new UploadCommand(
     async () => config,

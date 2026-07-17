@@ -83,11 +83,35 @@ describe('exit codes (offline, end-to-end)', () => {
     expect(await runCli(['file', '--bogus'], workspace)).toBe(2);
   });
 
-  test('missing config file exits 102 (not found)', async () => {
+  // Only the files tier insists on a config file, and only when no --source/--translation replaces
+  // it (Java PropertiesBuilders.buildPropertiesWithFiles + ParamsWithFiles.isEmpty).
+  test('missing config file exits 102 (not found) for a file-based command', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'crowdin-exitcode-missing-'));
 
     try {
-      expect(await runCli(['file', 'list'], dir)).toBe(102);
+      expect(await runCli(['upload', 'sources'], dir)).toBe(102);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('explicit --config that does not exist exits 102 (not found)', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'crowdin-exitcode-explicit-'));
+
+    try {
+      expect(await runCli(['file', 'list', '--config', join(dir, 'nope.yml')], dir)).toBe(102);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  // A project-scoped command reads the config only when it happens to exist, so with no config file
+  // it fails on the missing credentials instead (Java ProjectProperties.checkProperties, exit 2).
+  test('project-scoped command without a config file exits 2 (validation)', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'crowdin-exitcode-noconfig-'));
+
+    try {
+      expect(await runCli(['file', 'list'], dir)).toBe(2);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }
@@ -110,7 +134,7 @@ describe('--debug (hidden) stack traces, end-to-end', () => {
     const dir = await mkdtemp(join(tmpdir(), 'crowdin-debug-off-'));
 
     try {
-      const out = await captureCli(['file', 'list'], dir);
+      const out = await captureCli(['upload', 'sources'], dir);
       expect(out).toContain('does not exist');
       expect(out).not.toMatch(/^\s+at /m);
     } finally {
@@ -122,7 +146,7 @@ describe('--debug (hidden) stack traces, end-to-end', () => {
     const dir = await mkdtemp(join(tmpdir(), 'crowdin-debug-on-'));
 
     try {
-      const out = await captureCli(['file', 'list', '--debug'], dir);
+      const out = await captureCli(['upload', 'sources', '--debug'], dir);
       expect(out).toContain('does not exist');
       expect(out).toMatch(/^\s+at /m);
     } finally {

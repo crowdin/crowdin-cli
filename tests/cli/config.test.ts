@@ -42,7 +42,7 @@ describe('createGetConfig', () => {
       optsWithGlobals: () => ({ ...globalOptions, config: configPath, ...options }),
     }) as unknown as Command;
 
-  const getConfig = () => createGetConfig(() => output);
+  const getConfig = () => createGetConfig(() => output).getConfig;
 
   beforeEach(async () => {
     tempDir = await mkdtemp(join(os.tmpdir(), 'crowdin-config-'));

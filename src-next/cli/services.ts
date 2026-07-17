@@ -22,11 +22,12 @@ import { TranslationService } from '@/cli/services/TranslationService.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { proxyUrlFromEnv } from '@/cli/utils/proxy.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
-import type { Config } from '@/lib/config.ts';
+import type { Config, ProjectConfig } from '@/lib/config.ts';
 import { buildCredentials } from '@/lib/organization/credentials.ts';
 
 export type GetApiClient = (command: Command) => Promise<Client>;
 export type GetConfig = (command: Command) => Promise<Config>;
+export type GetProjectConfig = (command: Command) => Promise<ProjectConfig>;
 export type GetOutput = (command: Command) => Output;
 export type GetBranchService = (command: Command) => Promise<BranchService>;
 export type GetCommentService = (command: Command) => Promise<CommentService>;
@@ -71,16 +72,24 @@ export function createGetApiClient(getConfig: GetConfig) {
       process.env.HTTP_PROXY ??= proxy;
     }
 
-    cachedClient = new Client(buildCredentials(config.apiToken, config.baseUrl), {
-      userAgent: buildUserAgent(),
-      ...(proxy ? { httpClientType: 'fetch' as const } : {}),
-    });
+    // biome-ignore format: manual formatting looks better
+    cachedClient = new Client(
+      buildCredentials(config.apiToken, config.baseUrl),
+      {
+        userAgent: buildUserAgent(),
+        ...(proxy ? { httpClientType: 'fetch' as const } : {}),
+      },
+    );
 
     return cachedClient;
   };
 }
 
-export function createGetProjectService(getApiClient: GetApiClient, getOutput: GetOutput, getConfig: GetConfig) {
+export function createGetProjectService(
+  getApiClient: GetApiClient,
+  getOutput: GetOutput,
+  getProjectConfig: GetProjectConfig,
+) {
   let cachedService: ProjectService | undefined;
 
   return async (command: Command): Promise<ProjectService> => {
@@ -90,14 +99,14 @@ export function createGetProjectService(getApiClient: GetApiClient, getOutput: G
 
     const apiClient = await getApiClient(command);
     const output = getOutput(command);
-    const config = await getConfig(command);
+    const config = await getProjectConfig(command);
     cachedService = new ProjectService(apiClient, output, config.projectId);
 
     return cachedService;
   };
 }
 
-export function createGetCommentService(getApiClient: GetApiClient, getConfig: GetConfig) {
+export function createGetCommentService(getApiClient: GetApiClient, getProjectConfig: GetProjectConfig) {
   let cachedService: CommentService | undefined;
 
   return async (command: Command): Promise<CommentService> => {
@@ -106,7 +115,7 @@ export function createGetCommentService(getApiClient: GetApiClient, getConfig: G
     }
 
     const apiClient = await getApiClient(command);
-    const config = await getConfig(command);
+    const config = await getProjectConfig(command);
     cachedService = new CommentService(apiClient, config.projectId);
 
     return cachedService;
@@ -128,7 +137,7 @@ export function createGetStorageService(getApiClient: GetApiClient) {
   };
 }
 
-export function createGetStringService(getApiClient: GetApiClient, getConfig: GetConfig) {
+export function createGetStringService(getApiClient: GetApiClient, getProjectConfig: GetProjectConfig) {
   let cachedService: StringService | undefined;
 
   return async (command: Command): Promise<StringService> => {
@@ -137,14 +146,14 @@ export function createGetStringService(getApiClient: GetApiClient, getConfig: Ge
     }
 
     const apiClient = await getApiClient(command);
-    const config = await getConfig(command);
+    const config = await getProjectConfig(command);
     cachedService = new StringService(apiClient, config.projectId);
 
     return cachedService;
   };
 }
 
-export function createGetTaskService(getApiClient: GetApiClient, getConfig: GetConfig) {
+export function createGetTaskService(getApiClient: GetApiClient, getProjectConfig: GetProjectConfig) {
   let cachedService: TaskService | undefined;
 
   return async (command: Command): Promise<TaskService> => {
@@ -153,14 +162,14 @@ export function createGetTaskService(getApiClient: GetApiClient, getConfig: GetC
     }
 
     const apiClient = await getApiClient(command);
-    const config = await getConfig(command);
+    const config = await getProjectConfig(command);
     cachedService = new TaskService(apiClient, config.projectId);
 
     return cachedService;
   };
 }
 
-export function createGetBundleService(getApiClient: GetApiClient, getConfig: GetConfig) {
+export function createGetBundleService(getApiClient: GetApiClient, getProjectConfig: GetProjectConfig) {
   let cachedService: BundleService | undefined;
 
   return async (command: Command): Promise<BundleService> => {
@@ -169,14 +178,17 @@ export function createGetBundleService(getApiClient: GetApiClient, getConfig: Ge
     }
 
     const apiClient = await getApiClient(command);
-    const config = await getConfig(command);
+    const config = await getProjectConfig(command);
     cachedService = new BundleService(apiClient, config.projectId);
 
     return cachedService;
   };
 }
 
-export function createGetAppService(getApiClient: GetApiClient) {
+// The application endpoints are organization-level, so AppService never uses the project_id — but
+// Java runs the app commands on ActCommandProject, whose ProjectClient parses one, so they still
+// fail without it. Resolve the project config to keep that requirement.
+export function createGetAppService(getApiClient: GetApiClient, getProjectConfig: GetProjectConfig) {
   let cachedService: AppService | undefined;
 
   return async (command: Command): Promise<AppService> => {
@@ -185,13 +197,14 @@ export function createGetAppService(getApiClient: GetApiClient) {
     }
 
     const apiClient = await getApiClient(command);
+    await getProjectConfig(command);
     cachedService = new AppService(apiClient);
 
     return cachedService;
   };
 }
 
-export function createGetScreenshotService(getApiClient: GetApiClient, getConfig: GetConfig) {
+export function createGetScreenshotService(getApiClient: GetApiClient, getProjectConfig: GetProjectConfig) {
   let cachedService: ScreenshotService | undefined;
 
   return async (command: Command): Promise<ScreenshotService> => {
@@ -200,14 +213,14 @@ export function createGetScreenshotService(getApiClient: GetApiClient, getConfig
     }
 
     const apiClient = await getApiClient(command);
-    const config = await getConfig(command);
+    const config = await getProjectConfig(command);
     cachedService = new ScreenshotService(apiClient, config.projectId);
 
     return cachedService;
   };
 }
 
-export function createGetDistributionService(getApiClient: GetApiClient, getConfig: GetConfig) {
+export function createGetDistributionService(getApiClient: GetApiClient, getProjectConfig: GetProjectConfig) {
   let cachedService: DistributionService | undefined;
 
   return async (command: Command): Promise<DistributionService> => {
@@ -216,14 +229,14 @@ export function createGetDistributionService(getApiClient: GetApiClient, getConf
     }
 
     const apiClient = await getApiClient(command);
-    const config = await getConfig(command);
+    const config = await getProjectConfig(command);
     cachedService = new DistributionService(apiClient, config.projectId);
 
     return cachedService;
   };
 }
 
-export function createGetBranchService(getApiClient: GetApiClient, getConfig: GetConfig) {
+export function createGetBranchService(getApiClient: GetApiClient, getProjectConfig: GetProjectConfig) {
   let cachedService: BranchService | undefined;
 
   return async (command: Command): Promise<BranchService> => {
@@ -232,14 +245,14 @@ export function createGetBranchService(getApiClient: GetApiClient, getConfig: Ge
     }
 
     const apiClient = await getApiClient(command);
-    const config = await getConfig(command);
+    const config = await getProjectConfig(command);
     cachedService = new BranchService(apiClient, config.projectId);
 
     return cachedService;
   };
 }
 
-export function createGetDirectoryService(getApiClient: GetApiClient, getConfig: GetConfig) {
+export function createGetDirectoryService(getApiClient: GetApiClient, getProjectConfig: GetProjectConfig) {
   let cachedService: DirectoryService | undefined;
 
   return async (command: Command): Promise<DirectoryService> => {
@@ -248,14 +261,18 @@ export function createGetDirectoryService(getApiClient: GetApiClient, getConfig:
     }
 
     const apiClient = await getApiClient(command);
-    const config = await getConfig(command);
+    const config = await getProjectConfig(command);
     cachedService = new DirectoryService(apiClient, config.projectId);
 
     return cachedService;
   };
 }
 
-export function createGetFileService(getApiClient: GetApiClient, getOutput: GetOutput, getConfig: GetConfig) {
+export function createGetFileService(
+  getApiClient: GetApiClient,
+  getOutput: GetOutput,
+  getProjectConfig: GetProjectConfig,
+) {
   let cachedService: FileService | undefined;
 
   return async (command: Command): Promise<FileService> => {
@@ -265,14 +282,14 @@ export function createGetFileService(getApiClient: GetApiClient, getOutput: GetO
 
     const apiClient = await getApiClient(command);
     const output = getOutput(command);
-    const config = await getConfig(command);
+    const config = await getProjectConfig(command);
     cachedService = new FileService(apiClient, output, config.projectId);
 
     return cachedService;
   };
 }
 
-export function createGetLabelService(getApiClient: GetApiClient, getConfig: GetConfig) {
+export function createGetLabelService(getApiClient: GetApiClient, getProjectConfig: GetProjectConfig) {
   let cachedService: LabelService | undefined;
 
   return async (command: Command): Promise<LabelService> => {
@@ -281,14 +298,18 @@ export function createGetLabelService(getApiClient: GetApiClient, getConfig: Get
     }
 
     const apiClient = await getApiClient(command);
-    const config = await getConfig(command);
+    const config = await getProjectConfig(command);
     cachedService = new LabelService(apiClient, config.projectId);
 
     return cachedService;
   };
 }
 
-export function createGetProgressService(getApiClient: GetApiClient, getOutput: GetOutput, getConfig: GetConfig) {
+export function createGetProgressService(
+  getApiClient: GetApiClient,
+  getOutput: GetOutput,
+  getProjectConfig: GetProjectConfig,
+) {
   let cachedService: ProgressService | undefined;
 
   return async (command: Command): Promise<ProgressService> => {
@@ -298,7 +319,7 @@ export function createGetProgressService(getApiClient: GetApiClient, getOutput: 
 
     const apiClient = await getApiClient(command);
     const output = getOutput(command);
-    const config = await getConfig(command);
+    const config = await getProjectConfig(command);
     cachedService = new ProgressService(apiClient, output, config.projectId);
 
     return cachedService;
@@ -352,7 +373,11 @@ export function createGetGlossaryService(getApiClient: GetApiClient, getOutput: 
   };
 }
 
-export function createGetTranslationService(getApiClient: GetApiClient, getOutput: GetOutput, getConfig: GetConfig) {
+export function createGetTranslationService(
+  getApiClient: GetApiClient,
+  getOutput: GetOutput,
+  getProjectConfig: GetProjectConfig,
+) {
   let cachedService: TranslationService | undefined;
 
   return async (command: Command): Promise<TranslationService> => {
@@ -362,7 +387,7 @@ export function createGetTranslationService(getApiClient: GetApiClient, getOutpu
 
     const apiClient = await getApiClient(command);
     const output = getOutput(command);
-    const config = await getConfig(command);
+    const config = await getProjectConfig(command);
     cachedService = new TranslationService(apiClient, output, config.projectId);
 
     return cachedService;

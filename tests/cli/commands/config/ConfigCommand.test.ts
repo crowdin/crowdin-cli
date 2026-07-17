@@ -11,7 +11,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import { LanguageService } from '@/cli/services/LanguageService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
-import { type Config, ConfigSchema } from '@/lib/config.ts';
+import { ConfigSchema, type ProjectConfig } from '@/lib/config.ts';
 
 const globalOptions: GlobalOptions = {
   verbose: false,
@@ -82,7 +82,7 @@ describe('ConfigCommand lint', () => {
 
   const createConfigCommand = () =>
     new ConfigCommand(
-      createGetConfig(() => output),
+      createGetConfig(() => output).getProjectConfig,
       () => output,
       async () => projectService,
       async () => languageService,
@@ -166,7 +166,7 @@ describe('ConfigCommand sources', () => {
     mock.restore();
   });
 
-  const buildConfig = (overrides: Record<string, unknown> = {}): Config =>
+  const buildConfig = (overrides: Record<string, unknown> = {}): ProjectConfig =>
     ConfigSchema.parse({
       projectId: 123,
       apiToken: 'a'.repeat(80),
@@ -174,9 +174,9 @@ describe('ConfigCommand sources', () => {
       baseUrl: 'https://api.crowdin.com',
       files: [{ source: '/**/*.json', translation: '/l/%two_letters_code%/%original_file_name%' }],
       ...overrides,
-    });
+    }) as ProjectConfig;
 
-  const runSources = async (config: Config) => {
+  const runSources = async (config: ProjectConfig) => {
     const table = spyOn(output, 'table');
     const command = new ConfigCommand(
       async () => config,
@@ -237,14 +237,14 @@ describe('ConfigCommand translations', () => {
     mock.restore();
   });
 
-  const config = (): Config =>
+  const config = (): ProjectConfig =>
     ConfigSchema.parse({
       projectId: 123,
       apiToken: 'a'.repeat(80),
       basePath: tempDir,
       baseUrl: 'https://api.crowdin.com',
       files: [{ source: '/**/*.json', translation: '/l/%two_letters_code%/%original_file_name%' }],
-    });
+    }) as ProjectConfig;
 
   const run = async (project: unknown, options: Partial<GlobalOptions & { tree: boolean }> = {}) => {
     spyOn(projectService, 'loadProject').mockResolvedValue(project as never);

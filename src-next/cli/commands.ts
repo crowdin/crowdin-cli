@@ -45,30 +45,33 @@ import {
 import type { CommandDef } from './types.ts';
 
 const getOutput = createGetOutput();
-const getConfig = createGetConfig(getOutput);
+const { getConfig, getProjectConfig } = createGetConfig(getOutput);
+// The API client needs credentials only, so it takes plain getConfig — that keeps project_id out of
+// the requirements for glossary/tm, which Java runs on BaseProperties. Everything project-scoped
+// takes getProjectConfig, which is where the project_id requirement lives.
 const getApiClient = createGetApiClient(getConfig);
-const getCommentService = createGetCommentService(getApiClient, getConfig);
-const getAppService = createGetAppService(getApiClient);
-const getBundleService = createGetBundleService(getApiClient, getConfig);
-const getDistributionService = createGetDistributionService(getApiClient, getConfig);
-const getProjectService = createGetProjectService(getApiClient, getOutput, getConfig);
-const getScreenshotService = createGetScreenshotService(getApiClient, getConfig);
+const getCommentService = createGetCommentService(getApiClient, getProjectConfig);
+const getAppService = createGetAppService(getApiClient, getProjectConfig);
+const getBundleService = createGetBundleService(getApiClient, getProjectConfig);
+const getDistributionService = createGetDistributionService(getApiClient, getProjectConfig);
+const getProjectService = createGetProjectService(getApiClient, getOutput, getProjectConfig);
+const getScreenshotService = createGetScreenshotService(getApiClient, getProjectConfig);
 const getStorageService = createGetStorageService(getApiClient);
-const getStringService = createGetStringService(getApiClient, getConfig);
-const getTaskService = createGetTaskService(getApiClient, getConfig);
-const getBranchService = createGetBranchService(getApiClient, getConfig);
-const getDirectoryService = createGetDirectoryService(getApiClient, getConfig);
-const getFileService = createGetFileService(getApiClient, getOutput, getConfig);
-const getLabelService = createGetLabelService(getApiClient, getConfig);
-const getProgressService = createGetProgressService(getApiClient, getOutput, getConfig);
-const getTranslationService = createGetTranslationService(getApiClient, getOutput, getConfig);
+const getStringService = createGetStringService(getApiClient, getProjectConfig);
+const getTaskService = createGetTaskService(getApiClient, getProjectConfig);
+const getBranchService = createGetBranchService(getApiClient, getProjectConfig);
+const getDirectoryService = createGetDirectoryService(getApiClient, getProjectConfig);
+const getFileService = createGetFileService(getApiClient, getOutput, getProjectConfig);
+const getLabelService = createGetLabelService(getApiClient, getProjectConfig);
+const getProgressService = createGetProgressService(getApiClient, getOutput, getProjectConfig);
+const getTranslationService = createGetTranslationService(getApiClient, getOutput, getProjectConfig);
 const getLanguageService = createGetLanguageService(getApiClient);
 const getTmService = createGetTmService(getApiClient, getOutput);
 const getGlossaryService = createGetGlossaryService(getApiClient, getOutput);
 
 const commentCommand = new CommentCommand(getOutput, getCommentService);
 const appCommand = new AppCommand(getOutput, getAppService);
-const bundleCommand = new BundleCommand(getOutput, getBundleService, getConfig);
+const bundleCommand = new BundleCommand(getOutput, getBundleService, getProjectConfig);
 const screenshotCommand = new ScreenshotCommand(
   getOutput,
   getScreenshotService,
@@ -79,9 +82,9 @@ const screenshotCommand = new ScreenshotCommand(
   getLabelService,
 );
 const initCommand = new InitCommand(getOutput);
-const configCommand = new ConfigCommand(getConfig, getOutput, getProjectService, getLanguageService);
+const configCommand = new ConfigCommand(getProjectConfig, getOutput, getProjectService, getLanguageService);
 const downloadCommand = new DownloadCommand(
-  getConfig,
+  getProjectConfig,
   getOutput,
   getProjectService,
   getBranchService,
@@ -90,7 +93,7 @@ const downloadCommand = new DownloadCommand(
 );
 const distributionCommand = new DistributionCommand(getOutput, getDistributionService);
 const fileCommand = new FileCommand(
-  getConfig,
+  getProjectConfig,
   getOutput,
   getProjectService,
   getStorageService,
@@ -141,7 +144,7 @@ const contextCommand = new ContextCommand(
   getLabelService,
 );
 const uploadCommand = new UploadCommand(
-  getConfig,
+  getProjectConfig,
   getOutput,
   getProjectService,
   getStorageService,

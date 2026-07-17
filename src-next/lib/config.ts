@@ -39,7 +39,10 @@ const coercedBoolean = z.preprocess((value) => {
 
 export const ConfigSchema = z
   .object({
-    projectId: z.coerce.number().gt(0),
+    // Optional here because the base tier (glossary, tm) talks to the API without a project context,
+    // exactly like Java's BaseProperties. Project-scoped commands restore the requirement via
+    // assertProjectConfigured; cli/config.ts maps commands to tiers.
+    projectId: z.coerce.number().gt(0).optional(),
     // Java only rejects an empty token (BaseProperties: isEmpty → missed_api_token); token length/
     // validity is the API's job (401), not the config's. A local min-length check wrongly blamed the
     // config file for a short --token flag, so match Java: reject only empty, let the API judge the rest.
@@ -153,7 +156,19 @@ export const ConfigSchema = z
     });
   });
 
+// Mirrors Java's BaseProperties: credentials and file rules, no project context required.
 export type Config = z.infer<typeof ConfigSchema>;
+
+// Mirrors Java's ProjectProperties: a Config whose project_id has been validated. Only the
+// project-scoped services ask for this; everything else is happy with a plain Config.
+export type ProjectConfig = Config & { projectId: number };
+
+// Project-scoped commands (Java ProjectProperties.checkProperties -> error.config.missed_project_id).
+export function assertProjectConfigured(config: Config): asserts config is ProjectConfig {
+  if (config.projectId === undefined) {
+    throw new InvalidConfigurationError("Required option 'project_id' is missing");
+  }
+}
 
 // `files` is optional in the schema so credential-only commands (project list, browse, etc.) work.
 // File commands (upload/download/config lint) must call this to restore Java's parity error

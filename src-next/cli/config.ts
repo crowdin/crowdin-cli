@@ -6,7 +6,7 @@ import { z } from 'zod';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import InvalidConfigurationError from '@/lib/config/errors/InvalidConfigurationError.ts';
 import { loadRawFromFile, mapConfig } from '@/lib/config/yamlLoader.ts';
-import { type Config, ConfigSchema } from '@/lib/config.ts';
+import { assertProjectConfigured, type Config, ConfigSchema, type ProjectConfig } from '@/lib/config.ts';
 import { getIdentityFilePath, IDENTITY_FILE_NAMES } from '@/lib/identityFiles.ts';
 import type { ConfigOptions, GlobalOptions } from './options.ts';
 import type { Output } from './utils/output.ts';
@@ -20,7 +20,10 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
   let cachedConfig: Config | undefined;
   let cachedConfigPath: string | undefined;
 
-  return async (command: Command): Promise<Config> => {
+  // Java's BaseProperties: the config file is read when present, but credentials may come entirely
+  // from flags or the environment, so a missing default file is not an error. Only the files tier
+  // (and an explicit --config) insists the file be there.
+  const getConfig = async (command: Command): Promise<Config> => {
     const output = getOutput(command);
     const options = command.optsWithGlobals() as GlobalOptions & ConfigOptions;
     const configPath = await resolveConfigPath(options.config);
@@ -31,7 +34,7 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
 
     output.debug(`Loading configuration from ${configPath} file`);
 
-    const raw = await loadRawFromFile(configPath);
+    const raw = (await needsConfigFile(command, options, configPath)) ? await loadRawFromFile(configPath) : {};
 
     // Single resolution pipeline, lowest priority first. Every scenario — CROWDIN_* fallback,
     // config file, `*_env` vars, ~/.crowdin.yml token, --identity file, CLI flags — is a layer
@@ -58,6 +61,38 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
 
     return cachedConfig;
   };
+
+  // Java's ProjectProperties: the same config, plus the project_id requirement.
+  const getProjectConfig = async (command: Command): Promise<ProjectConfig> => {
+    const config = await getConfig(command);
+
+    assertProjectConfigured(config);
+
+    return config;
+  };
+
+  return { getConfig, getProjectConfig };
+}
+
+// Mirrors Java PropertiesBuilders: the file tier reads the config file when it exists or when no
+// --source/--translation pair replaces it (ParamsWithFiles.isEmpty), other tiers only when it exists.
+// An explicit --config always must resolve, so a missing one still surfaces a not-found error.
+async function needsConfigFile(
+  command: Command,
+  options: GlobalOptions & ConfigOptions,
+  configPath: string,
+): Promise<boolean> {
+  if (options.config || (await Bun.file(configPath).exists())) {
+    return true;
+  }
+
+  return isFilesTier(command) && !options.source && !options.translation;
+}
+
+// The command's own option set is the tier marker: only filesConfigGroup carries --source
+// (see cli/commands/common/options.ts), so it cannot drift from the tiers declared there.
+function isFilesTier(command: Command): boolean {
+  return command.options.some((option) => option.attributeName() === 'source');
 }
 
 async function resolveConfigPath(explicit: string | undefined): Promise<string> {

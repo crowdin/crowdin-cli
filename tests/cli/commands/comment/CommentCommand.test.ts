@@ -6,9 +6,9 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import { CommentService } from '@/cli/services/CommentService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
-import type { Config } from '@/lib/config.ts';
+import type { ProjectConfig } from '@/lib/config.ts';
 
-const config: Config = {
+const config: ProjectConfig = {
   projectId: 123,
   apiToken: 'a'.repeat(80),
   basePath: '.',

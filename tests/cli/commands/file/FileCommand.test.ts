@@ -16,9 +16,9 @@ import { StorageService } from '@/cli/services/StorageService.ts';
 import { StringService } from '@/cli/services/StringService.ts';
 import { TranslationService } from '@/cli/services/TranslationService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
-import type { Config } from '@/lib/config.ts';
+import type { Config, ProjectConfig } from '@/lib/config.ts';
 
-const config: Config = {
+const config: ProjectConfig = {
   projectId: 123,
   apiToken: 'a'.repeat(80),
   basePath: '.',
