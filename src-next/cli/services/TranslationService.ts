@@ -73,7 +73,7 @@ export class TranslationService {
 
   async importXliffTranslation(storageId: number, languageIds: string[], filePath: string) {
     try {
-      await this.apiClient.translationsApi.importTranslations(this.projectId, {
+      return await this.apiClient.translationsApi.importTranslations(this.projectId, {
         storageId,
         languageIds,
       });

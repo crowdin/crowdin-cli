@@ -311,8 +311,6 @@ export default class FileCommand {
   ): Promise<void> => {
     const output = this.getOutput(command);
     const storageService = await this.getStorageService(command);
-    const fileService = await this.getFileService(command);
-    const branchService = await this.getBranchService(command);
     const translationService = await this.getTranslationService(command);
     const languageId = options.language as string;
 
@@ -330,33 +328,34 @@ export default class FileCommand {
     const storage = await this.uploadToStorage(storageService, localFile, filePath);
 
     try {
-      if (options.xliff) {
-        await translationService.importXliffTranslation(storage.data.id, [languageId], filePath);
-      } else if (!isStringsBased) {
-        const branchId = await branchService.resolveBranchId(options.branch);
-        const wantedPath = destPath.startsWith('/') ? destPath : `/${destPath}`;
-        const projectFiles = await fileService.loadProjectFiles(branchId);
-        const sourceFile = projectFiles.data.find((file) => file.data.path === wantedPath);
+      output.log(`Importing translations for file '${filePath}'`);
 
-        if (!sourceFile) {
-          throw new CliError(`File '${wantedPath}' not found in the Crowdin project`);
-        }
+      const importResponse = options.xliff
+        ? await translationService.importXliffTranslation(storage.data.id, [languageId], filePath)
+        : await this.importFileTranslation(
+            command,
+            options,
+            filePath,
+            destPath,
+            languageId,
+            isStringsBased,
+            storage.data.id,
+          );
 
-        await translationService.importProjectTranslation(storage.data.id, sourceFile.data.id, [languageId], filePath);
-      } else {
-        const branchId = await branchService.resolveBranchId(options.branch);
-
-        if (branchId === undefined) {
-          throw new CliError('Branch is required for string-based projects');
-        }
-
-        await translationService.importProjectTranslationStringsBased(
-          storage.data.id,
-          branchId,
-          [languageId],
-          filePath,
-        );
-      }
+      // The import is queued server-side, so the request alone proves nothing. Java waits for the
+      // status to finish before reporting the file as uploaded (executeAsyncAction).
+      await pollUntilFinished(
+        importResponse,
+        (importId) => translationService.getImportTranslationsStatus(importId),
+        `Failed to upload the translation file '${filePath}'. Please contact our support team for help`,
+        // Java passes the percent message unconditionally here (unlike upload translations, where it
+        // is verbose-only), and appends the identifier only under --verbose.
+        (status) =>
+          output.log(
+            `Importing translations for file '${filePath}' (${status.progress}%)` +
+              (options.verbose ? ` (${status.identifier})` : ''),
+          ),
+      );
     } catch (error) {
       if (error instanceof WrongLanguageError) {
         output.warning(
@@ -370,6 +369,41 @@ export default class FileCommand {
     }
 
     output.success(`File '${filePath}'`);
+  };
+
+  // The non-xliff import: file-based needs the project file the translation belongs to,
+  // strings-based needs the branch (Java FileUploadTranslationAction's two else-branches).
+  private importFileTranslation = async (
+    command: Command,
+    options: UploadFileCommandOptions,
+    filePath: string,
+    destPath: string,
+    languageId: string,
+    isStringsBased: boolean,
+    storageId: number,
+  ) => {
+    const fileService = await this.getFileService(command);
+    const branchService = await this.getBranchService(command);
+    const translationService = await this.getTranslationService(command);
+    const branchId = await branchService.resolveBranchId(options.branch);
+
+    if (isStringsBased) {
+      if (branchId === undefined) {
+        throw new CliError('Branch is required for string-based projects');
+      }
+
+      return await translationService.importProjectTranslationStringsBased(storageId, branchId, [languageId], filePath);
+    }
+
+    const wantedPath = destPath.startsWith('/') ? destPath : `/${destPath}`;
+    const projectFiles = await fileService.loadProjectFiles(branchId);
+    const sourceFile = projectFiles.data.find((file) => file.data.path === wantedPath);
+
+    if (!sourceFile) {
+      throw new CliError(`File '${wantedPath}' not found in the Crowdin project`);
+    }
+
+    return await translationService.importProjectTranslation(storageId, sourceFile.data.id, [languageId], filePath);
   };
 
   // Source upload for strings-based projects: branch is mandatory; upload + poll to completion
