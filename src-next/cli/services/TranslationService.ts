@@ -21,7 +21,7 @@ export class TranslationService {
     translateHidden?: boolean,
   ) {
     try {
-      await this.apiClient.translationsApi.importTranslations(this.projectId, {
+      return await this.apiClient.translationsApi.importTranslations(this.projectId, {
         storageId,
         fileId,
         languageIds,
@@ -34,7 +34,10 @@ export class TranslationService {
         throw new WrongLanguageError();
       }
 
-      throw toCliError(error, `Failed to import translations for file ${filePath}`);
+      throw toCliError(
+        error,
+        `Failed to upload the translation file '${filePath}'. Please contact our support team for help`,
+      );
     }
   }
 
@@ -61,7 +64,10 @@ export class TranslationService {
         throw new WrongLanguageError();
       }
 
-      throw toCliError(error, `Failed to import translations for file ${filePath}`);
+      throw toCliError(
+        error,
+        `Failed to upload the translation file '${filePath}'. Please contact our support team for help`,
+      );
     }
   }
 
@@ -76,7 +82,10 @@ export class TranslationService {
         throw new WrongLanguageError();
       }
 
-      throw toCliError(error, `Failed to import translations for file ${filePath}`);
+      throw toCliError(
+        error,
+        `Failed to upload the translation file '${filePath}'. Please contact our support team for help`,
+      );
     }
   }
 

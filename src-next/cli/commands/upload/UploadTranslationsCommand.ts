@@ -140,7 +140,9 @@ export default class UploadTranslationsCommand {
       const storage = await storageService.addStorage(Bun.file(localFilePath));
 
       try {
-        await translationService.importProjectTranslation(
+        output.log(this.importingMessage(entry.translationPath));
+
+        const importResponse = await translationService.importProjectTranslation(
           storage.data.id,
           entry.fileId as number,
           entry.languageIds,
@@ -148,6 +150,16 @@ export default class UploadTranslationsCommand {
           options.autoApproveImported,
           options.importEqSuggestions,
           options.translateHidden,
+        );
+
+        // The import is async server-side, so the request only queues it. Java waits for the status
+        // to finish before reporting the file as uploaded (executeAsyncActionWithoutSpinner), which
+        // is what surfaces a failed import instead of a false success.
+        await pollUntilFinished(
+          importResponse,
+          (importId) => translationService.getImportTranslationsStatus(importId),
+          this.uploadFailedMessage(entry.translationPath),
+          (status) => output.debug(this.progressMessage(entry.translationPath, status)),
         );
       } catch (error) {
         if (error instanceof WrongLanguageError) {
@@ -161,7 +173,7 @@ export default class UploadTranslationsCommand {
         throw error;
       }
 
-      output.success(`File ${entry.translationPath} was queued for translations import`);
+      output.success(`File '${entry.translationPath}'`);
     });
 
     const results = await runConcurrently(tasks);
@@ -330,6 +342,9 @@ export default class UploadTranslationsCommand {
       }
 
       const storage = await storageService.addStorage(Bun.file(localFilePath));
+
+      output.log(this.importingMessage(entry.translationPath));
+
       const importResponse = await translationService.importProjectTranslationStringsBased(
         storage.data.id,
         branch.id,
@@ -343,10 +358,11 @@ export default class UploadTranslationsCommand {
       await pollUntilFinished(
         importResponse,
         (importId) => translationService.getImportTranslationsStatus(importId),
-        `Failed to import translations for file ${entry.translationPath}`,
+        this.uploadFailedMessage(entry.translationPath),
+        (status) => output.debug(this.progressMessage(entry.translationPath, status)),
       );
 
-      output.success(`File ${entry.translationPath} was queued for translations import`);
+      output.success(`File '${entry.translationPath}'`);
     });
 
     const results = await runConcurrently(tasks);
@@ -371,5 +387,21 @@ export default class UploadTranslationsCommand {
     }
 
     return filtered;
+  }
+
+  // Java's message.spinner.importing_translations_init: printed for every file, verbose or not.
+  private importingMessage(translationPath: string): string {
+    return `Importing translations for file '${translationPath}'`;
+  }
+
+  // Java's message.spinner.importing_translations_percents, which it only builds under --verbose,
+  // with the import identifier appended.
+  private progressMessage(translationPath: string, status: { progress: number; identifier: string }): string {
+    return `Importing translations for file '${translationPath}' (${status.progress}%) (${status.identifier})`;
+  }
+
+  // Java's error.upload_translation, used for both a failed request and a failed import status.
+  private uploadFailedMessage(translationPath: string): string {
+    return `Failed to upload the translation file '${translationPath}'. Please contact our support team for help`;
   }
 }

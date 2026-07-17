@@ -37,7 +37,7 @@ describe('UploadTranslationsCommand', () => {
     const projectService = {
       loadProject: mock(async () => ({ data: { id: 123, targetLanguages: [language('es', 'es', 'spa')] } })),
     };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
       tempDir,
@@ -73,7 +73,7 @@ describe('UploadTranslationsCommand', () => {
       ...baseFileServiceMock(),
       loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.xml' } }] })),
     };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
       tempDir,
@@ -119,7 +119,7 @@ describe('UploadTranslationsCommand', () => {
       ...baseFileServiceMock(),
       loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
     };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
       tempDir,
@@ -152,7 +152,102 @@ describe('UploadTranslationsCommand', () => {
       true,
       true,
     );
-    expect(output.success).toHaveBeenCalledWith('File locale/es/app.json was queued for translations import');
+    expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
+  });
+
+  // The import is queued server-side, so Java waits for the status to finish before calling the file
+  // uploaded. Without the poll a failed import still reports success.
+  test('polls the import status until it finishes before reporting success', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+    await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const projectService = {
+      loadProject: mock(async () => ({
+        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
+      })),
+    };
+    const fileService = {
+      ...baseFileServiceMock(),
+      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+    };
+    const statuses = [
+      { data: { identifier: 'import-1', status: 'in_progress', progress: 50 } },
+      { data: { identifier: 'import-1', status: 'finished', progress: 100 } },
+    ];
+    const translationService = {
+      ...baseTranslationServiceMock(),
+      importProjectTranslation: mock(async () => ({
+        data: { identifier: 'import-1', status: 'created', progress: 0 },
+      })),
+      getImportTranslationsStatus: mock(async () => statuses.shift()),
+    };
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      projectService,
+      storageService,
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+      baseLabelServiceMock(),
+      translationService,
+    );
+
+    await command.uploadTranslationsAction(commandContext({}));
+
+    expect(translationService.getImportTranslationsStatus).toHaveBeenCalledWith('import-1');
+    expect(translationService.getImportTranslationsStatus).toHaveBeenCalledTimes(2);
+    expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
+
+    // Java prints the init line for every file (verbose or not) and the percent lines only under
+    // --verbose, which output.debug gates.
+    expect(output.log).toHaveBeenCalledWith("Importing translations for file 'locale/es/app.json'");
+    expect(output.debug).toHaveBeenCalledWith("Importing translations for file 'locale/es/app.json' (50%) (import-1)");
+    expect(output.debug).toHaveBeenCalledWith("Importing translations for file 'locale/es/app.json' (100%) (import-1)");
+  });
+
+  test('fails the upload when the import status reports failure', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+    await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const projectService = {
+      loadProject: mock(async () => ({
+        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
+      })),
+    };
+    const fileService = {
+      ...baseFileServiceMock(),
+      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+    };
+    const translationService = {
+      ...baseTranslationServiceMock(),
+      importProjectTranslation: mock(async () => ({
+        data: { identifier: 'import-1', status: 'failed', progress: 0 },
+      })),
+    };
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      projectService,
+      storageService,
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+      baseLabelServiceMock(),
+      translationService,
+    );
+
+    expect(command.uploadTranslationsAction(commandContext({}))).rejects.toThrow(
+      'Current execution finished with errors',
+    );
+    expect(output.error).toHaveBeenCalledWith(
+      "Failed to upload the translation file 'locale/es/app.json'. Please contact our support team for help",
+    );
+    expect(output.success).not.toHaveBeenCalled();
   });
 
   test('uploads translations from requested branch files', async () => {
@@ -170,7 +265,7 @@ describe('UploadTranslationsCommand', () => {
       ...baseFileServiceMock(),
       loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
     };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
       tempDir,
@@ -197,7 +292,7 @@ describe('UploadTranslationsCommand', () => {
       undefined,
       undefined,
     );
-    expect(output.success).toHaveBeenCalledWith('File locale/es/app.json was queued for translations import');
+    expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
   });
 
   test('warns and continues when import fails due to language mismatch', async () => {
@@ -221,11 +316,12 @@ describe('UploadTranslationsCommand', () => {
       loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
     };
     const translationService = {
+      ...baseTranslationServiceMock(),
       importProjectTranslation: mock(async (_storageId: number, _fileId: number, languageIds: string[]) => {
         if (languageIds.includes('es')) {
           throw new WrongLanguageError();
         }
-        return undefined;
+        return { data: { identifier: 'import-1', status: 'finished', progress: 100 } };
       }),
     };
     const output = createOutputMock();
@@ -248,7 +344,7 @@ describe('UploadTranslationsCommand', () => {
       "Translation file 'locale/es/app.json' hasn't been uploaded since the following target language(s) " +
         'are not enabled for the source file in your Crowdin project: es',
     );
-    expect(output.success).toHaveBeenCalledWith('File locale/fr/app.json was queued for translations import');
+    expect(output.success).toHaveBeenCalledWith("File 'locale/fr/app.json'");
   });
 
   test('warns when local translation file does not exist', async () => {
@@ -264,7 +360,7 @@ describe('UploadTranslationsCommand', () => {
       ...baseFileServiceMock(),
       loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
     };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
       tempDir,
@@ -305,7 +401,7 @@ describe('UploadTranslationsCommand', () => {
       ...baseFileServiceMock(),
       loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
     };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
       tempDir,
@@ -340,8 +436,8 @@ describe('UploadTranslationsCommand', () => {
       undefined,
       undefined,
     );
-    expect(output.success).toHaveBeenCalledWith('File locale/es/app.json was queued for translations import');
-    expect(output.success).toHaveBeenCalledWith('File locale/fr/app.json was queued for translations import');
+    expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
+    expect(output.success).toHaveBeenCalledWith("File 'locale/fr/app.json'");
   });
 
   test('dry-run skips translation import and logs info', async () => {
@@ -358,7 +454,7 @@ describe('UploadTranslationsCommand', () => {
       ...baseFileServiceMock(),
       loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
     };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
       tempDir,
@@ -390,7 +486,7 @@ describe('UploadTranslationsCommand', () => {
       })),
     };
     const fileService = { ...baseFileServiceMock(), loadProjectFiles: mock(async () => ({ data: [] })) };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
       tempDir,
@@ -418,7 +514,7 @@ describe('UploadTranslationsCommand', () => {
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
       })),
     };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
       tempDir,
@@ -457,7 +553,7 @@ describe('UploadTranslationsCommand', () => {
       ...baseFileServiceMock(),
       loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
     };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
       tempDir,
@@ -552,7 +648,7 @@ describe('UploadTranslationsCommand', () => {
       undefined,
       undefined,
     );
-    expect(output.success).toHaveBeenCalledWith('File locale/es/app.json was queued for translations import');
+    expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
   });
 
   test('throws when branch does not exist for strings-based translations upload', async () => {
@@ -602,7 +698,7 @@ describe('UploadTranslationsCommand', () => {
       ...baseFileServiceMock(),
       loadProjectFiles: mock(async () => ({ data: [{ data: { id: 88, path: '/foo/app.json' } }] })),
     };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const command = createUploadCommand(
       tempDir,
       createOutputMock(),
@@ -641,7 +737,7 @@ describe('UploadTranslationsCommand', () => {
       })),
     };
     const fileService = { ...baseFileServiceMock(), loadProjectFiles: mock(async () => ({ data: [] })) };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
       tempDir,
@@ -680,7 +776,7 @@ describe('UploadTranslationsCommand', () => {
         data: [{ data: { id: 77, path: '/src/app.json' } }, { data: { id: 78, path: '/src/skip.json' } }],
       })),
     };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const command = createUploadCommand(
       tempDir,
       createOutputMock(),
@@ -726,7 +822,7 @@ describe('UploadTranslationsCommand', () => {
       ...baseFileServiceMock(),
       loadProjectFiles: mock(async () => ({ data: [{ data: { id: 90, path: '/src/data.csv' } }] })),
     };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const command = createUploadCommand(
       tempDir,
       createOutputMock(),
@@ -762,7 +858,7 @@ describe('UploadTranslationsCommand', () => {
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
       })),
     };
-    const translationService = { importProjectTranslation: mock(async () => undefined) };
+    const translationService = baseTranslationServiceMock();
     const output = createOutputMock();
     const command = createUploadCommand(
       tempDir,

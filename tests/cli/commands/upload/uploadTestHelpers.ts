@@ -60,7 +60,9 @@ export function baseLabelServiceMock() {
 
 export function baseTranslationServiceMock() {
   return {
-    importProjectTranslation: mock(async () => undefined),
+    importProjectTranslation: mock(async () => ({
+      data: { identifier: 'import-1', status: 'finished', progress: 100 },
+    })),
     importProjectTranslationStringsBased: mock(async () => ({
       data: { identifier: 'import-1', status: 'finished', progress: 100 },
     })),
@@ -132,6 +134,8 @@ export function commandContext(options: Record<string, unknown>): Command {
 export function createOutputMock() {
   return {
     info: mock(() => undefined),
+    log: mock(() => undefined),
+    debug: mock(() => undefined),
     success: mock(() => undefined),
     warning: mock(() => undefined),
     error: mock(() => undefined),
