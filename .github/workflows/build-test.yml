@@ -128,23 +128,33 @@ jobs:
 
   build-exe:
     runs-on: windows-latest
-    needs: build
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/download-artifact@v8
+      - uses: oven-sh/setup-bun@v2
         with:
-          name: artifacts
+          bun-version: latest
 
-      - name: Prepare distribution
-        run: mkdir dist && mv crowdin-cli-*.jar dist/crowdin-cli.jar
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Read version
+        id: version
+        uses: ./.github/actions/read-version
+
+      - name: Build binary
+        run: bun run build:win32-x64
+
+      - name: Smoke test binary
+        run: packages\npm\win32-x64\bin\crowdin.exe --version
 
       - name: Compile .ISS to .EXE Installer
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
-        with:
-          path: packages/exe/CrowdinCLIInstaller.iss
+        # Inno Setup is preinstalled on the windows runner image
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: iscc /DMyAppVersion=$env:VERSION packages\exe\CrowdinCLIInstaller.iss
 
       - uses: actions/upload-artifact@v7
         with:
           name: exe-package
-          path: crowdin.exe
+          path: crowdin-installer.exe
