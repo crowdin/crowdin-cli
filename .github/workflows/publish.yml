@@ -21,14 +21,12 @@ on:
         type: string
         required: false
 
-  release:
-    types: [released]
-
 jobs:
-  # The npm flow (verify -> publish-platforms -> publish-cli -> assets) publishes the
-  # v5 packages to npm and creates a GitHub pre-release with the standalone binaries.
+  # v5 publishes npm + docker + the Windows exe installer. The other package jobs are kept
+  # below but disabled (`if: false`) until adapted for v5 - see the main branch for their v4 publishing.
   verify:
-    if: github.ref == 'refs/heads/next' && github.event.inputs.package == 'npm'
+    # Publish from the release branch only
+    if: github.ref == 'refs/heads/next' && contains(fromJSON('["all", "npm", "docker"]'), github.event.inputs.package)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
@@ -49,15 +47,20 @@ jobs:
       - name: Build linux binary
         run: bun run build:linux-x64
 
+      - name: Read version
+        id: version
+        uses: ./.github/actions/read-version
+
       - name: Smoke test binary version
         run: |
-          version=$(bun -e "console.log(require('./packages/npm/cli/package.json').version)")
+          version="${{ steps.version.outputs.version }}"
           out=$(./packages/npm/linux-x64/bin/crowdin --version)
           echo "manifest version: $version / binary version: $out"
           test "$out" = "$version"
 
   publish-platforms:
     needs: verify
+    if: github.event.inputs.package == 'all' || github.event.inputs.package == 'npm'
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -136,9 +139,7 @@ jobs:
 
       - name: Read version
         id: version
-        run: |
-          version=$(bun -e "console.log(require('./packages/npm/cli/package.json').version)")
-          echo "version=$version" >> $GITHUB_OUTPUT
+        uses: ./.github/actions/read-version
 
       - name: Build binaries
         run: bun run build:all
@@ -164,7 +165,7 @@ jobs:
 
   aur:
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'aur'
+    if: false # disabled until adapted for v5
     needs: assets
     steps:
       - uses: actions/checkout@v6
@@ -182,7 +183,7 @@ jobs:
 
   homebrew:
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'homebrew'
+    if: false # disabled until adapted for v5
     needs: assets
     steps:
       - uses: actions/checkout@v6
@@ -198,7 +199,7 @@ jobs:
 
   chocolatey:
     runs-on: windows-latest
-    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'chocolatey'
+    if: false # disabled until adapted for v5
     needs: assets
     steps:
       - uses: actions/checkout@v6
@@ -227,14 +228,35 @@ jobs:
           args: push --api-key ${{ secrets.CHOCOLATEY_API_KEY }} --source=https://push.chocolatey.org/
 
   docker:
+    # Builds the standalone binaries and pushes the multi-arch image to Docker Hub as
+    # `next` + the exact version. `latest` stays with the stable (v4) releases.
+    needs: verify
+    if: github.event.inputs.package == 'all' || github.event.inputs.package == 'docker'
     runs-on: ubuntu-latest
-    if: github.event_name == 'release' || github.event.inputs.package == 'all' || github.event.inputs.package == 'docker'
-    needs: assets
     steps:
       - uses: actions/checkout@v6
 
-      - name: Copy Dockerfile
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Read version
+        id: version
+        uses: ./.github/actions/read-version
+
+      - name: Build binaries
         run: |
+          bun run build:linux-x64-musl
+          bun run build:linux-arm64-musl
+
+      - name: Stage Docker context
+        run: |
+          mkdir -p binaries/amd64 binaries/arm64
+          cp packages/npm/linux-x64-musl/bin/crowdin binaries/amd64/crowdin
+          cp packages/npm/linux-arm64-musl/bin/crowdin binaries/arm64/crowdin
           cp packages/docker/Dockerfile Dockerfile
 
       - name: Login to Docker Hub
@@ -254,19 +276,19 @@ jobs:
           push: true
           context: .
           tags: |
-            "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ github.ref_name }}"
-            "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:latest"
+            "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:next"
+            "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ steps.version.outputs.version }}"
 
   winget:
-    # Runs automatically on release, after the exe job has built and uploaded the installer.
+    # Runs automatically after the exe job has built and uploaded the installer.
     runs-on: windows-latest
-    if: github.event_name == 'release'
+    if: false # disabled until adapted for v5
     needs: exe
     steps:
       - uses: vedantmgoyal9/winget-releaser@v2
         with:
           identifier: Crowdin.CrowdinCLI
-          installers-regex: '\.exe$'
+          installers-regex: '^crowdin-installer\.exe$'
           token: ${{ secrets.GH_WINGET_TOKEN }}
           fork-user: crowdin-bot
 
@@ -274,41 +296,48 @@ jobs:
     # Runs on manual dispatch only. No exe build - the action picks up the .exe
     # from the latest existing GitHub release, so the release must already exist.
     runs-on: windows-latest
-    if: github.event_name == 'workflow_dispatch' && (github.event.inputs.package == 'all' || github.event.inputs.package == 'winget')
+    if: false # disabled until adapted for v5
     steps:
       - uses: vedantmgoyal9/winget-releaser@v2
         with:
           identifier: Crowdin.CrowdinCLI
-          installers-regex: '\.exe$'
+          installers-regex: '^crowdin-installer\.exe$'
           release-tag: ${{ github.event.inputs.winget_release_tag }}
           token: ${{ secrets.GH_WINGET_TOKEN }}
           fork-user: crowdin-bot
 
   exe:
+    # Builds the Windows installer (Inno Setup) around the standalone win32-x64
+    # binary and attaches it to the GitHub release created by the assets job
     runs-on: windows-latest
-    if: github.event_name == 'release'
     needs: assets
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v6
 
-      - uses: actions/setup-java@v5
+      - uses: oven-sh/setup-bun@v2
         with:
-          distribution: temurin
-          java-version: 17
-          cache: 'gradle'
+          bun-version: latest
 
-      - name: Prepare distribution
-        run: |
-          ./gradlew shadowJar
-          mkdir dist
-          mv build/libs/crowdin-cli-*.jar dist/crowdin-cli.jar
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Read version
+        id: version
+        uses: ./.github/actions/read-version
+
+      - name: Build binary
+        run: bun run build:win32-x64
 
       - name: Compile .ISS to .EXE Installer
         uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
         with:
           path: packages/exe/CrowdinCLIInstaller.iss
+          options: /DMyAppVersion=${{ steps.version.outputs.version }}
 
       - name: Upload asset
         uses: softprops/action-gh-release@v2
         with:
-          files: crowdin.exe
+          tag_name: ${{ steps.version.outputs.version }}
+          files: crowdin-installer.exe

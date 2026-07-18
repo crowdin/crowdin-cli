@@ -1,0 +1,14 @@
+name: Read version
+description: Reads the CLI version from packages/npm/cli/package.json
+
+outputs:
+  version:
+    description: The CLI version
+    value: ${{ steps.read.outputs.version }}
+
+runs:
+  using: composite
+  steps:
+    - id: read
+      shell: bash
+      run: echo "version=$(node -p "require('./packages/npm/cli/package.json').version")" >> $GITHUB_OUTPUT
