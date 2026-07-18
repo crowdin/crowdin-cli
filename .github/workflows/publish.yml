@@ -330,11 +330,12 @@ jobs:
       - name: Build binary
         run: bun run build:win32-x64
 
+      - name: Smoke test binary
+        run: packages\npm\win32-x64\bin\crowdin.exe --version
+
       - name: Compile .ISS to .EXE Installer
-        uses: Minionguyjpro/Inno-Setup-Action@v1.2.7
-        with:
-          path: packages/exe/CrowdinCLIInstaller.iss
-          options: /DMyAppVersion=${{ steps.version.outputs.version }}
+        # Inno Setup is preinstalled on the windows runner image
+        run: iscc /DMyAppVersion=${{ steps.version.outputs.version }} packages\exe\CrowdinCLIInstaller.iss
 
       - name: Upload asset
         uses: softprops/action-gh-release@v2
