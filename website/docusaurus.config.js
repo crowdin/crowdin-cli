@@ -96,9 +96,10 @@ const config = {
       announcementBar: {
         id: "v5_pre_release",
         content:
-          '🚀 Crowdin CLI v5 pre-release is now available! <a target="_blank" rel="noopener noreferrer" href="https://github.com/crowdin/crowdin-cli/releases?q=%225.0.0-next%22&expanded=true">Try it out</a> and share your feedback',
-        backgroundColor: "#029e87",
+          '🚀 Crowdin CLI v5 Pre-Release is now available! <a target="_blank" rel="noopener noreferrer" href="https://github.com/crowdin/crowdin-cli/discussions/1043">Try it out and share your feedback!</a>',
+        backgroundColor: "#d6471cff",
         textColor: "#ffffff",
+        isCloseable: false,
       },
       footer: {
         style: 'dark',

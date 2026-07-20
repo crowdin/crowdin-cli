@@ -14,7 +14,7 @@ So, whether you're looking to streamline your localization process, improve your
 
 This is a cross-platform, and it runs in a terminal on Linux based and macOS operating systems or in Command Prompt on Windows
 
-:::tip Crowdin CLI 5.0 pre-release is here! 🚀
+:::tip Crowdin CLI 5.0 Pre-Release is here! 🚀
 The next major version of the CLI has been rewritten from the ground up in TypeScript, powered by [Bun](https://bun.sh) - it starts instantly, requires no Java, and speaks JSON and TOON for your scripts and AI agents. Your `crowdin.yml` and commands stay the same. Try it out and [share your feedback](https://github.com/crowdin/crowdin-cli/discussions/1043):
 
 ```bash
