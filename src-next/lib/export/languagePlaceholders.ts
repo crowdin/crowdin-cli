@@ -114,10 +114,40 @@ export function resolveLanguagePlaceholders(
   pattern: string,
   language: LanguagesModel.Language,
   serverLanguageMapping?: ProjectsGroupsModel.LanguageMapping,
+  fileLanguageMapping?: Record<string, Record<string, string>>,
 ): string {
-  return pattern.replaceAll(/%[a-z_]+%/gm, (match) => languagePlaceholderValue(match, language, serverLanguageMapping));
+  return pattern.replaceAll(/%[a-z_]+%/gm, (match) =>
+    languagePlaceholderValue(match, language, serverLanguageMapping, fileLanguageMapping),
+  );
 }
 
 export function containsLanguagePlaceholder(pattern: string): boolean {
   return languagePatterns.some((placeholder) => pattern.includes(placeholder));
+}
+
+/**
+ * Expands `ignore` patterns containing language placeholders into one literal pattern per project
+ * language (deduped), mirroring Java's PlaceholderUtil.format(sources, ignorePatterns,
+ * languageMapping). Patterns without a language placeholder pass through unchanged.
+ */
+export function expandIgnorePatterns(
+  patterns: string[],
+  languages: LanguagesModel.Language[],
+  serverLanguageMapping?: ProjectsGroupsModel.LanguageMapping,
+  fileLanguageMapping?: Record<string, Record<string, string>>,
+): string[] {
+  const expanded = new Set<string>();
+
+  for (const pattern of patterns) {
+    if (!containsLanguagePlaceholder(pattern)) {
+      expanded.add(pattern);
+      continue;
+    }
+
+    for (const language of languages) {
+      expanded.add(resolveLanguagePlaceholders(pattern, language, serverLanguageMapping, fileLanguageMapping));
+    }
+  }
+
+  return [...expanded];
 }

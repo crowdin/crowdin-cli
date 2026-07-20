@@ -83,9 +83,14 @@ export default class UploadSourcesCommand {
 
     const project = await projectService.loadProject();
     const isStringsBasedProject = project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED;
+    const serverLanguageMapping = hasManagerAccess(project) ? project.data.languageMapping : undefined;
     const sourceFileLoader = new SourceFileLoader(config);
     const patternFilePaths = config.files.map((patterns) => {
-      const localFilePaths = sourceFileLoader.getFilePathsForPattern(patterns.source, patterns.ignore);
+      const localFilePaths = sourceFileLoader.getFilePathsForPattern(patterns.source, patterns.ignore, {
+        languages: project.data.targetLanguages,
+        serverLanguageMapping,
+        fileLanguageMapping: patterns.languages_mapping,
+      });
       const commonPath = config.preserveHierarchy ? '' : getCommonPath(localFilePaths);
 
       return {

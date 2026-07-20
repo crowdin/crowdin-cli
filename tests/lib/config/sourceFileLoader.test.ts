@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import SourceFileLoader, { commonPath } from '@/lib/config/sourceFileLoader.ts';
 import { type Config, ConfigSchema } from '@/lib/config.ts';
 
@@ -108,5 +109,29 @@ describe('SourceFileLoader', () => {
     const loader = new SourceFileLoader(buildConfig(tempDir, { ignore: ['vendor'] }));
 
     expect(loader.getFilePaths()).toEqual(['app.json']);
+  });
+
+  test('expands a language placeholder in an ignore pattern using a mapped locale', async () => {
+    await Bun.write(`${tempDir}/messages.po`, '{}');
+    await Bun.write(`${tempDir}/messages-ukrainian.po`, '{}');
+
+    const loader = new SourceFileLoader(buildConfig(tempDir, { source: '/*.po', ignore: ['*-%locale%.po'] }));
+    const ukrainian = { id: 'ua', locale: 'uk' } as LanguagesModel.Language;
+
+    // Without the language mapping override, %locale% resolves to the raw locale ('uk') and
+    // 'messages-ukrainian.po' would not match the ignore pattern.
+    expect(loader.getFilePathsForPattern('/*.po', ['*-%locale%.po'], { languages: [ukrainian] }).sort()).toEqual(
+      ['messages-ukrainian.po', 'messages.po'].sort(),
+    );
+
+    // With a language mapping overriding 'locale' to 'ukrainian', the ignore pattern excludes it.
+    expect(
+      loader
+        .getFilePathsForPattern('/*.po', ['*-%locale%.po'], {
+          languages: [ukrainian],
+          serverLanguageMapping: { ua: { locale: 'ukrainian' } } as unknown as ProjectsGroupsModel.LanguageMapping,
+        })
+        .sort(),
+    ).toEqual(['messages.po']);
   });
 });

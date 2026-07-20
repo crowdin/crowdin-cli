@@ -884,4 +884,59 @@ describe('UploadTranslationsCommand', () => {
     );
     expect(translationService.importProjectTranslation).not.toHaveBeenCalled();
   });
+
+  test('respects an ignore pattern with a mapped language placeholder', async () => {
+    await Bun.write(`${tempDir}/src/messages.po`, '{}');
+    await Bun.write(`${tempDir}/src/messages-ukrainian.po`, '{}');
+    await Bun.write(`${tempDir}/locale/ua/messages.po`, '{}');
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const projectService = {
+      loadProject: mock(async () => ({
+        data: {
+          id: 123,
+          languageMapping: { ua: { locale: 'ukrainian' } },
+          targetLanguages: [language('ua', 'ua', 'ukr')],
+        },
+      })),
+    };
+    const fileService = {
+      ...baseFileServiceMock(),
+      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/messages.po' } }] })),
+    };
+    const translationService = baseTranslationServiceMock();
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      projectService,
+      storageService,
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+      baseLabelServiceMock(),
+      translationService,
+      {
+        source: '/src/*.po',
+        ignore: ['src/*-%locale%.po'],
+        translation: '/locale/%language_id%/%original_file_name%',
+      },
+      { preserveHierarchy: true },
+    );
+
+    await command.uploadTranslationsAction(commandContext({}));
+
+    expect(output.error).not.toHaveBeenCalled();
+    expect(translationService.importProjectTranslation).toHaveBeenCalledTimes(1);
+    expect(translationService.importProjectTranslation).toHaveBeenCalledWith(
+      10,
+      77,
+      ['ua'],
+      'locale/ua/messages.po',
+      undefined,
+      undefined,
+      undefined,
+      expect.any(Function),
+    );
+  });
 });

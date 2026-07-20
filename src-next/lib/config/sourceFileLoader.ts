@@ -1,8 +1,16 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import { Glob } from 'bun';
 import type { Config } from '../config.ts';
+import { expandIgnorePatterns } from '../export/languagePlaceholders.ts';
 import { toPosixPath } from '../utils/path.ts';
+
+export interface IgnoreLanguageContext {
+  languages: LanguagesModel.Language[];
+  serverLanguageMapping?: ProjectsGroupsModel.LanguageMapping;
+  fileLanguageMapping?: Record<string, Record<string, string>>;
+}
 
 /**
  * The shared parent directory of all given posix paths, including the trailing slash (or '' when
@@ -42,7 +50,7 @@ export default class SourceFileLoader {
     return filePaths;
   }
 
-  getFilePathsForPattern(pattern: string, ignore?: string[]): string[] {
+  getFilePathsForPattern(pattern: string, ignore?: string[], languageContext?: IgnoreLanguageContext): string[] {
     let sourcePattern = pattern;
 
     if (sourcePattern.startsWith('/')) {
@@ -59,7 +67,15 @@ export default class SourceFileLoader {
       }),
     ).map(toPosixPath);
 
-    const ignoreMatchers = this.buildIgnoreMatchers(ignore ?? []);
+    const resolvedIgnore = languageContext
+      ? expandIgnorePatterns(
+          ignore ?? [],
+          languageContext.languages,
+          languageContext.serverLanguageMapping,
+          languageContext.fileLanguageMapping,
+        )
+      : (ignore ?? []);
+    const ignoreMatchers = this.buildIgnoreMatchers(resolvedIgnore);
 
     const filtered =
       ignoreMatchers.length === 0

@@ -196,7 +196,11 @@ export default class UploadTranslationsCommand {
     let hasErrors = false;
 
     for (const patterns of config.files) {
-      const localSourcePaths = sourceFileLoader.getFilePathsForPattern(patterns.source, patterns.ignore);
+      const localSourcePaths = sourceFileLoader.getFilePathsForPattern(patterns.source, patterns.ignore, {
+        languages: targetLanguages,
+        serverLanguageMapping,
+        fileLanguageMapping: patterns.languages_mapping,
+      });
 
       if (localSourcePaths.length === 0) {
         output.error(

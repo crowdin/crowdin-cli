@@ -47,7 +47,11 @@ export function buildTranslationMapping(
   const fileGroups = options?.files ?? config.files;
 
   for (const patterns of fileGroups) {
-    const localSourcePaths = sourceFileLoader.getFilePathsForPattern(patterns.source, patterns.ignore);
+    const localSourcePaths = sourceFileLoader.getFilePathsForPattern(patterns.source, patterns.ignore, {
+      languages,
+      serverLanguageMapping,
+      fileLanguageMapping: patterns.languages_mapping,
+    });
     const sources = [...localSourcePaths];
 
     if (options?.useServerSources) {
