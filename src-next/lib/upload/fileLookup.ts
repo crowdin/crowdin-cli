@@ -11,7 +11,11 @@ export interface FileLookupResult {
  * is used as a fallback soft match. Soft matches are reported with `exact: false` so callers can
  * rename the project file to the local source name.
  */
-export function fileLookup(filePath: string, files: Map<string, number>): FileLookupResult | undefined {
+export function fileLookup(
+  filePath: string,
+  files: Map<string, number>,
+  localFilePaths?: Set<string>,
+): FileLookupResult | undefined {
   const exact = files.get(filePath);
   if (exact !== undefined) {
     return { id: exact, exact: true };
@@ -20,11 +24,11 @@ export function fileLookup(filePath: string, files: Map<string, number>): FileLo
   let fallback: number | undefined;
 
   for (const [projectPath, id] of files) {
-    if (equalsIgnoreExtension(filePath, projectPath)) {
+    if (equalsIgnoreExtension(filePath, projectPath) && !localFilePaths?.has(projectPath)) {
       return { id, exact: false };
     }
 
-    if (equalsIgnoreExtraExtension(filePath, projectPath)) {
+    if (equalsIgnoreExtraExtension(filePath, projectPath) && !localFilePaths?.has(projectPath)) {
       // Keep as fallback; a perfect-extension match has higher priority.
       fallback = id;
     }

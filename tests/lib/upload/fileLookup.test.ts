@@ -40,4 +40,27 @@ describe('fileLookup', () => {
     const files = new Map([['/src/app.json', 10]]);
     expect(fileLookup('/other/file.json', files)).toBeUndefined();
   });
+
+  test('skips soft match when sibling is a local file being uploaded', () => {
+    // Remote only has Foo.stringsdict; local batch includes both Foo.strings and Foo.stringsdict.
+    // fileLookup for Foo.strings must NOT soft-match remote Foo.stringsdict — that file
+    // belongs to the local Foo.stringsdict upload.
+    const strings = 'de.lproj/Foo.strings';
+    const stringsdict = 'de.lproj/Foo.stringsdict';
+
+    const localFiles = new Set([strings, stringsdict]);
+    const remotePaths = new Map([[stringsdict, 42]]);
+
+    // Without the local-file guard the old code would return stringsdict as a soft match.
+    expect(fileLookup(strings, remotePaths, localFiles)).toBeUndefined();
+
+    // The rename use-case must still work: local Foo.txt, remote only Foo.json — soft-match fires.
+    const localTxt = 'path/to/Foo.txt';
+    const remoteJson = 'path/to/Foo.json';
+    const localFilesRename = new Set([localTxt]);
+    expect(fileLookup(localTxt, new Map([[remoteJson, 99]]), localFilesRename)).toEqual({
+      id: 99,
+      exact: false,
+    });
+  });
 });

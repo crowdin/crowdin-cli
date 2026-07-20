@@ -25,7 +25,7 @@ export async function deleteObsoleteProjectEntries(
   const retainedFileIds = new Set<number>();
 
   for (const expectedPath of expectedProjectFilePaths) {
-    const match = fileLookup(expectedPath, projectFilesByPath);
+    const match = fileLookup(expectedPath, projectFilesByPath, expectedProjectFilePaths);
 
     if (match) {
       retainedFileIds.add(match.id);

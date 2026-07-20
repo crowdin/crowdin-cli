@@ -275,7 +275,7 @@ export default class UploadSourcesCommand {
           return;
         }
 
-        const existingFile = fileLookup(`/${projectPath}`, projectFilePaths);
+        const existingFile = fileLookup(`/${projectPath}`, projectFilePaths, expectedProjectFilePaths);
 
         if (existingFile) {
           if (options.noAutoUpdate) {
