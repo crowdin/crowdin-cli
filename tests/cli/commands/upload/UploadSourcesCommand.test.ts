@@ -91,7 +91,7 @@ describe('UploadSourcesCommand', () => {
       fileService,
     );
 
-    await command.uploadSourcesAction(commandContext({ noAutoUpdate: true }));
+    await command.uploadSourcesAction(commandContext({ autoUpdate: false }));
 
     expect(storageService.addStorage).not.toHaveBeenCalled();
     expect(fileService.updateProjectFile).not.toHaveBeenCalled();
@@ -1217,7 +1217,7 @@ describe('UploadSourcesCommand', () => {
       { source: '/src/**/*.json' },
     );
 
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, noAutoUpdate: true }));
+    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
 
     // Obsolete file under the source pattern is deleted, along with its now-empty directory.
     expect(fileService.deleteProjectFile).toHaveBeenCalledWith(88, '/src/legacy/stale.json');
@@ -1309,7 +1309,7 @@ describe('UploadSourcesCommand', () => {
       { preserveHierarchy: false },
     );
 
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, noAutoUpdate: true }));
+    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
 
     expect(fileService.deleteProjectFile).toHaveBeenCalledWith(88, '/stale.json');
     expect(fileService.deleteProjectFile).not.toHaveBeenCalledWith(99, expect.anything());
@@ -1406,7 +1406,7 @@ describe('UploadSourcesCommand', () => {
       { source: '/src/**/*.json', ignore: ['/src/vendor/**'] },
     );
 
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, noAutoUpdate: true }));
+    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
 
     // Ignored file (and its directory) survive; the non-ignored obsolete file is removed.
     expect(fileService.deleteProjectFile).not.toHaveBeenCalledWith(88, expect.anything());
@@ -1457,7 +1457,7 @@ describe('UploadSourcesCommand', () => {
       { source: '/src/**/*.json' },
     );
 
-    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, noAutoUpdate: true }));
+    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
 
     // The directory holding the retained file is never deleted; the two empty ones are, deepest first.
     expect(deletedDirectories).toEqual(['/src/old/deep', '/src/old']);

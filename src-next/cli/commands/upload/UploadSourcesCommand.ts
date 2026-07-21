@@ -43,7 +43,8 @@ interface UploadSourcesOptions extends GlobalOptions {
   branch?: string;
   label?: string[];
   deleteObsolete?: boolean;
-  noAutoUpdate?: boolean;
+  // commander maps `--no-auto-update` to `autoUpdate` (defaults to true)
+  autoUpdate?: boolean;
   excludedLanguage?: string[];
   dryrun?: boolean;
   tree?: boolean;
@@ -127,7 +128,7 @@ export default class UploadSourcesCommand {
         output.warning("'delete-obsolete' option can not be used for string-based projects");
       }
 
-      if (options.noAutoUpdate) {
+      if (options.autoUpdate === false) {
         output.warning("'no-auto-update' option can not be used for string-based projects");
       }
     }
@@ -297,7 +298,7 @@ export default class UploadSourcesCommand {
         const existingFile = fileLookup(`/${projectPath}`, projectFilePaths, expectedProjectFilePaths);
 
         if (existingFile) {
-          if (options.noAutoUpdate) {
+          if (options.autoUpdate === false) {
             output.info(`File ${localFilePath} already exists and will not be updated`);
             return;
           }

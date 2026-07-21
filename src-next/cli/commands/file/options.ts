@@ -40,7 +40,6 @@ export const upload = {
   noAutoUpdate: {
     name: 'no-auto-update',
     type: 'boolean',
-    default: false,
     description: 'Specify whether to update the file in the Crowdin project if it already exists',
   },
   language: {

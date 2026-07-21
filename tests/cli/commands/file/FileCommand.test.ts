@@ -63,7 +63,7 @@ describe('FileCommand', () => {
     label?: string[];
     branch?: string;
     tree?: boolean;
-    noAutoUpdate?: boolean;
+    autoUpdate?: boolean;
     cleanupMode?: boolean;
     updateStrings?: boolean;
     context?: string;
@@ -414,7 +414,7 @@ describe('FileCommand', () => {
     const updateProjectFile = spyOn(fileService, 'updateProjectFile');
     const addStorage = spyOn(storageService, 'addStorage');
 
-    commandContext = createCommandContext({ ...globalOptions, dest: 'remote.json', noAutoUpdate: true }, [
+    commandContext = createCommandContext({ ...globalOptions, dest: 'remote.json', autoUpdate: false }, [
       localFilePath,
     ]);
 

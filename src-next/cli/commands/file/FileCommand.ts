@@ -43,7 +43,8 @@ interface UploadFileCommandOptions extends GlobalOptions {
   tree?: boolean;
   context?: string;
   excludedLanguage?: string[];
-  noAutoUpdate?: boolean;
+  // commander maps `--no-auto-update` to `autoUpdate` (defaults to true)
+  autoUpdate?: boolean;
   language?: string;
   xliff?: boolean;
   cleanupMode?: boolean;
@@ -245,7 +246,7 @@ export default class FileCommand {
     const pathDetails = path.parse(destPath);
 
     if (existingFile) {
-      if (options.noAutoUpdate) {
+      if (options.autoUpdate === false) {
         output.info(`Project already contains the file '${destPath}'`);
         return;
       }
