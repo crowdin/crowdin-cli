@@ -164,17 +164,20 @@ In CLI 4.x, many boolean options were negatable - they accepted both a positive 
 | `upload translations`           | <kbd>--no-auto-approve-imported</kbd>, <kbd>--no-import-eq-suggestions</kbd>, <kbd>--no-translate-hidden</kbd> | Drop them - disabled is the default.                                                                                                                                                       |
 | `task add`                      | <kbd>--no-skip-assigned-strings</kbd>, <kbd>--no-include-pre-translated-strings-only</kbd>                     | Drop them - disabled is the default.                                                                                                                                                       |
 | `screenshot upload`             | <kbd>--no-auto-tag</kbd>                                                                                       | Drop it - disabled is the default.                                                                                                                                                         |
-| file-based commands, `init`     | <kbd>--preserve-hierarchy</kbd>                                                                                | Drop it. If you used it to override `preserve_hierarchy: false` from the configuration file, set `preserve_hierarchy: true` there instead. <kbd>--no-preserve-hierarchy</kbd> still works. |
+| `init`                          | <kbd>--preserve-hierarchy</kbd>                                                                                | Drop it - the generated configuration already sets `preserve_hierarchy: true`. Use <kbd>--no-preserve-hierarchy</kbd> to generate `false` instead.                                          |
 
 ```diff
--crowdin upload sources --auto-update --preserve-hierarchy
+-crowdin upload sources --auto-update
 +crowdin upload sources
 
 -crowdin upload translations --no-translate-hidden
 +crowdin upload translations
 ```
 
-The `string edit` command is not affected: both <kbd>--hidden</kbd> and <kbd>--no-hidden</kbd> are still available there, as they trigger different actions.
+Two cases are not affected, because there both forms do something the other cannot:
+
+- `string edit` keeps <kbd>--hidden</kbd> and <kbd>--no-hidden</kbd> - they trigger different actions.
+- On file-based commands, `preserve_hierarchy` is the one setting with a configuration-file value to override, so <kbd>--preserve-hierarchy</kbd> and <kbd>--no-preserve-hierarchy</kbd> are both kept. Passing neither leaves the configured value untouched.
 
 ### Source cache location
 
