@@ -36,7 +36,7 @@ import {
 import { deleteObsoleteProjectEntries } from '@/lib/upload/obsoleteEntries.ts';
 import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
-import { toPosixPath, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, toPosixPath, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
 
 interface UploadSourcesOptions extends GlobalOptions {
@@ -146,8 +146,12 @@ export default class UploadSourcesCommand {
     }
 
     const branchId = branch?.id;
+    const branchName = branch?.name;
     const projectFiles = isStringsBasedProject ? { data: [] } : await fileService.loadProjectFiles(branchId);
-    const projectFilePaths = new Map(projectFiles.data.map((file) => [file.data.path, file.data.id]));
+    // Server paths carry the branch name; the project paths resolved from the config never do.
+    const projectFilePaths = new Map(
+      projectFiles.data.map((file) => [stripBranchPrefix(file.data.path, branchName), file.data.id]),
+    );
     const projectFileContexts = new Map(projectFiles.data.map((file) => [file.data.id, file.data.context]));
     const projectFileExcludedLanguages = new Map(
       projectFiles.data.map((file) => [file.data.id, file.data.excludedTargetLanguages]),
@@ -171,6 +175,7 @@ export default class UploadSourcesCommand {
         directoryService,
         output,
         Boolean(options.dryrun),
+        branchName,
       );
     }
 

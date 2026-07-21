@@ -4,7 +4,7 @@ import type { FileService } from '@/cli/services/FileService.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { isPathMatch } from '@/cli/utils/pathMatcher.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
-import { toProjectPath } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, toProjectPath } from '@/lib/utils/path.ts';
 
 export async function deleteObsoleteProjectEntries(
   projectFiles: ResponseObject<SourceFilesModel.File>[],
@@ -16,11 +16,15 @@ export async function deleteObsoleteProjectEntries(
   directoryService: DirectoryService,
   output: Output,
   dryRun: boolean,
+  branchName?: string,
 ) {
+  // Server paths carry the branch name; expectedProjectFilePaths (and the source patterns matched
+  // below) never do, so drop it before comparing. Java uses the branch-less path map here too.
+  const stripBranch = (projectPath: string) => stripBranchPrefix(projectPath, branchName);
   // Retain every project file the upload would match — including soft (extension-insensitive)
   // matches — so a file that will be updated/renamed is never deleted as obsolete first.
   const projectFilesByPath = new Map(
-    projectFiles.map((projectFile) => [toProjectPath(projectFile.data.path), projectFile.data.id]),
+    projectFiles.map((projectFile) => [stripBranch(projectFile.data.path), projectFile.data.id]),
   );
   const retainedFileIds = new Set<number>();
 
@@ -38,11 +42,11 @@ export async function deleteObsoleteProjectEntries(
   const obsoleteFiles = projectFiles.filter(
     (projectFile) =>
       !retainedFileIds.has(projectFile.data.id) &&
-      isManagedBySourcePatterns(toProjectPath(projectFile.data.path), sourcePatterns, preserveHierarchy),
+      isManagedBySourcePatterns(stripBranch(projectFile.data.path), sourcePatterns, preserveHierarchy),
   );
 
   for (const projectFile of obsoleteFiles) {
-    const projectFilePath = toProjectPath(projectFile.data.path);
+    const projectFilePath = stripBranch(projectFile.data.path);
 
     if (dryRun) {
       output.info(`File ${projectFilePath} would be deleted as obsolete`);
@@ -55,15 +59,15 @@ export async function deleteObsoleteProjectEntries(
   const remainingProjectFilePaths = new Set([
     ...projectFiles
       .filter((projectFile) => !obsoleteFiles.includes(projectFile))
-      .map((projectFile) => toProjectPath(projectFile.data.path)),
+      .map((projectFile) => stripBranch(projectFile.data.path)),
     ...expectedProjectFilePaths,
   ]);
   const obsoleteDirectories = projectDirectories
-    .filter((directory) => !hasFileUnderDirectory(remainingProjectFilePaths, toProjectPath(directory.data.path)))
+    .filter((directory) => !hasFileUnderDirectory(remainingProjectFilePaths, stripBranch(directory.data.path)))
     .sort((left, right) => right.data.path.length - left.data.path.length);
 
   for (const directory of obsoleteDirectories) {
-    const directoryPath = toProjectPath(directory.data.path);
+    const directoryPath = stripBranch(directory.data.path);
 
     if (dryRun) {
       output.info(`Directory ${directoryPath} would be deleted as obsolete`);

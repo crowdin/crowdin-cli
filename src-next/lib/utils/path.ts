@@ -18,6 +18,25 @@ export function toProjectPath(filePath: string): string {
 }
 
 /**
+ * Strips the branch name a Crowdin project path carries for files inside a branch
+ * (`/dev/sources/en.json` -> `/sources/en.json`).
+ *
+ * Local paths resolved from the config never carry the branch, so every comparison
+ * between a server path and a config-derived path has to drop it first. Java instead
+ * prefixes the local path (BranchUtils.getBranchPrefix); stripping is equivalent here
+ * because the file list is already scoped to a single branch by `branchId`.
+ */
+export function stripBranchPrefix(projectPath: string, branchName?: string): string {
+  if (!branchName) {
+    return projectPath;
+  }
+
+  const absolutePath = toProjectPath(projectPath);
+  const prefix = `/${branchName}/`;
+  return absolutePath.startsWith(prefix) ? absolutePath.slice(prefix.length - 1) : absolutePath;
+}
+
+/**
  * Removes leading path separators (both '/' and '\\', repeated) so a project path
  * renders as a relative path. Mirrors Java's `replaceAll("^[/\\\\]+", "")`.
  */

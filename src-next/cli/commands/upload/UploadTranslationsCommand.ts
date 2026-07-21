@@ -24,7 +24,7 @@ import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { getCommonPath, resolveProjectPath } from '@/lib/upload/fileOptions.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
-import { toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
 
 interface UploadTranslationsOptions extends GlobalOptions {
@@ -98,7 +98,10 @@ export default class UploadTranslationsCommand {
       : await branchService.getOrCreateBranch(options.branch);
     const branchId = branch?.id;
     const projectFiles = await fileService.loadProjectFiles(branchId);
-    const projectFilePaths = new Map(projectFiles.data.map((file) => [file.data.path, file.data.id]));
+    // Server paths carry the branch name; the project paths resolved from the config never do.
+    const projectFilePaths = new Map(
+      projectFiles.data.map((file) => [stripBranchPrefix(file.data.path, branch?.name), file.data.id]),
+    );
     const sourceFileLoader = new SourceFileLoader(config);
 
     const { entries, hasErrors: entriesHaveErrors } = this.buildTranslationEntries(

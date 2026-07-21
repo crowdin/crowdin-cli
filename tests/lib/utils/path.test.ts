@@ -1,5 +1,27 @@
 import { describe, expect, test } from 'bun:test';
-import { toPosixPath } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, toPosixPath } from '@/lib/utils/path.ts';
+
+describe('stripBranchPrefix', () => {
+  test('drops the branch segment', () => {
+    expect(stripBranchPrefix('/dev/sources/en.json', 'dev')).toBe('/sources/en.json');
+  });
+
+  test('returns the path unchanged without a branch', () => {
+    expect(stripBranchPrefix('/sources/en.json')).toBe('/sources/en.json');
+  });
+
+  test('leaves a directory that merely starts with the branch name', () => {
+    expect(stripBranchPrefix('/development/en.json', 'dev')).toBe('/development/en.json');
+  });
+
+  test('strips only the first segment', () => {
+    expect(stripBranchPrefix('/dev/dev/en.json', 'dev')).toBe('/dev/en.json');
+  });
+
+  test('adds the leading slash a relative path is missing', () => {
+    expect(stripBranchPrefix('dev/en.json', 'dev')).toBe('/en.json');
+  });
+});
 
 describe('toPosixPath', () => {
   test('returns forward-slash path unchanged', () => {

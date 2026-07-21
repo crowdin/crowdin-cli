@@ -31,7 +31,7 @@ import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.t
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { sameLanguageSet } from '@/lib/upload/fileOptions.ts';
-import { stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 import { download, upload } from './options.ts';
 
 interface UploadFileCommandOptions extends GlobalOptions {
@@ -236,7 +236,10 @@ export default class FileCommand {
 
     const wantedPath = destPath.startsWith('/') ? destPath : `/${destPath}`;
     const projectFiles = await fileService.loadProjectFiles(branchId);
-    const projectFilePaths = new Map(projectFiles.data.map((file) => [file.data.path, file.data.id]));
+    // Server paths carry the branch name; the path given on the command line never does.
+    const projectFilePaths = new Map(
+      projectFiles.data.map((file) => [stripBranchPrefix(file.data.path, options.branch), file.data.id]),
+    );
     const projectFileContexts = new Map(projectFiles.data.map((file) => [file.data.id, file.data.context]));
     const projectFileExcludedLanguages = new Map(
       projectFiles.data.map((file) => [file.data.id, file.data.excludedTargetLanguages]),
@@ -416,7 +419,9 @@ export default class FileCommand {
 
     const wantedPath = destPath.startsWith('/') ? destPath : `/${destPath}`;
     const projectFiles = await fileService.loadProjectFiles(branchId);
-    const sourceFile = projectFiles.data.find((file) => file.data.path === wantedPath);
+    const sourceFile = projectFiles.data.find(
+      (file) => stripBranchPrefix(file.data.path, options.branch) === wantedPath,
+    );
 
     if (!sourceFile) {
       throw new CliError(`File '${wantedPath}' not found in the Crowdin project`);
@@ -565,7 +570,7 @@ export default class FileCommand {
     const projectFiles = await fileService.loadProjectFiles(branchId);
 
     for (const projectFile of projectFiles.data) {
-      if (projectFile.data.path === wantedPath) {
+      if (stripBranchPrefix(projectFile.data.path, options.branch) === wantedPath) {
         // Java: with --dest write to `<dest>/<name>`; without it, to the source path itself.
         const fullFilePath = options.dest
           ? path.join(config.basePath, options.dest, path.basename(filePath))
@@ -623,7 +628,9 @@ export default class FileCommand {
 
     const branchId = await branchService.resolveBranchId(options.branch);
     const projectFiles = await fileService.loadProjectFiles(branchId);
-    const sourceFile = projectFiles.data.find((file) => file.data.path === wantedPath);
+    const sourceFile = projectFiles.data.find(
+      (file) => stripBranchPrefix(file.data.path, options.branch) === wantedPath,
+    );
 
     if (!sourceFile) {
       throw new CliError(`File '${wantedPath}' not found in the Crowdin project`);
@@ -672,7 +679,7 @@ export default class FileCommand {
     const projectFiles = await fileService.loadProjectFiles(branchId);
 
     for (const file of projectFiles.data) {
-      if (file.data.path === wantedPath) {
+      if (stripBranchPrefix(file.data.path, options.branch) === wantedPath) {
         try {
           await fileService.deleteProjectFile(file.data.id, file.data.path);
         } catch (error) {

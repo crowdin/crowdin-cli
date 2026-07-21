@@ -14,6 +14,7 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { normalizePath } from '@/cli/utils/parsing.ts';
+import { stripBranchPrefix } from '@/lib/utils/path.ts';
 import {
   aiPrompt,
   autoApproveOption,
@@ -242,7 +243,8 @@ export default class AutoTranslateCommand {
       const isInScope = branchId === undefined ? entry.data.branchId == null : entry.data.branchId === branchId;
 
       if (isInScope) {
-        paths.set(normalizePath(entry.data.path), entry.data.id);
+        // Server paths carry the branch name; the paths passed via --file never do.
+        paths.set(stripBranchPrefix(normalizePath(entry.data.path), branchName), entry.data.id);
       }
     }
 
