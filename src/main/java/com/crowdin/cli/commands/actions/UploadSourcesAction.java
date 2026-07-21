@@ -215,6 +215,22 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 : null;
                         if (!isStringsBasedProject && autoUpdate && projectFile != null) {
                             if (this.wasNotChanged(out, pb, sourceHashes, source)) {
+                                if (file.getContext() != null && !file.getContext().isEmpty()) {
+                                    final String contextFilePath = placeholderUtil.replaceFileDependentPlaceholders(file.getContext(), sourceFile);
+                                    final Long sourceId = projectFile.getKey().getId();
+                                    final String existingContext = projectFile.getKey().getContext();
+                                    return (Runnable) () -> {
+                                        try {
+                                            String contextContent = Files.readString(Paths.get(pb.getBasePath(), contextFilePath));
+                                            if (!contextContent.equals(existingContext)) {
+                                                client.editSource(sourceId, RequestBuilder.updateFileContext(contextContent));
+                                            }
+                                        } catch (IOException e) {
+                                            errorsPresented.set(true);
+                                            throw ExitCodeExceptionMapper.remap(e, RESOURCE_BUNDLE.getString("error.reading_context_file"));
+                                        }
+                                    };
+                                }
                                 return (Runnable) () -> { };
                             }
 
@@ -250,6 +266,18 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                         if (!file.getExcludedTargetLanguages().equals(projectFileExcludedTargetLanguages)) {
                                             List<PatchRequest> editRequest = RequestBuilder.updateExcludedTargetLanguages(file.getExcludedTargetLanguages());
                                             client.editSource(sourceId, editRequest);
+                                        }
+                                    }
+                                    if (file.getContext() != null && !file.getContext().isEmpty()) {
+                                        String contextFilePath = placeholderUtil.replaceFileDependentPlaceholders(file.getContext(), sourceFile);
+                                        try {
+                                            String contextContent = Files.readString(Paths.get(pb.getBasePath(), contextFilePath));
+                                            if (!contextContent.equals(projectFile.getKey().getContext())) {
+                                                client.editSource(sourceId, RequestBuilder.updateFileContext(contextContent));
+                                            }
+                                        } catch (IOException e) {
+                                            errorsPresented.set(true);
+                                            throw ExitCodeExceptionMapper.remap(e, RESOURCE_BUNDLE.getString("error.reading_context_file"));
                                         }
                                     }
                                     if (!plainView) {
