@@ -1,4 +1,4 @@
-import type { Client, SourceFilesModel } from '@crowdin/crowdin-api-client';
+import type { Client, PatchRequest, SourceFilesModel } from '@crowdin/crowdin-api-client';
 import CliError from '../errors/CliError.ts';
 import FileExistsError from '../errors/FileExistsError.ts';
 import FileInUpdateError from '../errors/FileInUpdateError.ts';
@@ -35,6 +35,7 @@ export class FileService {
     attachLabelIds?: number[],
     excludedTargetLanguages?: string[],
     name?: string,
+    context?: string,
   ) {
     try {
       await this.apiClient.sourceFilesApi.updateOrRestoreFile(this.projectId, fileId, {
@@ -46,14 +47,18 @@ export class FileService {
         attachLabelIds,
       });
 
+      const patches: PatchRequest[] = [];
+
       if (excludedTargetLanguages !== undefined) {
-        await this.apiClient.sourceFilesApi.editFile(this.projectId, fileId, [
-          {
-            op: 'replace',
-            path: '/excludedTargetLanguages',
-            value: excludedTargetLanguages,
-          },
-        ]);
+        patches.push({ op: 'replace', path: '/excludedTargetLanguages', value: excludedTargetLanguages });
+      }
+
+      if (context !== undefined) {
+        patches.push({ op: 'replace', path: '/context', value: context });
+      }
+
+      if (patches.length > 0) {
+        await this.apiClient.sourceFilesApi.editFile(this.projectId, fileId, patches);
       }
     } catch (error) {
       if (FileInUpdateError.matches(error)) {

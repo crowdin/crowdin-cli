@@ -155,6 +155,29 @@ describe('FileService', () => {
       ]);
     });
 
+    test('calls editFile to set context when provided', async () => {
+      spyOn(apiClient.sourceFilesApi, 'updateOrRestoreFile').mockResolvedValue({} as never);
+      const editSpy = spyOn(apiClient.sourceFilesApi, 'editFile').mockResolvedValue({} as never);
+
+      await fileService.updateProjectFile(
+        10,
+        99,
+        'local.md',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        ['fr'],
+        undefined,
+        'some context',
+      );
+
+      expect(editSpy).toHaveBeenCalledWith(PROJECT_ID, 10, [
+        { op: 'replace', path: '/excludedTargetLanguages', value: ['fr'] },
+        { op: 'replace', path: '/context', value: 'some context' },
+      ]);
+    });
+
     test('skips editFile when excludedTargetLanguages is undefined', async () => {
       spyOn(apiClient.sourceFilesApi, 'updateOrRestoreFile').mockResolvedValue({} as never);
       const editSpy = spyOn(apiClient.sourceFilesApi, 'editFile').mockResolvedValue({} as never);

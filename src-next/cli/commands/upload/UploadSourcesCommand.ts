@@ -31,6 +31,7 @@ import {
   getCommonPath,
   resolveContextPath,
   resolveProjectPath,
+  sameLanguageSet,
 } from '@/lib/upload/fileOptions.ts';
 import { deleteObsoleteProjectEntries } from '@/lib/upload/obsoleteEntries.ts';
 import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
@@ -146,6 +147,10 @@ export default class UploadSourcesCommand {
     const branchId = branch?.id;
     const projectFiles = isStringsBasedProject ? { data: [] } : await fileService.loadProjectFiles(branchId);
     const projectFilePaths = new Map(projectFiles.data.map((file) => [file.data.path, file.data.id]));
+    const projectFileContexts = new Map(projectFiles.data.map((file) => [file.data.id, file.data.context]));
+    const projectFileExcludedLanguages = new Map(
+      projectFiles.data.map((file) => [file.data.id, file.data.excludedTargetLanguages]),
+    );
     const projectDirectoryList = isStringsBasedProject ? [] : await directoryService.loadProjectDirectories(branchId);
     const projectDirectories = new Map(
       projectDirectoryList.map((directory) => [directory.data.path, directory.data.id]),
@@ -280,6 +285,15 @@ export default class UploadSourcesCommand {
           return;
         }
 
+        const readContext = async () => {
+          if (!patterns.context) {
+            return undefined;
+          }
+
+          const contextPath = resolveContextPath(patterns.context, localFilePath);
+          return await Bun.file(path.join(config.basePath, contextPath)).text();
+        };
+
         const existingFile = fileLookup(`/${projectPath}`, projectFilePaths, expectedProjectFilePaths);
 
         if (existingFile) {
@@ -306,6 +320,15 @@ export default class UploadSourcesCommand {
 
           const srxStorageId = srxStorageIdPromise ? await srxStorageIdPromise : undefined;
           const storage = await storageService.addStorage(localFile);
+          const context = await readContext();
+          const changedContext =
+            context !== undefined && context !== projectFileContexts.get(existingFile.id) ? context : undefined;
+          const excludedTargetLanguages = fileOptions.excluded_target_languages;
+          const changedExcludedLanguages =
+            excludedTargetLanguages !== undefined &&
+            !sameLanguageSet(excludedTargetLanguages, projectFileExcludedLanguages.get(existingFile.id))
+              ? excludedTargetLanguages
+              : undefined;
 
           try {
             await fileService.updateProjectFile(
@@ -316,9 +339,10 @@ export default class UploadSourcesCommand {
               buildImportOptions(localFilePath, patterns, srxStorageId),
               patterns.update_option as SourceFilesModel.UpdateOption | undefined,
               labelIds,
-              fileOptions.excluded_target_languages,
+              changedExcludedLanguages,
               // On a soft match the project file has a different name/extension; rename it to the source.
               existingFile.exact ? undefined : path.parse(localFilePath).base,
+              changedContext,
             );
           } catch (error) {
             if (error instanceof FileInUpdateError) {
@@ -359,12 +383,7 @@ export default class UploadSourcesCommand {
           );
         }
 
-        let context: string | undefined;
-
-        if (patterns.context) {
-          const contextPath = resolveContextPath(patterns.context, localFilePath);
-          context = await Bun.file(path.join(config.basePath, contextPath)).text();
-        }
+        const context = await readContext();
 
         try {
           await fileService.createProjectFile({

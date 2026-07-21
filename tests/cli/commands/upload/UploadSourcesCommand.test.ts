@@ -436,6 +436,7 @@ describe('UploadSourcesCommand', () => {
       undefined,
       undefined,
       undefined,
+      undefined,
     );
   });
 
@@ -548,6 +549,123 @@ describe('UploadSourcesCommand', () => {
 
     expect(fileService.createProjectFile).toHaveBeenCalledWith(
       expect.objectContaining({ context: 'Context for app.json' }),
+    );
+  });
+
+  test('reads and attaches context file content when updating an existing source file', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+    await Bun.$`mkdir -p ${tempDir}/context`.quiet();
+    await Bun.write(`${tempDir}/context/app.json.txt`, 'Context for app.json');
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const fileService = {
+      ...baseFileServiceMock(),
+      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+    };
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      baseProjectServiceMock(),
+      storageService,
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+      baseLabelServiceMock(),
+      baseTranslationServiceMock(),
+      { context: '/context/%original_file_name%.txt' },
+    );
+
+    await command.uploadSourcesAction(commandContext({}));
+
+    expect(fileService.updateProjectFile).toHaveBeenCalledWith(
+      77,
+      10,
+      'src/app.json',
+      expect.anything(),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      'Context for app.json',
+    );
+  });
+
+  test('sends excluded languages on update only when they differ from the project file', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+
+    const runUpload = async (projectExcluded: string[] | undefined) => {
+      const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+      const fileService = {
+        ...baseFileServiceMock(),
+        loadProjectFiles: mock(async () => ({
+          data: [{ data: { id: 77, path: '/src/app.json', excludedTargetLanguages: projectExcluded } }],
+        })),
+      };
+      const command = createUploadCommand(
+        tempDir,
+        createOutputMock(),
+        baseProjectServiceMock(),
+        storageService,
+        baseBranchServiceMock(),
+        baseDirectoryServiceMock(),
+        fileService,
+        baseLabelServiceMock(),
+        baseTranslationServiceMock(),
+        { excluded_target_languages: ['uk', 'es'] },
+      );
+
+      await command.uploadSourcesAction(commandContext({}));
+
+      return (fileService.updateProjectFile.mock.calls[0] as unknown[])?.[7] as string[] | undefined;
+    };
+
+    // Same set, different order -> nothing to change.
+    expect(await runUpload(['es', 'uk'])).toBeUndefined();
+    expect(await runUpload(['uk'])).toEqual(['uk', 'es']);
+    expect(await runUpload(undefined)).toEqual(['uk', 'es']);
+  });
+
+  test('does not send context when it already matches the project file', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+    await Bun.$`mkdir -p ${tempDir}/context`.quiet();
+    await Bun.write(`${tempDir}/context/app.json.txt`, 'Context for app.json');
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const fileService = {
+      ...baseFileServiceMock(),
+      loadProjectFiles: mock(async () => ({
+        data: [{ data: { id: 77, path: '/src/app.json', context: 'Context for app.json' } }],
+      })),
+    };
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      baseProjectServiceMock(),
+      storageService,
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+      baseLabelServiceMock(),
+      baseTranslationServiceMock(),
+      { context: '/context/%original_file_name%.txt' },
+    );
+
+    await command.uploadSourcesAction(commandContext({}));
+
+    expect(fileService.updateProjectFile).toHaveBeenCalledWith(
+      77,
+      10,
+      'src/app.json',
+      expect.anything(),
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
+      undefined,
     );
   });
 
@@ -882,6 +1000,7 @@ describe('UploadSourcesCommand', () => {
       undefined,
       undefined,
       undefined,
+      undefined,
     );
     expect(fileService.createProjectFile).toHaveBeenCalledWith({
       storageId: expect.any(Number),
@@ -931,6 +1050,7 @@ describe('UploadSourcesCommand', () => {
       undefined,
       undefined,
       'app.json',
+      undefined,
     );
     expect(output.success).toHaveBeenCalledWith("File 'src/app.json'");
   });
@@ -1153,6 +1273,7 @@ describe('UploadSourcesCommand', () => {
       undefined,
       undefined,
       'app.json',
+      undefined,
     );
   });
 

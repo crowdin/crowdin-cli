@@ -195,3 +195,10 @@ function longestCommonPrefix(values: string[]): string {
 
   return prefix;
 }
+
+export function sameLanguageSet(left: string[] | undefined, right: string[] | undefined): boolean {
+  const a = [...(left ?? [])].sort();
+  const b = [...(right ?? [])].sort();
+
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}

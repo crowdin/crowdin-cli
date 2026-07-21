@@ -30,6 +30,7 @@ import { OUTPUT_FORMATS } from '@/cli/utils/output.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
+import { sameLanguageSet } from '@/lib/upload/fileOptions.ts';
 import { stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 import { download, upload } from './options.ts';
 
@@ -235,6 +236,10 @@ export default class FileCommand {
     const wantedPath = destPath.startsWith('/') ? destPath : `/${destPath}`;
     const projectFiles = await fileService.loadProjectFiles(branchId);
     const projectFilePaths = new Map(projectFiles.data.map((file) => [file.data.path, file.data.id]));
+    const projectFileContexts = new Map(projectFiles.data.map((file) => [file.data.id, file.data.context]));
+    const projectFileExcludedLanguages = new Map(
+      projectFiles.data.map((file) => [file.data.id, file.data.excludedTargetLanguages]),
+    );
     const existingFile = fileLookup(wantedPath, projectFilePaths);
     const excludedTargetLanguages = options.excludedLanguage?.length ? options.excludedLanguage : undefined;
     const pathDetails = path.parse(destPath);
@@ -256,9 +261,15 @@ export default class FileCommand {
           undefined,
           undefined,
           labelIds,
-          excludedTargetLanguages,
+          excludedTargetLanguages !== undefined &&
+            !sameLanguageSet(excludedTargetLanguages, projectFileExcludedLanguages.get(existingFile.id))
+            ? excludedTargetLanguages
+            : undefined,
           // On a soft match the project file has a different name/extension; rename it to the source.
           existingFile.exact ? undefined : pathDetails.base,
+          options.context !== undefined && options.context !== projectFileContexts.get(existingFile.id)
+            ? options.context
+            : undefined,
         );
       } catch (error) {
         if (error instanceof FileInUpdateError) {

@@ -395,6 +395,7 @@ describe('FileCommand', () => {
       undefined,
       undefined,
       undefined,
+      undefined,
     );
     expect(createFile).not.toHaveBeenCalled();
   });
