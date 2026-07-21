@@ -25,7 +25,7 @@ const SCHEME_EXTENSIONS = ['csv', 'xls', 'xlsx'];
 const DEFAULT_GLOSSARY_NAME = 'Created in Crowdin CLI (%s)';
 
 interface DownloadOptions extends GlobalOptions {
-  fileFormat?: GlossariesModel.GlossaryFormat;
+  format?: GlossariesModel.GlossaryFormat;
   to?: string;
 }
 
@@ -130,7 +130,7 @@ export default class GlossaryCommand {
     const [idArg] = command.args;
     const id = parseNumericId(idArg, 'Glossary');
     const options = command.optsWithGlobals() as DownloadOptions;
-    let format = options.fileFormat;
+    let format = options.format;
 
     if (options.to !== undefined && format === undefined) {
       const extension = path.extname(options.to).replace(/^\./, '').toLowerCase();

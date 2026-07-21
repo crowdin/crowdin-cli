@@ -185,7 +185,7 @@ describe('TmCommand', () => {
       spyOn(Bun, 'write').mockResolvedValue(0 as never);
 
       await tmCommand.downloadAction(
-        createCommandContext({ sourceLanguageId: 'en', targetLanguageId: 'uk', fileFormat: 'csv' }, ['42']),
+        createCommandContext({ sourceLanguageId: 'en', targetLanguageId: 'uk', format: 'csv' }, ['42']),
       );
 
       expect(tmService.export).toHaveBeenCalledWith(42, 'en', 'uk', 'csv');

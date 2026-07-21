@@ -27,7 +27,7 @@ import {
 
 interface BundleOptions extends GlobalOptions {
   name?: string;
-  fileFormat?: string;
+  format?: string;
   source?: string | string[];
   ignore?: string | string[];
   translation?: string;
@@ -164,7 +164,7 @@ export default class BundleCommand {
       throw new CliError("Bundle name can't be empty");
     }
 
-    if (!options.fileFormat) {
+    if (!options.format) {
       throw new CliError("'--format' can't be empty");
     }
 
@@ -182,7 +182,7 @@ export default class BundleCommand {
     const labelIds = toNumberArray(options.label, "'--label' value must be numeric");
     const payload: AddBundlePayload = {
       name,
-      format: options.fileFormat,
+      format: options.format,
       sourcePatterns,
       ...(ignorePatterns.length > 0 ? { ignorePatterns } : {}),
       exportPattern: options.translation,
@@ -304,7 +304,7 @@ export default class BundleCommand {
     const labelIds = toNumberArray(options.label, "'--label' value must be numeric");
     const payload: AddBundlePayload = {
       name: options.name ?? `${source.name ?? ''} (clone)`,
-      format: options.fileFormat ?? source.format ?? '',
+      format: options.format ?? source.format ?? '',
       sourcePatterns: sourcePatterns.length > 0 ? sourcePatterns : (source.sourcePatterns ?? []),
       ...(ignorePatterns.length > 0
         ? { ignorePatterns }

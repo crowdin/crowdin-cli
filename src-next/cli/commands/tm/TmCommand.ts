@@ -28,7 +28,7 @@ const DEFAULT_TM_NAME = 'Created in Crowdin CLI (%s)';
 interface DownloadOptions extends GlobalOptions {
   sourceLanguageId?: string;
   targetLanguageId?: string;
-  fileFormat?: TranslationMemoryModel.Format;
+  format?: TranslationMemoryModel.Format;
   to?: string;
 }
 
@@ -110,7 +110,7 @@ export default class TmCommand {
     const [idArg] = command.args;
     const id = parseNumericId(idArg, 'Translation memory');
     const options = command.optsWithGlobals() as DownloadOptions;
-    let format = options.fileFormat;
+    let format = options.format;
 
     if (options.to !== undefined && format === undefined) {
       const extension = path.extname(options.to).replace(/^\./, '').toLowerCase();

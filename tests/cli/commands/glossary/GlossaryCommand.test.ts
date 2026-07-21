@@ -234,7 +234,7 @@ describe('GlossaryCommand', () => {
       const glossaryCommand = createGlossaryCommand();
       spyOn(Bun, 'write').mockResolvedValue(0 as never);
 
-      await glossaryCommand.downloadAction(createCommandContext({ fileFormat: 'csv' }, ['42']));
+      await glossaryCommand.downloadAction(createCommandContext({ format: 'csv' }, ['42']));
 
       expect(glossaryService.export).toHaveBeenCalledWith(42, 'csv');
       expect(Bun.write).toHaveBeenCalledWith('forty-two.csv', expect.anything());

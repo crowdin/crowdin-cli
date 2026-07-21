@@ -4,6 +4,7 @@ import os from 'node:os';
 import path from 'node:path';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
+import { buildCommand } from '@/cli/builder.ts';
 import BundleCommand from '@/cli/commands/bundle/BundleCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -139,18 +140,18 @@ describe('BundleCommand', () => {
       expect(cmd.addAction(createCommandContext(globalOptions, ['bundle'], {}))).rejects.toThrow(
         new CliError("'--format' can't be empty"),
       );
-      expect(cmd.addAction(createCommandContext(globalOptions, ['bundle'], { fileFormat: 'json' }))).rejects.toThrow(
+      expect(cmd.addAction(createCommandContext(globalOptions, ['bundle'], { format: 'json' }))).rejects.toThrow(
         new CliError("'--source' can't be empty"),
       );
       expect(
-        cmd.addAction(createCommandContext(globalOptions, ['bundle'], { fileFormat: 'json', source: ['/src/**'] })),
+        cmd.addAction(createCommandContext(globalOptions, ['bundle'], { format: 'json', source: ['/src/**'] })),
       ).rejects.toThrow(new CliError("'--translation' can't be empty"));
     });
 
     test('adds bundle with provided options', async () => {
       const cmd = createBundleCommand();
       const context = createCommandContext(globalOptions, ['bundle'], {
-        fileFormat: 'json',
+        format: 'json',
         source: ['/src/**'],
         ignore: ['/src/tmp/**'],
         translation: '/%two_letters_code%/app.json',
@@ -173,6 +174,20 @@ describe('BundleCommand', () => {
         includeInContextPseudoLanguage: false,
         isMultilingual: true,
       });
+    });
+
+    // Parses real argv through commander so a mismatch between the declared option name and the
+    // field the action reads is caught (the stubbed contexts above cannot see it).
+    test('reads --format from parsed argv', async () => {
+      const cmd = createBundleCommand();
+      const program = buildCommand(cmd.getDefinition());
+
+      await program.parseAsync(
+        ['add', 'bundle', '--format', 'json', '--source', '/src/**', '--translation', '/%locale%/app.json'],
+        { from: 'user' },
+      );
+
+      expect(bundleService.add).toHaveBeenCalledWith(expect.objectContaining({ format: 'json' }));
     });
   });
 
