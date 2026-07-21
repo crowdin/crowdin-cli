@@ -6,6 +6,7 @@ import com.crowdin.cli.client.ProjectClient;
 import com.crowdin.cli.client.ResponseException;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.commands.picocli.ExitCodeExceptionMapper;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.ProjectProperties;
@@ -380,6 +381,59 @@ class FileUploadActionTest {
         NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(fileToUpload, "branch", false, null, null, "context", null, null, true, true, null, false);
         assertThrows(ExitCodeExceptionMapper.ValidationException.class, () -> action.act(Outputter.getDefault(), pb, client));
         verify(client).downloadFullProject();
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadUpdate_ContextChanged_FileBasedProject() throws ResponseException {
+        File fileToUpload = new File(project.getBasePath() + "first.po");
+        project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("first.po", "gettext", 101L, null, null).build();
+        build.setType(Type.FILES_BASED);
+        build.getFileInfos().get(0).setContext("old context");
+        when(client.downloadFullProject()).thenReturn(build);
+        when(client.uploadStorage(eq("first.po"), any())).thenReturn(1L);
+
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(
+            fileToUpload, null, true, null, null, "new context", null, null, false, false, null, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).uploadStorage(eq("first.po"), any());
+        verify(client).updateSource(eq(101L), any());
+        verify(client).editSource(eq(101L), eq(RequestBuilder.updateFileContext("new context")));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadUpdate_ContextSame_FileBasedProject() throws ResponseException {
+        File fileToUpload = new File(project.getBasePath() + "first.po");
+        project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("first.po", "gettext", 101L, null, null).build();
+        build.setType(Type.FILES_BASED);
+        build.getFileInfos().get(0).setContext("same context");
+        when(client.downloadFullProject()).thenReturn(build);
+        when(client.uploadStorage(eq("first.po"), any())).thenReturn(1L);
+
+        NewAction<ProjectProperties, ProjectClient> action = new FileUploadAction(
+            fileToUpload, null, true, null, null, "same context", null, null, false, false, null, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).uploadStorage(eq("first.po"), any());
+        verify(client).updateSource(eq(101L), any());
         verifyNoMoreInteractions(client);
     }
 }

@@ -8,11 +8,14 @@ import com.crowdin.cli.client.models.BranchBuilder;
 import com.crowdin.cli.client.models.DirectoryBuilder;
 import com.crowdin.cli.commands.NewAction;
 import com.crowdin.cli.commands.Outputter;
+import com.crowdin.cli.commands.functionality.RequestBuilder;
 import com.crowdin.cli.properties.PropertiesWithFiles;
 import com.crowdin.cli.properties.NewPropertiesWithFilesUtilBuilder;
 import com.crowdin.cli.properties.helper.FileHelperTest;
 import com.crowdin.cli.properties.helper.TempProject;
 import com.crowdin.cli.utils.Utils;
+import com.crowdin.cli.utils.cache.Cache;
+import com.crowdin.cli.utils.file.FileUtils;
 import com.crowdin.client.projectsgroups.model.Type;
 import com.crowdin.client.sourcefiles.model.AddBranchRequest;
 import com.crowdin.client.sourcefiles.model.AddDirectoryRequest;
@@ -33,7 +36,9 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
+import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -869,5 +874,152 @@ public class UploadSourcesActionTest {
         verify(client).uploadStorage(eq("first.po"), any());
         verify(client).addSourceStringsBased(eq(uploadStringsRequest));
         verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadUpdate_ContextChanged() throws Exception {
+        project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
+        project.addFile(Utils.normalizePath("context.txt"), "new context content");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*.po", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setContext("context.txt");
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("first.po", "gettext", 101L, null, null).build();
+        build.setType(Type.FILES_BASED);
+        build.getFileInfos().get(0).setContext("old context content");
+        when(client.downloadFullProject()).thenReturn(build);
+        when(client.uploadStorage(eq("first.po"), any())).thenReturn(1L);
+        // TempProject.addFile writes with a line separator, so read the actual content for the expected value
+        String expectedContext = java.nio.file.Files.readString(java.nio.file.Paths.get(project.getBasePath() + "context.txt"));
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("first.po"), any());
+        verify(client).updateSource(eq(101L), any());
+        verify(client).editSource(eq(101L), eq(RequestBuilder.updateFileContext(expectedContext)));
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadUpdate_ContextSame() throws Exception {
+        project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
+        project.addFile(Utils.normalizePath("context.txt"), "same context content");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*.po", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setContext("context.txt");
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("first.po", "gettext", 101L, null, null).build();
+        build.setType(Type.FILES_BASED);
+        // Remote context must match actual file content (TempProject.addFile adds a line separator)
+        String remoteContext = java.nio.file.Files.readString(java.nio.file.Paths.get(project.getBasePath() + "context.txt"));
+        build.getFileInfos().get(0).setContext(remoteContext);
+        when(client.downloadFullProject()).thenReturn(build);
+        when(client.uploadStorage(eq("first.po"), any())).thenReturn(1L);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, false);
+        action.act(Outputter.getDefault(), pb, client);
+
+        verify(client).downloadFullProject();
+        verify(client).listLabels();
+        verify(client).uploadStorage(eq("first.po"), any());
+        verify(client).updateSource(eq(101L), any());
+        verifyNoMoreInteractions(client);
+    }
+
+    @Test
+    public void testUploadCachedSource_ContextChanged() throws Exception {
+        project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
+        project.addFile(Utils.normalizePath("context.txt"), "new context content");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*.po", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setContext("context.txt");
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("first.po", "gettext", 101L, null, null).build();
+        build.setType(Type.FILES_BASED);
+        build.getFileInfos().get(0).setContext("old context content");
+        when(client.downloadFullProject()).thenReturn(build);
+        String expectedContext = java.nio.file.Files.readString(java.nio.file.Paths.get(project.getBasePath() + "context.txt"));
+
+        File sourceFile = new File(project.getBasePath() + "first.po");
+        String currentHash = FileUtils.computeChecksum(sourceFile.toPath());
+
+        java.nio.file.Path cacheFile = Cache.getCacheLocation();
+        byte[] cacheBackup = java.nio.file.Files.exists(cacheFile)
+            ? java.nio.file.Files.readAllBytes(cacheFile) : null;
+        if (cacheBackup != null) java.nio.file.Files.delete(cacheFile);
+        try {
+            Cache.setSourceHashes(Collections.singletonMap(sourceFile.getAbsolutePath(), currentHash));
+
+            NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, true);
+            action.act(Outputter.getDefault(), pb, client);
+
+            verify(client).downloadFullProject();
+            verify(client).listLabels();
+            verify(client).editSource(eq(101L), eq(RequestBuilder.updateFileContext(expectedContext)));
+            verifyNoMoreInteractions(client);
+        } finally {
+            if (cacheBackup != null) {
+                java.nio.file.Files.createDirectories(cacheFile.getParent());
+                java.nio.file.Files.write(cacheFile, cacheBackup);
+            } else if (java.nio.file.Files.exists(cacheFile)) {
+                java.nio.file.Files.delete(cacheFile);
+            }
+        }
+    }
+
+    @Test
+    public void testUploadCachedSource_ContextSame() throws Exception {
+        project.addFile(Utils.normalizePath("first.po"), "Hello, World!");
+        project.addFile(Utils.normalizePath("context.txt"), "same context content");
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*.po", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+        pb.getFiles().get(0).setContext("context.txt");
+        ProjectClient client = mock(ProjectClient.class);
+        CrowdinProjectFull build = ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+            .addFile("first.po", "gettext", 101L, null, null).build();
+        build.setType(Type.FILES_BASED);
+        // Remote context must match actual file content (TempProject.addFile adds a line separator)
+        String remoteContext = java.nio.file.Files.readString(java.nio.file.Paths.get(project.getBasePath() + "context.txt"));
+        build.getFileInfos().get(0).setContext(remoteContext);
+        when(client.downloadFullProject()).thenReturn(build);
+
+        File sourceFile = new File(project.getBasePath() + "first.po");
+        String currentHash = FileUtils.computeChecksum(sourceFile.toPath());
+
+        java.nio.file.Path cacheFile = Cache.getCacheLocation();
+        byte[] cacheBackup = java.nio.file.Files.exists(cacheFile)
+            ? java.nio.file.Files.readAllBytes(cacheFile) : null;
+        if (cacheBackup != null) java.nio.file.Files.delete(cacheFile);
+        try {
+            Cache.setSourceHashes(Collections.singletonMap(sourceFile.getAbsolutePath(), currentHash));
+
+            NewAction<PropertiesWithFiles, ProjectClient> action = new UploadSourcesAction(null, false, false, true, false, false, false, true);
+            action.act(Outputter.getDefault(), pb, client);
+
+            verify(client).downloadFullProject();
+            verify(client).listLabels();
+            verifyNoMoreInteractions(client);
+        } finally {
+            if (cacheBackup != null) {
+                java.nio.file.Files.createDirectories(cacheFile.getParent());
+                java.nio.file.Files.write(cacheFile, cacheBackup);
+            } else if (java.nio.file.Files.exists(cacheFile)) {
+                java.nio.file.Files.delete(cacheFile);
+            }
+        }
     }
 }
