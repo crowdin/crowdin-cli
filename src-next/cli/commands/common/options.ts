@@ -52,11 +52,16 @@ export const destination: OptionDef = {
   description: 'Specify file name in Crowdin',
 };
 
+export const preserveHierarchy: OptionDef = {
+  name: 'preserve-hierarchy',
+  type: 'boolean',
+  description: 'Save the directory hierarchy in the Crowdin project',
+};
+
 export const noPreserveHierarchy: OptionDef = {
   name: 'no-preserve-hierarchy',
   type: 'boolean',
-  default: true,
-  description: 'Choose whether to save the directory hierarchy in the Crowdin project',
+  description: 'Strip the common parent directory from the file paths in the Crowdin project',
 };
 
 export const dryRun: OptionDef = {
@@ -85,7 +90,14 @@ export const branch: OptionDef = {
 // Each tier is defined once here so a command never drifts from its expected option set.
 const baseConfigOptions = [token, baseUrl, basePath];
 const projectConfigOptions = [...baseConfigOptions, projectId];
-const filesConfigOptions = [...projectConfigOptions, source, translation, destination, noPreserveHierarchy];
+const filesConfigOptions = [
+  ...projectConfigOptions,
+  source,
+  translation,
+  destination,
+  preserveHierarchy,
+  noPreserveHierarchy,
+];
 
 // BaseParams: commands that talk to the API without a project context (tm, glossary).
 export const baseConfigGroup: OptionGroupDef = { group: 'Config options:', options: baseConfigOptions };

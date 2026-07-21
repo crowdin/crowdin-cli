@@ -7,7 +7,8 @@ const CONFIG_GROUP = 'Config options:';
 // Option-name sets per Java picocli param tier (BaseParams -> ProjectParams -> ParamsWithFiles).
 const BASE_TIER = ['token', 'base-url', 'base-path'];
 const PROJECT_TIER = [...BASE_TIER, 'project-id'];
-const FILES_TIER = [...PROJECT_TIER, 'source', 'translation', 'dest', 'no-preserve-hierarchy'];
+// `preserve-hierarchy` is the hidden positive half of the `--no-preserve-hierarchy` pair.
+const FILES_TIER = [...PROJECT_TIER, 'source', 'translation', 'dest', 'preserve-hierarchy', 'no-preserve-hierarchy'];
 
 const TIER_OPTIONS: Record<'base' | 'project' | 'files', string[]> = {
   base: BASE_TIER,
@@ -48,7 +49,6 @@ const REAL_ACTION_PARENTS = new Set(['upload', 'download', 'status']);
 
 function configGroupOptionNames(options: (OptionDef | OptionGroupDef)[] | undefined): string[] | undefined {
   const group = options?.find((option): option is OptionGroupDef => 'group' in option && option.group === CONFIG_GROUP);
-
   return group?.options.map((option) => option.name);
 }
 

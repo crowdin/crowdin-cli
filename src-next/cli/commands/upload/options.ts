@@ -49,7 +49,8 @@ export const language: OptionDef = {
 export const noAutoUpdate: OptionDef = {
   name: 'no-auto-update',
   type: 'boolean',
-  description: 'Specify whether to update existing source files in the Crowdin project or only upload new ones',
+  description:
+    'Specify whether to update existing source files in the Crowdin project or only upload new ones. Updates by default',
 };
 
 export const translateHidden: OptionDef = {

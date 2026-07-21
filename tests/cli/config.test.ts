@@ -2,7 +2,9 @@ import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import { join, resolve } from 'node:path';
-import type { Command } from 'commander';
+import { Command } from 'commander';
+import { buildOption } from '@/cli/builder.ts';
+import { filesConfigGroup } from '@/cli/commands/common/options.ts';
 import { createGetConfig } from '@/cli/config.ts';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import type { ConfigOptions, GlobalOptions } from '@/cli/options.ts';
@@ -487,6 +489,42 @@ describe('createGetConfig', () => {
     await expect(getConfig()(makeCommand({}))).rejects.toThrow(
       'You cannot skip strings and files at the same time. Please use one of these parameters instead.',
     );
+  });
+
+  // `--no-preserve-hierarchy` is a negatable flag, and commander decides its resolved value: a
+  // negation-only option silently defaults to `true`, which used to overwrite `preserve_hierarchy`
+  // from the config file on every run. The fake command elsewhere in this file cannot catch that, so
+  // these parse real argv through a real Command built from the shipped option definitions.
+  describe('preserve_hierarchy', () => {
+    const resolve = async (configured: boolean, argv: string[]): Promise<boolean> => {
+      await Bun.write(configPath, `${CONFIG_YAML}preserve_hierarchy: ${configured}\n`);
+
+      const command = new Command('sources');
+
+      for (const option of filesConfigGroup.options) {
+        command.addOption(buildOption(option));
+      }
+
+      command.addOption(buildOption({ name: 'config', type: 'string', description: '' }));
+
+      let preserveHierarchy: boolean | undefined;
+      command.action(async () => {
+        preserveHierarchy = (await getConfig()(command)).preserveHierarchy;
+      });
+      await command.parseAsync(['--config', configPath, ...argv], { from: 'user' });
+
+      return preserveHierarchy as boolean;
+    };
+
+    test('keeps the configured value when neither flag is passed', async () => {
+      expect(await resolve(false, [])).toBe(false);
+      expect(await resolve(true, [])).toBe(true);
+    });
+
+    test('lets an explicit flag override the configured value', async () => {
+      expect(await resolve(true, ['--no-preserve-hierarchy'])).toBe(false);
+      expect(await resolve(false, ['--preserve-hierarchy'])).toBe(true);
+    });
   });
 
   test('caches by config path within one factory instance', async () => {
