@@ -4,27 +4,27 @@ on:
   workflow_dispatch:
     inputs:
       package:
-        description: 'Package to publish'
+        description: "Package to publish"
         type: choice
         required: true
-        default: 'all'
+        default: "all"
         options:
-          - 'all'
-          - 'npm'
-          - 'aur'
-          - 'homebrew'
-          - 'chocolatey'
-          - 'docker'
-          - 'winget'
+          - "all"
+          - "npm"
+          - "aur"
+          - "homebrew"
+          - "chocolatey"
+          - "docker"
+          - "winget"
       winget_release_tag:
-        description: 'Release tag for manual WinGet publish (example: 4.14.2)'
+        description: "Release tag for manual WinGet publish (example: 5.0.0)"
         type: string
         required: false
 
 jobs:
-  # v5 publishes npm + docker + chocolatey (as a prerelease) + the Windows exe installer.
-  # The other package jobs are kept below but disabled (`if: false`) until adapted for v5 -
-  # see the main branch for their v4 publishing.
+  # v5 publishes npm + docker + the Windows exe installer. The other package jobs are kept
+  # below but disabled (`if: false`) until the stable v5 release; homebrew still needs
+  # adapting (see the main branch for its v4 publishing).
   verify:
     # Publish from the release branch only
     if: github.ref == 'refs/heads/next' && contains(fromJSON('["all", "npm", "docker"]'), github.event.inputs.package)
@@ -166,10 +166,36 @@ jobs:
 
   aur:
     runs-on: ubuntu-latest
-    if: false # disabled until adapted for v5
+    if: false # disabled until the stable v5 release
     needs: assets
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
+
+      - name: Read version
+        id: version
+        uses: ./.github/actions/read-version
+
+      - name: Inject checksums
+        # The pkgver is committed (release.config.js) and the download URLs derive from it;
+        # only the sha256 of the released binaries is injected at publish time.
+        # The version check fails fast on a missed bump.
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          pkgbuild=packages/aur/pkgbuild/PKGBUILD
+          pkgver=$(sed -n 's/^pkgver=//p' "$pkgbuild")
+          if [ "$pkgver" != "$VERSION" ]; then
+            echo "PKGBUILD pkgver ($pkgver) does not match packages/npm/cli version ($VERSION)"
+            exit 1
+          fi
+          gh release download "$VERSION" --pattern crowdin-cli_checksums.sha256
+          x64=$(awk '$2 == "crowdin-linux-x64" {print $1}' crowdin-cli_checksums.sha256)
+          arm64=$(awk '$2 == "crowdin-linux-arm64" {print $1}' crowdin-cli_checksums.sha256)
+          sed -i "s/__CHECKSUM_X64__/$x64/; s/__CHECKSUM_ARM64__/$arm64/" "$pkgbuild"
+          cat "$pkgbuild"
 
       - name: Publish AUR package
         uses: KSXGitHub/github-actions-deploy-aur@v4.1.3
@@ -183,15 +209,9 @@ jobs:
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
   homebrew:
-    # Bumps the crowdin@5 formula in the crowdin/homebrew-crowdin tap. Disabled for now; to enable, replace `if: false`
-    # with the same wiring as chocolatey:
-    #   if: >-
-    #     ${{ !cancelled() && github.ref == 'refs/heads/next' &&
-    #         (github.event.inputs.package == 'homebrew' ||
-    #          (github.event.inputs.package == 'all' && needs.assets.result == 'success')) }}
     runs-on: ubuntu-latest
     needs: assets
-    if: false # disabled until the crowdin@5 formula is published to the tap
+    if: false # disabled until the stable v5 release
     steps:
       - uses: actions/checkout@v6
 
@@ -202,24 +222,16 @@ jobs:
       - name: Invoke workflow in the homebrew-crowdin repo
         uses: benc-uk/workflow-dispatch@v1
         with:
-          workflow: publish-v5.yml
+          workflow: publish.yml
           repo: crowdin/homebrew-crowdin
           ref: refs/heads/master
           token: ${{ secrets.GH_HOMEBREW_TOKEN }}
           inputs: '{ "version": "${{ steps.version.outputs.version }}" }'
 
   chocolatey:
-    # Publishes the v5 prerelease (`choco install crowdin-cli --pre`) to the Chocolatey
-    # community repo. Runs as part of an `all` publish once the assets job has created the
-    # GitHub release, or standalone (`package: chocolatey`) against the already-existing
-    # release for the current version - so a failed npm publish never blocks a Chocolatey
-    # retry (`!cancelled()` keeps this job alive when the skipped npm chain skips `assets`).
     runs-on: windows-latest
     needs: assets
-    if: >-
-      ${{ !cancelled() && github.ref == 'refs/heads/next' &&
-          (github.event.inputs.package == 'chocolatey' ||
-           (github.event.inputs.package == 'all' && needs.assets.result == 'success')) }}
+    if: false # disabled until the stable v5 release
     permissions:
       contents: read
     steps:
@@ -236,9 +248,9 @@ jobs:
         run: gh release download "$env:VERSION" --pattern crowdin-win32-x64.exe --dir release-assets
 
       - name: Inject checksum
-        # The nuspec version and download URL are committed (bumped on release, manually for
-        # now - see release.config.js); only the checksum of the freshly-released binary is
-        # injected at pack time. The version check fails fast on a missed manual bump.
+        # The nuspec version and download URL are committed (release.config.js);
+        # only the checksum of the freshly-released binary is injected at pack time.
+        # The version check fails fast on a missed manual bump.
         env:
           VERSION: ${{ steps.version.outputs.version }}
         run: |
@@ -322,8 +334,9 @@ jobs:
 
   winget:
     # Runs automatically after the exe job has built and uploaded the installer.
+    # The first v5 publish must submit the packages/winget manifests instead (see note there).
     runs-on: windows-latest
-    if: false # disabled until adapted for v5
+    if: false # disabled until the stable v5 release
     needs: exe
     steps:
       - uses: vedantmgoyal9/winget-releaser@v2
@@ -337,7 +350,7 @@ jobs:
     # Runs on manual dispatch only. No exe build - the action picks up the .exe
     # from the latest existing GitHub release, so the release must already exist.
     runs-on: windows-latest
-    if: false # disabled until adapted for v5
+    if: false # disabled until the stable v5 release
     steps:
       - uses: vedantmgoyal9/winget-releaser@v2
         with:

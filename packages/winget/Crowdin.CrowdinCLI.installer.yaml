@@ -1,9 +1,14 @@
-# Updated to winget manifest schema 1.10.0
 # yaml-language-server: $schema=https://aka.ms/winget-manifest.installer.1.10.0.schema.json
 
+# Template for the first v5 submission to microsoft/winget-pkgs (version and sha256 are
+# filled in when submitting). The winget publish jobs bump the manifests already living
+# in winget-pkgs, and the v4 ones carry a Java dependency - so the first v5 publish must
+# submit these manifests instead; automated bumps are safe from then on.
+
 PackageIdentifier: Crowdin.CrowdinCLI
-PackageVersion: 4.14.1
-MinimumOSVersion: 10.0.0.0
+PackageVersion: 5.0.0
+# Bun-compiled binaries require Windows 10 1809+ (matches MinVersion in CrowdinCLIInstaller.iss)
+MinimumOSVersion: 10.0.17763.0
 InstallerType: inno
 InstallModes:
   - interactive
@@ -13,11 +18,8 @@ InstallerSwitches:
   SilentWithProgress: /SILENT /SUPPRESSMSGBOXES /NORESTART /SP-
 Installers:
   - Architecture: x64
-    InstallerUrl: https://github.com/crowdin/crowdin-cli/releases/download/4.14.1/crowdin.exe
-    InstallerSha256: e912b4db3693fd9681d88cde83bcd1f8d955ba332aaf6c509cafd0a1b7f15541
+    InstallerUrl: https://github.com/crowdin/crowdin-cli/releases/download/5.0.0/crowdin-installer.exe
+    InstallerSha256: __CHECKSUM__
     ProductCode: '{52B80417-16B8-4EFE-B118-6FA64B25CC0F}_is1'
-Dependencies:
-  PackageDependencies:
-    - PackageIdentifier: EclipseAdoptium.Temurin.17.JRE
 ManifestType: installer
 ManifestVersion: 1.10.0
