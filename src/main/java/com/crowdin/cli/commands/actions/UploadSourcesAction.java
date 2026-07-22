@@ -214,7 +214,7 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 ? ProjectFilesUtils.fileLookup(fileFullPath, finalPaths, allLocalFilePaths)
                                 : null;
                         if (!isStringsBasedProject && autoUpdate && projectFile != null) {
-                            if (this.wasNotChanged(out, pb, sourceHashes, source)) {
+                            if (this.isSourceHashUnchanged(sourceHashes, source)) {
                                 if (file.getContext() != null && !file.getContext().isEmpty()) {
                                     final String contextFilePath = placeholderUtil.replaceFileDependentPlaceholders(file.getContext(), sourceFile);
                                     final Long sourceId = projectFile.getKey().getId();
@@ -224,6 +224,15 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                             String contextContent = Files.readString(Paths.get(pb.getBasePath(), contextFilePath));
                                             if (!contextContent.equals(existingContext)) {
                                                 client.editSource(sourceId, RequestBuilder.updateFileContext(contextContent));
+                                                if (!plainView) {
+                                                    out.println(OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));
+                                                } else {
+                                                    out.println(fileFullPath);
+                                                }
+                                            } else {
+                                                if (!plainView) {
+                                                    out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped_cached"), StringUtils.removeStart(source, pb.getBasePath()))));
+                                                }
                                             }
                                         } catch (IOException e) {
                                             errorsPresented.set(true);
@@ -231,7 +240,11 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                         }
                                     };
                                 }
-                                return (Runnable) () -> { };
+                                return (Runnable) () -> {
+                                    if (!plainView) {
+                                        out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped_cached"), StringUtils.removeStart(source, pb.getBasePath()))));
+                                    }
+                                };
                             }
 
                             final UpdateFileRequest request = new UpdateFileRequest();
@@ -495,21 +508,25 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
         }
     }
 
-    private boolean wasNotChanged(Outputter out, PropertiesWithFiles pb, Map<String, String> sourceHashes, String source) {
+    private boolean isSourceHashUnchanged(Map<String, String> sourceHashes, String source) {
         if (cache) {
             try {
                 String currentHash = FileUtils.computeChecksum(new File(source).toPath());
                 String previousHash = sourceHashes.get(source);
-                if (currentHash.equals(previousHash)) {
-                    if (!plainView) {
-                        out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped_cached"), StringUtils.removeStart(source, pb.getBasePath()))));
-                    }
-                    // no changes, skip upload
-                    return true;
-                }
+                return currentHash.equals(previousHash);
             } catch (Exception e) {
                 OutputUtil.fancyErr(e, System.err, debug);
             }
+        }
+        return false;
+    }
+
+    private boolean wasNotChanged(Outputter out, PropertiesWithFiles pb, Map<String, String> sourceHashes, String source) {
+        if (isSourceHashUnchanged(sourceHashes, source)) {
+            if (!plainView) {
+                out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped_cached"), StringUtils.removeStart(source, pb.getBasePath()))));
+            }
+            return true;
         }
         return false;
     }
