@@ -50,9 +50,6 @@ export const autoApproveOption: OptionDef = {
     'Defines which translations added by TM auto-translation should be auto-approved. Supported values: all, except-auto-substituted, perfect-match-only. Default: none',
 };
 
-// Negatable boolean: `--duplicate-translations` / `--no-duplicate-translations`.
-// The positive and hidden negative flags share the `duplicateTranslations` property;
-// leaving both unset keeps it `undefined` (tri-state), so it is only sent when specified.
 export const duplicateTranslations: OptionDef = {
   name: 'duplicate-translations',
   type: 'boolean',
@@ -62,7 +59,6 @@ export const duplicateTranslations: OptionDef = {
 export const noDuplicateTranslations: OptionDef = {
   name: 'no-duplicate-translations',
   type: 'boolean',
-  hidden: true,
   description: 'Skips adding a translation if the same one already exists',
 };
 
@@ -115,7 +111,6 @@ export const translateWithPerfectMatchOnly: OptionDef = {
 export const noTranslateWithPerfectMatchOnly: OptionDef = {
   name: 'no-translate-with-perfect-match-only',
   type: 'boolean',
-  hidden: true,
   description: 'Applies auto-translation regardless of perfect match',
 };
 
