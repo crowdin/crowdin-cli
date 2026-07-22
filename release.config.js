@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   branches: [
     "main"
   ],
@@ -102,8 +102,8 @@ module.exports = {
             "files": [
               "packages/chocolatey/tools/chocolateyinstall.ps1"
             ],
-            "from": "https://github.com/crowdin/crowdin-cli/releases/download/.*/crowdin-cli.zip",
-            "to": "https://github.com/crowdin/crowdin-cli/releases/download/${nextRelease.version}/crowdin-cli.zip",
+            "from": "https://github.com/crowdin/crowdin-cli/releases/download/.*/crowdin-win32-x64.exe",
+            "to": "https://github.com/crowdin/crowdin-cli/releases/download/${nextRelease.version}/crowdin-win32-x64.exe",
             "results": [
               {
                 "file": "packages/chocolatey/tools/chocolateyinstall.ps1",

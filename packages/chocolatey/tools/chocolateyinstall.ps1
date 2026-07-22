@@ -1,17 +1,12 @@
 $ErrorActionPreference = 'Stop'; # stop on all errors
 $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 
-$packageName = $env:ChocolateyPackageName
-$packageVersion = $env:ChocolateyPackageVersion
-$packageArgs = @{
-  packageName   = $packageName
-  unzipLocation = $toolsDir
-  url           = 'https://github.com/crowdin/crowdin-cli/releases/download/4.14.4/crowdin-cli.zip'
-  checksum      = '820f5c04dd0de0a1875ba8b9eae3b9f9413560914c6b6690f27255f093d2be65'
-  checksumType  = 'sha256'
-}
-Install-ChocolateyZipPackage @packageArgs
-
-$unzipDir = Join-Path $toolsDir $packageVersion
-Install-ChocolateyEnvironmentVariable -variableName "CROWDIN_HOME" -variableValue "$unzipDir"
-Add-BinFile -name crowdin -path "$unzipDir\crowdin.bat"
+# The download URL is version-bumped on release (see release.config.js); the checksum
+# placeholder is filled in by the publish workflow (.github/workflows/publish.yml) with
+# the hash of the freshly-released binary.
+# Chocolatey auto-shims crowdin.exe from the tools dir onto PATH as `crowdin`.
+Get-ChocolateyWebFile -PackageName 'crowdin-cli' `
+  -FileFullPath (Join-Path $toolsDir 'crowdin.exe') `
+  -Url 'https://github.com/crowdin/crowdin-cli/releases/download/5.0.0-next.4/crowdin-win32-x64.exe' `
+  -Checksum '__CHECKSUM__' `
+  -ChecksumType 'sha256'
