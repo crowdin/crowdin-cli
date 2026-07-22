@@ -5,6 +5,7 @@ import type { Command } from 'commander';
 import { decodeJwt } from 'jose';
 import { dump as dumpYaml, load as loadYaml } from 'js-yaml';
 import CliError from '@/cli/errors/CliError.ts';
+import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
@@ -225,12 +226,7 @@ export default class InitCommand {
       return user;
     } catch (error) {
       output.spinner('authorization', 'error', 'Authorization failed');
-
-      if (error instanceof Error) {
-        throw new CliError(`Authorization failed. ${error.message}`, 1, true);
-      }
-
-      throw new CliError('Authorization failed', 1, true);
+      throw toCliError(error, 'Authorization failed');
     }
   }
 
@@ -260,13 +256,8 @@ export default class InitCommand {
 
       return project;
     } catch (error) {
-      if (error instanceof Error) {
-        output.spinner('projectValidation', 'error', `Project validation failed. ${error.message}`);
-        throw new CliError(`Project validation failed. ${error.message}`, 1, true);
-      }
-
       output.spinner('projectValidation', 'error', 'Project validation failed');
-      throw new CliError('Project validation failed', 1, true);
+      throw toCliError(error, 'Project validation failed');
     }
   }
 
@@ -277,6 +268,7 @@ export default class InitCommand {
 
     const projectDirectory = await text({
       message: 'Your project directory:',
+      placeholder: '.',
       defaultValue: '.',
     });
 
