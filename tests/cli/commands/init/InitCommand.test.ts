@@ -132,6 +132,8 @@ describe('InitCommand', () => {
     await Bun.write(configPath, 'existing config');
 
     // @ts-expect-error
+    command.confirmOverwrite = async () => false;
+    // @ts-expect-error
     command.authorizeViaBrowser = async () => {
       throw new Error('authorizeViaBrowser should not be called when config file already exists');
     };
@@ -151,5 +153,44 @@ describe('InitCommand', () => {
     await command.defaultAction(commandContext);
 
     expect(await Bun.file(configPath).text()).toBe('existing config');
+  });
+
+  test('overwrites existing config file when confirmed', async () => {
+    const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
+    const apiToken = 'a'.repeat(80);
+    const configPath = join(tempDir, 'crowdin.yml');
+
+    await Bun.write(configPath, 'existing config');
+
+    // @ts-expect-error
+    command.confirmOverwrite = async () => true;
+    // @ts-expect-error
+    command.isEnterprise = async () => false;
+    // @ts-expect-error
+    command.getAuthorizedUser = async () => ({ data: { id: 1 } });
+    // @ts-expect-error
+    command.selectProject = async () => ({ data: { id: 321 } });
+    // @ts-expect-error
+    command.writeApiToken = async () => true;
+
+    const commandContext = {
+      optsWithGlobals: () => ({
+        ...globalOptions,
+        token: apiToken,
+        projectId: 321,
+        basePath: '.',
+        baseUrl: 'https://api.crowdin.com',
+        source: '/src-next/**/*.json',
+        translation: '/locale/%locale%/%original_file_name%',
+        preserveHierarchy: false,
+      }),
+    } as Command;
+
+    await command.defaultAction(commandContext);
+
+    const config = await Bun.file(configPath).text();
+
+    expect(config).not.toBe('existing config');
+    expect(config).toContain('"project_id": "321"');
   });
 });

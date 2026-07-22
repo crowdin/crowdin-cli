@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { confirm, isCancel, select, text } from '@clack/prompts';
+import { confirm, isCancel, password, select, text } from '@clack/prompts';
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { decodeJwt } from 'jose';
@@ -9,6 +9,7 @@ import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { colors } from '@/cli/utils/colors.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
@@ -36,10 +37,15 @@ interface InitCommandOptions extends GlobalOptions {
 }
 
 export default class InitCommand {
-  private readonly successMessage =
-    'Your configuration skeleton has been successfully generated. ' +
-    'Specify your source and translation paths in the files section. ' +
-    'For more details see https://crowdin.github.io/crowdin-cli/configuration';
+  private get successMessage(): string {
+    return (
+      'Your configuration skeleton has been successfully generated. ' +
+      'Specify your source and translation paths in the files section. ' +
+      'For more details see https://crowdin.github.io/crowdin-cli/configuration\n\n' +
+      colors.bold('Next steps: ') +
+      "run 'crowdin push' to upload sources and 'crowdin pull' to download translations."
+    );
+  }
 
   constructor(private getOutput: GetOutput) {}
 
@@ -60,12 +66,20 @@ export default class InitCommand {
     output.intro(`Generating Crowdin CLI configuration skeleton '${configFilePath}'`);
 
     if (await Bun.file(configFilePath).exists()) {
-      output.outro(
+      const existsMessage =
         `File '${configFilePath}' already exists. ` +
-          `Fill it out accordingly to the following requirements: ` +
-          `https://developer.crowdin.com/configuration-file/#configuration-file-structure`,
-      );
-      return;
+        `Fill it out accordingly to the following requirements: ` +
+        `https://developer.crowdin.com/configuration-file/#configuration-file-structure`;
+
+      if (options.quiet) {
+        output.outro(existsMessage);
+        return;
+      }
+
+      if (!(await this.confirmOverwrite(configFilePath, output))) {
+        output.outro(existsMessage);
+        return;
+      }
     }
 
     if (options.quiet) {
@@ -131,8 +145,18 @@ export default class InitCommand {
     output.outro(this.successMessage);
   };
 
+  private async confirmOverwrite(configFilePath: string, output: Output): Promise<boolean> {
+    const overwrite = await confirm({
+      message: `File '${configFilePath}' already exists. Overwrite?`,
+      initialValue: false,
+    });
+    this.cancelHandler(overwrite, output);
+
+    return overwrite as boolean;
+  }
+
   private async getToken(output: Output) {
-    const apiToken = (await text({ message: 'API token:' })) as string;
+    const apiToken = (await password({ message: 'API token:' })) as string;
     this.cancelHandler(apiToken, output);
 
     return apiToken;
@@ -284,6 +308,7 @@ export default class InitCommand {
 
     const sourcePattern = await text({
       message: 'Source pattern:',
+      placeholder: '/locales/en/**/*.json',
     });
 
     this.cancelHandler(sourcePattern, output);
@@ -298,6 +323,7 @@ export default class InitCommand {
 
     const translationPattern = await text({
       message: `Translation pattern (supported placeholders: ${patterns.join(', ')}):`,
+      placeholder: '/resources/%two_letters_code%/%original_file_name%',
     });
 
     this.cancelHandler(translationPattern, output);
