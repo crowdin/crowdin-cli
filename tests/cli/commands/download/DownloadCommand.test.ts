@@ -15,6 +15,21 @@ import { TranslationService } from '@/cli/services/TranslationService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 import type { Config, ProjectConfig } from '@/lib/config.ts';
 
+// Mock fetch to return a real zip so tests exercise the actual adm-zip read path
+// (new AdmZip(path) -> getEntries -> getData) instead of a globally-mocked module. Uses
+// mockImplementation so each call gets a fresh Response (a body can only be read once, and
+// some downloads fetch several archives).
+const respondWithZip = (entries: { entryName: string; content: string }[] = []) =>
+  spyOn(globalThis, 'fetch').mockImplementation((async () => {
+    const zip = new AdmZip();
+
+    for (const { entryName, content } of entries) {
+      zip.addFile(entryName, Buffer.from(content));
+    }
+
+    return new Response(zip.toBuffer());
+  }) as unknown as typeof fetch);
+
 const config: ProjectConfig = {
   projectId: 123,
   apiToken: 'a'.repeat(80),
@@ -91,12 +106,6 @@ describe('DownloadCommand', () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
-  // mock.restore() does not undo mock.module(), so re-point 'adm-zip' at the
-  // real implementation to avoid leaking the stub into other test files.
-  afterAll(() => {
-    mock.module('adm-zip', () => ({ default: AdmZip }));
-  });
-
   const createDownloadCommand = (configOverrides: Partial<Config> = {}) => {
     return new DownloadCommand(
       async (command: Command) => ({
@@ -131,23 +140,9 @@ describe('DownloadCommand', () => {
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
       spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
+      respondWithZip();
 
-      mock.module('adm-zip', () => {
-        return {
-          default: class {
-            constructor() {}
-            extractAllTo() {}
-            getEntries() {
-              return [];
-            }
-          },
-        };
-      });
-
-      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        "Couldn't find any file to download",
-      );
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow("Couldn't find any file to download");
 
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {});
       expect(translationService.getTranslationDownloadUrl).toHaveBeenCalledWith(buildId);
@@ -236,28 +231,14 @@ describe('DownloadCommand', () => {
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
       spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
-
-      mock.module('adm-zip', () => {
-        return {
-          default: class {
-            constructor() {}
-            extractAllTo() {}
-            getEntries() {
-              return [];
-            }
-          },
-        };
-      });
+      respondWithZip();
 
       commandContext = createCommandContext({
         ...globalOptions,
         excludeLanguage: ['de'],
       });
 
-      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        "Couldn't find any file to download",
-      );
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow("Couldn't find any file to download");
 
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {
         targetLanguageIds: ['fr', 'es'],
@@ -282,28 +263,14 @@ describe('DownloadCommand', () => {
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
       spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
-
-      mock.module('adm-zip', () => {
-        return {
-          default: class {
-            constructor() {}
-            extractAllTo() {}
-            getEntries() {
-              return [];
-            }
-          },
-        };
-      });
+      respondWithZip();
 
       commandContext = createCommandContext({
         ...globalOptions,
         pseudo: true,
       });
 
-      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        "Couldn't find any file to download",
-      );
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow("Couldn't find any file to download");
 
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {
         pseudo: true,
@@ -336,28 +303,14 @@ describe('DownloadCommand', () => {
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
       spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
-
-      mock.module('adm-zip', () => {
-        return {
-          default: class {
-            constructor() {}
-            extractAllTo() {}
-            getEntries() {
-              return [];
-            }
-          },
-        };
-      });
+      respondWithZip();
 
       commandContext = createCommandContext({
         ...globalOptions,
         pseudo: true,
       });
 
-      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        "Couldn't find any file to download",
-      );
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow("Couldn't find any file to download");
 
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {
         pseudo: true,
@@ -387,23 +340,9 @@ describe('DownloadCommand', () => {
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
       spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
+      respondWithZip();
 
-      mock.module('adm-zip', () => {
-        return {
-          default: class {
-            constructor() {}
-            extractAllTo() {}
-            getEntries() {
-              return [];
-            }
-          },
-        };
-      });
-
-      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        "Couldn't find any file to download",
-      );
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow("Couldn't find any file to download");
 
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {
         targetLanguageIds: ['fr', 'es'],
@@ -428,28 +367,14 @@ describe('DownloadCommand', () => {
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
       spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
-
-      mock.module('adm-zip', () => {
-        return {
-          default: class {
-            constructor() {}
-            extractAllTo() {}
-            getEntries() {
-              return [];
-            }
-          },
-        };
-      });
+      respondWithZip();
 
       commandContext = createCommandContext({
         ...globalOptions,
         excludeLanguage: ['de'],
       });
 
-      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        "Couldn't find any file to download",
-      );
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow("Couldn't find any file to download");
 
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {
         targetLanguageIds: ['fr', 'es'],
@@ -474,28 +399,14 @@ describe('DownloadCommand', () => {
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
       spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
-
-      mock.module('adm-zip', () => {
-        return {
-          default: class {
-            constructor() {}
-            extractAllTo() {}
-            getEntries() {
-              return [];
-            }
-          },
-        };
-      });
+      respondWithZip();
 
       commandContext = createCommandContext({
         ...globalOptions,
         language: ['de'],
       });
 
-      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        "Couldn't find any file to download",
-      );
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow("Couldn't find any file to download");
 
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {
         targetLanguageIds: ['de'],
@@ -537,19 +448,7 @@ describe('DownloadCommand', () => {
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
       spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
-
-      mock.module('adm-zip', () => {
-        return {
-          default: class {
-            constructor() {}
-            extractAllTo() {}
-            getEntries() {
-              return [];
-            }
-          },
-        };
-      });
+      respondWithZip();
 
       commandContext = createCommandContext({
         ...globalOptions,
@@ -557,9 +456,7 @@ describe('DownloadCommand', () => {
       });
 
       // The in-context pseudo language is part of getProjectLanguages(true), so it validates and builds.
-      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        "Couldn't find any file to download",
-      );
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow("Couldn't find any file to download");
 
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {
         targetLanguageIds: ['qa-pseudo'],
@@ -584,19 +481,7 @@ describe('DownloadCommand', () => {
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
       spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
-
-      mock.module('adm-zip', () => {
-        return {
-          default: class {
-            constructor() {}
-            extractAllTo() {}
-            getEntries() {
-              return [];
-            }
-          },
-        };
-      });
+      respondWithZip();
 
       commandContext = createCommandContext({
         ...globalOptions,
@@ -697,28 +582,14 @@ describe('DownloadCommand', () => {
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
       spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('fake-zip-content'));
-
-      mock.module('adm-zip', () => {
-        return {
-          default: class {
-            constructor() {}
-            extractAllTo() {}
-            getEntries() {
-              return [];
-            }
-          },
-        };
-      });
+      respondWithZip();
 
       commandContext = createCommandContext({
         ...globalOptions,
         branch: 'develop',
       });
 
-      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        "Couldn't find any file to download",
-      );
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow("Couldn't find any file to download");
 
       expect(apiClient.translationsApi.buildProject).toHaveBeenCalledWith(123, {
         branchId: 55,
@@ -767,22 +638,11 @@ describe('DownloadCommand', () => {
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
       spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip-content'));
-      mock.module('adm-zip', () => ({
-        default: class {
-          constructor() {}
-          extractAllTo() {}
-          getEntries() {
-            return [];
-          }
-        },
-      }));
+      respondWithZip();
 
       commandContext = createCommandContext({ ...globalOptions, keepArchive: true });
 
-      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        "Couldn't find any file to download",
-      );
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow("Couldn't find any file to download");
 
       const savedArchive = Bun.file(join(tempDir, 'crowdin-translations.zip'));
       expect(await savedArchive.exists()).toBe(true);
@@ -849,22 +709,11 @@ describe('DownloadCommand', () => {
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
       spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip-content'));
+      respondWithZip();
     };
 
     const mockZipEntries = (entries: { entryName: string; content: string }[]) => {
-      mock.module('adm-zip', () => ({
-        default: class {
-          constructor() {}
-          getEntries() {
-            return entries.map((entry) => ({
-              entryName: entry.entryName,
-              isDirectory: entry.entryName.endsWith('/'),
-              getData: () => Buffer.from(entry.content),
-            }));
-          }
-        },
-      }));
+      respondWithZip(entries);
     };
 
     test('maps archive entries to config translation paths', async () => {
@@ -1361,7 +1210,7 @@ describe('DownloadCommand', () => {
       } as never);
       const buildProject = spyOn(apiClient.translationsApi, 'buildProject');
 
-      await expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
+      expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
         'File management is not available for string-based projects',
       );
       expect(buildProject).not.toHaveBeenCalled();
@@ -1396,15 +1245,7 @@ describe('DownloadCommand', () => {
         data: { id: buildId, status: 'finished', progress: 100 },
       } as never);
       spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/translations.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip'));
-      mock.module('adm-zip', () => ({
-        default: class {
-          constructor() {}
-          getEntries() {
-            return [];
-          }
-        },
-      }));
+      respondWithZip();
       const warningSpy = spyOn(output, 'warning');
 
       commandContext = createCommandContext({ ...globalOptions, skipUntranslatedFiles: true });
@@ -1424,7 +1265,7 @@ describe('DownloadCommand', () => {
       } as never);
       const listFiles = spyOn(apiClient.sourceFilesApi, 'listProjectFiles');
 
-      await expect(downloadCommand.sourcesAction(commandContext)).rejects.toThrow(
+      expect(downloadCommand.sourcesAction(commandContext)).rejects.toThrow(
         'File management is not available for string-based projects',
       );
       expect(listFiles).not.toHaveBeenCalled();
@@ -1538,16 +1379,7 @@ describe('DownloadCommand', () => {
       const downloadUrlSpy = spyOn(fileService, 'getReviewedSourcesDownloadUrl').mockResolvedValue(
         'https://example.test/reviewed.zip',
       );
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip-content'));
-      mock.module('adm-zip', () => ({
-        default: class {
-          constructor() {}
-          extractAllTo() {}
-          getEntries() {
-            return [];
-          }
-        },
-      }));
+      respondWithZip();
 
       commandContext = createCommandContext({ ...globalOptions, reviewed: true });
 
@@ -1836,26 +1668,10 @@ describe('DownloadCommand', () => {
       } as never);
       spyOn(fileService, 'buildReviewedSources').mockResolvedValue({ data: { id: 77 } } as never);
       spyOn(fileService, 'getReviewedSourcesDownloadUrl').mockResolvedValue('https://example.test/reviewed.zip');
-      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('zip-content'));
-      mock.module('adm-zip', () => ({
-        default: class {
-          constructor() {}
-          getEntries() {
-            return [
-              {
-                entryName: 'en-REV/resources/en/messages.json',
-                isDirectory: false,
-                getData: () => Buffer.from('reviewed content'),
-              },
-              {
-                entryName: 'en-REV/unrelated/other.json',
-                isDirectory: false,
-                getData: () => Buffer.from('noise'),
-              },
-            ];
-          }
-        },
-      }));
+      respondWithZip([
+        { entryName: 'en-REV/resources/en/messages.json', content: 'reviewed content' },
+        { entryName: 'en-REV/unrelated/other.json', content: 'noise' },
+      ]);
 
       commandContext = createCommandContext({ ...globalOptions, reviewed: true });
 

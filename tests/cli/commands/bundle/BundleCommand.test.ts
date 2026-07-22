@@ -308,7 +308,9 @@ describe('BundleCommand', () => {
     beforeEach(async () => {
       tempRoot = await mkdtemp(path.join(os.tmpdir(), 'bundle-download-'));
       config.basePath = tempRoot;
+
       spyOn(Bun, 'sleep').mockResolvedValue(undefined as never);
+
       bundleService.get.mockResolvedValue(createBundleView({ id: 5, name: 'app' }));
     });
 
@@ -320,6 +322,7 @@ describe('BundleCommand', () => {
       const textOutput = createOutput(textOptions());
       const warningSpy = spyOn(textOutput, 'warning');
       const cmd = createBundleCommand(textOutput);
+
       bundleService.get.mockResolvedValue(null);
 
       await cmd.downloadAction(createCommandContext(textOptions(), ['5']));
@@ -330,8 +333,8 @@ describe('BundleCommand', () => {
 
     test('builds, downloads and extracts the bundle, then removes the archive', async () => {
       mockArchive();
-      const cmd = createBundleCommand(createOutput(textOptions()));
 
+      const cmd = createBundleCommand(createOutput(textOptions()));
       await cmd.downloadAction(createCommandContext(textOptions(), ['5']));
 
       expect(bundleService.exportBundle).toHaveBeenCalledWith(5, expect.any(Function));
