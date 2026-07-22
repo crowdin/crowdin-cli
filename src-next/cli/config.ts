@@ -53,7 +53,7 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
       mapConfig(raw),
       envKeyLayer(raw),
       identity ?? {},
-      cliLayer(options),
+      cliLayer(options, isFilesTier(command)),
     ]);
 
     // Java resolves base_path relative to the config file's directory, expanding a leading `~`
@@ -137,8 +137,13 @@ async function needsConfigFile(
 // subcommand's ArgGroup: only filesConfigGroup carries --source, and only the project/files groups
 // carry --project-id (see cli/commands/common/options.ts), so this cannot drift from the tiers
 // declared there.
+//
+// The file-tier --source is a single string pattern (non-variadic, matching ConfigSchema.files[].source:
+// z.string()). bundle add/clone declare their own variadic --source (a pattern list) with the same
+// attribute name, which is NOT a file-override source — so key off the option's shape, not just its
+// name, otherwise bundle's array value crashes ConfigSchema at files[0].source.
 function isFilesTier(command: Command): boolean {
-  return hasOption(command, 'source');
+  return command.options.some((option) => option.attributeName() === 'source' && !option.variadic);
 }
 
 function requiresProjectId(command: Command): boolean {
@@ -277,7 +282,7 @@ async function firstExistingDefaultIdentityFile(): Promise<string | undefined> {
 
 // CLI flag overrides. Mirrors Java's PropertiesWithFilesBuilder: --source/--translation build a
 // single-file override, and --dest folds into that same file (also forcing preserve_hierarchy on).
-function cliLayer(options: GlobalOptions & ConfigOptions): Partial<Config> {
+function cliLayer(options: GlobalOptions & ConfigOptions, filesTier: boolean): Partial<Config> {
   const layer: Partial<Config> = {
     apiToken: options.token,
     basePath: options.basePath,
@@ -285,6 +290,12 @@ function cliLayer(options: GlobalOptions & ConfigOptions): Partial<Config> {
     projectId: options.projectId,
     preserveHierarchy: options.preserveHierarchy,
   };
+
+  // Only file-tier commands turn --source/--translation into a single-file override. Other commands
+  // (bundle add/clone) reuse those names for their own unrelated options, so leave their values alone.
+  if (!filesTier) {
+    return layer;
+  }
 
   if (options.source && options.translation) {
     layer.files = [

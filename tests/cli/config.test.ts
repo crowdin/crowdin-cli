@@ -39,12 +39,19 @@ describe('createGetConfig', () => {
     output: 'json',
   };
 
-  // `options` mirrors commander's own list: getConfig reads it to tell the config tier apart
-  // (--source marks the files tier, --project-id the project tier), so a bare fake is not enough.
-  const makeCommand = (options: Partial<GlobalOptions & ConfigOptions>, declared: string[] = []): Command =>
+  // `options` mirrors commander's own list: getConfig reads it to tell the config tier apart. The
+  // files tier is marked by a non-variadic --source (a single string pattern); a variadic --source
+  // (bundle add/clone's own pattern list) is NOT file-tier, so declared entries carry that shape.
+  const makeCommand = (
+    options: Partial<GlobalOptions & ConfigOptions>,
+    declared: Array<string | { name: string; variadic?: boolean }> = [],
+  ): Command =>
     ({
       optsWithGlobals: () => ({ ...globalOptions, config: configPath, ...options }),
-      options: declared.map((name) => ({ attributeName: () => name })),
+      options: declared.map((d) => {
+        const { name, variadic } = typeof d === 'string' ? { name: d, variadic: false } : d;
+        return { attributeName: () => name, variadic };
+      }),
     }) as unknown as Command;
 
   const getConfig = () => createGetConfig(() => output).getConfig;
@@ -206,14 +213,12 @@ describe('createGetConfig', () => {
   });
 
   test('throws NotFoundError when the identity file is missing', async () => {
-    await expect(getConfig()(makeCommand({ identity: join(tempDir, 'nope.yml') }))).rejects.toBeInstanceOf(
-      NotFoundError,
-    );
+    expect(getConfig()(makeCommand({ identity: join(tempDir, 'nope.yml') }))).rejects.toBeInstanceOf(NotFoundError);
   });
 
   test('--source and --translation build a single-file override', async () => {
     const config = await getConfig()(
-      makeCommand({ source: '/only/*.md', translation: '/tr/%two_letters_code%/%original_file_name%' }),
+      makeCommand({ source: '/only/*.md', translation: '/tr/%two_letters_code%/%original_file_name%' }, ['source']),
     );
 
     expect(config.files).toHaveLength(1);
@@ -221,13 +226,30 @@ describe('createGetConfig', () => {
     expect(config.files[0]?.translation).toBe('/tr/%two_letters_code%/%original_file_name%');
   });
 
+  // Regression: bundle add/clone declare their own variadic --source/--translation. cliLayer must not
+  // treat them as a file-override, otherwise the array value crashes ConfigSchema at files[0].source.
+  test('leaves a variadic --source/--translation (bundle) out of the files override', async () => {
+    const config = await getConfig()(
+      makeCommand({ source: ['**'] as unknown as string, translation: '%two_letters_code%' }, [
+        { name: 'source', variadic: true },
+        { name: 'translation', variadic: true },
+      ]),
+    );
+
+    // Falls back to the config file's files, untouched by the bundle options.
+    expect(config.files[0]?.source).toBe('/src/**/*.json');
+  });
+
   test('--dest folds into the single-file override and forces preserve_hierarchy', async () => {
     const config = await getConfig()(
-      makeCommand({
-        source: '/only/*.md',
-        translation: '/tr/%two_letters_code%/%original_file_name%',
-        dest: '/dest',
-      }),
+      makeCommand(
+        {
+          source: '/only/*.md',
+          translation: '/tr/%two_letters_code%/%original_file_name%',
+          dest: '/dest',
+        },
+        ['source'],
+      ),
     );
 
     expect(config.preserveHierarchy).toBe(true);
@@ -235,17 +257,19 @@ describe('createGetConfig', () => {
   });
 
   test('throws when only one of --source/--translation is given', async () => {
-    await expect(getConfig()(makeCommand({ source: '/only/*.md' }))).rejects.toBeInstanceOf(InvalidConfigurationError);
+    expect(getConfig()(makeCommand({ source: '/only/*.md' }, ['source']))).rejects.toBeInstanceOf(
+      InvalidConfigurationError,
+    );
   });
 
   test('throws when --dest is given without --source and --translation', async () => {
-    await expect(getConfig()(makeCommand({ dest: '/dest' }))).rejects.toBeInstanceOf(InvalidConfigurationError);
+    expect(getConfig()(makeCommand({ dest: '/dest' }, ['source']))).rejects.toBeInstanceOf(InvalidConfigurationError);
   });
 
   test('rejects an invalid merged config with an InvalidConfigurationError', async () => {
     // A base_url override off the crowdin.com host fails ConfigSchema; assembleConfig must
     // surface it as an InvalidConfigurationError (exit 2).
-    await expect(getConfig()(makeCommand({ baseUrl: 'https://evil.example.com' }))).rejects.toBeInstanceOf(
+    expect(getConfig()(makeCommand({ baseUrl: 'https://evil.example.com' }))).rejects.toBeInstanceOf(
       InvalidConfigurationError,
     );
   });
@@ -293,11 +317,13 @@ describe('createGetConfig', () => {
         '',
       ].join('\n'),
     );
+
     process.env.MY_PROJECT = '777';
     process.env.MY_TOKEN = ALT_TOKEN;
 
     try {
       const config = await getConfig()(makeCommand({}));
+
       expect(config.projectId).toBe(777);
       expect(config.apiToken).toBe(ALT_TOKEN);
     } finally {
@@ -319,6 +345,7 @@ describe('createGetConfig', () => {
         '',
       ].join('\n'),
     );
+
     process.env.MY_PROJECT = '888';
 
     try {
@@ -468,7 +495,7 @@ describe('createGetConfig', () => {
       ].join('\n'),
     );
 
-    await expect(getConfig()(makeCommand({}))).rejects.toBeInstanceOf(InvalidConfigurationError);
+    expect(getConfig()(makeCommand({}))).rejects.toBeInstanceOf(InvalidConfigurationError);
   });
 
   test('rejects a file that sets both skip_untranslated_strings and skip_untranslated_files', async () => {
@@ -486,7 +513,7 @@ describe('createGetConfig', () => {
       ].join('\n'),
     );
 
-    await expect(getConfig()(makeCommand({}))).rejects.toThrow(
+    expect(getConfig()(makeCommand({}))).rejects.toThrow(
       'You cannot skip strings and files at the same time. Please use one of these parameters instead.',
     );
   });
