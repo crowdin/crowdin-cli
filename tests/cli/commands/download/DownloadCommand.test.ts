@@ -1,8 +1,9 @@
-import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { afterAll, afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { Client, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
+import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import DownloadCommand from '@/cli/commands/download/DownloadCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -88,6 +89,12 @@ describe('DownloadCommand', () => {
   afterEach(async () => {
     mock.restore();
     await rm(tempDir, { recursive: true, force: true });
+  });
+
+  // mock.restore() does not undo mock.module(), so re-point 'adm-zip' at the
+  // real implementation to avoid leaking the stub into other test files.
+  afterAll(() => {
+    mock.module('adm-zip', () => ({ default: AdmZip }));
   });
 
   const createDownloadCommand = (configOverrides: Partial<Config> = {}) => {
