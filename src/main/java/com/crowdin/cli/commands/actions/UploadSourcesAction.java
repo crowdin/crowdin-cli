@@ -399,7 +399,10 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
                                 }
                             };
                         } else if (isStringsBasedProject) {
-                            if (this.wasNotChanged(out, pb, sourceHashes, source)) {
+                            if (this.isSourceHashUnchanged(sourceHashes, source)) {
+                                if (!plainView) {
+                                    out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped_cached"), StringUtils.removeStart(source, pb.getBasePath()))));
+                                }
                                 return (Runnable) () -> { };
                             }
 
@@ -517,16 +520,6 @@ class UploadSourcesAction implements NewAction<PropertiesWithFiles, ProjectClien
             } catch (Exception e) {
                 OutputUtil.fancyErr(e, System.err, debug);
             }
-        }
-        return false;
-    }
-
-    private boolean wasNotChanged(Outputter out, PropertiesWithFiles pb, Map<String, String> sourceHashes, String source) {
-        if (isSourceHashUnchanged(sourceHashes, source)) {
-            if (!plainView) {
-                out.println(SKIPPED.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file_skipped_cached"), StringUtils.removeStart(source, pb.getBasePath()))));
-            }
-            return true;
         }
         return false;
     }
