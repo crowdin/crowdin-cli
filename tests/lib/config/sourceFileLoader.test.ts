@@ -65,6 +65,41 @@ describe('SourceFileLoader', () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
+  describe('expandFilePlaceholders', () => {
+    test('passes through patterns without file placeholders', () => {
+      const loader = new SourceFileLoader(buildConfig(tempDir, {}));
+
+      expect(loader.expandFilePlaceholders(['**/skip.json'], ['a/app.json'])).toEqual(['**/skip.json']);
+    });
+
+    test('expands each file placeholder per source file', () => {
+      const loader = new SourceFileLoader(buildConfig(tempDir, {}));
+
+      expect(
+        loader
+          .expandFilePlaceholders(
+            ['%original_path%/%file_name%.%file_extension%', '**/%original_file_name%'],
+            ['res/values/strings.xml'],
+          )
+          .sort(),
+      ).toEqual(['**/strings.xml', 'res/values/strings.xml']);
+    });
+
+    test('resolves %original_path% to empty for top-level files', () => {
+      const loader = new SourceFileLoader(buildConfig(tempDir, {}));
+
+      expect(loader.expandFilePlaceholders(['%original_path%/skip-%file_name%.json'], ['app.json'])).toEqual([
+        '/skip-app.json',
+      ]);
+    });
+
+    test('drops file-placeholder patterns when there are no source files', () => {
+      const loader = new SourceFileLoader(buildConfig(tempDir, {}));
+
+      expect(loader.expandFilePlaceholders(['**/%file_name%.bak'], [])).toEqual([]);
+    });
+  });
+
   test('excludes hidden files by default (ignore_hidden_files)', async () => {
     await Bun.write(`${tempDir}/app.json`, '{}');
     await Bun.write(`${tempDir}/.hidden.json`, '{}');
@@ -109,6 +144,32 @@ describe('SourceFileLoader', () => {
     const loader = new SourceFileLoader(buildConfig(tempDir, { ignore: ['vendor'] }));
 
     expect(loader.getFilePaths()).toEqual(['app.json']);
+  });
+
+  test('excludes files matching an ignore pattern with file placeholders', async () => {
+    // Java parity: file placeholders resolve per scanned source file (the pre-filter list), so
+    // every file under backup/ names itself into the expanded ignore set and is excluded.
+    await Bun.write(`${tempDir}/strings.xml`, '<x/>');
+    await Bun.write(`${tempDir}/backup/strings.xml`, '<x/>');
+    await Bun.write(`${tempDir}/backup/other.xml`, '<x/>');
+
+    const loader = new SourceFileLoader(buildConfig(tempDir, {}));
+
+    expect(loader.getFilePathsForPattern('/**/*.xml', ['backup/%original_file_name%'])).toEqual(['strings.xml']);
+  });
+
+  test('combines language and file placeholders in one ignore pattern', async () => {
+    await Bun.write(`${tempDir}/strings.xml`, '<x/>');
+    await Bun.write(`${tempDir}/uk_strings.xml`, '<x/>');
+
+    const loader = new SourceFileLoader(buildConfig(tempDir, {}));
+    const ukrainian = { id: 'uk', twoLettersCode: 'uk' } as LanguagesModel.Language;
+
+    expect(
+      loader.getFilePathsForPattern('/**/*.xml', ['%two_letters_code%_%file_name%.%file_extension%'], {
+        languages: [ukrainian],
+      }),
+    ).toEqual(['strings.xml']);
   });
 
   test('expands a language placeholder in an ignore pattern using a mapped locale', async () => {

@@ -4,6 +4,7 @@ import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-c
 import { Glob } from 'bun';
 import type { Config } from '../config.ts';
 import { expandIgnorePatterns } from '../export/languagePlaceholders.ts';
+import { fileExtension, fileName, filePatterns, originalFileName, originalPath } from '../export/patterns.ts';
 import { toPosixPath } from '../utils/path.ts';
 
 export interface IgnoreLanguageContext {
@@ -67,7 +68,7 @@ export default class SourceFileLoader {
       }),
     ).map(toPosixPath);
 
-    const resolvedIgnore = languageContext
+    const languageResolvedIgnore = languageContext
       ? expandIgnorePatterns(
           ignore ?? [],
           languageContext.languages,
@@ -75,6 +76,7 @@ export default class SourceFileLoader {
           languageContext.fileLanguageMapping,
         )
       : (ignore ?? []);
+    const resolvedIgnore = this.expandFilePlaceholders(languageResolvedIgnore, files);
     const ignoreMatchers = this.buildIgnoreMatchers(resolvedIgnore);
 
     const filtered =
@@ -83,6 +85,36 @@ export default class SourceFileLoader {
         : files.filter((filePath) => !ignoreMatchers.some((matcher) => matcher.match(filePath)));
 
     return filtered.sort();
+  }
+
+  /**
+   * Expands `ignore` patterns containing file placeholders into one literal pattern per scanned
+   * source file, mirroring the sources flatMap in Java's PlaceholderUtil.format: %file_name%,
+   * %file_extension%, %original_file_name% and %original_path% resolve from each source file's
+   * path. Patterns without a file placeholder pass through unchanged.
+   */
+  expandFilePlaceholders(patterns: string[], files: string[]): string[] {
+    const expanded = new Set<string>();
+
+    for (const pattern of patterns) {
+      if (!filePatterns.some((placeholder) => pattern.includes(placeholder))) {
+        expanded.add(pattern);
+        continue;
+      }
+
+      for (const file of files) {
+        const parsed = path.posix.parse(file);
+        expanded.add(
+          pattern
+            .replaceAll(originalFileName, parsed.base)
+            .replaceAll(fileName, parsed.name)
+            .replaceAll(fileExtension, parsed.ext.slice(1))
+            .replaceAll(originalPath, parsed.dir),
+        );
+      }
+    }
+
+    return [...expanded];
   }
 
   /**
