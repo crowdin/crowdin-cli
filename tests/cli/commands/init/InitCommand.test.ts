@@ -193,4 +193,63 @@ describe('InitCommand', () => {
     expect(config).not.toBe('existing config');
     expect(config).toContain('"project_id": "321"');
   });
+
+  test('reuses saved token when confirmed', async () => {
+    const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
+    const destination = 'crowdin.saved.yml';
+
+    // @ts-expect-error
+    command.readSavedToken = async () => 's'.repeat(80);
+    // @ts-expect-error
+    command.confirmUseSavedToken = async () => true;
+    // @ts-expect-error
+    command.authorizeViaBrowser = async () => {
+      throw new Error('authorizeViaBrowser should not be called when a saved token is reused');
+    };
+    // @ts-expect-error
+    command.getToken = async () => {
+      throw new Error('getToken should not be called when a saved token is reused');
+    };
+    // @ts-expect-error
+    command.isEnterprise = async () => false;
+    // @ts-expect-error
+    command.getAuthorizedUser = async () => ({ data: { id: 1 } });
+    // @ts-expect-error
+    command.selectProject = async () => ({ data: { id: 555 } });
+    // @ts-expect-error
+    command.writeApiToken = async () => true;
+
+    const commandContext = {
+      optsWithGlobals: () => ({
+        ...globalOptions,
+        destination,
+        projectId: 555,
+        basePath: '.',
+        baseUrl: 'https://api.crowdin.com',
+        source: '/src-next/**/*.json',
+        translation: '/locale/%locale%/%original_file_name%',
+        preserveHierarchy: false,
+      }),
+    } as Command;
+
+    await command.defaultAction(commandContext);
+
+    const config = await Bun.file(join(tempDir, destination)).text();
+
+    expect(config).toContain('"project_id": "555"');
+  });
+
+  test('fails when no projects with manager access exist', async () => {
+    const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
+    const apiClient = {
+      projectsGroupsApi: {
+        withFetchAll: () => ({ listProjects: async () => ({ data: [] }) }),
+      },
+    };
+
+    // @ts-expect-error - exercising the private selectProject with a stub client
+    const promise = command.selectProject(apiClient, { ...globalOptions }, createOutput(globalOptions));
+
+    await expect(promise).rejects.toThrow('No projects with manager access found');
+  });
 });

@@ -1,8 +1,7 @@
 import path from 'node:path';
-import { confirm, isCancel, password, select, text } from '@clack/prompts';
+import { autocomplete, confirm, isCancel, password, text } from '@clack/prompts';
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
-import { decodeJwt } from 'jose';
 import { dump as dumpYaml, load as loadYaml } from 'js-yaml';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
@@ -18,11 +17,8 @@ import patterns from '@/lib/export/patterns.ts';
 import { DEFAULT_IDENTITY_FILE, getIdentityFilePath } from '@/lib/identityFiles.ts';
 import { getOrganization } from '@/lib/organization/credentials.ts';
 import { basePath, baseUrl, noPreserveHierarchy, projectId, source, token, translation } from '../common/options.ts';
+import { getAuthorizationUrl, startBrowserAuthorization } from './browserAuthServer.ts';
 import { destination, quiet } from './options.ts';
-
-const CROWDIN_OAUTH_CLIENT_ID = 'wQEqvhU3vLOa2XicmUyT';
-const CROWDIN_OAUTH_HOST = 'localhost';
-const CROWDIN_OAUTH_PORT = 46221;
 
 interface InitCommandOptions extends GlobalOptions {
   destination: string;
@@ -103,6 +99,14 @@ export default class InitCommand {
     let domain: string | undefined = options.baseUrl ? getOrganization(options.baseUrl) : undefined;
 
     if (apiToken === undefined) {
+      const savedToken = await this.readSavedToken();
+
+      if (savedToken !== undefined && (await this.confirmUseSavedToken(output))) {
+        apiToken = savedToken;
+      }
+    }
+
+    if (apiToken === undefined) {
       const authorization = await this.authorizeViaBrowser(output);
       apiToken = authorization?.accessToken ?? undefined;
       domain = authorization?.domain ?? undefined;
@@ -162,6 +166,30 @@ export default class InitCommand {
     return apiToken;
   }
 
+  private async readSavedToken(): Promise<string | undefined> {
+    const apiTokenFilePath = getIdentityFilePath(DEFAULT_IDENTITY_FILE);
+
+    try {
+      if (!(await Bun.file(apiTokenFilePath).exists())) {
+        return undefined;
+      }
+
+      const existing = (loadYaml(await Bun.file(apiTokenFilePath).text()) as Record<string, unknown>) ?? {};
+      const savedToken = existing.api_token;
+
+      return typeof savedToken === 'string' && savedToken.length > 0 ? savedToken : undefined;
+    } catch {
+      return undefined;
+    }
+  }
+
+  private async confirmUseSavedToken(output: Output): Promise<boolean> {
+    const useSaved = await confirm({ message: `Use the API token saved in '${DEFAULT_IDENTITY_FILE}'?` });
+    this.cancelHandler(useSaved, output);
+
+    return useSaved as boolean;
+  }
+
   private async authorizeViaBrowser(output: Output) {
     const confirmation = await confirm({ message: 'Authorize via browser?' });
     this.cancelHandler(confirmation, output);
@@ -170,56 +198,14 @@ export default class InitCommand {
       return null;
     }
 
-    const authorizationUrl =
-      `https://accounts.crowdin.com/oauth/authorize?` +
-      `client_id=${CROWDIN_OAUTH_CLIENT_ID}&` +
-      `redirect_uri=http://${CROWDIN_OAUTH_HOST}:${CROWDIN_OAUTH_PORT}/callback&` +
-      `response_type=token&` +
-      `scope=project`;
+    const authorizationUrl = getAuthorizationUrl();
+    const authorization = startBrowserAuthorization();
 
-    return new Promise<{ accessToken: string; domain: string | null }>((resolve, reject) => {
-      const server = Bun.serve({
-        port: CROWDIN_OAUTH_PORT,
-        hostname: CROWDIN_OAUTH_HOST,
-        fetch(req) {
-          const url = new URL(req.url);
+    if (!openUrl(authorizationUrl)) {
+      output.warning(`Error opening a web browser. Please open the following link manually:\n${authorizationUrl}`);
+    }
 
-          if (url.pathname === '/callback') {
-            const params = url.searchParams;
-            const accessToken = params.get('access_token');
-            const error = params.get('error');
-
-            server.stop();
-
-            if (accessToken) {
-              const payload = decodeJwt(accessToken);
-              const domain = typeof payload.domain === 'string' ? payload.domain : null;
-
-              resolve({ accessToken, domain });
-              return new Response(
-                '<h1 style="text-align: center">You have successfully authenticated.</h1>' +
-                  '<p style="text-align: center;">You may now close this page.</p>',
-                { headers: { 'Content-Type': 'text/html' } },
-              );
-            }
-
-            reject(new Error(error || 'Unknown error'));
-            return new Response(`<h1 style="text-align: center">Error: ${error}</h1>`, {
-              headers: { 'Content-Type': 'text/html' },
-            });
-          }
-
-          return new Response('<h1 style="text-align: center">404 Not Found!</h1>', {
-            status: 404,
-            headers: { 'Content-Type': 'text/html' },
-          });
-        },
-      });
-
-      if (!openUrl(authorizationUrl)) {
-        output.warning(`Error opening a web browser. Please open the following link manually:\n${authorizationUrl}`);
-      }
-    });
+    return authorization;
   }
 
   private async isEnterprise(output: Output) {
@@ -259,11 +245,18 @@ export default class InitCommand {
 
     if (projectId === null) {
       const projects = await apiClient.projectsGroupsApi.withFetchAll().listProjects({ hasManagerAccess: 1 });
-      projectId = (await select({
+
+      if (projects.data.length === 0) {
+        throw new CliError('No projects with manager access found. Create a project in Crowdin first.', 1, true);
+      }
+
+      projectId = (await autocomplete({
         message: 'Select project:',
+        placeholder: 'Type to search...',
         options: projects.data.map((project) => ({
-          label: project.data.name,
           value: project.data.id,
+          label: project.data.name,
+          hint: `#${project.data.id}`,
         })),
         maxItems: 10,
       })) as number;
