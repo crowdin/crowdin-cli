@@ -200,6 +200,15 @@ The deprecated <kbd>--export-mode</kbd> and <kbd>--file</kbd> options were remov
 +crowdin distribution add "My Distribution" --bundle-id 12
 ```
 
+### `context download`
+
+The <kbd>--format</kbd> option was removed. It only ever accepted `jsonl`, which is now the sole format, so the flag was redundant - drop it:
+
+```diff
+-crowdin context download --format jsonl
++crowdin context download
+```
+
 ## Summary
 
 Crowdin CLI 5.0 is the same tool you know, rebuilt on a modern foundation: it starts instantly, runs anywhere without Java, and speaks JSON and TOON for your scripts and AI agents - all while keeping the command tree, `crowdin.yml`, and exit codes you rely on. Skim the breaking changes above, adjust your scripts where needed, and enjoy the fastest Crowdin CLI yet.
