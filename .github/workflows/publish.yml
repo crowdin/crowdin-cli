@@ -183,20 +183,30 @@ jobs:
           ssh_keyscan_types: rsa,ecdsa,ed25519
 
   homebrew:
+    # Bumps the crowdin@5 formula in the crowdin/homebrew-crowdin tap. Disabled for now; to enable, replace `if: false`
+    # with the same wiring as chocolatey:
+    #   if: >-
+    #     ${{ !cancelled() && github.ref == 'refs/heads/next' &&
+    #         (github.event.inputs.package == 'homebrew' ||
+    #          (github.event.inputs.package == 'all' && needs.assets.result == 'success')) }}
     runs-on: ubuntu-latest
-    if: false # disabled until adapted for v5
     needs: assets
+    if: false # disabled until the crowdin@5 formula is published to the tap
     steps:
       - uses: actions/checkout@v6
+
+      - name: Read version
+        id: version
+        uses: ./.github/actions/read-version
 
       - name: Invoke workflow in the homebrew-crowdin repo
         uses: benc-uk/workflow-dispatch@v1
         with:
-          workflow: publish.yml
+          workflow: publish-v5.yml
           repo: crowdin/homebrew-crowdin
           ref: refs/heads/master
           token: ${{ secrets.GH_HOMEBREW_TOKEN }}
-          inputs: '{ "version": "${{ github.ref_name }}" }'
+          inputs: '{ "version": "${{ steps.version.outputs.version }}" }'
 
   chocolatey:
     # Publishes the v5 prerelease (`choco install crowdin-cli --pre`) to the Chocolatey
@@ -240,7 +250,9 @@ jobs:
           Get-Content $install
 
       - name: Choco pack
-        run: choco pack packages/chocolatey/crowdin-cli.nuspec --outputdirectory packages/chocolatey
+        uses: crazy-max/ghaction-chocolatey@v4
+        with:
+          args: pack packages/chocolatey/crowdin-cli.nuspec --outputdirectory packages/chocolatey
 
       - name: Smoke test package
         env:
@@ -252,10 +264,9 @@ jobs:
           if ("$out" -ne $env:VERSION) { exit 1 }
 
       - name: Choco push
-        env:
-          CHOCOLATEY_API_KEY: ${{ secrets.CHOCOLATEY_API_KEY }}
-          VERSION: ${{ steps.version.outputs.version }}
-        run: choco push "packages/chocolatey/crowdin-cli.$env:VERSION.nupkg" --api-key $env:CHOCOLATEY_API_KEY --source https://push.chocolatey.org/
+        uses: crazy-max/ghaction-chocolatey@v4
+        with:
+          args: push packages/chocolatey/crowdin-cli.${{ steps.version.outputs.version }}.nupkg --api-key ${{ secrets.CHOCOLATEY_API_KEY }} --source=https://push.chocolatey.org/
 
   docker:
     # Builds the standalone binaries and pushes the multi-arch image to Docker Hub as
