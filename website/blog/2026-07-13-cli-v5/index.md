@@ -200,6 +200,21 @@ The deprecated <kbd>--export-mode</kbd> and <kbd>--file</kbd> options were remov
 +crowdin distribution add "My Distribution" --bundle-id 12
 ```
 
+### `bundle add`: options renamed
+
+The pattern options were renamed to avoid clashing with the global config options and to match the underlying API fields:
+
+| Removed         | Use instead        |
+|-----------------|--------------------|
+| <kbd>--source</kbd>      | <kbd>--source-pattern</kbd>  |
+| <kbd>--ignore</kbd>      | <kbd>--ignore-pattern</kbd>  |
+| <kbd>--translation</kbd> | <kbd>--export-pattern</kbd>  |
+
+```diff
+-crowdin bundle add "My Bundle" --format json --source "**/*.json" --ignore "node_modules/**" --translation "%locale%/%file_name%"
++crowdin bundle add "My Bundle" --format json --source-pattern "**/*.json" --ignore-pattern "node_modules/**" --export-pattern "%locale%/%file_name%"
+```
+
 ### `context download`
 
 The <kbd>--format</kbd> option was removed. It only ever accepted `jsonl`, which is now the sole format, so the flag was redundant - drop it:
