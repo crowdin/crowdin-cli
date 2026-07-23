@@ -9,9 +9,9 @@ tags: [release]
 
 Today we are happy to announce Crowdin CLI **5.0**! 🚀
 
-This is the biggest change in the tool's history: the CLI has been rewritten from the ground up - from Java to TypeScript, powered by [Bun](https://bun.sh). The result is a dramatically faster, lighter tool built on a modern, industry-standard toolchain - one that lets us move faster and opens the door to capabilities that weren't practical before.
+This is the biggest change in the tool's history: a complete rewrite - from Java to TypeScript, powered by [Bun](https://bun.sh). The new CLI is dramatically faster and lighter, built on a modern toolchain that lets us ship improvements faster and unlocks capabilities that weren't practical before.
 
-The good news for existing users: the command tree, the `crowdin.yml` configuration file, and the exit codes stay the same. Most workflows carry over unchanged, and the few breaking changes are listed below to make your migration easy.
+For existing users, the essentials don't move: the command tree, the `crowdin.yml` configuration file, and the exit codes stay the same. Most workflows carry over unchanged, and the few breaking changes are listed below to make migration easy.
 
 <!--truncate-->
 
@@ -38,13 +38,17 @@ Crowdin CLI 4.x was a Java application: a 7 MB jar that needed a few hundred meg
 
 The interactive parts of the CLI got a complete facelift: clean select menus, spinners, and graceful cancellation everywhere. `crowdin init` walks you from browser authorization through project selection to a ready `crowdin.yml` in under a minute.
 
-### Output built for scripts and AI agents
+### Built for AI agents
 
-The new global <kbd>-o, --output</kbd> option changes the output format of any command. Two of the three formats are entirely new:
+CLIs have a new audience. Increasingly, the one typing the command isn't a person but an AI agent - a coding assistant wiring localization into a project, or an automated workflow keeping translations in sync. Agents are heavy CLI users, and they need different things than humans do: deterministic, machine-readable output instead of tables and spinners, and compact responses - every character an agent reads consumes its context window and costs tokens.
+
+Crowdin CLI 5.0 treats agents as first-class users. The new global <kbd>-o, --output</kbd> option changes the output format of any command, and two of the three formats are entirely new:
 
 - `json` - finally, machine-readable output. Pipe `crowdin file list -o json` into `jq` or consume it from any script. Previously, the CLI could only produce human-oriented text.
 - `toon` - [Token-Oriented Object Notation](https://github.com/toon-format/toon): the same data as JSON in a fraction of the size. Perfect when the consumer of your CLI output is an AI agent or an LLM workflow, where every token counts.
 - `plain` - minimal, processable text output (replaces the old <kbd>--plain</kbd> flag).
+
+In `json` and `toon` modes, the CLI gets out of the way: no spinners, no colors, no decorative messages - stdout carries nothing but data.
 
 Here is the same command in `json` and `toon`:
 
@@ -77,9 +81,13 @@ $ crowdin file list --output toon
   16,src/locales/en.json,json,1,5
 ```
 
+<!-- TODO: mention the new AI skill -->
+
 :::tip
 The TOON version is about **60% smaller** in characters and even cheaper in LLM tokens.
 :::
+
+Pair that with millisecond startup and stable exit codes, and you get a tool an agent can call dozens of times in a row - cheaply, quickly, and predictably.
 
 ### More control over auto-translation
 
@@ -105,23 +113,19 @@ echo 'source <(crowdin complete zsh)' >> ~/.zshrc
 
 See the [Autocompletion](/autocompletion) page for the other shells and setup options.
 
-### Smarter update notifications
-
-The CLI used to check for a new version on every run. Now the check happens at most once a day, compares versions properly, and never slows down or fails your command - network hiccups are silently ignored.
-
 ## Installation
 
-<!-- TODO: confirm the final installation channels before publishing -->
+The quickest way to install Crowdin CLI 5.0:
 
 ```bash
 npm install -g @crowdin/cli
 ```
 
-The npm package ships with everything it needs - there is no runtime to install first. Not using npm? Grab the standalone binary for your platform from the [GitHub release](https://github.com/crowdin/crowdin-cli/releases) instead.
-
-See the [Installation](/installation) page for the full list of methods.
+It's also available via Homebrew, WinGet, Chocolatey, Docker, and the Linux package repositories, plus a standalone binary for macOS, Linux, and Windows. See the [Installation](/installation) page for every option.
 
 ## Breaking changes
+
+There are only a handful of breaking changes, and each one is easy to deal with - mostly a renamed command or option with a clear one-line fix. Every case below comes with a before/after example, so migrating is usually a quick find-and-replace in your scripts.
 
 ### `pre-translate` is now `auto-translate`
 
@@ -146,7 +150,7 @@ The <kbd>--translate-untranslated-only</kbd> option (deprecated on the API side)
 
 ### `--plain` is now `--output plain`
 
-The standalone <kbd>--plain</kbd> flag is gone; use the global <kbd>--output</kbd> option instead. The <kbd>--tree</kbd> flag is unchanged.
+The standalone <kbd>--plain</kbd> flag is gone; use the global <kbd>--output</kbd> option instead:
 
 ```diff
 -crowdin status --plain
@@ -187,10 +191,6 @@ The cache used by `upload sources --cache` (`.crowdin/cache.json`) is now resolv
 
 Previously, only files whose own name starts with a dot were ignored - files inside a hidden directory (for example, `.github/config.json`) were still uploaded. Now entire dot-directories are skipped. If you rely on uploading files from hidden directories, set `ignore_hidden_files: false` in your configuration.
 
-### `config sources`
-
-The <kbd>--branch</kbd> option was removed from the `crowdin config sources` command - it had no effect.
-
 ### `distribution add` and `distribution edit`
 
 The deprecated <kbd>--export-mode</kbd> and <kbd>--file</kbd> options were removed - use <kbd>--bundle-id</kbd> instead. The <kbd>--branch</kbd> option was dropped as well.
@@ -224,10 +224,14 @@ The <kbd>--format</kbd> option was removed. It only ever accepted `jsonl`, which
 +crowdin context download
 ```
 
+### `config sources`
+
+The <kbd>--branch</kbd> option was removed from the `crowdin config sources` command - it had no effect.
+
 ## Summary
 
-Crowdin CLI 5.0 is the same tool you know, rebuilt on a modern foundation: it starts instantly, runs anywhere without Java, and speaks JSON and TOON for your scripts and AI agents - all while keeping the command tree, `crowdin.yml`, and exit codes you rely on. Skim the breaking changes above, adjust your scripts where needed, and enjoy the fastest Crowdin CLI yet.
+The rewrite is a beginning, not a finish line: with the new foundation in place, there is a lot more on the way. In the meantime - upgrade, run your usual workflows, and tell us how it goes. Early feedback is what turns a big release into a great one.
 
 :::tip
-Need help or have questions? [Let's discuss it](https://github.com/crowdin/crowdin-cli/discussions)!
+Need help or have questions? [Let's discuss it](https://github.com/crowdin/crowdin-cli/discussions/1043)!
 :::
