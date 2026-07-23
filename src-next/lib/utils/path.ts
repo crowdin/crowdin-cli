@@ -33,6 +33,7 @@ export function stripBranchPrefix(projectPath: string, branchName?: string): str
 
   const absolutePath = toProjectPath(projectPath);
   const prefix = `/${branchName}/`;
+
   return absolutePath.startsWith(prefix) ? absolutePath.slice(prefix.length - 1) : absolutePath;
 }
 

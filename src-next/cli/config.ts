@@ -1,10 +1,10 @@
 import { statSync } from 'node:fs';
-import os from 'node:os';
 import path from 'node:path';
 import type { Command } from 'commander';
 import { load as loadYaml } from 'js-yaml';
 import { z } from 'zod';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
+import { expandTilde } from '@/cli/utils/localPath.ts';
 import InvalidConfigurationError from '@/lib/config/errors/InvalidConfigurationError.ts';
 import { loadRawFromFile, mapConfig } from '@/lib/config/yamlLoader.ts';
 import { assertProjectConfigured, type Config, ConfigSchema, type ProjectConfig } from '@/lib/config.ts';
@@ -171,9 +171,7 @@ async function resolveConfigPath(explicit: string | undefined): Promise<string> 
 }
 
 function resolveBasePath(basePath: string, configPath: string): string {
-  const expanded = basePath.startsWith('~') ? os.homedir() + basePath.slice(1) : basePath;
-
-  return path.resolve(path.dirname(configPath), expanded);
+  return path.resolve(path.dirname(configPath), expandTilde(basePath));
 }
 
 // Folds credential/config layers lowest-priority-first into a single validated Config.

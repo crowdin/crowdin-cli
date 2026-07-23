@@ -1,4 +1,4 @@
-import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import os from 'node:os';
 import { join, resolve } from 'node:path';
@@ -72,6 +72,8 @@ describe('createGetConfig', () => {
   });
 
   afterEach(async () => {
+    // Restore spies (notably os.homedir) so they don't leak a deleted temp path into other test files.
+    mock.restore();
     await rm(tempDir, { recursive: true, force: true });
   });
 

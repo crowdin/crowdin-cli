@@ -11,6 +11,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
+import { expandTilde } from '@/cli/utils/localPath.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
@@ -356,11 +357,12 @@ export default class InitCommand {
 
     this.cancelHandler(projectDirectory, output);
 
+    // Stored as typed; config loading expands '~' when the config is later read (see resolveBasePath).
     return projectDirectory;
   }
 
   private validateProjectDirectory(value: string): string | undefined {
-    const absolutePath = path.resolve(value);
+    const absolutePath = path.resolve(expandTilde(value));
     return existsSync(absolutePath) ? undefined : `Path '${absolutePath}' doesn't exist`;
   }
 
