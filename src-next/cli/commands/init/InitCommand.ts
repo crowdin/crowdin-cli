@@ -106,13 +106,19 @@ export default class InitCommand {
       }
     }
 
+    let authorizedViaBrowser = false;
+
     if (apiToken === undefined) {
       const authorization = await this.authorizeViaBrowser(output);
-      apiToken = authorization?.accessToken ?? undefined;
-      domain = authorization?.domain ?? undefined;
+
+      if (authorization) {
+        authorizedViaBrowser = true;
+        apiToken = authorization.accessToken;
+        domain = authorization.domain ?? undefined;
+      }
     }
 
-    if (domain === undefined && (await this.isEnterprise(output))) {
+    if (!authorizedViaBrowser && domain === undefined && (await this.isEnterprise(output))) {
       domain = await this.getEnterpriseDomain(output);
     }
 
@@ -205,7 +211,17 @@ export default class InitCommand {
       output.warning(`Error opening a web browser. Please open the following link manually:\n${authorizationUrl}`);
     }
 
-    return authorization;
+    output.spinner('browserAuth', 'start', 'Waiting for authorization in browser...');
+
+    try {
+      const result = await authorization;
+      output.spinner('browserAuth', 'stop', 'Browser authorization finished successfully');
+
+      return result;
+    } catch (error) {
+      output.spinner('browserAuth', 'error', 'Browser authorization failed');
+      throw error;
+    }
   }
 
   private async isEnterprise(output: Output) {
@@ -231,7 +247,7 @@ export default class InitCommand {
     try {
       const user = await apiClient.usersApi.getAuthenticatedUser();
 
-      output.spinner('authorization', 'stop', 'Authorized successfully');
+      output.spinner('authorization', 'stop', `Authorized as ${user.data.username}`);
 
       return user;
     } catch (error) {

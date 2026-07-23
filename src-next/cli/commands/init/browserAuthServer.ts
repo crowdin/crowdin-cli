@@ -4,6 +4,7 @@ import CliError from '@/cli/errors/CliError.ts';
 const CROWDIN_OAUTH_CLIENT_ID = 'wQEqvhU3vLOa2XicmUyT';
 const CROWDIN_OAUTH_HOST = 'localhost';
 const CROWDIN_OAUTH_PORT = 46221;
+const AUTHORIZATION_TIMEOUT_MS = 2 * 60 * 1000; // 2 minutes
 
 export interface BrowserAuthorization {
   accessToken: string;
@@ -22,9 +23,10 @@ export function getAuthorizationUrl(): string {
 
 // Spins up a throwaway localhost server and resolves once the browser redirects back to /callback
 // with an access token. The caller opens the OAuth page (getAuthorizationUrl). Stops after one callback.
-export function startBrowserAuthorization(): Promise<BrowserAuthorization> {
+export function startBrowserAuthorization(timeoutMs = AUTHORIZATION_TIMEOUT_MS): Promise<BrowserAuthorization> {
   return new Promise<BrowserAuthorization>((resolve, reject) => {
     let server: ReturnType<typeof Bun.serve>;
+    let timeout: ReturnType<typeof setTimeout>;
 
     try {
       server = Bun.serve({
@@ -38,6 +40,7 @@ export function startBrowserAuthorization(): Promise<BrowserAuthorization> {
             const accessToken = params.get('access_token');
             const error = params.get('error');
 
+            clearTimeout(timeout);
             server.stop();
 
             if (accessToken) {
@@ -75,6 +78,17 @@ export function startBrowserAuthorization(): Promise<BrowserAuthorization> {
       );
       return;
     }
+
+    timeout = setTimeout(() => {
+      server.stop();
+      reject(
+        new CliError(
+          'Timed out waiting for browser authorization. Re-run with --token to paste an API token instead.',
+          1,
+          true,
+        ),
+      );
+    }, timeoutMs);
   });
 }
 

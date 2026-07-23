@@ -239,6 +239,51 @@ describe('InitCommand', () => {
     expect(config).toContain('"project_id": "555"');
   });
 
+  test('skips the enterprise prompt after browser authorization', async () => {
+    const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
+    const destination = 'crowdin.browser.yml';
+
+    // @ts-expect-error
+    command.readSavedToken = async () => undefined;
+    // crowdin.com token: JWT carries no domain, so the org is known to be non-enterprise.
+    // @ts-expect-error
+    command.authorizeViaBrowser = async () => ({ accessToken: 'b'.repeat(80), domain: null });
+    // @ts-expect-error
+    command.isEnterprise = async () => {
+      throw new Error('isEnterprise should not be called after browser authorization');
+    };
+    // @ts-expect-error
+    command.getToken = async () => {
+      throw new Error('getToken should not be called after browser authorization');
+    };
+    // @ts-expect-error
+    command.getAuthorizedUser = async () => ({ data: { id: 1 } });
+    // @ts-expect-error
+    command.selectProject = async () => ({ data: { id: 777 } });
+    // @ts-expect-error
+    command.writeApiToken = async () => true;
+
+    const commandContext = {
+      optsWithGlobals: () => ({
+        ...globalOptions,
+        destination,
+        projectId: 777,
+        basePath: '.',
+        baseUrl: 'https://api.crowdin.com',
+        source: '/src-next/**/*.json',
+        translation: '/locale/%locale%/%original_file_name%',
+        preserveHierarchy: false,
+      }),
+    } as Command;
+
+    await command.defaultAction(commandContext);
+
+    const config = await Bun.file(join(tempDir, destination)).text();
+
+    expect(config).toContain('"project_id": "777"');
+    expect(config).toContain('"base_url": "https://api.crowdin.com"');
+  });
+
   test('fails when no projects with manager access exist', async () => {
     const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
     const apiClient = {
