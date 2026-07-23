@@ -6,22 +6,22 @@ export const format: OptionDef = {
   description: 'Defines export file format',
 };
 
-export const source: OptionDef = {
-  name: 'source',
+export const sourcePattern: OptionDef = {
+  name: 'source-pattern',
   type: 'string',
   variadic: true,
   description: 'Source pattern. Could be specified multiple times',
 };
 
-export const ignore: OptionDef = {
-  name: 'ignore',
+export const ignorePattern: OptionDef = {
+  name: 'ignore-pattern',
   type: 'string',
   variadic: true,
   description: 'Ignore pattern. Could be specified multiple times',
 };
 
-export const translation: OptionDef = {
-  name: 'translation',
+export const exportPattern: OptionDef = {
+  name: 'export-pattern',
   type: 'string',
   description: 'Bundle export pattern. Defines bundle name in resulting translations bundle',
 };

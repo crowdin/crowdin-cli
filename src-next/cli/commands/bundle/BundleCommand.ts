@@ -14,23 +14,23 @@ import { stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 import { dryRun } from '../common/options.ts';
 import { keepArchive } from '../download/options.ts';
 import {
+  exportPattern as exportPatternOption,
   format as formatOption,
-  ignore as ignoreOption,
+  ignorePattern as ignorePatternOption,
   includePseudoLanguage as includePseudoLanguageOption,
   includeSourceLanguage as includeSourceLanguageOption,
   label as labelOption,
   multilingual as multilingualOption,
   name as nameOption,
-  source as sourceOption,
-  translation as translationOption,
+  sourcePattern as sourcePatternOption,
 } from './options.ts';
 
 interface BundleOptions extends GlobalOptions {
   name?: string;
   format?: string;
-  source?: string | string[];
-  ignore?: string | string[];
-  translation?: string;
+  sourcePattern?: string | string[];
+  ignorePattern?: string | string[];
+  exportPattern?: string;
   label?: number | number[];
   includeSourceLanguage?: boolean;
   includePseudoLanguage?: boolean;
@@ -68,9 +68,9 @@ export default class BundleCommand {
           ],
           options: [
             formatOption,
-            sourceOption,
-            ignoreOption,
-            translationOption,
+            sourcePatternOption,
+            ignorePatternOption,
+            exportPatternOption,
             labelOption,
             includeSourceLanguageOption,
             { ...includePseudoLanguageOption, default: true },
@@ -115,9 +115,9 @@ export default class BundleCommand {
           options: [
             nameOption,
             formatOption,
-            sourceOption,
-            ignoreOption,
-            translationOption,
+            sourcePatternOption,
+            ignorePatternOption,
+            exportPatternOption,
             labelOption,
             includeSourceLanguageOption,
             includePseudoLanguageOption,
@@ -158,7 +158,7 @@ export default class BundleCommand {
   addAction = async (command: Command) => {
     const [name] = command.args;
     const options = command.opts() as BundleOptions;
-    const sourcePatterns = toArray(options.source);
+    const sourcePatterns = toArray(options.sourcePattern);
 
     if (!name) {
       throw new CliError("Bundle name can't be empty");
@@ -169,23 +169,23 @@ export default class BundleCommand {
     }
 
     if (sourcePatterns.length === 0) {
-      throw new CliError("'--source' can't be empty");
+      throw new CliError("'--source-pattern' can't be empty");
     }
 
-    if (!options.translation) {
-      throw new CliError("'--translation' can't be empty");
+    if (!options.exportPattern) {
+      throw new CliError("'--export-pattern' can't be empty");
     }
 
     const output = this.getOutput(command);
     const bundleService = await this.getBundleService(command);
-    const ignorePatterns = toArray(options.ignore);
+    const ignorePatterns = toArray(options.ignorePattern);
     const labelIds = toNumberArray(options.label, "'--label' value must be numeric");
     const payload: AddBundlePayload = {
       name,
       format: options.format,
       sourcePatterns,
       ...(ignorePatterns.length > 0 ? { ignorePatterns } : {}),
-      exportPattern: options.translation,
+      exportPattern: options.exportPattern,
       ...(labelIds.length > 0 ? { labelIds } : {}),
       includeProjectSourceLanguage: options.includeSourceLanguage ?? false,
       includeInContextPseudoLanguage: options.includePseudoLanguage ?? true,
@@ -299,8 +299,8 @@ export default class BundleCommand {
       return;
     }
 
-    const sourcePatterns = toArray(options.source);
-    const ignorePatterns = toArray(options.ignore);
+    const sourcePatterns = toArray(options.sourcePattern);
+    const ignorePatterns = toArray(options.ignorePattern);
     const labelIds = toNumberArray(options.label, "'--label' value must be numeric");
     const payload: AddBundlePayload = {
       name: options.name ?? `${source.name ?? ''} (clone)`,
@@ -311,7 +311,7 @@ export default class BundleCommand {
         : source.ignorePatterns !== undefined
           ? { ignorePatterns: source.ignorePatterns }
           : {}),
-      exportPattern: options.translation ?? source.exportPattern ?? '',
+      exportPattern: options.exportPattern ?? source.exportPattern ?? '',
       ...(labelIds.length > 0 ? { labelIds } : source.labelIds !== undefined ? { labelIds: source.labelIds } : {}),
       includeProjectSourceLanguage: options.includeSourceLanguage ?? source.includeProjectSourceLanguage ?? false,
       includeInContextPseudoLanguage: options.includePseudoLanguage ?? source.includeInContextPseudoLanguage ?? true,

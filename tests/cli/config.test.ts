@@ -40,18 +40,11 @@ describe('createGetConfig', () => {
   };
 
   // `options` mirrors commander's own list: getConfig reads it to tell the config tier apart. The
-  // files tier is marked by a non-variadic --source (a single string pattern); a variadic --source
-  // (bundle add/clone's own pattern list) is NOT file-tier, so declared entries carry that shape.
-  const makeCommand = (
-    options: Partial<GlobalOptions & ConfigOptions>,
-    declared: Array<string | { name: string; variadic?: boolean }> = [],
-  ): Command =>
+  // files tier is marked by a declared --source (see isFilesTier in config.ts).
+  const makeCommand = (options: Partial<GlobalOptions & ConfigOptions>, declared: string[] = []): Command =>
     ({
       optsWithGlobals: () => ({ ...globalOptions, config: configPath, ...options }),
-      options: declared.map((d) => {
-        const { name, variadic } = typeof d === 'string' ? { name: d, variadic: false } : d;
-        return { attributeName: () => name, variadic };
-      }),
+      options: declared.map((name) => ({ attributeName: () => name })),
     }) as unknown as Command;
 
   const getConfig = () => createGetConfig(() => output).getConfig;
@@ -226,20 +219,6 @@ describe('createGetConfig', () => {
     expect(config.files).toHaveLength(1);
     expect(config.files[0]?.source).toBe('/only/*.md');
     expect(config.files[0]?.translation).toBe('/tr/%two_letters_code%/%original_file_name%');
-  });
-
-  // Regression: bundle add/clone declare their own variadic --source/--translation. cliLayer must not
-  // treat them as a file-override, otherwise the array value crashes ConfigSchema at files[0].source.
-  test('leaves a variadic --source/--translation (bundle) out of the files override', async () => {
-    const config = await getConfig()(
-      makeCommand({ source: ['**'] as unknown as string, translation: '%two_letters_code%' }, [
-        { name: 'source', variadic: true },
-        { name: 'translation', variadic: true },
-      ]),
-    );
-
-    // Falls back to the config file's files, untouched by the bundle options.
-    expect(config.files[0]?.source).toBe('/src/**/*.json');
   });
 
   test('--dest folds into the single-file override and forces preserve_hierarchy', async () => {

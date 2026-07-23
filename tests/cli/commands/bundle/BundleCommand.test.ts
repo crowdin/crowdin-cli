@@ -141,20 +141,20 @@ describe('BundleCommand', () => {
         new CliError("'--format' can't be empty"),
       );
       expect(cmd.addAction(createCommandContext(globalOptions, ['bundle'], { format: 'json' }))).rejects.toThrow(
-        new CliError("'--source' can't be empty"),
+        new CliError("'--source-pattern' can't be empty"),
       );
       expect(
-        cmd.addAction(createCommandContext(globalOptions, ['bundle'], { format: 'json', source: ['/src/**'] })),
-      ).rejects.toThrow(new CliError("'--translation' can't be empty"));
+        cmd.addAction(createCommandContext(globalOptions, ['bundle'], { format: 'json', sourcePattern: ['/src/**'] })),
+      ).rejects.toThrow(new CliError("'--export-pattern' can't be empty"));
     });
 
     test('adds bundle with provided options', async () => {
       const cmd = createBundleCommand();
       const context = createCommandContext(globalOptions, ['bundle'], {
         format: 'json',
-        source: ['/src/**'],
-        ignore: ['/src/tmp/**'],
-        translation: '/%two_letters_code%/app.json',
+        sourcePattern: ['/src/**'],
+        ignorePattern: ['/src/tmp/**'],
+        exportPattern: '/%two_letters_code%/app.json',
         label: [7],
         includeSourceLanguage: true,
         includePseudoLanguage: false,
@@ -183,7 +183,7 @@ describe('BundleCommand', () => {
       const program = buildCommand(cmd.getDefinition());
 
       await program.parseAsync(
-        ['add', 'bundle', '--format', 'json', '--source', '/src/**', '--translation', '/%locale%/app.json'],
+        ['add', 'bundle', '--format', 'json', '--source-pattern', '/src/**', '--export-pattern', '/%locale%/app.json'],
         { from: 'user' },
       );
 

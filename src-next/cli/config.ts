@@ -137,13 +137,8 @@ async function needsConfigFile(
 // subcommand's ArgGroup: only filesConfigGroup carries --source, and only the project/files groups
 // carry --project-id (see cli/commands/common/options.ts), so this cannot drift from the tiers
 // declared there.
-//
-// The file-tier --source is a single string pattern (non-variadic, matching ConfigSchema.files[].source:
-// z.string()). bundle add/clone declare their own variadic --source (a pattern list) with the same
-// attribute name, which is NOT a file-override source — so key off the option's shape, not just its
-// name, otherwise bundle's array value crashes ConfigSchema at files[0].source.
 function isFilesTier(command: Command): boolean {
-  return command.options.some((option) => option.attributeName() === 'source' && !option.variadic);
+  return command.options.some((option) => option.attributeName() === 'source');
 }
 
 function requiresProjectId(command: Command): boolean {
@@ -289,8 +284,7 @@ function cliLayer(options: GlobalOptions & ConfigOptions, filesTier: boolean): P
     preserveHierarchy: options.preserveHierarchy,
   };
 
-  // Only file-tier commands turn --source/--translation into a single-file override. Other commands
-  // (bundle add/clone) reuse those names for their own unrelated options, so leave their values alone.
+  // Only file-tier commands turn --source/--translation into a single-file override.
   if (!filesTier) {
     return layer;
   }
