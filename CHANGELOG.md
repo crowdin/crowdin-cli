@@ -1,5 +1,13 @@
 # Changelog
 
+# [4.15.0](https://github.com/crowdin/crowdin-cli/compare/4.14.4...4.15.0) (2026-07-23)
+
+
+### Features
+
+* file context update ([#1053](https://github.com/crowdin/crowdin-cli/issues/1053)) ([8d70b70](https://github.com/crowdin/crowdin-cli/commit/8d70b70488679d6ab3afc76b33586816ad8e68de))
+* show error message on build fail ([#1051](https://github.com/crowdin/crowdin-cli/issues/1051)) ([ea76cf0](https://github.com/crowdin/crowdin-cli/commit/ea76cf026bdda6b85a9d76485dc2b44d926ae58a))
+
 ## [4.14.4](https://github.com/crowdin/crowdin-cli/compare/4.14.3...4.14.4) (2026-07-15)
 
 
