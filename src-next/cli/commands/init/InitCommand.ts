@@ -60,7 +60,7 @@ export default class InitCommand {
 
   defaultAction = async (command: Command) => {
     const options = command.optsWithGlobals() as InitCommandOptions;
-    const output = this.getOutput(command);
+    const output = this.getOutput(command, { withGuide: true });
     const configFilePath = path.join(process.cwd(), options.destination);
 
     output.intro(`Generating Crowdin CLI configuration skeleton '${configFilePath}'`);
