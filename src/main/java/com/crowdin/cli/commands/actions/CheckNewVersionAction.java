@@ -35,6 +35,8 @@ class CheckNewVersionAction implements NewAction<NoProperties, NoClient> {
     private static Optional<String> getNewVersionMessage() {
         String message2 = BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text.2");
         String message3 = BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text.3");
+        String message4 = BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text.4");
+        String message5 = BaseCli.RESOURCE_BUNDLE.getString("message.new_version_text.5");
         String c1 = Utils.isWindows() ? "┌" : "\u256d";
         String c2 = Utils.isWindows() ? "┐" : "\u256e";
         String c3 = Utils.isWindows() ? "└" : "\u2570";
@@ -48,6 +50,9 @@ class CheckNewVersionAction implements NewAction<NoProperties, NoClient> {
                     + "@|yellow \u251c──" + StringUtils.repeat("─", message2.length())   + "──\u2524|@\n"
                     + "@|yellow │|@  " + StringUtils.center(message2, message2.length() + "@|cyan |@".length()) + "  @|yellow │|@\n"
                     + "@|yellow │|@  " + StringUtils.center(message3, message2.length())       + "  @|yellow │|@\n"
+                    + "@|yellow ├──" + StringUtils.repeat("─", message2.length())   + "──┤|@\n"
+                    + "@|yellow │|@  " + StringUtils.center(message4, message2.length())       + "  @|yellow │|@\n"
+                    + "@|yellow │|@  " + StringUtils.center(message5, message2.length() + "@|cyan |@".length()) + "  @|yellow │|@\n"
                     + "@|yellow " + c3 + "──" + StringUtils.repeat("─", message2.length())   + "──" + c4 + "|@");
     }
 }
