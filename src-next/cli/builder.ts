@@ -38,7 +38,8 @@ export function buildCommand(def: CommandDef): Command {
 
   cmd.optionsGroup('Global options:');
   for (const opt of getGlobalOptions()) {
-    cmd.addOption(buildOption(opt));
+    const hidden = opt.hidden || def.hiddenGlobalOptions?.includes(opt.name);
+    cmd.addOption(buildOption({ ...opt, hidden }));
   }
 
   def.arguments?.forEach((arg) => {

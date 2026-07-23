@@ -40,4 +40,6 @@ export interface CommandDef {
   options?: (OptionDef | OptionGroupDef)[];
   subcommands?: SubcommandDef[];
   action?: (command: Command) => Promise<void>;
+  // Names of global options to hide from this command's help (e.g. init has no machine output).
+  hiddenGlobalOptions?: string[];
 }

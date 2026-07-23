@@ -54,6 +54,7 @@ export default class InitCommand {
       description: 'Generate Crowdin CLI configuration skeleton',
       action: this.defaultAction,
       options: [destination, token, projectId, basePath, baseUrl, source, translation, noPreserveHierarchy, quiet],
+      hiddenGlobalOptions: ['output'],
     };
   }
 
