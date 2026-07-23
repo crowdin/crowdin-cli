@@ -97,8 +97,8 @@ export default {
             "files": [
               "packages/chocolatey/tools/chocolateyinstall.ps1"
             ],
-            "from": "https://github.com/crowdin/crowdin-cli/releases/download/.*/crowdin-win32-x64.exe",
-            "to": "https://github.com/crowdin/crowdin-cli/releases/download/${nextRelease.version}/crowdin-win32-x64.exe",
+            "from": "https://github.com/crowdin/crowdin-cli/releases/download/.*/crowdin.exe",
+            "to": "https://github.com/crowdin/crowdin-cli/releases/download/${nextRelease.version}/crowdin.exe",
             "results": [
               {
                 "file": "packages/chocolatey/tools/chocolateyinstall.ps1",

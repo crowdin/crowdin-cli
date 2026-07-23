@@ -151,9 +151,9 @@ jobs:
           for platform in darwin-arm64 darwin-x64 linux-x64 linux-arm64 linux-x64-musl linux-arm64-musl; do
             cp packages/npm/$platform/bin/crowdin release-assets/crowdin-$platform
           done
-          cp packages/npm/win32-x64/bin/crowdin.exe release-assets/crowdin-win32-x64.exe
+          cp packages/npm/win32-x64/bin/crowdin.exe release-assets/crowdin.exe
           cd release-assets
-          shasum -a 256 crowdin-* > crowdin-cli_checksums.sha256
+          shasum -a 256 crowdin* > crowdin-cli_checksums.sha256
           echo ${{ steps.version.outputs.version }} > version.txt
 
       - name: Create pre-release
@@ -245,7 +245,7 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
           VERSION: ${{ steps.version.outputs.version }}
-        run: gh release download "$env:VERSION" --pattern crowdin-win32-x64.exe --dir release-assets
+        run: gh release download "$env:VERSION" --pattern crowdin.exe --dir release-assets
 
       - name: Inject checksum
         # The nuspec version and download URL are committed (release.config.js);
@@ -256,7 +256,7 @@ jobs:
         run: |
           $nuspecVersion = ([xml](Get-Content packages/chocolatey/crowdin-cli.nuspec)).package.metadata.version
           if ($nuspecVersion -ne $env:VERSION) { throw "nuspec version ($nuspecVersion) does not match packages/npm/cli version ($env:VERSION)" }
-          $checksum = (Get-FileHash release-assets/crowdin-win32-x64.exe -Algorithm SHA256).Hash.ToLower()
+          $checksum = (Get-FileHash release-assets/crowdin.exe -Algorithm SHA256).Hash.ToLower()
           $install = 'packages/chocolatey/tools/chocolateyinstall.ps1'
           (Get-Content $install) -replace '__CHECKSUM__', $checksum | Set-Content $install
           Get-Content $install
@@ -333,29 +333,28 @@ jobs:
             "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ steps.version.outputs.version }}"
 
   winget:
-    # Runs automatically after the exe job has built and uploaded the installer.
-    # The first v5 publish must submit the packages/winget manifests instead (see note there).
+    # Runs automatically once the assets job has uploaded the standalone binary
     runs-on: windows-latest
     if: false # disabled until the stable v5 release
-    needs: exe
+    needs: assets
     steps:
       - uses: vedantmgoyal9/winget-releaser@v2
         with:
           identifier: Crowdin.CrowdinCLI
-          installers-regex: '^crowdin-installer\.exe$'
+          installers-regex: '^crowdin\.exe$'
           token: ${{ secrets.GH_WINGET_TOKEN }}
           fork-user: crowdin-bot
 
   winget-manual:
-    # Runs on manual dispatch only. No exe build - the action picks up the .exe
-    # from the latest existing GitHub release, so the release must already exist.
+    # Runs on manual dispatch only. The action picks up the standalone binary
+    # from the latest existing GitHub release, so the release must already exist
     runs-on: windows-latest
     if: false # disabled until the stable v5 release
     steps:
       - uses: vedantmgoyal9/winget-releaser@v2
         with:
           identifier: Crowdin.CrowdinCLI
-          installers-regex: '^crowdin-installer\.exe$'
+          installers-regex: '^crowdin\.exe$'
           release-tag: ${{ github.event.inputs.winget_release_tag }}
           token: ${{ secrets.GH_WINGET_TOKEN }}
           fork-user: crowdin-bot
