@@ -1,0 +1,14 @@
+version: 2
+updates:
+  # npm distribution wrapper (root package.json only, not /website)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "monthly"
+
+  # GitHub Actions used in workflows
+  # TODO: enable after v5 stable release
+  # - package-ecosystem: "github-actions"
+  #   directory: "/"
+  #   schedule:
+  #     interval: "monthly"
