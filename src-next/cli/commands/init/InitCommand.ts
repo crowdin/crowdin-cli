@@ -1,8 +1,10 @@
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { autocomplete, confirm, isCancel, password, text } from '@clack/prompts';
 import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { dump as dumpYaml, load as loadYaml } from 'js-yaml';
+import AuthorizationError from '@/cli/errors/AuthorizationError.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -13,7 +15,7 @@ import { openUrl } from '@/cli/utils/open.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 import { generate } from '@/lib/config/yamlGenerator.ts';
-import patterns from '@/lib/export/patterns.ts';
+import patterns, { validTranslationPattern } from '@/lib/export/patterns.ts';
 import { DEFAULT_IDENTITY_FILE, getIdentityFilePath } from '@/lib/identityFiles.ts';
 import { getOrganization } from '@/lib/organization/credentials.ts';
 import { basePath, baseUrl, noPreserveHierarchy, projectId, source, token, translation } from '../common/options.ts';
@@ -122,12 +124,17 @@ export default class InitCommand {
       domain = await this.getEnterpriseDomain(output);
     }
 
-    if (apiToken === undefined) {
-      apiToken = await this.getToken(output);
-    }
+    let apiClient: Client;
 
-    const apiClient = new Client({ token: apiToken, organization: domain }, { userAgent: buildUserAgent() });
-    await this.getAuthorizedUser(apiClient, output);
+    if (apiToken === undefined) {
+      // Interactive token entry: let an invalid token be re-typed instead of aborting the whole init.
+      const verified = await this.promptForVerifiedToken(domain, output);
+      apiToken = verified.token;
+      apiClient = verified.client;
+    } else {
+      apiClient = this.createApiClient(apiToken, domain);
+      await this.getAuthorizedUser(apiClient, output);
+    }
 
     const project = await this.selectProject(apiClient, options, output);
     const projectDirectory = await this.selectProjectDirectory(options, output);
@@ -170,6 +177,33 @@ export default class InitCommand {
     this.cancelHandler(apiToken, output);
 
     return apiToken;
+  }
+
+  private async promptForVerifiedToken(
+    domain: string | undefined,
+    output: Output,
+  ): Promise<{ token: string; client: Client }> {
+    while (true) {
+      const token = await this.getToken(output);
+      const client = this.createApiClient(token, domain);
+
+      try {
+        await this.getAuthorizedUser(client, output);
+        return { token, client };
+      } catch (error) {
+        // A bad token is recoverable here (the user can retype it); anything else aborts.
+        if (error instanceof AuthorizationError) {
+          output.error(error.message);
+          continue;
+        }
+
+        throw error;
+      }
+    }
+  }
+
+  private createApiClient(token: string, domain: string | undefined): Client {
+    return new Client({ token, organization: domain }, { userAgent: buildUserAgent() });
   }
 
   private async readSavedToken(): Promise<string | undefined> {
@@ -234,11 +268,21 @@ export default class InitCommand {
     return confirmation as boolean;
   }
 
-  private async getEnterpriseDomain(output: Output) {
-    const domain = await text({ message: 'Your organization name:' });
-    this.cancelHandler(domain, output);
+  private async getEnterpriseDomain(output: Output): Promise<string> {
+    const input = (await text({
+      message: 'Your organization name:',
+      validate: (value) => (value ? undefined : 'Organization name is required'),
+    })) as string;
+    this.cancelHandler(input, output);
 
-    return domain as string;
+    // Accept a pasted organization URL, not just the bare name
+    const organization = getOrganization(input) ?? input;
+
+    if (organization !== input) {
+      output.info(`Extracted organization name from provided url: ${organization}`);
+    }
+
+    return organization;
   }
 
   private async getAuthorizedUser(apiClient: Client, output: Output) {
@@ -260,7 +304,11 @@ export default class InitCommand {
     let projectId = options.projectId || null;
 
     if (projectId === null) {
-      const projects = await apiClient.projectsGroupsApi.withFetchAll().listProjects({ hasManagerAccess: 1 });
+      // biome-ignore format: manual formatting looks better
+      const projects = await apiClient
+        .projectsGroupsApi
+        .withFetchAll()
+        .listProjects({ hasManagerAccess: 1 });
 
       if (projects.data.length === 0) {
         throw new CliError('No projects with manager access found. Create a project in Crowdin first.', 1, true);
@@ -285,7 +333,7 @@ export default class InitCommand {
     try {
       const project = await apiClient.projectsGroupsApi.getProject(Number(projectId));
 
-      output.spinner('projectValidation', 'stop', 'Validation was successful');
+      output.spinner('projectValidation', 'stop', 'Project validation was successful');
 
       return project;
     } catch (error) {
@@ -299,15 +347,21 @@ export default class InitCommand {
       return options.basePath;
     }
 
-    const projectDirectory = await text({
-      message: 'Your project directory:',
+    const projectDirectory = (await text({
+      message: 'Your project directory (press Enter for the current directory):',
       placeholder: '.',
       defaultValue: '.',
-    });
+      validate: (value) => this.validateProjectDirectory(value ?? ''),
+    })) as string;
 
     this.cancelHandler(projectDirectory, output);
 
-    return projectDirectory as string;
+    return projectDirectory;
+  }
+
+  private validateProjectDirectory(value: string): string | undefined {
+    const absolutePath = path.resolve(value);
+    return existsSync(absolutePath) ? undefined : `Path '${absolutePath}' doesn't exist`;
   }
 
   private async selectSourcePattern(options: InitCommandOptions, output: Output) {
@@ -330,14 +384,23 @@ export default class InitCommand {
       return options.translation;
     }
 
-    const translationPattern = await text({
+    const translationPattern = (await text({
       message: `Translation pattern (supported placeholders: ${patterns.join(', ')}):`,
       placeholder: '/resources/%two_letters_code%/%original_file_name%',
-    });
+      validate: (value) => this.validateTranslationPattern(value ?? ''),
+    })) as string;
 
     this.cancelHandler(translationPattern, output);
 
-    return translationPattern as string;
+    return translationPattern;
+  }
+
+  private validateTranslationPattern(value: string): string | undefined {
+    if (!value || validTranslationPattern(value)) {
+      return undefined;
+    }
+
+    return `Translation pattern '${value}' contains invalid placeholders`;
   }
 
   protected async writeApiToken(apiToken: string): Promise<boolean> {

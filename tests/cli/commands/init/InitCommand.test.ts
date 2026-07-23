@@ -1,9 +1,11 @@
-import { afterEach, beforeEach, describe, expect, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, spyOn, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { Command } from 'commander';
 import InitCommand from '@/cli/commands/init/InitCommand.ts';
+import AuthorizationError from '@/cli/errors/AuthorizationError.ts';
+import CliError from '@/cli/errors/CliError.ts';
 import { createOutput } from '@/cli/utils/output.ts';
 
 describe('InitCommand', () => {
@@ -282,6 +284,75 @@ describe('InitCommand', () => {
 
     expect(config).toContain('"project_id": "777"');
     expect(config).toContain('"base_url": "https://api.crowdin.com"');
+  });
+
+  test('validateProjectDirectory rejects a missing path and accepts an existing one', () => {
+    const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
+    const missingPath = join(tempDir, 'does-not-exist');
+
+    // @ts-expect-error - exercising the private validateProjectDirectory (the prompt's validate fn)
+    expect(command.validateProjectDirectory(missingPath)).toBe(`Path '${missingPath}' doesn't exist`);
+    // @ts-expect-error
+    expect(command.validateProjectDirectory(tempDir)).toBeUndefined();
+  });
+
+  test('validateTranslationPattern rejects unknown placeholders and accepts valid/empty input', () => {
+    const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
+
+    // @ts-expect-error - exercising the private validateTranslationPattern (the prompt's validate fn)
+    expect(command.validateTranslationPattern('/resources/%bogus%/%original_file_name%')).toBe(
+      "Translation pattern '/resources/%bogus%/%original_file_name%' contains invalid placeholders",
+    );
+    // @ts-expect-error
+    expect(command.validateTranslationPattern('/resources/%two_letters_code%/%original_file_name%')).toBeUndefined();
+    // @ts-expect-error - empty is allowed (matches Java)
+    expect(command.validateTranslationPattern('')).toBeUndefined();
+  });
+
+  test('re-prompts the token after an authorization failure', async () => {
+    const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
+    const output = createOutput(globalOptions);
+    const errorSpy = spyOn(output, 'error');
+
+    let tokenCall = 0;
+    // @ts-expect-error - stub the interactive prompt: bad token first, valid one second
+    command.getToken = async () => (tokenCall++ === 0 ? 'bad-token' : 'good-token');
+
+    let authCall = 0;
+    // @ts-expect-error
+    command.getAuthorizedUser = async () => {
+      if (authCall++ === 0) {
+        throw new AuthorizationError("Couldn't authorize. Check your 'api_token'");
+      }
+      return { data: { id: 1 } };
+    };
+
+    // @ts-expect-error - exercising the private promptForVerifiedToken
+    const result = await command.promptForVerifiedToken(undefined, output);
+
+    expect(result.token).toBe('good-token');
+    expect(tokenCall).toBe(2);
+    expect(errorSpy).toHaveBeenCalledWith("Couldn't authorize. Check your 'api_token'");
+  });
+
+  test('does not re-prompt the token on a non-authorization error', async () => {
+    const command = new InitCommand(() => createOutput(globalOptions)) as InitCommand & Record<string, unknown>;
+    const output = createOutput(globalOptions);
+
+    let tokenCall = 0;
+    // @ts-expect-error
+    command.getToken = async () => {
+      tokenCall++;
+      return 'some-token';
+    };
+    // @ts-expect-error
+    command.getAuthorizedUser = async () => {
+      throw new CliError('Rate limit exceeded', 1, true);
+    };
+
+    // @ts-expect-error - exercising the private promptForVerifiedToken
+    await expect(command.promptForVerifiedToken(undefined, output)).rejects.toThrow('Rate limit exceeded');
+    expect(tokenCall).toBe(1);
   });
 
   test('fails when no projects with manager access exist', async () => {
