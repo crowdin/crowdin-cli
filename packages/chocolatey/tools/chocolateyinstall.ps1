@@ -7,6 +7,6 @@ $toolsDir = "$(Split-Path -parent $MyInvocation.MyCommand.Definition)"
 # Chocolatey auto-shims crowdin.exe from the tools dir onto PATH as `crowdin`.
 Get-ChocolateyWebFile -PackageName 'crowdin-cli' `
   -FileFullPath (Join-Path $toolsDir 'crowdin.exe') `
-  -Url 'https://github.com/crowdin/crowdin-cli/releases/download/5.0.0-next.4/crowdin-win32-x64.exe' `
+  -Url 'https://github.com/crowdin/crowdin-cli/releases/download/5.0.0-next.5/crowdin-win32-x64.exe' `
   -Checksum '__CHECKSUM__' `
   -ChecksumType 'sha256'

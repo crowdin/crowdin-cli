@@ -14,8 +14,7 @@ const versionedPackageJsons = ["package.json", "packages/npm/cli/package.json", 
 
 export default {
   branches: [
-    "main",
-    { name: "next", prerelease: true },
+    "main"
   ],
   repositoryUrl: "https://github.com/crowdin/crowdin-cli",
   tagFormat: "${version}",

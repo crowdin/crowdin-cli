@@ -2,7 +2,7 @@
 <package xmlns="http://schemas.microsoft.com/packaging/2015/06/nuspec.xsd">
   <metadata>
     <id>crowdin-cli</id>
-    <version>5.0.0-next.4</version>
+    <version>5.0.0-next.5</version>
     <packageSourceUrl>https://github.com/crowdin/crowdin-cli/tree/main/packages/chocolatey</packageSourceUrl>
     <owners>crowdin</owners>
     <title>Crowdin CLI (Portable)</title>
