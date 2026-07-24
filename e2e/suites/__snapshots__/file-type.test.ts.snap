@@ -1,0 +1,65 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`file type type "android6" is stored as android with parserVersion 6 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'android.xml'"
+`;
+
+exports[`file type type "android8" is stored as android with parserVersion 8 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'android.xml'"
+`;
+
+exports[`file type type "android" is normalized to parserVersion 11 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'android.xml'"
+`;
+
+exports[`file type type "android5" is stored as android with parserVersion 5 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'android.xml'"
+`;
+
+exports[`file type type "android4" is stored as android with parserVersion 4 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'android.xml'"
+`;
+
+exports[`file type type "android3" is stored as android with parserVersion 3 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'android.xml'"
+`;
+
+exports[`file type type "android2" is stored as android with parserVersion 2 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'android.xml'"
+`;
+
+exports[`file type type "android1" is normalized to parserVersion 1 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'android.xml'"
+`;

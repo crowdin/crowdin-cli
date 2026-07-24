@@ -1,4 +1,4 @@
-import { cp, mkdir, rm } from 'node:fs/promises';
+import { cp, mkdir, realpath, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -13,11 +13,19 @@ export interface WorkspaceOptions {
   root?: string;
 }
 
-/** Create (and return) a fresh per-suite workspace directory. */
+/**
+ * Create (and return) a fresh per-suite workspace directory.
+ *
+ * Resolved via `realpath`: on macOS, `os.tmpdir()` lives under `/var/folders/...`,
+ * but `/var` is a symlink to `/private/var`. A spawned CLI process's own
+ * `process.cwd()` reports the symlink-resolved path (that's how `getcwd(3)`
+ * works), so if `ctx.workspace` kept the unresolved form, any assertion built
+ * from it (e.g. an absolute path the CLI echoes back) would never match.
+ */
 export async function createWorkspace(suite: string, opts: WorkspaceOptions = {}): Promise<string> {
   const ws = join(opts.root ?? DEFAULT_ROOT, suite);
   await mkdir(ws, { recursive: true });
-  return ws;
+  return await realpath(ws);
 }
 
 /**

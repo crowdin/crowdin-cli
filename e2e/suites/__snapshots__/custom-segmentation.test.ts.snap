@@ -1,0 +1,40 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`custom segmentation rejects an invalid SRX file for every source file 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory sources created
+■  Current execution finished with errors
+■  Failed to create file sample.docx. Invalid SRX specified. XML validation module returned: attributes construct error
+■  Failed to create file strings.xml. Invalid SRX specified. XML validation module returned: attributes construct error"
+`;
+
+exports[`custom segmentation rejects an SRX file with an invalid regular expression 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+■  Current execution finished with errors
+■  Failed to create file sample.docx. Invalid SRX specified. Invalid regular expression \`/^.*[$/\`
+■  Failed to create file strings.xml. Invalid SRX specified. Invalid regular expression \`/^.*[$/\`"
+`;
+
+exports[`custom segmentation uploads sources once a valid SRX file is supplied 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/sample.docx'
+◆  File 'sources/strings.xml'"
+`;
+
+exports[`custom segmentation updates sources after the SRX rules change 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/sample.docx'
+◆  File 'sources/strings.xml'"
+`;

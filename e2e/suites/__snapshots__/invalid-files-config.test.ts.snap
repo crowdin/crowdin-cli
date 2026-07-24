@@ -1,0 +1,36 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`invalid files config uploads sources with a source pattern that matches no local file 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+■  No sources found for '/sources/android-not-exists.xml' pattern. Check the source paths in your configuration file"
+`;
+
+exports[`invalid files config uploads sources with a source pattern whose folder does not exist 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+■  No sources found for '/not-exists/**/*.*' pattern. Check the source paths in your configuration file"
+`;
+
+exports[`invalid files config uploads sources with a translation pattern missing a language placeholder 1`] = `
+"■  ✖ The 'translation' parameter should contain at least one language placeholder (e.g. %locale%)
+  → at files[0].translation"
+`;
+
+exports[`invalid files config uploads sources with a translation pattern containing a relative path 1`] = `
+"■  ✖ translation cannot contain "../"
+  → at files[0].translation"
+`;
+
+exports[`invalid files config uploads translations when the source file does not exist in the project 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+■  Current execution finished with errors
+■  Source file 'sources/android.xml' does not exist in the project"
+`;

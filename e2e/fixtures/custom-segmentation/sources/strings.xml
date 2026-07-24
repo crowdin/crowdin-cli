@@ -1,0 +1,12 @@
+<resources>
+    <string name="home">Home</string>
+    <string name="camera">Camera</string>
+    <string name="gallery">Gallery</string>
+    <string name="home_small">Home</string>
+    <string name="slideshow">Slideshow</string>
+    <string name="tools">Tools</string>
+    <string name="menu_crop">Crop</string>
+    <string name="menu_clear">Clear</string>
+    <string name="menu_refresh">Refresh page</string>
+    <string name="help">Help center</string>
+</resources>
