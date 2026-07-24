@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="osx_locale_str1">第一个字符串</string>
+    <string name="osx_locale_str2">第二个字符串</string>
+</resources>

@@ -1,0 +1,109 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`csv multilingual placeholder uploads multilingual CSV sources 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory sources created
+◆  File 'sources/1_multilingual.csv'
+◆  File 'sources/2_multilingual.csv'"
+`;
+
+exports[`csv multilingual placeholder uploads translations for every target language 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+Importing translations for file 'translations/it/1_multilingual.csv'
+Importing translations for file 'translations/it/2_multilingual.csv'
+Importing translations for file 'translations/uk/1_multilingual.csv'
+Importing translations for file 'translations/uk/2_multilingual.csv'
+◆  File 'translations/it/1_multilingual.csv'
+◆  File 'translations/it/2_multilingual.csv'
+◆  File 'translations/uk/1_multilingual.csv'
+◆  File 'translations/uk/2_multilingual.csv'"
+`;
+
+exports[`csv multilingual placeholder uploads translations for a single language via --language 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+Importing translations for file 'translations/uk/1_multilingual.csv'
+Importing translations for file 'translations/uk/2_multilingual.csv'
+◆  File 'translations/uk/1_multilingual.csv'
+◆  File 'translations/uk/2_multilingual.csv'"
+`;
+
+exports[`csv multilingual placeholder previews the translation download (dryrun) 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+translations/it/1_multilingual.csv
+translations/it/2_multilingual.csv
+translations/uk/1_multilingual.csv
+translations/uk/2_multilingual.csv"
+`;
+
+exports[`csv multilingual placeholder downloads translations and matches the merged multilingual content 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/1_multilingual.csv extracted
+◆  File translations/it/2_multilingual.csv extracted
+◆  File translations/uk/1_multilingual.csv extracted
+◆  File translations/uk/2_multilingual.csv extracted"
+`;
+
+exports[`csv multilingual placeholder updates sources from a new base path, targeting a new translation destination 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_multilingual.csv'
+◆  File 'sources/2_multilingual.csv'"
+`;
+
+exports[`csv multilingual placeholder downloads translations at the new translations-v2 destination 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations-v2/it/1_multilingual.csv extracted
+◆  File translations-v2/it/2_multilingual.csv extracted
+◆  File translations-v2/uk/1_multilingual.csv extracted
+◆  File translations-v2/uk/2_multilingual.csv extracted"
+`;
+
+exports[`csv multilingual placeholder uploads sources to a new branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory sources created
+◆  File 'sources/1_multilingual.csv'
+◆  File 'sources/2_multilingual.csv'"
+`;
+
+exports[`csv multilingual placeholder downloads translations on the branch 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/1_multilingual.csv extracted
+◆  File translations/it/2_multilingual.csv extracted
+◆  File translations/uk/1_multilingual.csv extracted
+◆  File translations/uk/2_multilingual.csv extracted"
+`;

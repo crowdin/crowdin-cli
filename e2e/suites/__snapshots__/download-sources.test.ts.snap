@@ -1,0 +1,24 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`download sources downloads sources again with --output plain 1`] = `""`;
+
+exports[`download sources downloads sources from the b1 branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+▲  No sources found for '/folder_2/android_1.xml' pattern. Check the source paths in your configuration file
+▲  No sources found for '/folder_2/android_4?.xml' pattern. Check the source paths in your configuration file
+▲  No sources found for '/folder_2/android_[2-3].xml' pattern. Check the source paths in your configuration file
+▲  No sources found for '/root/%original_path%/%file_name%.xml' pattern. Check the source paths in your configuration file"
+`;
+
+exports[`download sources warns when a source pattern matches nothing 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+▲  No sources found for '/folder_not_exists/**/*.xml' pattern. Check the source paths in your configuration file"
+`;
+
+exports[`download sources rejects --reviewed on a non-Enterprise (SaaS) account 1`] = `"▲  Operation is available only for Crowdin Enterprise"`;
