@@ -1,0 +1,193 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`excluded languages uploads sources excluding a language via the CLI flag 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory sources created
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;
+
+exports[`excluded languages uploads translations, skipping the language with no local files 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+▲  File translations/de/1_android.xml does not exist in the specified location
+▲  File translations/de/2_android.xml does not exist in the specified location
+Importing translations for file 'translations/it/1_android.xml'
+Importing translations for file 'translations/it/2_android.xml'
+Importing translations for file 'translations/uk/1_android.xml'
+Importing translations for file 'translations/uk/2_android.xml'
+◆  File 'translations/it/1_android.xml'
+◆  File 'translations/it/2_android.xml'
+◆  File 'translations/uk/1_android.xml'
+◆  File 'translations/uk/2_android.xml'"
+`;
+
+exports[`excluded languages lists configured translation files for every target language regardless of exclusions 1`] = `
+"●  Fetching project info
+●  Project info fetched
+┌───┬───────────────────────────────┐
+│   │ file                          │
+├───┼───────────────────────────────┤
+│ 0 │ translations/de/1_android.xml │
+│ 1 │ translations/de/2_android.xml │
+│ 2 │ translations/it/1_android.xml │
+│ 3 │ translations/it/2_android.xml │
+│ 4 │ translations/uk/1_android.xml │
+│ 5 │ translations/uk/2_android.xml │
+└───┴───────────────────────────────┘"
+`;
+
+exports[`excluded languages downloads translations, building only the non-excluded languages 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/1_android.xml extracted
+◆  File translations/it/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
+
+exports[`excluded languages changes the excluded language via a new CLI flag value 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;
+
+exports[`excluded languages re-uploads translations, rejecting the newly excluded language 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+▲  File translations/de/1_android.xml does not exist in the specified location
+▲  File translations/de/2_android.xml does not exist in the specified location
+Importing translations for file 'translations/it/1_android.xml'
+Importing translations for file 'translations/it/2_android.xml'
+Importing translations for file 'translations/uk/1_android.xml'
+Importing translations for file 'translations/uk/2_android.xml'
+▲  Translation file 'translations/it/1_android.xml' hasn't been uploaded since the following target language(s) are not enabled for the source file in your Crowdin project: Italian
+▲  Translation file 'translations/it/2_android.xml' hasn't been uploaded since the following target language(s) are not enabled for the source file in your Crowdin project: Italian
+◆  File 'translations/uk/1_android.xml'
+◆  File 'translations/uk/2_android.xml'"
+`;
+
+exports[`excluded languages downloads translations after the excluded language changed 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/de/1_android.xml extracted
+◆  File translations/de/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
+
+exports[`excluded languages uploads sources without the CLI flag, leaving the exclusion unchanged 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;
+
+exports[`excluded languages downloads translations, exclusion unchanged since the flag was omitted 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/de/1_android.xml extracted
+◆  File translations/de/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
+
+exports[`excluded languages uploads sources with exclusion declared in the config file 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;
+
+exports[`excluded languages downloads translations honoring the config-declared exclusion 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/de/1_android.xml extracted
+◆  File translations/de/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
+
+exports[`excluded languages uploads sources merging the config exclusion with the CLI flag 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;
+
+exports[`excluded languages downloads translations honoring the merged config+CLI exclusion 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
+
+exports[`excluded languages uploads sources with per-file exclusions across two file groups 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;
+
+exports[`excluded languages downloads translations honoring per-file exclusions 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/de/1_android.xml extracted
+◆  File translations/de/2_android.xml extracted
+◆  File translations/it/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted"
+`;
+
+exports[`excluded languages rejects an excluded language that does not exist in the project 1`] = `
+"●  Fetching project info
+●  Project info fetched
+■  Project doesn't have 'ar' language(s)"
+`;
