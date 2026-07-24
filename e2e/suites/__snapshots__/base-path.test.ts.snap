@@ -1,0 +1,126 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`base path uploads sources with an explicit --base-path, creating the directory hierarchy 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory files created
+◆  Directory main created
+◆  Directory res created
+◆  Directory src created
+◆  Directory values created
+◆  File 'files/src/main/res/values/android.xml'"
+`;
+
+exports[`base path updates the existing source file at the same base path 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'files/src/main/res/values/android.xml'"
+`;
+
+exports[`base path uploads translations at the base path 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+Importing translations for file 'files/src/main/res/values-it/android.xml'
+Importing translations for file 'files/src/main/res/values-uk/android.xml'
+◆  File 'files/src/main/res/values-it/android.xml'
+◆  File 'files/src/main/res/values-uk/android.xml'"
+`;
+
+exports[`base path downloads translations at the base path 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File files/src/main/res/values-it/android.xml extracted
+◆  File files/src/main/res/values-uk/android.xml extracted"
+`;
+
+exports[`base path lists configured source files with --base-path 1`] = `
+"●  Fetching project info
+●  Project info fetched
+┌───┬───────────────────────────────────────┐
+│   │ file                                  │
+├───┼───────────────────────────────────────┤
+│ 0 │ files/src/main/res/values/android.xml │
+└───┴───────────────────────────────────────┘"
+`;
+
+exports[`base path lists configured translation files with --base-path 1`] = `
+"●  Fetching project info
+●  Project info fetched
+┌───┬──────────────────────────────────────────┐
+│   │ file                                     │
+├───┼──────────────────────────────────────────┤
+│ 0 │ files/src/main/res/values-it/android.xml │
+│ 1 │ files/src/main/res/values-uk/android.xml │
+└───┴──────────────────────────────────────────┘"
+`;
+
+exports[`base path uploads sources to a new branch under a different base path 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory files created
+◆  Directory main created
+◆  Directory res created
+◆  Directory src created
+◆  Directory values created
+◆  File 'files/src/main/res/values/android.xml'"
+`;
+
+exports[`base path downloads translations on the branch 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File files/src/main/res/values-it/android.xml extracted
+◆  File files/src/main/res/values-uk/android.xml extracted"
+`;
+
+exports[`base path uploads sources with a relative --base-path pointing into a subdirectory 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory main created
+◆  Directory res created
+◆  Directory src created
+◆  Directory values created
+◆  File 'src/main/res/values/android.xml'"
+`;
+
+exports[`base path uploads translations with a relative --base-path 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+Importing translations for file 'src/main/res/values-it/android.xml'
+Importing translations for file 'src/main/res/values-uk/android.xml'
+◆  File 'src/main/res/values-it/android.xml'
+◆  File 'src/main/res/values-uk/android.xml'"
+`;
+
+exports[`base path downloads translations with a relative --base-path 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File src/main/res/values-it/android.xml extracted
+◆  File src/main/res/values-uk/android.xml extracted"
+`;

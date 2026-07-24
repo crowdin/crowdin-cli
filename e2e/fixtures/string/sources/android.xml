@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="str1">first string</string>
+    <string name="str2">second string</string>
+    <string name="str_with_tag"><span>first string source` with tag</span></string>
+    <string name="str_with_quote">first string source' with quotes</string>
+</resources>

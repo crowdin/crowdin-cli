@@ -1,0 +1,9 @@
+project_id_env: "TEST_PROJECT_ID_ENV"
+api_token_env: "TEST_API_TOKEN_ENV"
+base_path_env: "TEST_BASE_PATH_ENV"
+base_url_env: "TEST_BASE_URL_ENV"
+preserve_hierarchy: false
+
+files:
+  - source: "/sources/*.xml"
+    translation: "/translations/%two_letters_code%/%original_file_name%"

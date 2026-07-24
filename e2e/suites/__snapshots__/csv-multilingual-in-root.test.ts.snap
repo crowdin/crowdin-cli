@@ -1,0 +1,19 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`csv multilingual in root uploads multilingual CSV sources 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File '1_multilingual.csv'
+◆  File '2_multilingual.csv'"
+`;
+
+exports[`csv multilingual in root uploads the same sources to a new branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File '1_multilingual.csv'
+◆  File '2_multilingual.csv'"
+`;

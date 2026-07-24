@@ -1,0 +1,268 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`language mapping uploads sources for every language-mapping placeholder 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory android_code created
+◆  Directory language created
+◆  Directory locale created
+◆  Directory locale_with_underscore created
+◆  Directory osx_code created
+◆  Directory osx_locale created
+◆  Directory three_letters_code created
+◆  Directory two_letters_code created
+◆  File 'android_code/android.xml'
+◆  File 'language/android.xml'
+◆  File 'locale/android.xml'
+◆  File 'locale_with_underscore/android.xml'
+◆  File 'osx_code/android.xml'
+◆  File 'osx_locale/android.xml'
+◆  File 'three_letters_code/android.xml'
+◆  File 'two_letters_code/android.xml'"
+`;
+
+exports[`language mapping previews the translation upload with the default language mapping 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  File android_code/uk-rUA_/android.xml would be queued for translations import
+●  File android_code/zh-rCN_/android.xml would be queued for translations import
+●  File language/Chinese Simplified_/android.xml would be queued for translations import
+●  File language/Ukrainian_/android.xml would be queued for translations import
+●  File locale/uk-UA_/android.xml would be queued for translations import
+●  File locale/zh-CN_/android.xml would be queued for translations import
+●  File locale_with_underscore/uk_UA_/android.xml would be queued for translations import
+●  File locale_with_underscore/zh_CN_/android.xml would be queued for translations import
+●  File osx_code/uk.lproj_/android.xml would be queued for translations import
+●  File osx_code/zh-Hans.lproj_/android.xml would be queued for translations import
+●  File osx_locale/uk_/android.xml would be queued for translations import
+●  File osx_locale/zh-Hans_/android.xml would be queued for translations import
+●  File three_letters_code/ukr_/android.xml would be queued for translations import
+●  File three_letters_code/zho_/android.xml would be queued for translations import
+●  File two_letters_code/uk_/android.xml would be queued for translations import
+●  File two_letters_code/zh_/android.xml would be queued for translations import
+●  Project files fetched
+●  Project info fetched"
+`;
+
+exports[`language mapping uploads translations with the default language mapping 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+Importing translations for file 'android_code/uk-rUA_/android.xml'
+Importing translations for file 'android_code/zh-rCN_/android.xml'
+Importing translations for file 'language/Chinese Simplified_/android.xml'
+Importing translations for file 'language/Ukrainian_/android.xml'
+◆  File 'android_code/uk-rUA_/android.xml'
+◆  File 'android_code/zh-rCN_/android.xml'
+◆  File 'language/Chinese Simplified_/android.xml'
+◆  File 'language/Ukrainian_/android.xml'
+Importing translations for file 'locale/uk-UA_/android.xml'
+Importing translations for file 'locale/zh-CN_/android.xml'
+Importing translations for file 'locale_with_underscore/uk_UA_/android.xml'
+Importing translations for file 'locale_with_underscore/zh_CN_/android.xml'
+◆  File 'locale_with_underscore/uk_UA_/android.xml'
+Importing translations for file 'osx_code/uk.lproj_/android.xml'
+◆  File 'locale/uk-UA_/android.xml'
+◆  File 'locale/zh-CN_/android.xml'
+◆  File 'locale_with_underscore/zh_CN_/android.xml'
+Importing translations for file 'osx_code/zh-Hans.lproj_/android.xml'
+Importing translations for file 'osx_locale/uk_/android.xml'
+Importing translations for file 'osx_locale/zh-Hans_/android.xml'
+◆  File 'osx_code/uk.lproj_/android.xml'
+Importing translations for file 'three_letters_code/ukr_/android.xml'
+◆  File 'osx_code/zh-Hans.lproj_/android.xml'
+◆  File 'osx_locale/uk_/android.xml'
+◆  File 'osx_locale/zh-Hans_/android.xml'
+Importing translations for file 'three_letters_code/zho_/android.xml'
+Importing translations for file 'two_letters_code/uk_/android.xml'
+Importing translations for file 'two_letters_code/zh_/android.xml'
+◆  File 'three_letters_code/ukr_/android.xml'
+◆  File 'three_letters_code/zho_/android.xml'
+◆  File 'two_letters_code/uk_/android.xml'
+◆  File 'two_letters_code/zh_/android.xml'"
+`;
+
+exports[`language mapping previews the translation download with the default language mapping 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+android_code/uk-rUA_/android.xml
+android_code/zh-rCN_/android.xml
+language/Chinese Simplified_/android.xml
+language/Ukrainian_/android.xml
+locale/uk-UA_/android.xml
+locale/zh-CN_/android.xml
+locale_with_underscore/uk_UA_/android.xml
+locale_with_underscore/zh_CN_/android.xml
+osx_code/uk.lproj_/android.xml
+osx_code/zh-Hans.lproj_/android.xml
+osx_locale/uk_/android.xml
+osx_locale/zh-Hans_/android.xml
+three_letters_code/ukr_/android.xml
+three_letters_code/zho_/android.xml
+two_letters_code/uk_/android.xml
+two_letters_code/zh_/android.xml"
+`;
+
+exports[`language mapping downloads translations with the default language mapping 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File android_code/uk-rUA_/android.xml extracted
+◆  File android_code/zh-rCN_/android.xml extracted
+◆  File language/Chinese Simplified_/android.xml extracted
+◆  File language/Ukrainian_/android.xml extracted
+◆  File locale/uk-UA_/android.xml extracted
+◆  File locale/zh-CN_/android.xml extracted
+◆  File locale_with_underscore/uk_UA_/android.xml extracted
+◆  File locale_with_underscore/zh_CN_/android.xml extracted
+◆  File osx_code/uk.lproj_/android.xml extracted
+◆  File osx_code/zh-Hans.lproj_/android.xml extracted
+◆  File osx_locale/uk_/android.xml extracted
+◆  File osx_locale/zh-Hans_/android.xml extracted
+◆  File three_letters_code/ukr_/android.xml extracted
+◆  File three_letters_code/zho_/android.xml extracted
+◆  File two_letters_code/uk_/android.xml extracted
+◆  File two_letters_code/zh_/android.xml extracted"
+`;
+
+exports[`language mapping sets a server-side language mapping and previews the upload without local overrides 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  File android_code/uk-rUA_crwd/android.xml would be queued for translations import
+●  File android_code/zh-rCN_crwd/android.xml would be queued for translations import
+●  File language/Chinese Simplified_/android.xml would be queued for translations import
+●  File language/Ukrainian_/android.xml would be queued for translations import
+●  File locale/uk-UA_/android.xml would be queued for translations import
+●  File locale/zh-CN_/android.xml would be queued for translations import
+●  File locale_with_underscore/uk_UA_/android.xml would be queued for translations import
+●  File locale_with_underscore/zh_CN_/android.xml would be queued for translations import
+●  File osx_code/uk.lproj_/android.xml would be queued for translations import
+●  File osx_code/zh-Hans.lproj_/android.xml would be queued for translations import
+●  File osx_locale/uk_/android.xml would be queued for translations import
+●  File osx_locale/zh-Hans_/android.xml would be queued for translations import
+●  File three_letters_code/ukr_/android.xml would be queued for translations import
+●  File three_letters_code/zho_/android.xml would be queued for translations import
+●  File two_letters_code/uk_/android.xml would be queued for translations import
+●  File two_letters_code/zh_/android.xml would be queued for translations import
+●  Project files fetched
+●  Project info fetched"
+`;
+
+exports[`language mapping lists target languages using the android_code mapping 1`] = `
+"●  Fetching project info
+●  Project info fetched
+┌───┬─────────────┬────────────────────┐
+│   │ code        │ name               │
+├───┼─────────────┼────────────────────┤
+│ 0 │ uk-rUA_crwd │ Ukrainian          │
+│ 1 │ zh-rCN_crwd │ Chinese Simplified │
+└───┴─────────────┴────────────────────┘"
+`;
+
+exports[`language mapping lists target languages using the three_letters_code mapping 1`] = `
+"●  Fetching project info
+●  Project info fetched
+┌───┬──────┬────────────────────┐
+│   │ code │ name               │
+├───┼──────┼────────────────────┤
+│ 0 │ ukr_ │ Ukrainian          │
+│ 1 │ zho_ │ Chinese Simplified │
+└───┴──────┴────────────────────┘"
+`;
+
+exports[`language mapping uploads translations under the server-side language mapping 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+Importing translations for file 'android_code/uk-rUA_crwd/android.xml'
+Importing translations for file 'android_code/zh-rCN_crwd/android.xml'
+Importing translations for file 'language/Chinese Simplified_/android.xml'
+Importing translations for file 'language/Ukrainian_/android.xml'
+◆  File 'android_code/uk-rUA_crwd/android.xml'
+Importing translations for file 'locale/uk-UA_/android.xml'
+◆  File 'android_code/zh-rCN_crwd/android.xml'
+◆  File 'language/Chinese Simplified_/android.xml'
+◆  File 'language/Ukrainian_/android.xml'
+Importing translations for file 'locale/zh-CN_/android.xml'
+Importing translations for file 'locale_with_underscore/uk_UA_/android.xml'
+Importing translations for file 'locale_with_underscore/zh_CN_/android.xml'
+◆  File 'locale/uk-UA_/android.xml'
+◆  File 'locale_with_underscore/zh_CN_/android.xml'
+Importing translations for file 'osx_code/uk.lproj_/android.xml'
+Importing translations for file 'osx_code/zh-Hans.lproj_/android.xml'
+◆  File 'locale/zh-CN_/android.xml'
+◆  File 'locale_with_underscore/uk_UA_/android.xml'
+Importing translations for file 'osx_locale/uk_/android.xml'
+Importing translations for file 'osx_locale/zh-Hans_/android.xml'
+◆  File 'osx_code/zh-Hans.lproj_/android.xml'
+Importing translations for file 'three_letters_code/ukr_/android.xml'
+◆  File 'osx_code/uk.lproj_/android.xml'
+◆  File 'osx_locale/zh-Hans_/android.xml'
+Importing translations for file 'three_letters_code/zho_/android.xml'
+Importing translations for file 'two_letters_code/uk_/android.xml'
+◆  File 'three_letters_code/ukr_/android.xml'
+Importing translations for file 'two_letters_code/zh_/android.xml'
+◆  File 'osx_locale/uk_/android.xml'
+◆  File 'three_letters_code/zho_/android.xml'
+◆  File 'two_letters_code/uk_/android.xml'
+◆  File 'two_letters_code/zh_/android.xml'"
+`;
+
+exports[`language mapping previews the translation download under the server-side language mapping 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+android_code/uk-rUA_crwd/android.xml
+android_code/zh-rCN_crwd/android.xml
+language/Chinese Simplified_/android.xml
+language/Ukrainian_/android.xml
+locale/uk-UA_/android.xml
+locale/zh-CN_/android.xml
+locale_with_underscore/uk_UA_/android.xml
+locale_with_underscore/zh_CN_/android.xml
+osx_code/uk.lproj_/android.xml
+osx_code/zh-Hans.lproj_/android.xml
+osx_locale/uk_/android.xml
+osx_locale/zh-Hans_/android.xml
+three_letters_code/ukr_/android.xml
+three_letters_code/zho_/android.xml
+two_letters_code/uk_/android.xml
+two_letters_code/zh_/android.xml"
+`;
+
+exports[`language mapping downloads translations under the server-side language mapping 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File android_code/uk-rUA_crwd/android.xml extracted
+◆  File android_code/zh-rCN_crwd/android.xml extracted
+◆  File language/Chinese Simplified_/android.xml extracted
+◆  File language/Ukrainian_/android.xml extracted
+◆  File locale/uk-UA_/android.xml extracted
+◆  File locale/zh-CN_/android.xml extracted
+◆  File locale_with_underscore/uk_UA_/android.xml extracted
+◆  File locale_with_underscore/zh_CN_/android.xml extracted
+◆  File osx_code/uk.lproj_/android.xml extracted
+◆  File osx_code/zh-Hans.lproj_/android.xml extracted
+◆  File osx_locale/uk_/android.xml extracted
+◆  File osx_locale/zh-Hans_/android.xml extracted
+◆  File three_letters_code/ukr_/android.xml extracted
+◆  File three_letters_code/zho_/android.xml extracted
+◆  File two_letters_code/uk_/android.xml extracted
+◆  File two_letters_code/zh_/android.xml extracted"
+`;

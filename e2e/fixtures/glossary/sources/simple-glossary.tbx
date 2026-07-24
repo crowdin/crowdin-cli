@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="utf-8"?>
+<martif type="TBX-Basic" xml:lang="en">
+  <martifHeader>
+    <fileDesc>
+      <sourceDesc>
+        <p>Crowdin glossary download</p>
+      </sourceDesc>
+    </fileDesc>
+    <encodingDesc>
+      <p type="XCSURI">http://www.lisa.org/fileadmin/standards/tbx_basic/TBXBasicXCSV02.xcs</p>
+    </encodingDesc>
+  </martifHeader>
+  <text>
+    <body>
+      <termEntry id="1">
+        <langSet xml:lang="en">
+          <tig>
+            <term id="1-en">first</term>
+            <descrip type="definition">first description</descrip>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig>
+            <term id="1-de">zuerst</term>
+            <descrip type="definition">zuerst Beschreibung</descrip>
+          </tig>
+        </langSet>
+        <langSet xml:lang="uk">
+          <tig>
+            <term id="1-uk">перший</term>
+            <descrip type="definition">перший опис</descrip>
+          </tig>
+        </langSet>
+        <langSet xml:lang="ar">
+          <tig>
+            <term id="1-ar">أول</term>
+            <descrip type="definition">الوصف الأول</descrip>
+          </tig>
+        </langSet>
+        <langSet xml:lang="zh-CN">
+          <tig>
+            <term id="1-zh-CN">第一</term>
+            <descrip type="definition">第一个描述</descrip>
+          </tig>
+        </langSet>
+      </termEntry>
+      <termEntry id="2">
+        <langSet xml:lang="en">
+          <tig>
+            <term id="2-en">second</term>
+            <descrip type="definition">second description</descrip>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig>
+            <term id="2-de">zweite</term>
+            <descrip type="definition">zweite Beschreibung</descrip>
+          </tig>
+        </langSet>
+        <langSet xml:lang="uk">
+          <tig>
+            <term id="2-гл">другий</term>
+            <descrip type="definition">другий опис</descrip>
+          </tig>
+        </langSet>
+      </termEntry>
+      <termEntry id="3">
+        <langSet xml:lang="en">
+          <tig>
+            <term id="3-en">third</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="de">
+          <tig>
+            <term id="3-de">dritte</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="uk">
+          <tig>
+            <term id="3-uk">третій</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="ar">
+          <tig>
+            <term id="3-ar">الثالث</term>
+          </tig>
+        </langSet>
+        <langSet xml:lang="zh-CN">
+          <tig>
+            <term id="3-zh-CN">第三</term>
+          </tig>
+        </langSet>
+      </termEntry>
+    </body>
+  </text>
+</martif>
