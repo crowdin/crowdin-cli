@@ -1,0 +1,8 @@
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+base_path: "."
+base_url: "https://api.crowdin.com"
+preserve_hierarchy: true
+files:
+  - source: "/folder_not_exists/**/*.xml"
+    translation: "/%locale%/folder_1/**/%file_name%.xml"
