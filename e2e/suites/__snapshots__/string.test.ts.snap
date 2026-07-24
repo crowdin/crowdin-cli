@@ -1,0 +1,191 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`string uploads sources 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/android.xml'
+◆  File 'sources/text.txt'"
+`;
+
+exports[`string lists all source strings 1`] = `
+"┌───┬─────────┬────────────────┬────────────────────────────────────────────┐
+│   │ id      │ identifier     │ text                                       │
+├───┼─────────┼────────────────┼────────────────────────────────────────────┤
+│ 0 │ 2071928 │ str1           │ first string                               │
+│ 1 │ 2071930 │ str2           │ second string                              │
+│ 2 │ 2071932 │ str_with_tag   │ <span>first string source\` with tag</span> │
+│ 3 │ 2071934 │ str_with_quote │ first string source' with quotes           │
+│ 4 │ 2071936 │                │ First text string.                         │
+│ 5 │ 2071938 │                │ Second text string.                        │
+└───┴─────────┴────────────────┴────────────────────────────────────────────┘"
+`;
+
+exports[`string lists source strings authenticating via -T/-i against a config without an api_token 1`] = `
+"┌───┬─────────┬────────────────┬────────────────────────────────────────────┐
+│   │ id      │ identifier     │ text                                       │
+├───┼─────────┼────────────────┼────────────────────────────────────────────┤
+│ 0 │ 2071928 │ str1           │ first string                               │
+│ 1 │ 2071930 │ str2           │ second string                              │
+│ 2 │ 2071932 │ str_with_tag   │ <span>first string source\` with tag</span> │
+│ 3 │ 2071934 │ str_with_quote │ first string source' with quotes           │
+│ 4 │ 2071936 │                │ First text string.                         │
+│ 5 │ 2071938 │                │ Second text string.                        │
+└───┴─────────┴────────────────┴────────────────────────────────────────────┘"
+`;
+
+exports[`string lists source strings filtered by file 1`] = `
+"┌───┬─────────┬────────────────┬────────────────────────────────────────────┐
+│   │ id      │ identifier     │ text                                       │
+├───┼─────────┼────────────────┼────────────────────────────────────────────┤
+│ 0 │ 2071928 │ str1           │ first string                               │
+│ 1 │ 2071930 │ str2           │ second string                              │
+│ 2 │ 2071932 │ str_with_tag   │ <span>first string source\` with tag</span> │
+│ 3 │ 2071934 │ str_with_quote │ first string source' with quotes           │
+└───┴─────────┴────────────────┴────────────────────────────────────────────┘"
+`;
+
+exports[`string lists source strings filtered by identifier/text/context 1`] = `
+"┌───┬─────────┬────────────┬──────────────┐
+│   │ id      │ identifier │ text         │
+├───┼─────────┼────────────┼──────────────┤
+│ 0 │ 2071928 │ str1       │ first string │
+└───┴─────────┴────────────┴──────────────┘"
+`;
+
+exports[`string lists source strings verbosely, including file and context 1`] = `
+"●  Loading configuration from /private/var/folders/v9/x32vvmbs6h38d0yjvzcsw7qdv6g1xv/T/crowdin-e2e/76700-124411/string/crowdin.yml file
+┌───┬─────────┬────────────────┬────────────────────────────────────────────┬──────────────┬────────┬────────────────┐
+│   │ id      │ identifier     │ text                                       │ file         │ labels │ context        │
+├───┼─────────┼────────────────┼────────────────────────────────────────────┼──────────────┼────────┼────────────────┤
+│ 0 │ 2071928 │ str1           │ first string                               │ /android.xml │        │ str1           │
+│ 1 │ 2071930 │ str2           │ second string                              │ /android.xml │        │ str2           │
+│ 2 │ 2071932 │ str_with_tag   │ <span>first string source\` with tag</span> │ /android.xml │        │ str_with_tag   │
+│ 3 │ 2071934 │ str_with_quote │ first string source' with quotes           │ /android.xml │        │ str_with_quote │
+│ 4 │ 2071936 │                │ First text string.                         │ /text.txt    │        │                │
+│ 5 │ 2071938 │                │ Second text string.                        │ /text.txt    │        │                │
+└───┴─────────┴────────────────┴────────────────────────────────────────────┴──────────────┴────────┴────────────────┘"
+`;
+
+exports[`string adds a new source string 1`] = `
+"┌───┬─────────┬────────────┬──────────────┐
+│   │ id      │ identifier │ text         │
+├───┼─────────┼────────────┼──────────────┤
+│ 0 │ 2071940 │ str3       │ third string │
+└───┴─────────┴────────────┴──────────────┘"
+`;
+
+exports[`string edits a source string 1`] = `
+"◆  Source string #id was updated successfully
+┌───┬─────────┬────────────┬─────────────────────┐
+│   │ id      │ identifier │ text                │
+├───┼─────────┼────────────┼─────────────────────┤
+│ 0 │ 2071940 │ str3       │ third string edited │
+└───┴─────────┴────────────┴─────────────────────┘"
+`;
+
+exports[`string deletes a source string 1`] = `"◆  Source string #id was deleted successfully"`;
+
+exports[`string uploads sources to a new branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/android.xml'
+◆  File 'sources/text.txt'"
+`;
+
+exports[`string deletes a source string from a branch-scoped file 1`] = `"◆  Source string #id was deleted successfully"`;
+
+exports[`string reports a missing file when listing by file 1`] = `"■  File 'not-exists-file.xml' not found"`;
+
+exports[`string warns then fails adding a string to a missing file 1`] = `
+"▲  Project doesn't contain the 'not-exists-file.xml' file
+■  No valid file specified for the string. At least one valid file is required"
+`;
+
+exports[`string fails adding a string to an unsupported file type 1`] = `"■  Source string was not added. File 'text.txt' (id: 35620) does not support online string editing"`;
+
+exports[`string requires non-empty text when adding a string 1`] = `"■  Source string text can not be empty"`;
+
+exports[`string requires an identifier when adding a string without one 1`] = `"■  Source string was not added. Value is required and can't be empty"`;
+
+exports[`string reports a missing string when editing a nonexistent id 1`] = `"■  Failed to edit source string #id. String Not Found"`;
+
+exports[`string fails editing a string in an unsupported file type 1`] = `"■  Failed to edit source string #id. File 'text.txt' (id: 35620) does not support online string editing"`;
+
+exports[`string reports a missing string when deleting a nonexistent id 1`] = `"■  Failed to delete source string #id. String Not Found"`;
+
+exports[`string fails deleting a string in an unsupported file type 1`] = `"■  Failed to delete source string #id. File 'text.txt' (id: 35620) does not support online string editing"`;
+
+exports[`string lists source strings by a CroQL text match, spanning both branches 1`] = `
+"┌───┬─────────┬──────────────┬────────────────────────────────────────────┐
+│   │ id      │ identifier   │ text                                       │
+├───┼─────────┼──────────────┼────────────────────────────────────────────┤
+│ 0 │ 2071932 │ str_with_tag │ <span>first string source\` with tag</span> │
+│ 1 │ 2071946 │ str_with_tag │ <span>first string source\` with tag</span> │
+└───┴─────────┴──────────────┴────────────────────────────────────────────┘"
+`;
+
+exports[`string lists source strings by a CroQL text match with a quote, spanning both branches 1`] = `
+"┌───┬─────────┬────────────────┬──────────────────────────────────┐
+│   │ id      │ identifier     │ text                             │
+├───┼─────────┼────────────────┼──────────────────────────────────┤
+│ 0 │ 2071934 │ str_with_quote │ first string source' with quotes │
+│ 1 │ 2071948 │ str_with_quote │ first string source' with quotes │
+└───┴─────────┴────────────────┴──────────────────────────────────┘"
+`;
+
+exports[`string rejects an invalid CroQL expression 1`] = `"■  Failed to list source strings. The inferred type is not equal to 'bool'"`;
+
+exports[`string adds a comment to a source string 1`] = `
+"┌───┬─────┬───────────────┐
+│   │ id  │ text          │
+├───┼─────┼───────────────┤
+│ 0 │ 160 │ Added comment │
+└───┴─────┴───────────────┘"
+`;
+
+exports[`string lists comments 1`] = `
+"┌───┬─────┬───────────────┐
+│   │ id  │ text          │
+├───┼─────┼───────────────┤
+│ 0 │ 160 │ Added comment │
+└───┴─────┴───────────────┘"
+`;
+
+exports[`string adds an issue to a source string 1`] = `
+"┌───┬─────┬────────────────────────────┐
+│   │ id  │ text                       │
+├───┼─────┼────────────────────────────┤
+│ 0 │ 162 │ Added comment string id 10 │
+└───┴─────┴────────────────────────────┘"
+`;
+
+exports[`string adds an issue with a context-request type 1`] = `
+"┌───┬─────┬──────────────────────────────────────────┐
+│   │ id  │ text                                     │
+├───┼─────┼──────────────────────────────────────────┤
+│ 0 │ 164 │ Added issue string context_request id 10 │
+└───┴─────┴──────────────────────────────────────────┘"
+`;
+
+exports[`string lists comments filtered by a specific string id 1`] = `
+"┌───┬─────┬──────────────────────────────────────────┐
+│   │ id  │ text                                     │
+├───┼─────┼──────────────────────────────────────────┤
+│ 0 │ 162 │ Added comment string id 10               │
+│ 1 │ 164 │ Added issue string context_request id 10 │
+└───┴─────┴──────────────────────────────────────────┘"
+`;
+
+exports[`string resolves a string issue 1`] = `"◆  A string issue #id has been successfully resolved"`;
+
+exports[`string lists comments filtered by unresolved status 1`] = `
+"┌───┬─────┬────────────────────────────┐
+│   │ id  │ text                       │
+├───┼─────┼────────────────────────────┤
+│ 0 │ 162 │ Added comment string id 10 │
+└───┴─────┴────────────────────────────┘"
+`;

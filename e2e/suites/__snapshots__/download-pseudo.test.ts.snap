@@ -1,0 +1,113 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`download pseudo uploads the single source file 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory sources created
+◆  File 'sources/android.xml'"
+`;
+
+exports[`download pseudo downloads pseudo translations with all parameters (cyrillic transformation) 1`] = `
+"●  Building pseudo translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/uk/android.xml extracted"
+`;
+
+exports[`download pseudo downloads pseudo translations with asian character transformation 1`] = `
+"●  Building pseudo translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/zh/android.xml extracted"
+`;
+
+exports[`download pseudo downloads pseudo translations with european character transformation 1`] = `
+"●  Building pseudo translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/fr/android.xml extracted"
+`;
+
+exports[`download pseudo downloads pseudo translations with arabic character transformation 1`] = `
+"●  Building pseudo translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/ar/android.xml extracted"
+`;
+
+exports[`download pseudo downloads pseudo translations with length correction only 1`] = `
+"●  Building pseudo translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/en/android.xml extracted"
+`;
+
+exports[`download pseudo downloads pseudo translations with prefix only 1`] = `
+"●  Building pseudo translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/en/android.xml extracted"
+`;
+
+exports[`download pseudo downloads pseudo translations with suffix only 1`] = `
+"●  Building pseudo translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/en/android.xml extracted"
+`;
+
+exports[`download pseudo downloads pseudo translations using default settings when pseudo_localization is absent 1`] = `
+"●  Building pseudo translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/en/android.xml extracted"
+`;
+
+exports[`download pseudo rejects an unknown character_transformation value 1`] = `
+"■  ✖ Invalid option: expected one of "asian"|"european"|"arabic"|"cyrillic"
+  → at pseudoLocalization.character_transformation"
+`;
+
+exports[`download pseudo rejects a prefix of the wrong type 1`] = `
+"■  ✖ Invalid input: expected string, received number
+  → at pseudoLocalization.prefix"
+`;
+
+exports[`download pseudo rejects a length_correction outside the -50..100 range 1`] = `
+"■  ✖ Too big: expected number to be <=100
+  → at pseudoLocalization.length_correction"
+`;

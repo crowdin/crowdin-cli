@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<srx version="2.0"
+     xmlns="http://www.lisa.org/srx20"
+     xsi:schemaLocation="http://www.lisa.org/srx20 srx20.xsd"
+     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <header segmentsubflows="yes" cascade="yes">
+        <formathandle type="start" include="no"/>
+        <formathandle type="end" include="yes"/>
+        <formathandle type="isolated" include="yes"/>
+    </header>
+    <body>
+        <languagerules>
+            <languagerule languagerulename="Default">
+                <!-- Common rules for most languages -->
+                <rule break="no">
+                    <beforebreak>^\s*[0-9]+\.</beforebreak>
+                    <afterbreak>\s</afterbreak>
+                </rule>
+                <rule break="yes">
+                    <afterbreak>\n</afterbreak>
+                </rule>
+                <rule break="yes">
+                    <beforebreak>[\.\?!]+</beforebreak>
+                    <afterbreak>\s</afterbreak>
+                </rule>
+            </languagerule>
+            <languagerule languagerulename="English">
+                <!-- Some English abbreviations -->
+                <rule break="no">
+                    <beforebreak>\sMr\.</beforebreak>
+                    <afterbreak>\s</afterbreak>
+                </rule>
+                <rule break="no">
+                    <beforebreak>\sU\.K\.</beforebreak>
+                    <afterbreak>\s</afterbreak>
+                </rule>
+            </languagerule>
+        </languagerules>
+        <maprules>
+            <!-- List exceptions first -->
+            <languagemap languagepattern=".*" languagerulename="English"/>
+            <languagemap languagepattern=".*" languagerulename="Default"/>
+        </maprules>
+    </body>
+</srx>

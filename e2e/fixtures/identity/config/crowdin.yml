@@ -1,0 +1,6 @@
+base_path: "."
+preserve_hierarchy: false
+
+files:
+  - source: "/sources/*.xml"
+    translation: "/translations/%two_letters_code%/%original_file_name%"

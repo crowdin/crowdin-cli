@@ -1,0 +1,31 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`auto update uploads sources, creating both files 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;
+
+exports[`auto update updates existing sources and creates a new one (auto-update is the default) 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'
+◆  File 'sources/3_android.xml'"
+`;
+
+exports[`auto update skips existing sources but still creates a new one with --no-auto-update 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  File sources/1_android.xml already exists and will not be updated
+●  File sources/2_android.xml already exists and will not be updated
+●  File sources/3_android.xml already exists and will not be updated
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/4_android.xml'"
+`;

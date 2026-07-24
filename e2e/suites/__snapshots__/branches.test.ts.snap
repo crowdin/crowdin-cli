@@ -1,0 +1,102 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`branches uploads a single source file to a brand-new branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources_one_file/1_android.xml'"
+`;
+
+exports[`branches previews uploading two more source files to a not-yet-existing branch (dry run) 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  File sources/1_android.xml would be created
+●  File sources/2_android.xml would be created
+●  Project files fetched
+●  Project info fetched"
+`;
+
+exports[`branches previews the source upload dry run as a tree 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+.
+╰─ sources
+   ├─ 1_android.xml
+   ╰─ 2_android.xml"
+`;
+
+exports[`branches uploads the two source files for real, creating the branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;
+
+exports[`branches updates the existing sources after local changes 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;
+
+exports[`branches previews the translation upload as a dry run 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  File translations/it/1_android.xml would be queued for translations import
+●  File translations/it/2_android.xml would be queued for translations import
+●  File translations/uk/1_android.xml would be queued for translations import
+●  File translations/uk/2_android.xml would be queued for translations import
+●  Project files fetched
+●  Project info fetched"
+`;
+
+exports[`branches previews the translation dry run as a tree 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+.
+╰─ translations
+   ├─ it
+   │  ├─ 1_android.xml
+   │  ╰─ 2_android.xml
+   ╰─ uk
+      ├─ 1_android.xml
+      ╰─ 2_android.xml"
+`;
+
+exports[`branches uploads translations for the updated sources 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+Importing translations for file 'translations/it/1_android.xml'
+Importing translations for file 'translations/it/2_android.xml'
+Importing translations for file 'translations/uk/1_android.xml'
+Importing translations for file 'translations/uk/2_android.xml'
+◆  File 'translations/it/1_android.xml'
+◆  File 'translations/it/2_android.xml'
+◆  File 'translations/uk/1_android.xml'
+◆  File 'translations/uk/2_android.xml'"
+`;
+
+exports[`branches downloads translations for the branch 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/1_android.xml extracted
+◆  File translations/it/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;

@@ -1,0 +1,47 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`file groups uploads sources across overlapping file groups, then aborts on the empty pattern 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory sources created
+◆  File 'sources/android.xml'
+◆  File 'sources/java.properties'
+▲  Skipping file 'sources/android.xml' because it is already uploading/uploaded
+■  No sources found for '/sources/*.pot' pattern. Check the source paths in your configuration file"
+`;
+
+exports[`file groups uploads translations, duplicating the file matched by both overlapping groups 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+■  No sources found for '/sources/*.pot' pattern. Check the source paths in your configuration file
+Importing translations for file 'translations/it/android.xml'
+Importing translations for file 'translations/it/java.properties'
+Importing translations for file 'translations/uk/android.xml'
+Importing translations for file 'translations/uk/java.properties'
+◆  File 'translations/it/java.properties'
+◆  File 'translations/uk/java.properties'
+Importing translations for file 'translations/it/android.xml'
+Importing translations for file 'translations/uk/android.xml'
+◆  File 'translations/it/android.xml'
+◆  File 'translations/it/android.xml'
+◆  File 'translations/uk/android.xml'
+◆  File 'translations/uk/android.xml'"
+`;
+
+exports[`file groups downloads translations, deduplicating the file matched by both overlapping groups 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/android.xml extracted
+◆  File translations/it/java.properties extracted
+◆  File translations/uk/android.xml extracted
+◆  File translations/uk/java.properties extracted"
+`;

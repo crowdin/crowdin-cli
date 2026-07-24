@@ -1,0 +1,635 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`tm uploads a TMX translation memory, creating it 1`] = `"◆  Imported in #id 'Created in Crowdin CLI (simple-tm.tmx)' translation memory"`;
+
+exports[`tm uploads a CSV translation memory with an explicit scheme, creating it 1`] = `"◆  Imported in #id 'Created in Crowdin CLI (simple-tm.csv)' translation memory"`;
+
+exports[`tm uploads an XLSX translation memory with an explicit scheme, creating it 1`] = `"◆  Imported in #id 'Created in Crowdin CLI (simple-tm.xlsx)' translation memory"`;
+
+exports[`tm lists all translation memories in the project 1`] = `
+"┌─────┬────────┬───────────────────────────────────────────────────┬──────────┐
+│     │ id     │ name                                              │ segments │
+├─────┼────────┼───────────────────────────────────────────────────┼──────────┤
+│   0 │ 38335  │ vasyl-test's TM                                   │ 130      │
+│   1 │ 44187  │ xliff-export-test-project's TM                    │ 11       │
+│   2 │ 46986  │ "<h1>645g456g456's TM</h1>                        │ 0        │
+│   3 │ 48934  │ qa-check-test's TM                                │ 737      │
+│   4 │ 53118  │ hgfhgfhgf-jljkljk's TM                            │ 0        │
+│   5 │ 54354  │ hgf                                               │ 0        │
+│   6 │ 54356  │ gfdgdf                                            │ 0        │
+│   7 │ 54449  │ TMP 10 08 16's TM                                 │ 10       │
+│   8 │ 56211  │ name-q1w2's TM                                    │ 0        │
+│   9 │ 56212  │ name-q1w7's TM                                    │ 4        │
+│  10 │ 56375  │ Qwe 123's TM                                      │ 0        │
+│  11 │ 67763  │ "><img src=a onerror=alert(9)>'s TM               │ 7        │
+│  12 │ 69002  │ tmp-08-26's TM                                    │ 2        │
+│  13 │ 71311  │ tmp-16-10's TM                                    │ 41       │
+│  14 │ 71313  │ еьз-16-17's TM                                    │ 9        │
+│  15 │ 73867  │ tmp-arab's TM                                     │ 0        │
+│  16 │ 91843  │ cli-test1's TM                                    │ 0        │
+│  17 │ 92342  │ cli-test2's TM                                    │ 0        │
+│  18 │ 92349  │ cli-test3's TM                                    │ 0        │
+│  19 │ 96507  │ project-s's TM                                    │ 2        │
+│  20 │ 98669  │ android-plugin-test's TM                          │ 14       │
+│  21 │ 101529 │ cli-test4's TM                                    │ 50       │
+│  22 │ 102862 │ xlsx-test's TM                                    │ 0        │
+│  23 │ 103948 │ gfgf's TM                                         │ 0        │
+│  24 │ 106467 │ cli-test5's TM                                    │ 22       │
+│  25 │ 112435 │ github-testq1w2e3's TM                            │ 0        │
+│  26 │ 113503 │ inttest111's TM                                   │ 31       │
+│  27 │ 135577 │ desk12345's TM                                    │ 0        │
+│  28 │ 136799 │ txttxt's TM                                       │ 8        │
+│  29 │ 139685 │ maxmax's TM                                       │ 3244     │
+│  30 │ 139849 │ wine-vas's TM                                     │ 3250     │
+│  31 │ 140063 │ material-cli's TM                                 │ 1103     │
+│  32 │ 140339 │ sbb-pr's TM                                       │ 0        │
+│  33 │ 140349 │ webhook-test's TM                                 │ 42       │
+│  34 │ 140497 │ cli-0214's TM                                     │ 0        │
+│  35 │ 145341 │ empty-q1r4y6's TM                                 │ 2        │
+│  36 │ 148099 │ vasyl-public's TM                                 │ 5        │
+│  37 │ 152523 │ MmMmM's TM                                        │ 9        │
+│  38 │ 154649 │ wix-test's TM                                     │ 2        │
+│  39 │ 155037 │ bitbucket-777's TM                                │ 5        │
+│  40 │ 158777 │ empty-2's TM                                      │ 47       │
+│  41 │ 161065 │ replace's TM                                      │ 2        │
+│  42 │ 162439 │ gggyyyrrr's TM                                    │ 0        │
+│  43 │ 162721 │ "><img src=a onerror=alert(9)>zzqq's TM           │ 2        │
+│  44 │ 173001 │ nmt-test's TM                                     │ 1        │
+│  45 │ 174588 │ cli-t's TM                                        │ 1        │
+│  46 │ 174928 │ Open Office Testing's TM                          │ 18628    │
+│  47 │ 175526 │ sketch-zzz's TM                                   │ 19       │
+│  48 │ 175532 │ managed's TM                                      │ 22       │
+│  49 │ 175536 │ sb-project's TM                                   │ 0        │
+│  50 │ 175563 │ deldel's TM                                       │ 0        │
+│  51 │ 175578 │ ZZZ-qaswedfr's TM                                 │ 0        │
+│  52 │ 176679 │ tm-gettext's TM                                   │ 2916     │
+│  53 │ 176706 │ cli-mega's TM                                     │ 0        │
+│  54 │ 177089 │ sketch-v2's TM                                    │ 3        │
+│  55 │ 177556 │ Open Office Testing CLI's TM                      │ 27492    │
+│  56 │ 177611 │ Open Office Testing CLI 2.0.31's TM               │ 27458    │
+│  57 │ 177937 │ in-context-vk's TM                                │ 143      │
+│  58 │ 179077 │ sketch-v3's TM                                    │ 0        │
+│  59 │ 179131 │ cli-paralel's TM                                  │ 1        │
+│  60 │ 180039 │ figma--02-17's TM                                 │ 0        │
+│  61 │ 180371 │ in-e3r4t5's TM                                    │ 84       │
+│  62 │ 183223 │ ggfdgfdgfdgdf's TM                                │ 0        │
+│  63 │ 183261 │ figma-feb-11's TM                                 │ 0        │
+│  64 │ 183615 │ Sketch-Feb-13's TM                                │ 0        │
+│  65 │ 184067 │ Figma-feb-17's TM                                 │ 0        │
+│  66 │ 184083 │ Sketch Feb 17 prod's TM                           │ 0        │
+│  67 │ 184465 │ wrike-vasyl's TM                                  │ 0        │
+│  68 │ 184593 │ Figma feb 20's TM                                 │ 35       │
+│  69 │ 185377 │ API Feb 27's TM                                   │ 23586    │
+│  70 │ 186447 │ Figma Mar 5's TM                                  │ 0        │
+│  71 │ 192258 │ Figma 13's TM                                     │ 2        │
+│  72 │ 194034 │ xxxxr4t5's TM                                     │ 0        │
+│  73 │ 195768 │ [CLI] CLI's TM                                    │ 21362    │
+│  74 │ 195772 │ cli-38d6acb1's TM                                 │ 0        │
+│  75 │ 195774 │ cli-f3703df5's TM                                 │ 12       │
+│  76 │ 195776 │ cli-ignore-85840058's TM                          │ 0        │
+│  77 │ 195780 │ cli-multilingual-35e9a89e's TM                    │ 0        │
+│  78 │ 195782 │ cli-multilingual-89a654db's TM                    │ 0        │
+│  79 │ 195784 │ cli-multilingual-dce741a1's TM                    │ 0        │
+│  80 │ 195786 │ cli-multilingual-8e8583cd's TM                    │ 0        │
+│  81 │ 195792 │ cli-multilingual-050040bc's TM                    │ 0        │
+│  82 │ 195794 │ cli-multilingual-68c98646's TM                    │ 0        │
+│  83 │ 195796 │ cli-multilingual-8d978fa4's TM                    │ 0        │
+│  84 │ 195798 │ cli-multilingual-70efb7ee's TM                    │ 0        │
+│  85 │ 195800 │ cli-multilingual-6e8322c0's TM                    │ 0        │
+│  86 │ 195802 │ cli-multilingual-37b0c4d2's TM                    │ 0        │
+│  87 │ 195804 │ cli-multilingual-abe05a4e's TM                    │ 0        │
+│  88 │ 195806 │ cli-multilingual-845b3586's TM                    │ 0        │
+│  89 │ 195810 │ cli-multilingual-c8412181's TM                    │ 0        │
+│  90 │ 195812 │ cli-multilingual-481d3c4e's TM                    │ 0        │
+│  91 │ 195814 │ cli-multilingual-99e5d166's TM                    │ 0        │
+│  92 │ 195816 │ cli-multilingual-6beffb9e's TM                    │ 0        │
+│  93 │ 195824 │ cli-properties-995b1e38's TM                      │ 0        │
+│  94 │ 195826 │ cli-properties-a86d437c's TM                      │ 0        │
+│  95 │ 195828 │ cli-invalid-credentials-342259e2's TM             │ 0        │
+│  96 │ 195830 │ cli-invalid-credentials-97c1d373's TM             │ 0        │
+│  97 │ 195838 │ cli-env-variables-d5a2e3ef's TM                   │ 0        │
+│  98 │ 195840 │ cli-env-variables-bafcb979's TM                   │ 0        │
+│  99 │ 195842 │ cli-env-variables-f60b027e's TM                   │ 0        │
+│ 100 │ 195844 │ cli-env-variables-4687816d's TM                   │ 0        │
+│ 101 │ 195846 │ cli-env-variables-d0b1e972's TM                   │ 11       │
+│ 102 │ 195848 │ cli-env-variables-9461f89c's TM                   │ 11       │
+│ 103 │ 195850 │ cli-dest-1f2e466c's TM                            │ 2        │
+│ 104 │ 195852 │ cli-custom-language-9f0d9058's TM                 │ 0        │
+│ 105 │ 195854 │ cli-custom-language-19e9b122's TM                 │ 4        │
+│ 106 │ 195858 │ cli-branches-32a85b6f's TM                        │ 0        │
+│ 107 │ 195860 │ cli-branches-6725c4d1's TM                        │ 0        │
+│ 108 │ 195866 │ cli-generate-24809ce2's TM                        │ 0        │
+│ 109 │ 195868 │ cli-generate-7a6a5349's TM                        │ 0        │
+│ 110 │ 195870 │ cli-identity-1805e076's TM                        │ 0        │
+│ 111 │ 195872 │ cli-identity-ceff1778's TM                        │ 2        │
+│ 112 │ 195874 │ cli-invalid-files-config-ab62e239's TM            │ 0        │
+│ 113 │ 195876 │ cli-invalid-files-config-afe94d8b's TM            │ 0        │
+│ 114 │ 195970 │ cli-multilingual-0c2bfe1e's TM                    │ 0        │
+│ 115 │ 195972 │ cli-multilingual-7146a6dd's TM                    │ 11       │
+│ 116 │ 195974 │ cli-branches-d892cb1f's TM                        │ 0        │
+│ 117 │ 195978 │ cli-invalid-files-config-1a81a90b's TM            │ 0        │
+│ 118 │ 195980 │ cli-invalid-credentials-93b8d100's TM             │ 0        │
+│ 119 │ 195982 │ cli-auto-update-b20a2a05's TM                     │ 0        │
+│ 120 │ 195984 │ cli-auto-update-f267dd67's TM                     │ 0        │
+│ 121 │ 195986 │ cli-upload-single-file-0a08d3d7's TM              │ 0        │
+│ 122 │ 195988 │ cli-xml-c9ff5873's TM                             │ 0        │
+│ 123 │ 195990 │ cli-xml-96fc0949's TM                             │ 0        │
+│ 124 │ 195992 │ cli-translations-not-match-2e3bd9b1's TM          │ 0        │
+│ 125 │ 195994 │ cli-translations-not-match-5e1d0e1d's TM          │ 0        │
+│ 126 │ 195996 │ cli-translation-replace-22a0ab4a's TM             │ 0        │
+│ 127 │ 195998 │ cli-translation-replace-981f5841's TM             │ 0        │
+│ 128 │ 196000 │ cli-translation-patterns-14e23a35's TM            │ 0        │
+│ 129 │ 196002 │ cli-translation-patterns-6d569117's TM            │ 0        │
+│ 130 │ 196004 │ cli-multilingual-in-root-3f8ca4b2's TM            │ 11       │
+│ 131 │ 196006 │ cli-multilingual-in-root-9e6bad02's TM            │ 9        │
+│ 132 │ 196008 │ cli-language-mapping-9410e4d1's TM                │ 0        │
+│ 133 │ 196010 │ cli-language-mapping-e243b91d's TM                │ 0        │
+│ 134 │ 196012 │ upload-translations's TM                          │ 40       │
+│ 135 │ 196028 │ cli-invalid-credentials-a13536ea's TM             │ 0        │
+│ 136 │ 196034 │ cli-file-type-6569a604's TM                       │ 0        │
+│ 137 │ 196036 │ cli-file-type-ad29c023's TM                       │ 0        │
+│ 138 │ 196454 │ [Figma] New Figma's TM                            │ 9        │
+│ 139 │ 197100 │ Android Studio Plugin Test's TM                   │ 4754     │
+│ 140 │ 200058 │ visual-studio-plugin's TM                         │ 0        │
+│ 141 │ 202286 │ [Sketch] New Sketch's TM                          │ 130      │
+│ 142 │ 203182 │ [Adobe XD] Adobe XD's TM                          │ 131      │
+│ 143 │ 204102 │ zzz-t5y6's TM                                     │ 0        │
+│ 144 │ 206096 │ QA Cheks's TM                                     │ 3730     │
+│ 145 │ 210656 │ key-files's TM                                    │ 2        │
+│ 146 │ 212324 │ act-fedferferfe's TM                              │ 0        │
+│ 147 │ 215628 │ Crypto Wallet's TM                                │ 0        │
+│ 148 │ 215632 │ Fitness App's TM                                  │ 0        │
+│ 149 │ 215634 │ Music App 's TM                                   │ 0        │
+│ 150 │ 215644 │ Taskia's TM                                       │ 0        │
+│ 151 │ 215676 │ Tractiv's TM                                      │ 1        │
+│ 152 │ 215708 │ Social Meet Up's TM                               │ 0        │
+│ 153 │ 215724 │ [Adobe XD] Fresh Food's TM                        │ 0        │
+│ 154 │ 215732 │ [Adobe XD] Green Taxi's TM                        │ 2        │
+│ 155 │ 216658 │ CliProxyTest's TM                                 │ 28       │
+│ 156 │ 217638 │ Created in Crowdin CLI (CLI's TM.tmx)             │ 21213    │
+│ 157 │ 217640 │ Created in Crowdin CLI (CLI's TM.tmx)             │ 21213    │
+│ 158 │ 217642 │ Created in Crowdin CLI (TMCLI's TM.tmx)           │ 0        │
+│ 159 │ 217644 │ Created in Crowdin CLI (CLI's TM.tmx)             │ 21213    │
+│ 160 │ 227488 │ sb-uyhhg's TM                                     │ 0        │
+│ 161 │ 231522 │ vk-xss's TM                                       │ 0        │
+│ 162 │ 232404 │ xss-11's TM                                       │ 0        │
+│ 163 │ 232406 │ xss-12's TM                                       │ 0        │
+│ 164 │ 233592 │ glossary-c's TM                                   │ 0        │
+│ 165 │ 236826 │ d-t's TM                                          │ 0        │
+│ 166 │ 236940 │ branches-t's TM                                   │ 2        │
+│ 167 │ 241610 │ gfdgfdgdfgfdgfd's TM                              │ 0        │
+│ 168 │ 615582 │ proxy-vk's TM                                     │ 0        │
+│ 169 │ 617194 │ Alpha Project's TM                                │ 41       │
+│ 170 │ 617986 │ fdsfsdfds's TM                                    │ 0        │
+│ 171 │ 618334 │ Screenshots Test 25's TM                          │ 0        │
+│ 172 │ 620854 │ Blocked User Notifications's TM                   │ 6        │
+│ 173 │ 621956 │ EXIF Metadata's TM                                │ 0        │
+│ 174 │ 622436 │ IDORs Test Project's TM                           │ 5        │
+│ 175 │ 628558 │ Alpha Project copy's TM                           │ 0        │
+│ 176 │ 628568 │ Alpha Project2's TM                               │ 0        │
+│ 177 │ 628624 │ Apps+'s TM                                        │ 0        │
+│ 178 │ 628656 │ New project4y54y45y45y45's TM                     │ 0        │
+│ 179 │ 628698 │ New project645645645еппапа's TM                   │ 0        │
+│ 180 │ 628704 │ New project's TM                                  │ 0        │
+│ 181 │ 634750 │ IDORs Moderated's TM                              │ 0        │
+│ 182 │ 636384 │ XSS Test Project's TM                             │ 0        │
+│ 183 │ 650162 │ migrate-q1's TM                                   │ 0        │
+│ 184 │ 658072 │ "><img src=a onerror=alert(document.cookie)>'s TM │ 0        │
+│ 185 │ 658074 │ "><img src=a onerror=alert(8)>'s TM               │ 0        │
+│ 186 │ 665086 │ Branch Protection's TM                            │ 0        │
+│ 187 │ 665088 │ Branch Protection's TM                            │ 11       │
+│ 188 │ 666556 │ Branch Protection New's TM                        │ 0        │
+│ 189 │ 670774 │ String Based Alpha's TM                           │ 11       │
+│ 190 │ 681556 │ In Context Security's TM                          │ 0        │
+│ 191 │ 691740 │ TBAC's TM                                         │ 0        │
+│ 192 │ 692730 │ Tasks Test Project's TM                           │ 0        │
+│ 193 │ 693422 │ TBAC Project's TM                                 │ 616      │
+│ 194 │ 695930 │ Public Project 33's TM                            │ 23       │
+│ 195 │ 699924 │ Reports Test's TM                                 │ 71       │
+│ 196 │ 702128 │ Permissions's TM                                  │ 0        │
+│ 197 │ 716147 │ XLIFF Bundle's TM                                 │ 0        │
+│ 198 │ 716347 │ XSS"><img src=a onerror=alert(9)>'s TM            │ 0        │
+│ 199 │ 720703 │ MCP SB's TM                                       │ 0        │
+│ 200 │ 724025 │ XXE test's TM                                     │ 0        │
+│ 201 │ 724177 │ XXE test 2's TM                                   │ 0        │
+│ 202 │ 724533 │ SSRF test's TM                                    │ 0        │
+│ 203 │ 727401 │ cli-v5-test's TM                                  │ 1725     │
+│ 204 │ 727433 │ cli-v5-test-sb's TM                               │ 0        │
+│ 205 │ 727471 │ Crowdin Context Harvester Test's TM               │ 0        │
+│ 206 │ 729525 │ e2e-1784552002-full-cli-workflow's TM             │ 0        │
+│ 207 │ 729537 │ e2e-1784555466-full-cli-workflow's TM             │ 0        │
+│ 208 │ 729539 │ e2e-1784555520-full-cli-workflow's TM             │ 0        │
+│ 209 │ 729543 │ e2e-1784555933-basic-upload-download's TM         │ 0        │
+│ 210 │ 729553 │ cli-debug-export-pattern's TM                     │ 2        │
+│ 211 │ 729557 │ cli-download-export-pattern-repro's TM            │ 2        │
+│ 212 │ 729573 │ e2e-1784561557-full-cli-workflow's TM             │ 6        │
+│ 213 │ 729575 │ cli-debug-timing-isolation's TM                   │ 6        │
+│ 214 │ 729583 │ e2e-1784563193-full-cli-workflow's TM             │ 0        │
+│ 215 │ 729589 │ e2e-1784563469-full-cli-workflow's TM             │ 6        │
+│ 216 │ 729597 │ e2e-1784564859-excluded-languages's TM            │ 2        │
+│ 217 │ 729601 │ e2e-1784565466-excluded-languages's TM            │ 2        │
+│ 218 │ 729603 │ e2e-1784565629-excluded-languages's TM            │ 2        │
+│ 219 │ 729605 │ e2e-1784566337-excluded-languages's TM            │ 2        │
+│ 220 │ 729609 │ e2e-1784567896-excluded-languages's TM            │ 2        │
+│ 221 │ 729617 │ e2e-1784569422-auto-update's TM                   │ 0        │
+│ 222 │ 729621 │ e2e-1784570550-auto-update's TM                   │ 0        │
+│ 223 │ 729623 │ e2e-1784570636-auto-update's TM                   │ 0        │
+│ 224 │ 729639 │ e2e-1784573861-base-path's TM                     │ 0        │
+│ 225 │ 729641 │ e2e-1784573900-csv-multilingual-in-root's TM      │ 0        │
+│ 226 │ 729643 │ e2e-1784573907-branches's TM                      │ 0        │
+│ 227 │ 729645 │ e2e-1784573927-bundle's TM                        │ 0        │
+│ 228 │ 729647 │ e2e-1784574209-base-path's TM                     │ 0        │
+│ 229 │ 729753 │ In-Context Simple Test's TM                       │ 0        │
+│ 230 │ 729761 │ e2e-1784627862-base-path's TM                     │ 0        │
+│ 231 │ 729785 │ e2e-1784632888-base-path's TM                     │ 0        │
+│ 232 │ 729791 │ cli-branch-reupload-repro's TM                    │ 0        │
+│ 233 │ 729801 │ e2e-1784635580-excluded-languages's TM            │ 2        │
+│ 234 │ 729805 │ e2e-1784635639-full-cli-workflow's TM             │ 6        │
+│ 235 │ 729807 │ e2e-1784635687-auto-update's TM                   │ 0        │
+│ 236 │ 729809 │ e2e-1784635694-base-path's TM                     │ 0        │
+│ 237 │ 729813 │ e2e-1784635734-basic-upload-download's TM         │ 0        │
+│ 238 │ 729815 │ e2e-1784635747-csv-multilingual-in-root's TM      │ 0        │
+│ 239 │ 729817 │ e2e-1784635754-branches's TM                      │ 0        │
+│ 240 │ 729819 │ e2e-1784635774-bundle's TM                        │ 0        │
+│ 241 │ 729823 │ e2e-1784635967-csv-multilingual-in-root's TM      │ 0        │
+│ 242 │ 729825 │ e2e-1784636077-excluded-languages's TM            │ 2        │
+│ 243 │ 729829 │ e2e-1784636253-csv-multilingual-in-root's TM      │ 0        │
+│ 244 │ 729831 │ e2e-1784636275-bundle's TM                        │ 0        │
+│ 245 │ 729837 │ e2e-1784636402-bundle's TM                        │ 0        │
+│ 246 │ 729841 │ e2e-1784637131-branches's TM                      │ 0        │
+│ 247 │ 729843 │ e2e-1784637351-branches's TM                      │ 0        │
+│ 248 │ 729855 │ e2e-1784640376-csv-multilingual-placeholder's TM  │ 3        │
+│ 249 │ 729865 │ e2e-1784640704-custom-language's TM               │ 3        │
+│ 250 │ 729867 │ e2e-1784640785-custom-segmentation's TM           │ 0        │
+│ 251 │ 729885 │ e2e-1784641376-custom-segmentation's TM           │ 0        │
+│ 252 │ 729889 │ cli-dest-existing-file-repro's TM                 │ 0        │
+│ 253 │ 729907 │ e2e-1784645995-download-pseudo's TM               │ 0        │
+│ 254 │ 729909 │ e2e-1784646225-download-sources's TM              │ 0        │
+│ 255 │ 729911 │ e2e-1784647225-auto-update's TM                   │ 0        │
+│ 256 │ 729913 │ e2e-1784647479-auto-update's TM                   │ 0        │
+│ 257 │ 729915 │ e2e-1784647587-download-sources's TM              │ 0        │
+│ 258 │ 729919 │ e2e-1784648180-branches's TM                      │ 0        │
+│ 259 │ 729923 │ e2e-1784648211-branches's TM                      │ 0        │
+│ 260 │ 729925 │ e2e-1784649054-download-sources's TM              │ 0        │
+│ 261 │ 729939 │ cli-bracket-glob-repro's TM                       │ 0        │
+│ 262 │ 729943 │ e2e-1784649676-bundle's TM                        │ 0        │
+│ 263 │ 729951 │ cli-bundle-source-collision-repro's TM            │ 0        │
+│ 264 │ 730127 │ e2e-1784708771-env-variables's TM                 │ 0        │
+│ 265 │ 730141 │ e2e-1784711927-env-variables's TM                 │ 11       │
+│ 266 │ 730143 │ e2e-1784711967-export-options's TM                │ 4        │
+│ 267 │ 730157 │ e2e-1784713904-file-groups's TM                   │ 2        │
+│ 268 │ 730197 │ e2e-1784719816-file-type's TM                     │ 0        │
+│ 269 │ 730207 │ repro-file-type-bug's TM                          │ 0        │
+│ 270 │ 730231 │ e2e-1784725989-file-type's TM                     │ 0        │
+│ 271 │ 730235 │ e2e-1784726454-glossary's TM                      │ 0        │
+│ 272 │ 730239 │ e2e-1784726570-identity's TM                      │ 2        │
+│ 273 │ 730241 │ e2e-1784726669-ignore's TM                        │ 0        │
+│ 274 │ 730269 │ cli-ignore-file-placeholder-repro's TM            │ 0        │
+│ 275 │ 730273 │ e2e-1784731601-init's TM                          │ 0        │
+│ 276 │ 730277 │ e2e-1784731817-init's TM                          │ 0        │
+│ 277 │ 730281 │ e2e-1784733198-invalid-credentials's TM           │ 0        │
+│ 278 │ 730283 │ e2e-1784733223-invalid-files-config's TM          │ 0        │
+│ 279 │ 730285 │ e2e-1784733253-language-mapping's TM              │ 4        │
+│ 280 │ 730287 │ e2e-1784733339-pre-translate's TM                 │ 0        │
+│ 281 │ 730289 │ e2e-1784733532-string's TM                        │ 0        │
+│ 282 │ 730295 │ e2e-1784734997-tm's TM                            │ 0        │
+│ 283 │ 730297 │ Created in Crowdin CLI (simple-tm.tmx)            │ 4        │
+│ 284 │ 730299 │ Created in Crowdin CLI (simple-tm.csv)            │ 4        │
+│ 285 │ 730301 │ Created in Crowdin CLI (simple-tm.xlsx)           │ 4        │
+└─────┴────────┴───────────────────────────────────────────────────┴──────────┘"
+`;
+
+exports[`tm downloads the TMX translation memory by id and format 1`] = `
+"●  Building translation memory
+●  Building translation memory (0%)
+●  Building translation memory (100%)
+◆  'Created in Crowdin CLI (simple-tm.tmx).tmx' downloaded successfully"
+`;
+
+exports[`tm downloads the CSV translation memory by id and format 1`] = `
+"●  Building translation memory
+●  Building translation memory (0%)
+●  Building translation memory (100%)
+◆  'Created in Crowdin CLI (simple-tm.csv).csv' downloaded successfully"
+`;
+
+exports[`tm downloads the XLSX translation memory by id and format 1`] = `
+"●  Building translation memory
+●  Building translation memory (0%)
+●  Building translation memory (100%)
+◆  'Created in Crowdin CLI (simple-tm.xlsx).xlsx' downloaded successfully"
+`;
+
+exports[`tm downloads the TMX translation memory filtered by a language pair 1`] = `
+"●  Building translation memory
+●  Building translation memory (0%)
+●  Building translation memory (100%)
+◆  'download/simple-tm_en-uk.tmx' downloaded successfully"
+`;
+
+exports[`tm downloads the TMX translation memory without an explicit format 1`] = `
+"●  Building translation memory
+●  Building translation memory (0%)
+●  Building translation memory (100%)
+◆  'Created in Crowdin CLI (simple-tm.tmx).tmx' downloaded successfully"
+`;
+
+exports[`tm downloads the project's default translation memory by id 1`] = `
+"●  Building translation memory
+●  Building translation memory (0%)
+●  Building translation memory (100%)
+◆  'e2e-1784734997-tm's TM.tmx' downloaded successfully"
+`;
+
+exports[`tm lists translation memories authenticating via -T against a config without an api_token 1`] = `
+"┌─────┬────────┬───────────────────────────────────────────────────┬──────────┐
+│     │ id     │ name                                              │ segments │
+├─────┼────────┼───────────────────────────────────────────────────┼──────────┤
+│   0 │ 38335  │ vasyl-test's TM                                   │ 130      │
+│   1 │ 44187  │ xliff-export-test-project's TM                    │ 11       │
+│   2 │ 46986  │ "<h1>645g456g456's TM</h1>                        │ 0        │
+│   3 │ 48934  │ qa-check-test's TM                                │ 737      │
+│   4 │ 53118  │ hgfhgfhgf-jljkljk's TM                            │ 0        │
+│   5 │ 54354  │ hgf                                               │ 0        │
+│   6 │ 54356  │ gfdgdf                                            │ 0        │
+│   7 │ 54449  │ TMP 10 08 16's TM                                 │ 10       │
+│   8 │ 56211  │ name-q1w2's TM                                    │ 0        │
+│   9 │ 56212  │ name-q1w7's TM                                    │ 4        │
+│  10 │ 56375  │ Qwe 123's TM                                      │ 0        │
+│  11 │ 67763  │ "><img src=a onerror=alert(9)>'s TM               │ 7        │
+│  12 │ 69002  │ tmp-08-26's TM                                    │ 2        │
+│  13 │ 71311  │ tmp-16-10's TM                                    │ 41       │
+│  14 │ 71313  │ еьз-16-17's TM                                    │ 9        │
+│  15 │ 73867  │ tmp-arab's TM                                     │ 0        │
+│  16 │ 91843  │ cli-test1's TM                                    │ 0        │
+│  17 │ 92342  │ cli-test2's TM                                    │ 0        │
+│  18 │ 92349  │ cli-test3's TM                                    │ 0        │
+│  19 │ 96507  │ project-s's TM                                    │ 2        │
+│  20 │ 98669  │ android-plugin-test's TM                          │ 14       │
+│  21 │ 101529 │ cli-test4's TM                                    │ 50       │
+│  22 │ 102862 │ xlsx-test's TM                                    │ 0        │
+│  23 │ 103948 │ gfgf's TM                                         │ 0        │
+│  24 │ 106467 │ cli-test5's TM                                    │ 22       │
+│  25 │ 112435 │ github-testq1w2e3's TM                            │ 0        │
+│  26 │ 113503 │ inttest111's TM                                   │ 31       │
+│  27 │ 135577 │ desk12345's TM                                    │ 0        │
+│  28 │ 136799 │ txttxt's TM                                       │ 8        │
+│  29 │ 139685 │ maxmax's TM                                       │ 3244     │
+│  30 │ 139849 │ wine-vas's TM                                     │ 3250     │
+│  31 │ 140063 │ material-cli's TM                                 │ 1103     │
+│  32 │ 140339 │ sbb-pr's TM                                       │ 0        │
+│  33 │ 140349 │ webhook-test's TM                                 │ 42       │
+│  34 │ 140497 │ cli-0214's TM                                     │ 0        │
+│  35 │ 145341 │ empty-q1r4y6's TM                                 │ 2        │
+│  36 │ 148099 │ vasyl-public's TM                                 │ 5        │
+│  37 │ 152523 │ MmMmM's TM                                        │ 9        │
+│  38 │ 154649 │ wix-test's TM                                     │ 2        │
+│  39 │ 155037 │ bitbucket-777's TM                                │ 5        │
+│  40 │ 158777 │ empty-2's TM                                      │ 47       │
+│  41 │ 161065 │ replace's TM                                      │ 2        │
+│  42 │ 162439 │ gggyyyrrr's TM                                    │ 0        │
+│  43 │ 162721 │ "><img src=a onerror=alert(9)>zzqq's TM           │ 2        │
+│  44 │ 173001 │ nmt-test's TM                                     │ 1        │
+│  45 │ 174588 │ cli-t's TM                                        │ 1        │
+│  46 │ 174928 │ Open Office Testing's TM                          │ 18628    │
+│  47 │ 175526 │ sketch-zzz's TM                                   │ 19       │
+│  48 │ 175532 │ managed's TM                                      │ 22       │
+│  49 │ 175536 │ sb-project's TM                                   │ 0        │
+│  50 │ 175563 │ deldel's TM                                       │ 0        │
+│  51 │ 175578 │ ZZZ-qaswedfr's TM                                 │ 0        │
+│  52 │ 176679 │ tm-gettext's TM                                   │ 2916     │
+│  53 │ 176706 │ cli-mega's TM                                     │ 0        │
+│  54 │ 177089 │ sketch-v2's TM                                    │ 3        │
+│  55 │ 177556 │ Open Office Testing CLI's TM                      │ 27492    │
+│  56 │ 177611 │ Open Office Testing CLI 2.0.31's TM               │ 27458    │
+│  57 │ 177937 │ in-context-vk's TM                                │ 143      │
+│  58 │ 179077 │ sketch-v3's TM                                    │ 0        │
+│  59 │ 179131 │ cli-paralel's TM                                  │ 1        │
+│  60 │ 180039 │ figma--02-17's TM                                 │ 0        │
+│  61 │ 180371 │ in-e3r4t5's TM                                    │ 84       │
+│  62 │ 183223 │ ggfdgfdgfdgdf's TM                                │ 0        │
+│  63 │ 183261 │ figma-feb-11's TM                                 │ 0        │
+│  64 │ 183615 │ Sketch-Feb-13's TM                                │ 0        │
+│  65 │ 184067 │ Figma-feb-17's TM                                 │ 0        │
+│  66 │ 184083 │ Sketch Feb 17 prod's TM                           │ 0        │
+│  67 │ 184465 │ wrike-vasyl's TM                                  │ 0        │
+│  68 │ 184593 │ Figma feb 20's TM                                 │ 35       │
+│  69 │ 185377 │ API Feb 27's TM                                   │ 23586    │
+│  70 │ 186447 │ Figma Mar 5's TM                                  │ 0        │
+│  71 │ 192258 │ Figma 13's TM                                     │ 2        │
+│  72 │ 194034 │ xxxxr4t5's TM                                     │ 0        │
+│  73 │ 195768 │ [CLI] CLI's TM                                    │ 21362    │
+│  74 │ 195772 │ cli-38d6acb1's TM                                 │ 0        │
+│  75 │ 195774 │ cli-f3703df5's TM                                 │ 12       │
+│  76 │ 195776 │ cli-ignore-85840058's TM                          │ 0        │
+│  77 │ 195780 │ cli-multilingual-35e9a89e's TM                    │ 0        │
+│  78 │ 195782 │ cli-multilingual-89a654db's TM                    │ 0        │
+│  79 │ 195784 │ cli-multilingual-dce741a1's TM                    │ 0        │
+│  80 │ 195786 │ cli-multilingual-8e8583cd's TM                    │ 0        │
+│  81 │ 195792 │ cli-multilingual-050040bc's TM                    │ 0        │
+│  82 │ 195794 │ cli-multilingual-68c98646's TM                    │ 0        │
+│  83 │ 195796 │ cli-multilingual-8d978fa4's TM                    │ 0        │
+│  84 │ 195798 │ cli-multilingual-70efb7ee's TM                    │ 0        │
+│  85 │ 195800 │ cli-multilingual-6e8322c0's TM                    │ 0        │
+│  86 │ 195802 │ cli-multilingual-37b0c4d2's TM                    │ 0        │
+│  87 │ 195804 │ cli-multilingual-abe05a4e's TM                    │ 0        │
+│  88 │ 195806 │ cli-multilingual-845b3586's TM                    │ 0        │
+│  89 │ 195810 │ cli-multilingual-c8412181's TM                    │ 0        │
+│  90 │ 195812 │ cli-multilingual-481d3c4e's TM                    │ 0        │
+│  91 │ 195814 │ cli-multilingual-99e5d166's TM                    │ 0        │
+│  92 │ 195816 │ cli-multilingual-6beffb9e's TM                    │ 0        │
+│  93 │ 195824 │ cli-properties-995b1e38's TM                      │ 0        │
+│  94 │ 195826 │ cli-properties-a86d437c's TM                      │ 0        │
+│  95 │ 195828 │ cli-invalid-credentials-342259e2's TM             │ 0        │
+│  96 │ 195830 │ cli-invalid-credentials-97c1d373's TM             │ 0        │
+│  97 │ 195838 │ cli-env-variables-d5a2e3ef's TM                   │ 0        │
+│  98 │ 195840 │ cli-env-variables-bafcb979's TM                   │ 0        │
+│  99 │ 195842 │ cli-env-variables-f60b027e's TM                   │ 0        │
+│ 100 │ 195844 │ cli-env-variables-4687816d's TM                   │ 0        │
+│ 101 │ 195846 │ cli-env-variables-d0b1e972's TM                   │ 11       │
+│ 102 │ 195848 │ cli-env-variables-9461f89c's TM                   │ 11       │
+│ 103 │ 195850 │ cli-dest-1f2e466c's TM                            │ 2        │
+│ 104 │ 195852 │ cli-custom-language-9f0d9058's TM                 │ 0        │
+│ 105 │ 195854 │ cli-custom-language-19e9b122's TM                 │ 4        │
+│ 106 │ 195858 │ cli-branches-32a85b6f's TM                        │ 0        │
+│ 107 │ 195860 │ cli-branches-6725c4d1's TM                        │ 0        │
+│ 108 │ 195866 │ cli-generate-24809ce2's TM                        │ 0        │
+│ 109 │ 195868 │ cli-generate-7a6a5349's TM                        │ 0        │
+│ 110 │ 195870 │ cli-identity-1805e076's TM                        │ 0        │
+│ 111 │ 195872 │ cli-identity-ceff1778's TM                        │ 2        │
+│ 112 │ 195874 │ cli-invalid-files-config-ab62e239's TM            │ 0        │
+│ 113 │ 195876 │ cli-invalid-files-config-afe94d8b's TM            │ 0        │
+│ 114 │ 195970 │ cli-multilingual-0c2bfe1e's TM                    │ 0        │
+│ 115 │ 195972 │ cli-multilingual-7146a6dd's TM                    │ 11       │
+│ 116 │ 195974 │ cli-branches-d892cb1f's TM                        │ 0        │
+│ 117 │ 195978 │ cli-invalid-files-config-1a81a90b's TM            │ 0        │
+│ 118 │ 195980 │ cli-invalid-credentials-93b8d100's TM             │ 0        │
+│ 119 │ 195982 │ cli-auto-update-b20a2a05's TM                     │ 0        │
+│ 120 │ 195984 │ cli-auto-update-f267dd67's TM                     │ 0        │
+│ 121 │ 195986 │ cli-upload-single-file-0a08d3d7's TM              │ 0        │
+│ 122 │ 195988 │ cli-xml-c9ff5873's TM                             │ 0        │
+│ 123 │ 195990 │ cli-xml-96fc0949's TM                             │ 0        │
+│ 124 │ 195992 │ cli-translations-not-match-2e3bd9b1's TM          │ 0        │
+│ 125 │ 195994 │ cli-translations-not-match-5e1d0e1d's TM          │ 0        │
+│ 126 │ 195996 │ cli-translation-replace-22a0ab4a's TM             │ 0        │
+│ 127 │ 195998 │ cli-translation-replace-981f5841's TM             │ 0        │
+│ 128 │ 196000 │ cli-translation-patterns-14e23a35's TM            │ 0        │
+│ 129 │ 196002 │ cli-translation-patterns-6d569117's TM            │ 0        │
+│ 130 │ 196004 │ cli-multilingual-in-root-3f8ca4b2's TM            │ 11       │
+│ 131 │ 196006 │ cli-multilingual-in-root-9e6bad02's TM            │ 9        │
+│ 132 │ 196008 │ cli-language-mapping-9410e4d1's TM                │ 0        │
+│ 133 │ 196010 │ cli-language-mapping-e243b91d's TM                │ 0        │
+│ 134 │ 196012 │ upload-translations's TM                          │ 40       │
+│ 135 │ 196028 │ cli-invalid-credentials-a13536ea's TM             │ 0        │
+│ 136 │ 196034 │ cli-file-type-6569a604's TM                       │ 0        │
+│ 137 │ 196036 │ cli-file-type-ad29c023's TM                       │ 0        │
+│ 138 │ 196454 │ [Figma] New Figma's TM                            │ 9        │
+│ 139 │ 197100 │ Android Studio Plugin Test's TM                   │ 4754     │
+│ 140 │ 200058 │ visual-studio-plugin's TM                         │ 0        │
+│ 141 │ 202286 │ [Sketch] New Sketch's TM                          │ 130      │
+│ 142 │ 203182 │ [Adobe XD] Adobe XD's TM                          │ 131      │
+│ 143 │ 204102 │ zzz-t5y6's TM                                     │ 0        │
+│ 144 │ 206096 │ QA Cheks's TM                                     │ 3730     │
+│ 145 │ 210656 │ key-files's TM                                    │ 2        │
+│ 146 │ 212324 │ act-fedferferfe's TM                              │ 0        │
+│ 147 │ 215628 │ Crypto Wallet's TM                                │ 0        │
+│ 148 │ 215632 │ Fitness App's TM                                  │ 0        │
+│ 149 │ 215634 │ Music App 's TM                                   │ 0        │
+│ 150 │ 215644 │ Taskia's TM                                       │ 0        │
+│ 151 │ 215676 │ Tractiv's TM                                      │ 1        │
+│ 152 │ 215708 │ Social Meet Up's TM                               │ 0        │
+│ 153 │ 215724 │ [Adobe XD] Fresh Food's TM                        │ 0        │
+│ 154 │ 215732 │ [Adobe XD] Green Taxi's TM                        │ 2        │
+│ 155 │ 216658 │ CliProxyTest's TM                                 │ 28       │
+│ 156 │ 217638 │ Created in Crowdin CLI (CLI's TM.tmx)             │ 21213    │
+│ 157 │ 217640 │ Created in Crowdin CLI (CLI's TM.tmx)             │ 21213    │
+│ 158 │ 217642 │ Created in Crowdin CLI (TMCLI's TM.tmx)           │ 0        │
+│ 159 │ 217644 │ Created in Crowdin CLI (CLI's TM.tmx)             │ 21213    │
+│ 160 │ 227488 │ sb-uyhhg's TM                                     │ 0        │
+│ 161 │ 231522 │ vk-xss's TM                                       │ 0        │
+│ 162 │ 232404 │ xss-11's TM                                       │ 0        │
+│ 163 │ 232406 │ xss-12's TM                                       │ 0        │
+│ 164 │ 233592 │ glossary-c's TM                                   │ 0        │
+│ 165 │ 236826 │ d-t's TM                                          │ 0        │
+│ 166 │ 236940 │ branches-t's TM                                   │ 2        │
+│ 167 │ 241610 │ gfdgfdgdfgfdgfd's TM                              │ 0        │
+│ 168 │ 615582 │ proxy-vk's TM                                     │ 0        │
+│ 169 │ 617194 │ Alpha Project's TM                                │ 41       │
+│ 170 │ 617986 │ fdsfsdfds's TM                                    │ 0        │
+│ 171 │ 618334 │ Screenshots Test 25's TM                          │ 0        │
+│ 172 │ 620854 │ Blocked User Notifications's TM                   │ 6        │
+│ 173 │ 621956 │ EXIF Metadata's TM                                │ 0        │
+│ 174 │ 622436 │ IDORs Test Project's TM                           │ 5        │
+│ 175 │ 628558 │ Alpha Project copy's TM                           │ 0        │
+│ 176 │ 628568 │ Alpha Project2's TM                               │ 0        │
+│ 177 │ 628624 │ Apps+'s TM                                        │ 0        │
+│ 178 │ 628656 │ New project4y54y45y45y45's TM                     │ 0        │
+│ 179 │ 628698 │ New project645645645еппапа's TM                   │ 0        │
+│ 180 │ 628704 │ New project's TM                                  │ 0        │
+│ 181 │ 634750 │ IDORs Moderated's TM                              │ 0        │
+│ 182 │ 636384 │ XSS Test Project's TM                             │ 0        │
+│ 183 │ 650162 │ migrate-q1's TM                                   │ 0        │
+│ 184 │ 658072 │ "><img src=a onerror=alert(document.cookie)>'s TM │ 0        │
+│ 185 │ 658074 │ "><img src=a onerror=alert(8)>'s TM               │ 0        │
+│ 186 │ 665086 │ Branch Protection's TM                            │ 0        │
+│ 187 │ 665088 │ Branch Protection's TM                            │ 11       │
+│ 188 │ 666556 │ Branch Protection New's TM                        │ 0        │
+│ 189 │ 670774 │ String Based Alpha's TM                           │ 11       │
+│ 190 │ 681556 │ In Context Security's TM                          │ 0        │
+│ 191 │ 691740 │ TBAC's TM                                         │ 0        │
+│ 192 │ 692730 │ Tasks Test Project's TM                           │ 0        │
+│ 193 │ 693422 │ TBAC Project's TM                                 │ 616      │
+│ 194 │ 695930 │ Public Project 33's TM                            │ 23       │
+│ 195 │ 699924 │ Reports Test's TM                                 │ 71       │
+│ 196 │ 702128 │ Permissions's TM                                  │ 0        │
+│ 197 │ 716147 │ XLIFF Bundle's TM                                 │ 0        │
+│ 198 │ 716347 │ XSS"><img src=a onerror=alert(9)>'s TM            │ 0        │
+│ 199 │ 720703 │ MCP SB's TM                                       │ 0        │
+│ 200 │ 724025 │ XXE test's TM                                     │ 0        │
+│ 201 │ 724177 │ XXE test 2's TM                                   │ 0        │
+│ 202 │ 724533 │ SSRF test's TM                                    │ 0        │
+│ 203 │ 727401 │ cli-v5-test's TM                                  │ 1725     │
+│ 204 │ 727433 │ cli-v5-test-sb's TM                               │ 0        │
+│ 205 │ 727471 │ Crowdin Context Harvester Test's TM               │ 0        │
+│ 206 │ 729525 │ e2e-1784552002-full-cli-workflow's TM             │ 0        │
+│ 207 │ 729537 │ e2e-1784555466-full-cli-workflow's TM             │ 0        │
+│ 208 │ 729539 │ e2e-1784555520-full-cli-workflow's TM             │ 0        │
+│ 209 │ 729543 │ e2e-1784555933-basic-upload-download's TM         │ 0        │
+│ 210 │ 729553 │ cli-debug-export-pattern's TM                     │ 2        │
+│ 211 │ 729557 │ cli-download-export-pattern-repro's TM            │ 2        │
+│ 212 │ 729573 │ e2e-1784561557-full-cli-workflow's TM             │ 6        │
+│ 213 │ 729575 │ cli-debug-timing-isolation's TM                   │ 6        │
+│ 214 │ 729583 │ e2e-1784563193-full-cli-workflow's TM             │ 0        │
+│ 215 │ 729589 │ e2e-1784563469-full-cli-workflow's TM             │ 6        │
+│ 216 │ 729597 │ e2e-1784564859-excluded-languages's TM            │ 2        │
+│ 217 │ 729601 │ e2e-1784565466-excluded-languages's TM            │ 2        │
+│ 218 │ 729603 │ e2e-1784565629-excluded-languages's TM            │ 2        │
+│ 219 │ 729605 │ e2e-1784566337-excluded-languages's TM            │ 2        │
+│ 220 │ 729609 │ e2e-1784567896-excluded-languages's TM            │ 2        │
+│ 221 │ 729617 │ e2e-1784569422-auto-update's TM                   │ 0        │
+│ 222 │ 729621 │ e2e-1784570550-auto-update's TM                   │ 0        │
+│ 223 │ 729623 │ e2e-1784570636-auto-update's TM                   │ 0        │
+│ 224 │ 729639 │ e2e-1784573861-base-path's TM                     │ 0        │
+│ 225 │ 729641 │ e2e-1784573900-csv-multilingual-in-root's TM      │ 0        │
+│ 226 │ 729643 │ e2e-1784573907-branches's TM                      │ 0        │
+│ 227 │ 729645 │ e2e-1784573927-bundle's TM                        │ 0        │
+│ 228 │ 729647 │ e2e-1784574209-base-path's TM                     │ 0        │
+│ 229 │ 729753 │ In-Context Simple Test's TM                       │ 0        │
+│ 230 │ 729761 │ e2e-1784627862-base-path's TM                     │ 0        │
+│ 231 │ 729785 │ e2e-1784632888-base-path's TM                     │ 0        │
+│ 232 │ 729791 │ cli-branch-reupload-repro's TM                    │ 0        │
+│ 233 │ 729801 │ e2e-1784635580-excluded-languages's TM            │ 2        │
+│ 234 │ 729805 │ e2e-1784635639-full-cli-workflow's TM             │ 6        │
+│ 235 │ 729807 │ e2e-1784635687-auto-update's TM                   │ 0        │
+│ 236 │ 729809 │ e2e-1784635694-base-path's TM                     │ 0        │
+│ 237 │ 729813 │ e2e-1784635734-basic-upload-download's TM         │ 0        │
+│ 238 │ 729815 │ e2e-1784635747-csv-multilingual-in-root's TM      │ 0        │
+│ 239 │ 729817 │ e2e-1784635754-branches's TM                      │ 0        │
+│ 240 │ 729819 │ e2e-1784635774-bundle's TM                        │ 0        │
+│ 241 │ 729823 │ e2e-1784635967-csv-multilingual-in-root's TM      │ 0        │
+│ 242 │ 729825 │ e2e-1784636077-excluded-languages's TM            │ 2        │
+│ 243 │ 729829 │ e2e-1784636253-csv-multilingual-in-root's TM      │ 0        │
+│ 244 │ 729831 │ e2e-1784636275-bundle's TM                        │ 0        │
+│ 245 │ 729837 │ e2e-1784636402-bundle's TM                        │ 0        │
+│ 246 │ 729841 │ e2e-1784637131-branches's TM                      │ 0        │
+│ 247 │ 729843 │ e2e-1784637351-branches's TM                      │ 0        │
+│ 248 │ 729855 │ e2e-1784640376-csv-multilingual-placeholder's TM  │ 3        │
+│ 249 │ 729865 │ e2e-1784640704-custom-language's TM               │ 3        │
+│ 250 │ 729867 │ e2e-1784640785-custom-segmentation's TM           │ 0        │
+│ 251 │ 729885 │ e2e-1784641376-custom-segmentation's TM           │ 0        │
+│ 252 │ 729889 │ cli-dest-existing-file-repro's TM                 │ 0        │
+│ 253 │ 729907 │ e2e-1784645995-download-pseudo's TM               │ 0        │
+│ 254 │ 729909 │ e2e-1784646225-download-sources's TM              │ 0        │
+│ 255 │ 729911 │ e2e-1784647225-auto-update's TM                   │ 0        │
+│ 256 │ 729913 │ e2e-1784647479-auto-update's TM                   │ 0        │
+│ 257 │ 729915 │ e2e-1784647587-download-sources's TM              │ 0        │
+│ 258 │ 729919 │ e2e-1784648180-branches's TM                      │ 0        │
+│ 259 │ 729923 │ e2e-1784648211-branches's TM                      │ 0        │
+│ 260 │ 729925 │ e2e-1784649054-download-sources's TM              │ 0        │
+│ 261 │ 729939 │ cli-bracket-glob-repro's TM                       │ 0        │
+│ 262 │ 729943 │ e2e-1784649676-bundle's TM                        │ 0        │
+│ 263 │ 729951 │ cli-bundle-source-collision-repro's TM            │ 0        │
+│ 264 │ 730127 │ e2e-1784708771-env-variables's TM                 │ 0        │
+│ 265 │ 730141 │ e2e-1784711927-env-variables's TM                 │ 11       │
+│ 266 │ 730143 │ e2e-1784711967-export-options's TM                │ 4        │
+│ 267 │ 730157 │ e2e-1784713904-file-groups's TM                   │ 2        │
+│ 268 │ 730197 │ e2e-1784719816-file-type's TM                     │ 0        │
+│ 269 │ 730207 │ repro-file-type-bug's TM                          │ 0        │
+│ 270 │ 730231 │ e2e-1784725989-file-type's TM                     │ 0        │
+│ 271 │ 730235 │ e2e-1784726454-glossary's TM                      │ 0        │
+│ 272 │ 730239 │ e2e-1784726570-identity's TM                      │ 2        │
+│ 273 │ 730241 │ e2e-1784726669-ignore's TM                        │ 0        │
+│ 274 │ 730269 │ cli-ignore-file-placeholder-repro's TM            │ 0        │
+│ 275 │ 730273 │ e2e-1784731601-init's TM                          │ 0        │
+│ 276 │ 730277 │ e2e-1784731817-init's TM                          │ 0        │
+│ 277 │ 730281 │ e2e-1784733198-invalid-credentials's TM           │ 0        │
+│ 278 │ 730283 │ e2e-1784733223-invalid-files-config's TM          │ 0        │
+│ 279 │ 730285 │ e2e-1784733253-language-mapping's TM              │ 4        │
+│ 280 │ 730287 │ e2e-1784733339-pre-translate's TM                 │ 0        │
+│ 281 │ 730289 │ e2e-1784733532-string's TM                        │ 0        │
+│ 282 │ 730295 │ e2e-1784734997-tm's TM                            │ 0        │
+│ 283 │ 730297 │ Created in Crowdin CLI (simple-tm.tmx)            │ 4        │
+│ 284 │ 730299 │ Created in Crowdin CLI (simple-tm.csv)            │ 4        │
+│ 285 │ 730301 │ Created in Crowdin CLI (simple-tm.xlsx)           │ 4        │
+└─────┴────────┴───────────────────────────────────────────────────┴──────────┘"
+`;

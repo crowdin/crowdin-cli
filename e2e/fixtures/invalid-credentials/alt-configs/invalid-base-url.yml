@@ -1,0 +1,8 @@
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+base_path: "."
+base_url: "http://crowdin.com"
+preserve_hierarchy: false
+files:
+  - source: "/sources/android.xml"
+    translation: "/translations/%two_letters_code%/android.xml"
