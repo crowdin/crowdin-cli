@@ -1,0 +1,11 @@
+# `init --quiet -d <path>` and `config lint --config <path>` (this suite's only commands) both take
+# an explicit destination/config path via CLI args, so this template is never actually read by any
+# test - it exists only because setupSuite's standard lifecycle renders and requires one.
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+base_path: "."
+base_url: "https://api.crowdin.com"
+preserve_hierarchy: true
+files:
+  - source: "sources/*.md"
+    translation: "translations/%locale%/%original_file_name%"

@@ -1,0 +1,34 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`identity file credentials uploads sources using credentials from an --identity file 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/android.xml'"
+`;
+
+exports[`identity file credentials uploads translations using credentials from an --identity file 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+Importing translations for file 'translations/it/android.xml'
+Importing translations for file 'translations/uk/android.xml'
+◆  File 'translations/it/android.xml'
+◆  File 'translations/uk/android.xml'"
+`;
+
+exports[`identity file credentials downloads translations using credentials from an --identity file 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/android.xml extracted
+◆  File translations/uk/android.xml extracted"
+`;
+
+exports[`identity file credentials validates the merged configuration via config lint --identity 1`] = `"◆  Your configuration file looks good"`;

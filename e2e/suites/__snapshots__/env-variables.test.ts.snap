@@ -1,0 +1,48 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`env variables uploads sources using credentials read from an env file 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;
+
+exports[`env variables uploads translations using credentials read from an env file 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+Importing translations for file 'translations/it/1_android.xml'
+Importing translations for file 'translations/it/2_android.xml'
+Importing translations for file 'translations/uk/1_android.xml'
+Importing translations for file 'translations/uk/2_android.xml'
+◆  File 'translations/it/1_android.xml'
+◆  File 'translations/it/2_android.xml'
+◆  File 'translations/uk/1_android.xml'
+◆  File 'translations/uk/2_android.xml'"
+`;
+
+exports[`env variables downloads translations using credentials read from an env file 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/1_android.xml extracted
+◆  File translations/it/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
+
+exports[`env variables a process-level env var overrides an invalid token in the env file on re-upload 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;

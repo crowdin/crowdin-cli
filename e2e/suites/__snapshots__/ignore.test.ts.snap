@@ -1,0 +1,37 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`ignore uploads hidden dotfiles when ignore_hidden_files is false 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory folder created
+◆  Directory sub created
+◆  File 'folder/.hidden.xml'
+◆  File 'folder/1.xml'
+◆  File 'folder/123.xml'
+◆  File 'folder/123_test.xml'
+◆  File 'folder/a.xml'
+◆  File 'folder/android-uk.xml'
+◆  File 'folder/android.xml'
+◆  File 'folder/sub/.hidden.xml'
+◆  File 'folder/sub/1.txt'
+◆  File 'folder/sub/1.xml'"
+`;
+
+exports[`ignore skips hidden dotfiles when ignore_hidden_files is true 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory folder created
+◆  Directory sub created
+◆  File 'folder/1.xml'
+◆  File 'folder/123.xml'
+◆  File 'folder/123_test.xml'
+◆  File 'folder/a.xml'
+◆  File 'folder/android-uk.xml'
+◆  File 'folder/android.xml'
+◆  File 'folder/sub/1.txt'
+◆  File 'folder/sub/1.xml'"
+`;

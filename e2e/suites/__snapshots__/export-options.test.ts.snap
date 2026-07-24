@@ -1,0 +1,230 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`export options uploads sources for both files 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;
+
+exports[`export options reports no fully translated files when skipping untranslated files via the CLI flag, before any translations exist 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+▲  Couldn't find any file to download. Since you are using the 'Skip untranslated files' option, please make sure you have fully translated files
+◆  Done"
+`;
+
+exports[`export options reports no fully translated files when skip_untranslated_files is set in config, before any translations exist 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+▲  Couldn't find any file to download. Since you are using the 'Skip untranslated files' option, please make sure you have fully translated files
+◆  Done"
+`;
+
+exports[`export options uploads translations for both languages 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+Importing translations for file 'translations/it/1_android.xml'
+Importing translations for file 'translations/it/2_android.xml'
+Importing translations for file 'translations/uk/1_android.xml'
+Importing translations for file 'translations/uk/2_android.xml'
+◆  File 'translations/it/1_android.xml'
+◆  File 'translations/it/2_android.xml'
+◆  File 'translations/uk/1_android.xml'
+◆  File 'translations/uk/2_android.xml'"
+`;
+
+exports[`export options approves translations by re-uploading the approved fixtures with auto-approve 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+Importing translations for file 'translations/it/1_android.xml'
+Importing translations for file 'translations/it/2_android.xml'
+Importing translations for file 'translations/uk/1_android.xml'
+Importing translations for file 'translations/uk/2_android.xml'
+◆  File 'translations/it/1_android.xml'
+◆  File 'translations/it/2_android.xml'
+◆  File 'translations/uk/1_android.xml'
+◆  File 'translations/uk/2_android.xml'"
+`;
+
+exports[`export options downloads translations skipping untranslated strings via the CLI flag 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/1_android.xml extracted
+◆  File translations/it/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
+
+exports[`export options downloads translations skipping untranslated files via the CLI flag 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/1_android.xml extracted
+◆  File translations/uk/1_android.xml extracted"
+`;
+
+exports[`export options downloads translations exporting only approved translations via the CLI flag 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/1_android.xml extracted
+◆  File translations/it/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
+
+exports[`export options downloads translations skipping untranslated strings and exporting only approved via CLI flags 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/1_android.xml extracted
+◆  File translations/it/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
+
+exports[`export options downloads translations skipping untranslated files and exporting only approved via CLI flags 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/uk/1_android.xml extracted"
+`;
+
+exports[`export options rejects skipping untranslated strings and files at the same time 1`] = `
+"●  Building translations
+●  Fetching project info
+●  Project info fetched
+■  You cannot skip strings and files at the same time. Please use one of these parameters instead."
+`;
+
+exports[`export options downloads translations with skip_untranslated_strings set in config 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/1_android.xml extracted
+◆  File translations/it/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
+
+exports[`export options downloads translations with skip_untranslated_files set in config 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/1_android.xml extracted
+◆  File translations/uk/1_android.xml extracted"
+`;
+
+exports[`export options downloads translations with export_only_approved set in config 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/1_android.xml extracted
+◆  File translations/it/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
+
+exports[`export options downloads translations with skip_untranslated_strings and export_only_approved set in config 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/1_android.xml extracted
+◆  File translations/it/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
+
+exports[`export options downloads translations with skip_untranslated_files and export_only_approved set in config 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/uk/1_android.xml extracted"
+`;
+
+exports[`export options warns and ignores export_strings_that_passed_workflow outside Enterprise 1`] = `
+"●  Building translations
+●  Fetching project info
+●  Project info fetched
+▲  Exporting strings that passed workflow is supported only for Crowdin Enterprise
+●  Building translations...
+●  Downloading translations
+●  Translations built
+◆  Done
+◆  File translations/it/1_android.xml extracted
+◆  File translations/it/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
+
+exports[`export options downloads translations across two file groups with different export options in config 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  File translations/it/1_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+●  Building translations...
+●  Fetching project files
+●  Project files fetched
+●  Translations built
+◆  Done"
+`;

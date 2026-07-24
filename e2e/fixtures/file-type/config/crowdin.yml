@@ -1,0 +1,15 @@
+# This template exists only because setupSuite() unconditionally reads
+# config/crowdin.yml to render the workspace's initial crowdin.yml. The real
+# suite (file-type.test.ts) overwrites crowdin.yml before every test with a
+# fresh `type:` value for that data-provider row, so the `type` value below is
+# never actually exercised - it's here purely so the file exists and documents
+# the fixture's shape.
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+base_path: "./files"
+base_url: "https://api.crowdin.com"
+preserve_hierarchy: true
+files:
+  - source: "/android.xml"
+    translation: "/android%two_letters_code%.xml"
+    type: "android"

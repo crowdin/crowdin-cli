@@ -1,0 +1,69 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`upload single file uploads a single file via short flag params with no config file 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory sources created
+◆  File 'sources/1_android.xml'"
+`;
+
+exports[`upload single file uploads the same file via long flag params with no config file 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'"
+`;
+
+exports[`upload single file uploads the same file combined with a config file, replacing its files entry 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'"
+`;
+
+exports[`upload single file uploads the same file combined with a config file and an explicit --dest 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'"
+`;
+
+exports[`upload single file uploads an empty file, which is skipped with a warning 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+▲  File 'sources/empty_android.xml' was skipped since it is empty"
+`;
+
+exports[`upload single file uploads every file from the config's own file group, skipping the empty ones 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+▲  File 'sources/empty_android.xml' was skipped since it is empty
+▲  File 'sources/empty_android2.xml' was skipped since it is empty
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;
+
+exports[`upload single file uploads an empty file to a new branch, still skipped with a warning 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+▲  File 'sources/empty_android.xml' was skipped since it is empty"
+`;
+
+exports[`upload single file uploads the same file again with --preserve-hierarchy explicitly set 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_android.xml'"
+`;

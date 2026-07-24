@@ -1,0 +1,40 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`custom language uploads sources 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory sources created
+◆  File 'sources/1_android.xml'
+◆  File 'sources/2_android.xml'"
+`;
+
+exports[`custom language uploads translations for both the custom and standard target language 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+Importing translations for file 'translations/dtk/1_android.xml'
+Importing translations for file 'translations/dtk/2_android.xml'
+Importing translations for file 'translations/uk/1_android.xml'
+Importing translations for file 'translations/uk/2_android.xml'
+◆  File 'translations/dtk/1_android.xml'
+◆  File 'translations/dtk/2_android.xml'
+◆  File 'translations/uk/1_android.xml'
+◆  File 'translations/uk/2_android.xml'"
+`;
+
+exports[`custom language downloads translations for both the custom and standard target language 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/dtk/1_android.xml extracted
+◆  File translations/dtk/2_android.xml extracted
+◆  File translations/uk/1_android.xml extracted
+◆  File translations/uk/2_android.xml extracted"
+`;
