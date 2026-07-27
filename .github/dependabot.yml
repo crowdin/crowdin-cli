@@ -1,10 +1,17 @@
 version: 2
 updates:
-  # npm distribution wrapper (root package.json only, not /website)
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
       interval: "monthly"
+
+  - package-ecosystem: "npm"
+    directory: "/website"
+    schedule:
+      interval: "monthly"
+    open-pull-requests-limit: 0
+    ignore:
+      - dependency-name: "*"
 
   # GitHub Actions used in workflows
   # TODO: enable after v5 stable release
