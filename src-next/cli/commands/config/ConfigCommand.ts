@@ -96,7 +96,6 @@ export default class ConfigCommand {
     const project = await projectService.loadProject();
 
     // Only managers/developers get a ProjectSettings response, so its presence is the access probe
-    // (mirrors Java ListTranslationsAction's isManagerAccess guard).
     if (!('translateDuplicates' in project.data)) {
       const message = 'You must have manager or developer role in the project to perform this action';
 
@@ -113,7 +112,6 @@ export default class ConfigCommand {
     }
 
     // Server-side language mapping and the in-context pseudo-language come from project settings,
-    // matching Java's getLanguageMapping() + getProjectLanguages(withInContextLang=true).
     const settings = project.data;
     const serverLanguageMapping = settings.languageMapping;
     const languages = [...settings.targetLanguages];
@@ -193,7 +191,6 @@ export default class ConfigCommand {
   };
 
   // Lint-only check: every `source` pattern must match at least one file on disk
-  // (mirrors Java PropertiesWithFiles.checkSourceFilesExist, gated to CheckType.LINT).
   private checkSourceFilesExist(config: Config): void {
     const loader = new SourceFileLoader(config);
 
@@ -207,7 +204,6 @@ export default class ConfigCommand {
   }
 
   // Lint-only check: every `languages_mapping` source-language key must be a real Crowdin language id
-  // (mirrors Java PropertiesWithFiles.checkProperties, which validates against listSupportedLanguages).
   private async validateLanguagesMapping(config: Config, command: Command): Promise<void> {
     const filesWithMapping = config.files.filter((file) => file.languages_mapping);
     if (filesWithMapping.length === 0) {
