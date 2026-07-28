@@ -5,6 +5,26 @@ exports[`bundle uploads sources for the bundle 1`] = `
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  File '1_android.xml'
-◆  File 'first.json'"
+◆  File 'sample.json'
+◆  File 'sample.xml'"
+`;
+
+exports[`bundle adds a bundle 1`] = `
+"┌─┬─┬─┬─┬─┐
+│ │ id │ format │ translation │ name │
+├─┼─┼─┼─┼─┤
+│ 0 │ <id> │ macosx │ all.string │ RegularBundle │
+└─┴─┴─┴─┴─┘"
+`;
+
+exports[`bundle adds a bundle with plain output 1`] = `"<id>"`;
+
+exports[`bundle downloads the bundle 1`] = `
+"●  Building bundle
+●  Building bundle: 100%
+●  Building bundle: 100%
+●  Building bundle: 100%
+◆  #id 'RegularBundle' has been successfully downloaded
+◆  it/all.string
+◆  uk/all.string"
 `;
