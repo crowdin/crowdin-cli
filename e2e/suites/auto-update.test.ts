@@ -38,11 +38,6 @@ describe('auto update', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // Known-broken as of 2026-07-20 — left red intentionally as a regression marker, do not "fix" the
-  // assertions to match the current buggy behavior. Root cause: Commander.js turns the `--no-auto-update`
-  // flag into `autoUpdate: false`, not `noAutoUpdate` (its own `--no-x` negation convention), but
-  // UploadSourcesCommand reads `options.noAutoUpdate` — always undefined — so the flag has no effect and
-  // every existing file gets updated anyway.
   test('skips existing sources but still creates a new one with --no-auto-update', async () => {
     await copyFile(join(ctx.workspace, 'sources_rev2/4_android.xml'), join(ctx.workspace, 'sources/4_android.xml'));
 

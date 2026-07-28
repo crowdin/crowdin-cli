@@ -34,6 +34,7 @@ export async function createWorkspace(suite: string, opts: WorkspaceOptions = {}
  */
 export async function copyFixtures(fixturesDir: string, workspace: string): Promise<void> {
   const excludedConfig = join(fixturesDir, 'config');
+
   await cp(fixturesDir, workspace, {
     recursive: true,
     filter: (src) => src !== excludedConfig,

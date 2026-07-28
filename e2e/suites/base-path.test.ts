@@ -5,7 +5,6 @@ import { expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
-/** Equivalent of the PHP suite's `ProjectFilesHelper::deleteAllFiles()`. */
 async function deleteAllProjectFiles(ctx: SuiteContext): Promise<void> {
   const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id);
   for (const file of files.data) {
