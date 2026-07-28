@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, test } from 'bun:test';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdtemp, realpath, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { copyFixtures, createWorkspace, removeWorkspace } from './workspace.ts';
@@ -12,8 +12,9 @@ afterEach(async () => {
   }
 });
 
+// realpath to match createWorkspace, which resolves symlinks (on macOS /var -> /private/var).
 async function scratch(): Promise<string> {
-  const dir = await mkdtemp(join(tmpdir(), 'ws-test-'));
+  const dir = await realpath(await mkdtemp(join(tmpdir(), 'ws-test-')));
   tmpRoots.push(dir);
   return dir;
 }

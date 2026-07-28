@@ -36,12 +36,12 @@ describe('basic upload sources and download translations', () => {
 
     await expectFilesExist(
       ctx.workspace,
-      'it/sources/alpha.md',
-      'it/sources/beta.md',
-      'it/sources/gamma.md',
-      'uk/sources/alpha.md',
-      'uk/sources/beta.md',
-      'uk/sources/gamma.md',
+      'translations/it-IT/alpha.md',
+      'translations/it-IT/beta.md',
+      'translations/it-IT/gamma.md',
+      'translations/uk-UA/alpha.md',
+      'translations/uk-UA/beta.md',
+      'translations/uk-UA/gamma.md',
     );
   });
 });
