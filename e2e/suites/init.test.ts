@@ -21,6 +21,9 @@ describe('init generates a configuration skeleton', () => {
 
   test('generates a configuration skeleton in quiet mode', async () => {
     const destPath = join(ctx.workspace, 'crowdin.yaml');
+    // normalize() masks the volatile temp-workspace root to `<workspace>`, so message assertions
+    // against CLI stdout must use the masked path; destPath itself is kept raw for disk reads.
+    const maskedDest = normalize(destPath);
 
     // noConfig: true - `init` has no config file to point `-c` at, and the CLI resolves a relative
     // `-d` against cwd (ctx.workspace here), matching InitCommand's `path.join(process.cwd(), ...)`.
@@ -30,7 +33,7 @@ describe('init generates a configuration skeleton', () => {
 
     const stdout = normalize(result.stdout);
     // Wording grepped verbatim from InitCommand.ts's defaultAction/successMessage.
-    expect(stdout).toContain(`Generating Crowdin CLI configuration skeleton '${destPath}'`);
+    expect(stdout).toContain(`Generating Crowdin CLI configuration skeleton '${maskedDest}'`);
     expect(stdout).toContain(
       'Your configuration skeleton has been successfully generated. Specify your source and translation paths in the files section. For more details see https://crowdin.github.io/crowdin-cli/configuration',
     );
@@ -52,11 +55,63 @@ describe('init generates a configuration skeleton', () => {
       ignoreHiddenFiles: true,
       files: [{ source: '', translation: '' }],
     });
+
     expect(await Bun.file(destPath).text()).toBe(expectedContent);
+  });
+
+  test('writes flag values into the skeleton in quiet mode', async () => {
+    // The all-empty quiet test above never exercises the flag->file wiring: with values passed,
+    // generate() emits the `api_token` line (the `apiToken !== undefined` branch, otherwise
+    // omitted), a custom `base_url`, `preserve_hierarchy: false`, and the project id. This is pure
+    // e2e - commander arg parsing plus InitCommand's `?? ''`/`|| default` plumbing - so it can't be
+    // covered by unit-testing generate() alone. Importing generate() keeps the assertion in lockstep
+    // with the implementation, exactly like the first test.
+    const destPath = join(ctx.workspace, 'crowdin-full.yml');
+
+    const result = await ctx.runner.run(
+      [
+        'init',
+        '--quiet',
+        '-d',
+        'crowdin-full.yml',
+        '--project-id',
+        '123',
+        '--token',
+        'abc',
+        '--base-url',
+        'https://acme.api.crowdin.com',
+        '--base-path',
+        'src',
+        '--source',
+        'src/**/*.json',
+        '--translation',
+        'l10n/%locale%/%original_file_name%',
+        '--no-preserve-hierarchy',
+      ],
+      { noConfig: true },
+    );
+
+    expect(result.exitCode).toBe(0);
+
+    const content = await Bun.file(destPath).text();
+    const expectedContent = generate({
+      projectId: 123,
+      apiToken: 'abc',
+      basePath: 'src',
+      baseUrl: 'https://acme.api.crowdin.com',
+      preserveHierarchy: false,
+      ignoreHiddenFiles: true,
+      files: [{ source: 'src/**/*.json', translation: 'l10n/%locale%/%original_file_name%' }],
+    });
+
+    expect(content).toBe(expectedContent);
+    // Make the load-bearing divergence from the empty case explicit: the api_token line now exists.
+    expect(content).toContain('api_token');
   });
 
   test('skips regeneration when the destination already exists', async () => {
     const destPath = join(ctx.workspace, 'crowdin.yaml');
+    const maskedDest = normalize(destPath);
     const contentBefore = await Bun.file(destPath).text();
 
     const result = await ctx.runner.run(['init', '--quiet', '-d', 'crowdin.yaml'], { noConfig: true });
@@ -64,9 +119,9 @@ describe('init generates a configuration skeleton', () => {
     expect(result.exitCode).toBe(0);
 
     const stdout = normalize(result.stdout);
-    expect(stdout).toContain(`Generating Crowdin CLI configuration skeleton '${destPath}'`);
+    expect(stdout).toContain(`Generating Crowdin CLI configuration skeleton '${maskedDest}'`);
     expect(stdout).toContain(
-      `File '${destPath}' already exists. Fill it out accordingly to the following requirements: ` +
+      `File '${maskedDest}' already exists. Fill it out accordingly to the following requirements: ` +
         'https://developer.crowdin.com/configuration-file/#configuration-file-structure',
     );
     expect(stdout).toMatchSnapshot();
@@ -99,5 +154,16 @@ describe('init generates a configuration skeleton', () => {
     // entirely absent from the generated file (see the first test), so the schema's optional() field
     // never triggers its own `min(1)` "Required option 'api_token' is missing" check at all.
     expect(stdout).toMatchSnapshot();
+  });
+
+  test('creates missing parent directories for a nested destination', async () => {
+    // `-d config/crowdin.yml` targets a subdir that doesn't exist yet. InitCommand relies on
+    // Bun.write's implicit parent-dir creation; a swap to fs.writeFile (no mkdir) would break this
+    // silently, and only an e2e run against the real filesystem catches it.
+    const destPath = join(ctx.workspace, 'nested', 'sub', 'crowdin.yml');
+    const result = await ctx.runner.run(['init', '--quiet', '-d', 'nested/sub/crowdin.yml'], { noConfig: true });
+
+    expect(result.exitCode).toBe(0);
+    expect(await Bun.file(destPath).exists()).toBe(true);
   });
 });

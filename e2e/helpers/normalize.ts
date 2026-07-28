@@ -29,6 +29,11 @@ const INVISIBLE = /[\u200B-\u200D\uFEFF]/g;
 const IDS = /#\d+/g;
 // Timing/speed values like `1.23s` or `450ms`.
 const DURATIONS = /\d+(?:\.\d+)?\s?m?s\b/g;
+// Per-run temp workspace root: `<os-tmp>/crowdin-e2e/<pid>-<seed>` (see workspace.ts).
+// The prefix and `<pid>-<seed>` change every run, so any absolute path the CLI echoes
+// back is non-deterministic; collapse the volatile root to a stable `<workspace>` token,
+// leaving the suite-relative tail (e.g. `/init/crowdin.yaml`) intact.
+const WORKSPACE = /[^\s'"]*\/crowdin-e2e\/\d+-\d+/g;
 
 /**
  * Group key for a line: its leading whitespace-delimited token, which is the
@@ -46,6 +51,7 @@ export function normalize(output: string): string {
     .replace(INVISIBLE, '')
     .replace(IDS, '#id')
     .replace(DURATIONS, '<dur>')
+    .replace(WORKSPACE, '<workspace>')
     .split('\n')
     .map((line) => line.trimEnd())
     .filter((line) => line.length > 0);
@@ -54,9 +60,11 @@ export function normalize(output: string): string {
   for (let start = 0; start < lines.length; ) {
     const key = groupKey(lines[start] as string);
     let end = start + 1;
+
     while (end < lines.length && groupKey(lines[end] as string) === key) {
       end++;
     }
+
     result.push(...lines.slice(start, end).sort());
     start = end;
   }
