@@ -124,3 +124,22 @@ exports[`base path downloads translations with a relative --base-path 1`] = `
 ◆  File src/main/res/values-it/android.xml extracted
 ◆  File src/main/res/values-uk/android.xml extracted"
 `;
+
+exports[`base path updates sources on the branch (branch already exists) 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'files/src/main/res/values/android.xml'"
+`;
+
+exports[`base path uploads translations on the branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+Importing translations for file 'files/src/main/res/values-it/android.xml'
+Importing translations for file 'files/src/main/res/values-uk/android.xml'
+◆  File 'files/src/main/res/values-it/android.xml'
+◆  File 'files/src/main/res/values-uk/android.xml'"
+`;
