@@ -24,7 +24,7 @@ import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { getCommonPath, resolveProjectPath } from '@/lib/upload/fileOptions.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
-import { stripBranchPrefix, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, stripLeadingSlashes, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
 
 interface UploadTranslationsOptions extends GlobalOptions {
@@ -242,9 +242,9 @@ export default class UploadTranslationsCommand {
           !this.translationHasLanguagePlaceholder(patterns.translation);
 
         if (isMultilingual) {
-          const translationPath = translationPathResolver
-            .resolve(sourceFile, firstLanguage, serverLanguageMapping)
-            .slice(1);
+          const translationPath = stripLeadingSlashes(
+            translationPathResolver.resolve(sourceFile, firstLanguage, serverLanguageMapping),
+          );
           entries.push({
             translationPath,
             languageIds: targetLanguages.map((language) => language.id),
@@ -255,9 +255,9 @@ export default class UploadTranslationsCommand {
         }
 
         for (const targetLanguage of targetLanguages) {
-          const translationPath = translationPathResolver
-            .resolve(sourceFile, targetLanguage, serverLanguageMapping)
-            .slice(1);
+          const translationPath = stripLeadingSlashes(
+            translationPathResolver.resolve(sourceFile, targetLanguage, serverLanguageMapping),
+          );
           entries.push({
             translationPath,
             languageIds: [targetLanguage.id],
