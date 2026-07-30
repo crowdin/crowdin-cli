@@ -1,20 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { writeConfig } from '../helpers/config.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
-
-/**
- * Overwrites the workspace's `crowdin.yml` with one of the `alt-configs/<name>.yml` templates
- * (copied into the workspace verbatim since only fixtures' top-level `config/` dir is rendered by
- * `setupSuite`). Used both for the mid-suite switch to `crowdin-v2` (different translation
- * destination) and to switch back to the original config before the branch tests.
- */
-async function switchConfig(ctx: SuiteContext, name: string): Promise<void> {
-  const template = await Bun.file(join(ctx.workspace, 'alt-configs', `${name}.yml`)).text();
-  await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
-}
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * `download translations` writes to the exact local path the `upload translations` fixtures

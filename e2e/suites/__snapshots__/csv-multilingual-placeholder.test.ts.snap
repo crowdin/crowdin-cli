@@ -15,10 +15,10 @@ exports[`csv multilingual placeholder uploads translations for every target lang
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-Importing translations for file 'translations/it/1_multilingual.csv'
-Importing translations for file 'translations/it/2_multilingual.csv'
-Importing translations for file 'translations/uk/1_multilingual.csv'
-Importing translations for file 'translations/uk/2_multilingual.csv'
+●  Importing translations for file 'translations/it/1_multilingual.csv'
+●  Importing translations for file 'translations/it/2_multilingual.csv'
+●  Importing translations for file 'translations/uk/1_multilingual.csv'
+●  Importing translations for file 'translations/uk/2_multilingual.csv'
 ◆  File 'translations/it/1_multilingual.csv'
 ◆  File 'translations/it/2_multilingual.csv'
 ◆  File 'translations/uk/1_multilingual.csv'
@@ -30,8 +30,8 @@ exports[`csv multilingual placeholder uploads translations for a single language
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-Importing translations for file 'translations/uk/1_multilingual.csv'
-Importing translations for file 'translations/uk/2_multilingual.csv'
+●  Importing translations for file 'translations/uk/1_multilingual.csv'
+●  Importing translations for file 'translations/uk/2_multilingual.csv'
 ◆  File 'translations/uk/1_multilingual.csv'
 ◆  File 'translations/uk/2_multilingual.csv'"
 `;

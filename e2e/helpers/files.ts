@@ -16,3 +16,18 @@ export async function expectFilesExist(workspace: string, ...relativePaths: stri
 
   expect(missing).toEqual([]);
 }
+
+/**
+ * Read back content a suite captured earlier (keyed by relative path), for comparing a re-downloaded
+ * file against what was uploaded. Throws when the key was never recorded, so a typo'd key or a
+ * capture step that silently didn't run fails the test instead of comparing against `undefined`.
+ */
+export function capturedContent(captured: Map<string, string>, key: string): string {
+  const content = captured.get(key);
+
+  if (content === undefined) {
+    throw new Error(`No content was captured for '${key}'`);
+  }
+
+  return content;
+}

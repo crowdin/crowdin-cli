@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { expectFilesExist } from '../helpers/files.ts';
+import { capturedContent, expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -150,7 +150,7 @@ describe('full CLI project workflow', () => {
     for (const language of ['it', 'uk']) {
       for (const file of ['alpha.md', 'beta.md', 'gamma.md']) {
         const downloaded = await Bun.file(join(ctx.workspace, 'translations', language, file)).text();
-        expect(downloaded).toBe(uploadedContent.get(`${language}/${file}`));
+        expect(downloaded).toBe(capturedContent(uploadedContent, `${language}/${file}`));
       }
     }
   });

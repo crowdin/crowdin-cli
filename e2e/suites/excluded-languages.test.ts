@@ -1,20 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { writeConfig } from '../helpers/config.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
-
-/**
- * Overwrites the workspace's `crowdin.yml` with one of the `alt-configs/<name>.yml` templates
- * (copied into the workspace verbatim since only fixtures' top-level `config/` dir is rendered by
- * `setupSuite`). `ctx.runner` always reads the same on-disk path, so later `ctx.runner.run(...)`
- * calls pick up the new file group / `excluded_target_languages` without any other wiring.
- */
-async function switchConfig(ctx: SuiteContext, name: string): Promise<void> {
-  const template = await Bun.file(join(ctx.workspace, 'alt-configs', `${name}.yml`)).text();
-  await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
-}
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /** Equivalent of the PHP suite's `ProjectFilesHelper::deleteAllFiles()` — used before a config
  * switch so the next `upload sources` recreates every file fresh under the new file group(s). */
