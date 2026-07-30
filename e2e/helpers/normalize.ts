@@ -6,14 +6,22 @@
  *
  *   1. strips ANSI/invisible characters,
  *   2. masks generated ids (`#123` → `#id`) and durations (`1.2s` → `<dur>`),
- *   3. sorts lines *within* each contiguous run of same-marker lines.
+ *   3. gathers the status lines (`●`/`▲`/`◆`) into one block, grouped by marker
+ *      and sorted within each group,
+ *   4. sorts remaining lines within each contiguous run of same-marker lines.
  *
- * Only the parallel result lines (`◆ File … created`, emitted by concurrent
- * uploads) are actually unordered; the leading progress lines (`● Fetching …`)
- * are sequential. Sorting the whole output would interleave those blocks and
- * misrepresent the real flow, so instead we group by leading marker and sort
- * each block in place - the progress block stays above the results block, and
- * siblings within a block become order-independent.
+ * Concurrency means status lines interleave differently on every run: a `◆ File
+ * … created` for one file can land between two `● Importing …` lines, and which
+ * one wins is a race. Sorting only *contiguous* runs (the original rule) made
+ * that interleaving decide where the run boundaries fell, so the same output
+ * normalized two different ways - the single largest source of flaky snapshots
+ * in these suites. Collecting every status line regardless of position removes
+ * the race from the result: the `●` block still precedes the `◆` block (marker
+ * order follows first appearance), and both are internally sorted.
+ *
+ * Non-status lines keep the contiguous-run rule, which matters for table output
+ * (`│ … │`): rows are sorted within their own table instead of being merged
+ * across every table in the output.
  *
  * Because only siblings are sorted, snapshots don't guard the *ordering within*
  * a block - suites assert load-bearing facts (counts, messages, exit codes)
@@ -45,18 +53,19 @@ function groupKey(line: string): string {
   return line.match(/^(\S+)\s/)?.[1] ?? line;
 }
 
-export function normalize(output: string): string {
-  const lines = output
-    .replace(ANSI, '')
-    .replace(INVISIBLE, '')
-    .replace(IDS, '#id')
-    .replace(DURATIONS, '<dur>')
-    .replace(WORKSPACE, '<workspace>')
-    .split('\n')
-    .map((line) => line.trimEnd())
-    .filter((line) => line.length > 0);
+/**
+ * Markers the CLI emits from concurrent per-file work, so their relative order is a race. Error and
+ * spinner markers (`■`, `✖`, `◒`) are excluded because they are sequential - they are never sorted,
+ * and their text stays intact. Note they do end up *after* the gathered status block when they were
+ * originally interleaved with it, so a snapshot shows which errors occurred, not which success line
+ * they fell between - that position was never stable enough to assert on anyway.
+ */
+const STATUS_MARKERS = new Set(['●', '▲', '◆']);
 
+/** Sort each contiguous run of same-marker lines, leaving run order untouched. */
+function sortWithinRuns(lines: string[]): string[] {
   const result: string[] = [];
+
   for (let start = 0; start < lines.length; ) {
     const key = groupKey(lines[start] as string);
     let end = start + 1;
@@ -69,5 +78,40 @@ export function normalize(output: string): string {
     start = end;
   }
 
-  return result.join('\n');
+  return result;
+}
+
+export function normalize(output: string): string {
+  const lines = output
+    .replace(ANSI, '')
+    .replace(INVISIBLE, '')
+    .replace(IDS, '#id')
+    .replace(DURATIONS, '<dur>')
+    .replace(WORKSPACE, '<workspace>')
+    .split('\n')
+    .map((line) => line.trimEnd())
+    .filter((line) => line.length > 0);
+
+  const firstStatus = lines.findIndex((line) => STATUS_MARKERS.has(groupKey(line)));
+
+  if (firstStatus === -1) {
+    return sortWithinRuns(lines).join('\n');
+  }
+
+  // One block holding every status line, markers in order of first appearance, sorted within each.
+  const byMarker = new Map<string, string[]>();
+
+  for (const line of lines) {
+    const key = groupKey(line);
+
+    if (STATUS_MARKERS.has(key)) {
+      byMarker.set(key, [...(byMarker.get(key) ?? []), line]);
+    }
+  }
+
+  const statusBlock = [...byMarker.values()].flatMap((group) => group.sort());
+  const before = lines.slice(0, firstStatus).filter((line) => !STATUS_MARKERS.has(groupKey(line)));
+  const after = lines.slice(firstStatus).filter((line) => !STATUS_MARKERS.has(groupKey(line)));
+
+  return [...sortWithinRuns(before), ...statusBlock, ...sortWithinRuns(after)].join('\n');
 }

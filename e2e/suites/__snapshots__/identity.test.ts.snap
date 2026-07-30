@@ -11,10 +11,10 @@ exports[`identity file credentials uploads sources using credentials from an --i
 exports[`identity file credentials uploads translations using credentials from an --identity file 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
 ●  Importing translations for file 'translations/it/android.xml'
 ●  Importing translations for file 'translations/uk/android.xml'
+●  Project files fetched
+●  Project info fetched
 ◆  File 'translations/it/android.xml'
 ◆  File 'translations/uk/android.xml'"
 `;
