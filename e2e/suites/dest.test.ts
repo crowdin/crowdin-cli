@@ -1,9 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
-import { writeConfig } from '../helpers/config.ts';
 import { capturedContent, expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Port of crowdin-backend's `tests/Cli/Common/CliDestTest.php`: `dest:` pattern shapes across
@@ -260,8 +259,7 @@ describe('dest', () => {
     // validation path instead, confirmed directly offline (no live API — config validation happens
     // before any network call): exit code 2, message "The 'dest' parameter only works for single
     // files with the specified 'preserve_hierarchy': true option".
-    const template = await Bun.file(join(ctx.workspace, 'alt-configs', 'crowdin-invalid.yml')).text();
-    await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
+    await switchConfig(ctx, 'crowdin-invalid');
 
     const result = await ctx.runner.run(['upload', 'sources', '--no-preserve-hierarchy']);
 

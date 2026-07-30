@@ -1,9 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import type { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
-import { writeConfig } from '../helpers/config.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Ported from `crowdin-backend/tests/Cli/Common/CliLanguageMappingTest.php`. Each of the 8 file
@@ -43,17 +42,6 @@ const ZH_CN_LANGUAGE_MAPPING: ProjectsGroupsModel.LanguageMappingEntity = {
   osx_code: 'zh-Hans.lproj_',
   osx_locale: 'zh-Hans_',
 };
-
-/**
- * Overwrites the workspace's `crowdin.yml` with `alt-configs/crowdin-no-mapping.yml` - the same 8
- * file groups, minus every per-file `languages_mapping` override - so later commands fall back to
- * the server-side project language mapping. Mirrors the `switchConfig` helper used by
- * `excluded-languages.test.ts`.
- */
-async function switchToNoLocalMapping(ctx: SuiteContext): Promise<void> {
-  const template = await Bun.file(join(ctx.workspace, 'alt-configs', 'crowdin-no-mapping.yml')).text();
-  await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
-}
 
 describe('language mapping', () => {
   let ctx: SuiteContext;
@@ -175,7 +163,7 @@ describe('language mapping', () => {
         value: { uk: UK_LANGUAGE_MAPPING, 'zh-CN': ZH_CN_LANGUAGE_MAPPING },
       },
     ]);
-    await switchToNoLocalMapping(ctx);
+    await switchConfig(ctx, 'crowdin-no-mapping');
 
     const result = await ctx.runner.run(['upload', 'translations', '--dryrun']);
 

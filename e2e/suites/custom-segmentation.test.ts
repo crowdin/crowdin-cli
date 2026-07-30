@@ -1,8 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
-import { writeConfig } from '../helpers/config.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Overwrites the workspace's `rules/sample.srx.xml` — the file the fixture's `crowdin.yml`
@@ -13,16 +12,6 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
 async function useSrxRules(ctx: SuiteContext, variant: string): Promise<void> {
   const content = await Bun.file(join(ctx.workspace, 'rules', `${variant}.srx.xml`)).text();
   await Bun.write(join(ctx.workspace, 'rules', 'sample.srx.xml'), content);
-}
-
-/**
- * Switches the workspace's active `crowdin.yml` to the `alt-configs/crowdin-rev2.yml` template
- * (copied into the workspace verbatim since only the fixture's top-level `config/` dir is rendered
- * by `setupSuite`). Mirrors the PHP suite's `self::prepareConfig([], self::file('config/crowdin-rev2.yml'))`.
- */
-async function switchToDestConfig(ctx: SuiteContext): Promise<void> {
-  const template = await Bun.file(join(ctx.workspace, 'alt-configs', 'crowdin-rev2.yml')).text();
-  await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
 }
 
 describe('custom segmentation', () => {
@@ -120,7 +109,7 @@ describe('custom segmentation', () => {
   });
 
   test('uploads sources to a dest path and reflects the earlier SRX rules update on the original docx', async () => {
-    await switchToDestConfig(ctx);
+    await switchConfig(ctx, 'crowdin-rev2');
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
