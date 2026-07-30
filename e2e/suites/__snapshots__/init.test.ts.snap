@@ -1,0 +1,21 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`init generates a configuration skeleton generates a configuration skeleton in quiet mode 1`] = `
+"Generating Crowdin CLI configuration skeleton '<workspace>/init/crowdin.yaml'
+Your configuration skeleton has been successfully generated. Specify your source and translation paths in the files section. For more details see https://crowdin.github.io/crowdin-cli/configuration
+Next steps: run 'crowdin push' to upload sources and 'crowdin pull' to download translations."
+`;
+
+exports[`init generates a configuration skeleton skips regeneration when the destination already exists 1`] = `
+"Generating Crowdin CLI configuration skeleton '<workspace>/init/crowdin.yaml'
+File '<workspace>/init/crowdin.yaml' already exists. Fill it out accordingly to the following requirements: https://developer.crowdin.com/configuration-file/#configuration-file-structure"
+`;
+
+exports[`init generates a configuration skeleton lints the generated (incomplete) skeleton 1`] = `
+"■  Configuration file is invalid. ✖ Too small: expected number to be >0
+  → at projectId
+✖ source parameter cannot be empty
+  → at files[0].source
+✖ translation parameter cannot be empty
+  → at files[0].translation"
+`;

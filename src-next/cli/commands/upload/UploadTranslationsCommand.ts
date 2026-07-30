@@ -24,7 +24,7 @@ import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { getCommonPath, resolveProjectPath } from '@/lib/upload/fileOptions.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
-import { stripBranchPrefix, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, stripLeadingSlashes, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
 
 interface UploadTranslationsOptions extends GlobalOptions {
@@ -142,9 +142,8 @@ export default class UploadTranslationsCommand {
       const storage = await storageService.addStorage(Bun.file(localFilePath));
 
       try {
-        output.log(this.importingMessage(entry.translationPath));
+        output.info(this.importingMessage(entry.translationPath));
 
-        // importProjectTranslation returns only once the server-side import has finished.
         await translationService.importProjectTranslation(
           storage.data.id,
           entry.fileId as number,
@@ -242,9 +241,9 @@ export default class UploadTranslationsCommand {
           !this.translationHasLanguagePlaceholder(patterns.translation);
 
         if (isMultilingual) {
-          const translationPath = translationPathResolver
-            .resolve(sourceFile, firstLanguage, serverLanguageMapping)
-            .slice(1);
+          const translationPath = stripLeadingSlashes(
+            translationPathResolver.resolve(sourceFile, firstLanguage, serverLanguageMapping),
+          );
           entries.push({
             translationPath,
             languageIds: targetLanguages.map((language) => language.id),
@@ -255,9 +254,9 @@ export default class UploadTranslationsCommand {
         }
 
         for (const targetLanguage of targetLanguages) {
-          const translationPath = translationPathResolver
-            .resolve(sourceFile, targetLanguage, serverLanguageMapping)
-            .slice(1);
+          const translationPath = stripLeadingSlashes(
+            translationPathResolver.resolve(sourceFile, targetLanguage, serverLanguageMapping),
+          );
           entries.push({
             translationPath,
             languageIds: [targetLanguage.id],
@@ -341,7 +340,7 @@ export default class UploadTranslationsCommand {
 
       const storage = await storageService.addStorage(Bun.file(localFilePath));
 
-      output.log(this.importingMessage(entry.translationPath));
+      output.info(this.importingMessage(entry.translationPath));
 
       await translationService.importProjectTranslationStringsBased(
         storage.data.id,
@@ -381,13 +380,10 @@ export default class UploadTranslationsCommand {
     return filtered;
   }
 
-  // Java's message.spinner.importing_translations_init: printed for every file, verbose or not.
   private importingMessage(translationPath: string): string {
     return `Importing translations for file '${translationPath}'`;
   }
 
-  // Java's message.spinner.importing_translations_percents, which it only builds under --verbose,
-  // with the import identifier appended.
   private progressMessage(translationPath: string, status: { progress: number; identifier: string }): string {
     return `Importing translations for file '${translationPath}' (${status.progress}%) (${status.identifier})`;
   }

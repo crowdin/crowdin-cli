@@ -1,0 +1,71 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`cli commands without an explicit config parameter uploads sources via crowdin.yaml default discovery (no -c) 1`] = `
+"◒  Fetching project files◐  Fetching project files◓  Fetching project files◇  Project files fetched
+◒  Fetching project info◐  Fetching project info◓  Fetching project info◑  Fetching project info◒  Fetching project info◐  Fetching project info◇  Project info fetched
+◆  File 'sources/android.xml'"
+`;
+
+exports[`cli commands without an explicit config parameter uploads translations via crowdin.yaml default discovery (no -c) 1`] = `
+"◒  Fetching project files◐  Fetching project files◇  Project files fetched
+◒  Fetching project info◐  Fetching project info◓  Fetching project info◑  Fetching project info◒  Fetching project info◐  Fetching project info◇  Project info fetched
+●  Importing translations for file 'translations/it/android.xml'
+●  Importing translations for file 'translations/uk/android.xml'
+◆  File 'translations/it/android.xml'
+◆  File 'translations/uk/android.xml'"
+`;
+
+exports[`cli commands without an explicit config parameter downloads translations via crowdin.yaml default discovery (no -c) 1`] = `
+"◒  Fetching project info◐  Fetching project info◓  Fetching project info◑  Fetching project info◒  Fetching project info◐  Fetching project info◇  Project info fetched
+●  Building translations
+●  Downloading translations
+◆  Done
+◆  File translations/it/android.xml extracted
+◆  File translations/uk/android.xml extracted
+◒  Building translations◐  Building translations◓  Building translations◑  Building translations◒  Building translations◐  Building translations◓  Building translations◑  Building translations◒  Building translations.◐  Building translations.◓  Building translations.◑  Building translations.◒  Building translations.◐  Building translations.◓  Building translations.◑  Building translations.◒  Building translations..◐  Building translations..◓  Building translations..◑  Building translations..◒  Building translations..◐  Building translations..◓  Building translations..◑  Building translations..◒  Building translations...◐  Building translations...◓  Building translations...◑  Building translations...◒  Building translations...◐  Building translations...◓  Building translations...◑  Building translations...◒  Building translations...◇  Translations built"
+`;
+
+exports[`cli commands without an explicit config parameter uploads sources via crowdin.yml default discovery (no -c) 1`] = `
+"◒  Fetching project files◐  Fetching project files◇  Project files fetched
+◒  Fetching project info◐  Fetching project info◓  Fetching project info◑  Fetching project info◒  Fetching project info◐  Fetching project info◇  Project info fetched
+◆  File 'sources/android.xml'"
+`;
+
+exports[`cli commands without an explicit config parameter uploads translations via crowdin.yml default discovery (no -c) 1`] = `
+"◒  Fetching project files◐  Fetching project files◓  Fetching project files◇  Project files fetched
+◒  Fetching project info◐  Fetching project info◓  Fetching project info◑  Fetching project info◒  Fetching project info◐  Fetching project info◇  Project info fetched
+●  Importing translations for file 'translations/it/android.xml'
+●  Importing translations for file 'translations/uk/android.xml'
+◆  File 'translations/it/android.xml'
+◆  File 'translations/uk/android.xml'"
+`;
+
+exports[`cli commands without an explicit config parameter downloads translations via crowdin.yml default discovery (no -c) 1`] = `
+"◒  Fetching project info◐  Fetching project info◓  Fetching project info◑  Fetching project info◒  Fetching project info◐  Fetching project info◇  Project info fetched
+●  Building translations
+●  Downloading translations
+◆  Done
+◆  File translations/it/android.xml extracted
+◆  File translations/uk/android.xml extracted
+◒  Building translations◐  Building translations◓  Building translations◑  Building translations◒  Building translations◐  Building translations◓  Building translations◑  Building translations◒  Building translations.◐  Building translations.◓  Building translations.◑  Building translations.◒  Building translations.◐  Building translations.◓  Building translations.◑  Building translations.◒  Building translations..◐  Building translations..◓  Building translations..◑  Building translations..◒  Building translations..◐  Building translations..◓  Building translations..◑  Building translations..◒  Building translations...◐  Building translations...◓  Building translations...◑  Building translations...◒  Building translations...◐  Building translations...◓  Building translations...◑  Building translations...◒  Building translations...◐  Building translations◓  Building translations◑  Building translations◒  Building translations◐  Building translations◓  Building translations◑  Building translations◒  Building translations◐  Building translations.◓  Building translations.◑  Building translations.◒  Building translations.◐  Building translations.◓  Building translations.◑  Building translations.◒  Building translations.◐  Building translations..◓  Building translations..◑  Building translations..◒  Building translations..◐  Building translations..◓  Building translations..◑  Building translations..◒  Building translations..◐  Building translations...◓  Building translations...◑  Building translations...◇  Translations built"
+`;
+
+exports[`cli commands without an explicit config parameter uploads sources using only CLI flags, no config file at all 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/android.xml'"
+`;
+
+exports[`cli commands without an explicit config parameter downloads translations using only CLI flags, no config file at all 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File translations/it/android.xml extracted
+◆  File translations/uk/android.xml extracted"
+`;

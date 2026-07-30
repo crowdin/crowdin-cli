@@ -1,0 +1,14 @@
+project_id: "{{projectId}}"
+api_token: "{{token}}"
+
+base_path: "."
+base_url: "https://api.crowdin.com"
+preserve_hierarchy: false
+
+# Ported from crowdin-backend/tests/var/Cli/Common/CliInvalidFilesConfigTest/config/crowdin.yml.
+# Every test in this suite overrides `source`/`translation` via the `--source`/`--translation` CLI
+# flags (mirroring the PHP original's per-test prepareConfig() call), so this default pair is only
+# used as a valid fallback and is never exercised directly.
+files:
+  - source: "/sources/android.xml"
+    translation: "/translations/%two_letters_code%/android.xml"
