@@ -53,6 +53,14 @@ describe('multilingual csv', () => {
     expect(await translationsFor('it', fileId)).toContainValues(['stringa 6', 'stringa 7']);
   });
 
+  test('download file with translations (dryrun)', async () => {
+    const result = await ctx.runner.run(['download', 'translations', '--dryrun']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain('File with-translations/sample.csv extracted');
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
   test('download file with translations', async () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
