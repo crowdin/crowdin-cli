@@ -13,11 +13,11 @@ async function clearDownloadedTranslations(ctx: SuiteContext): Promise<void> {
   await rm(join(ctx.workspace, 'translations'), { recursive: true, force: true });
 }
 
-describe('csv multilingual placeholder', () => {
+describe('multilingual csv with language placeholder', () => {
   let ctx: SuiteContext;
 
   beforeAll(async () => {
-    ctx = await setupSuite('csv-multilingual-placeholder', { targetLanguageIds: ['it', 'uk'] });
+    ctx = await setupSuite('multilingual-csv-with-language-placeholder', { targetLanguageIds: ['it', 'uk'] });
   });
 
   afterAll(async () => {
@@ -101,6 +101,7 @@ describe('csv multilingual placeholder', () => {
 
   test('updates sources from a new base path, targeting a new translation destination', async () => {
     await switchConfig(ctx, 'crowdin-v2');
+
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', 'rev2']);
 
     expect(result.exitCode).toBe(0);
@@ -122,6 +123,7 @@ describe('csv multilingual placeholder', () => {
 
   test('uploads sources to a new branch', async () => {
     await switchConfig(ctx, 'crowdin-original');
+
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
     expect(result.exitCode).toBe(0);
@@ -131,12 +133,6 @@ describe('csv multilingual placeholder', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // Known bug (crowdin-cli-known-bugs.md, Bug 4): the existing-file lookup for a branched upload
-  // ignores the branch-name prefix Crowdin includes in `file.data.path`, so a second upload to an
-  // existing branch always takes the "create" path instead of "update" and the server rejects the
-  // duplicate create. Reproduces the same way as base-path.test.ts's
-  // 'updates sources on the branch (branch already exists)'. Left as an honest red test that
-  // asserts the CORRECT behavior — do not weaken these assertions to match the buggy output.
   test('updates sources on the branch (branch already exists)', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
@@ -146,9 +142,6 @@ describe('csv multilingual placeholder', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // Cascades from the same Bug 4 root cause: translation upload resolves the source file by a
-  // branch-agnostic path too, so it can't find the branch-scoped source file either. Left red for
-  // the same reason as the test above.
   test('uploads translations on the branch', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-b', 'test-branch']);
 
@@ -164,8 +157,7 @@ describe('csv multilingual placeholder', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // Depends on the two branch upload tests above actually having pushed content server-side;
-  // may fail as a further cascade of Bug 4 rather than a new, independent issue.
+  // Depends on the two branch upload tests above actually having pushed content server-side.
   test('downloads translations on the branch', async () => {
     await clearDownloadedTranslations(ctx);
 
