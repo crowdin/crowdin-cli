@@ -189,6 +189,16 @@ describe('multilingual csv', () => {
     );
   });
 
+  test('upload source to the root of the project', async () => {
+    await switchConfig(ctx, 'project-root');
+
+    const result = await ctx.runner.run(['upload', 'sources']);
+
+    expect(result.exitCode).toBe(0);
+    expect(result.stdout).toContain("File 'sample.csv'");
+    expect(normalize(result.stdout)).toMatchSnapshot();
+  });
+
   async function translationsFor(languageId: string, fileId: number): Promise<(string | null)[]> {
     const response = await ctx.client.stringTranslationsApi.listLanguageTranslations(ctx.project.id, languageId, {
       fileId,
