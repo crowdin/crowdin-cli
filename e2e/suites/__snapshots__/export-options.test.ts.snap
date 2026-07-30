@@ -34,12 +34,12 @@ exports[`export options reports no fully translated files when skip_untranslated
 exports[`export options uploads translations for both languages 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
 ●  Importing translations for file 'translations/it/1_android.xml'
 ●  Importing translations for file 'translations/it/2_android.xml'
 ●  Importing translations for file 'translations/uk/1_android.xml'
 ●  Importing translations for file 'translations/uk/2_android.xml'
+●  Project files fetched
+●  Project info fetched
 ◆  File 'translations/it/1_android.xml'
 ◆  File 'translations/it/2_android.xml'
 ◆  File 'translations/uk/1_android.xml'
@@ -49,12 +49,12 @@ exports[`export options uploads translations for both languages 1`] = `
 exports[`export options approves translations by re-uploading the approved fixtures with auto-approve 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
 ●  Importing translations for file 'translations/it/1_android.xml'
 ●  Importing translations for file 'translations/it/2_android.xml'
 ●  Importing translations for file 'translations/uk/1_android.xml'
 ●  Importing translations for file 'translations/uk/2_android.xml'
+●  Project files fetched
+●  Project info fetched
 ◆  File 'translations/it/1_android.xml'
 ◆  File 'translations/it/2_android.xml'
 ◆  File 'translations/uk/1_android.xml'
@@ -200,12 +200,12 @@ exports[`export options downloads translations with skip_untranslated_files and 
 
 exports[`export options warns and ignores export_strings_that_passed_workflow outside Enterprise 1`] = `
 "●  Building translations
-●  Fetching project info
-●  Project info fetched
-▲  Exporting strings that passed workflow is supported only for Crowdin Enterprise
 ●  Building translations...
 ●  Downloading translations
+●  Fetching project info
+●  Project info fetched
 ●  Translations built
+▲  Exporting strings that passed workflow is supported only for Crowdin Enterprise
 ◆  Done
 ◆  File translations/it/1_android.xml extracted
 ◆  File translations/it/2_android.xml extracted
@@ -216,15 +216,15 @@ exports[`export options warns and ignores export_strings_that_passed_workflow ou
 exports[`export options downloads translations across two file groups with different export options in config 1`] = `
 "●  Building translations
 ●  Building translations...
+●  Building translations...
 ●  Downloading translations
+●  Fetching project files
 ●  Fetching project info
+●  Project files fetched
 ●  Project info fetched
 ●  Translations built
-◆  File translations/it/1_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-●  Building translations...
-●  Fetching project files
-●  Project files fetched
 ●  Translations built
-◆  Done"
+◆  Done
+◆  File translations/it/1_android.xml extracted
+◆  File translations/uk/1_android.xml extracted"
 `;

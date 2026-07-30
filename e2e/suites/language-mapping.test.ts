@@ -1,6 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { join } from 'node:path';
 import type { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
+import { captureAndClear, expectRestored } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -124,6 +124,28 @@ describe('language mapping', () => {
   });
 
   test('downloads translations with the default language mapping', async () => {
+    // Every mapped path below already holds an upload fixture, so clear them first - an existence
+    // check against a file that was never removed proves nothing about the download.
+    const captured = await captureAndClear(
+      ctx.workspace,
+      'android_code/uk-rUA_/android.xml',
+      'android_code/zh-rCN_/android.xml',
+      'language/Ukrainian_/android.xml',
+      'language/Chinese Simplified_/android.xml',
+      'locale/uk-UA_/android.xml',
+      'locale/zh-CN_/android.xml',
+      'locale_with_underscore/uk_UA_/android.xml',
+      'locale_with_underscore/zh_CN_/android.xml',
+      'osx_code/uk.lproj_/android.xml',
+      'osx_code/zh-Hans.lproj_/android.xml',
+      'osx_locale/uk_/android.xml',
+      'osx_locale/zh-Hans_/android.xml',
+      'three_letters_code/ukr_/android.xml',
+      'three_letters_code/zho_/android.xml',
+      'two_letters_code/uk_/android.xml',
+      'two_letters_code/zh_/android.xml',
+    );
+
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result.exitCode).toBe(0);
@@ -131,28 +153,7 @@ describe('language mapping', () => {
     expect(result.stdout).toContain('File language/Chinese Simplified_/android.xml extracted');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await Promise.all(
-      [
-        'android_code/uk-rUA_/android.xml',
-        'android_code/zh-rCN_/android.xml',
-        'language/Ukrainian_/android.xml',
-        'language/Chinese Simplified_/android.xml',
-        'locale/uk-UA_/android.xml',
-        'locale/zh-CN_/android.xml',
-        'locale_with_underscore/uk_UA_/android.xml',
-        'locale_with_underscore/zh_CN_/android.xml',
-        'osx_code/uk.lproj_/android.xml',
-        'osx_code/zh-Hans.lproj_/android.xml',
-        'osx_locale/uk_/android.xml',
-        'osx_locale/zh-Hans_/android.xml',
-        'three_letters_code/ukr_/android.xml',
-        'three_letters_code/zho_/android.xml',
-        'two_letters_code/uk_/android.xml',
-        'two_letters_code/zh_/android.xml',
-      ].map(async (relativePath) => {
-        expect(await Bun.file(join(ctx.workspace, relativePath)).exists()).toBe(true);
-      }),
-    );
+    await expectRestored(ctx.workspace, captured);
   });
 
   test('sets a server-side language mapping and previews the upload without local overrides', async () => {
@@ -222,6 +223,12 @@ describe('language mapping', () => {
   });
 
   test('downloads translations under the server-side language mapping', async () => {
+    const captured = await captureAndClear(
+      ctx.workspace,
+      'android_code/uk-rUA_crwd/android.xml',
+      'android_code/zh-rCN_crwd/android.xml',
+    );
+
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result.exitCode).toBe(0);
@@ -229,10 +236,6 @@ describe('language mapping', () => {
     expect(result.stdout).toContain('File android_code/zh-rCN_crwd/android.xml extracted');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await Promise.all(
-      ['android_code/uk-rUA_crwd/android.xml', 'android_code/zh-rCN_crwd/android.xml'].map(async (relativePath) => {
-        expect(await Bun.file(join(ctx.workspace, relativePath)).exists()).toBe(true);
-      }),
-    );
+    await expectRestored(ctx.workspace, captured);
   });
 });

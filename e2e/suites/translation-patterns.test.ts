@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { expectFilesExist } from '../helpers/files.ts';
+import { captureAndClear, expectRestored } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -139,6 +139,10 @@ describe('translation patterns', () => {
   });
 
   test('downloads translations across every placeholder-pattern file group', async () => {
+    // Each of these paths is where an upload fixture already sits; clear them so the existence check
+    // below cannot pass on a stale file.
+    const captured = await captureAndClear(ctx.workspace, ...UNAFFECTED_TRANSLATION_PATHS);
+
     const result = await ctx.runner.run(['download', 'translations']);
 
     if (result.exitCode !== 0) {
@@ -153,7 +157,7 @@ describe('translation patterns', () => {
 
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectFilesExist(ctx.workspace, ...UNAFFECTED_TRANSLATION_PATHS);
+    await expectRestored(ctx.workspace, captured);
   });
 
   test('lists configured translation files across every placeholder-pattern file group', async () => {

@@ -1,6 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { join } from 'node:path';
-import { capturedContent, expectFilesExist } from '../helpers/files.ts';
+import { captureAndClear, expectFilesExist, expectRestored } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -106,19 +105,24 @@ describe('dest', () => {
   });
 
   test('downloads translations and matches the uploaded content for the parallel file group', async () => {
-    // Capture the parallel-process group's translation content before download overwrites it at
-    // the same local paths (mirrors full-cli-workflow.test.ts's approach — comparing a file against
-    // itself after download would trivially pass).
-    const parallelProcessFiles = [
+    // Every path below is where an upload fixture already sits, so the download has to be made to
+    // prove itself: capture the content, delete it, and require the download to put it back. Reading
+    // the content without clearing would compare each file against itself and always pass.
+    const captured = await captureAndClear(
+      ctx.workspace,
+      'android_it_IT.xml',
+      'android_uk_UA.xml',
+      'folder/android_it_IT.xml',
+      'folder/android_uk_UA.xml',
+      'folder/client_it_IT.xml',
+      'folder/client_uk_UA.xml',
+      'destCheckFolder/android_it_IT.xml',
+      'destCheckFolder/android_uk_UA.xml',
       'destCheckFolderParallelFileProcess/android_it_IT.xml',
       'destCheckFolderParallelFileProcess/android_uk_UA.xml',
       'destCheckFolderParallelFileProcess/second_android_it_IT.xml',
       'destCheckFolderParallelFileProcess/second_android_uk_UA.xml',
-    ];
-    const uploadedContent = new Map<string, string>();
-    for (const path of parallelProcessFiles) {
-      uploadedContent.set(path, await Bun.file(join(ctx.workspace, path)).text());
-    }
+    );
 
     const result = await ctx.runner.run(['download', 'translations']);
 
@@ -129,23 +133,7 @@ describe('dest', () => {
     expect(result.exitCode).toBe(0);
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectFilesExist(
-      ctx.workspace,
-      'android_it_IT.xml',
-      'android_uk_UA.xml',
-      'folder/android_it_IT.xml',
-      'folder/android_uk_UA.xml',
-      'folder/client_it_IT.xml',
-      'folder/client_uk_UA.xml',
-      'destCheckFolder/android_it_IT.xml',
-      'destCheckFolder/android_uk_UA.xml',
-      ...parallelProcessFiles,
-    );
-
-    for (const path of parallelProcessFiles) {
-      const downloaded = await Bun.file(join(ctx.workspace, path)).text();
-      expect(downloaded).toBe(capturedContent(uploadedContent, path));
-    }
+    await expectRestored(ctx.workspace, captured);
   });
 
   test('uploads sources to a branch with dest remapping', async () => {
