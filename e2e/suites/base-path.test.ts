@@ -1,12 +1,40 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
+import { rm } from 'node:fs/promises';
+import { join } from 'node:path';
 import { expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 async function deleteAllProjectFiles(ctx: SuiteContext): Promise<void> {
-  const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id);
+  const files = await ctx.client.sourceFilesApi.withFetchAll().listProjectFiles(ctx.project.id);
   for (const file of files.data) {
     await ctx.client.sourceFilesApi.deleteFile(ctx.project.id, file.data.id);
+  }
+}
+
+/**
+ * Every `translation` pattern in this suite's configs resolves to a path the upload fixtures already
+ * occupy, so a download that silently writes nothing would still leave those files on disk and pass
+ * an existence check. Record the content and delete the files first; the download has to put them
+ * back. Mirrors `clearDownloadedTranslations` in the other download suites.
+ */
+async function captureAndClear(ctx: SuiteContext, ...relativePaths: string[]): Promise<Map<string, string>> {
+  const captured = new Map<string, string>();
+
+  for (const relativePath of relativePaths) {
+    captured.set(relativePath, await Bun.file(join(ctx.workspace, relativePath)).text());
+    await rm(join(ctx.workspace, relativePath), { force: true });
+  }
+
+  return captured;
+}
+
+/** Assert a download recreated every captured path with the content it had before being cleared. */
+async function expectRestored(ctx: SuiteContext, captured: Map<string, string>): Promise<void> {
+  await expectFilesExist(ctx.workspace, ...captured.keys());
+
+  for (const [relativePath, content] of captured) {
+    expect(await Bun.file(join(ctx.workspace, relativePath)).text()).toBe(content);
   }
 }
 
@@ -54,16 +82,18 @@ describe('base path', () => {
   });
 
   test('downloads translations at the base path', async () => {
+    const captured = await captureAndClear(
+      ctx,
+      'files/src/main/res/values-it/android.xml',
+      'files/src/main/res/values-uk/android.xml',
+    );
+
     const result = await ctx.runner.run(['download', 'translations', '--base-path', '.']);
 
     expect(result.exitCode).toBe(0);
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectFilesExist(
-      ctx.workspace,
-      'files/src/main/res/values-it/android.xml',
-      'files/src/main/res/values-uk/android.xml',
-    );
+    await expectRestored(ctx, captured);
   });
 
   test('lists project source files with --base-path', async () => {
@@ -118,16 +148,18 @@ describe('base path', () => {
   });
 
   test('downloads translations on the branch', async () => {
+    const captured = await captureAndClear(
+      ctx,
+      'dev/files/src/main/res/values-it/android.xml',
+      'dev/files/src/main/res/values-uk/android.xml',
+    );
+
     const result = await ctx.runner.run(['download', 'translations', '-b', 'dev', '--base-path', 'dev']);
 
     expect(result.exitCode).toBe(0);
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectFilesExist(
-      ctx.workspace,
-      'dev/files/src/main/res/values-it/android.xml',
-      'dev/files/src/main/res/values-uk/android.xml',
-    );
+    await expectRestored(ctx, captured);
   });
 
   test('uploads sources with a relative --base-path pointing into a subdirectory', async () => {
@@ -151,15 +183,17 @@ describe('base path', () => {
   });
 
   test('downloads translations with a relative --base-path', async () => {
+    const captured = await captureAndClear(
+      ctx,
+      'files/src/main/res/values-it/android.xml',
+      'files/src/main/res/values-uk/android.xml',
+    );
+
     const result = await ctx.runner.run(['download', 'translations', '--base-path', './files']);
 
     expect(result.exitCode).toBe(0);
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    await expectFilesExist(
-      ctx.workspace,
-      'files/src/main/res/values-it/android.xml',
-      'files/src/main/res/values-uk/android.xml',
-    );
+    await expectRestored(ctx, captured);
   });
 });
