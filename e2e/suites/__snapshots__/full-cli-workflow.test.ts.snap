@@ -91,30 +91,30 @@ translations/uk/gamma.md"
 exports[`full CLI project workflow uploads translations for every target language 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
 ●  Importing translations for file 'translations/it/alpha.md'
 ●  Importing translations for file 'translations/it/beta.md'
+●  Importing translations for file 'translations/it/gamma.md'
 ●  Importing translations for file 'translations/uk/alpha.md'
 ●  Importing translations for file 'translations/uk/beta.md'
+●  Importing translations for file 'translations/uk/gamma.md'
+●  Project files fetched
+●  Project info fetched
 ◆  File 'translations/it/alpha.md'
 ◆  File 'translations/it/beta.md'
+◆  File 'translations/it/gamma.md'
 ◆  File 'translations/uk/alpha.md'
 ◆  File 'translations/uk/beta.md'
-●  Importing translations for file 'translations/it/gamma.md'
-●  Importing translations for file 'translations/uk/gamma.md'
-◆  File 'translations/it/gamma.md'
 ◆  File 'translations/uk/gamma.md'"
 `;
 
 exports[`full CLI project workflow uploads translations for a single language 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
 ●  Importing translations for file 'translations/uk/alpha.md'
 ●  Importing translations for file 'translations/uk/beta.md'
 ●  Importing translations for file 'translations/uk/gamma.md'
+●  Project files fetched
+●  Project info fetched
 ◆  File 'translations/uk/alpha.md'
 ◆  File 'translations/uk/beta.md'
 ◆  File 'translations/uk/gamma.md'"

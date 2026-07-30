@@ -42,19 +42,19 @@ exports[`translation replace previews uploading translations as a dry run 1`] = 
 exports[`translation replace uploads translations for it and uk 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
 ●  Importing translations for file 'it/src/main/resources/android.xml'
 ●  Importing translations for file 'it/src/main/resources/org/crowdin/android.xml'
+●  Importing translations for file 'it/src/main/resources/org/crowdin/strings.xml'
 ●  Importing translations for file 'uk/src/main/resources/android.xml'
 ●  Importing translations for file 'uk/src/main/resources/org/crowdin/android.xml'
+●  Importing translations for file 'uk/src/main/resources/org/crowdin/strings.xml'
+●  Project files fetched
+●  Project info fetched
 ◆  File 'it/src/main/resources/android.xml'
 ◆  File 'it/src/main/resources/org/crowdin/android.xml'
+◆  File 'it/src/main/resources/org/crowdin/strings.xml'
 ◆  File 'uk/src/main/resources/android.xml'
 ◆  File 'uk/src/main/resources/org/crowdin/android.xml'
-●  Importing translations for file 'it/src/main/resources/org/crowdin/strings.xml'
-●  Importing translations for file 'uk/src/main/resources/org/crowdin/strings.xml'
-◆  File 'it/src/main/resources/org/crowdin/strings.xml'
 ◆  File 'uk/src/main/resources/org/crowdin/strings.xml'"
 `;
 
@@ -129,19 +129,19 @@ exports[`translation replace previews uploading translations as a dry run on the
 exports[`translation replace re-uploads translations to the already-translated master files (no -b, matching the literal PHP call) 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
 ●  Importing translations for file 'it/src/main/resources/android.xml'
 ●  Importing translations for file 'it/src/main/resources/org/crowdin/android.xml'
+●  Importing translations for file 'it/src/main/resources/org/crowdin/strings.xml'
 ●  Importing translations for file 'uk/src/main/resources/android.xml'
 ●  Importing translations for file 'uk/src/main/resources/org/crowdin/android.xml'
+●  Importing translations for file 'uk/src/main/resources/org/crowdin/strings.xml'
+●  Project files fetched
+●  Project info fetched
 ◆  File 'it/src/main/resources/android.xml'
 ◆  File 'it/src/main/resources/org/crowdin/android.xml'
+◆  File 'it/src/main/resources/org/crowdin/strings.xml'
 ◆  File 'uk/src/main/resources/android.xml'
 ◆  File 'uk/src/main/resources/org/crowdin/android.xml'
-●  Importing translations for file 'it/src/main/resources/org/crowdin/strings.xml'
-●  Importing translations for file 'uk/src/main/resources/org/crowdin/strings.xml'
-◆  File 'it/src/main/resources/org/crowdin/strings.xml'
 ◆  File 'uk/src/main/resources/org/crowdin/strings.xml'"
 `;
 

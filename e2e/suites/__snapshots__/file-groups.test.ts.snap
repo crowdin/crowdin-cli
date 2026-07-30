@@ -15,21 +15,21 @@ exports[`file groups uploads sources across overlapping file groups, then aborts
 exports[`file groups uploads translations, duplicating the file matched by both overlapping groups 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
-■  No sources found for '/sources/*.pot' pattern. Check the source paths in your configuration file
+●  Importing translations for file 'translations/it/android.xml'
 ●  Importing translations for file 'translations/it/android.xml'
 ●  Importing translations for file 'translations/it/java.properties'
 ●  Importing translations for file 'translations/uk/android.xml'
-●  Importing translations for file 'translations/uk/java.properties'
-◆  File 'translations/it/java.properties'
-◆  File 'translations/uk/java.properties'
-●  Importing translations for file 'translations/it/android.xml'
 ●  Importing translations for file 'translations/uk/android.xml'
+●  Importing translations for file 'translations/uk/java.properties'
+●  Project files fetched
+●  Project info fetched
 ◆  File 'translations/it/android.xml'
 ◆  File 'translations/it/android.xml'
+◆  File 'translations/it/java.properties'
 ◆  File 'translations/uk/android.xml'
-◆  File 'translations/uk/android.xml'"
+◆  File 'translations/uk/android.xml'
+◆  File 'translations/uk/java.properties'
+■  No sources found for '/sources/*.pot' pattern. Check the source paths in your configuration file"
 `;
 
 exports[`file groups downloads translations, deduplicating the file matched by both overlapping groups 1`] = `
