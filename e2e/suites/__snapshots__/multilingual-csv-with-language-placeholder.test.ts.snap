@@ -1,6 +1,6 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
-exports[`csv multilingual placeholder uploads multilingual CSV sources 1`] = `
+exports[`multilingual csv with language placeholder uploads multilingual CSV sources 1`] = `
 "●  Fetching project files
 ●  Fetching project info
 ●  Project files fetched
@@ -10,33 +10,33 @@ exports[`csv multilingual placeholder uploads multilingual CSV sources 1`] = `
 ◆  File 'sources/2_multilingual.csv'"
 `;
 
-exports[`csv multilingual placeholder uploads translations for every target language 1`] = `
+exports[`multilingual csv with language placeholder uploads translations for every target language 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
 ●  Importing translations for file 'translations/it/1_multilingual.csv'
 ●  Importing translations for file 'translations/it/2_multilingual.csv'
 ●  Importing translations for file 'translations/uk/1_multilingual.csv'
 ●  Importing translations for file 'translations/uk/2_multilingual.csv'
+●  Project files fetched
+●  Project info fetched
 ◆  File 'translations/it/1_multilingual.csv'
 ◆  File 'translations/it/2_multilingual.csv'
 ◆  File 'translations/uk/1_multilingual.csv'
 ◆  File 'translations/uk/2_multilingual.csv'"
 `;
 
-exports[`csv multilingual placeholder uploads translations for a single language via --language 1`] = `
+exports[`multilingual csv with language placeholder uploads translations for a single language via --language 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
 ●  Importing translations for file 'translations/uk/1_multilingual.csv'
 ●  Importing translations for file 'translations/uk/2_multilingual.csv'
+●  Project files fetched
+●  Project info fetched
 ◆  File 'translations/uk/1_multilingual.csv'
 ◆  File 'translations/uk/2_multilingual.csv'"
 `;
 
-exports[`csv multilingual placeholder previews the translation download (dryrun) 1`] = `
+exports[`multilingual csv with language placeholder previews the translation download (dryrun) 1`] = `
 "●  Fetching project files
 ●  Fetching project info
 ●  Project files fetched
@@ -47,7 +47,7 @@ translations/uk/1_multilingual.csv
 translations/uk/2_multilingual.csv"
 `;
 
-exports[`csv multilingual placeholder downloads translations and matches the merged multilingual content 1`] = `
+exports[`multilingual csv with language placeholder downloads translations and matches the merged multilingual content 1`] = `
 "●  Building translations
 ●  Building translations...
 ●  Downloading translations
@@ -61,7 +61,7 @@ exports[`csv multilingual placeholder downloads translations and matches the mer
 ◆  File translations/uk/2_multilingual.csv extracted"
 `;
 
-exports[`csv multilingual placeholder updates sources from a new base path, targeting a new translation destination 1`] = `
+exports[`multilingual csv with language placeholder updates sources from a new base path, targeting a new translation destination 1`] = `
 "●  Fetching project files
 ●  Fetching project info
 ●  Project files fetched
@@ -70,7 +70,7 @@ exports[`csv multilingual placeholder updates sources from a new base path, targ
 ◆  File 'sources/2_multilingual.csv'"
 `;
 
-exports[`csv multilingual placeholder downloads translations at the new translations-v2 destination 1`] = `
+exports[`multilingual csv with language placeholder downloads translations at the new translations-v2 destination 1`] = `
 "●  Building translations
 ●  Building translations...
 ●  Downloading translations
@@ -84,7 +84,7 @@ exports[`csv multilingual placeholder downloads translations at the new translat
 ◆  File translations-v2/uk/2_multilingual.csv extracted"
 `;
 
-exports[`csv multilingual placeholder uploads sources to a new branch 1`] = `
+exports[`multilingual csv with language placeholder uploads sources to a new branch 1`] = `
 "●  Fetching project files
 ●  Fetching project info
 ●  Project files fetched
@@ -94,7 +94,31 @@ exports[`csv multilingual placeholder uploads sources to a new branch 1`] = `
 ◆  File 'sources/2_multilingual.csv'"
 `;
 
-exports[`csv multilingual placeholder downloads translations on the branch 1`] = `
+exports[`multilingual csv with language placeholder updates sources on the branch (branch already exists) 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'sources/1_multilingual.csv'
+◆  File 'sources/2_multilingual.csv'"
+`;
+
+exports[`multilingual csv with language placeholder uploads translations on the branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'translations/it/1_multilingual.csv'
+●  Importing translations for file 'translations/it/2_multilingual.csv'
+●  Importing translations for file 'translations/uk/1_multilingual.csv'
+●  Importing translations for file 'translations/uk/2_multilingual.csv'
+●  Project files fetched
+●  Project info fetched
+◆  File 'translations/it/1_multilingual.csv'
+◆  File 'translations/it/2_multilingual.csv'
+◆  File 'translations/uk/1_multilingual.csv'
+◆  File 'translations/uk/2_multilingual.csv'"
+`;
+
+exports[`multilingual csv with language placeholder downloads translations on the branch 1`] = `
 "●  Building translations
 ●  Building translations...
 ●  Downloading translations
