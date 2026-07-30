@@ -13,14 +13,14 @@ exports[`excluded languages uploads sources excluding a language via the CLI fla
 exports[`excluded languages uploads translations, skipping the language with no local files 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
-▲  File translations/de/1_android.xml does not exist in the specified location
-▲  File translations/de/2_android.xml does not exist in the specified location
 ●  Importing translations for file 'translations/it/1_android.xml'
 ●  Importing translations for file 'translations/it/2_android.xml'
 ●  Importing translations for file 'translations/uk/1_android.xml'
 ●  Importing translations for file 'translations/uk/2_android.xml'
+●  Project files fetched
+●  Project info fetched
+▲  File translations/de/1_android.xml does not exist in the specified location
+▲  File translations/de/2_android.xml does not exist in the specified location
 ◆  File 'translations/it/1_android.xml'
 ◆  File 'translations/it/2_android.xml'
 ◆  File 'translations/uk/1_android.xml'
@@ -68,14 +68,14 @@ exports[`excluded languages changes the excluded language via a new CLI flag val
 exports[`excluded languages re-uploads translations, rejecting the newly excluded language 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
-▲  File translations/de/1_android.xml does not exist in the specified location
-▲  File translations/de/2_android.xml does not exist in the specified location
 ●  Importing translations for file 'translations/it/1_android.xml'
 ●  Importing translations for file 'translations/it/2_android.xml'
 ●  Importing translations for file 'translations/uk/1_android.xml'
 ●  Importing translations for file 'translations/uk/2_android.xml'
+●  Project files fetched
+●  Project info fetched
+▲  File translations/de/1_android.xml does not exist in the specified location
+▲  File translations/de/2_android.xml does not exist in the specified location
 ▲  Translation file 'translations/it/1_android.xml' hasn't been uploaded since the following target language(s) are not enabled for the source file in your Crowdin project: Italian
 ▲  Translation file 'translations/it/2_android.xml' hasn't been uploaded since the following target language(s) are not enabled for the source file in your Crowdin project: Italian
 ◆  File 'translations/uk/1_android.xml'

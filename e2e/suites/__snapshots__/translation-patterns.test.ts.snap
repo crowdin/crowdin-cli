@@ -32,10 +32,6 @@ exports[`translation patterns uploads sources across every placeholder-pattern f
 exports[`translation patterns previews the translation upload across every placeholder-pattern file group 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
-▲  File android_code/android.xml/uk-rUA/android.xml does not exist in the specified location
-▲  File android_code/android.xml/zh-rCN/android.xml does not exist in the specified location
 ●  File doubled_asterisk/res/values-uk/android.xml would be queued for translations import
 ●  File doubled_asterisk/res/values-zh/android.xml would be queued for translations import
 ●  File language/Chinese Simplified/android.xml would be queued for translations import
@@ -52,6 +48,10 @@ exports[`translation patterns previews the translation upload across every place
 ●  File three_letters_code/zho/android.xml would be queued for translations import
 ●  File two_letters_code/uk/android.xml would be queued for translations import
 ●  File two_letters_code/zh/android.xml would be queued for translations import
+●  Project files fetched
+●  Project info fetched
+▲  File android_code/android.xml/uk-rUA/android.xml does not exist in the specified location
+▲  File android_code/android.xml/zh-rCN/android.xml does not exist in the specified location
 ▲  File two_letters_code_with_original_path/android.xml/two_letters_code_with_original_path/android.xml-uk/android.xml does not exist in the specified location
 ▲  File two_letters_code_with_original_path/android.xml/two_letters_code_with_original_path/android.xml-zh/android.xml does not exist in the specified location"
 `;
@@ -59,41 +59,41 @@ exports[`translation patterns previews the translation upload across every place
 exports[`translation patterns uploads translations across every placeholder-pattern file group 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
-▲  File android_code/android.xml/uk-rUA/android.xml does not exist in the specified location
-▲  File android_code/android.xml/zh-rCN/android.xml does not exist in the specified location
 ●  Importing translations for file 'doubled_asterisk/res/values-uk/android.xml'
 ●  Importing translations for file 'doubled_asterisk/res/values-zh/android.xml'
 ●  Importing translations for file 'language/Chinese Simplified/android.xml'
 ●  Importing translations for file 'language/Ukrainian/android.xml'
-◆  File 'language/Chinese Simplified/android.xml'
 ●  Importing translations for file 'locale/uk-UA/android.xml'
-◆  File 'doubled_asterisk/res/values-uk/android.xml'
-◆  File 'doubled_asterisk/res/values-zh/android.xml'
-◆  File 'language/Ukrainian/android.xml'
 ●  Importing translations for file 'locale/zh-CN/android.xml'
 ●  Importing translations for file 'locale_with_underscore/uk_UA/android.xml'
 ●  Importing translations for file 'locale_with_underscore/zh_CN/android.xml'
-◆  File 'locale/uk-UA/android.xml'
 ●  Importing translations for file 'osx_code/uk.lproj/android.xml'
-◆  File 'locale/zh-CN/android.xml'
-◆  File 'locale_with_underscore/uk_UA/android.xml'
-◆  File 'locale_with_underscore/zh_CN/android.xml'
 ●  Importing translations for file 'osx_code/zh-Hans.lproj/android.xml'
 ●  Importing translations for file 'osx_locale/uk/android.xml'
 ●  Importing translations for file 'osx_locale/zh-Hans/android.xml'
-◆  File 'osx_code/uk.lproj/android.xml'
-◆  File 'osx_code/zh-Hans.lproj/android.xml'
-◆  File 'osx_locale/uk/android.xml'
 ●  Importing translations for file 'three_letters_code/ukr/android.xml'
 ●  Importing translations for file 'three_letters_code/zho/android.xml'
 ●  Importing translations for file 'two_letters_code/uk/android.xml'
-◆  File 'osx_locale/zh-Hans/android.xml'
 ●  Importing translations for file 'two_letters_code/zh/android.xml'
-◆  File 'three_letters_code/ukr/android.xml'
+●  Project files fetched
+●  Project info fetched
+▲  File android_code/android.xml/uk-rUA/android.xml does not exist in the specified location
+▲  File android_code/android.xml/zh-rCN/android.xml does not exist in the specified location
 ▲  File two_letters_code_with_original_path/android.xml/two_letters_code_with_original_path/android.xml-uk/android.xml does not exist in the specified location
 ▲  File two_letters_code_with_original_path/android.xml/two_letters_code_with_original_path/android.xml-zh/android.xml does not exist in the specified location
+◆  File 'doubled_asterisk/res/values-uk/android.xml'
+◆  File 'doubled_asterisk/res/values-zh/android.xml'
+◆  File 'language/Chinese Simplified/android.xml'
+◆  File 'language/Ukrainian/android.xml'
+◆  File 'locale/uk-UA/android.xml'
+◆  File 'locale/zh-CN/android.xml'
+◆  File 'locale_with_underscore/uk_UA/android.xml'
+◆  File 'locale_with_underscore/zh_CN/android.xml'
+◆  File 'osx_code/uk.lproj/android.xml'
+◆  File 'osx_code/zh-Hans.lproj/android.xml'
+◆  File 'osx_locale/uk/android.xml'
+◆  File 'osx_locale/zh-Hans/android.xml'
+◆  File 'three_letters_code/ukr/android.xml'
 ◆  File 'three_letters_code/zho/android.xml'
 ◆  File 'two_letters_code/uk/android.xml'
 ◆  File 'two_letters_code/zh/android.xml'"
@@ -130,9 +130,12 @@ exports[`translation patterns downloads translations across every placeholder-pa
 "●  Building translations
 ●  Building translations...
 ●  Downloading translations
+●  Fetching project files
 ●  Fetching project info
+●  Project files fetched
 ●  Project info fetched
 ●  Translations built
+◆  Done
 ◆  File doubled_asterisk/res/values-uk/android.xml extracted
 ◆  File doubled_asterisk/res/values-zh/android.xml extracted
 ◆  File language/Chinese Simplified/android.xml extracted
@@ -149,15 +152,12 @@ exports[`translation patterns downloads translations across every placeholder-pa
 ◆  File three_letters_code/zho/android.xml extracted
 ◆  File two_letters_code/uk/android.xml extracted
 ◆  File two_letters_code/zh/android.xml extracted
-●  Fetching project files
-●  Project files fetched
 ▲  Due to missing respective sources, the following translations will be omitted:
 	- android_code/uk-rUA/android.xml
 	- two_letters_code_with_original_path/two_letters_code_with_original_path-uk/android.xml
 	- android_code/zh-rCN/android.xml
 	- two_letters_code_with_original_path/two_letters_code_with_original_path-zh/android.xml
-Visit the https://crowdin.github.io/crowdin-cli/faq for more details
-◆  Done"
+Visit the https://crowdin.github.io/crowdin-cli/faq for more details"
 `;
 
 exports[`translation patterns lists configured translation files across every placeholder-pattern file group 1`] = `

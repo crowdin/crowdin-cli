@@ -66,4 +66,31 @@ describe('normalize', () => {
   test('drops blank lines and trailing whitespace', () => {
     expect(normalize('a  \n\nb')).toBe('a\nb');
   });
+
+  test('normalizes interleaved status lines to the same result regardless of race order', () => {
+    // The real flake: a `◆` success line for one file lands between two `●` lines, and which one
+    // wins is a race. Both orderings must normalize identically or the snapshot is a coin flip.
+    const raceA = ['●  Importing a', '●  Importing b', '◆  File a', '◆  File b'].join('\n');
+    const raceB = ['●  Importing a', '◆  File a', '●  Importing b', '◆  File b'].join('\n');
+
+    expect(normalize(raceA)).toBe(normalize(raceB));
+    expect(normalize(raceB)).toBe(['●  Importing a', '●  Importing b', '◆  File a', '◆  File b'].join('\n'));
+  });
+
+  test('keeps table rows within their own table instead of merging every table', () => {
+    // Table rows share the `│` marker but are not concurrent output, so they keep the
+    // contiguous-run rule - two separate tables must not be sorted into one another.
+    const output = ['│ b │', '│ a │', 'between', '│ d │', '│ c │'].join('\n');
+
+    expect(normalize(output)).toBe(['│ a │', '│ b │', 'between', '│ c │', '│ d │'].join('\n'));
+  });
+
+  test('keeps error lines intact, after the gathered status block', () => {
+    // `■`/`✖` are sequential, not concurrent, so they are excluded from the status family and never
+    // sorted. An error originally interleaved with status output does land after the whole block:
+    // which success line it fell between was a race, so that position was never assertable.
+    const output = ['●  Fetching', '■  something failed', '◆  File a'].join('\n');
+
+    expect(normalize(output)).toBe(['●  Fetching', '◆  File a', '■  something failed'].join('\n'));
+  });
 });

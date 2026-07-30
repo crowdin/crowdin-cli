@@ -113,8 +113,8 @@ exports[`simple csv downloads translations for every target language on the bran
 ●  Downloading translations
 ●  Fetching project info
 ●  Project info fetched
-■  Translations build failed
-▲  Didn't manage to build translations"
+▲  Didn't manage to build translations
+■  Translations build failed"
 `;
 
 exports[`simple csv rejects a scheme missing the Source String/Translation elements, on a new branch 1`] = `

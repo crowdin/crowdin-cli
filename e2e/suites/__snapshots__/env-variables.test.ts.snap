@@ -12,12 +12,12 @@ exports[`env variables uploads sources using credentials read from an env file 1
 exports[`env variables uploads translations using credentials read from an env file 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Project files fetched
-●  Project info fetched
 ●  Importing translations for file 'translations/it/1_android.xml'
 ●  Importing translations for file 'translations/it/2_android.xml'
 ●  Importing translations for file 'translations/uk/1_android.xml'
 ●  Importing translations for file 'translations/uk/2_android.xml'
+●  Project files fetched
+●  Project info fetched
 ◆  File 'translations/it/1_android.xml'
 ◆  File 'translations/it/2_android.xml'
 ◆  File 'translations/uk/1_android.xml'

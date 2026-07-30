@@ -55,7 +55,7 @@ exports[`string lists source strings filtered by identifier/text/context 1`] = `
 `;
 
 exports[`string lists source strings verbosely, including file and context 1`] = `
-"●  Loading configuration from /private/var/folders/v9/x32vvmbs6h38d0yjvzcsw7qdv6g1xv/T/crowdin-e2e/76700-124411/string/crowdin.yml file
+"●  Loading configuration from <workspace>/string/crowdin.yml file
 ┌───┬─────────┬────────────────┬────────────────────────────────────────────┬──────────────┬────────┬────────────────┐
 │   │ id      │ identifier     │ text                                       │ file         │ labels │ context        │
 ├───┼─────────┼────────────────┼────────────────────────────────────────────┼──────────────┼────────┼────────────────┤
