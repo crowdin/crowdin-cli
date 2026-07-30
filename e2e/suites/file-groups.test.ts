@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { expectFilesExist } from '../helpers/files.ts';
+import { captureAndClear, expectFilesExist, expectRestored } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -78,6 +78,16 @@ describe('file groups', () => {
   });
 
   test('downloads translations, deduplicating the file matched by both overlapping groups', async () => {
+    // The upload fixtures already sit at these paths, so clear them first - otherwise the existence
+    // check below passes even if the download writes nothing.
+    const captured = await captureAndClear(
+      ctx.workspace,
+      'translations/it/android.xml',
+      'translations/it/java.properties',
+      'translations/uk/android.xml',
+      'translations/uk/java.properties',
+    );
+
     const result = await ctx.runner.run(['download', 'translations']);
 
     // buildTranslationMapping (lib/download/translationMapping.ts) silently skips a pattern with
@@ -98,12 +108,6 @@ describe('file groups', () => {
     // The config's `translation:` pattern has a leading slash ('/translations/...'); confirmed by
     // the sibling full-cli-workflow and excluded-languages suites that this lands downloads at the
     // literal configured path (translations/<lang>/<file>), not '<lang>/<source path>'.
-    await expectFilesExist(
-      ctx.workspace,
-      'translations/it/android.xml',
-      'translations/it/java.properties',
-      'translations/uk/android.xml',
-      'translations/uk/java.properties',
-    );
+    await expectRestored(ctx.workspace, captured);
   });
 });
