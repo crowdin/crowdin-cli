@@ -14,6 +14,7 @@ export function createApiClient(env: E2eEnv): Client {
   if (!env.token) {
     throw new Error('Cannot create an API client without CROWDIN_E2E_TOKEN');
   }
+
   return new Client({ token: env.token });
 }
 

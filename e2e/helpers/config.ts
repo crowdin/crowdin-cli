@@ -14,15 +14,13 @@ export function renderConfig(template: string, values: ConfigValues): string {
     token: values.token,
   };
 
-  const rendered = template.replace(/\{\{(\w+)\}\}/g, (_match, key: string) => {
+  return template.replace(/\{\{(\w+)}}/g, (_match, key: string) => {
     if (!(key in resolved)) {
       throw new Error(`No value provided for placeholder {{${key}}} in crowdin.yml template`);
     }
 
     return resolved[key] as string;
   });
-
-  return rendered;
 }
 
 export async function writeConfig(workspace: string, template: string, values: ConfigValues): Promise<string> {
