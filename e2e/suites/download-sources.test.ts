@@ -1,10 +1,9 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { writeConfig } from '../helpers/config.ts';
-import { expectFilesExist } from '../helpers/files.ts';
+import { capturedContent, expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 // Local paths the nested source patterns resolve to (see fixtures/download-sources/config/crowdin.yml).
 // `download sources` reconstructs these exact local paths from the `source` pattern regardless of the
@@ -18,11 +17,6 @@ const SOURCE_RELATIVE_PATHS = [
   'folder_2/android_3.xml',
   'folder_2/android_4a.xml',
 ];
-
-/** Overwrites the workspace's `crowdin.yml` with a rendered template string. */
-async function switchConfig(ctx: SuiteContext, template: string): Promise<void> {
-  await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
-}
 
 async function removeDownloadedSources(ctx: SuiteContext): Promise<void> {
   await rm(join(ctx.workspace, 'folder_1'), { recursive: true, force: true });
@@ -122,7 +116,9 @@ describe('download sources', () => {
     await expectFilesExist(ctx.workspace, ...SOURCE_RELATIVE_PATHS);
 
     for (const relativePath of SOURCE_RELATIVE_PATHS) {
-      expect(await Bun.file(join(ctx.workspace, relativePath)).text()).toBe(sourceContent.get(relativePath));
+      expect(await Bun.file(join(ctx.workspace, relativePath)).text()).toBe(
+        capturedContent(sourceContent, relativePath),
+      );
     }
   });
 
@@ -145,7 +141,9 @@ describe('download sources', () => {
     await expectFilesExist(ctx.workspace, ...SOURCE_RELATIVE_PATHS);
 
     for (const relativePath of SOURCE_RELATIVE_PATHS) {
-      expect(await Bun.file(join(ctx.workspace, relativePath)).text()).toBe(sourceContent.get(relativePath));
+      expect(await Bun.file(join(ctx.workspace, relativePath)).text()).toBe(
+        capturedContent(sourceContent, relativePath),
+      );
     }
   });
 
@@ -174,13 +172,14 @@ describe('download sources', () => {
     await expectFilesExist(ctx.workspace, ...SOURCE_RELATIVE_PATHS);
 
     for (const relativePath of SOURCE_RELATIVE_PATHS) {
-      expect(await Bun.file(join(ctx.workspace, relativePath)).text()).toBe(sourceContent.get(relativePath));
+      expect(await Bun.file(join(ctx.workspace, relativePath)).text()).toBe(
+        capturedContent(sourceContent, relativePath),
+      );
     }
   });
 
   test('warns when a source pattern matches nothing', async () => {
-    const template = await Bun.file(join(ctx.workspace, 'alt-configs', 'no-sources.yml')).text();
-    await switchConfig(ctx, template);
+    await switchConfig(ctx, 'no-sources');
 
     const result = await ctx.runner.run(['download', 'sources']);
 
@@ -193,7 +192,9 @@ describe('download sources', () => {
   });
 
   test('rejects --reviewed on a non-Enterprise (SaaS) account', async () => {
-    await switchConfig(ctx, originalConfig);
+    // Restores the bytes captured in `beforeAll` - already rendered, so it goes straight to disk
+    // rather than back through `switchConfig`/`renderConfig`.
+    await Bun.write(join(ctx.workspace, 'crowdin.yml'), originalConfig);
 
     const result = await ctx.runner.run(['download', 'sources', '--reviewed']);
 

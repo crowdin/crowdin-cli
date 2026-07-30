@@ -1,8 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { join } from 'node:path';
-import { writeConfig } from '../helpers/config.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 // Ports crowdin-backend/tests/Cli/Common/CliInvalidCredentialsTest.php. Every PHP method calls
 // `uploadSources()` against a config broken in exactly one place (project_id/api_token/base_path/
@@ -29,12 +27,6 @@ describe('invalid credentials', () => {
     await teardownSuite(ctx);
   });
 
-  /** Overwrites the workspace's `crowdin.yml` with one of the `alt-configs/<name>.yml` templates. */
-  async function switchConfig(name: string): Promise<void> {
-    const template = await Bun.file(join(ctx.workspace, 'alt-configs', `${name}.yml`)).text();
-    await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
-  }
-
   test('rejects a non-numeric project_id', async () => {
     // PHP's fixture uses a leading-space project_id (' 999999') to trigger Java's "must be a numeric
     // value" check. `z.coerce.number()` (lib/config.ts) runs the value through JS's `Number(...)`,
@@ -45,7 +37,7 @@ describe('invalid credentials', () => {
     //   ■  ✖ Invalid input: expected number, received NaN
     //     → at projectId
     //   exit 2
-    await switchConfig('invalid-project-id');
+    await switchConfig(ctx, 'invalid-project-id');
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -59,7 +51,7 @@ describe('invalid credentials', () => {
     // Needs a live API round-trip against a real (wrong) project id, so unlike the config-only
     // scenarios above this can't be confirmed offline - left mostly to the snapshot. The spinner's
     // start message is grepped verbatim from `cli/services/ProjectService.ts`'s `loadProject()`.
-    await switchConfig('nonexistent-project-id');
+    await switchConfig(ctx, 'nonexistent-project-id');
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -72,7 +64,7 @@ describe('invalid credentials', () => {
     // 401 is the one API-error status `cli/errors/toCliError.ts`'s `mapCrowdinError` gives a fixed,
     // non-API-derived message for - grepped verbatim below - so this can be asserted exactly despite
     // needing a live round-trip.
-    await switchConfig('invalid-token');
+    await switchConfig(ctx, 'invalid-token');
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -90,7 +82,7 @@ describe('invalid credentials', () => {
     // Note the divergence from the PHP fixture: Java's message appends a trailing slash to the path
     // ("/not/exists/path/"); src-next's `checkResolvedConfig` (lib/config.ts) echoes `config.basePath`
     // as resolved, with no trailing slash added.
-    await switchConfig('nonexistent-base-path');
+    await switchConfig(ctx, 'nonexistent-base-path');
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -110,7 +102,7 @@ describe('invalid credentials', () => {
     //   exit 2
     // Message wording is zod's own (lib/config.ts's ConfigSchema.baseUrl refine), entirely different
     // from Java's "Unexpected 'base_url'..." - grepped verbatim, not guessed.
-    await switchConfig('invalid-base-url');
+    await switchConfig(ctx, 'invalid-base-url');
 
     const result = await ctx.runner.run(['upload', 'sources']);
 

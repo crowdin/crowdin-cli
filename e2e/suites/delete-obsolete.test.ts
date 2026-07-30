@@ -1,18 +1,6 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { join } from 'node:path';
-import { writeConfig } from '../helpers/config.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
-
-/**
- * Overwrites the workspace's `crowdin.yml` with one of the `alt-configs/<name>.yml` templates.
- * Used for the two PHP `prepareConfig($ymlConfig, self::file('config/crowdin_revN.yml'))` steps
- * that switch to a config with a different `dest` mapping, not just a different `{$basePath}`.
- */
-async function switchConfig(ctx: SuiteContext, name: string): Promise<void> {
-  const template = await Bun.file(join(ctx.workspace, 'alt-configs', `${name}.yml`)).text();
-  await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
-}
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /** Strips a leading slash so paths compare equal regardless of which form the API returns. */
 function stripLeadingSlash(path: string): string {

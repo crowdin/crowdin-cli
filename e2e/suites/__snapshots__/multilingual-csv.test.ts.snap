@@ -48,7 +48,7 @@ exports[`multilingual csv update without translations import 1`] = `
 exports[`multilingual csv upload translations for single language 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Importing translations for file 'without-translations/sample.csv'
+●  ●  Importing translations for file 'without-translations/sample.csv'
 ●  Project files fetched
 ●  Project info fetched
 ◆  File 'without-translations/sample.csv'"
@@ -57,7 +57,7 @@ exports[`multilingual csv upload translations for single language 1`] = `
 exports[`multilingual csv upload translations for all languages 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Importing translations for file 'without-translations/sample.csv'
+●  ●  Importing translations for file 'without-translations/sample.csv'
 ●  Project files fetched
 ●  Project info fetched
 ◆  File 'without-translations/sample.csv'"
@@ -82,7 +82,7 @@ exports[`multilingual csv update sources in existing branch 1`] = `
 exports[`multilingual csv upload translations to the branch 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  Importing translations for file 'sample.csv'
+●  ●  Importing translations for file 'sample.csv'
 ●  Project files fetched
 ●  Project info fetched
 ◆  File 'sample.csv'"

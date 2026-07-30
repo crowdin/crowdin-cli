@@ -13,8 +13,8 @@ exports[`identity file credentials uploads translations using credentials from a
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-Importing translations for file 'translations/it/android.xml'
-Importing translations for file 'translations/uk/android.xml'
+●  Importing translations for file 'translations/it/android.xml'
+●  Importing translations for file 'translations/uk/android.xml'
 ◆  File 'translations/it/android.xml'
 ◆  File 'translations/uk/android.xml'"
 `;

@@ -44,16 +44,16 @@ exports[`translation replace uploads translations for it and uk 1`] = `
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-Importing translations for file 'it/src/main/resources/android.xml'
-Importing translations for file 'it/src/main/resources/org/crowdin/android.xml'
-Importing translations for file 'uk/src/main/resources/android.xml'
-Importing translations for file 'uk/src/main/resources/org/crowdin/android.xml'
+●  Importing translations for file 'it/src/main/resources/android.xml'
+●  Importing translations for file 'it/src/main/resources/org/crowdin/android.xml'
+●  Importing translations for file 'uk/src/main/resources/android.xml'
+●  Importing translations for file 'uk/src/main/resources/org/crowdin/android.xml'
 ◆  File 'it/src/main/resources/android.xml'
 ◆  File 'it/src/main/resources/org/crowdin/android.xml'
 ◆  File 'uk/src/main/resources/android.xml'
 ◆  File 'uk/src/main/resources/org/crowdin/android.xml'
-Importing translations for file 'it/src/main/resources/org/crowdin/strings.xml'
-Importing translations for file 'uk/src/main/resources/org/crowdin/strings.xml'
+●  Importing translations for file 'it/src/main/resources/org/crowdin/strings.xml'
+●  Importing translations for file 'uk/src/main/resources/org/crowdin/strings.xml'
 ◆  File 'it/src/main/resources/org/crowdin/strings.xml'
 ◆  File 'uk/src/main/resources/org/crowdin/strings.xml'"
 `;
@@ -131,16 +131,16 @@ exports[`translation replace re-uploads translations to the already-translated m
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-Importing translations for file 'it/src/main/resources/android.xml'
-Importing translations for file 'it/src/main/resources/org/crowdin/android.xml'
-Importing translations for file 'uk/src/main/resources/android.xml'
-Importing translations for file 'uk/src/main/resources/org/crowdin/android.xml'
+●  Importing translations for file 'it/src/main/resources/android.xml'
+●  Importing translations for file 'it/src/main/resources/org/crowdin/android.xml'
+●  Importing translations for file 'uk/src/main/resources/android.xml'
+●  Importing translations for file 'uk/src/main/resources/org/crowdin/android.xml'
 ◆  File 'it/src/main/resources/android.xml'
 ◆  File 'it/src/main/resources/org/crowdin/android.xml'
 ◆  File 'uk/src/main/resources/android.xml'
 ◆  File 'uk/src/main/resources/org/crowdin/android.xml'
-Importing translations for file 'it/src/main/resources/org/crowdin/strings.xml'
-Importing translations for file 'uk/src/main/resources/org/crowdin/strings.xml'
+●  Importing translations for file 'it/src/main/resources/org/crowdin/strings.xml'
+●  Importing translations for file 'uk/src/main/resources/org/crowdin/strings.xml'
 ◆  File 'it/src/main/resources/org/crowdin/strings.xml'
 ◆  File 'uk/src/main/resources/org/crowdin/strings.xml'"
 `;

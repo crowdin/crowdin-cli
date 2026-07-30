@@ -1,9 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { createHash } from 'node:crypto';
-import { join } from 'node:path';
-import { writeConfig } from '../helpers/config.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 /**
  * Port of crowdin-backend/tests/Cli/Common/CliStringTest.php.
@@ -47,12 +45,6 @@ describe('string', () => {
   afterAll(async () => {
     await teardownSuite(ctx);
   });
-
-  /** Overwrites the workspace's `crowdin.yml` with one of the `alt-configs/<name>.yml` templates. */
-  async function switchConfig(name: string): Promise<void> {
-    const template = await Bun.file(join(ctx.workspace, 'alt-configs', `${name}.yml`)).text();
-    await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
-  }
 
   /** Crowdin hashes an Android-XML string's `identifier` server-side (confirmed at
    * crowdin-backend's StringService for the string-based path; the file-based path re-derives the
@@ -149,7 +141,7 @@ describe('string', () => {
   });
 
   test('lists source strings authenticating via -T/-i against a config without an api_token', async () => {
-    await switchConfig('without-token');
+    await switchConfig(ctx, 'without-token');
 
     const result = await ctx.runner.run([
       'string',
@@ -169,7 +161,7 @@ describe('string', () => {
   test('lists source strings filtered by file', async () => {
     // Restores the full config (token + project id + both file entries), mirroring the PHP
     // original's `self::prepareConfig()` reset at the start of the equivalent method.
-    await switchConfig('default');
+    await switchConfig(ctx, 'default');
 
     const result = await ctx.runner.run(['string', 'list', '--file', 'android.xml']);
 

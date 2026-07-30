@@ -75,12 +75,12 @@ exports[`branches previews the translation dry run as a tree 1`] = `
 exports[`branches uploads translations for the updated sources 1`] = `
 "●  Fetching project files
 ●  Fetching project info
+●  Importing translations for file 'translations/it/1_android.xml'
+●  Importing translations for file 'translations/it/2_android.xml'
+●  Importing translations for file 'translations/uk/1_android.xml'
+●  Importing translations for file 'translations/uk/2_android.xml'
 ●  Project files fetched
 ●  Project info fetched
-Importing translations for file 'translations/it/1_android.xml'
-Importing translations for file 'translations/it/2_android.xml'
-Importing translations for file 'translations/uk/1_android.xml'
-Importing translations for file 'translations/uk/2_android.xml'
 ◆  File 'translations/it/1_android.xml'
 ◆  File 'translations/it/2_android.xml'
 ◆  File 'translations/uk/1_android.xml'
