@@ -1,10 +1,8 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { writeConfig } from '../helpers/config.ts';
 import { expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 describe('multilingual csv', () => {
   let ctx: SuiteContext;
@@ -71,8 +69,7 @@ describe('multilingual csv', () => {
   });
 
   test('upload without translations import', async () => {
-    const template = await Bun.file(join(ctx.workspace, 'alt-configs', 'without-translations.yml')).text();
-    await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
+    await switchConfig(ctx, 'without-translations');
 
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -138,8 +135,7 @@ describe('multilingual csv', () => {
   });
 
   test('upload sources to a brand-new branch', async () => {
-    const template = await Bun.file(join(ctx.workspace, 'alt-configs', 'branch.yml')).text();
-    await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
+    await switchConfig(ctx, 'branch');
 
     const result = await ctx.runner.run(['upload', 'sources', '--branch', 'test-branch']);
 

@@ -9,8 +9,8 @@ exports[`cli commands without an explicit config parameter uploads sources via c
 exports[`cli commands without an explicit config parameter uploads translations via crowdin.yaml default discovery (no -c) 1`] = `
 "◒  Fetching project files◐  Fetching project files◇  Project files fetched
 ◒  Fetching project info◐  Fetching project info◓  Fetching project info◑  Fetching project info◒  Fetching project info◐  Fetching project info◇  Project info fetched
-Importing translations for file 'translations/it/android.xml'
-Importing translations for file 'translations/uk/android.xml'
+●  Importing translations for file 'translations/it/android.xml'
+●  Importing translations for file 'translations/uk/android.xml'
 ◆  File 'translations/it/android.xml'
 ◆  File 'translations/uk/android.xml'"
 `;
@@ -34,8 +34,8 @@ exports[`cli commands without an explicit config parameter uploads sources via c
 exports[`cli commands without an explicit config parameter uploads translations via crowdin.yml default discovery (no -c) 1`] = `
 "◒  Fetching project files◐  Fetching project files◓  Fetching project files◇  Project files fetched
 ◒  Fetching project info◐  Fetching project info◓  Fetching project info◑  Fetching project info◒  Fetching project info◐  Fetching project info◇  Project info fetched
-Importing translations for file 'translations/it/android.xml'
-Importing translations for file 'translations/uk/android.xml'
+●  Importing translations for file 'translations/it/android.xml'
+●  Importing translations for file 'translations/uk/android.xml'
 ◆  File 'translations/it/android.xml'
 ◆  File 'translations/uk/android.xml'"
 `;

@@ -36,10 +36,10 @@ exports[`export options uploads translations for both languages 1`] = `
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-Importing translations for file 'translations/it/1_android.xml'
-Importing translations for file 'translations/it/2_android.xml'
-Importing translations for file 'translations/uk/1_android.xml'
-Importing translations for file 'translations/uk/2_android.xml'
+●  Importing translations for file 'translations/it/1_android.xml'
+●  Importing translations for file 'translations/it/2_android.xml'
+●  Importing translations for file 'translations/uk/1_android.xml'
+●  Importing translations for file 'translations/uk/2_android.xml'
 ◆  File 'translations/it/1_android.xml'
 ◆  File 'translations/it/2_android.xml'
 ◆  File 'translations/uk/1_android.xml'
@@ -51,10 +51,10 @@ exports[`export options approves translations by re-uploading the approved fixtu
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-Importing translations for file 'translations/it/1_android.xml'
-Importing translations for file 'translations/it/2_android.xml'
-Importing translations for file 'translations/uk/1_android.xml'
-Importing translations for file 'translations/uk/2_android.xml'
+●  Importing translations for file 'translations/it/1_android.xml'
+●  Importing translations for file 'translations/it/2_android.xml'
+●  Importing translations for file 'translations/uk/1_android.xml'
+●  Importing translations for file 'translations/uk/2_android.xml'
 ◆  File 'translations/it/1_android.xml'
 ◆  File 'translations/it/2_android.xml'
 ◆  File 'translations/uk/1_android.xml'
