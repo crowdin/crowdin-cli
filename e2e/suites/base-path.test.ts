@@ -1,9 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { join } from 'node:path';
-import { writeConfig } from '../helpers/config.ts';
 import { expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 async function deleteAllProjectFiles(ctx: SuiteContext): Promise<void> {
   const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id);
@@ -105,10 +103,6 @@ describe('base path', () => {
   test('updates sources on the branch (branch already exists)', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'dev', '--base-path', 'dev']);
 
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
-
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("File 'files/src/main/res/values/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -116,10 +110,6 @@ describe('base path', () => {
 
   test('uploads translations on the branch', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-b', 'dev', '--base-path', 'dev']);
-
-    if (result.exitCode !== 0) {
-      console.log('--- stdout ---\n', result.stdout, '\n--- stderr ---\n', result.stderr);
-    }
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("File 'files/src/main/res/values-it/android.xml'");
@@ -141,8 +131,7 @@ describe('base path', () => {
   });
 
   test('uploads sources with a relative --base-path pointing into a subdirectory', async () => {
-    const template = await Bun.file(join(ctx.workspace, 'alt-configs', 'relative-base-path.yml')).text();
-    await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
+    await switchConfig(ctx, 'relative-base-path');
     await deleteAllProjectFiles(ctx);
 
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', './files']);

@@ -1,16 +1,15 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { copyFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { writeConfig } from '../helpers/config.ts';
 import { expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
-describe('csv simple', () => {
+describe('simple csv', () => {
   let ctx: SuiteContext;
 
   beforeAll(async () => {
-    ctx = await setupSuite('csv-simple', { targetLanguageIds: ['it', 'uk'] });
+    ctx = await setupSuite('simple-csv', { targetLanguageIds: ['it', 'uk'] });
   });
 
   afterAll(async () => {
@@ -73,6 +72,11 @@ describe('csv simple', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
+  // Currently red on one row: `ident9` declares `max_length` 10 but the uk fixture translates it as
+  // 'файл 1 стрічка 9' (16 chars), so Crowdin rejects that translation on import and the download
+  // falls back to the source text. `expected/uk/*.csv` still asserts the translated value, while the
+  // it-side fixture already encodes the untranslated fallback - the uk expectation looks like the
+  // stale one, but confirm which side is wrong before changing either.
   test('downloads translations for a single language', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-l', 'uk']);
 
@@ -126,13 +130,6 @@ describe('csv simple', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // Known-broken as of 2026-07-21 (see crowdin-cli-known-bugs memory, Bug 4) — left red intentionally
-  // as a regression marker, do not "fix" the assertions to match the current buggy behavior. Root
-  // cause: UploadSourcesCommand's existing-file lookup keys off `file.data.path`, which Crowdin returns
-  // branch-prefixed (`test-branch/sources/files/...`) for a branched file, but the locally computed
-  // `projectPath` used as the lookup key is branch-agnostic (`sources/files/...`), so the lookup always
-  // misses on the 2nd+ upload to an existing branch. The server then legitimately rejects the resulting
-  // duplicate create with "Project already contains the file '<path>'", and the command exits non-zero.
   test('updates sources on the branch (branch already exists)', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
@@ -142,10 +139,6 @@ describe('csv simple', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // Cascading effect of the same Known Bug 4 as above: UploadTranslationsCommand.buildTranslationEntries
-  // resolves the source file's project path the same branch-agnostic way, so it can't find the branched
-  // source file either — every entry fails with "Source file '<path>' does not exist in the project" and
-  // no translation ever reaches the server for this branch.
   test('uploads translations to the branch', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-b', 'test-branch']);
 
@@ -161,8 +154,7 @@ describe('csv simple', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // Cascading effect of Bug 4: no translations were ever actually imported to `test-branch` above, so
-  // this can't reproduce the expected translated content either.
+  // Fails on the same `ident9` row as the non-branch download tests above.
   test('downloads translations for a single language on the branch', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-l', 'uk', '-b', 'test-branch']);
 
@@ -177,7 +169,7 @@ describe('csv simple', () => {
     );
   });
 
-  // Cascading effect of Bug 4, same as above.
+  // Fails on the same `ident9` row as the non-branch download tests above.
   test('downloads translations for every target language on the branch', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);
 
@@ -208,8 +200,7 @@ describe('csv simple', () => {
   // (`Failed to create file <name>. <message>`, from FileService.createProjectFile / toCliError.ts) is
   // new TS-CLI wording with no PHP equivalent, so it's left to the snapshot instead of asserted literally.
   test('rejects a scheme missing the Source String/Translation elements, on a new branch', async () => {
-    const template = await Bun.file(join(ctx.workspace, 'alt-configs', 'invalid-scheme.yml')).text();
-    await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
+    await switchConfig(ctx, 'invalid-scheme');
 
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch-invalid-scheme']);
 
