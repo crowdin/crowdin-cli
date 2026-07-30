@@ -17,10 +17,10 @@ exports[`excluded languages uploads translations, skipping the language with no 
 ●  Project info fetched
 ▲  File translations/de/1_android.xml does not exist in the specified location
 ▲  File translations/de/2_android.xml does not exist in the specified location
-Importing translations for file 'translations/it/1_android.xml'
-Importing translations for file 'translations/it/2_android.xml'
-Importing translations for file 'translations/uk/1_android.xml'
-Importing translations for file 'translations/uk/2_android.xml'
+●  Importing translations for file 'translations/it/1_android.xml'
+●  Importing translations for file 'translations/it/2_android.xml'
+●  Importing translations for file 'translations/uk/1_android.xml'
+●  Importing translations for file 'translations/uk/2_android.xml'
 ◆  File 'translations/it/1_android.xml'
 ◆  File 'translations/it/2_android.xml'
 ◆  File 'translations/uk/1_android.xml'
@@ -72,10 +72,10 @@ exports[`excluded languages re-uploads translations, rejecting the newly exclude
 ●  Project info fetched
 ▲  File translations/de/1_android.xml does not exist in the specified location
 ▲  File translations/de/2_android.xml does not exist in the specified location
-Importing translations for file 'translations/it/1_android.xml'
-Importing translations for file 'translations/it/2_android.xml'
-Importing translations for file 'translations/uk/1_android.xml'
-Importing translations for file 'translations/uk/2_android.xml'
+●  Importing translations for file 'translations/it/1_android.xml'
+●  Importing translations for file 'translations/it/2_android.xml'
+●  Importing translations for file 'translations/uk/1_android.xml'
+●  Importing translations for file 'translations/uk/2_android.xml'
 ▲  Translation file 'translations/it/1_android.xml' hasn't been uploaded since the following target language(s) are not enabled for the source file in your Crowdin project: Italian
 ▲  Translation file 'translations/it/2_android.xml' hasn't been uploaded since the following target language(s) are not enabled for the source file in your Crowdin project: Italian
 ◆  File 'translations/uk/1_android.xml'

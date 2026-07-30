@@ -1,16 +1,9 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { copyFile, rm } from 'node:fs/promises';
 import { join } from 'node:path';
-import { writeConfig } from '../helpers/config.ts';
 import { expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
-import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
-
-/** Overwrites the workspace's `crowdin.yml` with one of the `alt-configs/<name>.yml` templates. */
-async function switchConfig(ctx: SuiteContext, name: string): Promise<void> {
-  const template = await Bun.file(join(ctx.workspace, 'alt-configs', `${name}.yml`)).text();
-  await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
-}
+import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
 describe('branches', () => {
   let ctx: SuiteContext;
