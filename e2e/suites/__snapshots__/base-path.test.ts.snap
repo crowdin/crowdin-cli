@@ -24,10 +24,10 @@ exports[`base path updates the existing source file at the same base path 1`] = 
 exports[`base path uploads translations at the base path 1`] = `
 "●  Fetching project files
 ●  Fetching project info
+●  Importing translations for file 'files/src/main/res/values-it/android.xml'
+●  Importing translations for file 'files/src/main/res/values-uk/android.xml'
 ●  Project files fetched
 ●  Project info fetched
-Importing translations for file 'files/src/main/res/values-it/android.xml'
-Importing translations for file 'files/src/main/res/values-uk/android.xml'
 ◆  File 'files/src/main/res/values-it/android.xml'
 ◆  File 'files/src/main/res/values-uk/android.xml'"
 `;
@@ -105,10 +105,10 @@ exports[`base path uploads sources with a relative --base-path pointing into a s
 exports[`base path uploads translations with a relative --base-path 1`] = `
 "●  Fetching project files
 ●  Fetching project info
+●  Importing translations for file 'src/main/res/values-it/android.xml'
+●  Importing translations for file 'src/main/res/values-uk/android.xml'
 ●  Project files fetched
 ●  Project info fetched
-Importing translations for file 'src/main/res/values-it/android.xml'
-Importing translations for file 'src/main/res/values-uk/android.xml'
 ◆  File 'src/main/res/values-it/android.xml'
 ◆  File 'src/main/res/values-uk/android.xml'"
 `;
@@ -136,10 +136,10 @@ exports[`base path updates sources on the branch (branch already exists) 1`] = `
 exports[`base path uploads translations on the branch 1`] = `
 "●  Fetching project files
 ●  Fetching project info
+●  Importing translations for file 'files/src/main/res/values-it/android.xml'
+●  Importing translations for file 'files/src/main/res/values-uk/android.xml'
 ●  Project files fetched
 ●  Project info fetched
-Importing translations for file 'files/src/main/res/values-it/android.xml'
-Importing translations for file 'files/src/main/res/values-uk/android.xml'
 ◆  File 'files/src/main/res/values-it/android.xml'
 ◆  File 'files/src/main/res/values-uk/android.xml'"
 `;

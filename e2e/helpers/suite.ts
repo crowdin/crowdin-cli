@@ -63,6 +63,16 @@ export async function setupSuite(suite: string, opts: SetupSuiteOptions = {}): P
 }
 
 /**
+ * Swap the suite's `crowdin.yml` for `<workspace>/alt-configs/<name>.yml`, rendered with the same
+ * project id and token. The runner keeps pointing at the same config path, so every later
+ * `ctx.runner.run(...)` picks the new config up.
+ */
+export async function switchConfig(ctx: SuiteContext, name: string): Promise<void> {
+  const template = await Bun.file(join(ctx.workspace, 'alt-configs', `${name}.yml`)).text();
+  await writeConfig(ctx.workspace, template, { projectId: ctx.project.id, token: ctx.env.token as string });
+}
+
+/**
  * Tear down a suite: delete the project and remove the workspace (which holds
  * everything the suite produced, including downloaded files). Honors
  * `CROWDIN_E2E_KEEP=1`. Cleanup failures are logged, never thrown, so one failed

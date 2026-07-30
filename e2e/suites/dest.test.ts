@@ -1,7 +1,7 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
 import { join } from 'node:path';
 import { writeConfig } from '../helpers/config.ts';
-import { expectFilesExist } from '../helpers/files.ts';
+import { capturedContent, expectFilesExist } from '../helpers/files.ts';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
@@ -145,7 +145,7 @@ describe('dest', () => {
 
     for (const path of parallelProcessFiles) {
       const downloaded = await Bun.file(join(ctx.workspace, path)).text();
-      expect(downloaded).toBe(uploadedContent.get(path));
+      expect(downloaded).toBe(capturedContent(uploadedContent, path));
     }
   });
 
