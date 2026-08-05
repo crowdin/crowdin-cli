@@ -39,7 +39,7 @@ export function stripBranchPrefix(projectPath: string, branchName?: string): str
 
 /**
  * Removes leading path separators (both '/' and '\\', repeated) so a project path
- * renders as a relative path. Mirrors Java's `replaceAll("^[/\\\\]+", "")`.
+ * renders as a relative path.
  */
 export function stripLeadingSlashes(path: string): string {
   return path.replace(/^[/\\]+/, '');
@@ -47,7 +47,6 @@ export function stripLeadingSlashes(path: string): string {
 
 /**
  * Normalizes a list of project paths to sorted, leading-slash-stripped relatives.
- * Mirrors Java's Dryrun list rendering (strip + sort before printing).
  */
 export function toSortedRelativePaths(paths: string[]): string[] {
   return paths.map(stripLeadingSlashes).sort();

@@ -687,7 +687,7 @@ describe('UploadSourcesCommand', () => {
     const stringService = baseStringServiceMock();
     const branchService = {
       getBranch: mock(async () => ({ id: 5, name: 'main' })),
-      getOrCreateBranch: mock(async () => ({ id: 5, name: 'main' })),
+      getOrCreateBranch: mock(async () => ({ branch: { id: 5, name: 'main' }, created: false })),
     };
     const output = createOutputMock();
     const command = createUploadCommand(
@@ -827,7 +827,9 @@ describe('UploadSourcesCommand', () => {
     const projectService = {
       loadProject: mock(async () => ({ data: { id: 123, languageMapping: {}, targetLanguages: [] } })),
     };
-    const branchService = { getOrCreateBranch: mock(async () => ({ id: 44, name: 'feature' })) };
+    const branchService = {
+      getOrCreateBranch: mock(async () => ({ branch: { id: 44, name: 'feature' }, created: true })),
+    };
     const fileService = {
       loadProjectFiles: mock(async () => ({ data: [] })),
       updateProjectFile: mock(async () => undefined),
@@ -865,8 +867,9 @@ describe('UploadSourcesCommand', () => {
       excludedTargetLanguages: undefined,
       attachLabelIds: undefined,
     });
-    expect(output.success).toHaveBeenCalledWith('Directory src created');
-    expect(output.success).toHaveBeenCalledWith("File 'src/app.json'");
+    expect(output.success).toHaveBeenCalledWith("Branch 'feature'");
+    expect(output.success).toHaveBeenCalledWith("Directory 'feature/src'");
+    expect(output.success).toHaveBeenCalledWith("File 'feature/src/app.json'");
   });
 
   test('creates directory once and reuses its id for multiple files in the same directory', async () => {
@@ -916,7 +919,7 @@ describe('UploadSourcesCommand', () => {
       excludedTargetLanguages: undefined,
       attachLabelIds: undefined,
     });
-    expect(output.success).toHaveBeenCalledWith('Directory src created');
+    expect(output.success).toHaveBeenCalledWith("Directory 'src'");
     expect(output.success).toHaveBeenCalledWith("File 'src/app.json'");
     expect(output.success).toHaveBeenCalledWith("File 'src/utils.json'");
   });
@@ -1226,6 +1229,46 @@ describe('UploadSourcesCommand', () => {
     expect(fileService.deleteProjectFile).not.toHaveBeenCalledWith(99, expect.anything());
     expect(directoryService.deleteProjectDirectory).not.toHaveBeenCalledWith(4, '/external');
     expect(directoryService.deleteProjectDirectory).not.toHaveBeenCalledWith(1, '/src');
+    expect(output.success).toHaveBeenCalledWith("'src/legacy/stale.json' file was deleted");
+    expect(output.success).toHaveBeenCalledWith("'src/legacy/' directory was deleted");
+  });
+
+  test('reports when there is nothing obsolete to delete', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const projectService = baseProjectServiceMock();
+    const fileService = {
+      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+      updateProjectFile: mock(async () => undefined),
+      deleteProjectFile: mock(async () => undefined),
+      createProjectFile: mock(async () => undefined),
+    };
+    const directoryService = {
+      loadProjectDirectories: mock(async () => [{ data: { id: 1, path: '/src' } }]),
+      createProjectDirectory: mock(async () => ({ data: { id: 1, path: '/src' } })),
+      deleteProjectDirectory: mock(async () => undefined),
+    };
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      projectService,
+      storageService,
+      baseBranchServiceMock(),
+      directoryService,
+      fileService,
+      baseLabelServiceMock(),
+      baseTranslationServiceMock(),
+      { source: '/src/**/*.json' },
+    );
+
+    await command.uploadSourcesAction(commandContext({ deleteObsolete: true, autoUpdate: false }));
+
+    expect(fileService.deleteProjectFile).not.toHaveBeenCalled();
+    expect(directoryService.deleteProjectDirectory).not.toHaveBeenCalled();
+    expect(output.success).toHaveBeenCalledWith('No obsolete files were found');
+    expect(output.success).toHaveBeenCalledWith('No obsolete directories found');
   });
 
   test('does not delete a soft-matched project file as obsolete', async () => {
@@ -1275,6 +1318,9 @@ describe('UploadSourcesCommand', () => {
       'app.json',
       undefined,
     );
+    expect(output.success).toHaveBeenCalledWith("'src/stale.json' file was deleted");
+    expect(output.success).toHaveBeenCalledWith('No obsolete directories found');
+    expect(output.success).not.toHaveBeenCalledWith('No obsolete files were found');
   });
 
   test('scopes obsolete deletion by trailing segments when preserve_hierarchy is off', async () => {
@@ -1360,10 +1406,10 @@ describe('UploadSourcesCommand', () => {
 
     expect(fileService.deleteProjectFile).not.toHaveBeenCalled();
     expect(directoryService.deleteProjectDirectory).not.toHaveBeenCalled();
-    expect(output.info).toHaveBeenCalledWith('File /src/legacy/stale.json would be deleted as obsolete');
-    expect(output.info).toHaveBeenCalledWith('Directory /src/legacy would be deleted as obsolete');
+    expect(output.info).toHaveBeenCalledWith("'src/legacy/stale.json' file would be deleted");
+    expect(output.info).toHaveBeenCalledWith("'src/legacy/' directory would be deleted");
     // Outside the source pattern -> not reported as obsolete.
-    expect(output.info).not.toHaveBeenCalledWith('File /external/keep.json would be deleted as obsolete');
+    expect(output.info).not.toHaveBeenCalledWith("'external/keep.json' file would be deleted");
   });
 
   test('does not delete a project file matching an ignore pattern as obsolete', async () => {
@@ -1474,7 +1520,7 @@ describe('UploadSourcesCommand', () => {
     };
     const branchService = {
       getBranch: mock(async () => ({ id: 5, name: 'main' })),
-      getOrCreateBranch: mock(async () => ({ id: 5, name: 'main' })),
+      getOrCreateBranch: mock(async () => ({ branch: { id: 5, name: 'main' }, created: false })),
     };
 
     const stringService = {
@@ -1503,7 +1549,7 @@ describe('UploadSourcesCommand', () => {
       expect.objectContaining({ branchId: 5, storageId: 10 }),
       'src/app.json',
     );
-    expect(output.success).toHaveBeenCalledWith("File 'src/app.json'");
+    expect(output.success).toHaveBeenCalledWith("File 'main/src/app.json'");
   });
 
   test('throws if strings-based project upload requires a branch and none provided', async () => {
@@ -1547,7 +1593,7 @@ describe('UploadSourcesCommand', () => {
     };
     const branchService = {
       getBranch: mock(async () => ({ id: 5, name: 'main' })),
-      getOrCreateBranch: mock(async () => ({ id: 5, name: 'main' })),
+      getOrCreateBranch: mock(async () => ({ branch: { id: 5, name: 'main' }, created: false })),
     };
     // A failed status makes the service throw (StringService.test covers the poll); the command
     // aggregates it into the generic execution error and reports the per-file message.

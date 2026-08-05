@@ -36,7 +36,13 @@ import {
 import { deleteObsoleteProjectEntries } from '@/lib/upload/obsoleteEntries.ts';
 import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
-import { stripBranchPrefix, toPosixPath, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
+import {
+  stripBranchPrefix,
+  stripLeadingSlashes,
+  toPosixPath,
+  toProjectPath,
+  toSortedRelativePaths,
+} from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
 
 interface UploadSourcesOptions extends GlobalOptions {
@@ -137,9 +143,22 @@ export default class UploadSourcesCommand {
 
     // Dry-run divergence: Java delegates `--dryrun` to a separate list action; here it is handled
     // inline and reports the concrete would-create/update/delete actions instead of just listing files.
-    const branch = options.dryrun
-      ? await branchService.getBranch(options.branch)
-      : await branchService.getOrCreateBranch(options.branch);
+    let branch: SourceFilesModel.Branch | undefined;
+
+    if (options.dryrun) {
+      branch = await branchService.getBranch(options.branch);
+    } else {
+      const resolved = await branchService.getOrCreateBranch(options.branch);
+      branch = resolved.branch;
+
+      if (branch) {
+        if (resolved.created) {
+          output.success(`Branch '${branch.name}'`);
+        } else {
+          output.warning(`Branch '${branch.name}' already exists in the project`);
+        }
+      }
+    }
 
     if (isStringsBasedProject && !branch) {
       throw new CliError('A branch is required to upload sources for a strings-based project');
@@ -147,6 +166,7 @@ export default class UploadSourcesCommand {
 
     const branchId = branch?.id;
     const branchName = branch?.name;
+    const branchPrefix = branchName ? `${branchName}/` : '';
     const projectFiles = isStringsBasedProject ? { data: [] } : await fileService.loadProjectFiles(branchId);
     // Server paths carry the branch name; the project paths resolved from the config never do.
     const projectFilePaths = new Map(
@@ -239,8 +259,10 @@ export default class UploadSourcesCommand {
       }
 
       const tasks = files.map(({ localFilePath, projectPath }) => async () => {
+        const fileFullPath = `${branchPrefix}${projectPath}`;
+
         if (seenFilePaths.has(projectPath)) {
-          output.warning(`Skipping file '${localFilePath}' because it is already uploading/uploaded`);
+          output.warning(`Skipping file '${fileFullPath}' because it is already uploading/uploaded`);
           return;
         }
 
@@ -249,7 +271,7 @@ export default class UploadSourcesCommand {
         const localFile = Bun.file(path.join(config.basePath, localFilePath));
 
         if (localFile.size === 0) {
-          output.warning(`File '${localFilePath}' was skipped since it is empty`);
+          output.warning(`File '${fileFullPath}' was skipped since it is empty`);
           return;
         }
 
@@ -287,7 +309,7 @@ export default class UploadSourcesCommand {
             sourceHashes.set(localFilePath, checksum ?? (await computeChecksum(localFile)));
           }
 
-          output.success(`File '${localFilePath}'`);
+          output.success(`File '${fileFullPath}'`);
           return;
         }
 
@@ -352,7 +374,7 @@ export default class UploadSourcesCommand {
             );
           } catch (error) {
             if (error instanceof FileInUpdateError) {
-              output.warning(`File '${localFilePath}' is currently being updated`);
+              output.warning(`File '${fileFullPath}' is currently being updated`);
               return;
             }
 
@@ -363,7 +385,7 @@ export default class UploadSourcesCommand {
             sourceHashes.set(localFilePath, checksum as string);
           }
 
-          output.success(`File '${localFilePath}'`);
+          output.success(`File '${fileFullPath}'`);
           return;
         }
 
@@ -406,7 +428,7 @@ export default class UploadSourcesCommand {
           });
         } catch (error) {
           if (error instanceof FileExistsError) {
-            throw new CliError(`Project already contains the file '${projectPath}'`);
+            throw new CliError(`Project already contains the file '${fileFullPath}'`);
           }
 
           throw error;
@@ -416,7 +438,7 @@ export default class UploadSourcesCommand {
           sourceHashes.set(localFilePath, await computeChecksum(localFile));
         }
 
-        output.success(`File '${localFilePath}'`);
+        output.success(`File '${fileFullPath}'`);
       });
 
       const results = await runConcurrently(tasks);
@@ -507,7 +529,7 @@ export default class UploadSourcesCommand {
         .createProjectDirectory(directoryName, parentId, parentId ? undefined : branch?.id)
         .then((dir) => {
           projectDirectories.set(dir.data.path, dir.data.id);
-          output.success(`Directory ${directoryName} created`);
+          output.success(`Directory '${stripLeadingSlashes(directoryPath)}'`);
           return dir.data.id;
         });
 

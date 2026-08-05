@@ -4,7 +4,7 @@ import type { FileService } from '@/cli/services/FileService.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { isPathMatch } from '@/cli/utils/pathMatcher.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
-import { stripBranchPrefix, toProjectPath } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, stripLeadingSlashes, toProjectPath } from '@/lib/utils/path.ts';
 
 export async function deleteObsoleteProjectEntries(
   projectFiles: ResponseObject<SourceFilesModel.File>[],
@@ -47,12 +47,15 @@ export async function deleteObsoleteProjectEntries(
 
   for (const projectFile of obsoleteFiles) {
     const projectFilePath = stripBranch(projectFile.data.path);
+    // Java reports obsolete paths relative (Dryrun strips leading separators, and the
+    // sub-action's path map is built without one).
+    const displayPath = stripLeadingSlashes(projectFilePath);
 
     if (dryRun) {
-      output.info(`File ${projectFilePath} would be deleted as obsolete`);
+      output.info(`'${displayPath}' file would be deleted`);
     } else {
       await fileService.deleteProjectFile(projectFile.data.id, projectFilePath);
-      output.success(`File ${projectFilePath} deleted as obsolete`);
+      output.success(`'${displayPath}' file was deleted`);
     }
   }
 
@@ -68,12 +71,23 @@ export async function deleteObsoleteProjectEntries(
 
   for (const directory of obsoleteDirectories) {
     const directoryPath = stripBranch(directory.data.path);
+    const displayPath = `${stripLeadingSlashes(directoryPath)}/`;
 
     if (dryRun) {
-      output.info(`Directory ${directoryPath} would be deleted as obsolete`);
+      output.info(`'${displayPath}' directory would be deleted`);
     } else {
       await directoryService.deleteProjectDirectory(directory.data.id, directoryPath);
-      output.success(`Directory ${directoryPath} deleted as obsolete`);
+      output.success(`'${displayPath}' directory was deleted`);
+    }
+  }
+
+  if (!dryRun) {
+    if (obsoleteFiles.length === 0) {
+      output.success('No obsolete files were found');
+    }
+
+    if (obsoleteDirectories.length === 0) {
+      output.success('No obsolete directories found');
     }
   }
 }

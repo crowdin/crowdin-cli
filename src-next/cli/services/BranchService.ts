@@ -26,9 +26,9 @@ export class BranchService {
     }
   }
 
-  async getOrCreateBranch(name?: string) {
+  async getOrCreateBranch(name?: string): Promise<{ branch?: SourceFilesModel.Branch; created: boolean }> {
     if (!name || name === 'none') {
-      return undefined;
+      return { created: false };
     }
 
     try {
@@ -36,17 +36,20 @@ export class BranchService {
       const existingBranch = branches.data.find((branch) => branch.data.name === name);
 
       if (existingBranch !== undefined) {
-        return existingBranch.data;
+        return { branch: existingBranch.data, created: false };
       }
 
-      return (await this.apiClient.sourceFilesApi.createBranch(this.projectId, { name })).data;
+      return {
+        branch: (await this.apiClient.sourceFilesApi.createBranch(this.projectId, { name })).data,
+        created: true,
+      };
     } catch (error) {
       throw toCliError(error, `Failed to resolve branch ${name}`);
     }
   }
 
   async resolveBranchId(name: string | undefined, createMissing: boolean = false): Promise<number | undefined> {
-    const branch = createMissing ? await this.getOrCreateBranch(name) : await this.getBranch(name);
+    const branch = createMissing ? (await this.getOrCreateBranch(name)).branch : await this.getBranch(name);
 
     if (!name || name === 'none') {
       return undefined;

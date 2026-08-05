@@ -31,7 +31,7 @@ export function baseProjectServiceMock() {
 export function baseBranchServiceMock() {
   return {
     getBranch: mock(async () => undefined as never),
-    getOrCreateBranch: mock(async () => undefined as never),
+    getOrCreateBranch: mock(async () => ({ branch: undefined, created: false }) as never),
   };
 }
 

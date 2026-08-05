@@ -95,7 +95,7 @@ export default class UploadTranslationsCommand {
 
     const branch = options.dryrun
       ? await branchService.getBranch(options.branch)
-      : await branchService.getOrCreateBranch(options.branch);
+      : (await branchService.getOrCreateBranch(options.branch)).branch;
     const branchId = branch?.id;
     const projectFiles = await fileService.loadProjectFiles(branchId);
     // Server paths carry the branch name; the project paths resolved from the config never do.
@@ -119,7 +119,6 @@ export default class UploadTranslationsCommand {
       return;
     }
 
-    // Java DryrunTranslations plain view: bare sorted translation paths, one per line.
     if (options.dryrun && options.output === 'plain') {
       const paths = toSortedRelativePaths(await this.existingTranslationPaths(entries, config));
       output.table(paths);

@@ -257,7 +257,9 @@ describe('UploadTranslationsCommand', () => {
         data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
       })),
     };
-    const branchService = { getOrCreateBranch: mock(async () => ({ id: 44, name: 'feature' })) };
+    const branchService = {
+      getOrCreateBranch: mock(async () => ({ branch: { id: 44, name: 'feature' }, created: true })),
+    };
     const fileService = {
       ...baseFileServiceMock(),
       loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
@@ -621,7 +623,7 @@ describe('UploadTranslationsCommand', () => {
     };
     const branchService = {
       getBranch: mock(async () => ({ id: 5, name: 'main' })),
-      getOrCreateBranch: mock(async () => ({ id: 5, name: 'main' })),
+      getOrCreateBranch: mock(async () => ({ branch: { id: 5, name: 'main' }, created: false })),
     };
     const translationService = baseTranslationServiceMock();
     const output = createOutputMock();

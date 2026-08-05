@@ -225,8 +225,18 @@ export default class FileCommand {
       throw new CliError("'--context' parameter is only available for file-based projects");
     }
 
-    const branch = await branchService.getOrCreateBranch(options.branch);
+    const { branch, created: branchCreated } = await branchService.getOrCreateBranch(options.branch);
     const branchId = branch?.id;
+
+    if (branch) {
+      if (branchCreated) {
+        output.success(`Branch '${branch.name}'`);
+      } else {
+        output.warning(`Branch '${branch.name}' already exists in the project`);
+      }
+    }
+
+    const fileFullPath = `${branch ? `${branch.name}/` : ''}${stripLeadingSlashes(destPath)}`;
     const labelIds = options.label?.length ? await labelService.resolveLabelIds(options.label) : undefined;
 
     if (isStringsBased) {
@@ -250,7 +260,7 @@ export default class FileCommand {
 
     if (existingFile) {
       if (options.autoUpdate === false) {
-        output.info(`Project already contains the file '${destPath}'`);
+        output.info(`Project already contains the file '${fileFullPath}'`);
         return;
       }
 
@@ -277,18 +287,18 @@ export default class FileCommand {
         );
       } catch (error) {
         if (error instanceof FileInUpdateError) {
-          output.warning(`File '${destPath}' is currently being updated`);
+          output.warning(`File '${fileFullPath}' is currently being updated`);
           return;
         }
 
         throw error;
       }
 
-      output.success(`File '${destPath}'`);
+      output.success(`File '${fileFullPath}'`);
       return;
     }
 
-    const directoryId = await this.createDirectories(pathDetails.dir, directoryService, output, branchId);
+    const directoryId = await this.createDirectories(pathDetails.dir, directoryService, output, branch);
     const storage = await this.uploadToStorage(storageService, localFile, filePath);
 
     try {
@@ -304,11 +314,10 @@ export default class FileCommand {
         attachLabelIds: labelIds,
       });
 
-      // Java message.file.list: "#<id> <path>".
-      output.success(`#${created.data.id} ${destPath}`);
+      output.success(`#${created.data.id} ${fileFullPath}`);
     } catch (error) {
       if (error instanceof FileExistsError) {
-        throw new CliError(`Project already contains the file '${destPath}'`);
+        throw new CliError(`Project already contains the file '${fileFullPath}'`);
       }
 
       throw error;
@@ -492,12 +501,13 @@ export default class FileCommand {
     dir: string,
     directoryService: Awaited<ReturnType<GetDirectoryService>>,
     output: Awaited<ReturnType<GetOutput>>,
-    branchId: number | undefined,
+    branch: SourceFilesModel.Branch | undefined,
   ): Promise<number | undefined> => {
     if (!dir) {
       return undefined;
     }
 
+    const branchId = branch?.id;
     const existing = new Map(
       (await directoryService.loadProjectDirectories(branchId)).map((entry) => [
         toPosixPath(entry.data.path),
@@ -506,7 +516,7 @@ export default class FileCommand {
     );
 
     let parentId: number | undefined;
-    let cumulative = '';
+    let cumulative = branch ? `/${branch.name}` : '';
 
     for (const segment of toPosixPath(dir).split('/').filter(Boolean)) {
       cumulative = `${cumulative}/${segment}`;
@@ -524,7 +534,6 @@ export default class FileCommand {
           parentId ? undefined : branchId,
         );
         parentId = created.data.id;
-        // Java message.directory: "Directory '<path>'" (cumulative path, no leading slash).
         output.success(`Directory '${stripLeadingSlashes(cumulative)}'`);
       } catch (error) {
         throw toCliError(error, `Failed to create directory ${segment}`);
@@ -571,7 +580,6 @@ export default class FileCommand {
 
     for (const projectFile of projectFiles.data) {
       if (stripBranchPrefix(projectFile.data.path, options.branch) === wantedPath) {
-        // Java: with --dest write to `<dest>/<name>`; without it, to the source path itself.
         const fullFilePath = options.dest
           ? path.join(config.basePath, options.dest, path.basename(filePath))
           : path.join(config.basePath, filePath);

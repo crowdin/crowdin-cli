@@ -433,7 +433,7 @@ describe('FileCommand', () => {
     spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
       data: { id: 123, type: ProjectsGroupsModel.Type.STRINGS_BASED },
     } as never);
-    spyOn(branchService, 'getOrCreateBranch').mockResolvedValue({ id: 7 } as never);
+    spyOn(branchService, 'getOrCreateBranch').mockResolvedValue({ branch: { id: 7 }, created: false } as never);
     spyOn(storageService, 'addStorage').mockResolvedValue({ data: { id: 99 } } as never);
 
     const uploadStrings = spyOn(stringService, 'uploadStrings').mockResolvedValue({

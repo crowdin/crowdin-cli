@@ -58,14 +58,14 @@ describe('BranchService', () => {
   });
 
   describe('getOrCreateBranch', () => {
-    test('returns undefined when name is undefined', async () => {
+    test('returns no branch when name is undefined', async () => {
       const result = await branchService.getOrCreateBranch(undefined);
-      expect(result).toBeUndefined();
+      expect(result).toEqual({ created: false });
     });
 
-    test('returns undefined when name is "none"', async () => {
+    test('returns no branch when name is "none"', async () => {
       const result = await branchService.getOrCreateBranch('none');
-      expect(result).toBeUndefined();
+      expect(result).toEqual({ created: false });
     });
 
     test('returns existing branch when found', async () => {
@@ -76,7 +76,7 @@ describe('BranchService', () => {
 
       const result = await branchService.getOrCreateBranch('feat/x');
 
-      expect(result).toEqual({ id: 5, name: 'feat/x' } as never);
+      expect(result).toEqual({ branch: { id: 5, name: 'feat/x' }, created: false } as never);
       expect(createBranch).not.toHaveBeenCalled();
     });
 
@@ -88,7 +88,7 @@ describe('BranchService', () => {
 
       const result = await branchService.getOrCreateBranch('new-branch');
 
-      expect(result).toEqual({ id: 99, name: 'new-branch' } as never);
+      expect(result).toEqual({ branch: { id: 99, name: 'new-branch' }, created: true } as never);
     });
   });
 
