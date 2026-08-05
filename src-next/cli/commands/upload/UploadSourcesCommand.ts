@@ -322,7 +322,7 @@ export default class UploadSourcesCommand {
           return await Bun.file(path.join(config.basePath, contextPath)).text();
         };
 
-        const existingFile = fileLookup(`/${projectPath}`, projectFilePaths, expectedProjectFilePaths);
+        const existingFile = fileLookup(toProjectPath(projectPath), projectFilePaths, expectedProjectFilePaths);
 
         if (existingFile) {
           if (options.autoUpdate === false) {

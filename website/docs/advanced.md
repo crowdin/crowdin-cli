@@ -191,7 +191,7 @@ The supported placeholders in the `context` file path are:
 - `%file_name%` - the name of the source file without the extension
 - `%original_file_name%` - the name of the source file with the extension
 - `%file_extension%` - the extension of the source file
-- `%original_path%` - the full path to the source file, including the file name
+- `%original_path%` - the path to the source file's parent directory relative to `base_path`, without the file name
 
 :::info
 The File Context feature is only available for [file-based](https://support.crowdin.com/creating-project/#project-types) projects.

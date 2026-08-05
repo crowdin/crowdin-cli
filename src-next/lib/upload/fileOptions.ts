@@ -3,7 +3,7 @@ import { SourceFilesModel, type SourceStringsModel } from '@crowdin/crowdin-api-
 import type { Config } from '@/lib/config.ts';
 import { fileExtension, fileName, originalFileName, originalPath } from '@/lib/export/patterns.ts';
 import { replaceDoubleAsterisk } from '@/lib/utils/doubleAsterisk.ts';
-import { toPosixPath } from '@/lib/utils/path.ts';
+import { collapseSeparators, toPosixPath } from '@/lib/utils/path.ts';
 
 type FileConfig = Config['files'][number];
 
@@ -16,9 +16,10 @@ export function buildExportOptions(
 ): SourceFilesModel.ExportOptions {
   const extension = path.extname(localFilePath).toLowerCase();
   // Expand `**` in the export pattern from the matched source subpath (mirrors Java buildExportOptions).
+  // Java collapses separator runs in the export pattern before sending it (UploadSourcesAction:539).
   const resolvedExportPattern =
     exportPattern !== undefined
-      ? replaceDoubleAsterisk(fileConfig.source, exportPattern, toPosixPath(localFilePath))
+      ? collapseSeparators(replaceDoubleAsterisk(fileConfig.source, exportPattern, toPosixPath(localFilePath)))
       : exportPattern;
 
   if (extension === '.properties') {
@@ -132,10 +133,20 @@ export function resolveContextPath(pattern: string, localFilePath: string): stri
   return replaceFileDependentPlaceholders(pattern, localFilePath);
 }
 
+/**
+ * Substitutes the file-dependent placeholders (`%file_name%`, `%original_path%`, …) in a `dest` or
+ * `context` pattern, mirroring Java's PlaceholderUtil.replaceFileDependentPlaceholders.
+ *
+ * TODO:
+ * ponytail: `**` is left literal here; Java (PlaceholderUtil.java:234-249) expands it to the source
+ * file's parent path, so `dest: '/out/**\/%original_file_name%'` creates a directory named `**`
+ * instead of the nested path. Port that block when a config actually needs `**` in dest/context —
+ * note it is a different algorithm from `replaceDoubleAsterisk`, which only serves `translation`.
+ */
 export function replaceFileDependentPlaceholders(pattern: string, localFilePath: string): string {
   const parsed = path.parse(localFilePath);
 
-  return pattern.replaceAll(/%[a-z_]+%/g, (match) => {
+  const resolved = pattern.replaceAll(/%[a-z_]+%/g, (match) => {
     switch (match) {
       case fileExtension:
         return parsed.ext.slice(1);
@@ -144,11 +155,13 @@ export function replaceFileDependentPlaceholders(pattern: string, localFilePath:
       case originalFileName:
         return parsed.base;
       case originalPath:
-        return localFilePath;
+        return parsed.dir;
       default:
         return match;
     }
   });
+
+  return collapseSeparators(resolved);
 }
 
 /**

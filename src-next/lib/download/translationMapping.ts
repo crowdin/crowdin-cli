@@ -3,7 +3,7 @@ import { matchesSourcePattern } from '../config/projectFileMatch.ts';
 import SourceFileLoader from '../config/sourceFileLoader.ts';
 import TranslationPathResolver from '../config/translationPathResolver.ts';
 import type { Config } from '../config.ts';
-import { toPosixPath } from '../utils/path.ts';
+import { stripLeadingSlashes, toPosixPath } from '../utils/path.ts';
 
 export interface TranslationMapping {
   /** archive-relative path (posix, no leading slash) -> desired local path (relative to basePath). */
@@ -43,7 +43,7 @@ export function buildTranslationMapping(
   const resolver = new TranslationPathResolver(config);
   const sourceFileLoader = new SourceFileLoader(config);
   const byArchivePath = new Map<string, string>();
-  const serverSourcePaths = (options?.serverSourcePaths ?? []).map((p) => stripLeadingSlash(toPosixPath(p)));
+  const serverSourcePaths = (options?.serverSourcePaths ?? []).map((p) => stripLeadingSlashes(toPosixPath(p)));
   const fileGroups = options?.files ?? config.files;
 
   for (const patterns of fileGroups) {
@@ -75,7 +75,9 @@ export function buildTranslationMapping(
     }
 
     for (const sourcePath of sources) {
-      const excludedLanguages = options?.excludedTargetLanguagesByPath?.get(stripLeadingSlash(toPosixPath(sourcePath)));
+      const excludedLanguages = options?.excludedTargetLanguagesByPath?.get(
+        stripLeadingSlashes(toPosixPath(sourcePath)),
+      );
 
       for (const language of languages) {
         // Skip languages the server source file excludes (parity with DryrunTranslations).
@@ -83,10 +85,10 @@ export function buildTranslationMapping(
           continue;
         }
 
-        const localPath = stripLeadingSlash(
+        const localPath = stripLeadingSlashes(
           resolver.resolveWithConfig(patterns, sourcePath, language, serverLanguageMapping),
         );
-        const archivePath = stripLeadingSlash(
+        const archivePath = stripLeadingSlashes(
           resolver.resolveWithConfig(patterns, sourcePath, language, serverLanguageMapping, {
             serverOnly: true,
             dest: patterns.dest,
@@ -100,8 +102,4 @@ export function buildTranslationMapping(
   }
 
   return { byArchivePath };
-}
-
-function stripLeadingSlash(value: string): string {
-  return value.startsWith('/') ? value.slice(1) : value;
 }

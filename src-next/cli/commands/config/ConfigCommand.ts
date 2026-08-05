@@ -11,6 +11,7 @@ import FileNotFoundError from '@/lib/common/errors/FileNotFoundError.ts';
 import SourceFileLoader, { commonPath } from '@/lib/config/sourceFileLoader.ts';
 import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
+import { stripLeadingSlashes } from '@/lib/utils/path.ts';
 
 export default class ConfigCommand {
   constructor(
@@ -117,9 +118,9 @@ export default class ConfigCommand {
 
     for (const targetLanguage of languages) {
       for (const sourceFilePath of sourceFilePaths) {
-        const filePath = translationPathResolver
-          .resolve(Bun.file(sourceFilePath), targetLanguage, serverLanguageMapping)
-          .slice(1);
+        const filePath = stripLeadingSlashes(
+          translationPathResolver.resolve(Bun.file(sourceFilePath), targetLanguage, serverLanguageMapping),
+        );
         translationFilePaths.add(filePath);
       }
     }

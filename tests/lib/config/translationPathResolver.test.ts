@@ -283,6 +283,52 @@ describe('translation path resolver', () => {
 
     expect(actual).toBe('/resources/es/guide.md');
   });
+
+  test('resolves %original_path% to the source file parent directory', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/resources/en/readme.md`, 'readme');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/resources/en/*.md',
+          translation: '/translated/%original_path%/%two_letters_code%/%original_file_name%',
+        },
+      ],
+    });
+
+    const actual = new TranslationPathResolver(config).resolve(Bun.file('resources/en/readme.md'), language('es'));
+
+    expect(actual).toBe('/translated/resources/en/es/readme.md');
+  });
+
+  test('collapses the separator left by %original_path% for a top-level source file', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/readme.md`, 'readme');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/*.md',
+          translation: '/translated/%original_path%/%two_letters_code%/%original_file_name%',
+        },
+      ],
+    });
+
+    const actual = new TranslationPathResolver(config).resolve(Bun.file('readme.md'), language('es'));
+
+    expect(actual).toBe('/translated/es/readme.md');
+  });
 });
 
 function language(id: string) {

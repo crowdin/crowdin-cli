@@ -1,7 +1,7 @@
 import { describe, expect, test } from 'bun:test';
 import { SourceFilesModel } from '@crowdin/crowdin-api-client';
 import { type Config, ConfigSchema } from '@/lib/config.ts';
-import { buildExportOptions, buildImportOptions } from '@/lib/upload/fileOptions.ts';
+import { buildExportOptions, buildImportOptions, prepareDest, resolveContextPath } from '@/lib/upload/fileOptions.ts';
 
 function fileConfig(overrides: Record<string, unknown> = {}) {
   const config = ConfigSchema.parse({
@@ -119,5 +119,21 @@ describe('buildImportOptions', () => {
 
   test('returns undefined when no relevant options are configured', () => {
     expect(buildImportOptions('src/app.json', fileConfig())).toBeUndefined();
+  });
+});
+
+describe('%original_path%', () => {
+  test('prepareDest resolves it to the parent directory', () => {
+    expect(prepareDest('/out/%original_path%/%original_file_name%', 'src/nested/app.json')).toBe(
+      'out/src/nested/app.json',
+    );
+  });
+
+  test('prepareDest collapses the separator for a top-level source file', () => {
+    expect(prepareDest('/out/%original_path%/%original_file_name%', 'app.json')).toBe('out/app.json');
+  });
+
+  test('resolveContextPath resolves it to the parent directory', () => {
+    expect(resolveContextPath('context/%original_path%.md', 'src/nested/app.json')).toBe('context/src/nested.md');
   });
 });

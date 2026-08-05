@@ -6,7 +6,7 @@ import { containsLanguagePlaceholder, languagePlaceholderValue } from '../export
 import { fileExtension, fileName, filePatterns, originalFileName, originalPath } from '../export/patterns.ts';
 import { prepareDest } from '../upload/fileOptions.ts';
 import { replaceDoubleAsterisk } from '../utils/doubleAsterisk.ts';
-import { toPosixPath } from '../utils/path.ts';
+import { collapseSeparators, toPosixPath } from '../utils/path.ts';
 
 type FileConfig = Config['files'][number];
 
@@ -90,8 +90,10 @@ export default class TranslationPathResolver {
       pattern = replaceDoubleAsterisk(fileConfig.source, pattern, sourcePath);
     }
 
-    const translationPath = pattern.replaceAll(/%[a-z_]+%/gm, (match: string): string =>
-      this.getValueForExportPattern(match, placeholderPath, language, fileConfig, serverLanguageMapping, serverOnly),
+    const translationPath = collapseSeparators(
+      pattern.replaceAll(/%[a-z_]+%/gm, (match: string): string =>
+        this.getValueForExportPattern(match, placeholderPath, language, fileConfig, serverLanguageMapping, serverOnly),
+      ),
     );
 
     if (serverOnly) {
@@ -105,6 +107,13 @@ export default class TranslationPathResolver {
     return containsLanguagePlaceholder(translation);
   }
 
+  /**
+   * TODO:
+   * ponytail: matches on `source` only and returns the first hit — the group's `ignore` is never
+   * consulted, so a file explicitly ignored by an earlier group can still be resolved through it
+   * (verified against Java 4.15.0 on a live project). Callers that already know the group should
+   * use `resolveWithConfig` instead of re-deriving it here; see deferred upload gaps 7/8.
+   */
   private findFileConfig(file: BunFile): FileConfig {
     for (const patterns of this.config.files) {
       let sourcePattern = patterns.source;
@@ -153,9 +162,9 @@ export default class TranslationPathResolver {
         return path.parse(filePath).base;
       }
 
-      // Full file path
+      // Parent directory of the file, without a trailing separator
       if (exportPattern === originalPath) {
-        return filePath;
+        return path.parse(filePath).dir;
       }
     }
 

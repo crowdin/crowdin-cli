@@ -9,6 +9,10 @@ export function toPosixPath(path: string): string {
   return path.replaceAll('\\', '/');
 }
 
+export function collapseSeparators(path: string): string {
+  return path.replace(/[\\/]+/g, '/');
+}
+
 /**
  * Ensures a Crowdin project path is absolute (leading '/'), the form the API and
  * path comparisons expect.

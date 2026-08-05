@@ -103,6 +103,51 @@ describe('UploadTranslationsCommand', () => {
     );
   });
 
+  test('keeps the full translation path when the configured pattern has no leading slash', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+    await Bun.write(`${tempDir}/es/app.json`, '{}');
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const projectService = {
+      loadProject: mock(async () => ({
+        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
+      })),
+    };
+    const fileService = {
+      ...baseFileServiceMock(),
+      loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+    };
+    const translationService = baseTranslationServiceMock();
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      projectService,
+      storageService,
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+      baseLabelServiceMock(),
+      translationService,
+      { translation: '%two_letters_code%/%original_file_name%' },
+    );
+
+    await command.uploadTranslationsAction(commandContext({}));
+
+    // Regression: the leading segment used to lose its first character ('es/…' -> 's/…').
+    expect(translationService.importProjectTranslation).toHaveBeenCalledWith(
+      10,
+      77,
+      ['es'],
+      'es/app.json',
+      undefined,
+      undefined,
+      undefined,
+      expect.any(Function),
+    );
+    expect(output.warning).not.toHaveBeenCalledWith('File s/app.json does not exist in the specified location');
+  });
+
   test('filters translation upload by language and passes import flags', async () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');

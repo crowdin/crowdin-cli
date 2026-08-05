@@ -11,10 +11,20 @@ const CLI = join(import.meta.dir, '..', '..', 'src-next', 'cli.ts');
 
 let workspace: string;
 
+/**
+ * The child must not inherit CROWDIN_* credentials: Bun auto-loads the repo's `.env` into the test
+ * runner's environment, and the CLI's env fallback layer would then resolve a real project — so a
+ * "no config file" case exits 0 against the live API instead of 2.
+ */
+function cleanEnv(): Record<string, string | undefined> {
+  const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('CROWDIN_')));
+  return { ...env, NO_COLOR: '1' };
+}
+
 async function runCli(args: string[], cwd: string): Promise<number> {
   const proc = Bun.spawn(['bun', CLI, ...args], {
     cwd,
-    env: { ...process.env, NO_COLOR: '1' },
+    env: cleanEnv(),
     stdout: 'ignore',
     stderr: 'ignore',
   });
@@ -25,7 +35,7 @@ async function runCli(args: string[], cwd: string): Promise<number> {
 async function captureCli(args: string[], cwd: string): Promise<string> {
   const proc = Bun.spawn(['bun', CLI, ...args], {
     cwd,
-    env: { ...process.env, NO_COLOR: '1' },
+    env: cleanEnv(),
     stdout: 'pipe',
     stderr: 'pipe',
   });

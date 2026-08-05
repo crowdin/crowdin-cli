@@ -1,4 +1,4 @@
-import { afterAll, afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -783,7 +783,8 @@ describe('DownloadCommand', () => {
         files: [
           {
             source: '/resources/en/*.json',
-            translation: '/translated/%original_path%',
+            // %original_path% is the source file's parent directory, so the file name is added here.
+            translation: '/translated/%original_path%/%original_file_name%',
             dest: '/server/sub/%original_file_name%',
           },
         ],
