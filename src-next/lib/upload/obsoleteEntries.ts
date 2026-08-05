@@ -118,7 +118,7 @@ function matchesPattern(projectPath: string, pattern: string, preserveHierarchy:
     return isPathMatch(projectPath, pattern);
   }
 
-  const segments = (pattern.startsWith('/') ? pattern.slice(1) : pattern).split('/');
+  const segments = stripLeadingSlashes(pattern).split('/');
 
   for (let index = 0; index < segments.length; index++) {
     if (isPathMatch(projectPath, `/${segments.slice(index).join('/')}`)) {

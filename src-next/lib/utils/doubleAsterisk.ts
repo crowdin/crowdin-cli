@@ -1,4 +1,5 @@
 import CliError from '@/cli/errors/CliError.ts';
+import { stripLeadingSlashes } from './path.ts';
 
 /**
  * Substitutes the `**`-matched portion of a source file path into a translation pattern, mirroring
@@ -44,7 +45,7 @@ export function replaceDoubleAsterisk(sourcePattern: string, translationPattern:
           } else if (/[*?[\].]/.test(segment)) {
             const lastSep = file.lastIndexOf('/');
             file = lastSep > 0 ? file.substring(0, lastSep) : '';
-          } else if (noSepAtStart(segment).length > 0 && file.startsWith(noSepAtStart(segment))) {
+          } else if (stripLeadingSlashes(segment).length > 0 && file.startsWith(stripLeadingSlashes(segment))) {
             file = '';
           }
         }
@@ -69,10 +70,6 @@ function regexPath(path: string): string {
     .replaceAll('+', '\\+')
     .replaceAll('[', '\\[')
     .replaceAll(']', '\\]');
-}
-
-function noSepAtStart(path: string): string {
-  return path.replace(/^[\\/]+/, '');
 }
 
 /**

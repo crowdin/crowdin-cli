@@ -2,7 +2,7 @@ import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-c
 import { containsLanguagePlaceholder, resolveLanguagePlaceholders } from '../export/languagePlaceholders.ts';
 import { languageId } from '../export/patterns.ts';
 import { replaceFileDependentPlaceholders } from '../upload/fileOptions.ts';
-import { toPosixPath } from '../utils/path.ts';
+import { stripLeadingSlashes, toPosixPath } from '../utils/path.ts';
 
 interface ProjectFileInfo {
   data: {
@@ -27,22 +27,22 @@ export function buildAllProjectTranslations(
   const result = new Map<string, string[]>();
 
   for (const file of projectFiles) {
-    const sourcePath = stripLeadingSlash(toPosixPath(file.data.path ?? ''));
+    const sourcePath = stripLeadingSlashes(toPosixPath(file.data.path ?? ''));
     const exportPattern = getExportPattern(file.data.exportOptions);
 
     let translations: string[];
 
     if (exportPattern === undefined) {
       // Multilingual file (no export pattern): the file itself plus a per-language copy.
-      const name = stripLeadingSlash(toPosixPath(file.data.name ?? sourcePath));
+      const name = stripLeadingSlashes(toPosixPath(file.data.name ?? sourcePath));
       translations = [
         name,
         ...languages.map((language) =>
-          stripLeadingSlash(resolveLanguagePlaceholders(`${languageId}/${name}`, language, serverLanguageMapping)),
+          stripLeadingSlashes(resolveLanguagePlaceholders(`${languageId}/${name}`, language, serverLanguageMapping)),
         ),
       ];
     } else {
-      let pattern = stripLeadingSlash(toPosixPath(exportPattern));
+      let pattern = stripLeadingSlashes(toPosixPath(exportPattern));
 
       if (!containsLanguagePlaceholder(pattern)) {
         pattern = `${languageId}/${pattern}`;
@@ -50,7 +50,7 @@ export function buildAllProjectTranslations(
 
       const fileResolved = replaceFileDependentPlaceholders(pattern, sourcePath);
       translations = languages.map((language) =>
-        stripLeadingSlash(resolveLanguagePlaceholders(fileResolved, language, serverLanguageMapping)),
+        stripLeadingSlashes(resolveLanguagePlaceholders(fileResolved, language, serverLanguageMapping)),
       );
     }
 
@@ -98,8 +98,4 @@ export function sortOmittedFiles(omittedFiles: string[], allProjectTranslations:
 function getExportPattern(exportOptions: unknown): string | undefined {
   const pattern = (exportOptions as { exportPattern?: string } | undefined)?.exportPattern;
   return pattern ?? undefined;
-}
-
-function stripLeadingSlash(value: string): string {
-  return value.startsWith('/') ? value.slice(1) : value;
 }

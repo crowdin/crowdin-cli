@@ -1,5 +1,5 @@
 import { replaceDoubleAsterisk } from '../utils/doubleAsterisk.ts';
-import { toPosixPath } from '../utils/path.ts';
+import { stripLeadingSlashes, toPosixPath } from '../utils/path.ts';
 
 /**
  * Translates a single source/translation glob pattern (or path segment) into a regex source string,
@@ -30,6 +30,7 @@ export function globToRegex(pattern: string): string {
     }
 
     // Escape regex metacharacters so the rest of the pattern matches literally.
+    // biome-ignore lint/suspicious/noTemplateCurlyInString: not a template literal so no error here
     if ('.+^${}()|[]\\'.includes(char)) {
       result += `\\${char}`;
       continue;
@@ -54,8 +55,8 @@ export function globToRegex(pattern: string): string {
  *   (leading directories are optional), e.g. pattern `a/b/c` matches `c`, `b/c`, or `a/b/c`.
  */
 export function matchesSourcePattern(filePath: string, sourcePattern: string, preserveHierarchy: boolean): boolean {
-  const normalizedPath = stripLeadingSlash(toPosixPath(filePath));
-  const normalizedPattern = stripLeadingSlash(toPosixPath(sourcePattern));
+  const normalizedPath = stripLeadingSlashes(toPosixPath(filePath));
+  const normalizedPattern = stripLeadingSlashes(toPosixPath(sourcePattern));
 
   if (preserveHierarchy) {
     return new RegExp(`^${globToRegex(normalizedPattern)}$`).test(normalizedPath);
@@ -138,8 +139,8 @@ export function matchesManagerSourceFile(
   let matchesFileBean: boolean;
 
   if (fileBean.dest !== undefined) {
-    const destPattern = noSepAtStart(normalizePath(fileBean.dest));
-    matchesFileBean = new RegExp(`^${globToRegex(destPattern)}$`).test(noSepAtStart(normalizePath(filePath)));
+    const destPattern = stripLeadingSlashes(normalizePath(fileBean.dest));
+    matchesFileBean = new RegExp(`^${globToRegex(destPattern)}$`).test(stripLeadingSlashes(normalizePath(filePath)));
   } else {
     // Expand `**` from the project file path, then require the file's export pattern to be a suffix of
     // the resulting translation pattern (mirrors Java DownloadSourcesAction's manager-access filter).
@@ -157,10 +158,6 @@ export function matchesManagerSourceFile(
 
 function normalizePath(value: string): string {
   return value.replace(/[\\/]+/g, '/');
-}
-
-function noSepAtStart(value: string): string {
-  return value.replace(/^[\\/]+/, '');
 }
 
 function baseName(value: string): string {
@@ -193,8 +190,4 @@ export function replaceUnaryAsterisk(sourcePattern: string, projectFile: string)
   }
 
   return parts.join('/');
-}
-
-function stripLeadingSlash(value: string): string {
-  return value.startsWith('/') ? value.slice(1) : value;
 }

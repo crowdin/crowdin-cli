@@ -3,7 +3,7 @@ import { SourceFilesModel, type SourceStringsModel } from '@crowdin/crowdin-api-
 import type { Config } from '@/lib/config.ts';
 import { fileExtension, fileName, originalFileName, originalPath } from '@/lib/export/patterns.ts';
 import { replaceDoubleAsterisk } from '@/lib/utils/doubleAsterisk.ts';
-import { collapseSeparators, toPosixPath } from '@/lib/utils/path.ts';
+import { collapseSeparators, stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 
 type FileConfig = Config['files'][number];
 
@@ -171,7 +171,7 @@ export function replaceFileDependentPlaceholders(pattern: string, localFilePath:
  */
 export function prepareDest(dest: string, localFilePath: string): string {
   const resolved = toPosixPath(replaceFileDependentPlaceholders(dest, localFilePath));
-  return resolved.startsWith('/') ? resolved.slice(1) : resolved;
+  return stripLeadingSlashes(resolved);
 }
 
 /**
