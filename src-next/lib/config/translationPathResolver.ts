@@ -1,12 +1,11 @@
 import path from 'node:path';
 import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
-import { type BunFile, Glob } from 'bun';
 import type { Config } from '../config.ts';
 import { containsLanguagePlaceholder, languagePlaceholderValue } from '../export/languagePlaceholders.ts';
 import { fileExtension, fileName, filePatterns, originalFileName, originalPath } from '../export/patterns.ts';
 import { prepareDest } from '../upload/fileOptions.ts';
 import { replaceDoubleAsterisk } from '../utils/doubleAsterisk.ts';
-import { collapseSeparators, toPosixPath } from '../utils/path.ts';
+import { collapseSeparators } from '../utils/path.ts';
 
 type FileConfig = Config['files'][number];
 
@@ -16,176 +15,125 @@ export interface ResolveOptions {
    * language mapping only (ignore per-file `languages_mapping`) and skip `translation_replace`.
    */
   serverOnly?: boolean;
-  /** The group's `dest`, used to place file-dependent placeholders at the server location. */
+  /**
+   * The group's `dest`, which moves file-dependent placeholders to the server location.
+   *
+   * Only meaningful together with `serverOnly`. Java resolves the archive key
+   * (`translationProject2`) from `prepareDest(dest, file)` but always resolves the *local* path
+   * (`translationFile2`) from the source path, so passing `dest` without `serverOnly` would give a
+   * local path the server's placeholder values.
+   */
   dest?: string;
   /** When false and `serverOnly` is set, `%original_path%` is dropped from the archive key. */
   preserveHierarchy?: boolean;
 }
 
-export default class TranslationPathResolver {
-  private config: Config;
+/**
+ * Resolves a translation path for one source file against the file group it belongs to.
+ *
+ * The group is a parameter, not something derived here. Deriving it — by finding the first group
+ * whose `source` glob matches — silently used the wrong group's `translation` for a file that
+ * several groups match, and ignored each group's `ignore` while doing it.
+ */
+export function resolveTranslationPath(
+  fileConfig: FileConfig,
+  sourcePath: string,
+  language: LanguagesModel.Language,
+  serverLanguageMapping?: ProjectsGroupsModel.LanguageMapping,
+  options?: ResolveOptions,
+): string {
+  const serverOnly = options?.serverOnly ?? false;
 
-  constructor(config: Config) {
-    this.config = config;
-  }
+  // File-dependent placeholders are normally resolved from the source path. For the server
+  // export path of a `dest`-configured group they are resolved from the dest location instead
+  // (mirrors Java's DownloadAction.doTranslationMapping).
+  let placeholderPath = sourcePath;
+  let pattern = fileConfig.translation;
+  // When `dest` replaces the pattern entirely it is used verbatim (no `**` expansion), mirroring
+  // Java's dest branch in doTranslationMapping.
+  let usingDest = false;
 
-  canResolve(file: BunFile): boolean {
-    try {
-      this.findFileConfig(file);
-      return true;
-    } catch {
-      return false;
+  if (options?.dest) {
+    placeholderPath = prepareDest(options.dest, placeholderPath);
+
+    if (!containsLanguagePlaceholder(fileConfig.translation)) {
+      pattern = options.dest;
+      usingDest = true;
     }
   }
 
-  resolve(
-    file: BunFile,
-    language: LanguagesModel.Language,
-    serverLanguageMapping?: ProjectsGroupsModel.LanguageMapping,
-    options?: ResolveOptions,
-  ): string {
-    const fileConfig = this.findFileConfig(file);
-
-    return this.resolveWithConfig(fileConfig, file.name ?? '', language, serverLanguageMapping, options);
+  if (serverOnly && options?.preserveHierarchy === false) {
+    pattern = pattern.replaceAll(originalPath, '');
   }
 
-  /**
-   * Resolves a translation path against an explicit file group, bypassing the disk-scan file lookup.
-   * Needed for `--all` server-only sources that have no local file to match against.
-   */
-  resolveWithConfig(
-    fileConfig: FileConfig,
-    sourcePath: string,
-    language: LanguagesModel.Language,
-    serverLanguageMapping?: ProjectsGroupsModel.LanguageMapping,
-    options?: ResolveOptions,
-  ): string {
-    const serverOnly = options?.serverOnly ?? false;
-
-    // File-dependent placeholders are normally resolved from the source path. For the server
-    // export path of a `dest`-configured group they are resolved from the dest location instead
-    // (mirrors Java's DownloadAction.doTranslationMapping).
-    let placeholderPath = sourcePath;
-    let pattern = fileConfig.translation;
-    // When `dest` replaces the pattern entirely it is used verbatim (no `**` expansion), mirroring
-    // Java's dest branch in doTranslationMapping.
-    let usingDest = false;
-
-    if (options?.dest) {
-      placeholderPath = prepareDest(options.dest, placeholderPath);
-
-      if (!this.translationHasLanguagePlaceholder(fileConfig.translation)) {
-        pattern = options.dest;
-        usingDest = true;
-      }
-    }
-
-    if (serverOnly && options?.preserveHierarchy === false) {
-      pattern = pattern.replaceAll(originalPath, '');
-    }
-
-    // Substitute the `**`-matched subpath into the (translation-derived) pattern before resolving
-    // placeholders, mirroring Java's TranslationsUtils.replaceDoubleAsterisk.
-    if (!usingDest) {
-      pattern = replaceDoubleAsterisk(fileConfig.source, pattern, sourcePath);
-    }
-
-    const translationPath = collapseSeparators(
-      pattern.replaceAll(/%[a-z_]+%/gm, (match: string): string =>
-        this.getValueForExportPattern(match, placeholderPath, language, fileConfig, serverLanguageMapping, serverOnly),
-      ),
-    );
-
-    if (serverOnly) {
-      return translationPath;
-    }
-
-    return this.applyTranslationReplace(translationPath, fileConfig.translation_replace);
+  // Substitute the `**`-matched subpath into the (translation-derived) pattern before resolving
+  // placeholders, mirroring Java's TranslationsUtils.replaceDoubleAsterisk.
+  if (!usingDest) {
+    pattern = replaceDoubleAsterisk(fileConfig.source, pattern, sourcePath);
   }
 
-  private translationHasLanguagePlaceholder(translation: string): boolean {
-    return containsLanguagePlaceholder(translation);
+  const translationPath = collapseSeparators(
+    pattern.replaceAll(/%[a-z_]+%/gm, (match: string): string =>
+      getValueForExportPattern(match, placeholderPath, language, fileConfig, serverLanguageMapping, serverOnly),
+    ),
+  );
+
+  if (serverOnly) {
+    return translationPath;
   }
 
-  /**
-   * TODO:
-   * ponytail: matches on `source` only and returns the first hit — the group's `ignore` is never
-   * consulted, so a file explicitly ignored by an earlier group can still be resolved through it
-   * (verified against Java 4.15.0 on a live project). Callers that already know the group should
-   * use `resolveWithConfig` instead of re-deriving it here; see deferred upload gaps 7/8.
-   */
-  private findFileConfig(file: BunFile): FileConfig {
-    for (const patterns of this.config.files) {
-      let sourcePattern = patterns.source;
-      if (sourcePattern.startsWith('/')) {
-        sourcePattern = sourcePattern.slice(1);
-      }
+  return applyTranslationReplace(translationPath, fileConfig.translation_replace);
+}
 
-      const glob = new Glob(sourcePattern);
-      const files = glob.scanSync({
-        cwd: this.config.basePath,
-        onlyFiles: true,
-      });
+function getValueForExportPattern(
+  exportPattern: string,
+  filePath: string,
+  language: LanguagesModel.Language,
+  fileConfig: FileConfig,
+  serverLanguageMapping?: ProjectsGroupsModel.LanguageMapping,
+  serverOnly = false,
+): string {
+  if (filePatterns.includes(exportPattern)) {
+    // Crowdin paths are posix, so parse them as posix regardless of the host OS.
+    const parsed = path.posix.parse(filePath);
 
-      const normalizedFileName = file.name ? toPosixPath(file.name) : undefined;
-
-      for (const filePath of files) {
-        if (toPosixPath(filePath) === normalizedFileName) {
-          return patterns;
-        }
-      }
+    if (exportPattern === fileExtension) {
+      return parsed.ext.slice(1);
     }
 
-    throw new Error('Translation export pattern was not found');
+    // File name without extension
+    if (exportPattern === fileName) {
+      return parsed.name;
+    }
+
+    // File name with extension
+    if (exportPattern === originalFileName) {
+      return parsed.base;
+    }
+
+    // Parent directory of the file, without a trailing separator
+    if (exportPattern === originalPath) {
+      return parsed.dir;
+    }
   }
 
-  private getValueForExportPattern(
-    exportPattern: string,
-    filePath: string,
-    language: LanguagesModel.Language,
-    fileConfig: FileConfig,
-    serverLanguageMapping?: ProjectsGroupsModel.LanguageMapping,
-    serverOnly = false,
-  ): string {
-    if (filePatterns.includes(exportPattern)) {
-      if (exportPattern === fileExtension) {
-        return path.parse(filePath).ext.slice(1);
-      }
+  return languagePlaceholderValue(
+    exportPattern,
+    language,
+    serverLanguageMapping,
+    serverOnly ? undefined : fileConfig.languages_mapping,
+  );
+}
 
-      // File name without extension
-      if (exportPattern === fileName) {
-        return path.parse(filePath).name;
-      }
-
-      // File name with extension
-      if (exportPattern === originalFileName) {
-        return path.parse(filePath).base;
-      }
-
-      // Parent directory of the file, without a trailing separator
-      if (exportPattern === originalPath) {
-        return path.parse(filePath).dir;
-      }
-    }
-
-    return languagePlaceholderValue(
-      exportPattern,
-      language,
-      serverLanguageMapping,
-      serverOnly ? undefined : fileConfig.languages_mapping,
-    );
+function applyTranslationReplace(translationPath: string, translationReplace?: Record<string, string>): string {
+  if (!translationReplace) {
+    return translationPath;
   }
 
-  private applyTranslationReplace(translationPath: string, translationReplace?: Record<string, string>): string {
-    if (!translationReplace) {
-      return translationPath;
-    }
-
-    let result = translationPath;
-    for (const [search, replacement] of Object.entries(translationReplace)) {
-      result = result.replaceAll(search, replacement);
-    }
-
-    return result;
+  let result = translationPath;
+  for (const [search, replacement] of Object.entries(translationReplace)) {
+    result = result.replaceAll(search, replacement);
   }
+
+  return result;
 }

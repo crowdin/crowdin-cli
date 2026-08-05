@@ -1,5 +1,6 @@
 import { describe, expect, test } from 'bun:test';
-import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
+import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
+
 import { ConfigSchema } from '@/lib/config.ts';
 
 describe('translation path resolver', () => {
@@ -62,6 +63,7 @@ describe('translation path resolver', () => {
             },
           ],
         }),
+        groupIndex: 1,
         file: {
           path: 'resources/emails/en/welcome.md',
         },
@@ -124,8 +126,9 @@ describe('translation path resolver', () => {
     await Bun.write(`${basePath}/resources/en/readme.md`, 'readme');
     await Bun.write(`${basePath}/resources/emails/en/welcome.md`, 'welcome');
 
-    for (const { config, file, language, expected } of dataProvider) {
-      const actual = new TranslationPathResolver(config).resolve(Bun.file(file.path), language as never);
+    for (const { config, file, language, expected, groupIndex = 0 } of dataProvider) {
+      // The caller owns group selection now, so each case names the group its file belongs to.
+      const actual = resolveTranslationPath(config.files[groupIndex] as never, file.path, language as never);
 
       expect(actual).toBe(expected);
     }
@@ -156,17 +159,16 @@ describe('translation path resolver', () => {
       osxLocale: 'es',
       editorCode: 'es',
     } as never;
-    const resolver = new TranslationPathResolver(config);
     const fileConfig = config.files[0] as never;
 
     // Local destination expands ** to the matched subpath 'sub'.
-    expect(resolver.resolveWithConfig(fileConfig, 'resources/en/sub/readme.md', language, undefined)).toBe(
+    expect(resolveTranslationPath(fileConfig, 'resources/en/sub/readme.md', language, undefined)).toBe(
       '/resources/es/sub/readme.md',
     );
 
     // Server/archive path (serverOnly) expands ** the same way.
     expect(
-      resolver.resolveWithConfig(fileConfig, 'resources/en/sub/readme.md', language, undefined, {
+      resolveTranslationPath(fileConfig, 'resources/en/sub/readme.md', language, undefined, {
         serverOnly: true,
         preserveHierarchy: true,
       }),
@@ -196,7 +198,7 @@ describe('translation path resolver', () => {
       ],
     });
 
-    const actual = new TranslationPathResolver(config).resolve(Bun.file('resources/en/readme.md'), language('es'));
+    const actual = resolveTranslationPath(config.files[0] as never, 'resources/en/readme.md', language('es'));
 
     expect(actual).toBe('/resources/es-custom/readme.md');
   });
@@ -220,8 +222,9 @@ describe('translation path resolver', () => {
     });
 
     const serverMapping = { es: { two_letters_code: 'es-server' } } as never;
-    const actual = new TranslationPathResolver(config).resolve(
-      Bun.file('resources/en/readme.md'),
+    const actual = resolveTranslationPath(
+      config.files[0] as never,
+      'resources/en/readme.md',
       language('es'),
       serverMapping,
     );
@@ -249,8 +252,9 @@ describe('translation path resolver', () => {
     });
 
     const serverMapping = { es: { two_letters_code: 'es-server' } } as never;
-    const actual = new TranslationPathResolver(config).resolve(
-      Bun.file('resources/en/readme.md'),
+    const actual = resolveTranslationPath(
+      config.files[0] as never,
+      'resources/en/readme.md',
       language('es'),
       serverMapping,
     );
@@ -279,7 +283,7 @@ describe('translation path resolver', () => {
       ],
     });
 
-    const actual = new TranslationPathResolver(config).resolve(Bun.file('resources/en/readme.md'), language('es'));
+    const actual = resolveTranslationPath(config.files[0] as never, 'resources/en/readme.md', language('es'));
 
     expect(actual).toBe('/resources/es/guide.md');
   });
@@ -302,7 +306,7 @@ describe('translation path resolver', () => {
       ],
     });
 
-    const actual = new TranslationPathResolver(config).resolve(Bun.file('resources/en/readme.md'), language('es'));
+    const actual = resolveTranslationPath(config.files[0] as never, 'resources/en/readme.md', language('es'));
 
     expect(actual).toBe('/translated/resources/en/es/readme.md');
   });
@@ -325,7 +329,7 @@ describe('translation path resolver', () => {
       ],
     });
 
-    const actual = new TranslationPathResolver(config).resolve(Bun.file('readme.md'), language('es'));
+    const actual = resolveTranslationPath(config.files[0] as never, 'readme.md', language('es'));
 
     expect(actual).toBe('/translated/es/readme.md');
   });

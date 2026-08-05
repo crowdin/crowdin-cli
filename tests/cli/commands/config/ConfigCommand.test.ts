@@ -238,7 +238,11 @@ describe('ConfigCommand translations', () => {
     mock.restore();
   });
 
-  const run = async (project: unknown, options: Partial<GlobalOptions & { tree: boolean }> = {}) => {
+  const run = async (
+    project: unknown,
+    options: Partial<GlobalOptions & { tree: boolean }> = {},
+    files: unknown[] = [{ source: '/**/*.json', translation: '/l/%two_letters_code%/%original_file_name%' }],
+  ) => {
     spyOn(projectService, 'loadProject').mockResolvedValue(project as never);
 
     const config = (): ProjectConfig =>
@@ -247,7 +251,7 @@ describe('ConfigCommand translations', () => {
         apiToken: 'a'.repeat(80),
         basePath: tempDir,
         baseUrl: 'https://api.crowdin.com',
-        files: [{ source: '/**/*.json', translation: '/l/%two_letters_code%/%original_file_name%' }],
+        files,
       }) as ProjectConfig;
     const table = spyOn(output, 'table');
     const warning = spyOn(output, 'warning');
@@ -270,6 +274,42 @@ describe('ConfigCommand translations', () => {
     const { table } = await run(managerProject);
 
     expect(table).toHaveBeenCalledWith([
+      { file: 'l/ie/a.json' },
+      { file: 'l/ie/b.json' },
+      { file: 'l/uk/a.json' },
+      { file: 'l/uk/b.json' },
+    ]);
+  });
+
+  // Java DryrunTranslations resolves each group's own sources against that group's `translation`.
+  test('lists a path per group when two groups match the same file', async () => {
+    const { table } = await run(managerProject, {}, [
+      { source: '/**/*.json', translation: '/l/%two_letters_code%/%original_file_name%' },
+      { source: '/a.json', translation: '/second/%two_letters_code%/%original_file_name%' },
+    ]);
+
+    expect(table).toHaveBeenCalledWith([
+      { file: 'l/ie/a.json' },
+      { file: 'l/ie/b.json' },
+      { file: 'l/uk/a.json' },
+      { file: 'l/uk/b.json' },
+      { file: 'second/ie/a.json' },
+      { file: 'second/uk/a.json' },
+    ]);
+  });
+
+  test('resolves a file through the group that owns it, not one that ignores it', async () => {
+    await Bun.write(join(tempDir, 'emails', 'welcome.json'), '{}');
+
+    const { table } = await run(managerProject, {}, [
+      { source: '/**/*.json', ignore: ['/emails/**'], translation: '/l/%two_letters_code%/%original_file_name%' },
+      { source: '/emails/**/*.json', translation: '/emails/%two_letters_code%/%original_file_name%' },
+    ]);
+
+    // The first group ignores it, so it must not appear under `l/`.
+    expect(table).toHaveBeenCalledWith([
+      { file: 'emails/ie/welcome.json' },
+      { file: 'emails/uk/welcome.json' },
       { file: 'l/ie/a.json' },
       { file: 'l/ie/b.json' },
       { file: 'l/uk/a.json' },

@@ -9,7 +9,7 @@ import type { CommandDef } from '@/cli/types.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
 import FileNotFoundError from '@/lib/common/errors/FileNotFoundError.ts';
 import SourceFileLoader, { commonPath } from '@/lib/config/sourceFileLoader.ts';
-import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
+import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
 import { stripLeadingSlashes } from '@/lib/utils/path.ts';
 
@@ -112,16 +112,33 @@ export default class ConfigCommand {
       languages.push(settings.inContextPseudoLanguage);
     }
 
-    const translationPathResolver = new TranslationPathResolver(config);
-    const sourceFilePaths = new SourceFileLoader(config).getFilePaths();
+    const sourceFileLoader = new SourceFileLoader(config);
     const translationFilePaths = new Set<string>();
 
-    for (const targetLanguage of languages) {
+    // Java DryrunTranslations.getFiles flat-maps over the file groups, resolving each group's own
+    // sources against that group's `translation`, then de-duplicates. Iterating the deduped union of
+    // sources instead would collapse a file matched by two groups into whichever group came first.
+    for (const patterns of config.files) {
+      // biome-ignore format: manual formatting looks better
+      const sourceFilePaths = sourceFileLoader.getFilePathsForPattern(
+        patterns.source,
+        patterns.ignore,
+        {
+          languages,
+          serverLanguageMapping,
+          fileLanguageMapping: patterns.languages_mapping,
+        },
+      );
+
       for (const sourceFilePath of sourceFilePaths) {
-        const filePath = stripLeadingSlashes(
-          translationPathResolver.resolve(Bun.file(sourceFilePath), targetLanguage, serverLanguageMapping),
-        );
-        translationFilePaths.add(filePath);
+        for (const targetLanguage of languages) {
+          // The resolved path only has a leading slash when the configured pattern does.
+          translationFilePaths.add(
+            stripLeadingSlashes(
+              resolveTranslationPath(patterns, sourceFilePath, targetLanguage, serverLanguageMapping),
+            ),
+          );
+        }
       }
     }
 

@@ -148,6 +148,76 @@ describe('UploadTranslationsCommand', () => {
     expect(output.warning).not.toHaveBeenCalledWith('File s/app.json does not exist in the specified location');
   });
 
+  test('uploads a translation through the group that owns the source, not one that ignores it', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+    await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
+    await Bun.write(`${tempDir}/emails/welcome.json`, '{}');
+    await Bun.write(`${tempDir}/emails/es/welcome.json`, '{}');
+
+    const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
+    const projectService = {
+      loadProject: mock(async () => ({
+        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
+      })),
+    };
+    const fileService = {
+      ...baseFileServiceMock(),
+      loadProjectFiles: mock(async () => ({
+        data: [{ data: { id: 55, path: '/src/app.json' } }, { data: { id: 77, path: '/emails/welcome.json' } }],
+      })),
+    };
+    const translationService = baseTranslationServiceMock();
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      projectService,
+      storageService,
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      fileService,
+      baseLabelServiceMock(),
+      translationService,
+      {},
+      {
+        files: [
+          // The first group would match emails/welcome.json by `source` alone, but ignores it.
+          {
+            source: '/**/*.json',
+            ignore: ['/emails/**', '/locale/**'],
+            translation: '/locale/%two_letters_code%/%original_file_name%',
+          },
+          { source: '/emails/*.json', translation: '/emails/%two_letters_code%/%original_file_name%' },
+        ],
+      },
+    );
+
+    await command.uploadTranslationsAction(commandContext({}));
+
+    // Regression: the group was re-derived per file by `source` glob only, so the ignoring group won
+    // and the translation was uploaded from locale/es/welcome.json instead.
+    expect(translationService.importProjectTranslation).toHaveBeenCalledWith(
+      10,
+      77,
+      ['es'],
+      'emails/es/welcome.json',
+      undefined,
+      undefined,
+      undefined,
+      expect.any(Function),
+    );
+    expect(translationService.importProjectTranslation).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      'locale/es/welcome.json',
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+      expect.anything(),
+    );
+  });
+
   test('filters translation upload by language and passes import flags', async () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');

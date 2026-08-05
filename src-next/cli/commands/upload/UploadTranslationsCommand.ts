@@ -17,7 +17,7 @@ import type {
 import { printFileTree } from '@/cli/utils/fileTree.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
-import TranslationPathResolver from '@/lib/config/translationPathResolver.ts';
+import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
 import { languagePatterns } from '@/lib/export/patterns.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
@@ -64,7 +64,6 @@ export default class UploadTranslationsCommand {
     const branchService = await this.getBranchService(command);
     const fileService = await this.getFileService(command);
     const translationService = await this.getTranslationService(command);
-    const translationPathResolver = new TranslationPathResolver(config);
 
     assertFilesConfigured(config);
 
@@ -86,7 +85,6 @@ export default class UploadTranslationsCommand {
         branchService,
         storageService,
         translationService,
-        translationPathResolver,
         targetLanguages,
         serverLanguageMapping,
       );
@@ -107,7 +105,6 @@ export default class UploadTranslationsCommand {
     const { entries, hasErrors: entriesHaveErrors } = this.buildTranslationEntries(
       config,
       sourceFileLoader,
-      translationPathResolver,
       targetLanguages,
       serverLanguageMapping,
       output,
@@ -188,7 +185,6 @@ export default class UploadTranslationsCommand {
   private buildTranslationEntries(
     config: Config,
     sourceFileLoader: SourceFileLoader,
-    translationPathResolver: TranslationPathResolver,
     targetLanguages: LanguagesModel.Language[],
     serverLanguageMapping: ProjectsGroupsModel.LanguageMapping | undefined,
     output: Output,
@@ -214,12 +210,6 @@ export default class UploadTranslationsCommand {
       const commonPath = config.preserveHierarchy ? '' : getCommonPath(localSourcePaths);
 
       for (const localSourcePath of localSourcePaths) {
-        const sourceFile = Bun.file(localSourcePath);
-
-        if (!translationPathResolver.canResolve(sourceFile)) {
-          continue;
-        }
-
         let fileId: number | undefined;
 
         if (resolveFileId) {
@@ -242,7 +232,7 @@ export default class UploadTranslationsCommand {
 
         if (isMultilingual) {
           const translationPath = stripLeadingSlashes(
-            translationPathResolver.resolve(sourceFile, firstLanguage, serverLanguageMapping),
+            resolveTranslationPath(patterns, localSourcePath, firstLanguage, serverLanguageMapping),
           );
           entries.push({
             translationPath,
@@ -255,7 +245,7 @@ export default class UploadTranslationsCommand {
 
         for (const targetLanguage of targetLanguages) {
           const translationPath = stripLeadingSlashes(
-            translationPathResolver.resolve(sourceFile, targetLanguage, serverLanguageMapping),
+            resolveTranslationPath(patterns, localSourcePath, targetLanguage, serverLanguageMapping),
           );
           entries.push({
             translationPath,
@@ -293,7 +283,6 @@ export default class UploadTranslationsCommand {
     branchService: Awaited<ReturnType<GetBranchService>>,
     storageService: Awaited<ReturnType<GetStorageService>>,
     translationService: Awaited<ReturnType<GetTranslationService>>,
-    translationPathResolver: TranslationPathResolver,
     targetLanguages: LanguagesModel.Language[],
     serverLanguageMapping?: ProjectsGroupsModel.LanguageMapping,
   ) {
@@ -307,7 +296,6 @@ export default class UploadTranslationsCommand {
     const { entries } = this.buildTranslationEntries(
       config,
       sourceFileLoader,
-      translationPathResolver,
       targetLanguages,
       serverLanguageMapping,
       output,
