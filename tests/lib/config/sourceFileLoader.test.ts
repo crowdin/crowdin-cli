@@ -3,7 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
-import SourceFileLoader, { commonPath } from '@/lib/config/sourceFileLoader.ts';
+import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
 import { type Config, ConfigSchema } from '@/lib/config.ts';
 
 function buildConfig(
@@ -27,33 +27,6 @@ function buildConfig(
   });
 }
 
-describe('commonPath', () => {
-  test('returns the shared parent directory with a trailing slash', () => {
-    expect(commonPath(['src/foo/a.json', 'src/foo/b.json'])).toBe('src/foo/');
-  });
-
-  test('trims back to the last separator when files diverge inside a directory', () => {
-    expect(commonPath(['src/foo/a.json', 'src/bar/b.json'])).toBe('src/');
-  });
-
-  test('does not strip a partial directory-name match', () => {
-    // Raw string prefix is "src/foo", but it must trim to "src/" so "foobar" is not cut mid-name.
-    expect(commonPath(['src/foo/a.json', 'src/foobar/b.json'])).toBe('src/');
-  });
-
-  test('returns the directory of a single file', () => {
-    expect(commonPath(['src/foo/a.json'])).toBe('src/foo/');
-  });
-
-  test('returns empty string for top-level files with no shared directory', () => {
-    expect(commonPath(['a.json', 'b.json'])).toBe('');
-  });
-
-  test('returns empty string for no files', () => {
-    expect(commonPath([])).toBe('');
-  });
-});
-
 describe('SourceFileLoader', () => {
   let tempDir: string;
 
@@ -65,38 +38,36 @@ describe('SourceFileLoader', () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
-  describe('expandFilePlaceholders', () => {
-    test('passes through patterns without file placeholders', () => {
+  // Exercised through the public API: file placeholders in `ignore` are expanded per scanned
+  // source file (Java PlaceholderUtil.format), so a pattern can match files it names indirectly.
+  describe('file placeholders in ignore patterns', () => {
+    test('passes through patterns without file placeholders', async () => {
+      await Bun.write(`${tempDir}/a/app.json`, '{}');
+      await Bun.write(`${tempDir}/a/skip.json`, '{}');
+
       const loader = new SourceFileLoader(buildConfig(tempDir, {}));
 
-      expect(loader.expandFilePlaceholders(['**/skip.json'], ['a/app.json'])).toEqual(['**/skip.json']);
+      expect(loader.getFilePathsForPattern('/**/*.json', ['**/skip.json'])).toEqual(['a/app.json']);
     });
 
-    test('expands each file placeholder per source file', () => {
+    test('expands each file placeholder per source file', async () => {
+      await Bun.write(`${tempDir}/res/values/strings.xml`, '<x/>');
+      await Bun.write(`${tempDir}/res/values/other.xml`, '<x/>');
+
       const loader = new SourceFileLoader(buildConfig(tempDir, {}));
 
-      expect(
-        loader
-          .expandFilePlaceholders(
-            ['%original_path%/%file_name%.%file_extension%', '**/%original_file_name%'],
-            ['res/values/strings.xml'],
-          )
-          .sort(),
-      ).toEqual(['**/strings.xml', 'res/values/strings.xml']);
+      // The pattern rebuilds each file's own path, so every scanned file ignores itself.
+      expect(loader.getFilePathsForPattern('/**/*.xml', ['%original_path%/%file_name%.%file_extension%'])).toEqual([]);
     });
 
-    test('resolves %original_path% to empty for top-level files', () => {
+    test('resolves %original_path% to empty for top-level files', async () => {
+      await Bun.write(`${tempDir}/app.json`, '{}');
+      await Bun.write(`${tempDir}/skip-app.json`, '{}');
+
       const loader = new SourceFileLoader(buildConfig(tempDir, {}));
 
-      expect(loader.expandFilePlaceholders(['%original_path%/skip-%file_name%.json'], ['app.json'])).toEqual([
-        '/skip-app.json',
-      ]);
-    });
-
-    test('drops file-placeholder patterns when there are no source files', () => {
-      const loader = new SourceFileLoader(buildConfig(tempDir, {}));
-
-      expect(loader.expandFilePlaceholders(['**/%file_name%.bak'], [])).toEqual([]);
+      // Expands to '/skip-app.json'; the leading separator must not stop it matching a root file.
+      expect(loader.getFilePathsForPattern('/*.json', ['%original_path%/skip-%file_name%.json'])).toEqual(['app.json']);
     });
   });
 

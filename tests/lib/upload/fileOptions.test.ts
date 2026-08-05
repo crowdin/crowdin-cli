@@ -1,7 +1,13 @@
 import { describe, expect, test } from 'bun:test';
 import { SourceFilesModel } from '@crowdin/crowdin-api-client';
 import { type Config, ConfigSchema } from '@/lib/config.ts';
-import { buildExportOptions, buildImportOptions, prepareDest, resolveContextPath } from '@/lib/upload/fileOptions.ts';
+import {
+  buildExportOptions,
+  buildImportOptions,
+  getCommonPath,
+  prepareDest,
+  resolveContextPath,
+} from '@/lib/upload/fileOptions.ts';
 
 function fileConfig(overrides: Record<string, unknown> = {}) {
   const config = ConfigSchema.parse({
@@ -135,5 +141,32 @@ describe('%original_path%', () => {
 
   test('resolveContextPath resolves it to the parent directory', () => {
     expect(resolveContextPath('context/%original_path%.md', 'src/nested/app.json')).toBe('context/src/nested.md');
+  });
+});
+
+describe('getCommonPath', () => {
+  test('returns the shared parent directory with a trailing slash', () => {
+    expect(getCommonPath(['src/foo/a.json', 'src/foo/b.json'])).toBe('src/foo/');
+  });
+
+  test('trims back to the last separator when files diverge inside a directory', () => {
+    expect(getCommonPath(['src/foo/a.json', 'src/bar/b.json'])).toBe('src/');
+  });
+
+  test('does not strip a partial directory-name match', () => {
+    // Raw string prefix is "src/foo", but it must trim to "src/" so "foobar" is not cut mid-name.
+    expect(getCommonPath(['src/foo/a.json', 'src/foobar/b.json'])).toBe('src/');
+  });
+
+  test('returns the directory of a single file', () => {
+    expect(getCommonPath(['src/foo/a.json'])).toBe('src/foo/');
+  });
+
+  test('returns empty string for top-level files with no shared directory', () => {
+    expect(getCommonPath(['a.json', 'b.json'])).toBe('');
+  });
+
+  test('returns empty string for no files', () => {
+    expect(getCommonPath([])).toBe('');
   });
 });

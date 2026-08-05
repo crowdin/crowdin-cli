@@ -8,9 +8,10 @@ import type { GetConfig, GetLanguageService, GetOutput, GetProjectService } from
 import type { CommandDef } from '@/cli/types.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
 import FileNotFoundError from '@/lib/common/errors/FileNotFoundError.ts';
-import SourceFileLoader, { commonPath } from '@/lib/config/sourceFileLoader.ts';
+import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
 import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
+import { getCommonPath } from '@/lib/upload/fileOptions.ts';
 import { stripLeadingSlashes } from '@/lib/utils/path.ts';
 
 export default class ConfigCommand {
@@ -65,7 +66,7 @@ export default class ConfigCommand {
 
     // With preserve_hierarchy off, Java's DryrunSources strips the files' common parent directory so
     // the listing shows paths relative to it; with it on, the full hierarchy is kept.
-    const prefix = config.preserveHierarchy ? '' : commonPath(localFilePaths);
+    const prefix = config.preserveHierarchy ? '' : getCommonPath(localFilePaths);
     const displayedPaths = localFilePaths
       .map((localFilePath) => (localFilePath.startsWith(prefix) ? localFilePath.slice(prefix.length) : localFilePath))
       .sort();

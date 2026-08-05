@@ -13,27 +13,6 @@ export interface IgnoreLanguageContext {
   fileLanguageMapping?: Record<string, Record<string, string>>;
 }
 
-/**
- * The shared parent directory of all given posix paths, including the trailing slash (or '' when
- * there is none). Mirrors Java SourcesUtils.getCommonPath: take the longest common string prefix,
- * then trim back to the last path separator so a partial file-name match is never stripped.
- */
-export function commonPath(paths: string[]): string {
-  if (paths.length === 0) {
-    return '';
-  }
-
-  let prefix = paths[0] ?? '';
-  for (const value of paths) {
-    while (!value.startsWith(prefix)) {
-      prefix = prefix.slice(0, -1);
-    }
-  }
-
-  const lastSeparator = prefix.lastIndexOf('/');
-  return lastSeparator >= 0 ? prefix.slice(0, lastSeparator + 1) : '';
-}
-
 export default class SourceFileLoader {
   private config: Config;
 
@@ -93,7 +72,7 @@ export default class SourceFileLoader {
    * %file_extension%, %original_file_name% and %original_path% resolve from each source file's
    * path. Patterns without a file placeholder pass through unchanged.
    */
-  expandFilePlaceholders(patterns: string[], files: string[]): string[] {
+  private expandFilePlaceholders(patterns: string[], files: string[]): string[] {
     const expanded = new Set<string>();
 
     for (const pattern of patterns) {
