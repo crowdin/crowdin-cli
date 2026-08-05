@@ -49,6 +49,11 @@ export function stripLeadingSlashes(path: string): string {
   return path.replace(/^[/\\]+/, '');
 }
 
+/** Removes trailing path separators (both '/' and '\\', repeated). */
+export function stripTrailingSlashes(path: string): string {
+  return path.replace(/[/\\]+$/, '');
+}
+
 /**
  * Normalizes a list of project paths to sorted, leading-slash-stripped relatives.
  */

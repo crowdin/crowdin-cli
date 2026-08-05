@@ -1,5 +1,20 @@
 import CliError from '@/cli/errors/CliError.ts';
-import { stripLeadingSlashes } from './path.ts';
+import { collapseSeparators, stripLeadingSlashes, stripTrailingSlashes } from './path.ts';
+
+/*
+ * Java expands `**` two different ways, and this file ports both. They are not interchangeable:
+ *
+ *   replaceDoubleAsterisk    (TranslationsUtils)  - for `translation`/export patterns. Matches the
+ *                                                   file against the group's `source` glob, so its
+ *                                                   result changes with that glob.
+ *   expandDestDoubleAsterisk (PlaceholderUtil)    - for `dest`/`context`, which have no glob to
+ *                                                   match against; works off the file's parent path
+ *                                                   and the pattern's own prefix/postfix.
+ *
+ * Same pattern and file through both: `/out/**\/app.json` + `src/nested/deep/app.json` gives
+ * `/out/nested/deep/app.json` for a `/src/**\/*.json` source, but `out/src/nested/deep/app.json`
+ * for dest. Merging them would break `translation`.
+ */
 
 /**
  * Substitutes the `**`-matched portion of a source file path into a translation pattern, mirroring
@@ -97,4 +112,71 @@ function apacheSubstring(str: string, start: number, end: number): string {
   }
 
   return str.substring(startIndex, endIndex);
+}
+
+/**
+ * Replaces `**` in a resolved `dest`/`context` pattern with the slice of the source file's parent
+ * path that the wildcard stands for, mirroring PlaceholderUtil.java:234-249.
+ *
+ * This is a different algorithm from `replaceDoubleAsterisk` (a port of Java's TranslationsUtils),
+ * which serves `translation` patterns and matches against the `source` glob instead.
+ */
+export function expandDestDoubleAsterisk(pattern: string, localFilePath: string, fileParent: string): string {
+  const prefixFormat = substringBefore(pattern, '**');
+  let after = substringAfter(pattern, '**');
+
+  // Make sure the part after `**` covers the whole tail of the file path, not just a fragment of it.
+  if (after.length > 1 && !localFilePath.endsWith(after) && localFilePath.includes(after)) {
+    const lastIndex = localFilePath.lastIndexOf(after);
+    after = collapseSeparators(`${after}/${localFilePath.slice(lastIndex + after.length)}`);
+  }
+
+  const postfix = parentDirectory(after);
+  // Only trim the prefix off the parent path when the pattern's prefix actually appears in it.
+  const prefix =
+    prefixFormat.length > 1 && localFilePath.includes(prefixFormat)
+      ? substringBefore(fileParent, stripLeadingSlashes(prefixFormat))
+      : '';
+
+  let expanded = removeStart(
+    stripLeadingSlashes(removeStart(fileParent, prefix)),
+    stripTrailingSlashes(stripLeadingSlashes(prefixFormat)),
+  );
+
+  if (postfix.length > 1) {
+    expanded = removeEnd(expanded, stripTrailingSlashes(postfix));
+  }
+
+  // Java's String.replace(CharSequence, CharSequence) substitutes every occurrence, not just the first.
+  return pattern.replaceAll('**', expanded);
+}
+
+// Apache commons-lang semantics, which the ported block above depends on.
+function substringBefore(value: string, separator: string): string {
+  const index = value.indexOf(separator);
+  return index === -1 ? value : value.slice(0, index);
+}
+
+function substringAfter(value: string, separator: string): string {
+  const index = value.indexOf(separator);
+  return index === -1 ? '' : value.slice(index + separator.length);
+}
+
+function removeStart(value: string, remove: string): string {
+  return remove.length > 0 && value.startsWith(remove) ? value.slice(remove.length) : value;
+}
+
+function removeEnd(value: string, remove: string): string {
+  return remove.length > 0 && value.endsWith(remove) ? value.slice(0, -remove.length) : value;
+}
+
+/** Java Utils.getParentDirectory: the parent with a trailing separator, or '/' when there is none. */
+function parentDirectory(value: string): string {
+  const trimmed = stripTrailingSlashes(value);
+
+  if (!trimmed.includes('/')) {
+    return '/';
+  }
+
+  return trimmed.slice(0, trimmed.lastIndexOf('/') + 1);
 }

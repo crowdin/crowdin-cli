@@ -2,7 +2,7 @@ import path from 'node:path';
 import { SourceFilesModel, type SourceStringsModel } from '@crowdin/crowdin-api-client';
 import type { Config } from '@/lib/config.ts';
 import { fileExtension, fileName, originalFileName, originalPath } from '@/lib/export/patterns.ts';
-import { replaceDoubleAsterisk } from '@/lib/utils/doubleAsterisk.ts';
+import { expandDestDoubleAsterisk, replaceDoubleAsterisk } from '@/lib/utils/doubleAsterisk.ts';
 import { collapseSeparators, stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 
 type FileConfig = Config['files'][number];
@@ -137,16 +137,13 @@ export function resolveContextPath(pattern: string, localFilePath: string): stri
  * Substitutes the file-dependent placeholders (`%file_name%`, `%original_path%`, …) in a `dest` or
  * `context` pattern, mirroring Java's PlaceholderUtil.replaceFileDependentPlaceholders.
  *
- * TODO:
- * ponytail: `**` is left literal here; Java (PlaceholderUtil.java:234-249) expands it to the source
- * file's parent path, so `dest: '/out/**\/%original_file_name%'` creates a directory named `**`
- * instead of the nested path. Port that block when a config actually needs `**` in dest/context —
- * note it is a different algorithm from `replaceDoubleAsterisk`, which only serves `translation`.
+ * `localFilePath` is posix and relative to basePath, which is what both callers pass — Java's
+ * `fileParent` is likewise basePath-relative.
  */
 export function replaceFileDependentPlaceholders(pattern: string, localFilePath: string): string {
-  const parsed = path.parse(localFilePath);
+  const parsed = path.posix.parse(localFilePath);
 
-  const resolved = pattern.replaceAll(/%[a-z_]+%/g, (match) => {
+  let resolved = pattern.replaceAll(/%[a-z_]+%/g, (match) => {
     switch (match) {
       case fileExtension:
         return parsed.ext.slice(1);
@@ -161,7 +158,12 @@ export function replaceFileDependentPlaceholders(pattern: string, localFilePath:
     }
   });
 
-  return collapseSeparators(resolved);
+  if (resolved.includes('**')) {
+    resolved = expandDestDoubleAsterisk(resolved, localFilePath, parsed.dir);
+  }
+
+  // Java ends the method by collapsing separator runs and dropping a leading one.
+  return stripLeadingSlashes(collapseSeparators(resolved));
 }
 
 /**
@@ -170,8 +172,8 @@ export function replaceFileDependentPlaceholders(pattern: string, localFilePath:
  * source path and any leading separator is stripped.
  */
 export function prepareDest(dest: string, localFilePath: string): string {
-  const resolved = toPosixPath(replaceFileDependentPlaceholders(dest, localFilePath));
-  return stripLeadingSlashes(resolved);
+  // replaceFileDependentPlaceholders already drops the leading separator, as Java's does.
+  return toPosixPath(replaceFileDependentPlaceholders(dest, localFilePath));
 }
 
 /**
