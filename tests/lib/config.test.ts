@@ -35,6 +35,81 @@ describe('files section optional + guard', () => {
   });
 });
 
+// Java FileBean.populateWithDefaultValues normalizes the file section at config load, so every
+// consumer reads settled values instead of re-deriving them.
+describe('ConfigSchema files[] path normalization (Java FileBean parity)', () => {
+  const parseFile = (overrides: Record<string, unknown>, configOverrides: Record<string, unknown> = {}) =>
+    ConfigSchema.parse({ ...baseConfig(overrides), ...configOverrides }).files[0];
+
+  test('forces a leading slash on translation when it carries a language placeholder', () => {
+    expect(parseFile({ translation: 'locale/%two_letters_code%/%original_file_name%' })?.translation).toBe(
+      '/locale/%two_letters_code%/%original_file_name%',
+    );
+  });
+
+  test('keeps an existing leading slash on translation', () => {
+    expect(parseFile({ translation: '/locale/%locale%/%original_file_name%' })?.translation).toBe(
+      '/locale/%locale%/%original_file_name%',
+    );
+  });
+
+  // The API rejects an exportPattern that starts with '/' unless it carries a language placeholder,
+  // so a multilingual group must not keep one.
+  test('strips the leading slash for a multilingual translation with no language placeholder', () => {
+    expect(parseFile({ translation: '/out/%original_file_name%', multilingual: true })?.translation).toBe(
+      'out/%original_file_name%',
+    );
+  });
+
+  test('strips the leading slash for a scheme-based translation with no language placeholder', () => {
+    expect(
+      parseFile({ translation: '/out/%original_file_name%', scheme: 'identifier,source_phrase' })?.translation,
+    ).toBe('out/%original_file_name%');
+  });
+
+  test('a multilingual group that still has a language placeholder keeps the leading slash', () => {
+    expect(parseFile({ translation: 'out/%locale%/%original_file_name%', multilingual: true })?.translation).toBe(
+      '/out/%locale%/%original_file_name%',
+    );
+  });
+
+  test('collapses separator runs in source, translation, ignore and dest', () => {
+    const file = parseFile(
+      {
+        source: '/src//nested///*.json',
+        translation: '//locale//%locale%//%original_file_name%',
+        ignore: ['/a//b/**'],
+        dest: '/out//%original_file_name%',
+      },
+      { preserveHierarchy: true },
+    );
+
+    expect(file?.source).toBe('/src/nested/*.json');
+    expect(file?.translation).toBe('/locale/%locale%/%original_file_name%');
+    expect(file?.ignore).toEqual(['/a/b/**']);
+    expect(file?.dest).toBe('/out/%original_file_name%');
+  });
+
+  test('leaves the leading slash of source, ignore and dest as written', () => {
+    const hierarchy = { preserveHierarchy: true };
+    const withSlash = parseFile(
+      { source: '/src/*.json', ignore: ['/skip/**'], dest: '/out/%original_file_name%' },
+      hierarchy,
+    );
+    const without = parseFile(
+      { source: 'src/*.json', ignore: ['skip/**'], dest: 'out/%original_file_name%' },
+      hierarchy,
+    );
+
+    expect(withSlash?.source).toBe('/src/*.json');
+    expect(without?.source).toBe('src/*.json');
+    expect(withSlash?.ignore).toEqual(['/skip/**']);
+    expect(without?.ignore).toEqual(['skip/**']);
+    expect(withSlash?.dest).toBe('/out/%original_file_name%');
+    expect(without?.dest).toBe('out/%original_file_name%');
+  });
+});
+
 describe('ConfigSchema files[] parity fields', () => {
   test('parses a config with all new file fields set', () => {
     const config = ConfigSchema.parse(

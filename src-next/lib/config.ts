@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import InvalidConfigurationError from './config/errors/InvalidConfigurationError.ts';
 import { languagePatterns } from './export/patterns.ts';
+import { collapseSeparators, stripLeadingSlashes } from './utils/path.ts';
 
 // Accepted base_url hosts, ported from Java PropertiesBeanUtils.isUrlOfficial / isUrlForTesting.
 const BASE_URL_PATTERNS = [
@@ -71,53 +72,86 @@ export const ConfigSchema = z
     // and the superRefine below always see an array.
     files: z
       .array(
-        z.object({
-          source: z.string().refine((arg) => arg.length > 0, {
-            error: 'source parameter cannot be empty',
-            abort: true,
-          }),
-          ignore: z.array(z.string()).optional(),
-          dest: z.string().optional(),
-          labels: z.array(z.string()).optional(),
-          excluded_target_languages: z.array(z.string()).optional(),
-          translation: z
-            .string()
-            .refine((arg) => arg.length > 0, {
-              error: 'translation parameter cannot be empty',
-              abort: true,
-            })
-            .refine((arg) => !arg.includes('../'), {
-              error: 'translation cannot contain "../"',
+        z
+          .object({
+            source: z.string().refine((arg) => arg.length > 0, {
+              error: 'source parameter cannot be empty',
               abort: true,
             }),
-          type: z.string().optional(),
-          context: z.string().optional(),
-          scheme: z.union([z.string(), z.record(z.string(), z.number())]).optional(),
-          multilingual: coercedBoolean.optional(),
-          // Parsed for Java config parity but inert (Java reads `multilingual` only; this field is never consumed).
-          multilingual_spreadsheet: coercedBoolean.optional(),
-          // Java parity: only the documented config values are accepted, normalized to the API enum.
-          update_option: z
-            .enum(Object.keys(UPDATE_OPTION_MAP) as [keyof typeof UPDATE_OPTION_MAP])
-            .transform((value) => UPDATE_OPTION_MAP[value])
-            .optional(),
-          escape_quotes: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]).optional(),
-          escape_special_characters: z.union([z.literal(0), z.literal(1)]).optional(),
-          export_quotes: z.enum(['single', 'double']).optional(),
-          first_line_contains_header: coercedBoolean.optional(),
-          translate_content: coercedBoolean.optional(),
-          translate_attributes: coercedBoolean.optional(),
-          translatable_elements: z.array(z.string()).optional(),
-          content_segmentation: coercedBoolean.optional(),
-          custom_segmentation: z.string().optional(),
-          import_translations: coercedBoolean.optional(),
-          languages_mapping: z.record(z.string(), z.record(z.string(), z.string())).optional(),
-          translation_replace: z.record(z.string(), z.string()).optional(),
-          skip_untranslated_strings: coercedBoolean.optional(),
-          skip_untranslated_files: coercedBoolean.optional(),
-          export_only_approved: coercedBoolean.optional(),
-          export_strings_that_passed_workflow: coercedBoolean.optional(),
-        }),
+            ignore: z.array(z.string()).optional(),
+            dest: z.string().optional(),
+            labels: z.array(z.string()).optional(),
+            excluded_target_languages: z.array(z.string()).optional(),
+            translation: z
+              .string()
+              .refine((arg) => arg.length > 0, {
+                error: 'translation parameter cannot be empty',
+                abort: true,
+              })
+              .refine((arg) => !arg.includes('../'), {
+                error: 'translation cannot contain "../"',
+                abort: true,
+              }),
+            type: z.string().optional(),
+            context: z.string().optional(),
+            scheme: z.union([z.string(), z.record(z.string(), z.number())]).optional(),
+            multilingual: coercedBoolean.optional(),
+            // Parsed for Java config parity but inert (Java reads `multilingual` only; this field is never consumed).
+            multilingual_spreadsheet: coercedBoolean.optional(),
+            // Java parity: only the documented config values are accepted, normalized to the API enum.
+            update_option: z
+              .enum(Object.keys(UPDATE_OPTION_MAP) as [keyof typeof UPDATE_OPTION_MAP])
+              .transform((value) => UPDATE_OPTION_MAP[value])
+              .optional(),
+            escape_quotes: z.union([z.literal(0), z.literal(1), z.literal(2), z.literal(3)]).optional(),
+            escape_special_characters: z.union([z.literal(0), z.literal(1)]).optional(),
+            export_quotes: z.enum(['single', 'double']).optional(),
+            first_line_contains_header: coercedBoolean.optional(),
+            translate_content: coercedBoolean.optional(),
+            translate_attributes: coercedBoolean.optional(),
+            translatable_elements: z.array(z.string()).optional(),
+            content_segmentation: coercedBoolean.optional(),
+            custom_segmentation: z.string().optional(),
+            import_translations: coercedBoolean.optional(),
+            languages_mapping: z.record(z.string(), z.record(z.string(), z.string())).optional(),
+            translation_replace: z.record(z.string(), z.string()).optional(),
+            skip_untranslated_strings: coercedBoolean.optional(),
+            skip_untranslated_files: coercedBoolean.optional(),
+            export_only_approved: coercedBoolean.optional(),
+            export_strings_that_passed_workflow: coercedBoolean.optional(),
+          })
+          // Java normalizes the file section once, at config load
+          // (FileBean.populateWithDefaultValues); every consumer then reads settled values.
+          .transform((file) => {
+            const translation = collapseSeparators(file.translation);
+            const isMultilingual = file.scheme !== undefined || file.multilingual === true;
+            const hasLanguagePlaceholder = languagePatterns.some((pattern) => translation.includes(pattern));
+
+            const normalized = {
+              ...file,
+              // A leading slash is never load-bearing for source/ignore/dest: every consumer strips
+              // or ignores it, so Java only collapses separator runs and leaves it as written.
+              source: collapseSeparators(file.source),
+              // `translation` becomes the uploaded exportPattern, where the slash *is* load-bearing:
+              // the API rejects an exportPattern starting with '/' unless it carries a language
+              // placeholder, which is exactly the multilingual/scheme case Java strips it for.
+              translation:
+                isMultilingual && !hasLanguagePlaceholder
+                  ? stripLeadingSlashes(translation)
+                  : `/${stripLeadingSlashes(translation)}`,
+            };
+
+            // Assigned rather than spread so both stay optional in the resulting type.
+            if (normalized.ignore) {
+              normalized.ignore = normalized.ignore.map(collapseSeparators);
+            }
+
+            if (normalized.dest !== undefined) {
+              normalized.dest = collapseSeparators(normalized.dest);
+            }
+
+            return normalized;
+          }),
       )
       .default([]),
   })

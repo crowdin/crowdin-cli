@@ -368,13 +368,10 @@ export default class UploadTranslationsCommand {
     return filtered;
   }
 
-  // Java's message.spinner.importing_translations_init: printed for every file, verbose or not.
   private importingMessage(translationPath: string): string {
     return `Importing translations for file '${translationPath}'`;
   }
 
-  // Java's message.spinner.importing_translations_percents, which it only builds under --verbose,
-  // with the import identifier appended.
   private progressMessage(translationPath: string, status: { progress: number; identifier: string }): string {
     return `Importing translations for file '${translationPath}' (${status.progress}%) (${status.identifier})`;
   }
