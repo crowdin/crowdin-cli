@@ -132,6 +132,7 @@ export function createOutputMock() {
     warning: mock(() => undefined),
     error: mock(() => undefined),
     spinner: mock(() => undefined),
+    table: mock(() => undefined),
   };
 }
 

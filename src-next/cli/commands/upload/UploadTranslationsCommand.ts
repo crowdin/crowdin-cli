@@ -108,17 +108,19 @@ export default class UploadTranslationsCommand {
       targetLanguages,
       serverLanguageMapping,
       output,
-      (projectPath) => fileLookup(toProjectPath(projectPath), projectFilePaths)?.id,
+      options.output === 'plain',
+      // Java's dry run (ListTranslationsAction -> DryrunTranslations) resolves translation paths
+      // from local sources only; it never looks the source up in the project.
+      options.dryrun ? undefined : (projectPath) => fileLookup(toProjectPath(projectPath), projectFilePaths)?.id,
     );
 
     if (options.dryrun && options.tree) {
-      printFileTree(await this.existingTranslationPaths(entries, config), output);
+      printFileTree(this.dryRunPaths(entries), output);
       return;
     }
 
     if (options.dryrun && options.output === 'plain') {
-      const paths = toSortedRelativePaths(await this.existingTranslationPaths(entries, config));
-      output.table(paths);
+      output.table(toSortedRelativePaths(this.dryRunPaths(entries)));
       return;
     }
 
@@ -188,6 +190,7 @@ export default class UploadTranslationsCommand {
     targetLanguages: LanguagesModel.Language[],
     serverLanguageMapping: ProjectsGroupsModel.LanguageMapping | undefined,
     output: Output,
+    plainView: boolean,
     resolveFileId?: (projectPath: string) => number | undefined,
   ): { entries: TranslationUploadEntry[]; hasErrors: boolean } {
     const entries: TranslationUploadEntry[] = [];
@@ -217,8 +220,12 @@ export default class UploadTranslationsCommand {
           fileId = resolveFileId(projectPath);
 
           if (fileId === undefined) {
-            // Java treats a source missing from the project as an error and exits non-zero.
-            output.error(`Source file '${localSourcePath}' does not exist in the project`);
+            // Java treats a source missing from the project as an error and exits non-zero, but
+            // keeps the message out of `--plain` so that stream stays parseable.
+            if (!plainView) {
+              output.error(`Source file '${localSourcePath}' does not exist in the project`);
+            }
+
             hasErrors = true;
             continue;
           }
@@ -264,16 +271,12 @@ export default class UploadTranslationsCommand {
     return languagePatterns.some((pattern) => translation.includes(pattern));
   }
 
-  private async existingTranslationPaths(entries: TranslationUploadEntry[], config: Config): Promise<string[]> {
-    const paths: string[] = [];
-
-    for (const entry of entries) {
-      if (await Bun.file(path.join(config.basePath, entry.translationPath)).exists()) {
-        paths.push(entry.translationPath);
-      }
-    }
-
-    return paths;
+  /**
+   * Java's DryrunTranslations passes filesMustExist=false, so a dry run lists every resolved
+   * translation path - including ones with no file on disk yet - de-duplicated.
+   */
+  private dryRunPaths(entries: TranslationUploadEntry[]): string[] {
+    return [...new Set(entries.map((entry) => entry.translationPath))];
   }
 
   private async uploadTranslationsStringsBased(
@@ -299,17 +302,17 @@ export default class UploadTranslationsCommand {
       targetLanguages,
       serverLanguageMapping,
       output,
+      options.output === 'plain',
     );
 
     if (options.dryrun && options.tree) {
-      printFileTree(await this.existingTranslationPaths(entries, config), output);
+      printFileTree(this.dryRunPaths(entries), output);
       return;
     }
 
     // Java DryrunTranslations plain view: bare sorted translation paths, one per line.
     if (options.dryrun && options.output === 'plain') {
-      const paths = toSortedRelativePaths(await this.existingTranslationPaths(entries, config));
-      output.table(paths);
+      output.table(toSortedRelativePaths(this.dryRunPaths(entries)));
       return;
     }
 

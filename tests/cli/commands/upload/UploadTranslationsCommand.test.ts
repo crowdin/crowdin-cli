@@ -591,7 +591,9 @@ describe('UploadTranslationsCommand', () => {
     expect(output.info).toHaveBeenCalledWith('File locale/es/app.json would be queued for translations import');
   });
 
-  test('dry-run reports missing source as error but does not fail the process', async () => {
+  // Java routes --dryrun to ListTranslationsAction -> DryrunTranslations, which resolves paths from
+  // local sources only and never looks the source up in the project.
+  test('dry-run does not check whether the source exists in the project', async () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
     await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
 
@@ -616,11 +618,39 @@ describe('UploadTranslationsCommand', () => {
       translationService,
     );
 
-    // Must not throw under dry-run even though the source is missing from the project.
+    // Must neither throw nor complain, even though the project has no files at all.
     await command.uploadTranslationsAction(commandContext({ dryrun: true }));
 
-    expect(output.error).toHaveBeenCalledWith("Source file 'src/app.json' does not exist in the project");
+    expect(output.error).not.toHaveBeenCalledWith("Source file 'src/app.json' does not exist in the project");
+    expect(output.info).toHaveBeenCalledWith('File locale/es/app.json would be queued for translations import');
     expect(translationService.importProjectTranslation).not.toHaveBeenCalled();
+  });
+
+  test('dry-run lists translation paths that do not exist on disk yet', async () => {
+    await Bun.write(`${tempDir}/src/app.json`, '{}');
+    // Deliberately no locale/es/app.json: Java passes filesMustExist=false, so it is still listed.
+
+    const projectService = {
+      loadProject: mock(async () => ({
+        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
+      })),
+    };
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      projectService,
+      { addStorage: mock(async () => ({ data: { id: 10 } })) },
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      { ...baseFileServiceMock(), loadProjectFiles: mock(async () => ({ data: [] })) },
+      baseLabelServiceMock(),
+      baseTranslationServiceMock(),
+    );
+
+    await command.uploadTranslationsAction(commandContext({ dryrun: true, output: 'plain' }));
+
+    expect(output.table).toHaveBeenCalledWith(['locale/es/app.json']);
   });
 
   test('does nothing when project has no source files', async () => {

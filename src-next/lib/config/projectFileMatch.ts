@@ -21,6 +21,7 @@ export function globToRegex(pattern: string): string {
       } else {
         result += '[^/]+';
       }
+
       continue;
     }
 
@@ -70,6 +71,7 @@ export function matchesSourcePattern(filePath: string, sourcePattern: string, pr
   for (let i = 0; i < segments.length - 1; i++) {
     body = `(${body}${segments[i]}/)?`;
   }
+
   body += segments[segments.length - 1];
 
   return new RegExp(`^${body}$`).test(normalizedPath);
