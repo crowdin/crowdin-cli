@@ -20,7 +20,9 @@ export class DistributionService {
 
   async list(): Promise<DistributionView[]> {
     try {
-      const response = await this.client.distributionsApi.listDistributions(this.projectId);
+      // Java threads limit/offset through executeRequestFullList here, so it returns every
+      // distribution; without withFetchAll this stops at the API's default page size.
+      const response = await this.client.distributionsApi.withFetchAll().listDistributions(this.projectId);
 
       return response.data.map((entry) => entry.data);
     } catch (error) {

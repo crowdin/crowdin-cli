@@ -254,16 +254,29 @@ export default class BundleCommand {
     const zip = new AdmZip(archivePath);
     const entries = zip.getEntries().filter((entry) => !entry.isDirectory);
 
+    // Unlike `download`, which only ever uses archive entry names as lookup keys, this writes them
+    // to disk. AdmZip's getData()/Bun.write pair does no containment checking of its own — Java gets
+    // that from zip4j — so an entry named `../…` would land outside basePath. Checked before the
+    // dry-run branch too, so a dry run reports the same bad archive instead of looking clean.
+    const extractions = entries.map((entry) => {
+      const relativePath = stripLeadingSlashes(toPosixPath(entry.entryName));
+      const targetPath = path.join(config.basePath, relativePath);
+      const relativeToBase = path.relative(config.basePath, targetPath);
+
+      if (relativeToBase.startsWith('..') || path.isAbsolute(relativeToBase)) {
+        throw new CliError(`Archive entry '${entry.entryName}' would be extracted outside the base path`);
+      }
+
+      return { entry, relativePath, targetPath };
+    });
+
     if (options.dryrun) {
       // Dry run lists archive contents without writing anything to disk.
-      for (const entry of entries) {
-        output.log(stripLeadingSlashes(toPosixPath(entry.entryName)));
+      for (const { relativePath } of extractions) {
+        output.log(relativePath);
       }
     } else {
-      for (const entry of entries) {
-        const relativePath = stripLeadingSlashes(toPosixPath(entry.entryName));
-        const targetPath = path.join(config.basePath, relativePath);
-
+      for (const { entry, relativePath, targetPath } of extractions) {
         await mkdir(path.dirname(targetPath), { recursive: true });
         await Bun.write(targetPath, entry.getData());
 

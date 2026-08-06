@@ -331,6 +331,29 @@ describe('BundleCommand', () => {
       expect(bundleService.exportBundle).not.toHaveBeenCalled();
     });
 
+    // adm-zip applies canonical()/sanitize() only inside its own extractAllTo/extractEntryTo; the
+    // raw entryName getter this command reads is unsanitized, so the containment check is ours.
+    // adm-zip's *writer* strips '../', so the hostile name is byte-patched in afterwards — 'XX/'
+    // and '../' are the same length, which keeps the local and central headers valid.
+    test('refuses an archive entry that would extract outside the base path', async () => {
+      const zip = new AdmZip();
+      zip.addFile('XX/escaped.json', Buffer.from('{"pwned":true}'));
+      const patched = Buffer.from(
+        zip.toBuffer().toString('binary').replaceAll('XX/escaped.json', '../escaped.json'),
+        'binary',
+      );
+
+      spyOn(globalThis, 'fetch').mockResolvedValue(new Response(patched));
+
+      const cmd = createBundleCommand(createOutput(textOptions()));
+
+      expect(cmd.downloadAction(createCommandContext(textOptions(), ['5']))).rejects.toThrow(
+        'would be extracted outside the base path',
+      );
+
+      expect(stat(path.join(tempRoot, '..', 'escaped.json'))).rejects.toThrow();
+    });
+
     test('builds, downloads and extracts the bundle, then removes the archive', async () => {
       mockArchive();
 
