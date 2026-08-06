@@ -1,5 +1,5 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { mkdtemp, rm, writeFile } from 'node:fs/promises';
+import { mkdir, mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -110,6 +110,30 @@ describe('exit codes (offline, end-to-end)', () => {
 
     try {
       expect(await runCli(['file', 'list', '--config', join(dir, 'nope.yml')], dir)).toBe(102);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  // Java separates "doesn't exist" (102) from "that's a folder" (2) for both file options
+  // (ConfigurationFilesProperties.getConfigFile / getIdentityFile).
+  test('explicit --config pointing at a directory exits 2 (validation)', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'crowdin-exitcode-configdir-'));
+    await mkdir(join(dir, 'somedir'));
+
+    try {
+      expect(await runCli(['file', 'list', '--config', join(dir, 'somedir')], dir)).toBe(2);
+    } finally {
+      await rm(dir, { recursive: true, force: true });
+    }
+  });
+
+  test('explicit --identity pointing at a directory exits 2 (validation)', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'crowdin-exitcode-identitydir-'));
+    await mkdir(join(dir, 'somedir'));
+
+    try {
+      expect(await runCli(['file', 'list', '--identity', join(dir, 'somedir')], dir)).toBe(2);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

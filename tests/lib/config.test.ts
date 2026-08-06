@@ -229,6 +229,29 @@ describe('ConfigSchema files[] parity fields', () => {
     expect(config.files[0]?.dest).toBe('/foo/strings.json');
   });
 
+  // Java validates both of these at config load (FileBean.checkProperties), so they are validation
+  // errors rather than runtime failures raised later from path resolution.
+  test('rejects ** in translation when source has none', () => {
+    expect(() =>
+      ConfigSchema.parse(baseConfig({ source: '/src/*.json', translation: '/l/**/%locale%/%original_file_name%' })),
+    ).toThrow("The mask '**' can be used in the 'translation' pattern only if it's used in the 'source' pattern");
+  });
+
+  test('accepts ** in translation when source has it too', () => {
+    const config = ConfigSchema.parse(
+      baseConfig({ source: '/src/**/*.json', translation: '/l/**/%locale%/%original_file_name%' }),
+    );
+
+    expect(config.files[0]?.translation).toBe('/l/**/%locale%/%original_file_name%');
+  });
+
+  test.each([
+    '/l/../%locale%/%original_file_name%',
+    '/l/./%locale%/%original_file_name%',
+  ])('rejects a relative path in translation: %p', (translation) => {
+    expect(() => ConfigSchema.parse(baseConfig({ translation }))).toThrow("can't contain any relative paths");
+  });
+
   test('requires a language placeholder when not multilingual', () => {
     expect(() => ConfigSchema.parse(baseConfig({ translation: '/locale/strings.xml' }))).toThrow(
       'should contain at least one language placeholder',

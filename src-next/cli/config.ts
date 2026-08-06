@@ -151,6 +151,8 @@ function hasOption(command: Command, attributeName: string): boolean {
 
 async function resolveConfigPath(explicit: string | undefined): Promise<string> {
   if (explicit) {
+    assertNotDirectory(explicit);
+
     return explicit;
   }
 
@@ -163,6 +165,16 @@ async function resolveConfigPath(explicit: string | undefined): Promise<string> 
   }
 
   return path.join(process.cwd(), DEFAULT_CONFIG_FILES[0]);
+}
+
+// Java separates "file doesn't exist" (NotFoundException, 102) from "you pointed at a folder"
+// (ValidationException, 2) for both --config and --identity (ConfigurationFilesProperties).
+// Bun.file().exists() is false for a directory, so without this an explicitly given directory
+// would exit 102 claiming the path does not exist.
+function assertNotDirectory(filePath: string): void {
+  if (statSync(filePath, { throwIfNoEntry: false })?.isDirectory()) {
+    throw new InvalidConfigurationError('The specified file is a directory');
+  }
 }
 
 function resolveBasePath(basePath: string, configPath: string): string {
@@ -242,6 +254,10 @@ async function identityLayer(
   let identityPath = options.identity;
 
   if (identityPath) {
+    // Java tests `configFile.isDirectory()` here, which is a slip in its own source; check the
+    // identity file the option actually named.
+    assertNotDirectory(identityPath);
+
     if (!(await Bun.file(identityPath).exists())) {
       throw new NotFoundError(`Identity file not found: ${identityPath}`);
     }

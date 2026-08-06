@@ -89,8 +89,9 @@ export const ConfigSchema = z
                 error: 'translation parameter cannot be empty',
                 abort: true,
               })
-              .refine((arg) => !arg.includes('../'), {
-                error: 'translation cannot contain "../"',
+              // Java's PropertiesBuilder.hasRelativePaths rejects both forms, not just '../'.
+              .refine((arg) => !arg.includes('../') && !arg.includes('/./'), {
+                error: "The 'translation' parameter can't contain any relative paths '../' or './'",
                 abort: true,
               }),
             type: z.string().optional(),
@@ -164,6 +165,17 @@ export const ConfigSchema = z
           message:
             "The 'dest' parameter only works for single files with the specified 'preserve_hierarchy': true option",
           path: ['files', index, 'dest'],
+        });
+      }
+
+      // Java rejects this at config load (FileBean.checkProperties via
+      // PropertiesBuilder.checkForDoubleAsterisks), so it is a validation error (exit 2) rather
+      // than a CliError thrown later from replaceDoubleAsterisk while resolving a path.
+      if (file.translation.includes('**') && !file.source.includes('**')) {
+        ctx.addIssue({
+          code: 'custom',
+          message: "The mask '**' can be used in the 'translation' pattern only if it's used in the 'source' pattern",
+          path: ['files', index, 'translation'],
         });
       }
 
