@@ -17,8 +17,8 @@ import type {
   GetTranslationService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { fileTree } from '@/cli/utils/fileTree.ts';
-import { OUTPUT_FORMATS, type Output } from '@/cli/utils/output.ts';
+import { printDryRunPaths } from '@/cli/utils/dryRunPaths.ts';
+import type { Output } from '@/cli/utils/output.ts';
 import { matchesManagerSourceFile, matchesSourcePattern, replaceUnaryAsterisk } from '@/lib/config/projectFileMatch.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
 import { resolveDownloadLanguages } from '@/lib/download/languages.ts';
@@ -159,9 +159,7 @@ export default class DownloadCommand {
       // Java Dryrun: slash-strip + sort the paths; plain view prints them bare (no icon/message).
       const paths = toSortedRelativePaths(downloads.map((download) => download.relativePath));
 
-      if (options.output === 'plain') {
-        output.table(paths);
-      } else {
+      if (!printDryRunPaths(paths, options, output)) {
         for (const relativePath of paths) {
           output.log(relativePath);
         }
@@ -296,17 +294,10 @@ export default class DownloadCommand {
       });
       const paths = [...new Set(mapping.byArchivePath.values())].sort();
 
-      // Machine formats (json/toon/plain) win over tree and serialize via output.table so they stay
-      // parseable; output.log is text-only, so the tree/bare-path listing is the interactive default.
-      if (OUTPUT_FORMATS.includes(options.output ?? '')) {
-        output.table(paths);
-        return;
-      }
-
-      const lines = options.tree ? fileTree(paths) : paths;
-
-      for (const line of lines) {
-        output.log(line);
+      if (!printDryRunPaths(paths, options, output)) {
+        for (const line of paths) {
+          output.log(line);
+        }
       }
 
       return;

@@ -18,8 +18,8 @@ import type {
   GetStorageService,
   GetStringService,
 } from '@/cli/services.ts';
-import { printFileTree } from '@/cli/utils/fileTree.ts';
-import { OUTPUT_FORMATS, type Output } from '@/cli/utils/output.ts';
+import { printDryRunPaths } from '@/cli/utils/dryRunPaths.ts';
+import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { assertFilesConfigured } from '@/lib/config.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
@@ -36,13 +36,7 @@ import {
 import { deleteObsoleteProjectEntries } from '@/lib/upload/obsoleteEntries.ts';
 import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
-import {
-  stripBranchPrefix,
-  stripLeadingSlashes,
-  toPosixPath,
-  toProjectPath,
-  toSortedRelativePaths,
-} from '@/lib/utils/path.ts';
+import { stripBranchPrefix, stripLeadingSlashes, toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
 
 interface UploadSourcesOptions extends GlobalOptions {
@@ -203,24 +197,16 @@ export default class UploadSourcesCommand {
       );
     }
 
-    // Tree is interactive-only; a machine --output (json/toon/plain) is a parseable contract and wins.
-    if (options.dryrun && options.tree && !OUTPUT_FORMATS.includes(options.output ?? '')) {
-      printFileTree(
+    // A machine --output emits the bare sorted source paths (Java DryrunSources plain view) and wins
+    // over --tree; otherwise fall through to the per-file "would be created/updated" messages.
+    if (
+      options.dryrun &&
+      printDryRunPaths(
         patternFilePaths.flatMap(({ files }) => files.map(({ localFilePath }) => localFilePath)),
+        options,
         output,
-      );
-
-      return;
-    }
-
-    // Machine formats emit the bare sorted source paths (Java DryrunSources plain view); output.table
-    // serializes per format so json/toon/plain all stay parseable instead of the per-file messages.
-    if (options.dryrun && OUTPUT_FORMATS.includes(options.output ?? '')) {
-      const paths = toSortedRelativePaths(
-        patternFilePaths.flatMap(({ files }) => files.map(({ localFilePath }) => localFilePath)),
-      );
-
-      output.table(paths);
+      )
+    ) {
       return;
     }
 

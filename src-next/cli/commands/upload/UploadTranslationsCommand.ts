@@ -14,7 +14,7 @@ import type {
   GetStorageService,
   GetTranslationService,
 } from '@/cli/services.ts';
-import { printFileTree } from '@/cli/utils/fileTree.ts';
+import { printDryRunPaths } from '@/cli/utils/dryRunPaths.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
@@ -24,7 +24,7 @@ import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { getCommonPath, resolveProjectPath } from '@/lib/upload/fileOptions.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
-import { stripBranchPrefix, stripLeadingSlashes, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, stripLeadingSlashes, toProjectPath } from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
 
 interface UploadTranslationsOptions extends GlobalOptions {
@@ -114,13 +114,7 @@ export default class UploadTranslationsCommand {
       options.dryrun ? undefined : (projectPath) => fileLookup(toProjectPath(projectPath), projectFilePaths)?.id,
     );
 
-    if (options.dryrun && options.tree) {
-      printFileTree(this.dryRunPaths(entries), output);
-      return;
-    }
-
-    if (options.dryrun && options.output === 'plain') {
-      output.table(toSortedRelativePaths(this.dryRunPaths(entries)));
+    if (options.dryrun && printDryRunPaths(this.dryRunPaths(entries), options, output)) {
       return;
     }
 
@@ -305,14 +299,8 @@ export default class UploadTranslationsCommand {
       options.output === 'plain',
     );
 
-    if (options.dryrun && options.tree) {
-      printFileTree(this.dryRunPaths(entries), output);
-      return;
-    }
-
     // Java DryrunTranslations plain view: bare sorted translation paths, one per line.
-    if (options.dryrun && options.output === 'plain') {
-      output.table(toSortedRelativePaths(this.dryRunPaths(entries)));
+    if (options.dryrun && printDryRunPaths(this.dryRunPaths(entries), options, output)) {
       return;
     }
 

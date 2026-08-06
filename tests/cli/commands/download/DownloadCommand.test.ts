@@ -1317,6 +1317,25 @@ describe('DownloadCommand', () => {
       expect(getDownloadUrl).not.toHaveBeenCalled();
     });
 
+    // A machine --output is a parseable contract, so a dry run has to serialize through
+    // output.table for every machine format, not just 'plain' — output.log is text-only, so
+    // checking `=== 'plain'` leaves json and toon printing nothing at all.
+    test.each(['json', 'toon', 'plain'])('dry-run sources emits the paths for --output=%s', async (format) => {
+      const downloadCommand = createDownloadCommand();
+      const log = spyOn(console, 'log').mockImplementation(() => {});
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/resources/en/messages.json' } }],
+      } as never);
+
+      commandContext = createCommandContext({ ...globalOptions, dryrun: true, output: format });
+
+      await downloadCommand.sourcesAction(commandContext);
+
+      expect(log.mock.calls.flat().join('\n')).toContain('resources/en/messages.json');
+    });
+
     test('filters sources by branch', async () => {
       const downloadCommand = createDownloadCommand();
 
