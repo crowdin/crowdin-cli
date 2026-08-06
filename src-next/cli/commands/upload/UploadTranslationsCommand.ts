@@ -16,7 +16,7 @@ import type {
 } from '@/cli/services.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
 import type { Output } from '@/cli/utils/output.ts';
-import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
+import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
 import { languagePatterns } from '@/lib/export/patterns.ts';

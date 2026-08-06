@@ -3,7 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
-import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
+import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { type Config, ConfigSchema } from '@/lib/config.ts';
 
 function buildConfig(

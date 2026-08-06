@@ -20,7 +20,7 @@ import type {
 } from '@/cli/services.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
 import { OUTPUT_FORMATS, type Output } from '@/cli/utils/output.ts';
-import SourceFileLoader from '@/lib/config/sourceFileLoader.ts';
+import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { assertFilesConfigured } from '@/lib/config.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';

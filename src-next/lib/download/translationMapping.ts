@@ -1,6 +1,6 @@
 import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import { matchesSourcePattern } from '../config/projectFileMatch.ts';
-import SourceFileLoader from '../config/sourceFileLoader.ts';
+import SourceFileLoader from '../config/SourceFileLoader.ts';
 import { resolveTranslationPath } from '../config/translationPathResolver.ts';
 import type { Config } from '../config.ts';
 import { stripLeadingSlashes, toPosixPath } from '../utils/path.ts';
