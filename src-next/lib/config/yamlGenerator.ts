@@ -10,14 +10,19 @@ export interface GenerateInput {
   files: { source: string; translation: string }[];
 }
 
+// `--source`, `--base-path` and friends are user-supplied, and an unescaped `"` in one of them
+// emits a config no parser can read back. A YAML double-quoted scalar takes JSON's escapes, so
+// JSON.stringify is the whole quoter.
+const quote = (value: string | number): string => JSON.stringify(String(value));
+
 export function generate(config: GenerateInput): string {
-  const credentialLines = [`"project_id": "${config.projectId}"`];
+  const credentialLines = [`"project_id": ${quote(config.projectId)}`];
 
   if (config.apiToken !== undefined) {
-    credentialLines.push(`"api_token": "${config.apiToken}"`);
+    credentialLines.push(`"api_token": ${quote(config.apiToken)}`);
   }
 
-  credentialLines.push(`"base_path": "${config.basePath}"`, `"base_url": "${config.baseUrl}"`);
+  credentialLines.push(`"base_path": ${quote(config.basePath)}`, `"base_url": ${quote(config.baseUrl)}`);
 
   return `#
 # Basic Crowdin CLI configuration
@@ -51,13 +56,13 @@ function generateFilesSection(files: GenerateInput['files']) {
     # Source files filter
     # e.g. "/resources/en/*.json"
     #
-    "source": "${file.source}",
+    "source": ${quote(file.source)},
 
     #
     # Translation files filter
     # e.g. "/resources/%two_letters_code%/%original_file_name%"
     #
-    "translation": "${file.translation}",
+    "translation": ${quote(file.translation)},
   }`;
   })}
 ]`;

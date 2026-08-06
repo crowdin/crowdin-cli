@@ -1,7 +1,22 @@
 import { describe, expect, test } from 'bun:test';
 import { generate } from '@/lib/config/yamlGenerator.ts';
+import { parseYaml } from '@/lib/config/yamlLoader.ts';
 
 describe('config generator', () => {
+  test('escapes user-supplied values so the result parses back', () => {
+    const config = generate({
+      projectId: 1,
+      basePath: '.',
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [{ source: '/say "hi"/*.json', translation: '/t/%locale%/%original_file_name%' }],
+    });
+
+    expect(parseYaml(config)).toMatchObject({
+      files: [{ source: '/say "hi"/*.json', translation: '/t/%locale%/%original_file_name%' }],
+    });
+  });
+
   test('generates config', async () => {
     const data = {
       projectId: 750373,

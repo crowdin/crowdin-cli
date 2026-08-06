@@ -88,7 +88,9 @@ export function languagePlaceholderValue(
     case locale:
       return language.locale;
     case localeWithUnderscore:
-      return language.locale.replace('-', '_');
+      // Every separator, not just the first: Java's String.replace is global, and locales such as
+      // `po-CR-UA` carry two.
+      return language.locale.replaceAll('-', '_');
     case threeLettersCode:
       return language.threeLettersCode;
     case twoLettersCode:

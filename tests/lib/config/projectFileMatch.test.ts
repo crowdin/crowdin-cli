@@ -11,10 +11,18 @@ import {
 describe('globToRegex', () => {
   test('translates glob wildcards and file placeholders', () => {
     expect(globToRegex('*.json')).toBe('[^/]+\\.json');
-    expect(globToRegex('**/*.json')).toBe('.+/[^/]+\\.json');
+    expect(globToRegex('**/*.json')).toBe('(.+/)?[^/]+\\.json');
     expect(globToRegex('file?.json')).toBe('file[^/]\\.json');
     expect(globToRegex('%original_path%')).toBe('.+');
     expect(globToRegex('%original_file_name%')).toBe('[^/]+');
+  });
+
+  // Java PlaceholderUtil:308 rewrites `.+/` to `(.+/)?` before substituting placeholders, so a
+  // `**` segment is optional but an `%original_path%` segment is not.
+  test('makes a ** segment optional and leaves %original_path% mandatory', () => {
+    expect(globToRegex('src/**/*.json')).toBe('src/(.+/)?[^/]+\\.json');
+    expect(globToRegex('a/**/b/**/*.md')).toBe('a/(.+/)?b/(.+/)?[^/]+\\.md');
+    expect(globToRegex('%original_path%/*.json')).toBe('.+/[^/]+\\.json');
   });
 });
 
@@ -26,6 +34,14 @@ describe('matchesSourcePattern', () => {
 
   test('matches double asterisk across separators', () => {
     expect(matchesSourcePattern('a/b/c/messages.json', '/**/*.json', true)).toBe(true);
+  });
+
+  // Bun's Glob (which scans the local sources) matches zero intermediate directories here, so the
+  // server-side matcher has to as well or upload and download disagree about the same file.
+  test('matches zero intermediate directories for a ** segment', () => {
+    expect(matchesSourcePattern('src/app.json', '/src/**/*.json', true)).toBe(true);
+    expect(matchesSourcePattern('src/main/app.json', '/src/**/*.json', true)).toBe(true);
+    expect(matchesSourcePattern('other/app.json', '/src/**/*.json', true)).toBe(false);
   });
 
   test('matches only trailing segments when preserveHierarchy is false', () => {

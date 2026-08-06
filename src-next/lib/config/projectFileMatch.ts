@@ -40,11 +40,18 @@ export function globToRegex(pattern: string): string {
     result += char;
   }
 
-  return result
-    .replaceAll('%file_extension%', '[^/]+')
-    .replaceAll('%file_name%', '[^/]+')
-    .replaceAll('%original_file_name%', '[^/]+')
-    .replaceAll('%original_path%', '.+');
+  return (
+    result
+      // Java makes a `**/` segment optional (PlaceholderUtil:308), so `/src/**/*.json` matches
+      // `src/app.json` as well as `src/main/app.json` — which is also what Bun's Glob does when
+      // scanning local sources. Applied before the placeholder substitutions, as in Java, so that
+      // `%original_path%/` (which only becomes `.+/` below) stays mandatory.
+      .replaceAll('.+/', '(.+/)?')
+      .replaceAll('%file_extension%', '[^/]+')
+      .replaceAll('%file_name%', '[^/]+')
+      .replaceAll('%original_file_name%', '[^/]+')
+      .replaceAll('%original_path%', '.+')
+  );
 }
 
 /**
