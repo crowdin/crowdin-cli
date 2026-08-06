@@ -95,7 +95,7 @@ export function sortOmittedFiles(omittedFiles: string[], allProjectTranslations:
   return { withSources, withoutSources };
 }
 
-function getExportPattern(exportOptions: unknown): string | undefined {
+export function getExportPattern(exportOptions: unknown): string | undefined {
   const pattern = (exportOptions as { exportPattern?: string } | undefined)?.exportPattern;
   return pattern ?? undefined;
 }

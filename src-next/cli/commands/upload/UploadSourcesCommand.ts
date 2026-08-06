@@ -189,7 +189,11 @@ export default class UploadSourcesCommand {
         projectFiles.data,
         projectDirectoryList,
         expectedProjectFilePaths,
-        config.files.map((patterns) => ({ source: patterns.source, ignore: patterns.ignore })),
+        config.files.map((patterns) => ({
+          source: patterns.source,
+          translation: patterns.translation,
+          ignore: patterns.ignore,
+        })),
         config.preserveHierarchy,
         fileService,
         directoryService,

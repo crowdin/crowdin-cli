@@ -3,6 +3,8 @@ import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import type { FileService } from '@/cli/services/FileService.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { isPathMatch } from '@/cli/utils/pathMatcher.ts';
+import { matchesExportPattern } from '@/lib/config/projectFileMatch.ts';
+import { getExportPattern } from '@/lib/download/projectTranslations.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { stripBranchPrefix, stripLeadingSlashes, toProjectPath } from '@/lib/utils/path.ts';
 
@@ -10,7 +12,7 @@ export async function deleteObsoleteProjectEntries(
   projectFiles: ResponseObject<SourceFilesModel.File>[],
   projectDirectories: ResponseObject<SourceFilesModel.Directory>[],
   expectedProjectFilePaths: Set<string>,
-  sourcePatterns: { source: string; ignore?: string[] }[],
+  sourcePatterns: { source: string; translation: string; ignore?: string[] }[],
   preserveHierarchy: boolean,
   fileService: FileService,
   directoryService: DirectoryService,
@@ -42,7 +44,12 @@ export async function deleteObsoleteProjectEntries(
   const obsoleteFiles = projectFiles.filter(
     (projectFile) =>
       !retainedFileIds.has(projectFile.data.id) &&
-      isManagedBySourcePatterns(stripBranch(projectFile.data.path), sourcePatterns, preserveHierarchy),
+      isManagedBySourcePatterns(
+        stripBranch(projectFile.data.path),
+        getExportPattern(projectFile.data.exportOptions),
+        sourcePatterns,
+        preserveHierarchy,
+      ),
   );
 
   for (const projectFile of obsoleteFiles) {
@@ -65,8 +72,30 @@ export async function deleteObsoleteProjectEntries(
       .map((projectFile) => stripBranch(projectFile.data.path)),
     ...expectedProjectFilePaths,
   ]);
+  // Java only ever considers directories that held a file it just deleted, plus their ancestors
+  // (ObsoleteSourcesUtils.findObsoleteProjectDirectories builds its candidates from
+  // obsoleteDeletedProjectFiles). Scanning every project directory instead would delete empty
+  // directories that no config references — ones a manager created in the Crowdin UI, say.
+  const obsoleteDirectoryCandidates = new Set<string>();
+
+  for (const projectFile of obsoleteFiles) {
+    let parent = parentDirectory(stripBranch(projectFile.data.path));
+
+    while (parent !== '') {
+      obsoleteDirectoryCandidates.add(parent);
+      parent = parentDirectory(parent);
+    }
+  }
+
   const obsoleteDirectories = projectDirectories
-    .filter((directory) => !hasFileUnderDirectory(remainingProjectFilePaths, stripBranch(directory.data.path)))
+    .filter((directory) => {
+      const directoryPath = stripBranch(directory.data.path);
+
+      return (
+        obsoleteDirectoryCandidates.has(directoryPath) &&
+        !hasFileUnderDirectory(remainingProjectFilePaths, directoryPath)
+      );
+    })
     .sort((left, right) => right.data.path.length - left.data.path.length);
 
   for (const directory of obsoleteDirectories) {
@@ -93,7 +122,11 @@ export async function deleteObsoleteProjectEntries(
 }
 
 /**
- * Whether a project file path is covered by any configured `source` pattern (and not ignored).
+ * Whether a project file is covered by any configured group (and not ignored). Java runs this per
+ * group (`DeleteObsoleteProjectFilesSubAction.act`), so `source` and `translation` stay paired: a
+ * file only counts as managed when the same group both matches its path and accepts its stored
+ * export pattern (`ObsoleteSourcesUtils.checkExportPattern`).
+ *
  * With `preserve_hierarchy` the project path keeps its full hierarchy, so it is matched directly.
  * Without it, project paths have their common prefix stripped, so the path is matched against every
  * trailing slice of the source pattern (leading directories optional) — an approximation of Java's
@@ -101,11 +134,18 @@ export async function deleteObsoleteProjectEntries(
  */
 function isManagedBySourcePatterns(
   projectPath: string,
-  sourcePatterns: { source: string; ignore?: string[] }[],
+  fileExportPattern: string | undefined,
+  sourcePatterns: { source: string; translation: string; ignore?: string[] }[],
   preserveHierarchy: boolean,
 ): boolean {
-  return sourcePatterns.some(({ source, ignore }) => {
+  return sourcePatterns.some(({ source, translation, ignore }) => {
     if (!matchesPattern(projectPath, source, preserveHierarchy)) {
+      return false;
+    }
+
+    // A file whose translations land outside this group's `translation` belongs to another group;
+    // deleting it here would destroy translations Java keeps.
+    if (!matchesExportPattern(fileExportPattern, translation, preserveHierarchy)) {
       return false;
     }
 
@@ -127,6 +167,13 @@ function matchesPattern(projectPath: string, pattern: string, preserveHierarchy:
   }
 
   return false;
+}
+
+/** Parent of a project path, or '' at the root (mirrors the walk in Utils.getParentDirectory). */
+function parentDirectory(projectPath: string): string {
+  const lastSeparator = toProjectPath(projectPath).lastIndexOf('/');
+
+  return lastSeparator <= 0 ? '' : toProjectPath(projectPath).slice(0, lastSeparator);
 }
 
 function hasFileUnderDirectory(filePaths: Set<string>, directoryPath: string): boolean {
