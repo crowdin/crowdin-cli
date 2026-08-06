@@ -5,6 +5,7 @@ import FileInUpdateError from '../errors/FileInUpdateError.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import type { Output } from '../utils/output.ts';
 import { normalizePath } from '../utils/parsing.ts';
+import { withSpinner } from '../utils/withSpinner.ts';
 
 export class FileService {
   constructor(
@@ -97,25 +98,12 @@ export class FileService {
   }
 
   async loadProjectFiles(branchId?: number) {
-    this.output.spinner('projectFiles', 'start', 'Fetching project files');
-
-    try {
-      const projectFiles = await this.apiClient.sourceFilesApi.withFetchAll().listProjectFiles(this.projectId, {
-        branchId,
-        recursion: '1',
-      });
-
-      this.output.spinner('projectFiles', 'stop', 'Project files fetched');
-
-      return projectFiles;
-    } catch (error) {
-      const cliError = toCliError(error, 'Failed to fetch project files');
-
-      this.output.spinner('projectFiles', 'error', cliError.message);
-
-      cliError.reported = true;
-      throw cliError;
-    }
+    return await withSpinner(
+      this.output,
+      'projectFiles',
+      { start: 'Fetching project files', stop: 'Project files fetched', fail: 'Failed to fetch project files' },
+      () => this.apiClient.sourceFilesApi.withFetchAll().listProjectFiles(this.projectId, { branchId, recursion: '1' }),
+    );
   }
 
   async listProjectFilePaths(branchId?: number): Promise<Map<number, string>> {
@@ -151,26 +139,28 @@ export class FileService {
   }
 
   async buildReviewedSources(branchId?: number) {
-    this.output.spinner('reviewedBuild', 'start', 'Building reviewed sources...');
+    return await withSpinner(
+      this.output,
+      'reviewedBuild',
+      {
+        start: 'Building reviewed sources...',
+        stop: 'Reviewed sources built',
+        fail: 'Failed to build reviewed sources',
+      },
+      async () => {
+        const build = await this.apiClient.sourceFilesApi.buildReviewedSourceFiles(this.projectId, { branchId });
 
-    try {
-      const build = await this.apiClient.sourceFilesApi.buildReviewedSourceFiles(this.projectId, { branchId });
+        // Keyed by the build id rather than a status identifier, so the poll closure ignores its
+        // argument and closes over the build instead.
+        await pollUntilFinished(
+          build,
+          () => this.apiClient.sourceFilesApi.checkReviewedSourceFilesBuildStatus(this.projectId, build.data.id),
+          'Reviewed sources build failed',
+        );
 
-      // Keyed by the build id rather than a status identifier, so the poll closure ignores its
-      // argument and closes over the build instead.
-      await pollUntilFinished(
-        build,
-        () => this.apiClient.sourceFilesApi.checkReviewedSourceFilesBuildStatus(this.projectId, build.data.id),
-        'Reviewed sources build failed',
-      );
-
-      this.output.spinner('reviewedBuild', 'stop', 'Reviewed sources built');
-
-      return build;
-    } catch (error) {
-      this.output.spinner('reviewedBuild', 'error', 'Reviewed sources build failed');
-      throw toCliError(error, 'Failed to build reviewed sources');
-    }
+        return build;
+      },
+    );
   }
 
   async getReviewedSourcesDownloadUrl(buildId: number): Promise<string> {

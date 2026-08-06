@@ -2,6 +2,7 @@ import type { Client, TranslationMemoryModel } from '@crowdin/crowdin-api-client
 import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import type { Output } from '../utils/output.ts';
+import { withSpinner } from '../utils/withSpinner.ts';
 
 export class TmService {
   constructor(
@@ -52,24 +53,26 @@ export class TmService {
       ...(format !== undefined ? { format } : {}),
     } as TranslationMemoryModel.ExportTranslationMemoryRequest;
 
-    this.output.spinner('tmExport', 'start', 'Building translation memory');
+    return await withSpinner(
+      this.output,
+      'tmExport',
+      {
+        start: 'Building translation memory',
+        stop: 'Building translation memory (100%)',
+        fail: 'Failed to build the translation memory',
+      },
+      async () => {
+        const started = await this.apiClient.translationMemoryApi.exportTm(tmId, request);
+        const finished = await pollUntilFinished(
+          started,
+          ({ identifier }) => this.apiClient.translationMemoryApi.checkExportStatus(tmId, identifier),
+          'The build has failed',
+          (status) => this.output.spinner('tmExport', 'message', `Building translation memory (${status.progress}%)`),
+        );
 
-    try {
-      const started = await this.apiClient.translationMemoryApi.exportTm(tmId, request);
-      const finished = await pollUntilFinished(
-        started,
-        ({ identifier }) => this.apiClient.translationMemoryApi.checkExportStatus(tmId, identifier),
-        'The build has failed',
-        (status) => this.output.spinner('tmExport', 'message', `Building translation memory (${status.progress}%)`),
-      );
-
-      this.output.spinner('tmExport', 'stop', 'Building translation memory (100%)');
-
-      return finished.data.identifier;
-    } catch (error) {
-      this.output.spinner('tmExport', 'error', 'Failed to build the translation memory');
-      throw toCliError(error, 'Failed to build the translation memory');
-    }
+        return finished.data.identifier;
+      },
+    );
   }
 
   async getDownloadUrl(tmId: number, exportId: string): Promise<string> {

@@ -1,6 +1,7 @@
 import type { Client, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import { toCliError } from '../errors/toCliError.ts';
 import type { Output } from '../utils/output.ts';
+import { withSpinner } from '../utils/withSpinner.ts';
 
 export class ProjectService {
   constructor(
@@ -24,42 +25,20 @@ export class ProjectService {
   }
 
   async loadProject() {
-    this.output.spinner('project', 'start', 'Fetching project info');
-
-    try {
-      const project = await this.apiClient.projectsGroupsApi.getProject(this.projectId);
-
-      this.output.spinner('project', 'stop', 'Project info fetched');
-
-      return project;
-    } catch (error) {
-      const cliError = toCliError(error, 'Failed to fetch project info');
-
-      this.output.spinner('project', 'error', cliError.message);
-
-      cliError.reported = true;
-      throw cliError;
-    }
+    return await withSpinner(
+      this.output,
+      'project',
+      { start: 'Fetching project info', stop: 'Project info fetched', fail: 'Failed to fetch project info' },
+      () => this.apiClient.projectsGroupsApi.getProject(this.projectId),
+    );
   }
 
   async loadProjects(hasManagerAccess: boolean) {
-    this.output.spinner('projects', 'start', 'Fetching projects');
-
-    try {
-      const projects = await this.apiClient.projectsGroupsApi.withFetchAll().listProjects({
-        hasManagerAccess: +hasManagerAccess,
-      });
-
-      this.output.spinner('projects', 'stop', 'Projects fetched');
-
-      return projects;
-    } catch (error) {
-      const cliError = toCliError(error, 'Failed to fetch projects');
-
-      this.output.spinner('projects', 'error', cliError.message);
-
-      cliError.reported = true;
-      throw cliError;
-    }
+    return await withSpinner(
+      this.output,
+      'projects',
+      { start: 'Fetching projects', stop: 'Projects fetched', fail: 'Failed to fetch projects' },
+      () => this.apiClient.projectsGroupsApi.withFetchAll().listProjects({ hasManagerAccess: +hasManagerAccess }),
+    );
   }
 }

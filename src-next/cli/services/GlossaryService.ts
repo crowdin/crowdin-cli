@@ -2,6 +2,7 @@ import type { Client, GlossariesModel } from '@crowdin/crowdin-api-client';
 import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import type { Output } from '../utils/output.ts';
+import { withSpinner } from '../utils/withSpinner.ts';
 
 export class GlossaryService {
   constructor(
@@ -52,24 +53,22 @@ export class GlossaryService {
       ...(format !== undefined ? { format } : {}),
     };
 
-    this.output.spinner('glossaryExport', 'start', 'Building glossary');
+    return await withSpinner(
+      this.output,
+      'glossaryExport',
+      { start: 'Building glossary', stop: 'Building glossary (100%)', fail: 'Failed to build the glossary' },
+      async () => {
+        const started = await this.apiClient.glossariesApi.exportGlossary(glossaryId, request);
+        const finished = await pollUntilFinished(
+          started,
+          ({ identifier }) => this.apiClient.glossariesApi.checkGlossaryExportStatus(glossaryId, identifier),
+          'The build has failed',
+          (status) => this.output.spinner('glossaryExport', 'message', `Building glossary (${status.progress}%)`),
+        );
 
-    try {
-      const started = await this.apiClient.glossariesApi.exportGlossary(glossaryId, request);
-      const finished = await pollUntilFinished(
-        started,
-        ({ identifier }) => this.apiClient.glossariesApi.checkGlossaryExportStatus(glossaryId, identifier),
-        'The build has failed',
-        (status) => this.output.spinner('glossaryExport', 'message', `Building glossary (${status.progress}%)`),
-      );
-
-      this.output.spinner('glossaryExport', 'stop', 'Building glossary (100%)');
-
-      return finished.data.identifier;
-    } catch (error) {
-      this.output.spinner('glossaryExport', 'error', 'Failed to build the glossary');
-      throw toCliError(error, 'Failed to build the glossary');
-    }
+        return finished.data.identifier;
+      },
+    );
   }
 
   async getDownloadUrl(glossaryId: number, exportId: string): Promise<string> {

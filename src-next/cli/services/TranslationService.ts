@@ -3,6 +3,7 @@ import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import WrongLanguageError from '../errors/WrongLanguageError.ts';
 import type { Output } from '../utils/output.ts';
+import { withSpinner } from '../utils/withSpinner.ts';
 
 // Reported once per poll, so each command can word its own progress line (Java words them
 // differently per command: verbose-only for `upload translations`, always for `file upload`).
@@ -133,39 +134,38 @@ export class TranslationService {
     request: TranslationsModel.PreTranslateRequest | TranslationsModel.PreTranslateStringsRequest,
     verbose: boolean,
   ) {
-    this.output.spinner('preTranslate', 'start', 'Auto-translation is running...');
+    const failureMessage = 'Failed to auto-translate the project. Please contact our support team for help';
 
-    try {
-      const applied = await this.apiClient.translationsApi.applyPreTranslation(this.projectId, request);
-      const { data: status } = await pollUntilFinished(
-        applied,
-        ({ identifier }) => this.apiClient.translationsApi.preTranslationStatus(this.projectId, identifier),
-        'Failed to auto-translate the project. Please contact our support team for help',
-        (current) =>
-          this.output.spinner(
-            'preTranslate',
-            'message',
-            verbose
-              ? `Auto-translation is completed by (${Math.trunc(current.progress)}%) (${current.identifier})`
-              : `Auto-translation is completed by (${Math.trunc(current.progress)}%)`,
-          ),
-      );
+    return await withSpinner(
+      this.output,
+      'preTranslate',
+      {
+        start: 'Auto-translation is running...',
+        stop: (status) =>
+          verbose
+            ? `Auto-translation is finished (100%) (${status.identifier})`
+            : 'Auto-translation is finished (100%)',
+        fail: failureMessage,
+      },
+      async () => {
+        const applied = await this.apiClient.translationsApi.applyPreTranslation(this.projectId, request);
+        const { data: status } = await pollUntilFinished(
+          applied,
+          ({ identifier }) => this.apiClient.translationsApi.preTranslationStatus(this.projectId, identifier),
+          failureMessage,
+          (current) =>
+            this.output.spinner(
+              'preTranslate',
+              'message',
+              verbose
+                ? `Auto-translation is completed by (${Math.trunc(current.progress)}%) (${current.identifier})`
+                : `Auto-translation is completed by (${Math.trunc(current.progress)}%)`,
+            ),
+        );
 
-      this.output.spinner(
-        'preTranslate',
-        'stop',
-        verbose ? `Auto-translation is finished (100%) (${status.identifier})` : 'Auto-translation is finished (100%)',
-      );
-
-      return status;
-    } catch (error) {
-      this.output.spinner(
-        'preTranslate',
-        'error',
-        'Failed to auto-translate the project. Please contact our support team for help',
-      );
-      throw toCliError(error, 'Failed to auto-translate the project. Please contact our support team for help');
-    }
+        return status;
+      },
+    );
   }
 
   async getPreTranslationReport(preTranslationId: string): Promise<TranslationsModel.PreTranslationReport> {
@@ -178,26 +178,26 @@ export class TranslationService {
   }
 
   async buildProjectTranslations(request?: TranslationsModel.BuildRequest | TranslationsModel.PseudoBuildRequest) {
-    this.output.spinner('build', 'start', 'Building translations...');
+    return await withSpinner(
+      this.output,
+      'build',
+      { start: 'Building translations...', stop: 'Translations built', fail: 'Failed to build project translations' },
+      async () => {
+        const build = await this.apiClient.translationsApi.buildProject(this.projectId, request);
 
-    try {
-      const build = await this.apiClient.translationsApi.buildProject(this.projectId, request);
+        // Keyed by the build id rather than a status identifier, so the poll closure ignores its
+        // argument. The message is a function because a failed build carries the server's reason.
+        await pollUntilFinished(
+          build,
+          () => this.apiClient.translationsApi.checkBuildStatus(this.projectId, build.data.id),
+          (current) =>
+            current.error?.message
+              ? `Translations build failed: ${current.error.message}`
+              : 'Translations build failed',
+        );
 
-      // Keyed by the build id rather than a status identifier, so the poll closure ignores its
-      // argument. The message is a function because a failed build carries the server's reason.
-      await pollUntilFinished(
-        build,
-        () => this.apiClient.translationsApi.checkBuildStatus(this.projectId, build.data.id),
-        (current) =>
-          current.error?.message ? `Translations build failed: ${current.error.message}` : 'Translations build failed',
-      );
-
-      this.output.spinner('build', 'stop', 'Translations built');
-
-      return build;
-    } catch (error) {
-      this.output.spinner('build', 'error', 'Translations build failed');
-      throw toCliError(error, 'Failed to build project translations');
-    }
+        return build;
+      },
+    );
   }
 }

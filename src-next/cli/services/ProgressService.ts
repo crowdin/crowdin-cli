@@ -1,6 +1,7 @@
 import type { Client } from '@crowdin/crowdin-api-client';
 import { toCliError } from '../errors/toCliError.ts';
 import type { Output } from '../utils/output.ts';
+import { withSpinner } from '../utils/withSpinner.ts';
 
 export class ProgressService {
   constructor(
@@ -10,22 +11,16 @@ export class ProgressService {
   ) {}
 
   async loadProjectProgress() {
-    this.output.spinner('projectProgress', 'start', 'Fetching project progress');
-
-    try {
-      const projectProgress = await this.apiClient.translationStatusApi.getProjectProgress(this.projectId);
-
-      this.output.spinner('projectProgress', 'stop', 'Project progress fetched');
-
-      return projectProgress;
-    } catch (error) {
-      const cliError = toCliError(error, 'Failed to fetch project progress');
-
-      this.output.spinner('projectProgress', 'error', cliError.message);
-
-      cliError.reported = true;
-      throw cliError;
-    }
+    return await withSpinner(
+      this.output,
+      'projectProgress',
+      {
+        start: 'Fetching project progress',
+        stop: 'Project progress fetched',
+        fail: 'Failed to fetch project progress',
+      },
+      () => this.apiClient.translationStatusApi.getProjectProgress(this.projectId),
+    );
   }
 
   async loadBranchProgress(branchId: number) {
