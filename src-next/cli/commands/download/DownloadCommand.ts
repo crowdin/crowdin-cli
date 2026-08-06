@@ -1,12 +1,7 @@
 import { mkdir, mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import path from 'node:path';
-import {
-  type LanguagesModel,
-  ProjectsGroupsModel,
-  type ResponseObject,
-  type TranslationsModel,
-} from '@crowdin/crowdin-api-client';
+import { ProjectsGroupsModel, type ResponseObject, type TranslationsModel } from '@crowdin/crowdin-api-client';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import CliError from '@/cli/errors/CliError.ts';
@@ -26,6 +21,7 @@ import { fileTree } from '@/cli/utils/fileTree.ts';
 import { OUTPUT_FORMATS, type Output } from '@/cli/utils/output.ts';
 import { matchesManagerSourceFile, matchesSourcePattern, replaceUnaryAsterisk } from '@/lib/config/projectFileMatch.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
+import { resolveDownloadLanguages } from '@/lib/download/languages.ts';
 import { buildAllProjectTranslations, sortOmittedFiles } from '@/lib/download/projectTranslations.ts';
 import { buildTranslationMapping } from '@/lib/download/translationMapping.ts';
 import { originalPath } from '@/lib/export/patterns.ts';
@@ -265,15 +261,6 @@ export default class DownloadCommand {
       return;
     }
 
-    if (
-      options.language &&
-      options.language.length > 0 &&
-      options.excludeLanguage &&
-      options.excludeLanguage.length > 0
-    ) {
-      throw new CliError(`The '--language' and '--exclude-language' options can't be used simultaneously`);
-    }
-
     // Java validates/downloads against getProjectLanguages(true) = target languages + the in-context
     // pseudo language (when the project has one), not just the target languages.
     const inContextPseudoLanguage =
@@ -281,48 +268,11 @@ export default class DownloadCommand {
     const projectLanguages = inContextPseudoLanguage
       ? [...project.data.targetLanguages, inContextPseudoLanguage]
       : project.data.targetLanguages;
-    const projectLanguageIds = projectLanguages.map((l) => l.id);
-    let resolvedLanguageIds: string[] | undefined;
-    let resolvedLanguages: LanguagesModel.Language[] = projectLanguages;
-
-    if (options.language && options.language.length > 0) {
-      for (const langId of options.language) {
-        if (!projectLanguageIds.includes(langId)) {
-          throw new CliError(`Language '${langId}' doesn't exist in the project. Try specifying another language code`);
-        }
-      }
-
-      resolvedLanguageIds = options.language;
-      resolvedLanguages = projectLanguages.filter((l) => options.language?.includes(l.id));
-    } else {
-      const exportLanguages = config.exportLanguages ?? [];
-
-      for (const langId of exportLanguages) {
-        if (!projectLanguageIds.includes(langId)) {
-          throw new CliError(`Language '${langId}' doesn't exist in the project. Try specifying another language code`);
-        }
-      }
-
-      const excludeLanguages = options.excludeLanguage ?? [];
-
-      for (const langId of excludeLanguages) {
-        if (!projectLanguageIds.includes(langId)) {
-          throw new CliError(`Language '${langId}' doesn't exist in the project. Try specifying another language code`);
-        }
-      }
-
-      // Base set = config export_languages if present, else all project languages; excludes subtract.
-      const baseLanguages =
-        exportLanguages.length > 0 ? projectLanguages.filter((l) => exportLanguages.includes(l.id)) : projectLanguages;
-      const forLanguages = baseLanguages.filter((l) => !excludeLanguages.includes(l.id));
-
-      // Java only pins targetLanguageIds on the build when export_languages or excludes narrow the set.
-      if (exportLanguages.length > 0 || excludeLanguages.length > 0) {
-        resolvedLanguageIds = forLanguages.map((l) => l.id);
-      }
-
-      resolvedLanguages = forLanguages;
-    }
+    const { languages: resolvedLanguages, languageIds: resolvedLanguageIds } = resolveDownloadLanguages(
+      projectLanguages,
+      options,
+      config.exportLanguages,
+    );
 
     const serverLanguageMapping = hasManagerAccess(project) ? project.data.languageMapping : undefined;
     const branchId = await this.resolveBranchId(options.branch, branchService);
