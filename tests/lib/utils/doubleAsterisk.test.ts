@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { replaceDoubleAsterisk } from '@/lib/utils/doubleAsterisk.ts';
+import { expandDestDoubleAsterisk, replaceDoubleAsterisk } from '@/lib/utils/doubleAsterisk.ts';
 
 describe('replaceDoubleAsterisk', () => {
   // Ported verbatim from Java TranslationsUtilsTest.testReplaceDoubleAsterisk.
@@ -86,5 +86,26 @@ describe('replaceDoubleAsterisk', () => {
     expect(() => replaceDoubleAsterisk('*', '**/%locale%', 'first.po')).toThrow(
       "The mask '**' can be used in the 'translation' pattern only if it's used in the 'source' pattern",
     );
+  });
+
+  // Java's String.replace is literal; a JS string replacement would read `$&` as the match.
+  test('substitutes a directory containing $ literally', () => {
+    expect(replaceDoubleAsterisk('/folder/**/*.txt', '/f/**/%original_file_name%', 'folder/$&x/file.txt')).toBe(
+      '/f/$&x/%original_file_name%',
+    );
+  });
+});
+
+describe('expandDestDoubleAsterisk', () => {
+  // Same literal-replacement requirement as above: `$&` would re-inject `**` into the project path,
+  // `$'` would splice in the tail, and `$$` would collapse to a single `$`.
+  test.each([
+    ['src/$&x/deep/app.json', '/out/src/$&x/deep/app.json'],
+    ["src/$'y/deep/app.json", "/out/src/$'y/deep/app.json"],
+    ['src/x$$y/app.json', '/out/src/x$$y/app.json'],
+  ])('substitutes a directory containing $ literally: %p', (file, expected) => {
+    const parent = file.slice(0, file.lastIndexOf('/'));
+
+    expect(expandDestDoubleAsterisk('/out/**/app.json', file, parent)).toBe(expected);
   });
 });

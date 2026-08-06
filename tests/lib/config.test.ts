@@ -205,6 +205,30 @@ describe('ConfigSchema files[] parity fields', () => {
     expect(config.files[0]?.dest).toBe('/foo/%original_file_name%');
   });
 
+  test('rejects a constant dest when source matches more than one file', () => {
+    expect(() => ConfigSchema.parse({ ...baseConfig({ dest: '/foo/strings.json' }), preserveHierarchy: true })).toThrow(
+      "The 'dest' parameter only works for single files specified in the 'source' parameter",
+    );
+  });
+
+  test.each([
+    '/foo/%file_name%.json',
+    '/foo/**/strings.json',
+  ])('accepts a per-file dest for a patterned source: %p', (dest) => {
+    const config = ConfigSchema.parse({ ...baseConfig({ dest }), preserveHierarchy: true });
+
+    expect(config.files[0]?.dest).toBe(dest);
+  });
+
+  test('accepts a constant dest when source names a single file', () => {
+    const config = ConfigSchema.parse({
+      ...baseConfig({ source: '/src/app.json', dest: '/foo/strings.json' }),
+      preserveHierarchy: true,
+    });
+
+    expect(config.files[0]?.dest).toBe('/foo/strings.json');
+  });
+
   test('requires a language placeholder when not multilingual', () => {
     expect(() => ConfigSchema.parse(baseConfig({ translation: '/locale/strings.xml' }))).toThrow(
       'should contain at least one language placeholder',

@@ -3,7 +3,7 @@ import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-c
 import type { Config } from '../config.ts';
 import { containsLanguagePlaceholder, languagePlaceholderValue } from '../export/languagePlaceholders.ts';
 import { fileExtension, fileName, filePatterns, originalFileName, originalPath } from '../export/patterns.ts';
-import { prepareDest } from '../upload/fileOptions.ts';
+import { prepareDest, replaceFileDependentPlaceholders } from '../upload/fileOptions.ts';
 import { replaceDoubleAsterisk } from '../utils/doubleAsterisk.ts';
 import { collapseSeparators } from '../utils/path.ts';
 
@@ -47,19 +47,20 @@ export function resolveTranslationPath(
   // File-dependent placeholders are normally resolved from the source path. For the server
   // export path of a `dest`-configured group they are resolved from the dest location instead
   // (mirrors Java's DownloadAction.doTranslationMapping).
+  // Java's dest branch throws the translation-derived pattern away and rebuilds the archive key from
+  // `dest` alone, resolved against the dest-prepared path — placeholders *and* `**` expansion, via
+  // the same replaceFileDependentPlaceholders the upload side uses. Because the translation-derived
+  // pattern is discarded, the `preserve_hierarchy` stripping below never applies here either
+  // (DownloadAction.doTranslationMapping).
+  if (options?.dest && !containsLanguagePlaceholder(fileConfig.translation)) {
+    return replaceFileDependentPlaceholders(options.dest, prepareDest(options.dest, sourcePath));
+  }
+
   let placeholderPath = sourcePath;
   let pattern = fileConfig.translation;
-  // When `dest` replaces the pattern entirely it is used verbatim (no `**` expansion), mirroring
-  // Java's dest branch in doTranslationMapping.
-  let usingDest = false;
 
   if (options?.dest) {
     placeholderPath = prepareDest(options.dest, placeholderPath);
-
-    if (!containsLanguagePlaceholder(fileConfig.translation)) {
-      pattern = options.dest;
-      usingDest = true;
-    }
   }
 
   if (serverOnly && options?.preserveHierarchy === false) {
@@ -68,9 +69,7 @@ export function resolveTranslationPath(
 
   // Substitute the `**`-matched subpath into the (translation-derived) pattern before resolving
   // placeholders, mirroring Java's TranslationsUtils.replaceDoubleAsterisk.
-  if (!usingDest) {
-    pattern = replaceDoubleAsterisk(fileConfig.source, pattern, sourcePath);
-  }
+  pattern = replaceDoubleAsterisk(fileConfig.source, pattern, sourcePath);
 
   const translationPath = collapseSeparators(
     pattern.replaceAll(/%[a-z_]+%/gm, (match: string): string =>

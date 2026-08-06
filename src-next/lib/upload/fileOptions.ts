@@ -137,8 +137,9 @@ export function resolveContextPath(pattern: string, localFilePath: string): stri
  * Substitutes the file-dependent placeholders (`%file_name%`, `%original_path%`, …) in a `dest` or
  * `context` pattern, mirroring Java's PlaceholderUtil.replaceFileDependentPlaceholders.
  *
- * `localFilePath` is posix and relative to basePath, which is what both callers pass — Java's
- * `fileParent` is likewise basePath-relative.
+ * `localFilePath` is posix and relative to basePath — Java's `fileParent` is likewise
+ * basePath-relative. The download archive key passes a server project path instead, matching Java's
+ * `new File(prepareDest(dest, file))`.
  */
 export function replaceFileDependentPlaceholders(pattern: string, localFilePath: string): string {
   const parsed = path.posix.parse(localFilePath);

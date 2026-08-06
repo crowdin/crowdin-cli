@@ -70,7 +70,9 @@ export function replaceDoubleAsterisk(sourcePattern: string, translationPattern:
     }
   }
 
-  return translationPattern.replaceAll('**', file).replace(/\/+/g, '/');
+  // Replacer function, not a string: Java's String.replace(CharSequence, CharSequence) is literal,
+  // while a string replacement would interpret `$&`/`$'`/`$$` in path-derived text.
+  return translationPattern.replaceAll('**', () => file).replace(/\/+/g, '/');
 }
 
 /**
@@ -147,8 +149,10 @@ export function expandDestDoubleAsterisk(pattern: string, localFilePath: string,
     expanded = removeEnd(expanded, stripTrailingSlashes(postfix));
   }
 
-  // Java's String.replace(CharSequence, CharSequence) substitutes every occurrence, not just the first.
-  return pattern.replaceAll('**', expanded);
+  // Java's String.replace(CharSequence, CharSequence) substitutes every occurrence, not just the
+  // first, and does so literally — hence a replacer function rather than a string, which would
+  // interpret `$&`/`$'`/`$$` in the path-derived replacement.
+  return pattern.replaceAll('**', () => expanded);
 }
 
 // Apache commons-lang semantics, which the ported block above depends on.

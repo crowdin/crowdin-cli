@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import InvalidConfigurationError from './config/errors/InvalidConfigurationError.ts';
-import { languagePatterns } from './export/patterns.ts';
+import { containsPattern } from './config/projectFileMatch.ts';
+import { filePatterns, languagePatterns } from './export/patterns.ts';
 import { collapseSeparators, stripLeadingSlashes } from './utils/path.ts';
 
 // Accepted base_url hosts, ported from Java PropertiesBeanUtils.isUrlOfficial / isUrlForTesting.
@@ -162,6 +163,21 @@ export const ConfigSchema = z
           code: 'custom',
           message:
             "The 'dest' parameter only works for single files with the specified 'preserve_hierarchy': true option",
+          path: ['files', index, 'dest'],
+        });
+      }
+
+      // Java FileBean.checkDest: when `source` matches more than one file, `dest` must vary per file
+      // — otherwise every match collapses onto the same project path.
+      if (
+        file.dest &&
+        (filePatterns.some((pattern) => file.source.includes(pattern)) || containsPattern(file.source)) &&
+        !filePatterns.some((pattern) => file.dest?.includes(pattern)) &&
+        !file.dest.includes('**')
+      ) {
+        ctx.addIssue({
+          code: 'custom',
+          message: "The 'dest' parameter only works for single files specified in the 'source' parameter",
           path: ['files', index, 'dest'],
         });
       }

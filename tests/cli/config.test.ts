@@ -227,14 +227,15 @@ describe('createGetConfig', () => {
         {
           source: '/only/*.md',
           translation: '/tr/%two_letters_code%/%original_file_name%',
-          dest: '/dest',
+          // A patterned --source needs a per-file dest, same as in a config file (FileBean.checkDest).
+          dest: '/dest/%original_file_name%',
         },
         ['source'],
       ),
     );
 
     expect(config.preserveHierarchy).toBe(true);
-    expect(config.files[0]?.dest).toBe('/dest');
+    expect(config.files[0]?.dest).toBe('/dest/%original_file_name%');
   });
 
   test('throws when only one of --source/--translation is given', async () => {

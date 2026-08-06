@@ -2,6 +2,7 @@ import { describe, expect, test } from 'bun:test';
 import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
 
 import { ConfigSchema } from '@/lib/config.ts';
+import { resolveProjectPath } from '@/lib/upload/fileOptions.ts';
 
 describe('translation path resolver', () => {
   test('resolves path for export pattern', async () => {
@@ -332,6 +333,41 @@ describe('translation path resolver', () => {
     const actual = resolveTranslationPath(config.files[0] as never, 'readme.md', language('es'));
 
     expect(actual).toBe('/translated/es/readme.md');
+  });
+
+  // The dest branch of Java's doTranslationMapping only fires when `translation` has no language
+  // placeholder, which the schema allows only for multilingual/scheme files.
+  test('expands ** in the dest-derived archive key so it matches the path upload creates', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/src/main/app.json`, '{}');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/src/**/*.json',
+          dest: '/i18n/**/%original_file_name%',
+          translation: 'strings.json',
+          multilingual: true,
+        },
+      ],
+    });
+    const dest = config.files[0]?.dest;
+    const sourcePath = 'src/main/app.json';
+
+    const archivePath = resolveTranslationPath(config.files[0] as never, sourcePath, language('es'), undefined, {
+      serverOnly: true,
+      dest,
+      preserveHierarchy: true,
+    });
+
+    // The archive key must be the very path `upload sources` puts the file at, `**` expanded the same way.
+    expect(archivePath).toBe('i18n/src/main/app.json');
+    expect(archivePath).toBe(resolveProjectPath(sourcePath, { dest }, ''));
   });
 });
 
