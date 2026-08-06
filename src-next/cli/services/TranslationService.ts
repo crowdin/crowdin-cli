@@ -138,30 +138,19 @@ export class TranslationService {
 
     try {
       const applied = await this.apiClient.translationsApi.applyPreTranslation(this.projectId, request);
-      let status = applied.data;
-
-      while (status.status.toLowerCase() !== 'finished') {
-        // BuildStatus is created|inProgress|canceled|failed|finished. `canceled` is terminal, so
-        // polling past it never ends — Java has the same gap and hangs on a build cancelled from
-        // the Crowdin UI. Deliberate divergence: treat it as a failure rather than spin forever.
-        if (status.status.toLowerCase() === 'failed' || status.status.toLowerCase() === 'canceled') {
-          throw new CliError('Failed to auto-translate the project. Please contact our support team for help');
-        }
-
-        const progress = Math.trunc(status.progress);
-
-        this.output.spinner(
-          'preTranslate',
-          'message',
-          verbose
-            ? `Auto-translation is completed by (${progress}%) (${status.identifier})`
-            : `Auto-translation is completed by (${progress}%)`,
-        );
-
-        await Bun.sleep(1000);
-
-        status = (await this.apiClient.translationsApi.preTranslationStatus(this.projectId, status.identifier)).data;
-      }
+      const { data: status } = await pollUntilFinished(
+        applied,
+        (identifier) => this.apiClient.translationsApi.preTranslationStatus(this.projectId, identifier),
+        'Failed to auto-translate the project. Please contact our support team for help',
+        (current) =>
+          this.output.spinner(
+            'preTranslate',
+            'message',
+            verbose
+              ? `Auto-translation is completed by (${Math.trunc(current.progress)}%) (${current.identifier})`
+              : `Auto-translation is completed by (${Math.trunc(current.progress)}%)`,
+          ),
+      );
 
       this.output.spinner(
         'preTranslate',
@@ -209,7 +198,7 @@ export class TranslationService {
           throw new CliError(errorMessage ? `Translations build failed: ${errorMessage}` : 'Translations build failed');
         }
 
-        await Bun.sleep(2000);
+        await Bun.sleep(1000);
       }
 
       this.output.spinner('build', 'stop', 'Translations built');

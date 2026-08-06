@@ -1,5 +1,5 @@
 import type { Client, TranslationMemoryModel } from '@crowdin/crowdin-api-client';
-import CliError from '../errors/CliError.ts';
+import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import type { Output } from '../utils/output.ts';
 
@@ -52,28 +52,22 @@ export class TmService {
       ...(format !== undefined ? { format } : {}),
     } as TranslationMemoryModel.ExportTranslationMemoryRequest;
 
-    this.output.spinner('tm-export', 'start', 'Building translation memory');
+    this.output.spinner('tmExport', 'start', 'Building translation memory');
 
     try {
-      let status = (await this.apiClient.translationMemoryApi.exportTm(tmId, request)).data;
+      const started = await this.apiClient.translationMemoryApi.exportTm(tmId, request);
+      const finished = await pollUntilFinished(
+        started,
+        (identifier) => this.apiClient.translationMemoryApi.checkExportStatus(tmId, identifier),
+        'The build has failed',
+        (status) => this.output.spinner('tmExport', 'message', `Building translation memory (${status.progress}%)`),
+      );
 
-      while (status.status !== 'finished') {
-        // `canceled` is terminal as well, so it has to end the wait (see lib/api/pollStatus.ts).
-        if (status.status === 'failed' || status.status === 'canceled') {
-          throw new CliError('The build has failed');
-        }
+      this.output.spinner('tmExport', 'stop', 'Building translation memory (100%)');
 
-        this.output.spinner('tm-export', 'message', `Building translation memory (${status.progress}%)`);
-        await Bun.sleep(1000);
-
-        status = (await this.apiClient.translationMemoryApi.checkExportStatus(tmId, status.identifier)).data;
-      }
-
-      this.output.spinner('tm-export', 'stop', 'Building translation memory (100%)');
-
-      return status.identifier;
+      return finished.data.identifier;
     } catch (error) {
-      this.output.spinner('tm-export', 'error', 'Failed to build the translation memory');
+      this.output.spinner('tmExport', 'error', 'Failed to build the translation memory');
       throw toCliError(error, 'Failed to build the translation memory');
     }
   }

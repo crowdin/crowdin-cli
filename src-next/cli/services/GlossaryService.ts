@@ -1,5 +1,5 @@
 import type { Client, GlossariesModel } from '@crowdin/crowdin-api-client';
-import CliError from '../errors/CliError.ts';
+import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import type { Output } from '../utils/output.ts';
 
@@ -52,28 +52,22 @@ export class GlossaryService {
       ...(format !== undefined ? { format } : {}),
     };
 
-    this.output.spinner('glossary-export', 'start', 'Building glossary');
+    this.output.spinner('glossaryExport', 'start', 'Building glossary');
 
     try {
-      let status = (await this.apiClient.glossariesApi.exportGlossary(glossaryId, request)).data;
+      const started = await this.apiClient.glossariesApi.exportGlossary(glossaryId, request);
+      const finished = await pollUntilFinished(
+        started,
+        (identifier) => this.apiClient.glossariesApi.checkGlossaryExportStatus(glossaryId, identifier),
+        'The build has failed',
+        (status) => this.output.spinner('glossaryExport', 'message', `Building glossary (${status.progress}%)`),
+      );
 
-      while (status.status !== 'finished') {
-        // `canceled` is terminal as well, so it has to end the wait (see lib/api/pollStatus.ts).
-        if (status.status === 'failed' || status.status === 'canceled') {
-          throw new CliError('The build has failed');
-        }
+      this.output.spinner('glossaryExport', 'stop', 'Building glossary (100%)');
 
-        this.output.spinner('glossary-export', 'message', `Building glossary (${status.progress}%)`);
-        await Bun.sleep(1000);
-
-        status = (await this.apiClient.glossariesApi.checkGlossaryExportStatus(glossaryId, status.identifier)).data;
-      }
-
-      this.output.spinner('glossary-export', 'stop', 'Building glossary (100%)');
-
-      return status.identifier;
+      return finished.data.identifier;
     } catch (error) {
-      this.output.spinner('glossary-export', 'error', 'Failed to build the glossary');
+      this.output.spinner('glossaryExport', 'error', 'Failed to build the glossary');
       throw toCliError(error, 'Failed to build the glossary');
     }
   }

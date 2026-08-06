@@ -171,7 +171,7 @@ export class FileService {
           throw new CliError('Reviewed sources build failed');
         }
 
-        await Bun.sleep(2000);
+        await Bun.sleep(1000);
       }
 
       this.output.spinner('reviewedBuild', 'stop', 'Reviewed sources built');
