@@ -80,6 +80,18 @@ describe('deleteObsoleteProjectEntries', () => {
     expect(result.deletedFiles).toEqual([]);
   });
 
+  // Matching runs on the config-pattern matcher (Java's formatSourcePatternForRegex machinery),
+  // which expands file placeholders. The CLI-filter matcher this used to call does not, so a
+  // placeholder `source` matched nothing and its obsolete files were never cleaned up.
+  test('treats a file as managed when the source pattern carries a file placeholder', async () => {
+    const result = await deleteObsolete({
+      projectFiles: [{ id: 1, path: '/src/app.json' }],
+      groups: [{ source: '/src/%original_file_name%', translation: '/l/%locale%/%original_file_name%' }],
+    });
+
+    expect(result.deletedFiles).toEqual(['/src/app.json']);
+  });
+
   test('deletes a path-matching file whose export pattern satisfies the group', async () => {
     const result = await deleteObsolete({
       projectFiles: [{ id: 1, path: '/src/other.json', exportOptions: { exportPattern: '/l/%locale%/other.json' } }],

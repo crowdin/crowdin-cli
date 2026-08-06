@@ -2,8 +2,7 @@ import type { ResponseObject, SourceFilesModel } from '@crowdin/crowdin-api-clie
 import type { DirectoryService } from '@/cli/services/DirectoryService.ts';
 import type { FileService } from '@/cli/services/FileService.ts';
 import type { Output } from '@/cli/utils/output.ts';
-import { isPathMatch } from '@/cli/utils/pathMatcher.ts';
-import { matchesExportPattern } from '@/lib/config/projectFileMatch.ts';
+import { matchesExportPattern, matchesSourcePattern } from '@/lib/config/projectFileMatch.ts';
 import { getExportPattern } from '@/lib/download/projectTranslations.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { stripBranchPrefix, stripLeadingSlashes, toProjectPath } from '@/lib/utils/path.ts';
@@ -127,10 +126,11 @@ export async function deleteObsoleteProjectEntries(
  * file only counts as managed when the same group both matches its path and accepts its stored
  * export pattern (`ObsoleteSourcesUtils.checkExportPattern`).
  *
- * With `preserve_hierarchy` the project path keeps its full hierarchy, so it is matched directly.
- * Without it, project paths have their common prefix stripped, so the path is matched against every
- * trailing slice of the source pattern (leading directories optional) — an approximation of Java's
- * ObsoleteSourcesUtils regex with optional leading segments.
+ * Matching goes through `matchesSourcePattern`, the port of the same regex machinery Java uses here
+ * (`ProjectFilesUtils.isProjectFilePathSatisfiesPatterns` builds exactly the anchored /
+ * optional-leading-segment patterns that `formatSourcePatternForRegex` feeds). This used to run on
+ * `cli/utils/pathMatcher`, which is for user-supplied CLI file filters and expands no placeholders,
+ * so a `source` carrying `%original_file_name%` matched nothing here.
  */
 function isManagedBySourcePatterns(
   projectPath: string,
@@ -139,7 +139,7 @@ function isManagedBySourcePatterns(
   preserveHierarchy: boolean,
 ): boolean {
   return sourcePatterns.some(({ source, translation, ignore }) => {
-    if (!matchesPattern(projectPath, source, preserveHierarchy)) {
+    if (!matchesSourcePattern(projectPath, source, preserveHierarchy)) {
       return false;
     }
 
@@ -149,24 +149,8 @@ function isManagedBySourcePatterns(
       return false;
     }
 
-    return !(ignore ?? []).some((ignorePattern) => matchesPattern(projectPath, ignorePattern, preserveHierarchy));
+    return !(ignore ?? []).some((ignorePattern) => matchesSourcePattern(projectPath, ignorePattern, preserveHierarchy));
   });
-}
-
-function matchesPattern(projectPath: string, pattern: string, preserveHierarchy: boolean): boolean {
-  if (preserveHierarchy) {
-    return isPathMatch(projectPath, pattern);
-  }
-
-  const segments = stripLeadingSlashes(pattern).split('/');
-
-  for (let index = 0; index < segments.length; index++) {
-    if (isPathMatch(projectPath, `/${segments.slice(index).join('/')}`)) {
-      return true;
-    }
-  }
-
-  return false;
 }
 
 /** Parent of a project path, or '' at the root (mirrors the walk in Utils.getParentDirectory). */

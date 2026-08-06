@@ -1,8 +1,14 @@
 import { toPosixPath } from '@/lib/utils/path.ts';
 
 /**
- * Matches a Crowdin project file path against a glob pattern, mirroring the
- * Java CLI FileHelper.isPathMatch semantics:
+ * Matches a project file path against a **user-supplied CLI filter** (`--file`, `--filter`), not
+ * against a config `source`/`ignore` pattern. Config patterns go through
+ * `lib/config/projectFileMatch.ts::matchesSourcePattern`, which additionally expands the file
+ * placeholders and applies the `preserve_hierarchy` tiers the way Java's
+ * `formatSourcePatternForRegex` does. Using this one on a config pattern silently drops both —
+ * `obsoleteEntries` did, and a `source` carrying `%original_file_name%` matched nothing.
+ *
+ * Mirrors the Java CLI FileHelper.isPathMatch semantics:
  * - '**' matches any number of directories
  * - '*' matches one or more characters within a path segment
  * - '?' matches a single character within a path segment
