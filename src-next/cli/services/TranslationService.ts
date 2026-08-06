@@ -141,7 +141,10 @@ export class TranslationService {
       let status = applied.data;
 
       while (status.status.toLowerCase() !== 'finished') {
-        if (status.status.toLowerCase() === 'failed') {
+        // BuildStatus is created|inProgress|canceled|failed|finished. `canceled` is terminal, so
+        // polling past it never ends — Java has the same gap and hangs on a build cancelled from
+        // the Crowdin UI. Deliberate divergence: treat it as a failure rather than spin forever.
+        if (status.status.toLowerCase() === 'failed' || status.status.toLowerCase() === 'canceled') {
           throw new CliError('Failed to auto-translate the project. Please contact our support team for help');
         }
 
@@ -199,7 +202,9 @@ export class TranslationService {
           break;
         }
 
-        if (buildProgress.data.status === 'failed') {
+        // Same terminal-status gap as preTranslate: without `canceled` this loop never exits when
+        // the build is cancelled from the Crowdin UI.
+        if (buildProgress.data.status === 'failed' || buildProgress.data.status === 'canceled') {
           const errorMessage = buildProgress.data.error?.message;
           throw new CliError(errorMessage ? `Translations build failed: ${errorMessage}` : 'Translations build failed');
         }

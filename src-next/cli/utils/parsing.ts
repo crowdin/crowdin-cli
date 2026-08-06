@@ -1,18 +1,20 @@
-import CliError from '@/cli/errors/CliError.ts';
+import ValidationError from '@/cli/errors/ValidationError.ts';
 import { stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 
+// Java declares these ids as `Long`, so picocli converts them with Long.parseLong and reports a
+// usage error (exit 2) for anything else. `Number()` is far looser — it accepts '1.5', '1e3',
+// '0x10', ' 12 ' and 'Infinity', and turns '  ' into 0 — which would forward junk to the API as a
+// real id, so match Long.parseLong's grammar instead.
 export function parseNumericId(value: string | undefined, entityName: string): number {
   if (!value) {
-    throw new CliError(`${entityName} id can not be empty`);
+    throw new ValidationError(`${entityName} id can not be empty`);
   }
 
-  const id = Number(value);
-
-  if (Number.isNaN(id)) {
-    throw new CliError(`${entityName} id must be numeric`);
+  if (!/^[+-]?\d+$/.test(value)) {
+    throw new ValidationError(`${entityName} id must be numeric`);
   }
 
-  return id;
+  return Number(value);
 }
 
 export function toArray<T = string>(value: T | T[] | undefined): T[] {
@@ -33,13 +35,16 @@ export function toNumberArray(value: NumericInput, errorMessage: string): number
   const values = Array.isArray(value) ? value : [value];
 
   return values.map((entry) => {
-    const parsed = typeof entry === 'number' ? entry : Number(entry);
-
-    if (Number.isNaN(parsed)) {
-      throw new CliError(errorMessage);
+    // Java parses these as List<Long>, so hold string input to the same grammar as parseNumericId.
+    if (typeof entry === 'number') {
+      return entry;
     }
 
-    return parsed;
+    if (!/^[+-]?\d+$/.test(entry)) {
+      throw new ValidationError(errorMessage);
+    }
+
+    return Number(entry);
   });
 }
 
@@ -64,7 +69,9 @@ export function parseScheme(values: string[]): Record<string, number> | undefine
     const index = Number(column);
 
     if (!key || column === undefined || rest.length > 0 || !Number.isInteger(index) || index < 0) {
-      throw new CliError(
+      // Java takes --scheme as Map<String, Integer>, so picocli rejects a malformed value as a
+      // usage error (exit 2) rather than a generic failure.
+      throw new ValidationError(
         `The '--scheme' parameter has an invalid value '${value}'. Expected format: <column>=<index> (e.g. en=0)`,
       );
     }

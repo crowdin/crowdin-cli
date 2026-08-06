@@ -166,7 +166,8 @@ export class FileService {
           break;
         }
 
-        if (status.data.status === 'failed') {
+        // `canceled` is terminal as well, so it has to end the wait (see lib/api/pollStatus.ts).
+        if (status.data.status === 'failed' || status.data.status === 'canceled') {
           throw new CliError('Reviewed sources build failed');
         }
 

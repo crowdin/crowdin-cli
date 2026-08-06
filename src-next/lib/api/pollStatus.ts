@@ -12,8 +12,13 @@ export async function pollUntilFinished<T>(
   let current = initial;
 
   // Case-insensitive: some endpoints return "finished"/"failed", others capitalize (e.g. bundle export).
+  // `canceled` is terminal too (BuildStatus is created|inProgress|canceled|failed|finished), so it
+  // has to end the loop — waiting for a cancelled job to reach "finished" never returns. Java shares
+  // this gap and hangs; ending the wait is a deliberate divergence.
+  const isFailure = (status: string) => status === 'failed' || status === 'canceled';
+
   while (current.data.status.toLowerCase() !== 'finished') {
-    if (current.data.status.toLowerCase() === 'failed') {
+    if (isFailure(current.data.status.toLowerCase())) {
       throw new CliError(failureMessage);
     }
 
@@ -21,7 +26,7 @@ export async function pollUntilFinished<T>(
 
     current = await poll(current.data.identifier);
 
-    if (current.data.status.toLowerCase() !== 'failed') {
+    if (!isFailure(current.data.status.toLowerCase())) {
       onProgress?.(current.data);
     }
   }

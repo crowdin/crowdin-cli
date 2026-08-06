@@ -58,7 +58,8 @@ export class GlossaryService {
       let status = (await this.apiClient.glossariesApi.exportGlossary(glossaryId, request)).data;
 
       while (status.status !== 'finished') {
-        if (status.status === 'failed') {
+        // `canceled` is terminal as well, so it has to end the wait (see lib/api/pollStatus.ts).
+        if (status.status === 'failed' || status.status === 'canceled') {
           throw new CliError('The build has failed');
         }
 
