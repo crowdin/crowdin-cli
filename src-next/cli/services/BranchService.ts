@@ -120,7 +120,7 @@ export class BranchService {
 
     await pollUntilFinished(
       started,
-      (id) => this.apiClient.sourceFilesApi.checkBranchClonedStatus(this.projectId, branchId, id),
+      ({ identifier }) => this.apiClient.sourceFilesApi.checkBranchClonedStatus(this.projectId, branchId, identifier),
       'Failed to clone the branch',
       (status) => onProgress?.(status.progress),
     );
@@ -150,7 +150,7 @@ export class BranchService {
 
     await pollUntilFinished(
       started,
-      (id) => this.apiClient.sourceFilesApi.checkBranchMergeStatus(this.projectId, branchId, id),
+      ({ identifier }) => this.apiClient.sourceFilesApi.checkBranchMergeStatus(this.projectId, branchId, identifier),
       'Failed to merge the branch',
       (status) => onProgress?.(status.progress),
     );

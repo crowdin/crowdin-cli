@@ -296,7 +296,7 @@ describe('FileService', () => {
 
     test('passes branchId to API', async () => {
       const spy = spyOn(apiClient.sourceFilesApi, 'buildReviewedSourceFiles').mockResolvedValue({
-        data: { id: 55 },
+        data: { id: 55, status: 'created' },
       } as never);
       spyOn(apiClient.sourceFilesApi, 'checkReviewedSourceFilesBuildStatus').mockResolvedValue({
         data: { status: 'finished' },
@@ -309,7 +309,7 @@ describe('FileService', () => {
 
     test('throws CliError when build status is "failed"', async () => {
       spyOn(apiClient.sourceFilesApi, 'buildReviewedSourceFiles').mockResolvedValue({
-        data: { id: 55 },
+        data: { id: 55, status: 'created' },
       } as never);
       spyOn(apiClient.sourceFilesApi, 'checkReviewedSourceFilesBuildStatus').mockResolvedValue({
         data: { status: 'failed' },

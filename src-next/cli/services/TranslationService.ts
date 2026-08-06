@@ -1,6 +1,5 @@
 import type { Client, Status, TranslationsModel } from '@crowdin/crowdin-api-client';
 import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
-import CliError from '../errors/CliError.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import WrongLanguageError from '../errors/WrongLanguageError.ts';
 import type { Output } from '../utils/output.ts';
@@ -86,7 +85,7 @@ export class TranslationService {
 
     return await pollUntilFinished(
       response,
-      (importId) => this.getImportTranslationsStatus(importId),
+      ({ identifier }) => this.getImportTranslationsStatus(identifier),
       failureMessage,
       onProgress,
     );
@@ -140,7 +139,7 @@ export class TranslationService {
       const applied = await this.apiClient.translationsApi.applyPreTranslation(this.projectId, request);
       const { data: status } = await pollUntilFinished(
         applied,
-        (identifier) => this.apiClient.translationsApi.preTranslationStatus(this.projectId, identifier),
+        ({ identifier }) => this.apiClient.translationsApi.preTranslationStatus(this.projectId, identifier),
         'Failed to auto-translate the project. Please contact our support team for help',
         (current) =>
           this.output.spinner(
@@ -184,22 +183,14 @@ export class TranslationService {
     try {
       const build = await this.apiClient.translationsApi.buildProject(this.projectId, request);
 
-      while (true) {
-        const buildProgress = await this.apiClient.translationsApi.checkBuildStatus(this.projectId, build.data.id);
-
-        if (buildProgress.data.status === 'finished') {
-          break;
-        }
-
-        // Same terminal-status gap as preTranslate: without `canceled` this loop never exits when
-        // the build is cancelled from the Crowdin UI.
-        if (buildProgress.data.status === 'failed' || buildProgress.data.status === 'canceled') {
-          const errorMessage = buildProgress.data.error?.message;
-          throw new CliError(errorMessage ? `Translations build failed: ${errorMessage}` : 'Translations build failed');
-        }
-
-        await Bun.sleep(1000);
-      }
+      // Keyed by the build id rather than a status identifier, so the poll closure ignores its
+      // argument. The message is a function because a failed build carries the server's reason.
+      await pollUntilFinished(
+        build,
+        () => this.apiClient.translationsApi.checkBuildStatus(this.projectId, build.data.id),
+        (current) =>
+          current.error?.message ? `Translations build failed: ${current.error.message}` : 'Translations build failed',
+      );
 
       this.output.spinner('build', 'stop', 'Translations built');
 

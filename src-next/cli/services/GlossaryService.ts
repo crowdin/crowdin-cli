@@ -58,7 +58,7 @@ export class GlossaryService {
       const started = await this.apiClient.glossariesApi.exportGlossary(glossaryId, request);
       const finished = await pollUntilFinished(
         started,
-        (identifier) => this.apiClient.glossariesApi.checkGlossaryExportStatus(glossaryId, identifier),
+        ({ identifier }) => this.apiClient.glossariesApi.checkGlossaryExportStatus(glossaryId, identifier),
         'The build has failed',
         (status) => this.output.spinner('glossaryExport', 'message', `Building glossary (${status.progress}%)`),
       );

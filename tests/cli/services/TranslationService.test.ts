@@ -124,7 +124,7 @@ describe('TranslationService', () => {
 
     test('throws CliError when build status is "failed"', async () => {
       spyOn(apiClient.translationsApi, 'buildProject').mockResolvedValue({
-        data: { id: 77 },
+        data: { id: 77, status: 'created' },
       } as never);
       spyOn(apiClient.translationsApi, 'checkBuildStatus').mockResolvedValue({
         data: { status: 'failed' },

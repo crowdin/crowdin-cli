@@ -20,6 +20,36 @@ describe('pollUntilFinished', () => {
     expect(pollUntilFinished(status('failed'), async () => status('failed'), 'boom')).rejects.toThrow('boom');
   });
 
+  // Builds carry the server's reason on the failed status itself, so the message can be a function.
+  test('derives the failure message from the status when given a function', () => {
+    const failed = { data: { status: 'failed', progress: 0, error: { message: 'disk full' } } };
+
+    expect(
+      pollUntilFinished(
+        failed,
+        async () => failed,
+        (current) => (current.error?.message ? `build failed: ${current.error.message}` : 'build failed'),
+      ),
+    ).rejects.toThrow('build failed: disk full');
+  });
+
+  // The two build endpoints key off a numeric build id, so the closure ignores the status argument.
+  test('supports a poll closure that ignores the status argument', async () => {
+    const responses = [status('inProgress'), status('finished', 100)];
+    let polls = 0;
+    const result = await pollUntilFinished(
+      status('created'),
+      async () => {
+        polls++;
+        return responses.shift() as never;
+      },
+      'boom',
+    );
+
+    expect(polls).toBe(2);
+    expect(result.data.status).toBe('finished');
+  });
+
   // BuildStatus is created|inProgress|canceled|failed|finished. `canceled` is terminal, so a loop
   // that only watches for finished/failed polls a cancelled job forever.
   test('throws on a canceled status instead of polling forever', () => {

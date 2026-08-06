@@ -81,7 +81,7 @@ export class BundleService {
 
     const finished = await pollUntilFinished(
       started,
-      (exportId) => this.client.bundlesApi.checkBundleExportStatus(this.projectId, bundleId, exportId),
+      ({ identifier }) => this.client.bundlesApi.checkBundleExportStatus(this.projectId, bundleId, identifier),
       'Failed to build the bundle',
       (status) => onProgress?.(status.progress),
     );

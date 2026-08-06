@@ -1,5 +1,5 @@
 import type { Client, PatchRequest, SourceFilesModel } from '@crowdin/crowdin-api-client';
-import CliError from '../errors/CliError.ts';
+import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
 import FileExistsError from '../errors/FileExistsError.ts';
 import FileInUpdateError from '../errors/FileInUpdateError.ts';
 import { toCliError } from '../errors/toCliError.ts';
@@ -156,23 +156,13 @@ export class FileService {
     try {
       const build = await this.apiClient.sourceFilesApi.buildReviewedSourceFiles(this.projectId, { branchId });
 
-      while (true) {
-        const status = await this.apiClient.sourceFilesApi.checkReviewedSourceFilesBuildStatus(
-          this.projectId,
-          build.data.id,
-        );
-
-        if (status.data.status === 'finished') {
-          break;
-        }
-
-        // `canceled` is terminal as well, so it has to end the wait (see lib/api/pollStatus.ts).
-        if (status.data.status === 'failed' || status.data.status === 'canceled') {
-          throw new CliError('Reviewed sources build failed');
-        }
-
-        await Bun.sleep(1000);
-      }
+      // Keyed by the build id rather than a status identifier, so the poll closure ignores its
+      // argument and closes over the build instead.
+      await pollUntilFinished(
+        build,
+        () => this.apiClient.sourceFilesApi.checkReviewedSourceFilesBuildStatus(this.projectId, build.data.id),
+        'Reviewed sources build failed',
+      );
 
       this.output.spinner('reviewedBuild', 'stop', 'Reviewed sources built');
 

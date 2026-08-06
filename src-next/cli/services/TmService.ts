@@ -58,7 +58,7 @@ export class TmService {
       const started = await this.apiClient.translationMemoryApi.exportTm(tmId, request);
       const finished = await pollUntilFinished(
         started,
-        (identifier) => this.apiClient.translationMemoryApi.checkExportStatus(tmId, identifier),
+        ({ identifier }) => this.apiClient.translationMemoryApi.checkExportStatus(tmId, identifier),
         'The build has failed',
         (status) => this.output.spinner('tmExport', 'message', `Building translation memory (${status.progress}%)`),
       );
