@@ -274,7 +274,7 @@ files: [
          'source': '...',
          'translation': '...',
          // highlight-next-line
-         'export_string_that_passed_workflow': true # Export only strings that passed workflow
+         'export_strings_that_passed_workflow': true # Export only strings that passed workflow
      },
 ]
 ```

@@ -81,13 +81,19 @@ $ crowdin file list --output toon
   16,src/locales/en.json,json,1,5
 ```
 
-<!-- TODO: mention the new AI skill -->
-
 :::tip
 The TOON version is about **60% smaller** in characters and even cheaper in LLM tokens.
 :::
 
 Pair that with millisecond startup and stable exit codes, and you get a tool an agent can call dozens of times in a row - cheaply, quickly, and predictably.
+
+#### Agent Skills
+
+Your agent doesn't have to learn the CLI by trial and error, either. The new [**crowdin-cli** Agent Skill](https://github.com/crowdin/skills) packages the know-how an agent needs - `crowdin.yml` configuration patterns, the core sync workflow, machine-readable output, exit codes, and v4 → v5 migration - in a format AI coding agents load automatically. One command installs it for Claude Code, Cursor, Gemini CLI, GitHub Copilot, and any other tool that supports Agent Skills:
+
+```bash
+npx skills add crowdin/skills --skill crowdin-cli
+```
 
 ### More control over auto-translation
 
@@ -127,7 +133,7 @@ It's also available via Homebrew, WinGet, Chocolatey, Docker, and the Linux pack
 
 There are only a handful of breaking changes, and each one is easy to deal with - mostly a renamed command or option with a clear one-line fix. Every case below comes with a before/after example, so migrating is usually a quick find-and-replace in your scripts.
 
-### `pre-translate` is now `auto-translate`
+#### `pre-translate` is now `auto-translate`
 
 The command has been renamed. There is no alias, so update your scripts:
 
@@ -136,7 +142,7 @@ The command has been renamed. There is no alias, so update your scripts:
 +crowdin auto-translate --method tm
 ```
 
-### `auto-translate`: `--translate-untranslated-only` removed
+#### `auto-translate`: `--translate-untranslated-only` removed
 
 The <kbd>--translate-untranslated-only</kbd> option (deprecated on the API side) and its <kbd>--no-translate-untranslated-only</kbd> form were removed in favor of the new, more flexible <kbd>--scope</kbd> option. Translating only untranslated strings is the default, so the positive form can simply be dropped:
 
@@ -148,7 +154,7 @@ The <kbd>--translate-untranslated-only</kbd> option (deprecated on the API side)
 +crowdin auto-translate --method tm --scope all
 ```
 
-### `--plain` is now `--output plain`
+#### `--plain` is now `--output plain`
 
 The standalone <kbd>--plain</kbd> flag is gone; use the global <kbd>--output</kbd> option instead:
 
@@ -157,7 +163,7 @@ The standalone <kbd>--plain</kbd> flag is gone; use the global <kbd>--output</kb
 +crowdin status --output plain
 ```
 
-### Negatable options collapsed to single flags
+#### Negatable options collapsed to single flags
 
 In CLI 4.x, many boolean options were negatable - they accepted both a positive and a `--no-` form (for example, both <kbd>--auto-tag</kbd> and <kbd>--no-auto-tag</kbd>). In 5.0, each of these options keeps only the form that changes the default behavior. The defaults themselves are unchanged, so the removed form was always redundant - if your scripts use it, simply drop it:
 
@@ -183,15 +189,15 @@ Two cases are not affected, because there both forms do something the other cann
 - `string edit` keeps <kbd>--hidden</kbd> and <kbd>--no-hidden</kbd> - they trigger different actions.
 - On file-based commands, `preserve_hierarchy` is the one setting with a configuration-file value to override, so <kbd>--preserve-hierarchy</kbd> and <kbd>--no-preserve-hierarchy</kbd> are both kept. Passing neither leaves the configured value untouched.
 
-### Source cache location
+#### Source cache location
 
 The cache used by `upload sources --cache` (`.crowdin/cache.json`) is now resolved relative to your configured `base_path` instead of the current working directory. The cache lives next to the files it describes and no longer pollutes unrelated directories. The first upload after upgrading may rebuild the cache.
 
-### `ignore_hidden_files` now ignores dot-directories
+#### `ignore_hidden_files` now ignores dot-directories
 
 Previously, only files whose own name starts with a dot were ignored - files inside a hidden directory (for example, `.github/config.json`) were still uploaded. Now entire dot-directories are skipped. If you rely on uploading files from hidden directories, set `ignore_hidden_files: false` in your configuration.
 
-### `distribution add` and `distribution edit`
+#### `distribution add` and `distribution edit`
 
 The deprecated <kbd>--export-mode</kbd> and <kbd>--file</kbd> options were removed - use <kbd>--bundle-id</kbd> instead. The <kbd>--branch</kbd> option was dropped as well.
 
@@ -200,7 +206,7 @@ The deprecated <kbd>--export-mode</kbd> and <kbd>--file</kbd> options were remov
 +crowdin distribution add "My Distribution" --bundle-id 12
 ```
 
-### `bundle add`: options renamed
+#### `bundle add`: options renamed
 
 The pattern options were renamed to avoid clashing with the global config options and to match the underlying API fields:
 
@@ -215,7 +221,7 @@ The pattern options were renamed to avoid clashing with the global config option
 +crowdin bundle add "My Bundle" --format json --source-pattern "**/*.json" --ignore-pattern "node_modules/**" --export-pattern "%locale%/%file_name%"
 ```
 
-### `context download`
+#### `context download`
 
 The <kbd>--format</kbd> option was removed. It only ever accepted `jsonl`, which is now the sole format, so the flag was redundant - drop it:
 
@@ -224,7 +230,7 @@ The <kbd>--format</kbd> option was removed. It only ever accepted `jsonl`, which
 +crowdin context download
 ```
 
-### `config sources`
+#### `config sources`
 
 The <kbd>--branch</kbd> option was removed from the `crowdin config sources` command - it had no effect.
 
