@@ -98,7 +98,7 @@ describe('AppCommand', () => {
     expect(successSpy).toHaveBeenCalledWith('No applications found');
   });
 
-  test('listAction prints text output rows in text format', async () => {
+  test('listAction prints identifier and name per application in text format', async () => {
     const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const cmd = new AppCommand(
       () => textOutput,
@@ -111,23 +111,31 @@ describe('AppCommand', () => {
 
     await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-    expect(console.table).toHaveBeenCalledTimes(1);
-    expect(console.table).toHaveBeenCalledWith(
-      [
-        { identifier: 'github', name: 'GitHub' },
-        { identifier: 'slack', name: 'Slack' },
-      ],
-      ['identifier', 'name'],
-    );
+    expect(console.log).toHaveBeenCalledWith('github GitHub');
+    expect(console.log).toHaveBeenCalledWith('slack Slack');
   });
 
-  test('listAction prints JSON output rows in non-text format', async () => {
-    const cmd = createAppCommand();
+  test('listAction prints the identifier alone in plain format', async () => {
+    const plainOutput = createOutput({ ...globalOptions, output: 'plain' });
+    const cmd = new AppCommand(
+      () => plainOutput,
+      async () => appService as unknown as AppService,
+    );
     appService.list.mockResolvedValue([createApp({ identifier: 'github', name: 'GitHub' })]);
+
+    await cmd.listAction(createCommandContext({ ...globalOptions, output: 'plain' }));
+
+    expect(console.log).toHaveBeenCalledWith('github');
+  });
+
+  test('listAction serializes the applications themselves in structured formats', async () => {
+    const cmd = createAppCommand();
+    const apps = [createApp({ identifier: 'github', name: 'GitHub' })];
+    appService.list.mockResolvedValue(apps);
 
     await cmd.listAction(createCommandContext({ ...globalOptions, output: 'json' }));
 
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ identifier: 'github', name: 'GitHub' }], null, 2));
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(apps, null, 2));
   });
 
   test('installAction validates identifier', async () => {

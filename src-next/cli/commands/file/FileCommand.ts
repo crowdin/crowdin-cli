@@ -33,6 +33,7 @@ import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { sameLanguageSet } from '@/lib/upload/fileOptions.ts';
 import { stripBranchPrefix, stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 import { download, upload } from './options.ts';
+import { fileVerboseView, fileView } from './views.ts';
 
 interface UploadFileCommandOptions extends GlobalOptions {
   dest?: string;
@@ -144,28 +145,19 @@ export default class FileCommand {
     await projectService.loadProject();
     const branchId = await branchService.resolveBranchId(options.branch);
     const projectFiles = await fileService.loadProjectFiles(branchId);
-    // Java strips leading slashes from displayed paths (FileListAction).
-    const files = projectFiles.data.map((file) => ({
-      id: file.data.id,
-      path: stripLeadingSlashes(file.data.path),
-      type: file.data.type,
-      parserVersion: file.data.parserVersion,
-      revisionId: file.data.revisionId,
-    }));
+    const files = projectFiles.data.map((file) => file.data);
 
     // Tree is an interactive-only rendering; a machine --output (json/toon/plain) is a parseable
-    // contract and wins, falling through to output.table so the format stays intact.
+    // contract and wins, falling through to output.list so the format stays intact.
     if (options.tree && !OUTPUT_FORMATS.includes(options.output ?? '')) {
       printFileTree(
-        files.map((file) => file.path),
+        files.map((file) => stripLeadingSlashes(file.path)),
         output,
       );
       return;
     }
 
-    // Java FileListAction: verbose adds type/parserVersion/revisionId columns.
-    const columns = options.verbose ? ['id', 'path', 'type', 'parserVersion', 'revisionId'] : ['id', 'path'];
-    output.table(files, columns, columns);
+    output.list(files, options.verbose ? fileVerboseView : fileView, { empty: 'No files found' });
   };
 
   uploadAction = async (command: Command) => {

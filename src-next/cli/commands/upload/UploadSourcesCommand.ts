@@ -2,6 +2,7 @@ import path from 'node:path';
 import type { LanguagesModel, SourceFilesModel, SourceStringsModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import FileExistsError from '@/cli/errors/FileExistsError.ts';
 import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
@@ -18,7 +19,6 @@ import type {
   GetStorageService,
   GetStringService,
 } from '@/cli/services.ts';
-import { printDryRunPaths } from '@/cli/utils/dryRunPaths.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { assertFilesConfigured } from '@/lib/config.ts';

@@ -16,10 +16,9 @@ import type {
   GetStorageService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import { autoTag, branch as branchOption, directory, file, label, stringId } from './options.ts';
-
-const ALLOWED_IMAGE_EXTENSIONS = new Set(['jpeg', 'jpg', 'png', 'gif']);
 
 interface ListOptions extends GlobalOptions {
   stringId?: number;
@@ -32,6 +31,15 @@ interface UploadOptions extends GlobalOptions {
   label?: string[];
   directory?: string;
 }
+
+const ALLOWED_IMAGE_EXTENSIONS = new Set(['jpeg', 'jpg', 'png', 'gif']);
+
+// Java message.screenshot.list: id, tag count, name. Shared by list and the upload/update echoes;
+// Java's plain echo prints the local file name, but the listing shape keeps the id addressable.
+const screenshotView: View<ScreenshotView> = {
+  text: (screenshot) => `#${screenshot.id} ${screenshot.tagsCount} ${screenshot.name}`,
+  plain: (screenshot) => `${screenshot.id} ${screenshot.name}`,
+};
 
 export default class ScreenshotCommand {
   constructor(
@@ -94,7 +102,7 @@ export default class ScreenshotCommand {
     const screenshotService = await this.getScreenshotService(command);
     const screenshots = await screenshotService.list(options.stringId);
 
-    output.list(screenshots.map(this.toRow), { empty: 'No screenshot found', plainColumns: ['id', 'name'] });
+    output.list(screenshots, screenshotView, { empty: 'No screenshot found' });
   };
 
   uploadAction = async (command: Command) => {
@@ -147,7 +155,7 @@ export default class ScreenshotCommand {
       const updatedScreenshot = await screenshotService.get(existingScreenshot.id);
 
       if (updatedScreenshot) {
-        output.table([this.toRow(updatedScreenshot)]);
+        output.item(updatedScreenshot, screenshotView);
       }
 
       return;
@@ -165,7 +173,7 @@ export default class ScreenshotCommand {
 
     try {
       const screenshot = await screenshotService.upload(request);
-      output.table([this.toRow(screenshot)]);
+      output.item(screenshot, screenshotView);
     } catch (error) {
       if (screenshotService.isAutoTagInProgressError(error)) {
         output.warning(`Tags were not applied for ${imageName} because auto tag is currently in progress`);
@@ -244,14 +252,6 @@ export default class ScreenshotCommand {
       }
 
       return fileId;
-    };
-  }
-
-  private toRow(screenshot: ScreenshotView): Record<string, unknown> {
-    return {
-      id: screenshot.id,
-      tagsCount: screenshot.tagsCount,
-      name: screenshot.name,
     };
   }
 }

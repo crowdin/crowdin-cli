@@ -5,6 +5,7 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import type { View } from '@/cli/utils/output.ts';
 import { all, code } from './options.ts';
 
 type LanguageCodeFormat =
@@ -22,6 +23,16 @@ interface LanguageCommandOptions extends GlobalOptions {
 }
 
 type LanguageMapping = Record<string, Record<string, string>>;
+
+// `code` is resolved from --code plus the project's language mapping, so it rides along with the
+// language: json consumers have no way to reproduce the mapping overrides on their own.
+type ResolvedLanguage = LanguagesModel.Language & { code: string };
+
+// Java message.language.list: resolved code, name.
+const languageView: View<ResolvedLanguage> = {
+  text: (language) => `${language.code} ${language.name ?? ''}`,
+  plain: (language) => language.code,
+};
 
 export default class LanguageCommand {
   constructor(
@@ -79,11 +90,13 @@ export default class LanguageCommand {
       ? await languageService.listSupportedLanguages()
       : (projectData.targetLanguages ?? []);
 
-    output.table(
+    output.list(
       languages.map((language) => ({
+        ...language,
         code: this.getCode(projectData.languageMapping, language, codeFormat),
-        name: language.name ?? '',
       })),
+      languageView,
+      { empty: 'No languages found' },
     );
   };
 

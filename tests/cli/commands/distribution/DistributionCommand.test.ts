@@ -95,34 +95,64 @@ describe('DistributionCommand', () => {
 
   test('lists distributions', async () => {
     const distributionCommand = createDistributionCommand();
-
-    distributionService.list.mockResolvedValue([
+    const distributions = [
       createDistribution({ hash: 'hash-1', name: 'CDN one' }),
       createDistribution({ hash: 'hash-2', name: 'CDN two' }),
-    ]);
+    ];
+
+    distributionService.list.mockResolvedValue(distributions);
     await distributionCommand.listAction(createCommandContext(globalOptions));
 
-    expect(console.log).toHaveBeenCalledWith(
-      JSON.stringify(
-        [
-          { hash: 'hash-1', name: 'CDN one' },
-          { hash: 'hash-2', name: 'CDN two' },
-        ],
-        null,
-        2,
-      ),
-    );
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(distributions, null, 2));
+  });
+
+  test('prints hash, name and export mode per distribution in text format', async () => {
+    output = createOutput({ ...globalOptions, output: 'text' });
+    const distributionCommand = createDistributionCommand();
+
+    distributionService.list.mockResolvedValue([
+      createDistribution({ hash: 'hash-1', name: 'CDN one', exportMode: 'default' }),
+    ]);
+    await distributionCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
+
+    expect(console.log).toHaveBeenCalledWith('hash-1 CDN one default');
+  });
+
+  test('prints hash and name in plain format', async () => {
+    output = createOutput({ ...globalOptions, output: 'plain' });
+    const distributionCommand = createDistributionCommand();
+
+    distributionService.list.mockResolvedValue([
+      createDistribution({ hash: 'hash-1', name: 'CDN one', exportMode: 'default' }),
+    ]);
+    await distributionCommand.listAction(createCommandContext({ ...globalOptions, output: 'plain' }));
+
+    expect(console.log).toHaveBeenCalledWith('hash-1 CDN one');
+  });
+
+  // Java's add/edit echoes print the name alone in plain; we keep the listing's shape so the hash
+  // that `edit`/`release` take stays in the output.
+  test('echoes hash and name in plain format after add', async () => {
+    output = createOutput({ ...globalOptions, output: 'plain' });
+    const distributionCommand = createDistributionCommand();
+    const commandContext = createCommandContext({ ...globalOptions, output: 'plain', bundleId: ['4'] }, ['CDN']);
+
+    distributionService.add.mockResolvedValue(createDistribution({ hash: 'hash-1', name: 'CDN' }));
+    await distributionCommand.addAction(commandContext);
+
+    expect(console.log).toHaveBeenCalledWith('hash-1 CDN');
   });
 
   test('adds distribution with bundle IDs', async () => {
     const distributionCommand = createDistributionCommand();
     const commandContext = createCommandContext({ ...globalOptions, bundleId: ['4', '7'] }, ['CDN']);
+    const distribution = createDistribution({ hash: 'hash-1', name: 'CDN' });
 
-    distributionService.add.mockResolvedValue(createDistribution({ hash: 'hash-1', name: 'CDN' }));
+    distributionService.add.mockResolvedValue(distribution);
     await distributionCommand.addAction(commandContext);
 
     expect(distributionService.add).toHaveBeenCalledWith('CDN', [4, 7]);
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ hash: 'hash-1', name: 'CDN' }], null, 2));
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(distribution, null, 2));
   });
 
   test('requires bundle IDs for add action', async () => {

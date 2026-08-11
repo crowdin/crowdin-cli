@@ -126,6 +126,24 @@ describe('StatusCommand', () => {
     );
   });
 
+  // status is the only command that still renders a grid: languages x translated/proofread.
+  test('renders the progress grid as a table in text format', async () => {
+    output = createOutput({ ...globalOptions, output: 'text' });
+    const statusCommand = createStatusCommand();
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
+      data: [createProgress('fr', 87, 75)],
+    } as never);
+
+    await statusCommand.defaultAction(createCommandContext({ ...globalOptions, output: 'text' }));
+
+    expect(console.table).toHaveBeenCalledWith({
+      translation: { fr: '87%' },
+      proofread: { fr: '75%' },
+    });
+  });
+
   test('fails when incomplete with --fail-if-incomplete for translation', async () => {
     const statusCommand = createStatusCommand();
     commandContext = createCommandContext({

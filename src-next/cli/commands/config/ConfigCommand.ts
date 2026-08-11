@@ -1,6 +1,7 @@
 import type { Command } from 'commander';
 import { ZodError, z } from 'zod';
 import { filesConfigGroup, tree as treeOption } from '@/cli/commands/common/options.ts';
+import { pathView } from '@/cli/commands/common/views.ts';
 import ForbiddenError from '@/cli/errors/ForbiddenError.ts';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import ValidationError from '@/cli/errors/ValidationError.ts';
@@ -76,7 +77,7 @@ export default class ConfigCommand {
       return;
     }
 
-    output.table(displayedPaths.map((file) => ({ file })));
+    output.list(displayedPaths, pathView, { empty: 'No source files found' });
   };
 
   listTranslationsAction = async (command: Command) => {
@@ -150,7 +151,7 @@ export default class ConfigCommand {
       return;
     }
 
-    output.table(displayedPaths.map((file) => ({ file })));
+    output.list(displayedPaths, pathView, { empty: 'No translation files found' });
   };
 
   lintAction = async (command: Command) => {

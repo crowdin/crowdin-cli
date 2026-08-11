@@ -178,7 +178,7 @@ describe('ConfigCommand sources', () => {
     }) as ProjectConfig;
 
   const runSources = async (config: ProjectConfig) => {
-    const table = spyOn(output, 'table');
+    const list = spyOn(output, 'list');
     const command = new ConfigCommand(
       async () => config,
       () => output,
@@ -187,19 +187,19 @@ describe('ConfigCommand sources', () => {
     );
 
     await command.listSourcesAction(createCommandContext({ ...globalOptions, config: '' }));
-    return table;
+    return list;
   };
 
   test('strips the common parent directory when preserve_hierarchy is off', async () => {
-    const table = await runSources(buildConfig());
+    const list = await runSources(buildConfig());
 
-    expect(table).toHaveBeenCalledWith([{ file: 'bar/b.json' }, { file: 'foo/a.json' }]);
+    expect(list).toHaveBeenCalledWith(['bar/b.json', 'foo/a.json'], expect.anything(), expect.anything());
   });
 
   test('keeps the full hierarchy when preserve_hierarchy is on', async () => {
-    const table = await runSources(buildConfig({ preserveHierarchy: true }));
+    const list = await runSources(buildConfig({ preserveHierarchy: true }));
 
-    expect(table).toHaveBeenCalledWith([{ file: 'src/bar/b.json' }, { file: 'src/foo/a.json' }]);
+    expect(list).toHaveBeenCalledWith(['src/bar/b.json', 'src/foo/a.json'], expect.anything(), expect.anything());
   });
 });
 
@@ -253,7 +253,7 @@ describe('ConfigCommand translations', () => {
         baseUrl: 'https://api.crowdin.com',
         files,
       }) as ProjectConfig;
-    const table = spyOn(output, 'table');
+    const list = spyOn(output, 'list');
     const warning = spyOn(output, 'warning');
     const log = spyOn(output, 'log');
     const command = new ConfigCommand(
@@ -267,61 +267,54 @@ describe('ConfigCommand translations', () => {
       createCommandContext({ ...globalOptions, config: '', ...options } as GlobalOptions & { config: string }),
     );
 
-    return { table, warning, log };
+    return { list, warning, log };
   };
 
   test('lists translations including the in-context pseudo-language', async () => {
-    const { table } = await run(managerProject);
+    const { list } = await run(managerProject);
 
-    expect(table).toHaveBeenCalledWith([
-      { file: 'l/ie/a.json' },
-      { file: 'l/ie/b.json' },
-      { file: 'l/uk/a.json' },
-      { file: 'l/uk/b.json' },
-    ]);
+    expect(list).toHaveBeenCalledWith(
+      ['l/ie/a.json', 'l/ie/b.json', 'l/uk/a.json', 'l/uk/b.json'],
+      expect.anything(),
+      expect.anything(),
+    );
   });
 
   // Java DryrunTranslations resolves each group's own sources against that group's `translation`.
   test('lists a path per group when two groups match the same file', async () => {
-    const { table } = await run(managerProject, {}, [
+    const { list } = await run(managerProject, {}, [
       { source: '/**/*.json', translation: '/l/%two_letters_code%/%original_file_name%' },
       { source: '/a.json', translation: '/second/%two_letters_code%/%original_file_name%' },
     ]);
 
-    expect(table).toHaveBeenCalledWith([
-      { file: 'l/ie/a.json' },
-      { file: 'l/ie/b.json' },
-      { file: 'l/uk/a.json' },
-      { file: 'l/uk/b.json' },
-      { file: 'second/ie/a.json' },
-      { file: 'second/uk/a.json' },
-    ]);
+    expect(list).toHaveBeenCalledWith(
+      ['l/ie/a.json', 'l/ie/b.json', 'l/uk/a.json', 'l/uk/b.json', 'second/ie/a.json', 'second/uk/a.json'],
+      expect.anything(),
+      expect.anything(),
+    );
   });
 
   test('resolves a file through the group that owns it, not one that ignores it', async () => {
     await Bun.write(join(tempDir, 'emails', 'welcome.json'), '{}');
 
-    const { table } = await run(managerProject, {}, [
+    const { list } = await run(managerProject, {}, [
       { source: '/**/*.json', ignore: ['/emails/**'], translation: '/l/%two_letters_code%/%original_file_name%' },
       { source: '/emails/**/*.json', translation: '/emails/%two_letters_code%/%original_file_name%' },
     ]);
 
     // The first group ignores it, so it must not appear under `l/`.
-    expect(table).toHaveBeenCalledWith([
-      { file: 'emails/ie/welcome.json' },
-      { file: 'emails/uk/welcome.json' },
-      { file: 'l/ie/a.json' },
-      { file: 'l/ie/b.json' },
-      { file: 'l/uk/a.json' },
-      { file: 'l/uk/b.json' },
-    ]);
+    expect(list).toHaveBeenCalledWith(
+      ['emails/ie/welcome.json', 'emails/uk/welcome.json', 'l/ie/a.json', 'l/ie/b.json', 'l/uk/a.json', 'l/uk/b.json'],
+      expect.anything(),
+      expect.anything(),
+    );
   });
 
   test('warns and lists nothing without manager access', async () => {
-    const { table, warning } = await run({ data: { targetLanguages: [{ id: 'uk', twoLettersCode: 'uk' }] } });
+    const { list, warning } = await run({ data: { targetLanguages: [{ id: 'uk', twoLettersCode: 'uk' }] } });
 
     expect(warning).toHaveBeenCalledTimes(1);
-    expect(table).not.toHaveBeenCalled();
+    expect(list).not.toHaveBeenCalled();
   });
 
   test('throws Forbidden without manager access in plain output', async () => {
@@ -329,9 +322,9 @@ describe('ConfigCommand translations', () => {
   });
 
   test('renders a tree with --tree', async () => {
-    const { table, log } = await run(managerProject, { tree: true });
+    const { list, log } = await run(managerProject, { tree: true });
 
-    expect(table).not.toHaveBeenCalled();
+    expect(list).not.toHaveBeenCalled();
     expect(log).toHaveBeenCalled();
   });
 });

@@ -131,38 +131,40 @@ describe('GlossaryCommand', () => {
       );
     });
 
-    test('lists glossaries with terms in verbose mode', async () => {
+    test('lists glossaries with their terms indented underneath in verbose mode', async () => {
       const glossaryCommand = createGlossaryCommand();
+      output = createOutput({ ...globalOptions, output: 'text' });
       glossaryService.list.mockResolvedValue([createGlossary()]);
       glossaryService.listTerms.mockResolvedValue([
         { id: 52, text: 'fifty-two', description: 'How' },
         { id: 53, text: 'fifty-three', description: 'are\nyou' },
       ] as GlossariesModel.Term[]);
 
-      await glossaryCommand.listAction(createCommandContext({ verbose: true }));
+      await glossaryCommand.listAction(createCommandContext({ verbose: true, output: 'text' }));
 
       expect(glossaryService.listTerms).toHaveBeenCalledWith(42);
       expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify(
-          [
-            {
-              id: 42,
-              name: 'forty-two',
-              terms: 2,
-              termList: '#52 fifty-two: How; #53 fifty-three: are you',
-            },
-          ],
-          null,
-          2,
-        ),
+        '#42 forty-two (terms: 2)\n\t#52 fifty-two: How\n\t#53 fifty-three: are you',
       );
+    });
+
+    test('serializes the glossaries themselves in structured formats, without terms', async () => {
+      const glossaryCommand = createGlossaryCommand();
+      const glossaries = [createGlossary()];
+      glossaryService.list.mockResolvedValue(glossaries);
+
+      await glossaryCommand.listAction(createCommandContext({ verbose: true }));
+
+      expect(glossaryService.listTerms).not.toHaveBeenCalled();
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify(glossaries, null, 2));
     });
 
     test('skips term fetching for glossaries without terms in verbose mode', async () => {
       const glossaryCommand = createGlossaryCommand();
+      output = createOutput({ ...globalOptions, output: 'text' });
       glossaryService.list.mockResolvedValue([createGlossary({ terms: 0 })]);
 
-      await glossaryCommand.listAction(createCommandContext({ verbose: true }));
+      await glossaryCommand.listAction(createCommandContext({ verbose: true, output: 'text' }));
 
       expect(glossaryService.listTerms).not.toHaveBeenCalled();
     });
@@ -173,7 +175,7 @@ describe('GlossaryCommand', () => {
       glossaryService.list.mockResolvedValue([createGlossary()]);
       glossaryService.listTerms.mockRejectedValue(new CliError('Failed to list terms of glossary #42'));
 
-      await glossaryCommand.listAction(createCommandContext({ verbose: true }));
+      await glossaryCommand.listAction(createCommandContext({ verbose: true, output: 'text' }));
 
       expect(console.log).toHaveBeenCalledWith(
         expect.stringContaining('You do not have permission to manage this glossary'),

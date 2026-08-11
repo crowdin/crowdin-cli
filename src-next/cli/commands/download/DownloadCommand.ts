@@ -4,6 +4,7 @@ import path from 'node:path';
 import { ProjectsGroupsModel, type ResponseObject, type TranslationsModel } from '@crowdin/crowdin-api-client';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
+import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -17,7 +18,6 @@ import type {
   GetTranslationService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { printDryRunPaths } from '@/cli/utils/dryRunPaths.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { matchesManagerSourceFile, matchesSourcePattern, replaceUnaryAsterisk } from '@/lib/config/projectFileMatch.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';

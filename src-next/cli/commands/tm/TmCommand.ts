@@ -8,6 +8,7 @@ import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetApiClient, GetOutput, GetStorageService, GetTmService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
 import {
   firstLineContainsHeader as firstLineContainsHeaderOption,
@@ -20,10 +21,6 @@ import {
   targetLanguageId as targetLanguageIdOption,
   to as toOption,
 } from './options.ts';
-
-const UPLOAD_EXTENSIONS = ['tmx', 'csv', 'xls', 'xlsx'];
-const SCHEME_EXTENSIONS = ['csv', 'xls', 'xlsx'];
-const DEFAULT_TM_NAME = 'Created in Crowdin CLI (%s)';
 
 interface DownloadOptions extends GlobalOptions {
   sourceLanguageId?: string;
@@ -38,6 +35,16 @@ interface UploadOptions extends GlobalOptions {
   scheme?: string | string[];
   firstLineContainsHeader?: boolean;
 }
+
+const UPLOAD_EXTENSIONS = ['tmx', 'csv', 'xls', 'xlsx'];
+const SCHEME_EXTENSIONS = ['csv', 'xls', 'xlsx'];
+const DEFAULT_TM_NAME = 'Created in Crowdin CLI (%s)';
+
+// Java message.tm.list: id, name, segment count.
+const tmView: View<TranslationMemoryModel.TranslationMemory> = {
+  text: (tm) => `#${tm.id} ${tm.name} (segments: ${tm.segmentsCount})`,
+  plain: (tm) => tm.name,
+};
 
 export default class TmCommand {
   constructor(
@@ -96,14 +103,7 @@ export default class TmCommand {
     const tmService = await this.getTmService(command);
     const tms = await tmService.list();
 
-    output.list(
-      tms.map((tm) => ({
-        id: tm.id,
-        name: tm.name,
-        segments: tm.segmentsCount,
-      })),
-      { empty: 'No translation memories found', plainColumns: ['name'] },
-    );
+    output.list(tms, tmView, { empty: 'No translation memories found' });
   };
 
   downloadAction = async (command: Command) => {

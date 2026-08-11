@@ -2,8 +2,23 @@ import type { LabelsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetLabelService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import type { View } from '@/cli/utils/output.ts';
+
+// Java message.label.list, shared by list and the add echo (LabelAddAction).
+const labelView: View<LabelsModel.Label> = {
+  text: (label) => `#${label.id} ${label.title}`,
+  plain: (label) => label.title,
+};
+
+// Java LabelListAction prints the decorated line when `!plainView || isVerbose`, so a verbose
+// plain listing carries the ids too.
+const labelVerboseView: View<LabelsModel.Label> = {
+  text: labelView.text,
+  plain: labelView.text,
+};
 
 export default class LabelCommand {
   constructor(
@@ -56,11 +71,12 @@ export default class LabelCommand {
   };
 
   listAction = async (command: Command) => {
+    const options = command.optsWithGlobals() as GlobalOptions;
     const output = this.getOutput(command);
     const labelService = await this.getLabelService(command);
     const labels = await labelService.list();
 
-    output.list(labels.map(this.toRow), { empty: 'No labels found', plainColumns: ['title'] });
+    output.list(labels, options.verbose ? labelVerboseView : labelView, { empty: 'No labels found' });
   };
 
   addAction = async (command: Command) => {
@@ -82,7 +98,7 @@ export default class LabelCommand {
 
     const label = await labelService.add(title);
 
-    output.table([this.toRow(label)]);
+    output.item(label, labelView);
   };
 
   deleteAction = async (command: Command) => {
@@ -105,11 +121,4 @@ export default class LabelCommand {
 
     output.success(`Label '${title}' deleted successfully`);
   };
-
-  private toRow(label: LabelsModel.Label): Record<string, unknown> {
-    return {
-      id: label.id,
-      title: label.title,
-    };
-  }
 }

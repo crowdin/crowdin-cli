@@ -650,7 +650,7 @@ describe('UploadTranslationsCommand', () => {
 
     await command.uploadTranslationsAction(commandContext({ dryrun: true, output: 'plain' }));
 
-    expect(output.table).toHaveBeenCalledWith(['locale/es/app.json']);
+    expect(output.list).toHaveBeenCalledWith(['locale/es/app.json'], expect.anything());
   });
 
   test('does nothing when project has no source files', async () => {

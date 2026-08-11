@@ -46,9 +46,11 @@ describe('StringCommand', () => {
     } as unknown as Command;
   };
 
-  const createStringCommand = () => {
+  const createStringCommand = () => createStringCommandWith(output);
+
+  const createStringCommandWith = (commandOutput: Output) => {
     return new StringCommand(
-      () => output,
+      () => commandOutput,
       async () => stringService as unknown as StringService,
       async () => branchService as unknown as BranchService,
       async () => directoryService as unknown as DirectoryService,
@@ -158,10 +160,11 @@ describe('StringCommand', () => {
       expect(successSpy).toHaveBeenCalledWith('No source strings found');
     });
 
-    test('lists strings in non-verbose mode', async () => {
+    test('serializes the strings themselves in structured formats', async () => {
       const cmd = createStringCommand();
       const commandContext = createCommandContext({ ...globalOptions, filter: 'hello' });
-      stringService.list.mockResolvedValue([createStringModel({ id: 11, identifier: 'welcome', text: 'Hello' })]);
+      const strings = [createStringModel({ id: 11, identifier: 'welcome', text: 'Hello' })];
+      stringService.list.mockResolvedValue(strings);
 
       await cmd.listAction(commandContext);
 
@@ -170,14 +173,24 @@ describe('StringCommand', () => {
           filter: 'hello',
         }),
       );
-      expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify([{ id: 11, identifier: 'welcome', text: 'Hello' }], null, 2),
-      );
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify(strings, null, 2));
     });
 
-    test('lists strings in verbose mode', async () => {
+    test('skips the label and file-path lookups when not verbose', async () => {
       const cmd = createStringCommand();
-      const commandContext = createCommandContext({ ...globalOptions, verbose: true });
+      stringService.list.mockResolvedValue([createStringModel({ id: 11, identifier: 'welcome', text: 'Hello' })]);
+
+      await cmd.listAction(createCommandContext(globalOptions));
+
+      expect(labelService.listLabelsMap).not.toHaveBeenCalled();
+      expect(fileService.listProjectFilePaths).not.toHaveBeenCalled();
+    });
+
+    // Line rendering itself is covered in views.test.ts; this pins the verbose lookups reaching the view.
+    test('renders the verbose detail lines with resolved labels and file paths', async () => {
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
+      const cmd = createStringCommandWith(textOutput);
+      const commandContext = createCommandContext({ ...globalOptions, output: 'text', verbose: true });
       stringService.list.mockResolvedValue([
         createStringModel({
           id: 11,
@@ -193,20 +206,7 @@ describe('StringCommand', () => {
       await cmd.listAction(commandContext);
 
       expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify(
-          [
-            {
-              id: 11,
-              identifier: 'welcome',
-              text: 'Hello',
-              file: '/content.md',
-              labels: 'marketing',
-              context: 'Greeting',
-            },
-          ],
-          null,
-          2,
-        ),
+        '#11 welcome Hello\n\t- file: /content.md\n\t- labels: marketing\n\t- context: Greeting',
       );
     });
   });

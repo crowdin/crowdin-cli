@@ -103,14 +103,16 @@ describe('FileCommand', () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
-  const createFileCommand = () => {
+  const createFileCommand = () => createFileCommandWith(output);
+
+  const createFileCommandWith = (commandOutput: Output) => {
     return new FileCommand(
       async (command: Command) => ({
         ...config,
         basePath:
           (command as unknown as { optsWithGlobals: () => FileTestOptions }).optsWithGlobals().basePath || tempDir,
       }),
-      () => output,
+      () => commandOutput,
       async () => projectService,
       async () => storageService,
       async () => directoryService,
@@ -147,13 +149,54 @@ describe('FileCommand', () => {
     expect(console.log).toHaveBeenCalledWith(
       JSON.stringify(
         [
-          { id: 1, path: 'docs/readme.md' },
-          { id: 2, path: 'docs/changelog.md' },
+          { id: 1, path: '/docs/readme.md' },
+          { id: 2, path: '/docs/changelog.md' },
         ],
         null,
         2,
       ),
     );
+  });
+
+  test('prints an empty message in text format when the project has no files', async () => {
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
+    const fileCommand = createFileCommandWith(textOutput);
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({ data: [] } as never);
+
+    await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
+
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('No files found'));
+  });
+
+  test('prints one line per file in text format, slashes stripped', async () => {
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
+    const fileCommand = createFileCommandWith(textOutput);
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 1, path: '/docs/readme.md' } }],
+    } as never);
+
+    await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
+
+    expect(console.log).toHaveBeenCalledWith('#1 docs/readme.md');
+  });
+
+  // Line rendering itself is covered in views.test.ts; this only pins that --verbose picks the verbose view.
+  test('switches to the verbose view with --verbose', async () => {
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
+    const fileCommand = createFileCommandWith(textOutput);
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 1, path: '/docs/readme.md', type: 'md', parserVersion: 4, revisionId: 7 } }],
+    } as never);
+
+    await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text', verbose: true }));
+
+    expect(console.log).toHaveBeenCalledWith('#1 docs/readme.md md parser:4 revision:7');
   });
 
   test('lists files under the given branch', async () => {
@@ -174,18 +217,7 @@ describe('FileCommand', () => {
 
   test('renders a tree view with --tree', async () => {
     const textOutput = createOutput({ ...globalOptions, output: 'text' });
-    const fileCommand = new FileCommand(
-      async () => ({ ...config, basePath: tempDir }),
-      () => textOutput,
-      async () => projectService,
-      async () => storageService,
-      async () => directoryService,
-      async () => fileService,
-      async () => labelService,
-      async () => branchService,
-      async () => translationService,
-      async () => stringService,
-    );
+    const fileCommand = createFileCommandWith(textOutput);
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
     spyOn(branchService, 'resolveBranchId').mockResolvedValue(undefined);
@@ -204,19 +236,8 @@ describe('FileCommand', () => {
 
   test('--tree is ignored under a machine --output so the format stays parseable', async () => {
     const jsonOutput = createOutput({ ...globalOptions, output: 'json' });
-    const tableSpy = spyOn(jsonOutput, 'table');
-    const fileCommand = new FileCommand(
-      async () => ({ ...config, basePath: tempDir }),
-      () => jsonOutput,
-      async () => projectService,
-      async () => storageService,
-      async () => directoryService,
-      async () => fileService,
-      async () => labelService,
-      async () => branchService,
-      async () => translationService,
-      async () => stringService,
-    );
+    const listSpy = spyOn(jsonOutput, 'list');
+    const fileCommand = createFileCommandWith(jsonOutput);
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
     spyOn(branchService, 'resolveBranchId').mockResolvedValue(undefined);
@@ -226,7 +247,7 @@ describe('FileCommand', () => {
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'json', tree: true }));
 
-    expect(tableSpy).toHaveBeenCalled();
+    expect(listSpy).toHaveBeenCalled();
     const logged = (console.log as unknown as ReturnType<typeof mock>).mock.calls.map((call) => call[0]);
     expect(logged.some((line: string) => typeof line === 'string' && line.includes('╰─'))).toBe(false);
   });

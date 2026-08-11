@@ -20,6 +20,17 @@ export type OutputOptions = {
   withGuide?: boolean;
 };
 
+/**
+ * How one entity renders as a line of human output, keyed by the `--output` format it serves.
+ * json/toon never see it — they serialize the item itself.
+ */
+export type View<T> = {
+  /** The default line, mirroring the Java message templates (`message.branch.list` and friends). */
+  text: (item: T) => string;
+  /** Java's plain line, when it differs from `text` (e.g. branch prints the name alone). */
+  plain?: (item: T) => string;
+};
+
 export function createOutput(options: GlobalOptions, { withGuide = false }: OutputOptions = {}) {
   const format = resolveOutputFormat(options.output);
 
@@ -27,6 +38,12 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
     // Guide lines off by default; interactive commands (init) opt back in
     withGuide,
   });
+
+  const isMachineFormat = format === 'json' || format === 'toon';
+
+  function renderLine<T>(item: T, view: View<T>): string {
+    return format === 'plain' && view.plain ? view.plain(item) : view.text(item);
+  }
 
   return {
     spinners: {} as Record<string, SpinnerResult>,
@@ -45,30 +62,73 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
         cancel(message);
       }
     },
-    table(data: unknown, tableProperties?: string[], plainCols?: string[]): void {
+    /**
+     * A genuinely 2-D grid, which in this CLI is only `status` (languages × translated/proofread).
+     * Everything else renders one line per entity through list()/item().
+     */
+    table(data: unknown): void {
       if (format === 'text') {
-        console.table(data, tableProperties);
+        console.table(data);
         return;
       }
 
-      console.log(formatData(data, format, plainCols));
+      // json/toon serialize the grid; plain is the caller's own business — status prints its
+      // per-language report there and never reaches this.
+      this.data(data);
     },
-    list(
-      rows: unknown[],
-      { empty, tableProperties, plainColumns }: { empty: string; tableProperties?: string[]; plainColumns?: string[] },
-    ): void {
-      if (rows.length === 0) {
-        this.success(empty);
+    /**
+     * A list of entities: one rendered line each in text and plain, the items themselves in
+     * json/toon. `items` is the machine contract, so it carries raw values — the view owns
+     * every bit of display shaping.
+     */
+    list<T>(items: T[], view: View<T>, { empty }: { empty?: string } = {}): void {
+      if (isMachineFormat) {
+        console.log(formatData(items, format));
         return;
       }
 
-      this.table(rows, tableProperties, plainColumns);
+      if (items.length === 0) {
+        // Text prints the message; plain prints nothing, matching Java's plainView branches.
+        // No message at all where Java has none for the command (file list).
+        if (empty) {
+          this.success(empty);
+        }
+
+        return;
+      }
+
+      for (const item of items) {
+        console.log(renderLine(item, view));
+      }
+    },
+    // A single entity, echoed after a mutation. Text marks it done; json/toon serialize it bare.
+    item<T>(value: T, view: View<T>): void {
+      if (isMachineFormat) {
+        console.log(formatData(value, format));
+        return;
+      }
+
+      if (format === 'plain') {
+        console.log(renderLine(value, view));
+        return;
+      }
+
+      this.success(renderLine(value, view));
+    },
+    // Serialization channel for json/toon. Silent in text *and* plain, both of which are
+    // line-based: a caller that has plain output to emit renders it with list()/item()/report().
+    data(value: unknown): void {
+      if (!isMachineFormat) {
+        return;
+      }
+
+      console.log(formatData(value, format));
     },
     // Human-readable, line-based report (e.g. status screens). Prints in text and plain
     // (plain routes through the formatter so it isn't gated); suppressed in json/toon.
     report(lines: string[]): void {
       if (format === 'plain') {
-        console.log(formatData(lines, 'plain'));
+        console.log(lines.join('\n'));
         return;
       }
 

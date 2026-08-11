@@ -1,14 +1,21 @@
+import type { ApplicationsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetAppService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import type { View } from '@/cli/utils/output.ts';
 import { force } from './options.ts';
 
 interface UninstallOptions extends GlobalOptions {
   force?: boolean;
 }
+
+const appView: View<ApplicationsModel.Application> = {
+  text: (app) => `${app.identifier} ${app.name}`,
+  plain: (app) => app.identifier,
+};
 
 export default class AppCommand {
   constructor(
@@ -65,10 +72,7 @@ export default class AppCommand {
     const appService = await this.getAppService(command);
     const apps = await appService.list();
 
-    output.list(
-      apps.map((app) => ({ identifier: app.identifier, name: app.name })),
-      { empty: 'No applications found', tableProperties: ['identifier', 'name'] },
-    );
+    output.list(apps, appView, { empty: 'No applications found' });
   };
 
   installAction = async (command: Command) => {
@@ -87,6 +91,7 @@ export default class AppCommand {
     }
 
     await appService.installByManifestUrl(manifestUrl);
+
     output.success('Application has been installed');
   };
 
@@ -102,6 +107,7 @@ export default class AppCommand {
     const appService = await this.getAppService(command);
 
     await appService.uninstall(identifier, options.force ?? false);
+
     output.success('Application has been uninstalled');
   };
 }

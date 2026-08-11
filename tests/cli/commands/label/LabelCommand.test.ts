@@ -109,6 +109,37 @@ describe('LabelCommand', () => {
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining('No labels found'));
   });
 
+  test('prints one line per label in text format', async () => {
+    output = createOutput({ ...globalOptions, output: 'text' });
+    const labelCommand = createLabelCommand();
+    labelService.list.mockResolvedValue([createLabel({ id: 1, title: 'one' })]);
+
+    await labelCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
+
+    expect(console.log).toHaveBeenCalledWith('#1 one');
+  });
+
+  test('prints the title alone in plain format', async () => {
+    output = createOutput({ ...globalOptions, output: 'plain' });
+    const labelCommand = createLabelCommand();
+    labelService.list.mockResolvedValue([createLabel({ id: 1, title: 'one' })]);
+
+    await labelCommand.listAction(createCommandContext({ ...globalOptions, output: 'plain' }));
+
+    expect(console.log).toHaveBeenCalledWith('one');
+  });
+
+  // Java LabelListAction prints the decorated line when `!plainView || isVerbose`.
+  test('keeps the id in plain format when verbose', async () => {
+    output = createOutput({ ...globalOptions, output: 'plain' });
+    const labelCommand = createLabelCommand();
+    labelService.list.mockResolvedValue([createLabel({ id: 1, title: 'one' })]);
+
+    await labelCommand.listAction(createCommandContext({ ...globalOptions, output: 'plain', verbose: true }));
+
+    expect(console.log).toHaveBeenCalledWith('#1 one');
+  });
+
   test('propagates list errors', async () => {
     const labelCommand = createLabelCommand();
     labelService.list.mockRejectedValue(new CliError('Failed to list labels'));
@@ -121,12 +152,13 @@ describe('LabelCommand', () => {
   test('adds a new label', async () => {
     const labelCommand = createLabelCommand();
     labelService.list.mockResolvedValue([]);
-    labelService.add.mockResolvedValue(createLabel({ id: 12, title: 'main' }));
+    const label = createLabel({ id: 12, title: 'main' });
+    labelService.add.mockResolvedValue(label);
 
     await labelCommand.addAction(createCommandContext(globalOptions, ['main']));
 
     expect(labelService.add).toHaveBeenCalledWith('main');
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 12, title: 'main' }], null, 2));
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(label, null, 2));
   });
 
   test('skips adding label that already exists', async () => {

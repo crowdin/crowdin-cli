@@ -14,8 +14,7 @@ import type {
 import type { CommandDef } from '@/cli/types.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import { add, edit, list } from './options.ts';
-
-const PLURAL_KEYS = ['one', 'two', 'few', 'many', 'zero'] as const;
+import { createStringView } from './views.ts';
 
 interface ListOptions extends GlobalOptions {
   file?: string | string[];
@@ -50,6 +49,8 @@ interface EditOptions extends GlobalOptions {
   label?: string | string[];
   hidden?: boolean;
 }
+
+const PLURAL_KEYS = ['one', 'two', 'few', 'many', 'zero'] as const;
 
 export default class StringCommand {
   constructor(
@@ -185,71 +186,18 @@ export default class StringCommand {
       ...(options.scope ? { scope: options.scope } : {}),
     });
 
-    if (strings.length === 0) {
-      output.success('No source strings found');
-      return;
-    }
+    // The verbose detail lines need the label titles and file paths; both cost a request, so
+    // they are only fetched when a verbose render will actually use them.
+    const view = options.verbose
+      ? createStringView({
+          verbose: true,
+          isStringsBased,
+          labels: await labelService.listLabelsMap(),
+          filePaths: isStringsBased ? new Map<number, string>() : await fileService.listProjectFilePaths(branchId),
+        })
+      : createStringView();
 
-    if (options.verbose) {
-      const labelsMap = await labelService.listLabelsMap();
-      const filePaths = !isStringsBased ? await fileService.listProjectFilePaths(branchId) : new Map<number, string>();
-
-      // Java StringListAction plain verbose: id line, then indented file/labels/context lines.
-      if (options.output === 'plain') {
-        const lines: string[] = [];
-
-        for (const entry of strings) {
-          lines.push(String(entry.id));
-
-          if (!isStringsBased && entry.fileId !== undefined) {
-            lines.push(`\t- file: ${filePaths.get(entry.fileId) ?? ''}`);
-          }
-
-          const labels = (entry.labelIds ?? [])
-            .map((id) => labelsMap.get(id))
-            .filter(Boolean)
-            .join(', ');
-
-          if (labels) {
-            lines.push(`\t- labels: ${labels}`);
-          }
-
-          if (entry.context != null) {
-            lines.push(`\t- context: ${entry.context.trim().replaceAll('\n', '\n\t\t')}`);
-          }
-        }
-
-        output.table(lines);
-        return;
-      }
-
-      output.table(
-        strings.map((entry) => ({
-          id: entry.id,
-          identifier: entry.identifier ?? '',
-          text: this.extractText(entry),
-          file: entry.fileId !== undefined ? (filePaths.get(entry.fileId) ?? '') : '',
-          labels: (entry.labelIds ?? [])
-            .map((id) => labelsMap.get(id))
-            .filter(Boolean)
-            .join(', '),
-          context: entry.context ?? '',
-        })),
-        undefined,
-        ['id'],
-      );
-      return;
-    }
-
-    output.table(
-      strings.map((entry) => ({
-        id: entry.id,
-        identifier: entry.identifier ?? '',
-        text: this.extractText(entry),
-      })),
-      undefined,
-      ['id'],
-    );
+    output.list(strings, view, { empty: 'No source strings found' });
   };
 
   addAction = async (command: Command) => {
@@ -291,7 +239,7 @@ export default class StringCommand {
         this.buildStringsBasedRequest(requestText, text, options, labelIds, branchId),
       );
 
-      output.table([{ id: added.id, identifier: added.identifier ?? '', text: this.extractText(added) }]);
+      output.item(added, createStringView());
       return;
     }
 
@@ -310,19 +258,13 @@ export default class StringCommand {
       throw new CliError('No valid file specified for the string. At least one valid file is required');
     }
 
-    const result: Array<{ id: number; identifier: string; text: string }> = [];
+    const added: SourceStringsModel.String[] = [];
 
     for (const fileId of resolved.fileIds) {
-      const added = await stringService.add(this.buildFileBasedRequest(requestText, options, labelIds, fileId));
-
-      result.push({
-        id: added.id,
-        identifier: added.identifier ?? '',
-        text: this.extractText(added) || text,
-      });
+      added.push(await stringService.add(this.buildFileBasedRequest(requestText, options, labelIds, fileId)));
     }
 
-    output.table(result);
+    output.list(added, createStringView());
   };
 
   editAction = async (command: Command) => {
@@ -354,7 +296,7 @@ export default class StringCommand {
     const updated = await stringService.edit(id, patch);
 
     output.success(`Source string #${id} was updated successfully`);
-    output.table([{ id: updated.id, identifier: updated.identifier ?? '', text: this.extractText(updated) }]);
+    output.item(updated, createStringView());
   };
 
   deleteAction = async (command: Command) => {
@@ -364,6 +306,7 @@ export default class StringCommand {
     const stringService = await this.getStringService(command);
 
     await stringService.delete(id);
+
     output.success(`Source string #${id} was deleted successfully`);
   };
 
@@ -459,19 +402,5 @@ export default class StringCommand {
     }
 
     return plural;
-  }
-
-  private extractText(entry: SourceStringsModel.String): string {
-    const text = entry.text;
-
-    if (typeof text === 'string') {
-      return text;
-    }
-
-    if (!text || typeof text !== 'object') {
-      return '';
-    }
-
-    return text.one ?? text.other ?? Object.values(text)[0] ?? '';
   }
 }

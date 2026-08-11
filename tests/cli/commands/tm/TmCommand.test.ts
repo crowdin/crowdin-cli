@@ -108,26 +108,35 @@ describe('TmCommand', () => {
   });
 
   describe('list', () => {
-    test('lists translation memories', async () => {
+    test('serializes the translation memories themselves in structured formats', async () => {
       const tmCommand = createTmCommand();
-      tmService.list.mockResolvedValue([
-        createTm(),
-        { id: 43, name: '43', segmentsCount: 0 } as TranslationMemoryModel.TranslationMemory,
-      ]);
+      const tms = [createTm(), { id: 43, name: '43', segmentsCount: 0 } as TranslationMemoryModel.TranslationMemory];
+      tmService.list.mockResolvedValue(tms);
 
       await tmCommand.listAction(createCommandContext({}));
 
       expect(tmService.list).toHaveBeenCalledTimes(1);
-      expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify(
-          [
-            { id: 42, name: '42', segments: 10 },
-            { id: 43, name: '43', segments: 0 },
-          ],
-          null,
-          2,
-        ),
-      );
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify(tms, null, 2));
+    });
+
+    test('prints id, name and segment count in text format', async () => {
+      output = createOutput({ ...globalOptions, output: 'text' });
+      const tmCommand = createTmCommand();
+      tmService.list.mockResolvedValue([createTm()]);
+
+      await tmCommand.listAction(createCommandContext({ output: 'text' }));
+
+      expect(console.log).toHaveBeenCalledWith('#42 42 (segments: 10)');
+    });
+
+    test('prints the name alone in plain format', async () => {
+      output = createOutput({ ...globalOptions, output: 'plain' });
+      const tmCommand = createTmCommand();
+      tmService.list.mockResolvedValue([createTm()]);
+
+      await tmCommand.listAction(createCommandContext({ output: 'plain' }));
+
+      expect(console.log).toHaveBeenCalledWith('42');
     });
 
     test('prints empty message when no translation memories found', async () => {

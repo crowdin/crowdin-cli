@@ -90,7 +90,7 @@ describe('CommentCommand', () => {
         targetLanguageId: 'uk',
         type: 'comment',
       });
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 99, text: 'Hello world' }], null, 2));
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify({ id: 99, text: 'Hello world' }, null, 2));
     });
 
     test('adds an issue comment with issue-type', async () => {
@@ -214,32 +214,31 @@ describe('CommentCommand', () => {
   });
 
   describe('listAction', () => {
-    test('lists comments in non-verbose mode', async () => {
-      const cmd = createCommentCommand();
-      const commandContext = createCommandContext(globalOptions);
+    test('prints one line per comment in text format', async () => {
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
+      const cmd = new CommentCommand(
+        () => textOutput,
+        async () => commentService,
+      );
 
       spyOn(commentService, 'list').mockResolvedValue([
         { id: 1, text: 'First comment' },
         { id: 2, text: 'Second comment' },
       ] as never);
 
-      await cmd.listAction(commandContext);
+      await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-      expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify(
-          [
-            { id: 1, text: 'First comment' },
-            { id: 2, text: 'Second comment' },
-          ],
-          null,
-          2,
-        ),
-      );
+      expect(console.log).toHaveBeenCalledWith('#1 First comment');
+      expect(console.log).toHaveBeenCalledWith('#2 Second comment');
     });
 
-    test('lists comments in verbose mode with extra fields', async () => {
-      const cmd = createCommentCommand();
-      const commandContext = createCommandContext({ ...globalOptions, verbose: true });
+    // Line rendering itself is covered in views.test.ts; this only pins that --verbose picks the verbose view.
+    test('switches to the verbose view with --verbose', async () => {
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
+      const cmd = new CommentCommand(
+        () => textOutput,
+        async () => commentService,
+      );
 
       spyOn(commentService, 'list').mockResolvedValue([
         {
@@ -251,34 +250,32 @@ describe('CommentCommand', () => {
         },
       ] as never);
 
-      await cmd.listAction(commandContext);
+      await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text', verbose: true }));
 
-      expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify(
-          [
-            {
-              id: 5,
-              text: 'Issue text',
-              languageId: 'fr',
-              issueType: 'translation_mistake',
-              issueStatus: 'unresolved',
-            },
-          ],
-          null,
-          2,
-        ),
-      );
+      expect(console.log).toHaveBeenCalledWith('#5 Issue text fr translation_mistake unresolved');
     });
 
-    test('normalizes line breaks in comment text', async () => {
+    test('serializes the comments themselves in structured formats', async () => {
       const cmd = createCommentCommand();
       const commandContext = createCommandContext(globalOptions);
+      const comments = [{ id: 3, text: 'line one\nline two' }];
 
-      spyOn(commentService, 'list').mockResolvedValue([{ id: 3, text: 'line one\nline two' }] as never);
+      spyOn(commentService, 'list').mockResolvedValue(comments as never);
 
       await cmd.listAction(commandContext);
 
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 3, text: 'line one line two' }], null, 2));
+      // The line-break collapsing is display-only, so json keeps the text as the API returned it.
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify(comments, null, 2));
+    });
+
+    test('prints an empty array in structured formats when no comments are found', async () => {
+      const cmd = createCommentCommand();
+
+      spyOn(commentService, 'list').mockResolvedValue([]);
+
+      await cmd.listAction(createCommandContext(globalOptions));
+
+      expect(console.log).toHaveBeenCalledWith('[]');
     });
 
     test('outputs success message when no comments found', async () => {

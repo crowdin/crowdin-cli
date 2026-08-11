@@ -133,6 +133,9 @@ export function createOutputMock() {
     error: mock(() => undefined),
     spinner: mock(() => undefined),
     table: mock(() => undefined),
+    list: mock(() => undefined),
+    item: mock(() => undefined),
+    data: mock(() => undefined),
   };
 }
 

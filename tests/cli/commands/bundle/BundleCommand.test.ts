@@ -111,17 +111,38 @@ describe('BundleCommand', () => {
       expect(successSpy).toHaveBeenCalledWith('No bundles found');
     });
 
-    test('prints bundle list', async () => {
+    test('serializes the bundles themselves in structured formats', async () => {
+      const cmd = createBundleCommand();
+      const bundles = [createBundleView({ id: 1, name: 'App', format: 'json', exportPattern: '/%locale%/app.json' })];
+      bundleService.list.mockResolvedValue(bundles);
+
+      await cmd.listAction(createCommandContext(globalOptions));
+
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify(bundles, null, 2));
+    });
+
+    test('prints id, format, export pattern and name per bundle in text format', async () => {
+      output = createOutput({ ...globalOptions, output: 'text' });
       const cmd = createBundleCommand();
       bundleService.list.mockResolvedValue([
         createBundleView({ id: 1, name: 'App', format: 'json', exportPattern: '/%locale%/app.json' }),
       ]);
 
-      await cmd.listAction(createCommandContext(globalOptions));
+      await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-      expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify([{ id: 1, format: 'json', translation: '/%locale%/app.json', name: 'App' }], null, 2),
-      );
+      expect(console.log).toHaveBeenCalledWith('#1 json /%locale%/app.json App');
+    });
+
+    test('prints id and name in plain format', async () => {
+      output = createOutput({ ...globalOptions, output: 'plain' });
+      const cmd = createBundleCommand();
+      bundleService.list.mockResolvedValue([
+        createBundleView({ id: 1, name: 'App', format: 'json', exportPattern: '/%locale%/app.json' }),
+      ]);
+
+      await cmd.listAction(createCommandContext({ ...globalOptions, output: 'plain' }));
+
+      expect(console.log).toHaveBeenCalledWith('1 App');
     });
   });
 

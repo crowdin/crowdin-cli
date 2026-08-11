@@ -36,11 +36,6 @@ import {
   to as toOption,
 } from './options.ts';
 
-const BATCH_SIZE = 100;
-const SINCE_FORMAT = /^\d{4}-\d{2}-\d{2}$/;
-const AVAILABLE_STATUSES = ['empty', 'ai', 'manual'];
-const CONTEXT_STATUS_FOOTER = "Run 'crowdin context download --status=empty' to export strings needing context.";
-
 // TODO: Java '--format' (file format) is intentionally not ported: 'jsonl' is the only supported value
 
 interface FilterOptions extends GlobalOptions {
@@ -87,6 +82,11 @@ interface ContextStats {
   withManual: number;
   withManualPercentage: string;
 }
+
+const BATCH_SIZE = 100;
+const SINCE_FORMAT = /^\d{4}-\d{2}-\d{2}$/;
+const AVAILABLE_STATUSES = ['empty', 'ai', 'manual'];
+const CONTEXT_STATUS_FOOTER = "Run 'crowdin context download --status=empty' to export strings needing context.";
 
 export default class ContextCommand {
   constructor(
@@ -301,19 +301,10 @@ export default class ContextCommand {
     const { project, isStringsBased, strings, filePaths } = await this.fetchFilteredStrings(command, options);
     const byFile = Boolean(options.byFile) && !isStringsBased;
 
-    // Plain view mirrors Java's line-based report (padded columns, no console.table grid).
-    if (options.output === 'plain') {
-      output.report(byFile ? this.byFileReport(project, strings, filePaths) : this.summaryReport(project, strings));
-      return;
-    }
-
-    // Text wraps a console.table grid in prose header/footer; json/toon emit the rows only
-    // (output.log is text-gated).
-    output.log(this.reportTitle(project));
-    output.log('');
-    output.table(byFile ? this.byFileRows(strings, filePaths) : this.summaryRow(strings));
-    output.log('');
-    output.log(CONTEXT_STATUS_FOOTER);
+    // json/toon carry the raw counts; text and plain both get Java's padded line report, which
+    // already includes the title and footer.
+    output.data(byFile ? this.byFileStats(strings, filePaths) : this.calculateStats(strings));
+    output.report(byFile ? this.byFileReport(project, strings, filePaths) : this.summaryReport(project, strings));
   };
 
   private groupByFile(
@@ -333,28 +324,11 @@ export default class ContextCommand {
     return grouped;
   }
 
-  private byFileRows(strings: SourceStringsModel.String[], filePaths: Map<number, string>) {
-    return [...this.groupByFile(strings, filePaths).entries()].map(([file, group]) => {
-      const stats = this.calculateStats(group);
-
-      return {
-        file,
-        total: stats.total,
-        aiContext: `${stats.withAi} (${stats.withAiPercentage}%)`,
-        missing: stats.total - stats.withAi,
-      };
-    });
-  }
-
-  private summaryRow(strings: SourceStringsModel.String[]) {
-    const stats = this.calculateStats(strings);
-
-    return {
-      totalStrings: stats.total,
-      withAiContext: `${stats.withAi} (${stats.withAiPercentage}%)`,
-      withoutAiContext: `${stats.withoutAi} (${stats.withoutAiPercentage}%)`,
-      withManualContext: `${stats.withManual} (${stats.withManualPercentage}%)`,
-    };
+  private byFileStats(strings: SourceStringsModel.String[], filePaths: Map<number, string>) {
+    return [...this.groupByFile(strings, filePaths).entries()].map(([file, group]) => ({
+      file,
+      ...this.calculateStats(group),
+    }));
   }
 
   // Java ContextStatusAction byFile report: columns padded to the longest file path.

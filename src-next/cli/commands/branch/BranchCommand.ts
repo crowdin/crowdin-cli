@@ -7,8 +7,8 @@ import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { GetBranchService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { normalizeBranchName } from '@/cli/utils/parsing.ts';
-import { stripLeadingSlashes } from '@/lib/utils/path.ts';
 import { add, edit, merge } from './options.ts';
+import { branchView, mergeView } from './views.ts';
 
 interface AddOptions extends GlobalOptions {
   title?: string;
@@ -127,7 +127,7 @@ export default class BranchCommand {
     const branchService = await this.getBranchService(command);
     const branches = await branchService.list();
 
-    output.list(branches.map(this.toRow), { empty: 'No branches found' });
+    output.list(branches, branchView, { empty: 'No branches found' });
   };
 
   addAction = async (command: Command) => {
@@ -156,7 +156,7 @@ export default class BranchCommand {
       ...(options.priority !== undefined ? { priority: options.priority } : {}),
     });
 
-    output.table([this.toRow(branch)]);
+    output.item(branch, branchView);
   };
 
   deleteAction = async (command: Command) => {
@@ -213,7 +213,7 @@ export default class BranchCommand {
 
     const updatedBranch = await branchService.edit(branch.id, patches);
 
-    output.table([this.toRow(updatedBranch)]);
+    output.item(updatedBranch, branchView);
   };
 
   cloneAction = async (command: Command) => {
@@ -250,7 +250,7 @@ export default class BranchCommand {
       throw error;
     }
 
-    output.table([this.toRow(clonedBranch)]);
+    output.item(clonedBranch, branchView);
   };
 
   mergeAction = async (command: Command) => {
@@ -290,17 +290,7 @@ export default class BranchCommand {
       throw error;
     }
 
-    if (options.output !== undefined && options.output !== 'text') {
-      output.table([{ targetBranchId: summary.targetBranchId, ...summary.details }]);
-      return;
-    }
-
-    const summaryStr = Object.entries(summary.details)
-      .map(([key, value]) => `${key}: ${value}`)
-      .join(', ');
-
-    output.success(`Merged branch '${source}' into '${target}'`);
-    output.log(`\tMerge summary: ${summaryStr}`);
+    output.item({ targetBranchId: summary.targetBranchId, ...summary.details }, mergeView(source, target));
   };
 
   private async ensureStringsBasedProject(command: Command): Promise<void> {
@@ -321,12 +311,5 @@ export default class BranchCommand {
     }
 
     return branch;
-  }
-
-  private toRow(branch: SourceFilesModel.Branch): Record<string, unknown> {
-    return {
-      name: stripLeadingSlashes(branch.name),
-      id: branch.id,
-    };
   }
 }

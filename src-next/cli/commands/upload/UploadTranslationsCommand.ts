@@ -2,6 +2,7 @@ import path from 'node:path';
 import type { LanguagesModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -14,7 +15,6 @@ import type {
   GetStorageService,
   GetTranslationService,
 } from '@/cli/services.ts';
-import { printDryRunPaths } from '@/cli/utils/dryRunPaths.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';

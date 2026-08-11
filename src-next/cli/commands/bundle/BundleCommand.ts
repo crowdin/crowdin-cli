@@ -9,6 +9,7 @@ import type { AddBundlePayload, BundleView } from '@/cli/services/BundleService.
 import type { GetBundleService, GetConfig, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { openUrl } from '@/cli/utils/open.ts';
+import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
 import { stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 import { dryRun } from '../common/options.ts';
@@ -38,6 +39,13 @@ interface BundleOptions extends GlobalOptions {
   keepArchive?: boolean;
   dryrun?: boolean;
 }
+
+// Java message.bundle.list: id, format, export pattern, name. Shared by list and the add/clone
+// echoes; Java's plain echo prints the id alone, but keeping the listing shape retains the name.
+const bundleView: View<BundleView> = {
+  text: (bundle) => `#${bundle.id} ${bundle.format ?? ''} ${bundle.exportPattern ?? ''} ${bundle.name ?? ''}`,
+  plain: (bundle) => `${bundle.id} ${bundle.name ?? ''}`,
+};
 
 export default class BundleCommand {
   constructor(
@@ -152,7 +160,7 @@ export default class BundleCommand {
     const bundleService = await this.getBundleService(command);
     const bundles = await bundleService.list();
 
-    output.list(bundles.map(this.toRow), { empty: 'No bundles found', plainColumns: ['id', 'name'] });
+    output.list(bundles, bundleView, { empty: 'No bundles found' });
   };
 
   addAction = async (command: Command) => {
@@ -193,7 +201,7 @@ export default class BundleCommand {
     };
     const created = await bundleService.add(payload);
 
-    output.table([this.toRow(created)]);
+    output.item(created, bundleView);
   };
 
   deleteAction = async (command: Command) => {
@@ -332,7 +340,7 @@ export default class BundleCommand {
     };
     const cloned = await bundleService.add(payload);
 
-    output.table([this.toRow(cloned)]);
+    output.item(cloned, bundleView);
   };
 
   browseAction = async (command: Command) => {
@@ -346,13 +354,4 @@ export default class BundleCommand {
 
     output.success(`Opened ${url} in browser`);
   };
-
-  private toRow(bundle: BundleView): Record<string, unknown> {
-    return {
-      id: bundle.id,
-      format: bundle.format ?? '',
-      translation: bundle.exportPattern ?? '',
-      name: bundle.name ?? '',
-    };
-  }
 }

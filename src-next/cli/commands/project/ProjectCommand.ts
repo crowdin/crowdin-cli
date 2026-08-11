@@ -1,4 +1,4 @@
-import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
+import type { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -7,6 +7,7 @@ import type { GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import { language, languageAccessPolicy, sourceLanguage, stringBased } from './options.ts';
+import { projectVerboseView, projectView } from './views.ts';
 
 interface ProjectCommandOptions extends GlobalOptions {
   sourceLanguage?: string;
@@ -75,25 +76,10 @@ export default class ProjectCommand {
     const projectService = await this.getProjectService(command);
     const projects = await projectService.loadProjects(true);
 
-    if (!options.verbose) {
-      output.table(
-        projects.data.map((project) => ({
-          id: project.data.id,
-          name: project.data.name,
-        })),
-      );
-
-      return;
-    }
-
-    output.table(
-      projects.data.map((project) => ({
-        id: project.data.id,
-        name: project.data.name,
-        type: project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED ? 'string-based' : 'file-based',
-        visibility: (project.data.visibility ?? 'private').toString().toLowerCase(),
-        lastActivity: this.formatLastActivity(project.data.lastActivity),
-      })),
+    output.list(
+      projects.data.map((project) => project.data),
+      options.verbose ? projectVerboseView : projectView,
+      { empty: 'No projects found' },
     );
   };
 
@@ -130,22 +116,4 @@ export default class ProjectCommand {
 
     output.log(`${project.data.id} ${project.data.name}`.trim());
   };
-
-  private formatLastActivity(lastActivity: unknown): string {
-    if (!lastActivity) {
-      return '';
-    }
-
-    if (lastActivity instanceof Date) {
-      return lastActivity.toISOString();
-    }
-
-    const parsedDate = new Date(String(lastActivity));
-
-    if (Number.isNaN(parsedDate.getTime())) {
-      return String(lastActivity);
-    }
-
-    return parsedDate.toISOString();
-  }
 }

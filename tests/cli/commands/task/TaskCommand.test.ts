@@ -89,27 +89,50 @@ describe('TaskCommand', () => {
       expect(cmd.listAction(commandContext)).rejects.toThrow(new CliError("The '--assignee-id' value must be numeric"));
     });
 
-    test('lists task rows in non-verbose mode', async () => {
+    test('serializes the tasks themselves in structured formats', async () => {
       const cmd = createTaskCommand();
       const commandContext = createCommandContext({ ...globalOptions, status: 'todo' });
-      taskService.list.mockResolvedValue([createTask({ id: 11, title: 'First task', targetLanguageId: 'fr' })]);
+      const tasks = [createTask({ id: 11, title: 'First task', targetLanguageId: 'fr' })];
+      taskService.list.mockResolvedValue(tasks);
 
       await cmd.listAction(commandContext);
 
       expect(taskService.list).toHaveBeenCalledWith('todo');
-      expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify(
-          [
-            {
-              id: 11,
-              languageId: 'fr',
-              title: 'First task',
-            },
-          ],
-          null,
-          2,
-        ),
-      );
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify(tasks, null, 2));
+    });
+
+    test('prints one line per task in text format', async () => {
+      output = createOutput({ ...globalOptions, output: 'text' });
+      const cmd = createTaskCommand();
+      const commandContext = createCommandContext({ ...globalOptions, output: 'text' });
+      taskService.list.mockResolvedValue([createTask({ id: 11, title: 'First task', targetLanguageId: 'fr' })]);
+
+      await cmd.listAction(commandContext);
+
+      expect(console.log).toHaveBeenCalledWith('#11 fr First task');
+    });
+
+    // Line rendering itself is covered in views.test.ts; this only pins that --verbose picks the verbose view.
+    test('switches to the verbose view with --verbose', async () => {
+      output = createOutput({ ...globalOptions, output: 'text' });
+      const cmd = createTaskCommand();
+      const commandContext = createCommandContext({ ...globalOptions, output: 'text', verbose: true });
+      taskService.list.mockResolvedValue([
+        createTask({ id: 11, title: 'First task', targetLanguageId: 'fr', status: 'todo', wordsCount: 42 }),
+      ]);
+
+      await cmd.listAction(commandContext);
+
+      expect(console.log).toHaveBeenCalledWith('#11 fr First task todo 42 NoDueDate');
+    });
+
+    test('prints an empty array in structured formats when no tasks are found', async () => {
+      const cmd = createTaskCommand();
+      taskService.list.mockResolvedValue([]);
+
+      await cmd.listAction(createCommandContext(globalOptions));
+
+      expect(console.log).toHaveBeenCalledWith('[]');
     });
 
     test('filters by assignee id', async () => {
@@ -135,11 +158,12 @@ describe('TaskCommand', () => {
       expect(console.log).toHaveBeenCalledWith(
         JSON.stringify(
           [
-            {
+            createTask({
               id: 1,
-              languageId: '',
               title: 'Keep',
-            },
+              targetLanguageId: undefined,
+              assignees: [{ id: 101 } as TasksModel.Assignee],
+            }),
           ],
           null,
           2,
@@ -270,8 +294,9 @@ describe('TaskCommand', () => {
         },
         ['Translate docs'],
       );
+      const createdTask = createTask({ id: 99, title: 'Translate docs', targetLanguageId: 'de' });
       fileService.resolveFileIds.mockResolvedValue({ fileIds: [55], missingPaths: [] });
-      taskService.add.mockResolvedValue(createTask({ id: 99, title: 'Translate docs', targetLanguageId: 'de' }));
+      taskService.add.mockResolvedValue(createdTask);
 
       await cmd.addAction(commandContext);
 
@@ -285,9 +310,7 @@ describe('TaskCommand', () => {
           description: 'new task',
         }),
       );
-      expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify([{ id: 99, languageId: 'de', title: 'Translate docs' }], null, 2),
-      );
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify(createdTask, null, 2));
     });
 
     test('creates enterprise task', async () => {

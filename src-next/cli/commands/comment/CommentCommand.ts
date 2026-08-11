@@ -7,6 +7,7 @@ import type { GetCommentService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { parseNumericId } from '@/cli/utils/parsing.ts';
 import { add, list } from './options.ts';
+import { commentVerboseView, commentView } from './views.ts';
 
 interface AddOptions extends GlobalOptions {
   stringId?: string;
@@ -105,7 +106,7 @@ export default class CommentCommand {
       ...(issueTypeValue ? { issueType: issueTypeValue } : {}),
     });
 
-    output.table([{ id: comment.id, text: comment.text }]);
+    output.item(comment, commentView);
   };
 
   listAction = async (command: Command) => {
@@ -126,35 +127,12 @@ export default class CommentCommand {
       ...(status ? { status } : {}),
     });
 
-    if (comments.length === 0) {
-      output.success('No comments found');
-      return;
-    }
-
-    if (options.verbose) {
-      output.table(
-        comments.map((c) => ({
-          id: c.id,
-          text: c.text.replaceAll('\n', ' '),
-          languageId: c.languageId,
-          issueType: c.issueType ?? '',
-          issueStatus: (c.issueStatus ?? '').toLowerCase(),
-        })),
-      );
-    } else {
-      output.table(
-        comments.map((c) => ({
-          id: c.id,
-          text: c.text.replaceAll('\n', ' '),
-        })),
-      );
-    }
+    output.list(comments, options.verbose ? commentVerboseView : commentView, { empty: 'No comments found' });
   };
 
   resolveAction = async (command: Command) => {
     const [idArg] = command.args;
     const id = parseNumericId(idArg, 'Comment');
-
     const output = this.getOutput(command);
     const commentService = await this.getCommentService(command);
     const comment = await commentService.resolve(id);

@@ -567,15 +567,51 @@ describe('ContextCommand', () => {
       expect(loggedOutput()).toContain(
         "Run 'crowdin context download --status=empty' to export strings needing context.",
       );
-      expect(console.table).toHaveBeenCalledWith(
-        {
-          totalStrings: 3,
-          withAiContext: '1 (33.33%)',
-          withoutAiContext: '2 (66.67%)',
-          withManualContext: '2 (66.67%)',
-        },
-        undefined,
+      expect(loggedOutput()).toContain('Total strings:       3');
+      expect(loggedOutput()).toContain('With AI context:     1 (33.33%)');
+      expect(loggedOutput()).toContain('Without AI context:  2 (66.67%)');
+      expect(loggedOutput()).toContain('With manual context: 2 (66.67%)');
+    });
+
+    test('emits raw counts in structured formats', async () => {
+      output = createOutput({ ...globalOptions, output: 'json' });
+      const command = createContextCommand();
+
+      stringService.list.mockResolvedValue([
+        createString({ id: 1, context: '' }),
+        createString({ id: 2, context: AI_CONTEXT('manual', 'ai') }),
+        createString({ id: 3, context: 'only manual' }),
+      ]);
+
+      await command.statusAction(createCommandContext({ output: 'json' }));
+
+      // No '1 (33.33%)' display strings: counts and percentages are separate fields.
+      expect(console.log).toHaveBeenCalledWith(
+        JSON.stringify(
+          {
+            total: 3,
+            withAi: 1,
+            withAiPercentage: '33.33',
+            withoutAi: 2,
+            withoutAiPercentage: '66.67',
+            withManual: 2,
+            withManualPercentage: '66.67',
+          },
+          null,
+          2,
+        ),
       );
+    });
+
+    test('leaves the report out of structured formats', async () => {
+      output = createOutput({ ...globalOptions, output: 'json' });
+      const command = createContextCommand();
+
+      stringService.list.mockResolvedValue([createString({ id: 1, context: '' })]);
+
+      await command.statusAction(createCommandContext({ output: 'json' }));
+
+      expect(loggedOutput()).not.toContain('Context Status for Project');
     });
 
     test('breaks down statistics per file', async () => {
@@ -595,12 +631,40 @@ describe('ContextCommand', () => {
 
       await command.statusAction(createCommandContext({ byFile: true }));
 
-      expect(console.table).toHaveBeenCalledWith(
-        [
-          { file: '/first.txt', total: 2, aiContext: '1 (50.00%)', missing: 1 },
-          { file: '/second.txt', total: 1, aiContext: '0 (0.00%)', missing: 1 },
-        ],
-        undefined,
+      expect(loggedOutput()).toContain('File             Total       AI Context    Missing');
+      expect(loggedOutput()).toContain('/first.txt           2        1 (50.00%)          1');
+      expect(loggedOutput()).toContain('/second.txt          1        0 (0.00%)          1');
+    });
+
+    test('emits per-file counts in structured formats', async () => {
+      output = createOutput({ ...globalOptions, output: 'json' });
+      const command = createContextCommand();
+
+      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, '/first.txt']]));
+      stringService.list.mockResolvedValue([
+        createString({ id: 1, fileId: 101, context: AI_CONTEXT('manual', 'ai') }),
+        createString({ id: 2, fileId: 101, context: '' }),
+      ]);
+
+      await command.statusAction(createCommandContext({ byFile: true, output: 'json' }));
+
+      expect(console.log).toHaveBeenCalledWith(
+        JSON.stringify(
+          [
+            {
+              file: '/first.txt',
+              total: 2,
+              withAi: 1,
+              withAiPercentage: '50.00',
+              withoutAi: 1,
+              withoutAiPercentage: '50.00',
+              withManual: 1,
+              withManualPercentage: '50.00',
+            },
+          ],
+          null,
+          2,
+        ),
       );
     });
 
@@ -613,15 +677,27 @@ describe('ContextCommand', () => {
 
       await command.statusAction(createCommandContext({ byFile: true }));
 
-      expect(console.table).toHaveBeenCalledWith(
-        {
-          totalStrings: 1,
-          withAiContext: '1 (100.00%)',
-          withoutAiContext: '0 (0.00%)',
-          withManualContext: '1 (100.00%)',
-        },
-        undefined,
-      );
+      // Falls back to the summary report rather than the per-file one.
+      expect(loggedOutput()).toContain('Total strings:       1');
+      expect(loggedOutput()).toContain('With AI context:     1 (100.00%)');
+      expect(loggedOutput()).not.toContain('File ');
+    });
+
+    test('emits only the report in plain format', async () => {
+      output = createOutput({ ...globalOptions, output: 'plain' });
+      const command = createContextCommand();
+
+      stringService.list.mockResolvedValue([
+        createString({ id: 1, context: '' }),
+        createString({ id: 2, context: AI_CONTEXT('manual', 'ai') }),
+        createString({ id: 3, context: 'only manual' }),
+      ]);
+
+      await command.statusAction(createCommandContext({ output: 'plain' }));
+
+      // The stats go to data(), which is silent in plain: no stray '3' ahead of the report.
+      expect(console.log).toHaveBeenCalledTimes(1);
+      expect(loggedOutput()).toContain('Total strings:       3');
     });
 
     test('rejects an invalid since date', async () => {

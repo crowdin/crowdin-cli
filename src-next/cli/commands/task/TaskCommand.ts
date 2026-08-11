@@ -19,9 +19,7 @@ import {
   type as type_,
   workflowStep,
 } from './options.ts';
-
-const TASK_STATUSES = new Set<TaskStatus>(['todo', 'in_progress', 'done', 'closed']);
-const TASK_TYPES = new Set(['translate', 'proofread']);
+import { taskVerboseView, taskView } from './views.ts';
 
 interface ListOptions extends GlobalOptions {
   status?: string;
@@ -39,6 +37,9 @@ interface AddOptions extends GlobalOptions {
   includePreTranslatedStringsOnly?: boolean;
   label?: string | string[];
 }
+
+const TASK_STATUSES = new Set<TaskStatus>(['todo', 'in_progress', 'done', 'closed']);
+const TASK_TYPES = new Set(['translate', 'proofread']);
 
 export default class TaskCommand {
   constructor(
@@ -109,36 +110,7 @@ export default class TaskCommand {
       tasks = tasks.filter((task) => task.assignees?.some((assignee) => assignee.id === assigneeFilter));
     }
 
-    if (tasks.length === 0) {
-      output.success('No tasks found');
-      return;
-    }
-
-    if (options.verbose) {
-      output.table(
-        tasks.map((task) => ({
-          id: task.id,
-          languageId: task.targetLanguageId ?? '',
-          title: task.title,
-          status: task.status ?? '',
-          words: task.wordsCount ?? '',
-          deadline: task.deadline ? String(task.deadline) : 'NoDueDate',
-        })),
-        undefined,
-        ['id', 'title'],
-      );
-      return;
-    }
-
-    output.table(
-      tasks.map((task) => ({
-        id: task.id,
-        languageId: task.targetLanguageId ?? '',
-        title: task.title,
-      })),
-      undefined,
-      ['id', 'title'],
-    );
+    output.list(tasks, options.verbose ? taskVerboseView : taskView, { empty: 'No tasks found' });
   };
 
   addAction = async (command: Command) => {
@@ -216,12 +188,6 @@ export default class TaskCommand {
       : { ...baseRequest, type: type === 'translate' ? 0 : 1 };
     const task = await taskService.add(request as TasksModel.CreateTaskRequest);
 
-    output.table([
-      {
-        id: task.id,
-        languageId: task.targetLanguageId ?? options.language,
-        title: task.title,
-      },
-    ]);
+    output.item(task, taskView);
   };
 }

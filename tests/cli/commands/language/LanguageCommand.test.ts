@@ -83,11 +83,12 @@ describe('LanguageCommand', () => {
 
     await languageCommand.listAction(commandContext);
 
+    // The language entity rides along with the resolved code.
     expect(console.log).toHaveBeenCalledWith(
       JSON.stringify(
         [
-          { code: 'fr', name: 'French' },
-          { code: 'de', name: 'German' },
+          { id: 'fr', name: 'French', twoLettersCode: 'fr', code: 'fr' },
+          { id: 'de', name: 'German', twoLettersCode: 'de', code: 'de' },
         ],
         null,
         2,
@@ -124,7 +125,9 @@ describe('LanguageCommand', () => {
     expect(withFetchAll).toHaveBeenCalledTimes(1);
     expect(listSupportedLanguages).toHaveBeenCalledTimes(1);
     expect(listSupportedLanguages).toHaveBeenCalledWith();
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ code: 'uk-UA', name: 'Ukrainian' }], null, 2));
+    expect(console.log).toHaveBeenCalledWith(
+      JSON.stringify([{ id: 'uk', name: 'Ukrainian', locale: 'uk-UA', code: 'uk-UA' }], null, 2),
+    );
   });
 
   test('uses project language mapping for selected code type', async () => {
@@ -148,7 +151,9 @@ describe('LanguageCommand', () => {
 
     await languageCommand.listAction(commandContext);
 
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ code: 'uk_UA', name: 'Ukrainian' }], null, 2));
+    expect(console.log).toHaveBeenCalledWith(
+      JSON.stringify([{ id: 'uk', name: 'Ukrainian', locale: 'uk-UA', code: 'uk_UA' }], null, 2),
+    );
   });
 
   test('throws if user has no manager access in non-text mode', async () => {
@@ -210,7 +215,30 @@ describe('LanguageCommand', () => {
       async () => languageService,
     ).listAction(commandContext);
 
-    expect(console.log).toHaveBeenCalledWith('fr\nde');
+    // list() writes a line per item, where the old formatter joined them into a single write.
+    expect(console.log).toHaveBeenCalledWith('fr');
+    expect(console.log).toHaveBeenCalledWith('de');
+  });
+
+  test('prints the resolved code and name per language in text format', async () => {
+    output = createOutput({ ...globalOptions, output: 'text' });
+    commandContext = createCommandContext({ ...globalOptions, output: 'text', code: 'locale' });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({
+      data: {
+        managerAccess: true,
+        languageMapping: { uk: { locale: 'uk_UA' } },
+        targetLanguages: [{ id: 'uk', name: 'Ukrainian', locale: 'uk-UA' }],
+      },
+    } as never);
+
+    await new LanguageCommand(
+      () => output,
+      async () => projectService,
+      async () => languageService,
+    ).listAction(commandContext);
+
+    expect(console.log).toHaveBeenCalledWith('uk_UA Ukrainian');
   });
 
   test('wraps supported languages API errors into CliError', async () => {

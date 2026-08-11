@@ -115,35 +115,61 @@ describe('BranchCommand', () => {
   });
 
   describe('list', () => {
-    test('lists branches with name first for plain format parity', async () => {
+    test('serializes the branches themselves in structured formats', async () => {
       const branchCommand = createBranchCommand();
+      const branches = [createBranch({ id: 10, name: 'main' }), createBranch({ id: 11, name: 'release' })];
+      branchService.list.mockResolvedValue(branches);
+
+      await branchCommand.listAction(createCommandContext());
+
+      expect(branchService.list).toHaveBeenCalledTimes(1);
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify(branches, null, 2));
+    });
+
+    test('prints one line per branch in text format', async () => {
+      const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'text' });
       branchService.list.mockResolvedValue([
         createBranch({ id: 10, name: 'main' }),
         createBranch({ id: 11, name: 'release' }),
       ]);
 
-      await branchCommand.listAction(createCommandContext());
+      await branchCommand.listAction(createCommandContext({ output: 'text' }));
 
-      expect(branchService.list).toHaveBeenCalledTimes(1);
-      expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify(
-          [
-            { name: 'main', id: 10 },
-            { name: 'release', id: 11 },
-          ],
-          null,
-          2,
-        ),
-      );
+      expect(console.log).toHaveBeenCalledWith('#10 main');
+      expect(console.log).toHaveBeenCalledWith('#11 release');
     });
 
-    test('strips leading slashes from branch names', async () => {
+    test('prints branch names only in plain format', async () => {
       const branchCommand = createBranchCommand();
-      branchService.list.mockResolvedValue([createBranch({ id: 10, name: '/main' })]);
+      output = createOutput({ ...globalOptions, output: 'plain' });
+      branchService.list.mockResolvedValue([
+        createBranch({ id: 10, name: 'main' }),
+        createBranch({ id: 11, name: 'release' }),
+      ]);
+
+      await branchCommand.listAction(createCommandContext({ output: 'plain' }));
+
+      expect(console.log).toHaveBeenCalledWith('main');
+      expect(console.log).toHaveBeenCalledWith('release');
+    });
+
+    test('prints an empty array in structured formats when no branches found', async () => {
+      const branchCommand = createBranchCommand();
 
       await branchCommand.listAction(createCommandContext());
 
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ name: 'main', id: 10 }], null, 2));
+      expect(console.log).toHaveBeenCalledWith('[]');
+    });
+
+    test('strips leading slashes from rendered branch names', async () => {
+      const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'text' });
+      branchService.list.mockResolvedValue([createBranch({ id: 10, name: '/main' })]);
+
+      await branchCommand.listAction(createCommandContext({ output: 'text' }));
+
+      expect(console.log).toHaveBeenCalledWith('#10 main');
     });
 
     test('prints empty message when no branches found', async () => {
@@ -173,12 +199,33 @@ describe('BranchCommand', () => {
 
     test('adds a new branch', async () => {
       const branchCommand = createBranchCommand();
-      branchService.add.mockResolvedValue(createBranch({ id: 20, name: 'dev' }));
+      const branch = createBranch({ id: 20, name: 'dev' });
+      branchService.add.mockResolvedValue(branch);
 
       await branchCommand.addAction(createCommandContext({}, ['dev']));
 
       expect(branchService.add).toHaveBeenCalledWith({ name: 'dev' });
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ name: 'dev', id: 20 }], null, 2));
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify(branch, null, 2));
+    });
+
+    test('echoes the created branch as a line in text format', async () => {
+      const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'text' });
+      branchService.add.mockResolvedValue(createBranch({ id: 20, name: 'dev' }));
+
+      await branchCommand.addAction(createCommandContext({ output: 'text' }, ['dev']));
+
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#20 dev'));
+    });
+
+    test('echoes the created branch name only in plain format', async () => {
+      const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'plain' });
+      branchService.add.mockResolvedValue(createBranch({ id: 20, name: 'dev' }));
+
+      await branchCommand.addAction(createCommandContext({ output: 'plain' }, ['dev']));
+
+      expect(console.log).toHaveBeenCalledWith('dev');
     });
 
     test('passes title, export pattern and priority', async () => {
@@ -321,13 +368,14 @@ describe('BranchCommand', () => {
 
     test.each(editCases)('builds patch requests for %j', async (options, patches) => {
       const branchCommand = createBranchCommand();
+      const updatedBranch = createBranch({ id: 14, name: 'dev' });
       branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
-      branchService.edit.mockResolvedValue(createBranch({ id: 14, name: 'dev' }));
+      branchService.edit.mockResolvedValue(updatedBranch);
 
       await branchCommand.editAction(createCommandContext(options, ['main']));
 
       expect(branchService.edit).toHaveBeenCalledWith(14, patches);
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ name: 'dev', id: 14 }], null, 2));
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify(updatedBranch, null, 2));
     });
 
     test('normalizes the new branch name', async () => {
@@ -381,13 +429,14 @@ describe('BranchCommand', () => {
 
     test('clones the branch and prints the result', async () => {
       const branchCommand = createBranchCommand();
+      const clonedBranch = createBranch({ id: 20, name: 'cloned' });
       branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
-      branchService.cloneBranch.mockResolvedValue(createBranch({ id: 20, name: 'cloned' }));
+      branchService.cloneBranch.mockResolvedValue(clonedBranch);
 
       await branchCommand.cloneAction(createCommandContext({}, ['main', 'cloned']));
 
       expect(branchService.cloneBranch).toHaveBeenCalledWith(14, { name: 'cloned' }, expect.any(Function));
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ name: 'cloned', id: 20 }], null, 2));
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify(clonedBranch, null, 2));
     });
 
     test('normalizes target name and keeps original as title', async () => {
@@ -510,8 +559,24 @@ describe('BranchCommand', () => {
       await branchCommand.mergeAction(createCommandContext({}, ['dev', 'main']));
 
       expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify([{ targetBranchId: 15, added: 1, deleted: 2, updated: 3, conflicted: 0 }], null, 2),
+        JSON.stringify({ targetBranchId: 15, added: 1, deleted: 2, updated: 3, conflicted: 0 }, null, 2),
       );
+    });
+
+    // Java BranchMergeAction prints the target branch id alone in plain view.
+    test('prints the target branch id in plain format', async () => {
+      const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'plain' });
+
+      branchService.list.mockResolvedValue([
+        createBranch({ id: 14, name: 'dev' }),
+        createBranch({ id: 15, name: 'main' }),
+      ]);
+
+      await branchCommand.mergeAction(createCommandContext({ output: 'plain' }, ['dev', 'main']));
+
+      expect(console.log).toHaveBeenCalledWith('15');
+      expect(console.log).toHaveBeenCalledTimes(1);
     });
 
     test('throws when merge fails', async () => {

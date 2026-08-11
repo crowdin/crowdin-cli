@@ -110,11 +110,27 @@ describe('ProjectCommand', () => {
     );
   });
 
-  test('lists verbose project details when verbose output is enabled', async () => {
+  test('prints one line per project in text format', async () => {
+    output = createOutput({ ...globalOptions, output: 'text' });
+    const projectCommand = createProjectCommand();
+
+    spyOn(apiClient.projectsGroupsApi, 'listProjects').mockResolvedValue({
+      data: [{ data: { id: 1, name: 'Docs' } }],
+    } as never);
+
+    await projectCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
+
+    expect(console.log).toHaveBeenCalledWith('#1 Docs');
+  });
+
+  // Line rendering itself is covered in views.test.ts; this only pins that --verbose picks the verbose view.
+  test('switches to the verbose view with --verbose', async () => {
+    output = createOutput({ ...globalOptions, output: 'text' });
     const projectCommand = createProjectCommand();
 
     commandContext = createCommandContext({
       ...globalOptions,
+      output: 'text',
       verbose: true,
     });
 
@@ -134,21 +150,7 @@ describe('ProjectCommand', () => {
 
     await projectCommand.listAction(commandContext);
 
-    expect(console.log).toHaveBeenCalledWith(
-      JSON.stringify(
-        [
-          {
-            id: 1,
-            name: 'Docs',
-            type: 'string-based',
-            visibility: 'open',
-            lastActivity: '2025-01-01T10:00:00.000Z',
-          },
-        ],
-        null,
-        2,
-      ),
-    );
+    expect(console.log).toHaveBeenCalledWith('#1 Docs string-based open 2025-01-01T10:00:00.000Z');
   });
 
   test('adds project with requested options', async () => {

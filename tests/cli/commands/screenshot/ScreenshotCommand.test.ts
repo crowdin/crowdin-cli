@@ -148,13 +148,34 @@ describe('ScreenshotCommand', () => {
     expect(successSpy).toHaveBeenCalledWith('No screenshot found');
   });
 
-  test('listAction prints screenshot rows', async () => {
+  test('listAction serializes the screenshots themselves in structured formats', async () => {
     const cmd = createScreenshotCommand();
-    screenshotService.list.mockResolvedValue([createScreenshot(1, 'welcome.png', 4)]);
+    const screenshots = [createScreenshot(1, 'welcome.png', 4)];
+    screenshotService.list.mockResolvedValue(screenshots);
 
     await cmd.listAction(createCommandContext(globalOptions));
 
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 1, tagsCount: 4, name: 'welcome.png' }], null, 2));
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(screenshots, null, 2));
+  });
+
+  test('listAction prints id, tag count and name per screenshot in text format', async () => {
+    output = createOutput({ ...globalOptions, output: 'text' });
+    const cmd = createScreenshotCommand();
+    screenshotService.list.mockResolvedValue([createScreenshot(1, 'welcome.png', 4)]);
+
+    await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
+
+    expect(console.log).toHaveBeenCalledWith('#1 4 welcome.png');
+  });
+
+  test('listAction prints id and name in plain format', async () => {
+    output = createOutput({ ...globalOptions, output: 'plain' });
+    const cmd = createScreenshotCommand();
+    screenshotService.list.mockResolvedValue([createScreenshot(1, 'welcome.png', 4)]);
+
+    await cmd.listAction(createCommandContext({ ...globalOptions, output: 'plain' }));
+
+    expect(console.log).toHaveBeenCalledWith('1 welcome.png');
   });
 
   test('deleteAction validates id', async () => {
@@ -277,7 +298,7 @@ describe('ScreenshotCommand', () => {
       55,
       expect.objectContaining({ autoTag: true, fileId: 77 }),
     );
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 55, tagsCount: 3, name: 'welcome.png' }], null, 2));
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(createScreenshot(55, 'welcome.png', 3), null, 2));
   });
 
   test('uploadAction creates screenshot when no existing one found', async () => {
@@ -290,7 +311,7 @@ describe('ScreenshotCommand', () => {
     expect(screenshotService.upload).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'new.png', storageId: 44, autoTag: false }),
     );
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 10, tagsCount: 0, name: 'screen.png' }], null, 2));
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(createScreenshot(10, 'screen.png'), null, 2));
   });
 
   test('uploadAction prints warning for auto-tag-in-progress API response', async () => {

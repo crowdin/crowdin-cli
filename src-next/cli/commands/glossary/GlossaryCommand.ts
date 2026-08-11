@@ -19,10 +19,7 @@ import {
   scheme as schemeOption,
   to as toOption,
 } from './options.ts';
-
-const UPLOAD_EXTENSIONS = ['tbx', 'csv', 'xls', 'xlsx'];
-const SCHEME_EXTENSIONS = ['csv', 'xls', 'xlsx'];
-const DEFAULT_GLOSSARY_NAME = 'Created in Crowdin CLI (%s)';
+import { createGlossaryView } from './views.ts';
 
 interface DownloadOptions extends GlobalOptions {
   format?: GlossariesModel.GlossaryFormat;
@@ -35,6 +32,10 @@ interface UploadOptions extends GlobalOptions {
   scheme?: string | string[];
   firstLineContainsHeader?: boolean;
 }
+
+const UPLOAD_EXTENSIONS = ['tbx', 'csv', 'xls', 'xlsx'];
+const SCHEME_EXTENSIONS = ['csv', 'xls', 'xlsx'];
+const DEFAULT_GLOSSARY_NAME = 'Created in Crowdin CLI (%s)';
 
 export default class GlossaryCommand {
   constructor(
@@ -94,36 +95,14 @@ export default class GlossaryCommand {
     const glossaryService = await this.getGlossaryService(command);
     const glossaries = await glossaryService.list();
 
-    if (glossaries.length === 0) {
-      output.success('No glossaries found');
-      return;
-    }
+    // Terms cost a request per glossary and only the verbose text render shows them — plain prints
+    // the name alone and json/toon carry the glossaries themselves.
+    const withTerms = options.verbose && (options.output ?? 'text') === 'text';
+    const view = withTerms
+      ? createGlossaryView({ verbose: true, terms: await this.loadTerms(output, glossaryService, glossaries) })
+      : createGlossaryView();
 
-    if (options.verbose) {
-      output.table(
-        await Promise.all(
-          glossaries.map(async (glossary) => ({
-            id: glossary.id,
-            name: glossary.name,
-            terms: glossary.terms,
-            termList: await this.formatTermList(output, glossaryService, glossary),
-          })),
-        ),
-        undefined,
-        ['name'],
-      );
-      return;
-    }
-
-    output.table(
-      glossaries.map((glossary) => ({
-        id: glossary.id,
-        name: glossary.name,
-        terms: glossary.terms,
-      })),
-      undefined,
-      ['name'],
-    );
+    output.list(glossaries, view, { empty: 'No glossaries found' });
   };
 
   downloadAction = async (command: Command) => {
@@ -225,26 +204,28 @@ export default class GlossaryCommand {
     output.success(`Imported in #${glossary.id} '${glossary.name}' glossary`);
   };
 
-  // The Java CLI prints terms as separate lines below each glossary; here the
-  // terms are flattened into a table column to keep a single-table output
-  private async formatTermList(
+  private async loadTerms(
     output: ReturnType<GetOutput>,
     glossaryService: GlossaryService,
-    glossary: GlossariesModel.Glossary,
-  ): Promise<string> {
-    if (glossary.terms === 0) {
-      return '';
+    glossaries: GlossariesModel.Glossary[],
+  ): Promise<Map<number, GlossariesModel.Term[]>> {
+    const byGlossary = new Map<number, GlossariesModel.Term[]>();
+
+    for (const glossary of glossaries) {
+      if (glossary.terms === 0) {
+        continue;
+      }
+
+      const terms = await glossaryService.listTerms(glossary.id).catch(() => undefined);
+
+      if (terms === undefined) {
+        output.warning('You do not have permission to manage this glossary');
+        continue;
+      }
+
+      byGlossary.set(glossary.id, terms);
     }
 
-    const terms = await glossaryService.listTerms(glossary.id).catch(() => undefined);
-
-    if (terms === undefined) {
-      output.warning('You do not have permission to manage this glossary');
-      return '';
-    }
-
-    return terms
-      .map((term) => `#${term.id} ${term.text}: ${(term.description ?? '').replaceAll('\n', ' ')}`)
-      .join('; ');
+    return byGlossary;
   }
 }
