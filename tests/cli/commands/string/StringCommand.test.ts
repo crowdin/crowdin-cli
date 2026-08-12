@@ -329,6 +329,61 @@ describe('StringCommand', () => {
         ]),
       );
     });
+
+    test('skips the verbose lookups when not verbose', async () => {
+      const cmd = createStringCommand();
+
+      await cmd.editAction(createCommandContext({ ...globalOptions, text: 'updated' }, ['15']));
+
+      expect(stringService.isStringsBasedProject).not.toHaveBeenCalled();
+      expect(labelService.listLabelsMap).not.toHaveBeenCalled();
+      expect(fileService.listProjectFilePaths).not.toHaveBeenCalled();
+    });
+
+    // Java StringEditAction passes isVerbose to printSourceString, so the echo carries the details.
+    test('echoes the verbose detail lines with --verbose', async () => {
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
+      const cmd = createStringCommandWith(textOutput);
+
+      stringService.edit.mockResolvedValue(
+        createStringModel({
+          id: 15,
+          identifier: 'welcome',
+          text: 'Hello',
+          fileId: 101,
+          labelIds: [9],
+          context: 'Greeting',
+        }),
+      );
+      labelService.listLabelsMap.mockResolvedValue(new Map([[9, 'marketing']]));
+
+      await cmd.editAction(
+        createCommandContext({ ...globalOptions, output: 'text', verbose: true, text: 'Hello' }, ['15']),
+      );
+
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(
+          '#15 welcome Hello\n\t- file: /content.md\n\t- labels: marketing\n\t- context: Greeting',
+        ),
+      );
+    });
+
+    test('drops the file line for strings-based projects when verbose', async () => {
+      const textOutput = createOutput({ ...globalOptions, output: 'text' });
+      const cmd = createStringCommandWith(textOutput);
+
+      stringService.isStringsBasedProject.mockResolvedValue(true);
+      stringService.edit.mockResolvedValue(
+        createStringModel({ id: 15, identifier: 'welcome', text: 'Hello', fileId: 101, context: 'Greeting' }),
+      );
+
+      await cmd.editAction(
+        createCommandContext({ ...globalOptions, output: 'text', verbose: true, text: 'Hello' }, ['15']),
+      );
+
+      expect(fileService.listProjectFilePaths).not.toHaveBeenCalled();
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#15 welcome Hello\n\t- context: Greeting'));
+    });
   });
 
   describe('deleteAction', () => {

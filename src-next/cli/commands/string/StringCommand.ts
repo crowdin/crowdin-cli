@@ -12,6 +12,7 @@ import type {
   GetStringService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import { add, edit, list } from './options.ts';
 import { createStringView } from './views.ts';
@@ -186,16 +187,7 @@ export default class StringCommand {
       ...(options.scope ? { scope: options.scope } : {}),
     });
 
-    // The verbose detail lines need the label titles and file paths; both cost a request, so
-    // they are only fetched when a verbose render will actually use them.
-    const view = options.verbose
-      ? createStringView({
-          verbose: true,
-          isStringsBased,
-          labels: await labelService.listLabelsMap(),
-          filePaths: isStringsBased ? new Map<number, string>() : await fileService.listProjectFilePaths(branchId),
-        })
-      : createStringView();
+    const view = await this.buildStringView(command, { verbose: options.verbose, isStringsBased, branchId });
 
     output.list(strings, view, { empty: 'No source strings found' });
   };
@@ -294,9 +286,10 @@ export default class StringCommand {
     const labelIds = await labelService.resolveLabelIds(labelNames);
     const patch = this.buildEditPatch(options, labelIds);
     const updated = await stringService.edit(id, patch);
+    const isStringsBased = options.verbose ? await stringService.isStringsBasedProject() : false;
 
     output.success(`Source string #${id} was updated successfully`);
-    output.item(updated, createStringView());
+    output.item(updated, await this.buildStringView(command, { verbose: options.verbose, isStringsBased }));
   };
 
   deleteAction = async (command: Command) => {
@@ -309,6 +302,25 @@ export default class StringCommand {
 
     output.success(`Source string #${id} was deleted successfully`);
   };
+
+  private async buildStringView(
+    command: Command,
+    { verbose, isStringsBased, branchId }: { verbose?: boolean; isStringsBased: boolean; branchId?: number },
+  ): Promise<View<SourceStringsModel.String>> {
+    if (!verbose) {
+      return createStringView();
+    }
+
+    const labelService = await this.getLabelService(command);
+    const fileService = await this.getFileService(command);
+
+    return createStringView({
+      verbose: true,
+      isStringsBased,
+      labels: await labelService.listLabelsMap(),
+      filePaths: isStringsBased ? new Map<number, string>() : await fileService.listProjectFilePaths(branchId),
+    });
+  }
 
   private async resolveSingleFileId(
     fileService: Awaited<ReturnType<GetFileService>>,
