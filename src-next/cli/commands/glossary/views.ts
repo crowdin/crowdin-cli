@@ -1,10 +1,9 @@
 import type { GlossariesModel } from '@crowdin/crowdin-api-client';
+import { toSingleLine } from '@/cli/commands/common/views.ts';
 import type { View } from '@/cli/utils/output.ts';
 
-const singleLine = (text: string): string => text.replaceAll('\n', ' ');
-
 const termLine = (term: GlossariesModel.Term): string =>
-  `\t#${term.id} ${term.text}: ${singleLine(term.description ?? '')}`;
+  `\t#${term.id} ${term.text}: ${toSingleLine(term.description ?? '')}`;
 
 /**
  * Java GlossaryListAction: one line per glossary and, when verbose, its terms indented underneath.

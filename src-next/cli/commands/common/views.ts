@@ -6,3 +6,5 @@ export const pathView: View<string> = {
   text: (path) => path,
   plain: (path) => path,
 };
+
+export const toSingleLine = (text: string): string => text.replaceAll('\n', ' ');
