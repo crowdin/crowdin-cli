@@ -116,7 +116,7 @@ describe('LabelCommand', () => {
 
     await labelCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-    expect(console.log).toHaveBeenCalledWith('#1 one');
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#1 one'));
   });
 
   test('prints the title alone in plain format', async () => {

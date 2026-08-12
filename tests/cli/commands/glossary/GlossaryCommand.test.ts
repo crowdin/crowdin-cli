@@ -144,7 +144,7 @@ describe('GlossaryCommand', () => {
 
       expect(glossaryService.listTerms).toHaveBeenCalledWith(42);
       expect(console.log).toHaveBeenCalledWith(
-        '#42 forty-two (terms: 2)\n\t#52 fifty-two: How\n\t#53 fifty-three: are you',
+        expect.stringContaining('#42 forty-two (terms: 2)\n\t#52 fifty-two: How\n\t#53 fifty-three: are you'),
       );
     });
 

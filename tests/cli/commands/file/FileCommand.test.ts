@@ -181,7 +181,7 @@ describe('FileCommand', () => {
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-    expect(console.log).toHaveBeenCalledWith('#1 docs/readme.md');
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#1 docs/readme.md'));
   });
 
   // Line rendering itself is covered in views.test.ts; this only pins that --verbose picks the verbose view.
@@ -196,7 +196,7 @@ describe('FileCommand', () => {
 
     await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text', verbose: true }));
 
-    expect(console.log).toHaveBeenCalledWith('#1 docs/readme.md md parser:4 revision:7');
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#1 docs/readme.md md parser:4 revision:7'));
   });
 
   test('lists files under the given branch', async () => {

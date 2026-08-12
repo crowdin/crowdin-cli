@@ -87,6 +87,14 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
         return;
       }
 
+      if (format === 'plain') {
+        for (const item of items) {
+          console.log(renderLine(item, view));
+        }
+
+        return;
+      }
+
       if (items.length === 0) {
         // Text prints the message; plain prints nothing, matching Java's plainView branches.
         // No message at all where Java has none for the command (file list).
@@ -98,7 +106,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
       }
 
       for (const item of items) {
-        console.log(renderLine(item, view));
+        this.success(renderLine(item, view));
       }
     },
     // A single entity, echoed after a mutation. Text marks it done; json/toon serialize it bare.

@@ -130,7 +130,7 @@ describe('BundleCommand', () => {
 
       await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-      expect(console.log).toHaveBeenCalledWith('#1 json /%locale%/app.json App');
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#1 json /%locale%/app.json App'));
     });
 
     test('prints id and name in plain format', async () => {

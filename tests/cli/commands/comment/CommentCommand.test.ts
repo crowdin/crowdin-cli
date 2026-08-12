@@ -228,8 +228,8 @@ describe('CommentCommand', () => {
 
       await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-      expect(console.log).toHaveBeenCalledWith('#1 First comment');
-      expect(console.log).toHaveBeenCalledWith('#2 Second comment');
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#1 First comment'));
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#2 Second comment'));
     });
 
     // Line rendering itself is covered in views.test.ts; this only pins that --verbose picks the verbose view.
@@ -252,7 +252,9 @@ describe('CommentCommand', () => {
 
       await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text', verbose: true }));
 
-      expect(console.log).toHaveBeenCalledWith('#5 Issue text fr translation_mistake unresolved');
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('#5 Issue text fr translation_mistake unresolved'),
+      );
     });
 
     test('serializes the comments themselves in structured formats', async () => {

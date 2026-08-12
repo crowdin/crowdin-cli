@@ -109,7 +109,7 @@ describe('TaskCommand', () => {
 
       await cmd.listAction(commandContext);
 
-      expect(console.log).toHaveBeenCalledWith('#11 fr First task');
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#11 fr First task'));
     });
 
     // Line rendering itself is covered in views.test.ts; this only pins that --verbose picks the verbose view.
@@ -123,7 +123,7 @@ describe('TaskCommand', () => {
 
       await cmd.listAction(commandContext);
 
-      expect(console.log).toHaveBeenCalledWith('#11 fr First task todo 42 NoDueDate');
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#11 fr First task todo 42 NoDueDate'));
     });
 
     test('prints an empty array in structured formats when no tasks are found', async () => {

@@ -165,7 +165,7 @@ describe('ScreenshotCommand', () => {
 
     await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-    expect(console.log).toHaveBeenCalledWith('#1 4 welcome.png');
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#1 4 welcome.png'));
   });
 
   test('listAction prints id and name in plain format', async () => {

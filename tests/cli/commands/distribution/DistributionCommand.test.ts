@@ -115,7 +115,7 @@ describe('DistributionCommand', () => {
     ]);
     await distributionCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-    expect(console.log).toHaveBeenCalledWith('hash-1 CDN one default');
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('hash-1 CDN one default'));
   });
 
   test('prints hash and name in plain format', async () => {

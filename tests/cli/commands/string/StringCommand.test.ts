@@ -206,7 +206,9 @@ describe('StringCommand', () => {
       await cmd.listAction(commandContext);
 
       expect(console.log).toHaveBeenCalledWith(
-        '#11 welcome Hello\n\t- file: /content.md\n\t- labels: marketing\n\t- context: Greeting',
+        expect.stringContaining(
+          '#11 welcome Hello\n\t- file: /content.md\n\t- labels: marketing\n\t- context: Greeting',
+        ),
       );
     });
   });

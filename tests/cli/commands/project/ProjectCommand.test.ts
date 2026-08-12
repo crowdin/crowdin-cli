@@ -120,7 +120,7 @@ describe('ProjectCommand', () => {
 
     await projectCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-    expect(console.log).toHaveBeenCalledWith('#1 Docs');
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#1 Docs'));
   });
 
   // Line rendering itself is covered in views.test.ts; this only pins that --verbose picks the verbose view.
@@ -150,7 +150,9 @@ describe('ProjectCommand', () => {
 
     await projectCommand.listAction(commandContext);
 
-    expect(console.log).toHaveBeenCalledWith('#1 Docs string-based open 2025-01-01T10:00:00.000Z');
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining('#1 Docs string-based open 2025-01-01T10:00:00.000Z'),
+    );
   });
 
   test('adds project with requested options', async () => {

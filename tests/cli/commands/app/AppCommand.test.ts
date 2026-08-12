@@ -111,8 +111,8 @@ describe('AppCommand', () => {
 
     await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-    expect(console.log).toHaveBeenCalledWith('github GitHub');
-    expect(console.log).toHaveBeenCalledWith('slack Slack');
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('github GitHub'));
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('slack Slack'));
   });
 
   test('listAction prints the identifier alone in plain format', async () => {

@@ -136,8 +136,8 @@ describe('BranchCommand', () => {
 
       await branchCommand.listAction(createCommandContext({ output: 'text' }));
 
-      expect(console.log).toHaveBeenCalledWith('#10 main');
-      expect(console.log).toHaveBeenCalledWith('#11 release');
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#10 main'));
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#11 release'));
     });
 
     test('prints branch names only in plain format', async () => {
@@ -169,7 +169,7 @@ describe('BranchCommand', () => {
 
       await branchCommand.listAction(createCommandContext({ output: 'text' }));
 
-      expect(console.log).toHaveBeenCalledWith('#10 main');
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#10 main'));
     });
 
     test('prints empty message when no branches found', async () => {

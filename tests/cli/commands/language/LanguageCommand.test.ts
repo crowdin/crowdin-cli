@@ -238,7 +238,7 @@ describe('LanguageCommand', () => {
       async () => languageService,
     ).listAction(commandContext);
 
-    expect(console.log).toHaveBeenCalledWith('uk_UA Ukrainian');
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('uk_UA Ukrainian'));
   });
 
   test('wraps supported languages API errors into CliError', async () => {

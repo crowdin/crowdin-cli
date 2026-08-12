@@ -126,7 +126,7 @@ describe('TmCommand', () => {
 
       await tmCommand.listAction(createCommandContext({ output: 'text' }));
 
-      expect(console.log).toHaveBeenCalledWith('#42 42 (segments: 10)');
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#42 42 (segments: 10)'));
     });
 
     test('prints the name alone in plain format', async () => {
