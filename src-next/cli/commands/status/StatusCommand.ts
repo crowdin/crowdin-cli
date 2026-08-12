@@ -14,6 +14,7 @@ import type {
 import type { CommandDef } from '@/cli/types.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
 import { directory, file, proofreading, status, translation } from './options.ts';
+import { type ProgressRow, type ProgressView, statusPlainView, statusVerboseView, toProgressMap } from './views.ts';
 
 interface StatusCommandOptions extends GlobalOptions {
   language?: string;
@@ -23,7 +24,6 @@ interface StatusCommandOptions extends GlobalOptions {
   failIfIncomplete?: boolean;
 }
 
-type ProgressView = 'all' | 'translated' | 'proofread';
 type LanguageProgress = ResponseObject<TranslationStatusModel.LanguageProgress>;
 
 export default class StatusCommand {
@@ -148,35 +148,15 @@ export default class StatusCommand {
       return entry.data.languageId === languageId;
     });
 
-    const progress: Record<string, Record<string, string>> = {};
+    const rows = this.toRows(filteredProgressData, project.data.targetLanguages);
+    const progress = toProgressMap(rows, show);
 
-    for (const languageProgress of filteredProgressData) {
-      const translationProgress = this.getTranslationProgress(languageProgress);
-      const approvalProgress = this.getApprovalProgress(languageProgress);
-
-      if (show === 'all' || show === 'translated') {
-        if (!progress.translation) {
-          progress.translation = {};
-        }
-
-        progress.translation[languageProgress.data.languageId] = `${translationProgress}%`;
-      }
-
-      if (show === 'all' || show === 'proofread') {
-        if (!progress.proofread) {
-          progress.proofread = {};
-        }
-
-        progress.proofread[languageProgress.data.languageId] = `${approvalProgress}%`;
-      }
-    }
-
+    // The percent map is the payload in every format; only its human rendering changes. Java's
+    // verbose branch renders the same detail in plain, so both go through the same call.
     if (options.verbose) {
-      // Java's verbose branch renders the same detail in plain; json/toon keep the percent map.
-      output.data(progress);
-      output.report(this.verboseReport(filteredProgressData, show, project.data.targetLanguages));
+      output.item(progress, statusVerboseView(rows, show));
     } else if (options.output === 'plain') {
-      output.report(this.plainReport(filteredProgressData, show));
+      output.item(progress, statusPlainView(rows, show));
     } else {
       output.table(progress);
     }
@@ -188,68 +168,19 @@ export default class StatusCommand {
     }
   }
 
-  // Java StatusAction verbose view: a header per language, then the progress lines it applies to,
-  // each with the word and phrase counts behind the percentage.
-  private verboseReport(
-    data: LanguageProgress[],
-    show: ProgressView,
-    targetLanguages: LanguagesModel.Language[],
-  ): string[] {
+  // The 100%-when-nothing-to-translate rule is applied here, once, so the views and the
+  // completeness check can't disagree about what a language's progress is.
+  private toRows(data: LanguageProgress[], targetLanguages: LanguagesModel.Language[]): ProgressRow[] {
     const names = new Map(targetLanguages.map((language) => [language.id, language.name]));
-    const lines: string[] = [];
 
-    for (const entry of data) {
-      const { languageId, words, phrases } = entry.data;
-
-      lines.push(`${names.get(languageId) ?? languageId}(${languageId}):`);
-
-      if (show === 'all' || show === 'translated') {
-        lines.push(
-          `\tTranslated: ${this.getTranslationProgress(entry)}% ` +
-            `(Words: ${words?.translated ?? 0}/${words?.total ?? 0}, ` +
-            `Phrases: ${phrases?.translated ?? 0}/${phrases?.total ?? 0})`,
-        );
-      }
-
-      if (show === 'all' || show === 'proofread') {
-        lines.push(
-          `\tProofread: ${this.getApprovalProgress(entry)}% ` +
-            `(Words: ${words?.approved ?? 0}/${words?.total ?? 0}, ` +
-            `Phrases: ${phrases?.approved ?? 0}/${phrases?.total ?? 0})`,
-        );
-      }
-    }
-
-    return lines;
-  }
-
-  // Java StatusAction plain view: per-language "<lang> <percent>" lines, translated
-  // section then proofread section, each headed only when both are shown (show=all).
-  private plainReport(data: LanguageProgress[], show: ProgressView): string[] {
-    const lines: string[] = [];
-    const both = show === 'all';
-
-    if (show === 'all' || show === 'translated') {
-      if (both) {
-        lines.push('Translated:');
-      }
-
-      for (const entry of data) {
-        lines.push(`${entry.data.languageId} ${this.getTranslationProgress(entry)}`);
-      }
-    }
-
-    if (show === 'all' || show === 'proofread') {
-      if (both) {
-        lines.push('Proofread:');
-      }
-
-      for (const entry of data) {
-        lines.push(`${entry.data.languageId} ${this.getApprovalProgress(entry)}`);
-      }
-    }
-
-    return lines;
+    return data.map((entry) => ({
+      languageId: entry.data.languageId,
+      name: names.get(entry.data.languageId) ?? entry.data.languageId,
+      translation: this.getTranslationProgress(entry),
+      approval: this.getApprovalProgress(entry),
+      words: entry.data.words,
+      phrases: entry.data.phrases,
+    }));
   }
 
   private normalizePath(value: string): string {

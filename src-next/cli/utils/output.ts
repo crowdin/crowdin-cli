@@ -74,7 +74,9 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
 
       // json/toon serialize the grid; plain is the caller's own business — status prints its
       // per-language report there and never reaches this.
-      this.data(data);
+      if (isMachineFormat) {
+        console.log(formatData(data, format));
+      }
     },
     /**
      * A list of entities: one rendered line each in text and plain, the items themselves in
@@ -109,40 +111,26 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
         this.success(renderLine(item, view));
       }
     },
-    // A single entity, echoed after a mutation. Text marks it done; json/toon serialize it bare.
-    item<T>(value: T, view: View<T>): void {
+    /**
+     * A single value: the rendered view in text and plain, the value itself in json/toon.
+     *
+     * `mark` puts the success symbol in front, which suits an echo after a mutation ("branch
+     * created") but not a report block, whose view renders many lines from one payload.
+     */
+    item<T>(value: T, view: View<T>, { mark = true }: { mark?: boolean } = {}): void {
       if (isMachineFormat) {
         console.log(formatData(value, format));
         return;
       }
 
-      if (format === 'plain') {
-        console.log(renderLine(value, view));
+      const line = renderLine(value, view);
+
+      if (mark && format === 'text') {
+        this.success(line);
         return;
       }
 
-      this.success(renderLine(value, view));
-    },
-    // Serialization channel for json/toon. Silent in text *and* plain, both of which are
-    // line-based: a caller that has plain output to emit renders it with list()/item()/report().
-    data(value: unknown): void {
-      if (!isMachineFormat) {
-        return;
-      }
-
-      console.log(formatData(value, format));
-    },
-    // Human-readable, line-based report (e.g. status screens). Prints in text and plain
-    // (plain routes through the formatter so it isn't gated); suppressed in json/toon.
-    report(lines: string[]): void {
-      if (format === 'plain') {
-        console.log(lines.join('\n'));
-        return;
-      }
-
-      for (const line of lines) {
-        this.log(line);
-      }
+      console.log(line);
     },
     debug(data: string): void {
       if (options.verbose) {

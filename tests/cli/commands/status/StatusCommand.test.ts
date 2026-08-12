@@ -201,9 +201,12 @@ describe('StatusCommand', () => {
 
     await statusCommand.defaultAction(createCommandContext({ ...globalOptions, output: 'text', verbose: true }));
 
-    expect(console.log).toHaveBeenCalledWith('French(fr):');
-    expect(console.log).toHaveBeenCalledWith('\tTranslated: 87% (Words: 120/138, Phrases: 30/34)');
-    expect(console.log).toHaveBeenCalledWith('\tProofread: 75% (Words: 103/138, Phrases: 26/34)');
+    // The block is one write: item() renders the whole view in a single line-joined string.
+    expect(console.log).toHaveBeenCalledWith(
+      expect.stringContaining(
+        'French(fr):\n\tTranslated: 87% (Words: 120/138, Phrases: 30/34)\n\tProofread: 75% (Words: 103/138, Phrases: 26/34)',
+      ),
+    );
     expect(console.table).not.toHaveBeenCalled();
   });
 

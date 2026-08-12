@@ -631,9 +631,9 @@ describe('ContextCommand', () => {
 
       await command.statusAction(createCommandContext({ byFile: true }));
 
-      expect(loggedOutput()).toContain('File             Total       AI Context    Missing');
+      expect(loggedOutput()).toContain('File             Total        AI Context    Missing');
       expect(loggedOutput()).toContain('/first.txt           2        1 (50.00%)          1');
-      expect(loggedOutput()).toContain('/second.txt          1        0 (0.00%)          1');
+      expect(loggedOutput()).toContain('/second.txt          1         0 (0.00%)          1');
     });
 
     test('emits per-file counts in structured formats', async () => {

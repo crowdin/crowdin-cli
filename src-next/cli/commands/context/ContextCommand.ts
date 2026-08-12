@@ -35,6 +35,7 @@ import {
   status as statusOption,
   to as toOption,
 } from './options.ts';
+import { type ContextStats, contextStatusByFileView, contextStatusView, type FileContextStats } from './views.ts';
 
 // TODO: Java '--format' (file format) is intentionally not ported: 'jsonl' is the only supported value
 
@@ -73,20 +74,9 @@ interface FilteredStrings {
   filePaths: Map<number, string>;
 }
 
-interface ContextStats {
-  total: number;
-  withAi: number;
-  withAiPercentage: string;
-  withoutAi: number;
-  withoutAiPercentage: string;
-  withManual: number;
-  withManualPercentage: string;
-}
-
 const BATCH_SIZE = 100;
 const SINCE_FORMAT = /^\d{4}-\d{2}-\d{2}$/;
 const AVAILABLE_STATUSES = ['empty', 'ai', 'manual'];
-const CONTEXT_STATUS_FOOTER = "Run 'crowdin context download --status=empty' to export strings needing context.";
 
 export default class ContextCommand {
   constructor(
@@ -301,10 +291,14 @@ export default class ContextCommand {
     const { project, isStringsBased, strings, filePaths } = await this.fetchFilteredStrings(command, options);
     const byFile = Boolean(options.byFile) && !isStringsBased;
 
-    // json/toon carry the raw counts; text and plain both get Java's padded line report, which
-    // already includes the title and footer.
-    output.data(byFile ? this.byFileStats(strings, filePaths) : this.calculateStats(strings));
-    output.report(byFile ? this.byFileReport(project, strings, filePaths) : this.summaryReport(project, strings));
+    // One payload, two renderings: json/toon carry the raw counts, text and plain get Java's
+    // padded line report (title and footer included) built from those same counts.
+    if (byFile) {
+      output.item(this.byFileStats(strings, filePaths), contextStatusByFileView(project), { mark: false });
+      return;
+    }
+
+    output.item(this.calculateStats(strings), contextStatusView(project), { mark: false });
   };
 
   private groupByFile(
@@ -324,58 +318,11 @@ export default class ContextCommand {
     return grouped;
   }
 
-  private byFileStats(strings: SourceStringsModel.String[], filePaths: Map<number, string>) {
+  private byFileStats(strings: SourceStringsModel.String[], filePaths: Map<number, string>): FileContextStats[] {
     return [...this.groupByFile(strings, filePaths).entries()].map(([file, group]) => ({
       file,
       ...this.calculateStats(group),
     }));
-  }
-
-  // Java ContextStatusAction byFile report: columns padded to the longest file path.
-  private byFileReport(
-    project: ProjectsGroupsModel.Project,
-    strings: SourceStringsModel.String[],
-    filePaths: Map<number, string>,
-  ): string[] {
-    const grouped = this.groupByFile(strings, filePaths);
-    const width = Math.max(0, ...[...grouped.keys()].map((path) => path.length));
-    const lines = [
-      this.reportTitle(project),
-      '',
-      `${'File'.padEnd(width)}   ${'Total'.padStart(8)}   ${'AI Context'.padStart(14)}   ${'Missing'.padStart(8)}`,
-    ];
-
-    for (const [path, group] of grouped) {
-      const stats = this.calculateStats(group);
-      const aiContext = `${String(stats.withAi).padStart(6)} (${stats.withAiPercentage}%)`;
-
-      lines.push(
-        `${path.padEnd(width)}   ${String(stats.total).padStart(8)}   ${aiContext}   ${String(stats.total - stats.withAi).padStart(8)}`,
-      );
-    }
-
-    lines.push('', CONTEXT_STATUS_FOOTER);
-
-    return lines;
-  }
-
-  private summaryReport(project: ProjectsGroupsModel.Project, strings: SourceStringsModel.String[]): string[] {
-    const stats = this.calculateStats(strings);
-
-    return [
-      this.reportTitle(project),
-      '',
-      `Total strings:       ${stats.total}`,
-      `With AI context:     ${stats.withAi} (${stats.withAiPercentage}%)`,
-      `Without AI context:  ${stats.withoutAi} (${stats.withoutAiPercentage}%)`,
-      `With manual context: ${stats.withManual} (${stats.withManualPercentage}%)`,
-      '',
-      CONTEXT_STATUS_FOOTER,
-    ];
-  }
-
-  private reportTitle(project: ProjectsGroupsModel.Project): string {
-    return `Context Status for Project "${project.name}" (ID: ${project.id})`;
   }
 
   private async fetchFilteredStrings(command: Command, options: FilterOptions): Promise<FilteredStrings> {
