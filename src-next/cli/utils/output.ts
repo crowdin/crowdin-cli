@@ -12,7 +12,7 @@ import {
 } from '@clack/prompts';
 import type { GlobalOptions } from '../options.ts';
 import { colors } from './colors.ts';
-import { formatData } from './formatter.ts';
+import { formatData, isMachineFormat as isMachine } from './formatter.ts';
 
 export const OUTPUT_FORMATS = ['json', 'toon', 'plain'];
 
@@ -39,7 +39,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
     withGuide,
   });
 
-  const isMachineFormat = format === 'json' || format === 'toon';
+  const isMachineFormat = isMachine(format);
 
   function renderLine<T>(item: T, view: View<T>): string {
     return format === 'plain' && view.plain ? view.plain(item) : view.text(item);

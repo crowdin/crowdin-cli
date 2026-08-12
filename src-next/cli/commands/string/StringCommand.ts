@@ -12,6 +12,7 @@ import type {
   GetStringService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import { add, edit, list } from './options.ts';
@@ -187,7 +188,11 @@ export default class StringCommand {
       ...(options.scope ? { scope: options.scope } : {}),
     });
 
-    const view = await this.buildStringView(command, { verbose: options.verbose, isStringsBased, branchId });
+    const view = await this.buildStringView(command, {
+      verbose: this.rendersVerbose(options),
+      isStringsBased,
+      branchId,
+    });
 
     output.list(strings, view, { empty: 'No source strings found' });
   };
@@ -286,10 +291,11 @@ export default class StringCommand {
     const labelIds = await labelService.resolveLabelIds(labelNames);
     const patch = this.buildEditPatch(options, labelIds);
     const updated = await stringService.edit(id, patch);
-    const isStringsBased = options.verbose ? await stringService.isStringsBasedProject() : false;
+    const verbose = this.rendersVerbose(options);
+    const isStringsBased = verbose ? await stringService.isStringsBasedProject() : false;
 
     output.success(`Source string #${id} was updated successfully`);
-    output.item(updated, await this.buildStringView(command, { verbose: options.verbose, isStringsBased }));
+    output.item(updated, await this.buildStringView(command, { verbose, isStringsBased }));
   };
 
   deleteAction = async (command: Command) => {
@@ -305,7 +311,7 @@ export default class StringCommand {
 
   private async buildStringView(
     command: Command,
-    { verbose, isStringsBased, branchId }: { verbose?: boolean; isStringsBased: boolean; branchId?: number },
+    { verbose, isStringsBased, branchId }: { verbose: boolean; isStringsBased: boolean; branchId?: number },
   ): Promise<View<SourceStringsModel.String>> {
     if (!verbose) {
       return createStringView();
@@ -320,6 +326,10 @@ export default class StringCommand {
       labels: await labelService.listLabelsMap(),
       filePaths: isStringsBased ? new Map<number, string>() : await fileService.listProjectFilePaths(branchId),
     });
+  }
+
+  private rendersVerbose(options: GlobalOptions): boolean {
+    return Boolean(options.verbose) && !isMachineFormat(options.output);
   }
 
   private async resolveSingleFileId(

@@ -186,6 +186,41 @@ describe('StringCommand', () => {
       expect(fileService.listProjectFilePaths).not.toHaveBeenCalled();
     });
 
+    test('skips the verbose lookups under a machine format, which never renders the view', async () => {
+      const cmd = createStringCommand();
+      stringService.list.mockResolvedValue([createStringModel({ id: 11, identifier: 'welcome', text: 'Hello' })]);
+
+      await cmd.listAction(createCommandContext({ ...globalOptions, output: 'json', verbose: true }));
+
+      expect(labelService.listLabelsMap).not.toHaveBeenCalled();
+      expect(fileService.listProjectFilePaths).not.toHaveBeenCalled();
+    });
+
+    // Java keeps the verbose detail lines outside its plainView branch, unlike glossary's terms.
+    test('still renders the verbose detail lines in plain format', async () => {
+      const plainOutput = createOutput({ ...globalOptions, output: 'plain' });
+      const cmd = createStringCommandWith(plainOutput);
+
+      stringService.list.mockResolvedValue([
+        createStringModel({
+          id: 11,
+          identifier: 'welcome',
+          text: 'Hello',
+          fileId: 101,
+          labelIds: [9],
+          context: 'Greeting',
+        }),
+      ]);
+      labelService.listLabelsMap.mockResolvedValue(new Map([[9, 'marketing']]));
+
+      await cmd.listAction(createCommandContext({ ...globalOptions, output: 'plain', verbose: true }));
+
+      expect(labelService.listLabelsMap).toHaveBeenCalled();
+      expect(console.log).toHaveBeenCalledWith(
+        '11\n\t- file: /content.md\n\t- labels: marketing\n\t- context: Greeting',
+      );
+    });
+
     // Line rendering itself is covered in views.test.ts; this pins the verbose lookups reaching the view.
     test('renders the verbose detail lines with resolved labels and file paths', async () => {
       const textOutput = createOutput({ ...globalOptions, output: 'text' });
@@ -334,6 +369,18 @@ describe('StringCommand', () => {
       const cmd = createStringCommand();
 
       await cmd.editAction(createCommandContext({ ...globalOptions, text: 'updated' }, ['15']));
+
+      expect(stringService.isStringsBasedProject).not.toHaveBeenCalled();
+      expect(labelService.listLabelsMap).not.toHaveBeenCalled();
+      expect(fileService.listProjectFilePaths).not.toHaveBeenCalled();
+    });
+
+    test('skips the verbose lookups under a machine format', async () => {
+      const cmd = createStringCommand();
+
+      await cmd.editAction(
+        createCommandContext({ ...globalOptions, output: 'json', verbose: true, text: 'x' }, ['15']),
+      );
 
       expect(stringService.isStringsBasedProject).not.toHaveBeenCalled();
       expect(labelService.listLabelsMap).not.toHaveBeenCalled();

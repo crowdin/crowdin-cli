@@ -13,3 +13,7 @@ const formatters: Record<MachineFormat, (data: unknown) => string> = {
 export function formatData(data: unknown, format: MachineFormat): string {
   return formatters[format](data);
 }
+
+export function isMachineFormat(format?: string): format is MachineFormat {
+  return format === 'json' || format === 'toon';
+}
