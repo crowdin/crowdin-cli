@@ -161,6 +161,67 @@ describe('StatusCommand', () => {
     );
   });
 
+  // Java throws at the end of its non-verbose branch, so the progress is on screen before it fails.
+  test('prints the progress before failing with --fail-if-incomplete', async () => {
+    const statusCommand = createStatusCommand();
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
+      data: [createProgress('fr', 99, 100)],
+    } as never);
+
+    await expect(
+      statusCommand.translationStatusAction(createCommandContext({ ...globalOptions, failIfIncomplete: true })),
+    ).rejects.toThrow(new CliError('The current project is incomplete'));
+
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify({ translation: { fr: '99%' } }, null, 2));
+  });
+
+  // Java StatusAction verbose view: a header per language, then word and phrase counts.
+  test('renders per-language detail with --verbose', async () => {
+    output = createOutput({ ...globalOptions, output: 'text' });
+    const statusCommand = createStatusCommand();
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({
+      data: { ...mockProject.data, targetLanguages: [{ id: 'fr', name: 'French' }] },
+    } as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
+      data: [
+        {
+          data: {
+            languageId: 'fr',
+            translationProgress: 87,
+            approvalProgress: 75,
+            words: { total: 138, translated: 120, approved: 103 },
+            phrases: { total: 34, translated: 30, approved: 26 },
+          },
+        },
+      ],
+    } as never);
+
+    await statusCommand.defaultAction(createCommandContext({ ...globalOptions, output: 'text', verbose: true }));
+
+    expect(console.log).toHaveBeenCalledWith('French(fr):');
+    expect(console.log).toHaveBeenCalledWith('\tTranslated: 87% (Words: 120/138, Phrases: 30/34)');
+    expect(console.log).toHaveBeenCalledWith('\tProofread: 75% (Words: 103/138, Phrases: 26/34)');
+    expect(console.table).not.toHaveBeenCalled();
+  });
+
+  test('keeps the percent map in structured formats when verbose', async () => {
+    const statusCommand = createStatusCommand();
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
+      data: [createProgress('fr', 87, 75)],
+    } as never);
+
+    await statusCommand.defaultAction(createCommandContext({ ...globalOptions, verbose: true }));
+
+    expect(console.log).toHaveBeenCalledWith(
+      JSON.stringify({ translation: { fr: '87%' }, proofread: { fr: '75%' } }, null, 2),
+    );
+  });
+
   test('treats zero words as complete', async () => {
     const statusCommand = createStatusCommand();
     commandContext = createCommandContext({

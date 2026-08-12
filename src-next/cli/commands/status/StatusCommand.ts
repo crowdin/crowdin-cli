@@ -1,4 +1,4 @@
-import type { ResponseObject, TranslationStatusModel } from '@crowdin/crowdin-api-client';
+import type { LanguagesModel, ResponseObject, TranslationStatusModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -12,7 +12,6 @@ import type {
   GetProjectService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import type { Output } from '@/cli/utils/output.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
 import { directory, file, proofreading, status, translation } from './options.ts';
 
@@ -172,21 +171,61 @@ export default class StatusCommand {
       }
     }
 
+    if (options.verbose) {
+      // Java's verbose branch renders the same detail in plain; json/toon keep the percent map.
+      output.data(progress);
+      output.report(this.verboseReport(filteredProgressData, show, project.data.targetLanguages));
+    } else if (options.output === 'plain') {
+      output.report(this.plainReport(filteredProgressData, show));
+    } else {
+      output.table(progress);
+    }
+
+    // Java throws at the end of its non-verbose branch, after the lines are printed, so a failing
+    // --fail-if-incomplete run still shows which languages are behind.
     if (!options.verbose && failIfIncomplete) {
       this.throwIfIncomplete(show, filteredProgressData);
     }
-
-    if (options.output === 'plain') {
-      this.outputPlainReport(filteredProgressData, show, output);
-      return;
-    }
-
-    output.table(progress);
   }
 
-  private outputPlainReport(data: LanguageProgress[], show: ProgressView, output: Output) {
-    // Java StatusAction plain view: per-language "<lang> <percent>" lines, translated
-    // section then proofread section, each headed only when both are shown (show=all).
+  // Java StatusAction verbose view: a header per language, then the progress lines it applies to,
+  // each with the word and phrase counts behind the percentage.
+  private verboseReport(
+    data: LanguageProgress[],
+    show: ProgressView,
+    targetLanguages: LanguagesModel.Language[],
+  ): string[] {
+    const names = new Map(targetLanguages.map((language) => [language.id, language.name]));
+    const lines: string[] = [];
+
+    for (const entry of data) {
+      const { languageId, words, phrases } = entry.data;
+
+      lines.push(`${names.get(languageId) ?? languageId}(${languageId}):`);
+
+      if (show === 'all' || show === 'translated') {
+        lines.push(
+          `\tTranslated: ${this.getTranslationProgress(entry)}% ` +
+            `(Words: ${words?.translated ?? 0}/${words?.total ?? 0}, ` +
+            `Phrases: ${phrases?.translated ?? 0}/${phrases?.total ?? 0})`,
+        );
+      }
+
+      if (show === 'all' || show === 'proofread') {
+        lines.push(
+          `\tProofread: ${this.getApprovalProgress(entry)}% ` +
+            `(Words: ${words?.approved ?? 0}/${words?.total ?? 0}, ` +
+            `Phrases: ${phrases?.approved ?? 0}/${phrases?.total ?? 0})`,
+        );
+      }
+    }
+
+    return lines;
+  }
+
+  // Java StatusAction plain view: per-language "<lang> <percent>" lines, translated
+  // section then proofread section, each headed only when both are shown (show=all).
+  private plainReport(data: LanguageProgress[], show: ProgressView): string[] {
     const lines: string[] = [];
     const both = show === 'all';
 
@@ -210,7 +249,7 @@ export default class StatusCommand {
       }
     }
 
-    output.report(lines);
+    return lines;
   }
 
   private normalizePath(value: string): string {
