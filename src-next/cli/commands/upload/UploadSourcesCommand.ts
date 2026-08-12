@@ -36,7 +36,13 @@ import {
 import { deleteObsoleteProjectEntries } from '@/lib/upload/obsoleteEntries.ts';
 import { computeChecksum, loadSourceCache, saveSourceCache } from '@/lib/upload/sourceCache.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
-import { stripBranchPrefix, stripLeadingSlashes, toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
+import {
+  stripBranchPrefix,
+  stripLeadingSlashes,
+  toPosixPath,
+  toProjectPath,
+  toSortedRelativePaths,
+} from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
 
 interface UploadSourcesOptions extends GlobalOptions {
@@ -202,7 +208,7 @@ export default class UploadSourcesCommand {
     if (
       options.dryrun &&
       printDryRunPaths(
-        patternFilePaths.flatMap(({ files }) => files.map(({ localFilePath }) => localFilePath)),
+        toSortedRelativePaths(patternFilePaths.flatMap(({ files }) => files.map(({ localFilePath }) => localFilePath))),
         options,
         output,
       )

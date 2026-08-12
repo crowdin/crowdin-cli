@@ -1,7 +1,6 @@
 import { pathView } from '@/cli/commands/common/views.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
 import { OUTPUT_FORMATS, type Output } from '@/cli/utils/output.ts';
-import { toSortedRelativePaths } from '@/lib/utils/path.ts';
 
 export interface DryRunListingOptions {
   output?: string;
@@ -18,12 +17,16 @@ export interface DryRunListingOptions {
  *
  * Returns false when neither applies, so a caller that has its own non-listing dry-run output
  * (the per-file "would be created" messages) can carry on.
+ *
+ * `paths` arrive prepared — slash-stripped and sorted via toSortedRelativePaths. Callers that also
+ * print the listing themselves in text need them in that shape anyway, so normalizing here too
+ * just did the work twice.
  */
 export function printDryRunPaths(paths: string[], options: DryRunListingOptions, output: Output): boolean {
   // The format check stays: in text the caller prints its own messages instead, and it needs to
   // know the listing wasn't emitted.
   if (OUTPUT_FORMATS.includes(options.output ?? '')) {
-    output.list(toSortedRelativePaths(paths), pathView);
+    output.list(paths, pathView);
     return true;
   }
 

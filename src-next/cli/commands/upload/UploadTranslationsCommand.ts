@@ -24,7 +24,7 @@ import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { getCommonPath, resolveProjectPath } from '@/lib/upload/fileOptions.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
-import { stripBranchPrefix, stripLeadingSlashes, toProjectPath } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, stripLeadingSlashes, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
 
 interface UploadTranslationsOptions extends GlobalOptions {
@@ -270,7 +270,7 @@ export default class UploadTranslationsCommand {
    * translation path - including ones with no file on disk yet - de-duplicated.
    */
   private dryRunPaths(entries: TranslationUploadEntry[]): string[] {
-    return [...new Set(entries.map((entry) => entry.translationPath))];
+    return toSortedRelativePaths([...new Set(entries.map((entry) => entry.translationPath))]);
   }
 
   private async uploadTranslationsStringsBased(

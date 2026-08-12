@@ -292,7 +292,7 @@ export default class DownloadCommand {
         serverSourcePaths,
         excludedTargetLanguagesByPath,
       });
-      const paths = [...new Set(mapping.byArchivePath.values())].sort();
+      const paths = toSortedRelativePaths([...new Set(mapping.byArchivePath.values())]);
 
       if (!printDryRunPaths(paths, options, output)) {
         for (const line of paths) {
