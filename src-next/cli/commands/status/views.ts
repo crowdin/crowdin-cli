@@ -1,12 +1,18 @@
 import type { TranslationStatusModel } from '@crowdin/crowdin-api-client';
 import type { View } from '@/cli/utils/output.ts';
 
-export type ProgressView = 'all' | 'translated' | 'proofread';
+export interface ProgressEntry {
+  language: string;
+  translation?: number;
+  approval?: number;
+  translatedWords?: number;
+  approvedWords?: number;
+  totalWords?: number;
+  translatedPhrases?: number;
+  approvedPhrases?: number;
+  totalPhrases?: number;
+}
 
-/** The percent map every format serializes: `{ translation: { uk: '87%' }, proofread: { … } }`. */
-export type ProgressMap = Record<string, Record<string, string>>;
-
-/** One language's progress, with the 100%-when-nothing-to-translate rule already applied. */
 export interface ProgressRow {
   languageId: string;
   name: string;
@@ -16,69 +22,49 @@ export interface ProgressRow {
   phrases?: TranslationStatusModel.Words;
 }
 
+export type ProgressView = 'all' | 'translated' | 'proofread';
+
+type PlainSection = [title: string, value: (row: ProgressRow) => string];
+
 const showsTranslated = (show: ProgressView): boolean => show === 'all' || show === 'translated';
 const showsProofread = (show: ProgressView): boolean => show === 'all' || show === 'proofread';
 
-/**
- * Java StatusAction verbose view: a header per language, then the progress lines it applies to,
- * each with the word and phrase counts behind the percentage.
- *
- * The rows carry the rendering; the view's item is the percent map, which is what json/toon
- * serialize and which holds none of the counts these lines show.
- */
-export const statusPlainVerboseView = (rows: ProgressRow[], show: ProgressView): View<ProgressMap> => ({
-  text: () =>
-    rows
-      .flatMap((row) => {
-        const lines = [`${row.name}(${row.languageId}):`];
-
-        if (showsTranslated(show)) {
-          lines.push(
-            `\tTranslated: ${row.translation}% ` +
-              `(Words: ${row.words?.translated ?? 0}/${row.words?.total ?? 0}, ` +
-              `Phrases: ${row.phrases?.translated ?? 0}/${row.phrases?.total ?? 0})`,
-          );
-        }
-
-        if (showsProofread(show)) {
-          lines.push(
-            `\tProofread: ${row.approval}% ` +
-              `(Words: ${row.words?.approved ?? 0}/${row.words?.total ?? 0}, ` +
-              `Phrases: ${row.phrases?.approved ?? 0}/${row.phrases?.total ?? 0})`,
-          );
-        }
-
-        return lines;
-      })
-      .join('\n'),
-});
-
-/**
- * Java StatusAction plain view: per-language "<lang> <percent>" lines, translated section then
- * proofread section, each headed only when both are shown (show=all).
- */
-export const statusPlainView = (rows: ProgressRow[], show: ProgressView): View<ProgressMap> => ({
+export const statusPlainView = (rows: ProgressRow[], show: ProgressView, verbose = false): View<ProgressEntry[]> => ({
   text: () => {
-    const lines: string[] = [];
-    const both = show === 'all';
+    const sections: PlainSection[] = [];
 
     if (showsTranslated(show)) {
-      if (both) {
-        lines.push('Translated:');
-      }
+      sections.push(['Translated', (row) => `${row.translation}`]);
 
-      lines.push(...rows.map((row) => `${row.languageId} ${row.translation}`));
+      if (verbose) {
+        sections.push(
+          ['Translated words', (row) => `${row.words?.translated ?? 0}/${row.words?.total ?? 0}`],
+          ['Translated phrases', (row) => `${row.phrases?.translated ?? 0}/${row.phrases?.total ?? 0}`],
+        );
+      }
     }
 
     if (showsProofread(show)) {
-      if (both) {
-        lines.push('Proofread:');
-      }
+      sections.push(['Proofread', (row) => `${row.approval}`]);
 
-      lines.push(...rows.map((row) => `${row.languageId} ${row.approval}`));
+      if (verbose) {
+        sections.push(
+          ['Proofread words', (row) => `${row.words?.approved ?? 0}/${row.words?.total ?? 0}`],
+          ['Proofread phrases', (row) => `${row.phrases?.approved ?? 0}/${row.phrases?.total ?? 0}`],
+        );
+      }
     }
 
-    return lines.join('\n');
+    // A lone section needs no header — Java prints the bare lines for `status translation`, and with
+    // one metric on screen there is nothing to tell apart.
+    const headed = sections.length > 1;
+
+    return sections
+      .flatMap(([title, value]) => [
+        ...(headed ? [`${title}:`] : []),
+        ...rows.map((row) => `${row.languageId} ${value(row)}`),
+      ])
+      .join('\n');
   },
 });
 
@@ -121,21 +107,21 @@ export function statusTableView(
   return table;
 }
 
-/** The percent map json/toon serialize. */
-export function toProgressMap(rows: ProgressRow[], show: ProgressView): ProgressMap {
-  const progress: ProgressMap = {};
+export function toProgressList(rows: ProgressRow[], show: ProgressView, verbose = false): ProgressEntry[] {
+  const translated = showsTranslated(show);
+  const proofread = showsProofread(show);
 
-  for (const row of rows) {
-    if (showsTranslated(show)) {
-      progress.translation ??= {};
-      progress.translation[row.languageId] = `${row.translation}%`;
-    }
-
-    if (showsProofread(show)) {
-      progress.proofread ??= {};
-      progress.proofread[row.languageId] = `${row.approval}%`;
-    }
-  }
-
-  return progress;
+  return rows.map((row) => ({
+    language: row.languageId,
+    ...(translated && { translation: row.translation }),
+    ...(proofread && { approval: row.approval }),
+    ...(verbose && {
+      ...(translated && { translatedWords: row.words?.translated ?? 0 }),
+      ...(proofread && { approvedWords: row.words?.approved ?? 0 }),
+      totalWords: row.words?.total ?? 0,
+      ...(translated && { translatedPhrases: row.phrases?.translated ?? 0 }),
+      ...(proofread && { approvedPhrases: row.phrases?.approved ?? 0 }),
+      totalPhrases: row.phrases?.total ?? 0,
+    }),
+  }));
 }

@@ -110,16 +110,10 @@ describe('StatusCommand', () => {
 
     expect(console.log).toHaveBeenCalledWith(
       JSON.stringify(
-        {
-          translation: {
-            fr: '87%',
-            de: '92%',
-          },
-          proofread: {
-            fr: '75%',
-            de: '88%',
-          },
-        },
+        [
+          { language: 'fr', translation: 87, approval: 75 },
+          { language: 'de', translation: 92, approval: 88 },
+        ],
         null,
         2,
       ),
@@ -175,7 +169,7 @@ describe('StatusCommand', () => {
       statusCommand.translationStatusAction(createCommandContext({ ...globalOptions, failIfIncomplete: true })),
     ).rejects.toThrow(new CliError('The current project is incomplete'));
 
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify({ translation: { fr: '99%' } }, null, 2));
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ language: 'fr', translation: 99 }], null, 2));
   });
 
   // Java StatusAction verbose view: word and phrase counts per language, rendered as a wider grid.
@@ -214,7 +208,7 @@ describe('StatusCommand', () => {
     });
   });
 
-  test('renders the verbose lines with --verbose in plain', async () => {
+  test('adds a section per count with --verbose in plain', async () => {
     output = createOutput({ ...globalOptions, output: 'plain' });
     const statusCommand = createStatusCommand();
 
@@ -228,7 +222,14 @@ describe('StatusCommand', () => {
     await statusCommand.defaultAction(createCommandContext({ ...globalOptions, output: 'plain', verbose: true }));
 
     // The block is one write: item() renders the whole view in a single line-joined string.
-    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('French(fr):\n\tTranslated: 87%'));
+    expect(console.log).toHaveBeenCalledWith(
+      'Translated:\nfr 87\n' +
+        'Translated words:\nfr 0/100\n' +
+        'Translated phrases:\nfr 0/0\n' +
+        'Proofread:\nfr 75\n' +
+        'Proofread words:\nfr 0/100\n' +
+        'Proofread phrases:\nfr 0/0',
+    );
     expect(console.table).not.toHaveBeenCalled();
   });
 
@@ -247,7 +248,8 @@ describe('StatusCommand', () => {
     ).rejects.toThrow(new CliError('The current project is incomplete'));
   });
 
-  test('keeps the percent map in structured formats when verbose', async () => {
+  // Same entry per language either way; verbose only widens it with count columns.
+  test('adds the count columns in structured formats when verbose', async () => {
     const statusCommand = createStatusCommand();
 
     spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
@@ -258,7 +260,23 @@ describe('StatusCommand', () => {
     await statusCommand.defaultAction(createCommandContext({ ...globalOptions, verbose: true }));
 
     expect(console.log).toHaveBeenCalledWith(
-      JSON.stringify({ translation: { fr: '87%' }, proofread: { fr: '75%' } }, null, 2),
+      JSON.stringify(
+        [
+          {
+            language: 'fr',
+            translation: 87,
+            approval: 75,
+            translatedWords: 0,
+            approvedWords: 0,
+            totalWords: 100,
+            translatedPhrases: 0,
+            approvedPhrases: 0,
+            totalPhrases: 0,
+          },
+        ],
+        null,
+        2,
+      ),
     );
   });
 

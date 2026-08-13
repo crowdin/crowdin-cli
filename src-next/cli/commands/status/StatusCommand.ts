@@ -13,16 +13,9 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { isMachineFormat } from '@/cli/utils/formatter.ts';
-import { toPosixPath } from '@/lib/utils/path.ts';
+import { toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
 import { directory, file, proofreading, status, translation } from './options.ts';
-import {
-  type ProgressRow,
-  type ProgressView,
-  statusPlainVerboseView,
-  statusPlainView,
-  statusTableView,
-  toProgressMap,
-} from './views.ts';
+import { type ProgressRow, type ProgressView, statusPlainView, statusTableView, toProgressList } from './views.ts';
 
 interface StatusCommandOptions extends GlobalOptions {
   language?: string;
@@ -157,15 +150,16 @@ export default class StatusCommand {
     });
 
     const rows = this.toRows(filteredProgressData, project.data.targetLanguages);
-    const progress = toProgressMap(rows, show);
+    const progress = toProgressList(rows, show, options.verbose);
 
-    // json/toon serialize the percent map; text renders the same grid either way, which --verbose
-    // widens with the word and phrase counts, and plain swaps its "<lang> <percent>" lines for
-    // Java's detailed ones.
+    // --verbose adds the word and phrase counts in every format: json/toon gain columns, text widens
+    // its grid, and plain gains a section per count.
     if (options.output === 'plain') {
-      output.item(progress, options.verbose ? statusPlainVerboseView(rows, show) : statusPlainView(rows, show));
+      output.item(progress, statusPlainView(rows, show, options.verbose));
+    } else if (isMachineFormat(options.output)) {
+      output.table(progress);
     } else {
-      output.table(isMachineFormat(options.output) ? progress : statusTableView(rows, show, options.verbose));
+      output.table(statusTableView(rows, show, options.verbose));
     }
 
     // Thrown after the progress is printed, so a failing --fail-if-incomplete run still shows which
@@ -192,13 +186,7 @@ export default class StatusCommand {
   }
 
   private normalizePath(value: string): string {
-    const normalizedValue = toPosixPath(value);
-
-    if (normalizedValue.startsWith('/')) {
-      return normalizedValue;
-    }
-
-    return `/${normalizedValue}`;
+    return toProjectPath(toPosixPath(value));
   }
 
   private normalizeBranch(value?: string): string | null {
