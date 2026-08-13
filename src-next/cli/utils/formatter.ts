@@ -1,6 +1,6 @@
 import { encode } from '@toon-format/toon';
 
-export type OutputFormat = 'text' | 'json' | 'toon' | 'plain';
+type OutputFormat = 'text' | 'json' | 'toon' | 'plain';
 
 /** The formats that serialize a value wholesale. `text` and `plain` are line-based instead. */
 export type MachineFormat = Extract<OutputFormat, 'json' | 'toon'>;

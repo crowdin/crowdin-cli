@@ -15,9 +15,3 @@ export const colors = {
   dim: (str: string) => (enabled ? styleText('dim', str) : str),
   bold: (str: string) => (enabled ? styleText('bold', str) : str),
 };
-
-export const icons = {
-  success: '✔',
-  error: '✖',
-  warning: '⚠',
-};

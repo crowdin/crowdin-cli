@@ -29,6 +29,7 @@
     "format": "biome format --write",
     "lint": "biome lint",
     "check": "biome check --write",
+    "knip": "knip-bun",
     "prepare": "husky"
   },
   "dependencies": {
@@ -48,11 +49,11 @@
   "devDependencies": {
     "@biomejs/biome": "^2.5.1",
     "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/exec": "^7.1.0",
     "@semantic-release/git": "^10.0.1",
     "@types/bun": "latest",
     "@types/js-yaml": "^4.0.9",
     "husky": "^9.1.7",
+    "knip": "^6.32.2",
     "lint-staged": "^17.0.8",
     "semantic-release": "^25.0.5",
     "semantic-release-replace-plugin": "^1.2.7",

@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  // Scope to the new CLI and its tests. Entry points are inferred from the package.json scripts,
+  // so only `project` needs narrowing - knip's default would pull in website/ and packages/.
+  "project": ["src-next/**/*.ts", "tests/**/*.ts", "e2e/**/*.ts"]
+}

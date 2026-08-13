@@ -6,7 +6,7 @@ export interface TestProject {
   name: string;
 }
 
-export function buildProjectName(suite: string, seconds: number): string {
+function buildProjectName(suite: string, seconds: number): string {
   return `e2e-${seconds}-${suite}`;
 }
 

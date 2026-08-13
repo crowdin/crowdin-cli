@@ -33,7 +33,7 @@ const PLACEHOLDER_MAPPING_KEYS: Record<string, string[]> = {
  * Config mapping shape: { placeholder: { langId: value } }
  * Server mapping shape: { langId: { placeholder: value } }
  */
-export function getLanguageOverride(
+function getLanguageOverride(
   placeholder: string,
   langId: string,
   fileLanguageMapping?: Record<string, Record<string, string>>,
