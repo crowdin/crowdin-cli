@@ -12,9 +12,17 @@ import type {
   GetProjectService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
 import { directory, file, proofreading, status, translation } from './options.ts';
-import { type ProgressRow, type ProgressView, statusPlainView, statusVerboseView, toProgressMap } from './views.ts';
+import {
+  type ProgressRow,
+  type ProgressView,
+  statusPlainVerboseView,
+  statusPlainView,
+  statusTableView,
+  toProgressMap,
+} from './views.ts';
 
 interface StatusCommandOptions extends GlobalOptions {
   language?: string;
@@ -151,19 +159,19 @@ export default class StatusCommand {
     const rows = this.toRows(filteredProgressData, project.data.targetLanguages);
     const progress = toProgressMap(rows, show);
 
-    // The percent map is the payload in every format; only its human rendering changes. Java's
-    // verbose branch renders the same detail in plain, so both go through the same call.
-    if (options.verbose) {
-      output.item(progress, statusVerboseView(rows, show));
-    } else if (options.output === 'plain') {
-      output.item(progress, statusPlainView(rows, show));
+    // json/toon serialize the percent map; text renders the same grid either way, which --verbose
+    // widens with the word and phrase counts, and plain swaps its "<lang> <percent>" lines for
+    // Java's detailed ones.
+    if (options.output === 'plain') {
+      output.item(progress, options.verbose ? statusPlainVerboseView(rows, show) : statusPlainView(rows, show));
     } else {
-      output.table(progress);
+      output.table(isMachineFormat(options.output) ? progress : statusTableView(rows, show, options.verbose));
     }
 
-    // Java throws at the end of its non-verbose branch, after the lines are printed, so a failing
-    // --fail-if-incomplete run still shows which languages are behind.
-    if (!options.verbose && failIfIncomplete) {
+    // Thrown after the progress is printed, so a failing --fail-if-incomplete run still shows which
+    // languages are behind. Java skips the check in verbose mode; here --verbose only changes the
+    // rendering, so it has no say in the exit code.
+    if (failIfIncomplete) {
       this.throwIfIncomplete(show, filteredProgressData);
     }
   }

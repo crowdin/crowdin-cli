@@ -1,7 +1,19 @@
-import { describe, expect, test } from 'bun:test';
-import { type ProgressRow, statusPlainView, statusVerboseView, toProgressMap } from '@/cli/commands/status/views.ts';
+import { beforeAll, describe, expect, test } from 'bun:test';
+import {
+  type ProgressRow,
+  statusPlainVerboseView,
+  statusPlainView,
+  statusTableView,
+  toProgressMap,
+} from '@/cli/commands/status/views.ts';
+import { enableColors } from '@/cli/utils/colors.ts';
 
 describe('status views', () => {
+  // colors default to on; the views are asserted as raw strings, so switch them off like fileTree.test.ts
+  beforeAll(() => {
+    enableColors(false);
+  });
+
   const row = (overrides: Partial<ProgressRow> = {}): ProgressRow => ({
     languageId: 'fr',
     name: 'French',
@@ -27,7 +39,7 @@ describe('status views', () => {
     const map = toProgressMap([row()], 'all');
 
     test('renders a header per language, then both progress lines', () => {
-      expect(statusVerboseView([row()], 'all').text(map)).toBe(
+      expect(statusPlainVerboseView([row()], 'all').text(map)).toBe(
         'French(fr):\n' +
           '\tTranslated: 87% (Words: 120/138, Phrases: 30/34)\n' +
           '\tProofread: 75% (Words: 103/138, Phrases: 26/34)',
@@ -35,21 +47,56 @@ describe('status views', () => {
     });
 
     test('drops the line the view does not show', () => {
-      expect(statusVerboseView([row()], 'proofread').text(map)).toBe(
+      expect(statusPlainVerboseView([row()], 'proofread').text(map)).toBe(
         'French(fr):\n\tProofread: 75% (Words: 103/138, Phrases: 26/34)',
       );
     });
 
     test('falls back to the language id when the project has no name for it', () => {
-      expect(statusVerboseView([row({ name: 'uk', languageId: 'uk' })], 'translated').text(map)).toContain('uk(uk):');
+      expect(statusPlainVerboseView([row({ name: 'uk', languageId: 'uk' })], 'translated').text(map)).toContain(
+        'uk(uk):',
+      );
     });
 
     test('counts as zero when the API omits words and phrases', () => {
       const bare = row({ words: undefined, phrases: undefined });
 
-      expect(statusVerboseView([bare], 'translated').text(map)).toBe(
+      expect(statusPlainVerboseView([bare], 'translated').text(map)).toBe(
         'French(fr):\n\tTranslated: 87% (Words: 0/0, Phrases: 0/0)',
       );
+    });
+  });
+
+  describe('table', () => {
+    test('keys each language by name and code, one percentage column per section', () => {
+      expect(statusTableView([row()], 'all')).toEqual({
+        'French(fr)': { Translated: '87%', Proofread: '75%' },
+      });
+    });
+
+    test('adds the counts when verbose', () => {
+      expect(statusTableView([row()], 'all', true)).toEqual({
+        'French(fr)': {
+          Translated: '87%',
+          'Translated words': '120/138',
+          'Translated phrases': '30/34',
+          Proofread: '75%',
+          'Proofread words': '103/138',
+          'Proofread phrases': '26/34',
+        },
+      });
+    });
+
+    test('drops the columns the view does not show', () => {
+      expect(statusTableView([row()], 'proofread', true)).toEqual({
+        'French(fr)': { Proofread: '75%', 'Proofread words': '103/138', 'Proofread phrases': '26/34' },
+      });
+    });
+
+    test('counts as zero when the API omits words and phrases', () => {
+      expect(statusTableView([row({ words: undefined, phrases: undefined })], 'translated', true)).toEqual({
+        'French(fr)': { Translated: '87%', 'Translated words': '0/0', 'Translated phrases': '0/0' },
+      });
     });
   });
 

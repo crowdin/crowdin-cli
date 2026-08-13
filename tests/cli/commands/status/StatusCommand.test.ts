@@ -131,7 +131,9 @@ describe('StatusCommand', () => {
     output = createOutput({ ...globalOptions, output: 'text' });
     const statusCommand = createStatusCommand();
 
-    spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({
+      data: { ...mockProject.data, targetLanguages: [{ id: 'fr', name: 'French' }] },
+    } as never);
     spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
       data: [createProgress('fr', 87, 75)],
     } as never);
@@ -139,8 +141,7 @@ describe('StatusCommand', () => {
     await statusCommand.defaultAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
     expect(console.table).toHaveBeenCalledWith({
-      translation: { fr: '87%' },
-      proofread: { fr: '75%' },
+      'French(fr)': { Translated: '87%', Proofread: '75%' },
     });
   });
 
@@ -177,7 +178,7 @@ describe('StatusCommand', () => {
     expect(console.log).toHaveBeenCalledWith(JSON.stringify({ translation: { fr: '99%' } }, null, 2));
   });
 
-  // Java StatusAction verbose view: a header per language, then word and phrase counts.
+  // Java StatusAction verbose view: word and phrase counts per language, rendered as a wider grid.
   test('renders per-language detail with --verbose', async () => {
     output = createOutput({ ...globalOptions, output: 'text' });
     const statusCommand = createStatusCommand();
@@ -201,13 +202,49 @@ describe('StatusCommand', () => {
 
     await statusCommand.defaultAction(createCommandContext({ ...globalOptions, output: 'text', verbose: true }));
 
+    expect(console.table).toHaveBeenCalledWith({
+      'French(fr)': {
+        Translated: '87%',
+        'Translated words': '120/138',
+        'Translated phrases': '30/34',
+        Proofread: '75%',
+        'Proofread words': '103/138',
+        'Proofread phrases': '26/34',
+      },
+    });
+  });
+
+  test('renders the verbose lines with --verbose in plain', async () => {
+    output = createOutput({ ...globalOptions, output: 'plain' });
+    const statusCommand = createStatusCommand();
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({
+      data: { ...mockProject.data, targetLanguages: [{ id: 'fr', name: 'French' }] },
+    } as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
+      data: [createProgress('fr', 87, 75)],
+    } as never);
+
+    await statusCommand.defaultAction(createCommandContext({ ...globalOptions, output: 'plain', verbose: true }));
+
     // The block is one write: item() renders the whole view in a single line-joined string.
-    expect(console.log).toHaveBeenCalledWith(
-      expect.stringContaining(
-        'French(fr):\n\tTranslated: 87% (Words: 120/138, Phrases: 30/34)\n\tProofread: 75% (Words: 103/138, Phrases: 26/34)',
-      ),
-    );
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('French(fr):\n\tTranslated: 87%'));
     expect(console.table).not.toHaveBeenCalled();
+  });
+
+  test('still fails with --fail-if-incomplete when verbose', async () => {
+    const statusCommand = createStatusCommand();
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
+    spyOn(progressService, 'loadProjectProgress').mockResolvedValue({
+      data: [createProgress('fr', 99, 100)],
+    } as never);
+
+    await expect(
+      statusCommand.translationStatusAction(
+        createCommandContext({ ...globalOptions, verbose: true, failIfIncomplete: true }),
+      ),
+    ).rejects.toThrow(new CliError('The current project is incomplete'));
   });
 
   test('keeps the percent map in structured formats when verbose', async () => {
