@@ -287,13 +287,13 @@ describe('CommentCommand', () => {
         async () => commentService,
       );
       const commandContext = createCommandContext({ ...globalOptions, output: 'text' });
-      const successSpy = spyOn(textOutput, 'success');
+      const infoSpy = spyOn(textOutput, 'info');
 
       spyOn(commentService, 'list').mockResolvedValue([]);
 
       await cmd.listAction(commandContext);
 
-      expect(successSpy).toHaveBeenCalledWith('No comments found');
+      expect(infoSpy).toHaveBeenCalledWith('No comments found');
     });
 
     test('passes filters to service', async () => {

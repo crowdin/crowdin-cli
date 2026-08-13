@@ -132,7 +132,7 @@ describe('ScreenshotCommand', () => {
 
   test('listAction prints empty message', async () => {
     const textOutput = createOutput({ ...globalOptions, output: 'text' });
-    const successSpy = spyOn(textOutput, 'success');
+    const infoSpy = spyOn(textOutput, 'info');
     const cmd = new ScreenshotCommand(
       () => textOutput,
       async () => screenshotService as unknown as ScreenshotService,
@@ -145,7 +145,7 @@ describe('ScreenshotCommand', () => {
 
     await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-    expect(successSpy).toHaveBeenCalledWith('No screenshot found');
+    expect(infoSpy).toHaveBeenCalledWith('No screenshot found');
   });
 
   test('listAction serializes the screenshots themselves in structured formats', async () => {

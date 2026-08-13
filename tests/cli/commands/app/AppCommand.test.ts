@@ -87,7 +87,7 @@ describe('AppCommand', () => {
 
   test('listAction prints no applications message', async () => {
     const textOutput = createOutput({ ...globalOptions, output: 'text' });
-    const successSpy = spyOn(textOutput, 'success');
+    const infoSpy = spyOn(textOutput, 'info');
     const cmd = new AppCommand(
       () => textOutput,
       async () => appService as unknown as AppService,
@@ -95,7 +95,7 @@ describe('AppCommand', () => {
 
     await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-    expect(successSpy).toHaveBeenCalledWith('No applications found');
+    expect(infoSpy).toHaveBeenCalledWith('No applications found');
   });
 
   test('listAction prints identifier and name per application in text format', async () => {

@@ -152,12 +152,12 @@ describe('StringCommand', () => {
         async () => labelService as unknown as LabelService,
       );
       const commandContext = createCommandContext({ ...globalOptions, output: 'text' });
-      const successSpy = spyOn(textOutput, 'success');
+      const infoSpy = spyOn(textOutput, 'info');
       stringService.list.mockResolvedValue([]);
 
       await cmd.listAction(commandContext);
 
-      expect(successSpy).toHaveBeenCalledWith('No source strings found');
+      expect(infoSpy).toHaveBeenCalledWith('No source strings found');
     });
 
     test('serializes the strings themselves in structured formats', async () => {

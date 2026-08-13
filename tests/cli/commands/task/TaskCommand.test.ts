@@ -181,12 +181,12 @@ describe('TaskCommand', () => {
         async () => fileService as unknown as FileService,
       );
       const commandContext = createCommandContext({ ...globalOptions, output: 'text' });
-      const successSpy = spyOn(textOutput, 'success');
+      const infoSpy = spyOn(textOutput, 'info');
       taskService.list.mockResolvedValue([]);
 
       await cmd.listAction(commandContext);
 
-      expect(successSpy).toHaveBeenCalledWith('No tasks found');
+      expect(infoSpy).toHaveBeenCalledWith('No tasks found');
     });
   });
 

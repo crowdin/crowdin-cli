@@ -98,17 +98,15 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
       }
 
       if (items.length === 0) {
-        // Text prints the message; plain prints nothing, matching Java's plainView branches.
-        // No message at all where Java has none for the command (file list).
         if (empty) {
-          this.success(empty);
+          this.info(empty);
         }
 
         return;
       }
 
       for (const item of items) {
-        this.success(renderLine(item, view));
+        console.log(`${colors.cyan(S_SUCCESS)}  ${renderLine(item, view)}`);
       }
     },
     /**
@@ -126,7 +124,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
       const line = renderLine(value, view);
 
       if (mark && format === 'text') {
-        this.success(line);
+        console.log(`${colors.cyan(S_SUCCESS)}  ${line}`);
         return;
       }
 

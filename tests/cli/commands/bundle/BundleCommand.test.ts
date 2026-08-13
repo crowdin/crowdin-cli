@@ -103,12 +103,12 @@ describe('BundleCommand', () => {
   describe('listAction', () => {
     test('prints empty message when no bundles found', async () => {
       const textOutput = createOutput({ ...globalOptions, output: 'text' });
-      const successSpy = spyOn(textOutput, 'success');
+      const infoSpy = spyOn(textOutput, 'info');
       const cmd = createBundleCommand(textOutput);
 
       await cmd.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-      expect(successSpy).toHaveBeenCalledWith('No bundles found');
+      expect(infoSpy).toHaveBeenCalledWith('No bundles found');
     });
 
     test('serializes the bundles themselves in structured formats', async () => {
