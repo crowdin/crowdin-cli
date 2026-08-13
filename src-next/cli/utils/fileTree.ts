@@ -1,6 +1,9 @@
 import { toPosixPath } from '@/lib/utils/path.ts';
+import { colors } from './colors.ts';
 import type { Output } from './output.ts';
 
+// Java message.tree.*: the glyphs are cyan, the names they prefix are not. Colored at render time
+// rather than here, since colors are only switched on once the output format is known.
 const ELEM = '├─ ';
 const LAST_ELEM = '╰─ ';
 const DIR = '│  ';
@@ -28,10 +31,10 @@ function insertPath(root: TreeNode, parts: string[]): void {
 }
 
 function renderNode(node: TreeNode, indent: string, isLast: boolean, lines: string[]): void {
-  const childIndent = indent + (isLast ? LAST_DIR : DIR);
+  const childIndent = indent + (isLast ? LAST_DIR : colors.cyan(DIR));
   const childEntries = [...node.children.values()];
 
-  lines.push(indent + (isLast ? LAST_ELEM : ELEM) + node.data);
+  lines.push(indent + colors.cyan(isLast ? LAST_ELEM : ELEM) + node.data);
 
   for (let i = 0; i < childEntries.length; i++) {
     renderNode(childEntries[i] as TreeNode, childIndent, i === childEntries.length - 1, lines);

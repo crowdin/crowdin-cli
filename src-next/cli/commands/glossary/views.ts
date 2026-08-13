@@ -1,9 +1,10 @@
 import type { GlossariesModel } from '@crowdin/crowdin-api-client';
 import { toSingleLine } from '@/cli/commands/common/views.ts';
+import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 
 const termLine = (term: GlossariesModel.Term): string =>
-  `\t#${term.id} ${term.text}: ${toSingleLine(term.description ?? '')}`;
+  `\t${colors.yellow(`#${term.id}`)} ${colors.green(term.text)}: ${toSingleLine(term.description ?? '')}`;
 
 /**
  * Java GlossaryListAction: one line per glossary and, when verbose, its terms indented underneath.
@@ -20,7 +21,9 @@ export function createGlossaryView({
   return {
     text: (glossary) =>
       [
-        `#${glossary.id} ${glossary.name} (terms: ${glossary.terms ?? 0})`,
+        `${colors.yellow(`#${glossary.id}`)} ${colors.green(glossary.name)} (${colors.red(
+          `terms: ${glossary.terms ?? 0}`,
+        )})`,
         ...(verbose ? (terms.get(glossary.id) ?? []).map(termLine) : []),
       ].join('\n'),
     plain: (glossary) => glossary.name,

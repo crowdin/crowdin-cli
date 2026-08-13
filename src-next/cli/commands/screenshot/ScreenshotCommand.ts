@@ -16,6 +16,7 @@ import type {
   GetStorageService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import { autoTag, branch as branchOption, directory, file, label, stringId } from './options.ts';
@@ -37,7 +38,8 @@ const ALLOWED_IMAGE_EXTENSIONS = new Set(['jpeg', 'jpg', 'png', 'gif']);
 // Java message.screenshot.list: id, tag count, name. Shared by list and the upload/update echoes;
 // Java's plain echo prints the local file name, but the listing shape keeps the id addressable.
 const screenshotView: View<ScreenshotView> = {
-  text: (screenshot) => `#${screenshot.id} ${screenshot.tagsCount} ${screenshot.name}`,
+  text: (screenshot) =>
+    `${colors.yellow(`#${screenshot.id}`)} ${screenshot.tagsCount} ${colors.green(screenshot.name)}`,
   plain: (screenshot) => `${screenshot.id} ${screenshot.name}`,
 };
 

@@ -1,4 +1,5 @@
 import type { TranslationStatusModel } from '@crowdin/crowdin-api-client';
+import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 
 export type ProgressView = 'all' | 'translated' | 'proofread';
@@ -30,7 +31,7 @@ export const statusVerboseView = (rows: ProgressRow[], show: ProgressView): View
   text: () =>
     rows
       .flatMap((row) => {
-        const lines = [`${row.name}(${row.languageId}):`];
+        const lines = [`${colors.yellow(row.name)}(${colors.yellow(row.languageId)}):`];
 
         if (showsTranslated(show)) {
           lines.push(

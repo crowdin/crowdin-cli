@@ -5,7 +5,6 @@ import { Command, CommanderError } from 'commander';
 import { buildCommand, buildOption, getHelpConfig } from './cli/builder.ts';
 import { commands } from './cli/commands.ts';
 import CliError, { getExitCode } from './cli/errors/CliError.ts';
-import colorHook from './cli/hooks/color.ts';
 import { description, name, version } from './cli/meta.ts';
 import getGlobalOptions from './cli/options.ts';
 import { expandArgFiles } from './cli/utils/argFiles.ts';
@@ -35,10 +34,6 @@ function createProgram(): Command {
   for (const opt of getGlobalOptions()) {
     program.addOption(buildOption(opt));
   }
-
-  program.hook('preAction', async (_thisCommand, actionCommand) => {
-    colorHook(actionCommand);
-  });
 
   for (const def of commands) {
     program.addCommand(buildCommand(def));

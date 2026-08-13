@@ -8,6 +8,7 @@ import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetApiClient, GetOutput, GetStorageService, GetTmService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
 import {
@@ -42,7 +43,7 @@ const DEFAULT_TM_NAME = 'Created in Crowdin CLI (%s)';
 
 // Java message.tm.list: id, name, segment count.
 const tmView: View<TranslationMemoryModel.TranslationMemory> = {
-  text: (tm) => `#${tm.id} ${tm.name} (segments: ${tm.segmentsCount})`,
+  text: (tm) => `${colors.yellow(`#${tm.id}`)} ${tm.name} (${colors.green(`segments: ${tm.segmentsCount}`)})`,
   plain: (tm) => tm.name,
 };
 

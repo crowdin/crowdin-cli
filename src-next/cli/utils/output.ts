@@ -11,7 +11,7 @@ import {
   updateSettings,
 } from '@clack/prompts';
 import type { GlobalOptions } from '../options.ts';
-import { colors } from './colors.ts';
+import { colors, enableColors } from './colors.ts';
 import { formatData, isMachineFormat as isMachine } from './formatter.ts';
 
 export const OUTPUT_FORMATS = ['json', 'toon', 'plain'];
@@ -33,6 +33,8 @@ export type View<T> = {
 
 export function createOutput(options: GlobalOptions, { withGuide = false }: OutputOptions = {}) {
   const format = resolveOutputFormat(options.output);
+
+  enableColors(options.colors && format === 'text');
 
   updateSettings({
     // Guide lines off by default; interactive commands (init) opt back in
@@ -228,7 +230,9 @@ export function getOutputFormatFromArgs(argv: string[]): GlobalOptions {
   }
 
   return {
-    colors: false,
+    // Scanned from argv for the same reason as `debug` below: the error handler needs the top-level
+    // message colored the way the running command would have colored it.
+    colors: !argv.includes('--no-colors'),
     config: '',
     progress: false,
     verbose: false,

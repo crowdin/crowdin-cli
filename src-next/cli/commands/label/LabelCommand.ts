@@ -5,11 +5,12 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetLabelService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 
 // Java message.label.list, shared by list and the add echo (LabelAddAction).
 const labelView: View<LabelsModel.Label> = {
-  text: (label) => `#${label.id} ${label.title}`,
+  text: (label) => `${colors.yellow(`#${label.id}`)} ${colors.green(label.title)}`,
   plain: (label) => label.title,
 };
 

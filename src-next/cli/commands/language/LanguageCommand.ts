@@ -5,6 +5,7 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { all, code } from './options.ts';
 
@@ -30,7 +31,7 @@ type ResolvedLanguage = LanguagesModel.Language & { code: string };
 
 // Java message.language.list: resolved code, name.
 const languageView: View<ResolvedLanguage> = {
-  text: (language) => `${language.code} ${language.name ?? ''}`,
+  text: (language) => `${colors.yellow(language.code)} ${colors.green(language.name ?? '')}`,
   plain: (language) => language.code,
 };
 

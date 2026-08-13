@@ -5,6 +5,7 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetAppService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { force } from './options.ts';
 
@@ -13,7 +14,7 @@ interface UninstallOptions extends GlobalOptions {
 }
 
 const appView: View<ApplicationsModel.Application> = {
-  text: (app) => `${app.identifier} ${app.name}`,
+  text: (app) => `${colors.yellow(app.identifier)} ${colors.green(app.name)}`,
   plain: (app) => app.identifier,
 };
 

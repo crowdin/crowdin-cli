@@ -5,6 +5,7 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetDistributionService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { toNumberArray } from '@/cli/utils/parsing.ts';
 import { bundleId, name } from './options.ts';
@@ -17,7 +18,8 @@ interface DistributionOptions extends GlobalOptions {
 // Java message.distribution.list: hash, name, export mode. Java's add/edit echoes drop to the name
 // alone in plain view; we keep the listing's shape so the hash — what `release`/`edit` take — stays.
 const distributionView: View<DistributionsModel.Distribution> = {
-  text: (distribution) => `${distribution.hash} ${distribution.name ?? ''} ${distribution.exportMode ?? ''}`,
+  text: (distribution) =>
+    `${colors.yellow(distribution.hash)} ${distribution.name ?? ''} ${colors.blue(distribution.exportMode ?? '')}`,
   plain: (distribution) => `${distribution.hash} ${distribution.name ?? ''}`,
 };
 

@@ -8,6 +8,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { AddBundlePayload, BundleView } from '@/cli/services/BundleService.ts';
 import type { GetBundleService, GetConfig, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { colors } from '@/cli/utils/colors.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
@@ -43,7 +44,10 @@ interface BundleOptions extends GlobalOptions {
 // Java message.bundle.list: id, format, export pattern, name. Shared by list and the add/clone
 // echoes; Java's plain echo prints the id alone, but keeping the listing shape retains the name.
 const bundleView: View<BundleView> = {
-  text: (bundle) => `#${bundle.id} ${bundle.format ?? ''} ${bundle.exportPattern ?? ''} ${bundle.name ?? ''}`,
+  text: (bundle) =>
+    `${colors.yellow(`#${bundle.id}`)} ${colors.green(bundle.format ?? '')} ${colors.red(
+      bundle.exportPattern ?? '',
+    )} ${bundle.name ?? ''}`,
   plain: (bundle) => `${bundle.id} ${bundle.name ?? ''}`,
 };
 

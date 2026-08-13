@@ -1,4 +1,5 @@
 import type { SourceStringsModel } from '@crowdin/crowdin-api-client';
+import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 
 export type StringViewContext = {
@@ -41,7 +42,7 @@ export function createStringView({
     const lines: string[] = [];
 
     if (!isStringsBased && entry.fileId !== undefined) {
-      lines.push(`\t- file: ${filePaths.get(entry.fileId) ?? ''}`);
+      lines.push(`\t- file: ${colors.blue(filePaths.get(entry.fileId) ?? '')}`);
     }
 
     const entryLabels = (entry.labelIds ?? [])
@@ -64,8 +65,8 @@ export function createStringView({
     text: (entry) =>
       [
         entry.identifier
-          ? `#${entry.id} ${entry.identifier} ${extractText(entry)}`
-          : `#${entry.id} ${extractText(entry)}`,
+          ? `${colors.yellow(`#${entry.id}`)} ${colors.green(entry.identifier)} ${extractText(entry)}`
+          : `${colors.yellow(`#${entry.id}`)} ${extractText(entry)}`,
         ...details(entry),
       ].join('\n'),
     plain: (entry) => [String(entry.id), ...details(entry)].join('\n'),

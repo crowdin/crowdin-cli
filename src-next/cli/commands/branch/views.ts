@@ -1,10 +1,11 @@
 import type { SourceFilesModel } from '@crowdin/crowdin-api-client';
+import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { stripLeadingSlashes } from '@/lib/utils/path.ts';
 
 // Java message.branch.list, shared by list and every mutation echo (BranchAddAction et al.).
 export const branchView: View<SourceFilesModel.Branch> = {
-  text: (branch) => `#${branch.id} ${stripLeadingSlashes(branch.name)}`,
+  text: (branch) => `${colors.yellow(`#${branch.id}`)} ${colors.green(stripLeadingSlashes(branch.name))}`,
   plain: (branch) => stripLeadingSlashes(branch.name),
 };
 
@@ -18,7 +19,7 @@ export const mergeView = (source: string, target: string): View<MergeSummaryRow>
       .map(([key, value]) => `${key}: ${value}`)
       .join(', ');
 
-    return `Merged branch '${source}' into '${target}'\n\tMerge summary: ${summary}`;
+    return `${colors.green(`Merged branch '${source}' into '${target}'`)}\n\tMerge summary: ${summary}`;
   },
   plain: (row) => String(row.targetBranchId),
 });
