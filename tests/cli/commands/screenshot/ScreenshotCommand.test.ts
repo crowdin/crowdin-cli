@@ -67,6 +67,9 @@ describe('ScreenshotCommand', () => {
     );
   };
 
+  // json/toon carry what the text line shows: id, tag count, name.
+  const asJson = ({ id, tagsCount, name }: ScreenshotsModel.Screenshot) => ({ id, tagsCount, name });
+
   const createScreenshot = (id: number, name: string, tagsCount = 0): ScreenshotsModel.Screenshot => ({
     id,
     userId: 1,
@@ -155,7 +158,7 @@ describe('ScreenshotCommand', () => {
 
     await cmd.listAction(createCommandContext(globalOptions));
 
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify(screenshots, null, 2));
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(screenshots.map(asJson), null, 2));
   });
 
   test('listAction prints id, tag count and name per screenshot in text format', async () => {
@@ -298,7 +301,7 @@ describe('ScreenshotCommand', () => {
       55,
       expect.objectContaining({ autoTag: true, fileId: 77 }),
     );
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify(createScreenshot(55, 'welcome.png', 3), null, 2));
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(asJson(createScreenshot(55, 'welcome.png', 3)), null, 2));
   });
 
   test('uploadAction creates screenshot when no existing one found', async () => {
@@ -311,7 +314,7 @@ describe('ScreenshotCommand', () => {
     expect(screenshotService.upload).toHaveBeenCalledWith(
       expect.objectContaining({ name: 'new.png', storageId: 44, autoTag: false }),
     );
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify(createScreenshot(10, 'screen.png'), null, 2));
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(asJson(createScreenshot(10, 'screen.png')), null, 2));
   });
 
   test('uploadAction prints warning for auto-tag-in-progress API response', async () => {

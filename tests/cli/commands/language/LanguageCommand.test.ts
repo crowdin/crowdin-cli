@@ -83,12 +83,12 @@ describe('LanguageCommand', () => {
 
     await languageCommand.listAction(commandContext);
 
-    // The language entity rides along with the resolved code.
+    // json/toon carry what the text line shows: the resolved code and the name.
     expect(console.log).toHaveBeenCalledWith(
       JSON.stringify(
         [
-          { id: 'fr', name: 'French', twoLettersCode: 'fr', code: 'fr' },
-          { id: 'de', name: 'German', twoLettersCode: 'de', code: 'de' },
+          { code: 'fr', name: 'French' },
+          { code: 'de', name: 'German' },
         ],
         null,
         2,
@@ -125,9 +125,7 @@ describe('LanguageCommand', () => {
     expect(withFetchAll).toHaveBeenCalledTimes(1);
     expect(listSupportedLanguages).toHaveBeenCalledTimes(1);
     expect(listSupportedLanguages).toHaveBeenCalledWith();
-    expect(console.log).toHaveBeenCalledWith(
-      JSON.stringify([{ id: 'uk', name: 'Ukrainian', locale: 'uk-UA', code: 'uk-UA' }], null, 2),
-    );
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ code: 'uk-UA', name: 'Ukrainian' }], null, 2));
   });
 
   test('uses project language mapping for selected code type', async () => {
@@ -151,9 +149,7 @@ describe('LanguageCommand', () => {
 
     await languageCommand.listAction(commandContext);
 
-    expect(console.log).toHaveBeenCalledWith(
-      JSON.stringify([{ id: 'uk', name: 'Ukrainian', locale: 'uk-UA', code: 'uk_UA' }], null, 2),
-    );
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ code: 'uk_UA', name: 'Ukrainian' }], null, 2));
   });
 
   test('throws if user has no manager access in non-text mode', async () => {

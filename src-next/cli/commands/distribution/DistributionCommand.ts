@@ -21,6 +21,7 @@ const distributionView: View<DistributionsModel.Distribution> = {
   text: (distribution) =>
     `${colors.yellow(distribution.hash)} ${distribution.name ?? ''} ${colors.blue(distribution.exportMode ?? '')}`,
   plain: (distribution) => `${distribution.hash} ${distribution.name ?? ''}`,
+  keys: ['hash', 'name', 'exportMode'],
 };
 
 export default class DistributionCommand {

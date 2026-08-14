@@ -118,7 +118,9 @@ describe('BundleCommand', () => {
 
       await cmd.listAction(createCommandContext(globalOptions));
 
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify(bundles, null, 2));
+      expect(console.log).toHaveBeenCalledWith(
+        JSON.stringify([{ id: 1, format: 'json', exportPattern: '/%locale%/app.json', name: 'App' }], null, 2),
+      );
     });
 
     test('prints id, format, export pattern and name per bundle in text format', async () => {

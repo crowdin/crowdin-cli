@@ -16,6 +16,7 @@ interface UninstallOptions extends GlobalOptions {
 const appView: View<ApplicationsModel.Application> = {
   text: (app) => `${colors.yellow(app.identifier)} ${colors.green(app.name)}`,
   plain: (app) => app.identifier,
+  keys: ['identifier', 'name'],
 };
 
 export default class AppCommand {

@@ -14,6 +14,7 @@ function hasRevisionInfo(file: SourceFilesModel.File): boolean {
 export const fileView: View<SourceFilesModel.File> = {
   text: (file) => `${colors.yellow(`#${file.id}`)} ${colors.green(displayPath(file))}`,
   plain: (file) => `${file.id} ${displayPath(file)}`,
+  keys: ['id', 'path'],
 };
 
 // Verbose splits on whether the entry carries parser/revision data, as Java splits on
@@ -27,4 +28,5 @@ export const fileVerboseView: View<SourceFilesModel.File> = {
     hasRevisionInfo(file)
       ? `${file.id} ${displayPath(file)} ${file.type} ${file.parserVersion} ${file.revisionId}`
       : `${file.id} ${displayPath(file)} ${file.type}`,
+  keys: ['id', 'path', 'type', 'parserVersion', 'revisionId'],
 };

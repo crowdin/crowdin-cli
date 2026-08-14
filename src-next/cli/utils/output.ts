@@ -21,15 +21,34 @@ export type OutputOptions = {
 };
 
 /**
- * How one entity renders as a line of human output, keyed by the `--output` format it serves.
- * json/toon never see it — they serialize the item itself.
+ * How one entity renders per `--output` format: a line in text and plain, a narrowed record in
+ * json/toon.
  */
 export type View<T> = {
   /** The default line, mirroring the Java message templates (`message.branch.list` and friends). */
   text: (item: T) => string;
   /** Java's plain line, when it differs from `text` (e.g. branch prints the name alone). */
   plain?: (item: T) => string;
+  /**
+   * The keys json/toon keep, so a machine format carries what the text line shows instead of the
+   * whole API payload. A verbose view lists the keys its extra columns come from, which is how
+   * `--verbose` reaches json/toon. Left off, the item serializes whole (it already is the payload:
+   * a path, a progress row, a merge summary).
+   */
+  keys?: readonly (keyof T & string)[];
 };
+
+/**
+ * Values keep their raw shape — the view owns display shaping — so this only narrows the key set.
+ * Missing keys become null rather than vanishing, so a list stays uniform (toon tabulates it).
+ */
+function pickKeys<T>(item: T, keys?: readonly (keyof T & string)[]): unknown {
+  if (!keys || item === null || typeof item !== 'object') {
+    return item;
+  }
+
+  return Object.fromEntries(keys.map((key) => [key, item[key] ?? null]));
+}
 
 export function createOutput(options: GlobalOptions, { withGuide = false }: OutputOptions = {}) {
   const format = resolveOutputFormat(options.output);
@@ -87,7 +106,12 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
      */
     list<T>(items: T[], view: View<T>, { empty }: { empty?: string } = {}): void {
       if (isMachineFormat) {
-        console.log(formatData(items, format));
+        console.log(
+          formatData(
+            items.map((item) => pickKeys(item, view.keys)),
+            format,
+          ),
+        );
         return;
       }
 
@@ -119,7 +143,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
      */
     item<T>(value: T, view: View<T>, { mark = true }: { mark?: boolean } = {}): void {
       if (isMachineFormat) {
-        console.log(formatData(value, format));
+        console.log(formatData(pickKeys(value, view.keys), format));
         return;
       }
 

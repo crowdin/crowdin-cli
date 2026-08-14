@@ -47,6 +47,9 @@ describe('TaskCommand', () => {
   const createTask = (overrides: Partial<TasksModel.Task>): TasksModel.Task =>
     ({ id: 1, title: 'Task title', targetLanguageId: 'uk', ...overrides }) as TasksModel.Task;
 
+  // json/toon carry what the text line shows: id, target language, title.
+  const asJson = ({ id, targetLanguageId, title }: TasksModel.Task) => ({ id, targetLanguageId, title });
+
   beforeEach(() => {
     output = createOutput(globalOptions);
     taskService = {
@@ -98,7 +101,7 @@ describe('TaskCommand', () => {
       await cmd.listAction(commandContext);
 
       expect(taskService.list).toHaveBeenCalledWith('todo');
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify(tasks, null, 2));
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify(tasks.map(asJson), null, 2));
     });
 
     test('prints one line per task in text format', async () => {
@@ -156,18 +159,7 @@ describe('TaskCommand', () => {
       await cmd.listAction(commandContext);
 
       expect(console.log).toHaveBeenCalledWith(
-        JSON.stringify(
-          [
-            createTask({
-              id: 1,
-              title: 'Keep',
-              targetLanguageId: undefined,
-              assignees: [{ id: 101 } as TasksModel.Assignee],
-            }),
-          ],
-          null,
-          2,
-        ),
+        JSON.stringify([{ id: 1, targetLanguageId: null, title: 'Keep' }], null, 2),
       );
     });
 
@@ -310,7 +302,7 @@ describe('TaskCommand', () => {
           description: 'new task',
         }),
       );
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify(createdTask, null, 2));
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify(asJson(createdTask), null, 2));
     });
 
     test('creates enterprise task', async () => {

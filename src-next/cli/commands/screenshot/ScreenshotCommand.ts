@@ -41,6 +41,7 @@ const screenshotView: View<ScreenshotView> = {
   text: (screenshot) =>
     `${colors.yellow(`#${screenshot.id}`)} ${screenshot.tagsCount} ${colors.green(screenshot.name)}`,
   plain: (screenshot) => `${screenshot.id} ${screenshot.name}`,
+  keys: ['id', 'tagsCount', 'name'],
 };
 
 export default class ScreenshotCommand {

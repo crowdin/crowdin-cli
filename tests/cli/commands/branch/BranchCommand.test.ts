@@ -123,7 +123,13 @@ describe('BranchCommand', () => {
       await branchCommand.listAction(createCommandContext());
 
       expect(branchService.list).toHaveBeenCalledTimes(1);
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify(branches, null, 2));
+      expect(console.log).toHaveBeenCalledWith(
+        JSON.stringify(
+          branches.map(({ id, name }) => ({ id, name })),
+          null,
+          2,
+        ),
+      );
     });
 
     test('prints one line per branch in text format', async () => {
@@ -205,7 +211,7 @@ describe('BranchCommand', () => {
       await branchCommand.addAction(createCommandContext({}, ['dev']));
 
       expect(branchService.add).toHaveBeenCalledWith({ name: 'dev' });
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify(branch, null, 2));
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify({ id: 20, name: 'dev' }, null, 2));
     });
 
     test('echoes the created branch as a line in text format', async () => {
@@ -375,7 +381,7 @@ describe('BranchCommand', () => {
       await branchCommand.editAction(createCommandContext(options, ['main']));
 
       expect(branchService.edit).toHaveBeenCalledWith(14, patches);
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify(updatedBranch, null, 2));
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify({ id: 14, name: 'dev' }, null, 2));
     });
 
     test('normalizes the new branch name', async () => {
@@ -436,7 +442,7 @@ describe('BranchCommand', () => {
       await branchCommand.cloneAction(createCommandContext({}, ['main', 'cloned']));
 
       expect(branchService.cloneBranch).toHaveBeenCalledWith(14, { name: 'cloned' }, expect.any(Function));
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify(clonedBranch, null, 2));
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify({ id: 20, name: 'cloned' }, null, 2));
     });
 
     test('normalizes target name and keeps original as title', async () => {

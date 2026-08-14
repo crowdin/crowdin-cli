@@ -45,6 +45,7 @@ const DEFAULT_TM_NAME = 'Created in Crowdin CLI (%s)';
 const tmView: View<TranslationMemoryModel.TranslationMemory> = {
   text: (tm) => `${colors.yellow(`#${tm.id}`)} ${tm.name} (${colors.green(`segments: ${tm.segmentsCount}`)})`,
   plain: (tm) => tm.name,
+  keys: ['id', 'name', 'segmentsCount'],
 };
 
 export default class TmCommand {

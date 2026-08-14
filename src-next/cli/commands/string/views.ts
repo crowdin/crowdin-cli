@@ -70,5 +70,8 @@ export function createStringView({
         ...details(entry),
       ].join('\n'),
     plain: (entry) => [String(entry.id), ...details(entry)].join('\n'),
+    // The verbose detail lines resolve ids to a file path and label names; json/toon keep the ids,
+    // as the machine contract does everywhere else.
+    keys: verbose ? ['id', 'identifier', 'text', 'fileId', 'labelIds', 'context'] : ['id', 'identifier', 'text'],
   };
 }

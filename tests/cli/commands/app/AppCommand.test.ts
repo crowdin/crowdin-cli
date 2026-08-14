@@ -135,7 +135,13 @@ describe('AppCommand', () => {
 
     await cmd.listAction(createCommandContext({ ...globalOptions, output: 'json' }));
 
-    expect(console.log).toHaveBeenCalledWith(JSON.stringify(apps, null, 2));
+    expect(console.log).toHaveBeenCalledWith(
+      JSON.stringify(
+        apps.map(({ identifier, name }) => ({ identifier, name })),
+        null,
+        2,
+      ),
+    );
   });
 
   test('installAction validates identifier', async () => {

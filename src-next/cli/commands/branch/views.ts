@@ -7,6 +7,7 @@ import { stripLeadingSlashes } from '@/lib/utils/path.ts';
 export const branchView: View<SourceFilesModel.Branch> = {
   text: (branch) => `${colors.yellow(`#${branch.id}`)} ${colors.green(stripLeadingSlashes(branch.name))}`,
   plain: (branch) => stripLeadingSlashes(branch.name),
+  keys: ['id', 'name'],
 };
 
 export type MergeSummaryRow = { targetBranchId: number } & SourceFilesModel.MergeBranchSummary['details'];

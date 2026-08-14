@@ -33,6 +33,7 @@ type ResolvedLanguage = LanguagesModel.Language & { code: string };
 const languageView: View<ResolvedLanguage> = {
   text: (language) => `${colors.yellow(language.code)} ${colors.green(language.name ?? '')}`,
   plain: (language) => language.code,
+  keys: ['code', 'name'],
 };
 
 export default class LanguageCommand {

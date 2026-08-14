@@ -189,7 +189,7 @@ export default class StringCommand {
     });
 
     const view = await this.buildStringView(command, {
-      verbose: this.rendersVerbose(options),
+      verbose: Boolean(options.verbose),
       isStringsBased,
       branchId,
     });
@@ -291,8 +291,10 @@ export default class StringCommand {
     const labelIds = await labelService.resolveLabelIds(labelNames);
     const patch = this.buildEditPatch(options, labelIds);
     const updated = await stringService.edit(id, patch);
-    const verbose = this.rendersVerbose(options);
-    const isStringsBased = verbose ? await stringService.isStringsBasedProject() : false;
+    const verbose = Boolean(options.verbose);
+    // Only the verbose text/plain detail lines split on this; json/toon keep the raw ids either way.
+    const isStringsBased =
+      verbose && !isMachineFormat(options.output) ? await stringService.isStringsBasedProject() : false;
 
     output.success(`Source string #${id} was updated successfully`);
     output.item(updated, await this.buildStringView(command, { verbose, isStringsBased }));
@@ -317,6 +319,12 @@ export default class StringCommand {
       return createStringView();
     }
 
+    // json/toon carry the raw fileId/labelIds, so the lookups the verbose text lines need — a
+    // label map and every file path in the project — would be paid for nothing there.
+    if (isMachineFormat((command.optsWithGlobals() as GlobalOptions).output)) {
+      return createStringView({ verbose: true });
+    }
+
     const labelService = await this.getLabelService(command);
     const fileService = await this.getFileService(command);
 
@@ -326,10 +334,6 @@ export default class StringCommand {
       labels: await labelService.listLabelsMap(),
       filePaths: isStringsBased ? new Map<number, string>() : await fileService.listProjectFilePaths(branchId),
     });
-  }
-
-  private rendersVerbose(options: GlobalOptions): boolean {
-    return Boolean(options.verbose) && !isMachineFormat(options.output);
   }
 
   private async resolveSingleFileId(

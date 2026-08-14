@@ -173,7 +173,9 @@ describe('StringCommand', () => {
           filter: 'hello',
         }),
       );
-      expect(console.log).toHaveBeenCalledWith(JSON.stringify(strings, null, 2));
+      expect(console.log).toHaveBeenCalledWith(
+        JSON.stringify([{ id: 11, identifier: 'welcome', text: 'Hello' }], null, 2),
+      );
     });
 
     test('skips the label and file-path lookups when not verbose', async () => {

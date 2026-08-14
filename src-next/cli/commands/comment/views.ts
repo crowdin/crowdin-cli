@@ -7,6 +7,7 @@ import type { View } from '@/cli/utils/output.ts';
 export const commentView: View<StringCommentsModel.StringComment> = {
   text: (comment) => `${colors.yellow(`#${comment.id}`)} ${colors.green(toSingleLine(comment.text))}`,
   plain: (comment) => String(comment.id),
+  keys: ['id', 'text'],
 };
 
 // message.comment.list.verbose adds language, issue type and lower-cased issue status.
@@ -16,4 +17,5 @@ export const commentVerboseView: View<StringCommentsModel.StringComment> = {
       comment.languageId,
     )} ${colors.blue(comment.issueType ?? '')} ${(comment.issueStatus ?? '').toLowerCase()}`,
   plain: commentView.plain,
+  keys: ['id', 'text', 'languageId', 'issueType', 'issueStatus'],
 };

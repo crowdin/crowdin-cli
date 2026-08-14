@@ -26,6 +26,7 @@ function formatLastActivity(lastActivity: unknown): string {
 // Java message.project.list. ProjectListAction has no plain branch, so plain renders like text.
 export const projectView: View<Project> = {
   text: (project) => `${colors.yellow(`#${project.id}`)} ${colors.green(project.name)}`,
+  keys: ['id', 'name'],
 };
 
 // message.project.list.verbose adds type, visibility and last activity. Enterprise omits
@@ -37,4 +38,5 @@ export const projectVerboseView: View<Project> = {
     )} ${colors.red((project.visibility ?? 'private').toString().toLowerCase())} ${colors.blue(
       formatLastActivity(project.lastActivity),
     )}`,
+  keys: ['id', 'name', 'type', 'visibility', 'lastActivity'],
 };

@@ -12,6 +12,7 @@ import type { View } from '@/cli/utils/output.ts';
 const labelView: View<LabelsModel.Label> = {
   text: (label) => `${colors.yellow(`#${label.id}`)} ${colors.green(label.title)}`,
   plain: (label) => label.title,
+  keys: ['id', 'title'],
 };
 
 // Java LabelListAction prints the decorated line when `!plainView || isVerbose`, so a verbose
@@ -19,6 +20,7 @@ const labelView: View<LabelsModel.Label> = {
 const labelVerboseView: View<LabelsModel.Label> = {
   text: labelView.text,
   plain: labelView.text,
+  keys: labelView.keys,
 };
 
 export default class LabelCommand {

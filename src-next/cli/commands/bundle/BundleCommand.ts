@@ -49,6 +49,7 @@ const bundleView: View<BundleView> = {
       bundle.exportPattern ?? '',
     )} ${bundle.name ?? ''}`,
   plain: (bundle) => `${bundle.id} ${bundle.name ?? ''}`,
+  keys: ['id', 'format', 'exportPattern', 'name'],
 };
 
 export default class BundleCommand {
