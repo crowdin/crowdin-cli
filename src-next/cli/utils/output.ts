@@ -192,7 +192,11 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
   };
 }
 
-function resolveOutputFormat(format?: string): 'json' | 'toon' | 'text' | 'plain' {
+/**
+ * `--output` carries no default, so an unset flag arrives as undefined — commands that branch on
+ * the format ask here rather than comparing to 'text' and missing the default case.
+ */
+export function resolveOutputFormat(format?: string): 'json' | 'toon' | 'text' | 'plain' {
   if (format === 'json' || format === 'toon' || format === 'plain') {
     return format;
   }

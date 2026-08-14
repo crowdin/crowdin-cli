@@ -22,7 +22,7 @@ import {
   readContextRecords,
   type StringContextRecord,
 } from '@/cli/utils/aiContext.ts';
-import type { Output } from '@/cli/utils/output.ts';
+import { type Output, resolveOutputFormat } from '@/cli/utils/output.ts';
 import { toArray } from '@/cli/utils/parsing.ts';
 import { isPathMatch } from '@/cli/utils/pathMatcher.ts';
 import {
@@ -35,9 +35,16 @@ import {
   status as statusOption,
   to as toOption,
 } from './options.ts';
-import { type ContextStats, contextStatusByFileView, contextStatusView, type FileContextStats } from './views.ts';
-
-// TODO: Java '--format' (file format) is intentionally not ported: 'jsonl' is the only supported value
+import {
+  type ContextStats,
+  contextStatusByFilePlainView,
+  contextStatusByFileTable,
+  contextStatusFooter,
+  contextStatusPlainView,
+  contextStatusTable,
+  contextStatusTitle,
+  type FileContextStats,
+} from './views.ts';
 
 interface FilterOptions extends GlobalOptions {
   file?: string | string[];
@@ -203,7 +210,6 @@ export default class ContextCommand {
     const options = command.optsWithGlobals() as UploadOptions;
 
     if (!(await Bun.file(options.from).exists())) {
-      // Same wording as the Java CLI (error.file_not_found)
       throw new CliError(`File '${options.from}' not found in the Crowdin project`);
     }
 
@@ -290,16 +296,35 @@ export default class ContextCommand {
     const output = this.getOutput(command);
     const { project, isStringsBased, strings, filePaths } = await this.fetchFilteredStrings(command, options);
     const byFile = Boolean(options.byFile) && !isStringsBased;
+    const isText = resolveOutputFormat(options.output) === 'text';
 
-    // One payload, two renderings: json/toon carry the raw counts, text and plain get Java's
-    // padded line report (title and footer included) built from those same counts.
     if (byFile) {
-      output.item(this.byFileStats(strings, filePaths), contextStatusByFileView(project), { mark: false });
+      const stats = this.byFileStats(strings, filePaths);
+
+      if (isText) {
+        this.printStatusTable(output, project, contextStatusByFileTable(stats));
+        return;
+      }
+
+      output.item(stats, contextStatusByFilePlainView(), { mark: false });
       return;
     }
 
-    output.item(this.calculateStats(strings), contextStatusView(project), { mark: false });
+    const stats = this.calculateStats(strings);
+
+    if (isText) {
+      this.printStatusTable(output, project, contextStatusTable(stats));
+      return;
+    }
+
+    output.item(stats, contextStatusPlainView(), { mark: false });
   };
+
+  private printStatusTable(output: Output, project: ProjectsGroupsModel.Project, table: unknown): void {
+    output.success(contextStatusTitle(project));
+    output.table(table);
+    output.info(contextStatusFooter);
+  }
 
   private groupByFile(
     strings: SourceStringsModel.String[],
@@ -380,6 +405,7 @@ export default class ContextCommand {
       const end = Math.min(start + BATCH_SIZE, patch.length);
 
       await stringService.batchEdit(patch.slice(start, end));
+
       output.success(`Updated strings ${end}/${patch.length}`);
     }
   }

@@ -1,15 +1,12 @@
 import { describe, expect, test } from 'bun:test';
-import type { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import {
   type ContextStats,
-  contextStatusByFileView,
-  contextStatusView,
+  contextStatusByFilePlainView,
+  contextStatusPlainView,
   type FileContextStats,
 } from '@/cli/commands/context/views.ts';
 
 describe('context views', () => {
-  const project = { id: 123, name: 'Test Project' } as ProjectsGroupsModel.Project;
-
   const stats = (overrides: Partial<ContextStats> = {}): ContextStats => ({
     total: 3,
     withAi: 1,
@@ -22,19 +19,26 @@ describe('context views', () => {
   });
 
   describe('summary', () => {
-    test('renders the title, the buckets and the footer', () => {
-      expect(contextStatusView(project).text(stats())).toBe(
+    // No title, no footer: plain carries the numbers, text carries the report around them.
+    test('renders one keyed line per metric', () => {
+      expect(contextStatusPlainView().text(stats())).toBe(
         [
-          'Context Status for Project "Test Project" (ID: 123)',
-          '',
-          'Total strings:       3',
-          'With AI context:     1 (33.33%)',
-          'Without AI context:  2 (66.67%)',
-          'With manual context: 2 (66.67%)',
-          '',
-          "Run 'crowdin context download --status=empty' to export strings needing context.",
+          'Total strings: 3',
+          'With AI context: 1',
+          'With AI context (percentage): 33.33',
+          'Without AI context: 2',
+          'Without AI context (percentage): 66.67',
+          'With manual context: 2',
+          'With manual context (percentage): 66.67',
         ].join('\n'),
       );
+    });
+
+    // The label carries the spaces, so the colon is what a consumer splits on.
+    test('keeps every line at one label and one value', () => {
+      for (const line of contextStatusPlainView().text(stats()).split('\n')) {
+        expect(line).toMatch(/^[^:]+: \S+$/);
+      }
     });
   });
 
@@ -44,42 +48,29 @@ describe('context views', () => {
       { file: '/second.txt', ...stats({ total: 1, withAi: 0, withAiPercentage: '0.00' }) },
     ];
 
-    test('pads the file column to the longest path', () => {
-      const lines = contextStatusByFileView(project).text(rows).split('\n');
-      const [header, first, second] = [lines[2], lines[3], lines[4]] as [string, string, string];
-
-      expect(header).toBe('File             Total        AI Context    Missing');
-      // '/second.txt' is the longest path, so the shorter one is padded out to it.
-      expect(first.indexOf('2')).toBe(second.indexOf('1'));
-    });
-
-    // A shorter percentage ('0.00' vs '50.00') used to shift every column after it.
-    test('keeps Missing aligned when the AI Context cells differ in width', () => {
-      const lines = contextStatusByFileView(project).text(rows).split('\n');
-      const [header, first, second] = [lines[2], lines[3], lines[4]] as [string, string, string];
-
-      expect(first.lastIndexOf('1')).toBe(second.lastIndexOf('1'));
-      expect(header.lastIndexOf('Missing') + 'Missing'.length).toBe(first.length);
-    });
-
-    test('renders a row per file with the missing count', () => {
-      const text = contextStatusByFileView(project).text(rows);
-
-      expect(text).toContain('/first.txt           2        1 (50.00%)          1');
-      expect(text).toContain('/second.txt          1         0 (0.00%)          1');
-    });
-
-    test('keeps the title and footer around the table', () => {
-      const lines = contextStatusByFileView(project).text(rows).split('\n');
-
-      expect(lines[0]).toBe('Context Status for Project "Test Project" (ID: 123)');
-      expect(lines.at(-1)).toBe("Run 'crowdin context download --status=empty' to export strings needing context.");
+    test('heads a section per metric, one line per file', () => {
+      expect(contextStatusByFilePlainView().text(rows)).toBe(
+        [
+          'Total strings:',
+          '/first.txt 2',
+          '/second.txt 1',
+          'With AI context:',
+          '/first.txt 1',
+          '/second.txt 0',
+          'With AI context (percentage):',
+          '/first.txt 50.00',
+          '/second.txt 0.00',
+          'Missing:',
+          '/first.txt 1',
+          '/second.txt 1',
+        ].join('\n'),
+      );
     });
 
     test('survives an empty row set', () => {
-      const lines = contextStatusByFileView(project).text([]).split('\n');
-
-      expect(lines[2]).toBe('File      Total       AI Context    Missing');
+      expect(contextStatusByFilePlainView().text([])).toBe(
+        ['Total strings:', 'With AI context:', 'With AI context (percentage):', 'Missing:'].join('\n'),
+      );
     });
   });
 });

@@ -567,10 +567,25 @@ describe('ContextCommand', () => {
       expect(loggedOutput()).toContain(
         "Run 'crowdin context download --status=empty' to export strings needing context.",
       );
-      expect(loggedOutput()).toContain('Total strings:       3');
-      expect(loggedOutput()).toContain('With AI context:     1 (33.33%)');
-      expect(loggedOutput()).toContain('Without AI context:  2 (66.67%)');
-      expect(loggedOutput()).toContain('With manual context: 2 (66.67%)');
+      expect(console.table).toHaveBeenCalledWith({
+        'Total strings': { Count: 3, Percent: '' },
+        'With AI context': { Count: 1, Percent: '33.33%' },
+        'Without AI context': { Count: 2, Percent: '66.67%' },
+        'With manual context': { Count: 2, Percent: '66.67%' },
+      });
+    });
+
+    // '--output' carries no default, so an unset flag arrives as undefined — that has to read as text.
+    test('draws the grid when no output format is given', async () => {
+      const command = createContextCommand();
+
+      stringService.list.mockResolvedValue([createString({ id: 1, context: '' })]);
+
+      await command.statusAction(createCommandContext({ output: undefined }));
+
+      expect(console.table).toHaveBeenCalled();
+      expect(loggedOutput()).toContain('Context Status for Project "Test Project" (ID: 123)');
+      expect(loggedOutput()).not.toContain('Total strings: 1');
     });
 
     test('emits raw counts in structured formats', async () => {
@@ -631,9 +646,10 @@ describe('ContextCommand', () => {
 
       await command.statusAction(createCommandContext({ byFile: true }));
 
-      expect(loggedOutput()).toContain('File             Total        AI Context    Missing');
-      expect(loggedOutput()).toContain('/first.txt           2        1 (50.00%)          1');
-      expect(loggedOutput()).toContain('/second.txt          1         0 (0.00%)          1');
+      expect(console.table).toHaveBeenCalledWith({
+        '/first.txt': { Total: 2, 'AI context': '1 (50.00%)', Missing: 1 },
+        '/second.txt': { Total: 1, 'AI context': '0 (0.00%)', Missing: 1 },
+      });
     });
 
     test('emits per-file counts in structured formats', async () => {
@@ -677,10 +693,13 @@ describe('ContextCommand', () => {
 
       await command.statusAction(createCommandContext({ byFile: true }));
 
-      // Falls back to the summary report rather than the per-file one.
-      expect(loggedOutput()).toContain('Total strings:       1');
-      expect(loggedOutput()).toContain('With AI context:     1 (100.00%)');
-      expect(loggedOutput()).not.toContain('File ');
+      // Falls back to the summary grid rather than the per-file one.
+      expect(console.table).toHaveBeenCalledWith({
+        'Total strings': { Count: 1, Percent: '' },
+        'With AI context': { Count: 1, Percent: '100.00%' },
+        'Without AI context': { Count: 0, Percent: '0.00%' },
+        'With manual context': { Count: 1, Percent: '100.00%' },
+      });
     });
 
     test('emits only the report in plain format', async () => {
@@ -695,9 +714,11 @@ describe('ContextCommand', () => {
 
       await command.statusAction(createCommandContext({ output: 'plain' }));
 
-      // The stats go to data(), which is silent in plain: no stray '3' ahead of the report.
+      // One write, and no title or footer around it: plain carries the numbers alone.
       expect(console.log).toHaveBeenCalledTimes(1);
-      expect(loggedOutput()).toContain('Total strings:       3');
+      expect(loggedOutput()).toContain('Total strings: 3');
+      expect(loggedOutput()).toContain('With AI context (percentage): 33.33');
+      expect(loggedOutput()).not.toContain('Context Status for Project');
     });
 
     test('rejects an invalid since date', async () => {

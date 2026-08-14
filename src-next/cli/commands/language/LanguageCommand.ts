@@ -6,7 +6,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
-import type { View } from '@/cli/utils/output.ts';
+import { resolveOutputFormat, type View } from '@/cli/utils/output.ts';
 import { all, code } from './options.ts';
 
 type LanguageCodeFormat =
@@ -79,7 +79,7 @@ export default class LanguageCommand {
     if (projectData.managerAccess === false) {
       const message = 'You must have manager or developer role in the project to perform this action';
 
-      if (options.output === 'text') {
+      if (resolveOutputFormat(options.output) === 'text') {
         output.warning(message);
         return;
       }
