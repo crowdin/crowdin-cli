@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { CrowdinError } from '@crowdin/crowdin-api-client';
+import { CrowdinError, CrowdinValidationError } from '@crowdin/crowdin-api-client';
 import { ExitCode } from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 
@@ -24,5 +24,39 @@ describe('toCliError HTTP status mapping', () => {
     const cliError = toCliError(new CrowdinError('getaddrinfo ENOTFOUND api.crowdin.com', 500, null), 'ctx');
 
     expect(cliError.message).toBe("Invalid url. check your 'base_url'");
+  });
+
+  // the client's own message says only "Value is required and can't be empty" — without the field
+  // name there is no way to tell which option the user has to fix.
+  test('names the offending field on a validation error', () => {
+    const apiError = [
+      { error: { key: 'identifier', errors: [{ code: 'isEmpty', message: "Value is required and can't be empty" }] } },
+    ];
+    const cliError = toCliError(
+      new CrowdinValidationError("Value is required and can't be empty", [], apiError),
+      'Source string was not added',
+    );
+
+    expect(cliError.message).toBe(
+      "Source string was not added. Key: identifier. Message: Value is required and can't be empty",
+    );
+  });
+
+  test('keeps every field apart when several of them fail', () => {
+    const apiError = [
+      { error: { key: 'identifier', errors: [{ code: 'isEmpty', message: 'Value is required' }] } },
+      { error: { key: 'maxLength', errors: [{ code: 'notInRange', message: 'Value is invalid' }] } },
+    ];
+    const cliError = toCliError(new CrowdinValidationError('Value is required, Value is invalid', [], apiError), 'ctx');
+
+    expect(cliError.message).toBe(
+      'ctx. Key: identifier. Message: Value is required; Key: maxLength. Message: Value is invalid',
+    );
+  });
+
+  test('keeps the raw message when a validation error carries no field names', () => {
+    const cliError = toCliError(new CrowdinValidationError('Validation error', [], null), 'ctx');
+
+    expect(cliError.message).toBe('ctx. Validation error');
   });
 });

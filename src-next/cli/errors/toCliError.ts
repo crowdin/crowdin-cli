@@ -1,4 +1,4 @@
-import { CrowdinError } from '@crowdin/crowdin-api-client';
+import { CrowdinError, CrowdinValidationError } from '@crowdin/crowdin-api-client';
 import AuthorizationError from './AuthorizationError.ts';
 import CliError from './CliError.ts';
 import ForbiddenError from './ForbiddenError.ts';
@@ -29,7 +29,7 @@ export function mapCrowdinError(error: CrowdinError, fallbackMessage: string): C
     return new CliError("Invalid url. check your 'base_url'");
   }
 
-  const message = `${fallbackMessage}. ${error.message}`;
+  const message = `${fallbackMessage}. ${formatValidationMessage(error) ?? error.message}`;
 
   switch (error.code) {
     case 403:
@@ -41,6 +41,27 @@ export function mapCrowdinError(error: CrowdinError, fallbackMessage: string): C
     default:
       return new CliError(message);
   }
+}
+
+function formatValidationMessage(error: CrowdinError): string | undefined {
+  if (!(error instanceof CrowdinValidationError) || !Array.isArray(error.apiError)) {
+    return undefined;
+  }
+
+  const parts = error.apiError.flatMap((entry: { error?: { key?: unknown; errors?: unknown } }) => {
+    const key = entry?.error?.key;
+    const errors = entry?.error?.errors;
+
+    if (typeof key !== 'string' || !Array.isArray(errors)) {
+      return [];
+    }
+
+    return errors
+      .filter((item: { message?: unknown }) => typeof item?.message === 'string')
+      .map((item: { message: string }) => `Key: ${key}. Message: ${item.message}`);
+  });
+
+  return parts.length > 0 ? parts.join('; ') : undefined;
 }
 
 export function toCliError(error: unknown, fallbackMessage: string): CliError {
