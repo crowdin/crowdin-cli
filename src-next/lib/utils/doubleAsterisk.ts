@@ -118,7 +118,7 @@ function apacheSubstring(str: string, start: number, end: number): string {
 
 /**
  * Replaces `**` in a resolved `dest`/`context` pattern with the slice of the source file's parent
- * path that the wildcard stands for, mirroring PlaceholderUtil.java:234-249.
+ * path that the wildcard stands for.
  *
  * This is a different algorithm from `replaceDoubleAsterisk` (a port of Java's TranslationsUtils),
  * which serves `translation` patterns and matches against the `source` glob instead.
@@ -140,10 +140,14 @@ export function expandDestDoubleAsterisk(pattern: string, localFilePath: string,
       ? substringBefore(fileParent, stripLeadingSlashes(prefixFormat))
       : '';
 
-  let expanded = removeStart(
-    stripLeadingSlashes(removeStart(fileParent, prefix)),
-    stripTrailingSlashes(stripLeadingSlashes(prefixFormat)),
-  );
+  // A segment-complete prefix (`/Product.Core/**`) is trimmed only at a path-segment boundary, so
+  // a folder that merely starts with the same string (`Product.Core.Implementation`) stays intact.
+  // A prefix glued to `**` (`/Product.**`) still trims as a raw string, as the pattern asks.
+  const prefixToken = stripTrailingSlashes(stripLeadingSlashes(prefixFormat));
+  const parentTail = stripLeadingSlashes(removeStart(fileParent, prefix));
+  let expanded = prefixFormat.endsWith('/')
+    ? removeStartSegment(parentTail, prefixToken)
+    : removeStart(parentTail, prefixToken);
 
   if (postfix.length > 1) {
     expanded = removeEnd(expanded, stripTrailingSlashes(postfix));
@@ -168,6 +172,19 @@ function substringAfter(value: string, separator: string): string {
 
 function removeStart(value: string, remove: string): string {
   return remove.length > 0 && value.startsWith(remove) ? value.slice(remove.length) : value;
+}
+
+/** Like removeStart, but only when `remove` is the whole value or ends on a `/` boundary in it. */
+function removeStartSegment(value: string, remove: string): string {
+  if (remove.length === 0) {
+    return value;
+  }
+
+  if (value === remove) {
+    return '';
+  }
+
+  return value.startsWith(`${remove}/`) ? value.slice(remove.length) : value;
 }
 
 function removeEnd(value: string, remove: string): string {
