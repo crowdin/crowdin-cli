@@ -139,6 +139,12 @@ public class PlaceholderUtilTest {
                     new File[] {new File("Product.Core.Implementation/Localization/UniversalStrings.resx")},
                     Utils.normalizePath("/Product.Core/**/%file_name%.resx"),
                     new String[] {Utils.normalizePath("Product.Core/Product.Core.Implementation/Localization/UniversalStrings.resx")}
+            ),
+            arguments(// folder starting with last segment of a multi-segment prefix is not stripped (issue #1072)
+                    new Language[] {LanguageBuilder.ENG.build()},
+                    new File[] {new File("a/bc/deep/app.json")},
+                    Utils.normalizePath("/a/b/**/%original_file_name%"),
+                    new String[] {Utils.normalizePath("a/b/a/bc/deep/app.json")}
             )
         );
     }
