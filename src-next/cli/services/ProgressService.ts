@@ -19,13 +19,13 @@ export class ProgressService {
         stop: 'Project progress fetched',
         fail: 'Failed to fetch project progress',
       },
-      () => this.apiClient.translationStatusApi.getProjectProgress(this.projectId),
+      () => this.apiClient.translationStatusApi.withFetchAll().getProjectProgress(this.projectId),
     );
   }
 
   async loadBranchProgress(branchId: number) {
     try {
-      return await this.apiClient.translationStatusApi.getBranchProgress(this.projectId, branchId);
+      return await this.apiClient.translationStatusApi.withFetchAll().getBranchProgress(this.projectId, branchId);
     } catch (error) {
       throw toCliError(error, `Failed to fetch branch progress for branch ${branchId}`);
     }
@@ -33,7 +33,7 @@ export class ProgressService {
 
   async loadFileProgress(fileId: number) {
     try {
-      return await this.apiClient.translationStatusApi.getFileProgress(this.projectId, fileId);
+      return await this.apiClient.translationStatusApi.withFetchAll().getFileProgress(this.projectId, fileId);
     } catch (error) {
       throw toCliError(error, `Failed to fetch file progress for file ${fileId}`);
     }
@@ -41,7 +41,7 @@ export class ProgressService {
 
   async loadDirectoryProgress(directoryId: number) {
     try {
-      return await this.apiClient.translationStatusApi.getDirectoryProgress(this.projectId, directoryId);
+      return await this.apiClient.translationStatusApi.withFetchAll().getDirectoryProgress(this.projectId, directoryId);
     } catch (error) {
       throw toCliError(error, `Failed to fetch directory progress for directory ${directoryId}`);
     }

@@ -102,4 +102,26 @@ describe('ProgressService', () => {
       expect(progressService.loadDirectoryProgress(15)).rejects.toThrow(CliError);
     });
   });
+
+  // Progress is one row per target language, so the default page size silently caps the report at
+  // 25 languages on any project with more than that.
+  test('pages through every language on all four progress endpoints', async () => {
+    const withFetchAll = spyOn(apiClient.translationStatusApi, 'withFetchAll');
+
+    for (const method of [
+      'getProjectProgress',
+      'getBranchProgress',
+      'getFileProgress',
+      'getDirectoryProgress',
+    ] as const) {
+      spyOn(apiClient.translationStatusApi, method).mockResolvedValue({ data: [] } as never);
+    }
+
+    await progressService.loadProjectProgress();
+    await progressService.loadBranchProgress(7);
+    await progressService.loadFileProgress(11);
+    await progressService.loadDirectoryProgress(15);
+
+    expect(withFetchAll).toHaveBeenCalledTimes(4);
+  });
 });

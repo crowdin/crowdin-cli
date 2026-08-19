@@ -22,7 +22,7 @@ export class BundleService {
 
   async list(): Promise<BundleView[]> {
     try {
-      const response = await this.client.bundlesApi.listBundles(this.projectId);
+      const response = await this.client.bundlesApi.withFetchAll().listBundles(this.projectId);
       return response.data.map((entry) => entry.data);
     } catch (error) {
       throw toCliError(error, 'Failed to list bundles');

@@ -67,4 +67,19 @@ describe('BundleService', () => {
       expect(result).toBe('export-1');
     });
   });
+
+  describe('list', () => {
+    // Without withFetchAll the default page size silently caps the listing at 25 bundles.
+    test('pages through every bundle', async () => {
+      const withFetchAll = spyOn(apiClient.bundlesApi, 'withFetchAll');
+      spyOn(apiClient.bundlesApi, 'listBundles').mockResolvedValue({
+        data: [{ data: { id: 1, name: 'first' } }],
+      } as never);
+
+      const result = await bundleService.list();
+
+      expect(withFetchAll).toHaveBeenCalled();
+      expect(result.map((bundle) => bundle.id)).toEqual([1]);
+    });
+  });
 });
