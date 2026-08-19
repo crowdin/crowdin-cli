@@ -11,8 +11,11 @@ import java.util.Objects;
 
 public class AiContextUtil {
 
-    private static final String AI_CONTEXT_SECTION_START = "\n\n✨ AI Context\n";
-    private static final String AI_CONTEXT_SECTION_END = "\n✨ 🔚";
+    private static final String AI_CONTEXT_MARKER_START = "✨ AI Context";
+    private static final String AI_CONTEXT_MARKER_END = "✨ 🔚";
+
+    private static final String AI_CONTEXT_SECTION_START = "\n\n" + AI_CONTEXT_MARKER_START + "\n";
+    private static final String AI_CONTEXT_SECTION_END = "\n" + AI_CONTEXT_MARKER_END;
 
     private AiContextUtil() {
     }
@@ -22,7 +25,7 @@ public class AiContextUtil {
             return "";
         }
 
-        int startIndex = context.indexOf(AI_CONTEXT_SECTION_START);
+        int startIndex = context.indexOf(AI_CONTEXT_MARKER_START);
         if (startIndex != -1) {
             return context.substring(0, startIndex).trim();
         }
@@ -35,11 +38,16 @@ public class AiContextUtil {
             return "";
         }
 
-        int startIndex = context.indexOf(AI_CONTEXT_SECTION_START);
-        int endIndex = context.indexOf(AI_CONTEXT_SECTION_END);
+        int startIndex = context.indexOf(AI_CONTEXT_MARKER_START);
+        if (startIndex == -1) {
+            return "";
+        }
 
-        if (startIndex != -1 && endIndex != -1 && startIndex < endIndex) {
-            return context.substring(startIndex + AI_CONTEXT_SECTION_START.length(), endIndex);
+        int sectionStart = startIndex + AI_CONTEXT_MARKER_START.length();
+        int endIndex = context.indexOf(AI_CONTEXT_MARKER_END, sectionStart);
+
+        if (endIndex != -1) {
+            return context.substring(sectionStart, endIndex).trim();
         }
 
         return "";
