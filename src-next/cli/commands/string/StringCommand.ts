@@ -1,4 +1,4 @@
-import type { PatchRequest, SourceStringsModel } from '@crowdin/crowdin-api-client';
+import type { PatchRequest, SourceFilesModel, SourceStringsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -174,10 +174,11 @@ export default class StringCommand {
       throw new CliError("The '--file' and '--directory' options are not supported for string-based projects");
     }
 
-    const branchId = await branchService.resolveBranchId(options.branch);
+    const branch = await branchService.resolveBranch(options.branch);
+    const branchId = branch?.id;
     const directoryId = await directoryService.resolveDirectoryId(directory, branchId);
     const labelIds = await labelService.resolveLabelIds(labelNames, false);
-    const listFileId = filePath ? await this.resolveSingleFileId(fileService, filePath, branchId) : undefined;
+    const listFileId = filePath ? await this.resolveSingleFileId(fileService, filePath, branch) : undefined;
     const strings = await stringService.list({
       ...(listFileId !== undefined ? { fileId: listFileId } : {}),
       ...(branchId !== undefined ? { branchId } : {}),
@@ -191,7 +192,7 @@ export default class StringCommand {
     const view = await this.buildStringView(command, {
       verbose: Boolean(options.verbose),
       isStringsBased,
-      branchId,
+      branch,
     });
 
     output.list(strings, view, { empty: 'No source strings found' });
@@ -244,8 +245,8 @@ export default class StringCommand {
       throw new CliError("The '--file' value can not be empty");
     }
 
-    const branchId = await branchService.resolveBranchId(options.branch);
-    const resolved = await fileService.resolveFileIds(files, branchId);
+    const branch = await branchService.resolveBranch(options.branch);
+    const resolved = await fileService.resolveFileIds(files, branch);
 
     for (const missing of resolved.missingPaths) {
       output.warning(`Project doesn't contain the '${missing}' file`);
@@ -313,7 +314,11 @@ export default class StringCommand {
 
   private async buildStringView(
     command: Command,
-    { verbose, isStringsBased, branchId }: { verbose: boolean; isStringsBased: boolean; branchId?: number },
+    {
+      verbose,
+      isStringsBased,
+      branch,
+    }: { verbose: boolean; isStringsBased: boolean; branch?: SourceFilesModel.Branch },
   ): Promise<View<SourceStringsModel.String>> {
     if (!verbose) {
       return createStringView();
@@ -332,16 +337,16 @@ export default class StringCommand {
       verbose: true,
       isStringsBased,
       labels: await labelService.listLabelsMap(),
-      filePaths: isStringsBased ? new Map<number, string>() : await fileService.listProjectFilePaths(branchId),
+      filePaths: isStringsBased ? new Map<number, string>() : await fileService.listProjectFilePaths(branch),
     });
   }
 
   private async resolveSingleFileId(
     fileService: Awaited<ReturnType<GetFileService>>,
     filePath: string,
-    branchId?: number,
+    branch?: SourceFilesModel.Branch,
   ): Promise<number> {
-    const resolved = await fileService.resolveFileIds([filePath], branchId);
+    const resolved = await fileService.resolveFileIds([filePath], branch);
     const [fileId] = resolved.fileIds;
 
     if (!fileId) {

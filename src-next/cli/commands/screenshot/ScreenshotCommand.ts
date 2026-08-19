@@ -128,15 +128,10 @@ export default class ScreenshotCommand {
     const labelService = await this.getLabelService(command);
     const image = Bun.file(filePath);
     const imageName = path.basename(filePath);
-    const branch = await branchService.getBranch(options.branch);
-
-    if (options.branch && !branch) {
-      throw new CliError(`Project doesn't contain the '${options.branch}' branch`);
-    }
-
+    const branch = await branchService.resolveBranch(options.branch);
     const branchId = branch?.id;
     const fileId = options.file
-      ? await fileService.resolveFileIds([options.file], branchId).then(this.takeFirstFileId(options.file))
+      ? await fileService.resolveFileIds([options.file], branch).then(this.takeFirstFileId(options.file))
       : undefined;
     const directoryId = await directoryService.resolveDirectoryId(options.directory, branchId);
     const labelIds = await labelService.resolveLabelIds(toArray(options.label));

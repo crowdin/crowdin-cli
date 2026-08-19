@@ -29,7 +29,7 @@ describe('ScreenshotCommand', () => {
     delete: ReturnType<typeof mock<ScreenshotService['delete']>>;
     isAutoTagInProgressError: ReturnType<typeof mock<ScreenshotService['isAutoTagInProgressError']>>;
   };
-  let branchService: { getBranch: ReturnType<typeof mock<BranchService['getBranch']>> };
+  let branchService: { resolveBranch: ReturnType<typeof mock<BranchService['resolveBranch']>> };
   let fileService: { resolveFileIds: ReturnType<typeof mock<FileService['resolveFileIds']>> };
   let directoryService: { resolveDirectoryId: ReturnType<typeof mock<DirectoryService['resolveDirectoryId']>> };
   let labelService: { resolveLabelIds: ReturnType<typeof mock<LabelService['resolveLabelIds']>> };
@@ -102,7 +102,7 @@ describe('ScreenshotCommand', () => {
       delete: mock(async () => {}),
       isAutoTagInProgressError: mock(() => false),
     };
-    branchService = { getBranch: mock(async () => undefined) };
+    branchService = { resolveBranch: mock(async () => undefined) };
     fileService = { resolveFileIds: mock(async () => ({ fileIds: [], missingPaths: [] })) };
     directoryService = { resolveDirectoryId: mock(async () => undefined) };
     labelService = { resolveLabelIds: mock(async () => undefined) };
@@ -283,7 +283,7 @@ describe('ScreenshotCommand', () => {
     const cmd = createScreenshotCommand();
     const localPath = path.join(tempDirectory, 'welcome.png');
     await writeFile(localPath, 'image');
-    branchService.getBranch.mockResolvedValue({ id: 9, name: 'main' } as never);
+    branchService.resolveBranch.mockResolvedValue({ id: 9, name: 'main' } as never);
     fileService.resolveFileIds.mockResolvedValue({ fileIds: [77], missingPaths: [] });
     screenshotService.findByName.mockResolvedValue(createScreenshot(55, 'welcome.png', 1) as never);
     screenshotService.get.mockResolvedValue(createScreenshot(55, 'welcome.png', 3) as never);
@@ -356,17 +356,6 @@ describe('ScreenshotCommand', () => {
     expect(
       cmd.uploadAction(createCommandContext({ ...globalOptions, autoTag: true, directory: '/missing' }, [localPath])),
     ).rejects.toThrow(new CliError("Project doesn't contain the '/missing' directory"));
-  });
-
-  test('uploadAction validates missing branch', async () => {
-    const cmd = createScreenshotCommand();
-    const localPath = path.join(tempDirectory, 'new.png');
-    await writeFile(localPath, 'image');
-    branchService.getBranch.mockResolvedValue(undefined);
-
-    expect(
-      cmd.uploadAction(createCommandContext({ ...globalOptions, autoTag: true, branch: 'dev' }, [localPath])),
-    ).rejects.toThrow(new CliError("Project doesn't contain the 'dev' branch"));
   });
 
   test('uploadAction rejects directories as file argument', async () => {

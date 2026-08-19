@@ -8,7 +8,6 @@ import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { BranchService } from '@/cli/services/BranchService.ts';
 import type {
   GetBranchService,
   GetConfig,
@@ -151,7 +150,7 @@ export default class DownloadCommand {
       throw new CliError('File management is not available for string-based projects');
     }
 
-    const branchId = await this.resolveBranchId(options.branch, branchService);
+    const branchId = await branchService.resolveBranchId(options.branch);
     const projectFiles = await fileService.loadProjectFiles(branchId);
     const downloads = this.collectSourceDownloads(config, projectFiles.data, hasManagerAccess(project), output);
 
@@ -273,7 +272,7 @@ export default class DownloadCommand {
     );
 
     const serverLanguageMapping = hasManagerAccess(project) ? project.data.languageMapping : undefined;
-    const branchId = await this.resolveBranchId(options.branch, branchService);
+    const branchId = await branchService.resolveBranchId(options.branch);
 
     if (options.dryrun) {
       // Java lists the resolved translation destination paths (per source x language), not the raw
@@ -736,23 +735,5 @@ export default class DownloadCommand {
     }
 
     return byPath;
-  }
-
-  private async resolveBranchId(
-    branchName: string | undefined,
-    branchService: BranchService,
-  ): Promise<number | undefined> {
-    if (!branchName || branchName === 'none') {
-      return undefined;
-    }
-
-    const branches = await branchService.list();
-    const matchedBranch = branches.find((branch) => branch.name === branchName);
-
-    if (!matchedBranch) {
-      throw new CliError(`Branch ${branchName} not found`);
-    }
-
-    return matchedBranch.id;
   }
 }

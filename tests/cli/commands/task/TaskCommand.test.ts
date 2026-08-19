@@ -15,7 +15,7 @@ describe('TaskCommand', () => {
     list: ReturnType<typeof mock<TaskService['list']>>;
     add: ReturnType<typeof mock<TaskService['add']>>;
   };
-  let branchService: { resolveBranchId: ReturnType<typeof mock<BranchService['resolveBranchId']>> };
+  let branchService: { resolveBranch: ReturnType<typeof mock<BranchService['resolveBranch']>> };
   let fileService: { resolveFileIds: ReturnType<typeof mock<FileService['resolveFileIds']>> };
   let apiClient: { organization?: Client['organization'] };
   const globalOptions: GlobalOptions = {
@@ -56,7 +56,7 @@ describe('TaskCommand', () => {
       list: mock(async () => []),
       add: mock(async () => createTask({})),
     };
-    branchService = { resolveBranchId: mock(async () => undefined) };
+    branchService = { resolveBranch: mock(async () => undefined) };
     fileService = { resolveFileIds: mock(async () => ({ fileIds: [], missingPaths: [] })) };
     apiClient = {};
 

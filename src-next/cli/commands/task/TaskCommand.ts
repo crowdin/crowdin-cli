@@ -160,8 +160,8 @@ export default class TaskCommand {
     const taskService = await this.getTaskService(command);
     const branchService = await this.getBranchService(command);
     const fileService = await this.getFileService(command);
-    const branchId = await branchService.resolveBranchId(options.branch);
-    const resolved = await fileService.resolveFileIds(files, branchId);
+    const branch = await branchService.resolveBranch(options.branch);
+    const resolved = await fileService.resolveFileIds(files, branch);
 
     for (const missing of resolved.missingPaths) {
       output.warning(`Project doesn't contain the '${missing}' file`);

@@ -19,6 +19,8 @@ const globalOptions: GlobalOptions = {
 
 const mockFiles = [{ data: { id: 1, path: '/docs/readme.md' } }, { data: { id: 2, path: '/src/index.ts' } }];
 
+const BRANCH = { id: 5, name: 'main' };
+
 describe('FileService', () => {
   let apiClient: Client;
   let output: Output;
@@ -106,6 +108,46 @@ describe('FileService', () => {
       expect(result.fileIds).toEqual([]);
       expect(result.missingPaths).toEqual(['gone.md']);
     });
+
+    // Java looked files up by their path inside the branch, so '--file' stays branch-relative and
+    // the branch itself only ever arrives through '--branch'.
+    test('matches a branch-relative path against the branch-prefixed server path', async () => {
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 7, path: '/main/feature/de.lproj/Foo.strings' } }],
+      } as never);
+
+      const result = await fileService.resolveFileIds(['feature/de.lproj/Foo.strings'], BRANCH);
+
+      expect(result.fileIds).toEqual([7]);
+      expect(result.missingPaths).toEqual([]);
+    });
+
+    // A file inside a branch is only addressable once '--branch' names that branch — neither the
+    // branch-relative path nor the prefixed one reaches it otherwise.
+    test('ignores files that live in a branch when no branch is given', async () => {
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 7, path: '/main/feature/de.lproj/Foo.strings', branchId: 5 } }],
+      } as never);
+
+      const result = await fileService.resolveFileIds([
+        'main/feature/de.lproj/Foo.strings',
+        'feature/de.lproj/Foo.strings',
+      ]);
+
+      expect(result.fileIds).toEqual([]);
+      expect(result.missingPaths).toEqual(['main/feature/de.lproj/Foo.strings', 'feature/de.lproj/Foo.strings']);
+    });
+
+    test('rejects a path that repeats the branch name', async () => {
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 7, path: '/main/feature/de.lproj/Foo.strings' } }],
+      } as never);
+
+      const result = await fileService.resolveFileIds(['main/feature/de.lproj/Foo.strings'], BRANCH);
+
+      expect(result.fileIds).toEqual([]);
+      expect(result.missingPaths).toEqual(['main/feature/de.lproj/Foo.strings']);
+    });
   });
 
   describe('listProjectFilePaths', () => {
@@ -118,6 +160,28 @@ describe('FileService', () => {
 
       expect(result.get(1)).toBe('/docs/readme.md');
       expect(result.get(2)).toBe('/src/index.ts');
+    });
+
+    // This map labels strings that were already fetched, so a branch file has to keep a path even
+    // though '--file' could not have addressed it.
+    test('keeps branch files, prefix and all, when no branch is given', async () => {
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 7, path: '/main/docs/readme.md', branchId: 5 } }],
+      } as never);
+
+      const result = await fileService.listProjectFilePaths();
+
+      expect(result.get(7)).toBe('/main/docs/readme.md');
+    });
+
+    test('reports paths relative to the requested branch', async () => {
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 7, path: '/main/docs/readme.md' } }],
+      } as never);
+
+      const result = await fileService.listProjectFilePaths(BRANCH);
+
+      expect(result.get(7)).toBe('/docs/readme.md');
     });
   });
 

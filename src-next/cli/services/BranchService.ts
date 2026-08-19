@@ -48,7 +48,10 @@ export class BranchService {
     }
   }
 
-  async resolveBranchId(name: string | undefined, createMissing: boolean = false): Promise<number | undefined> {
+  async resolveBranch(
+    name: string | undefined,
+    createMissing: boolean = false,
+  ): Promise<SourceFilesModel.Branch | undefined> {
     const branch = createMissing ? (await this.getOrCreateBranch(name)).branch : await this.getBranch(name);
 
     if (!name || name === 'none') {
@@ -59,7 +62,11 @@ export class BranchService {
       throw new CliError(`Project doesn't contain the '${name}' branch`);
     }
 
-    return branch.id;
+    return branch;
+  }
+
+  async resolveBranchId(name: string | undefined, createMissing: boolean = false): Promise<number | undefined> {
+    return (await this.resolveBranch(name, createMissing))?.id;
   }
 
   async list(): Promise<SourceFilesModel.Branch[]> {

@@ -1,11 +1,16 @@
 import type { Client, PatchRequest, SourceFilesModel } from '@crowdin/crowdin-api-client';
 import { pollUntilFinished } from '@/lib/api/pollStatus.ts';
+import { stripBranchPrefix } from '@/lib/utils/path.ts';
 import FileExistsError from '../errors/FileExistsError.ts';
 import FileInUpdateError from '../errors/FileInUpdateError.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import type { Output } from '../utils/output.ts';
 import { normalizePath } from '../utils/parsing.ts';
 import { withSpinner } from '../utils/withSpinner.ts';
+
+// Only the id and the name matter here: the id scopes the request, the name comes back off every
+// path the request returns.
+type ProjectBranch = Pick<SourceFilesModel.Branch, 'id' | 'name'>;
 
 export class FileService {
   constructor(
@@ -78,8 +83,11 @@ export class FileService {
     }
   }
 
-  async resolveFileIds(rawPaths: string[], branchId?: number): Promise<{ fileIds: number[]; missingPaths: string[] }> {
-    const fileIdsByPath = await this.loadFileIdsByPath(branchId);
+  async resolveFileIds(
+    rawPaths: string[],
+    branch?: ProjectBranch,
+  ): Promise<{ fileIds: number[]; missingPaths: string[] }> {
+    const fileIdsByPath = await this.loadFileIdsByPath(branch);
     const fileIds: number[] = [];
     const missingPaths: string[] = [];
 
@@ -106,27 +114,57 @@ export class FileService {
     );
   }
 
-  async listProjectFilePaths(branchId?: number): Promise<Map<number, string>> {
-    const files = await this.fetchProjectFiles(branchId);
-    return new Map(files.map((file) => [file.id, normalizePath(file.path)]));
+  // A file inside a branch is addressable only once '--branch' names that branch: the branch is
+  // never part of '--file', and without one every path would silently resolve against whichever
+  // branch happened to be listed first.
+  //
+  // This is a deliberate deviation, not parity: Java (StringAddAction) keeps branch files in the
+  // lookup even with no branch given and builds their keys off the directory tree alone
+  // (ProjectFilesUtils.buildFilePaths without branches), so two branches holding the same relative
+  // path collide and the last one into the HashMap wins. Dropping them is the whole point here —
+  // don't "restore parity" by deleting the filter.
+  private async loadFileIdsByPath(branch?: ProjectBranch): Promise<Map<string, number>> {
+    const files = await this.fetchProjectFiles(branch?.id);
+    const addressable = branch ? files : files.filter((file) => file.branchId === null);
+
+    return new Map(addressable.map((file) => [this.toLookupPath(file.path, branch), file.id]));
   }
 
-  private async fetchProjectFiles(branchId?: number): Promise<Array<{ id: number; path: string }>> {
+  // Unlike the lookup above this keeps branch files, because it labels strings that were already
+  // fetched rather than addressing one: dropping them would leave those strings without a path.
+  async listProjectFilePaths(branch?: ProjectBranch): Promise<Map<number, string>> {
+    const files = await this.fetchProjectFiles(branch?.id);
+
+    return new Map(files.map((file) => [file.id, this.toLookupPath(file.path, branch)]));
+  }
+
+  private async fetchProjectFiles(
+    branchId?: number,
+  ): Promise<Array<{ id: number; path: string; branchId: number | null }>> {
     try {
       const response = await this.apiClient.sourceFilesApi.withFetchAll().listProjectFiles(this.projectId, {
         ...(branchId !== undefined ? { branchId } : {}),
         recursion: '1',
       });
 
-      return response.data.map((entry) => ({ id: entry.data.id, path: entry.data.path }));
+      // Files nested in a branch's directories carry their branchId too, so it alone says whether
+      // a file sits in a branch — no walking the directory chain up to one.
+      return response.data.map((entry) => ({
+        id: entry.data.id,
+        path: entry.data.path,
+        branchId: entry.data.branchId ?? null,
+      }));
     } catch (error) {
       throw toCliError(error, 'Failed to fetch project files');
     }
   }
 
-  private async loadFileIdsByPath(branchId?: number): Promise<Map<string, number>> {
-    const files = await this.fetchProjectFiles(branchId);
-    return new Map(files.map((file) => [normalizePath(file.path), file.id]));
+  // Server paths carry the branch name, the path given on the command line never does, so '--file'
+  // stays branch-relative and the branch only arrives through '--branch'. Branch-relative keys do
+  // match Java, which builds them off the directory tree alone; what differs is which files reach
+  // the lookup at all (see loadFileIdsByPath).
+  private toLookupPath(projectPath: string, branch?: ProjectBranch): string {
+    return stripBranchPrefix(normalizePath(projectPath), branch?.name);
   }
 
   async getSourceFileDownloadUrl(fileId: number): Promise<string> {

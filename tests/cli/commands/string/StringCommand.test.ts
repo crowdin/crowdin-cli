@@ -20,7 +20,10 @@ describe('StringCommand', () => {
     edit: ReturnType<typeof mock<StringService['edit']>>;
     delete: ReturnType<typeof mock<StringService['delete']>>;
   };
-  let branchService: { resolveBranchId: ReturnType<typeof mock<BranchService['resolveBranchId']>> };
+  let branchService: {
+    resolveBranch: ReturnType<typeof mock<BranchService['resolveBranch']>>;
+    resolveBranchId: ReturnType<typeof mock<BranchService['resolveBranchId']>>;
+  };
   let directoryService: { resolveDirectoryId: ReturnType<typeof mock<DirectoryService['resolveDirectoryId']>> };
   let labelService: {
     resolveLabelIds: ReturnType<typeof mock<LabelService['resolveLabelIds']>>;
@@ -93,7 +96,7 @@ describe('StringCommand', () => {
       edit: mock(async () => createStringModel({ id: 5, text: 'edited', identifier: 'k5' })),
       delete: mock(async () => {}),
     };
-    branchService = { resolveBranchId: mock(async () => undefined) };
+    branchService = { resolveBranch: mock(async () => undefined), resolveBranchId: mock(async () => undefined) };
     directoryService = { resolveDirectoryId: mock(async () => undefined) };
     labelService = {
       resolveLabelIds: mock(async () => undefined),

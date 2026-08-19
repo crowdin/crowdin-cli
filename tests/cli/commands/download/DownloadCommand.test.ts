@@ -616,7 +616,7 @@ describe('DownloadCommand', () => {
       });
 
       expect(downloadCommand.translationsAction(commandContext)).rejects.toThrow(
-        new CliError('Branch nonexistent not found'),
+        new CliError("Project doesn't contain the 'nonexistent' branch"),
       );
     });
 
@@ -1378,7 +1378,7 @@ describe('DownloadCommand', () => {
       });
 
       expect(downloadCommand.sourcesAction(commandContext)).rejects.toThrow(
-        new CliError('Branch nonexistent not found'),
+        new CliError("Project doesn't contain the 'nonexistent' branch"),
       );
     });
 

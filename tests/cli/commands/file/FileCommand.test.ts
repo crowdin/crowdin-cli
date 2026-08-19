@@ -215,6 +215,41 @@ describe('FileCommand', () => {
     expect(loadProjectFiles).toHaveBeenCalledWith(5);
   });
 
+  // Java's FileListAction filters on the resolved branchId, so a project whose files all sit in a
+  // branch lists nothing until '--branch' names that branch.
+  test('skips files that live in a branch when no branch is given', async () => {
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
+    const fileCommand = createFileCommandWith(textOutput);
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(branchService, 'resolveBranchId').mockResolvedValue(undefined);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+      data: [
+        { data: { id: 1, path: '/main/docs/readme.md', branchId: 5 } },
+        { data: { id: 2, path: '/docs/changelog.md', branchId: null } },
+      ],
+    } as never);
+
+    await fileCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
+
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('docs/changelog.md'));
+    expect(console.log).not.toHaveBeenCalledWith(expect.stringContaining('readme.md'));
+  });
+
+  test('lists the branch files once --branch names the branch', async () => {
+    const fileCommand = createFileCommand();
+
+    spyOn(projectService, 'loadProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(branchService, 'resolveBranchId').mockResolvedValue(5);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 1, path: '/main/docs/readme.md', branchId: 5 } }],
+    } as never);
+
+    await fileCommand.listAction(createCommandContext({ ...globalOptions, branch: 'main' }));
+
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ id: 1, path: '/main/docs/readme.md' }], null, 2));
+  });
+
   test('renders a tree view with --tree', async () => {
     const textOutput = createOutput({ ...globalOptions, output: 'text' });
     const fileCommand = createFileCommandWith(textOutput);

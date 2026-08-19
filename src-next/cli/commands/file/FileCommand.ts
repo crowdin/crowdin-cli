@@ -145,7 +145,11 @@ export default class FileCommand {
     await projectService.loadProject();
     const branchId = await branchService.resolveBranchId(options.branch);
     const projectFiles = await fileService.loadProjectFiles(branchId);
-    const files = projectFiles.data.map((file) => file.data);
+    // Java's FileListAction keeps only the files whose branchId equals the resolved one, so without
+    // '--branch' a project whose files all live in branches lists nothing at all.
+    const files = projectFiles.data
+      .map((file) => file.data)
+      .filter((file) => (file.branchId ?? null) === (branchId ?? null));
 
     // Tree is an interactive-only rendering; a machine --output (json/toon/plain) is a parseable
     // contract and wins, falling through to output.list so the format stays intact.

@@ -359,9 +359,10 @@ export default class ContextCommand {
 
     const project = (await projectService.loadProject()).data;
     const isStringsBased = project.type === ProjectsGroupsModel.Type.STRINGS_BASED;
-    const branchId = await branchService.resolveBranchId(options.branch);
+    const branch = await branchService.resolveBranch(options.branch);
+    const branchId = branch?.id;
     const labelIds = await labelService.resolveLabelIds(toArray(options.label), false);
-    const filePaths = isStringsBased ? new Map<number, string>() : await fileService.listProjectFilePaths(branchId);
+    const filePaths = isStringsBased ? new Map<number, string>() : await fileService.listProjectFilePaths(branch);
     const fileFilters = toArray(options.file);
 
     const baseParams: SourceStringsModel.ListProjectStringsOptions = {

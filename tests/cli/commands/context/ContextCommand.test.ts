@@ -24,7 +24,7 @@ describe('ContextCommand', () => {
     list: ReturnType<typeof mock<StringService['list']>>;
     batchEdit: ReturnType<typeof mock<StringService['batchEdit']>>;
   };
-  let branchService: { resolveBranchId: ReturnType<typeof mock<BranchService['resolveBranchId']>> };
+  let branchService: { resolveBranch: ReturnType<typeof mock<BranchService['resolveBranch']>> };
   let fileService: { listProjectFilePaths: ReturnType<typeof mock<FileService['listProjectFilePaths']>> };
   let labelService: { resolveLabelIds: ReturnType<typeof mock<LabelService['resolveLabelIds']>> };
 
@@ -77,7 +77,7 @@ describe('ContextCommand', () => {
 
     projectService = { loadProject: mock() };
     stringService = { list: mock(async () => []), batchEdit: mock(async () => {}) };
-    branchService = { resolveBranchId: mock(async () => undefined) };
+    branchService = { resolveBranch: mock(async () => undefined) };
     fileService = { listProjectFilePaths: mock(async () => new Map<number, string>()) };
     labelService = { resolveLabelIds: mock(async () => undefined) };
 
@@ -313,7 +313,7 @@ describe('ContextCommand', () => {
       const command = createContextCommand();
       const to = join(tempDir, 'out.jsonl');
 
-      branchService.resolveBranchId.mockResolvedValue(7);
+      branchService.resolveBranch.mockResolvedValue({ id: 7, name: 'main' } as never);
       labelService.resolveLabelIds.mockResolvedValue([33, 44]);
       stringService.list.mockResolvedValue([createString({ id: 1 })]);
 
@@ -321,7 +321,7 @@ describe('ContextCommand', () => {
         createCommandContext({ to, branch: 'main', label: ['l1', 'l2'], croql: 'count of translations = 0' }),
       );
 
-      expect(branchService.resolveBranchId).toHaveBeenCalledWith('main');
+      expect(branchService.resolveBranch).toHaveBeenCalledWith('main');
       expect(labelService.resolveLabelIds).toHaveBeenCalledWith(['l1', 'l2'], false);
       expect(stringService.list).toHaveBeenCalledWith({
         branchId: 7,
