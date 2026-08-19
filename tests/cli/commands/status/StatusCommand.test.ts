@@ -80,7 +80,7 @@ describe('StatusCommand', () => {
     commandContext = createCommandContext(globalOptions);
 
     spyOn(console, 'log').mockImplementation(() => {});
-    spyOn(console, 'table').mockImplementation(() => {});
+    spyOn(Bun.inspect, 'table').mockImplementation(() => '');
   });
 
   afterEach(() => {
@@ -134,9 +134,12 @@ describe('StatusCommand', () => {
 
     await statusCommand.defaultAction(createCommandContext({ ...globalOptions, output: 'text' }));
 
-    expect(console.table).toHaveBeenCalledWith({
-      'French(fr)': { Translated: '87%', Proofread: '75%' },
-    });
+    expect(Bun.inspect.table).toHaveBeenCalledWith(
+      {
+        'French(fr)': { Translated: '87%', Proofread: '75%' },
+      },
+      { colors: false },
+    );
   });
 
   test('fails when incomplete with --fail-if-incomplete for translation', async () => {
@@ -196,16 +199,19 @@ describe('StatusCommand', () => {
 
     await statusCommand.defaultAction(createCommandContext({ ...globalOptions, output: 'text', verbose: true }));
 
-    expect(console.table).toHaveBeenCalledWith({
-      'French(fr)': {
-        Translated: '87%',
-        'Translated words': '120/138',
-        'Translated phrases': '30/34',
-        Proofread: '75%',
-        'Proofread words': '103/138',
-        'Proofread phrases': '26/34',
+    expect(Bun.inspect.table).toHaveBeenCalledWith(
+      {
+        'French(fr)': {
+          Translated: '87%',
+          'Translated words': '120/138',
+          'Translated phrases': '30/34',
+          Proofread: '75%',
+          'Proofread words': '103/138',
+          'Proofread phrases': '26/34',
+        },
       },
-    });
+      { colors: false },
+    );
   });
 
   test('adds a section per count with --verbose in plain', async () => {
@@ -230,7 +236,7 @@ describe('StatusCommand', () => {
         'Proofread words:\nfr 0/100\n' +
         'Proofread phrases:\nfr 0/0',
     );
-    expect(console.table).not.toHaveBeenCalled();
+    expect(Bun.inspect.table).not.toHaveBeenCalled();
   });
 
   test('still fails with --fail-if-incomplete when verbose', async () => {

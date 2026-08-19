@@ -320,7 +320,7 @@ export default class ContextCommand {
     output.item(stats, contextStatusPlainView(), { mark: false });
   };
 
-  private printStatusTable(output: Output, project: ProjectsGroupsModel.Project, table: unknown): void {
+  private printStatusTable(output: Output, project: ProjectsGroupsModel.Project, table: object): void {
     output.success(contextStatusTitle(project));
     output.table(table);
     output.info(contextStatusFooter);

@@ -84,7 +84,7 @@ describe('ContextCommand', () => {
     mockProject();
 
     spyOn(console, 'log').mockImplementation(() => {});
-    spyOn(console, 'table').mockImplementation(() => {});
+    spyOn(Bun.inspect, 'table').mockImplementation(() => '');
   });
 
   afterEach(async () => {
@@ -567,12 +567,15 @@ describe('ContextCommand', () => {
       expect(loggedOutput()).toContain(
         "Run 'crowdin context download --status=empty' to export strings needing context.",
       );
-      expect(console.table).toHaveBeenCalledWith({
-        'Total strings': { Count: 3, Percent: '' },
-        'With AI context': { Count: 1, Percent: '33.33%' },
-        'Without AI context': { Count: 2, Percent: '66.67%' },
-        'With manual context': { Count: 2, Percent: '66.67%' },
-      });
+      expect(Bun.inspect.table).toHaveBeenCalledWith(
+        {
+          'Total strings': { Count: 3, Percent: '' },
+          'With AI context': { Count: 1, Percent: '33.33%' },
+          'Without AI context': { Count: 2, Percent: '66.67%' },
+          'With manual context': { Count: 2, Percent: '66.67%' },
+        },
+        { colors: false },
+      );
     });
 
     // '--output' carries no default, so an unset flag arrives as undefined — that has to read as text.
@@ -583,7 +586,7 @@ describe('ContextCommand', () => {
 
       await command.statusAction(createCommandContext({ output: undefined }));
 
-      expect(console.table).toHaveBeenCalled();
+      expect(Bun.inspect.table).toHaveBeenCalled();
       expect(loggedOutput()).toContain('Context Status for Project "Test Project" (ID: 123)');
       expect(loggedOutput()).not.toContain('Total strings: 1');
     });
@@ -646,10 +649,13 @@ describe('ContextCommand', () => {
 
       await command.statusAction(createCommandContext({ byFile: true }));
 
-      expect(console.table).toHaveBeenCalledWith({
-        '/first.txt': { Total: 2, 'AI context': '1 (50.00%)', Missing: 1 },
-        '/second.txt': { Total: 1, 'AI context': '0 (0.00%)', Missing: 1 },
-      });
+      expect(Bun.inspect.table).toHaveBeenCalledWith(
+        {
+          '/first.txt': { Total: 2, 'AI context': '1 (50.00%)', Missing: 1 },
+          '/second.txt': { Total: 1, 'AI context': '0 (0.00%)', Missing: 1 },
+        },
+        { colors: false },
+      );
     });
 
     test('emits per-file counts in structured formats', async () => {
@@ -694,12 +700,15 @@ describe('ContextCommand', () => {
       await command.statusAction(createCommandContext({ byFile: true }));
 
       // Falls back to the summary grid rather than the per-file one.
-      expect(console.table).toHaveBeenCalledWith({
-        'Total strings': { Count: 1, Percent: '' },
-        'With AI context': { Count: 1, Percent: '100.00%' },
-        'Without AI context': { Count: 0, Percent: '0.00%' },
-        'With manual context': { Count: 1, Percent: '100.00%' },
-      });
+      expect(Bun.inspect.table).toHaveBeenCalledWith(
+        {
+          'Total strings': { Count: 1, Percent: '' },
+          'With AI context': { Count: 1, Percent: '100.00%' },
+          'Without AI context': { Count: 0, Percent: '0.00%' },
+          'With manual context': { Count: 1, Percent: '100.00%' },
+        },
+        { colors: false },
+      );
     });
 
     test('emits only the report in plain format', async () => {

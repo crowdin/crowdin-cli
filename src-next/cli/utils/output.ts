@@ -16,6 +16,35 @@ import { formatData, isMachineFormat as isMachine } from './formatter.ts';
 
 export const OUTPUT_FORMATS = ['json', 'toon', 'plain'];
 
+// biome-ignore lint/suspicious/noControlCharactersInRegex: ESC is what an SGR sequence starts with
+const SGR_SEQUENCE = /\u001b\[[0-9;]*m/g;
+
+/**
+ * clack styles the spinner with node's `styleText` rather than through our colors module — the
+ * animated frame, the symbol it settles on, and the 'Canceled' line its own SIGINT/exit handlers
+ * print. Only the frame takes a hook, and the handlers run outside our wrapper entirely, so
+ * `--no-colors` strips color on the way out instead. Cursor and erase sequences have to survive
+ * or the spinner scrolls instead of animating in place.
+ *
+ * Everything but `write` has to reach the real stream: on a TTY clack hands this to
+ * `readline.createInterface`, which subscribes with `output.on('resize')` and reads `columns`.
+ * A shim that declares only the members clack looks like it uses throws there, so forward the
+ * whole stream and intercept the one method.
+ */
+export const uncoloredStdout = new Proxy(process.stdout, {
+  get(target, property) {
+    if (property !== 'write') {
+      return Reflect.get(target, property, target);
+    }
+
+    return (chunk: unknown, ...rest: unknown[]) =>
+      (target.write as (...args: unknown[]) => boolean)(
+        typeof chunk === 'string' ? chunk.replace(SGR_SEQUENCE, '') : chunk,
+        ...rest,
+      );
+  },
+});
+
 export type OutputOptions = {
   withGuide?: boolean;
 };
@@ -87,9 +116,12 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
      * A genuinely 2-D grid, which in this CLI is only `status` (languages × translated/proofread).
      * Everything else renders one line per entity through list()/item().
      */
-    table(data: unknown): void {
+    table(data: object | unknown[]): void {
       if (format === 'text') {
-        console.table(data);
+        // console.table bolds its header row on a TTY with no way to opt out, so --no-colors
+        // leaked styling through it. Bun.inspect.table renders the same grid and takes the flag.
+        // trimEnd because the rendered grid ends in a newline and console.log adds its own.
+        console.log(Bun.inspect.table(data, { colors: options.colors }).trimEnd());
         return;
       }
 
@@ -200,7 +232,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
       }
 
       if (!this.spinners[identifier]) {
-        this.spinners[identifier] = spinner();
+        this.spinners[identifier] = spinner(options.colors ? {} : { output: uncoloredStdout });
       }
 
       // clack hardcodes the spinner's error symbol (S_STEP_ERROR); clear it and
