@@ -11,6 +11,7 @@ import {
 } from '@/cli/utils/aiContext.ts';
 
 const CONTEXT_WITH_AI = 'This is the manual context.\n\n✨ AI Context\nThis is the AI context.\n✨ 🔚';
+const CONTEXT_AI_ONLY = '✨ AI Context\nThis is the AI context.\n✨ 🔚';
 
 describe('aiContext', () => {
   describe('getManualContext', () => {
@@ -27,6 +28,10 @@ describe('aiContext', () => {
       expect(getManualContext(undefined)).toBe('');
       expect(getManualContext(null)).toBe('');
     });
+
+    test('returns an empty string for a context holding only an AI section', () => {
+      expect(getManualContext(CONTEXT_AI_ONLY)).toBe('');
+    });
   });
 
   describe('getAiContextSection', () => {
@@ -42,6 +47,10 @@ describe('aiContext', () => {
       expect(getAiContextSection('')).toBe('');
       expect(getAiContextSection(undefined)).toBe('');
       expect(getAiContextSection(null)).toBe('');
+    });
+
+    test('extracts the AI section from a context holding only an AI section', () => {
+      expect(getAiContextSection(CONTEXT_AI_ONLY)).toBe('This is the AI context.');
     });
   });
 

@@ -1,7 +1,10 @@
 import type { SourceStringsModel } from '@crowdin/crowdin-api-client';
 
-const AI_CONTEXT_SECTION_START = '\n\n✨ AI Context\n';
-const AI_CONTEXT_SECTION_END = '\n✨ 🔚';
+const AI_CONTEXT_MARKER_START = '✨ AI Context';
+const AI_CONTEXT_MARKER_END = '✨ 🔚';
+
+const AI_CONTEXT_SECTION_START = `\n\n${AI_CONTEXT_MARKER_START}\n`;
+const AI_CONTEXT_SECTION_END = `\n${AI_CONTEXT_MARKER_END}`;
 
 // Mirrors the jsonl record produced by the Java CLI ('crowdin context download')
 export interface StringContextRecord {
@@ -18,7 +21,7 @@ export function getManualContext(context?: string | null): string {
     return '';
   }
 
-  const startIndex = context.indexOf(AI_CONTEXT_SECTION_START);
+  const startIndex = context.indexOf(AI_CONTEXT_MARKER_START);
 
   if (startIndex !== -1) {
     return context.substring(0, startIndex).trim();
@@ -32,11 +35,17 @@ export function getAiContextSection(context?: string | null): string {
     return '';
   }
 
-  const startIndex = context.indexOf(AI_CONTEXT_SECTION_START);
-  const endIndex = context.indexOf(AI_CONTEXT_SECTION_END);
+  const startIndex = context.indexOf(AI_CONTEXT_MARKER_START);
 
-  if (startIndex !== -1 && endIndex !== -1 && startIndex < endIndex) {
-    return context.substring(startIndex + AI_CONTEXT_SECTION_START.length, endIndex);
+  if (startIndex === -1) {
+    return '';
+  }
+
+  const sectionStart = startIndex + AI_CONTEXT_MARKER_START.length;
+  const endIndex = context.indexOf(AI_CONTEXT_MARKER_END, sectionStart);
+
+  if (endIndex !== -1) {
+    return context.substring(sectionStart, endIndex).trim();
   }
 
   return '';
