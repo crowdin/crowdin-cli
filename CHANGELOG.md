@@ -1,5 +1,13 @@
 # Changelog
 
+## [4.15.1](https://github.com/crowdin/crowdin-cli/compare/4.15.0...4.15.1) (2026-08-20)
+
+
+### Bug Fixes
+
+* **context:** detect the AI context section by its markers ([#1074](https://github.com/crowdin/crowdin-cli/issues/1074)) ([5a2a99e](https://github.com/crowdin/crowdin-cli/commit/5a2a99e98f08d2b0f6e5ef8b80c12d05c00e7456))
+* trim dest ** prefix only at a path-segment boundary ([#1075](https://github.com/crowdin/crowdin-cli/issues/1075)) ([a2c0b43](https://github.com/crowdin/crowdin-cli/commit/a2c0b436924d3970b084e62898a793d923cdd590))
+
 # [4.15.0](https://github.com/crowdin/crowdin-cli/compare/4.14.4...4.15.0) (2026-07-23)
 
 
