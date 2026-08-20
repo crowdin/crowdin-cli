@@ -84,6 +84,7 @@ describe('ContextCommand', () => {
     mockProject();
 
     spyOn(console, 'log').mockImplementation(() => {});
+    spyOn(console, 'error').mockImplementation(() => {});
     spyOn(Bun.inspect, 'table').mockImplementation(() => '');
   });
 
@@ -92,8 +93,12 @@ describe('ContextCommand', () => {
     await rm(tempDir, { recursive: true, force: true });
   });
 
+  // Diagnostics go to stderr, results to stdout; this is everything the user saw.
   const loggedOutput = () =>
-    (console.log as ReturnType<typeof mock>).mock.calls.map((call) => String(call[0])).join('\n');
+    [console.log, console.error]
+      .flatMap((fn) => (fn as ReturnType<typeof mock>).mock.calls)
+      .map((call) => String(call[0]))
+      .join('\n');
 
   test('delegates default action to command help', async () => {
     const command = createContextCommand();

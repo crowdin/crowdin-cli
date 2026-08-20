@@ -48,6 +48,7 @@ describe('LabelCommand', () => {
     };
 
     spyOn(console, 'log').mockImplementation(() => {});
+    spyOn(console, 'error').mockImplementation(() => {});
     spyOn(console, 'table').mockImplementation(() => {});
   });
 
@@ -169,7 +170,7 @@ describe('LabelCommand', () => {
     await labelCommand.addAction(createCommandContext(globalOptions, ['main']));
 
     expect(labelService.add).not.toHaveBeenCalled();
-    expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Label 'main' already exists in the project"));
+    expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Label 'main' already exists in the project"));
   });
 
   test('requires title for add action', async () => {

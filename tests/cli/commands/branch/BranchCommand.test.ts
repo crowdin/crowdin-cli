@@ -82,6 +82,7 @@ describe('BranchCommand', () => {
 
     spyOn(Bun, 'sleep').mockResolvedValue(undefined);
     spyOn(console, 'log').mockImplementation(() => {});
+    spyOn(console, 'error').mockImplementation(() => {});
     spyOn(console, 'table').mockImplementation(() => {});
   });
 
@@ -265,7 +266,9 @@ describe('BranchCommand', () => {
       await branchCommand.addAction(createCommandContext({}, ['main']));
 
       expect(branchService.add).not.toHaveBeenCalled();
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Branch 'main' already exists in the project"));
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining("Branch 'main' already exists in the project"),
+      );
     });
 
     test('propagates add errors', async () => {
@@ -316,7 +319,7 @@ describe('BranchCommand', () => {
       await branchCommand.deleteAction(createCommandContext({}, ['main']));
 
       expect(branchService.delete).not.toHaveBeenCalled();
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Branch 'main' doesn't exist in the project"));
+      expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Branch 'main' doesn't exist in the project"));
     });
 
     test('propagates delete errors', async () => {

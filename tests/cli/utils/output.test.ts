@@ -91,6 +91,108 @@ describe('machine output keys', () => {
   });
 });
 
+describe('diagnostics', () => {
+  const options = (output: string): GlobalOptions => ({
+    colors: false,
+    config: '',
+    progress: false,
+    verbose: false,
+    output,
+    debug: false,
+  });
+
+  // stdout carries the result document and nothing else, so a command that warns and then fails
+  // still leaves parseable output behind.
+  test.each(['json', 'toon', 'text', 'plain'])('keeps diagnostics off stdout in %s', (format) => {
+    const log = spyOn(console, 'log').mockImplementation(() => {});
+    spyOn(console, 'error').mockImplementation(() => {});
+
+    const out = createOutput(options(format));
+
+    out.warning('a warning');
+    out.error('a failure');
+
+    expect(log).not.toHaveBeenCalled();
+  });
+
+  test('emits one JSON object per diagnostic in machine formats', () => {
+    const errors: string[] = [];
+
+    spyOn(console, 'error').mockImplementation((line) => {
+      errors.push(String(line));
+    });
+
+    const out = createOutput(options('json'));
+
+    out.warning("Project doesn't contain the 'a.yml' file");
+    out.error('No valid file specified for the task', { code: 1 });
+
+    expect(errors.map((line) => JSON.parse(line))).toEqual([
+      { level: 'warning', message: "Project doesn't contain the 'a.yml' file" },
+      { level: 'error', message: 'No valid file specified for the task', code: 1 },
+    ]);
+    // One record per line: pretty-printing would spread a record over several and take the
+    // newline separator with it. Parsing alone does not catch that — whitespace is legal JSON.
+    expect(errors.every((line) => !line.includes('\n'))).toBe(true);
+  });
+
+  // toon records span lines, so a blank line ends each one. Newlines inside a message are
+  // escaped by both formats, so neither separator can turn up inside a record.
+  test('emits toon blocks separated by a blank line when the output format is toon', () => {
+    const errors: string[] = [];
+
+    spyOn(console, 'error').mockImplementation((line) => {
+      errors.push(String(line));
+    });
+
+    const out = createOutput(options('toon'));
+
+    out.warning('a warning');
+    out.error('a failure', { code: 1 });
+
+    // console.error appends the newline the spy does not capture, so add it back.
+    expect(errors.map((line) => `${line}\n`).join('')).toBe(
+      'level: warning\nmessage: a warning\n\nlevel: error\nmessage: a failure\ncode: 1\n\n',
+    );
+  });
+
+  test('escapes a newline inside a message rather than ending the record', () => {
+    const errors: string[] = [];
+
+    spyOn(console, 'error').mockImplementation((line) => {
+      errors.push(String(line));
+    });
+
+    createOutput(options('toon')).warning('first line\n\nsecond line');
+
+    const stream = errors.map((line) => `${line}\n`).join('');
+
+    // One record, so exactly one blank line: the separator at the end, none from the message.
+    expect(stream.split('\n\n')).toHaveLength(2);
+    expect(stream).toContain('\\n\\nsecond line');
+  });
+
+  // Warnings used to be dropped outside text, so --output consumers lost them silently.
+  test('reports warnings in every format', () => {
+    for (const format of ['json', 'toon', 'text', 'plain']) {
+      const error = spyOn(console, 'error').mockImplementation(() => {});
+
+      createOutput(options(format)).warning('a warning');
+
+      expect(error).toHaveBeenCalledWith(expect.stringContaining('a warning'));
+      error.mockRestore();
+    }
+  });
+
+  test('leaves the symbol off the plain line', () => {
+    const error = spyOn(console, 'error').mockImplementation(() => {});
+
+    createOutput(options('plain')).error('a failure');
+
+    expect(error).toHaveBeenCalledWith('a failure');
+  });
+});
+
 describe('spinner colors', () => {
   const ESCAPE = '\u001b[';
   // Colour (SGR) sequences only — cursor and erase sequences are not colour.

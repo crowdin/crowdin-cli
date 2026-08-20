@@ -88,15 +88,16 @@ try {
     const globalOptions = getOutputFormatFromArgs(argv);
     const output = createOutput(globalOptions);
     const message = error instanceof Error ? error.message : String(error);
+    const exitCode = getExitCode(error);
 
     if (globalOptions.debug && error instanceof Error && error.stack) {
       // --debug: print the full stack trace (message included) instead of the one-liner.
       // ponytail: top-level only; per-file worker-thread stacks stay deferred with upload/download.
       console.error(error.stack);
     } else if (!(error instanceof CliError && error.reported)) {
-      output.error(message);
+      output.error(message, { code: exitCode });
     }
 
-    process.exitCode = getExitCode(error);
+    process.exitCode = exitCode;
   }
 }

@@ -95,6 +95,41 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
     return format === 'plain' && view.plain ? view.plain(item) : view.text(item);
   }
 
+  /**
+   * Diagnostics go to stderr in every format, so stdout only ever carries the result document —
+   * a command that warns about three files and then fails still leaves parseable output behind.
+   *
+   * They used to print to stdout, and warnings were dropped outside text entirely, so `--output`
+   * consumers silently lost every 'project doesn't contain the file' notice.
+   */
+  function diagnostic(level: 'error' | 'warning', message: string, code?: number): void {
+    // One record per diagnostic, not one document per run: they are emitted as they happen, so
+    // buffering to exit would lose every warning a killed upload had already produced. json
+    // separates records by newline, toon by blank line; both escape newlines inside a message,
+    // so neither separator can appear within a record. TOON's list form would give one document
+    // but declares its record count up front ('[2]{level,message}:'), unknowable mid-run.
+    if (isMachineFormat) {
+      const record = { level, message, ...(code !== undefined ? { code } : {}) };
+
+      // Not formatData for json: it indents for readability on stdout, which would spread one
+      // record over several lines and take the newline separator with it.
+      console.error(format === 'toon' ? `${formatData(record, format)}\n` : JSON.stringify(record));
+      return;
+    }
+
+    // plain drops the symbol for the same reason its views do: the line is the contract. This
+    // one departs from Java, whose top-level handler prints ERROR.withIcon() to stderr without
+    // ever seeing the plainView flag, so '--plain' there still carries the icon.
+    if (format === 'plain') {
+      console.error(message);
+      return;
+    }
+
+    const symbol = level === 'error' ? colors.red(S_ERROR) : colors.yellow(S_WARN);
+
+    console.error(`${symbol}  ${message}`);
+  }
+
   return {
     spinners: {} as Record<string, SpinnerResult>,
     intro(message: string): void {
@@ -208,13 +243,16 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
         console.log(`${colors.blue(S_INFO)}  ${message}`);
       }
     },
-    error(message: string): void {
-      console.log(`${colors.red(S_ERROR)}  ${message}`);
+    /**
+     * `code` is the process exit code, so a machine consumer reading stderr does not have to
+     * shell out to `$?` to tell a missing file from a failed build. Only the top-level handler
+     * knows it; call sites inside commands leave it off.
+     */
+    error(message: string, { code }: { code?: number } = {}): void {
+      diagnostic('error', message, code);
     },
     warning(message: string): void {
-      if (format === 'text') {
-        console.log(`${colors.yellow(S_WARN)}  ${message}`);
-      }
+      diagnostic('warning', message);
     },
     spinner(
       identifier: string,
