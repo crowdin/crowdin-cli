@@ -20,6 +20,10 @@ public class AiContextUtilTest {
                 "",
                 AiContextUtil.getManualContext("")
         );
+        assertEquals(
+                "",
+                AiContextUtil.getManualContext("✨ AI Context\nThis is the AI context.\n✨ 🔚")
+        );
     }
 
     @Test
@@ -35,6 +39,10 @@ public class AiContextUtilTest {
         assertEquals(
                 "",
                 AiContextUtil.getAiContextSection("")
+        );
+        assertEquals(
+                "This is the AI context.",
+                AiContextUtil.getAiContextSection("✨ AI Context\nThis is the AI context.\n✨ 🔚")
         );
     }
 }
