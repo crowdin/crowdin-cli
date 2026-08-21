@@ -28,7 +28,7 @@ import { buildTranslationMapping } from '@/lib/download/translationMapping.ts';
 import { originalPath } from '@/lib/export/patterns.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { prepareDest } from '@/lib/upload/fileOptions.ts';
-import { stripLeadingSlashes, toPosixPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, stripLeadingSlashes, toPosixPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
 import { branch, dryRun, filesConfigGroup, tree } from '../common/options.ts';
 import {
   all,
@@ -153,9 +153,14 @@ export default class DownloadCommand {
       throw new CliError('File management is not available for string-based projects');
     }
 
-    const branchId = await branchService.resolveBranchId(options.branch);
-    const projectFiles = await fileService.loadProjectFiles(branchId);
-    const downloads = this.collectSourceDownloads(config, projectFiles.data, hasManagerAccess(project), output);
+    const branch = await branchService.resolveBranch(options.branch);
+    const projectFiles = await fileService.loadProjectFiles(branch?.id);
+    const downloads = this.collectSourceDownloads(
+      config,
+      this.stripBranchFromPaths(projectFiles.data, branch?.name),
+      hasManagerAccess(project),
+      output,
+    );
 
     if (options.dryrun) {
       // Java Dryrun: slash-strip + sort the paths; plain view prints them bare (no icon/message).
@@ -171,7 +176,7 @@ export default class DownloadCommand {
     const downloadedFiles: DownloadedFile[] = [];
 
     if (options.reviewed) {
-      const build = await fileService.buildReviewedSources(branchId);
+      const build = await fileService.buildReviewedSources(branch?.id);
       const downloadUrl = await fileService.getReviewedSourcesDownloadUrl(build.data.id);
       const response = await fetch(downloadUrl);
       const tempDir = await mkdtemp(path.join(tmpdir(), 'crowdin-reviewed-sources-'));
@@ -197,7 +202,7 @@ export default class DownloadCommand {
             continue;
           }
 
-          reviewedFiles.set(name.slice(prefix.length), entry.getData());
+          reviewedFiles.set(stripBranchPrefix(name.slice(prefix.length), branch?.name), entry.getData());
         }
 
         for (const download of downloads) {
@@ -307,7 +312,8 @@ export default class DownloadCommand {
     );
 
     const serverLanguageMapping = hasManagerAccess(project) ? project.data.languageMapping : undefined;
-    const branchId = await branchService.resolveBranchId(options.branch);
+    const branch = await branchService.resolveBranch(options.branch);
+    const branchId = branch?.id;
 
     if (options.dryrun) {
       // Java lists the resolved translation destination paths (per source x language), not the raw
@@ -315,11 +321,11 @@ export default class DownloadCommand {
       // the real download uses; its values are exactly those local destination paths.
       // Java's ListTranslationsAction always loads the full server file map (independent of --all) so it
       // can drop target languages excluded server-side per file (DryrunTranslations.containsExcludedLanguage).
-      const projectFiles = await fileService.loadProjectFiles(branchId);
+      const projectFiles = this.stripBranchFromPaths((await fileService.loadProjectFiles(branchId)).data, branch?.name);
       const serverSourcePaths = options.all
-        ? projectFiles.data.map((file) => stripLeadingSlashes(file.data.path || ''))
+        ? projectFiles.map((file) => stripLeadingSlashes(file.data.path || ''))
         : undefined;
-      const excludedTargetLanguagesByPath = this.buildExcludedTargetLanguagesByPath(projectFiles.data);
+      const excludedTargetLanguagesByPath = this.buildExcludedTargetLanguagesByPath(projectFiles);
 
       const mapping = buildTranslationMapping(config, resolvedLanguages, serverLanguageMapping, {
         useServerSources: options.all,
@@ -358,7 +364,7 @@ export default class DownloadCommand {
 
     output.info('Downloading translations');
 
-    let projectFiles: Awaited<ReturnType<typeof fileService.loadProjectFiles>> | undefined;
+    let projectFiles: Awaited<ReturnType<typeof fileService.loadProjectFiles>>['data'] | undefined;
     let serverSourcePaths: string[] | undefined;
 
     if (options.all) {
@@ -369,8 +375,8 @@ export default class DownloadCommand {
         );
       }
 
-      projectFiles = await fileService.loadProjectFiles(branchId);
-      serverSourcePaths = projectFiles.data.map((file) => stripLeadingSlashes(file.data.path || ''));
+      projectFiles = this.stripBranchFromPaths((await fileService.loadProjectFiles(branchId)).data, branch?.name);
+      serverSourcePaths = projectFiles.map((file) => stripLeadingSlashes(file.data.path || ''));
     }
 
     const tempDirs: string[] = [];
@@ -466,8 +472,9 @@ export default class DownloadCommand {
         !isStructuredFormat(options.output) &&
         perBuildOmitted.some((omitted) => omitted.length > 0)
       ) {
-        const files = projectFiles ?? (await fileService.loadProjectFiles(branchId));
-        const allProjectTranslations = buildAllProjectTranslations(files.data, projectLanguages, serverLanguageMapping);
+        const files =
+          projectFiles ?? this.stripBranchFromPaths((await fileService.loadProjectFiles(branchId)).data, branch?.name);
+        const allProjectTranslations = buildAllProjectTranslations(files, projectLanguages, serverLanguageMapping);
 
         this.reportOmittedFiles(perBuildOmitted, allProjectTranslations, output, options.verbose ?? false);
       }
@@ -695,6 +702,25 @@ export default class DownloadCommand {
 
       output.log(faqLink);
     }
+  }
+
+  /**
+   * Drops the branch name that files inside a branch carry in their project path
+   * ('/dev/src/en.json' -> '/src/en.json'). Every config-derived path is branch-relative, so without
+   * this nothing matches once `--branch` is given. Java scopes the file list to the branch and then
+   * builds paths from the directory tree alone (ProjectFilesUtils.buildDirectoryPaths without
+   * branches); stripping once at the load boundary is the same thing, and keeps every consumer below
+   * comparing plain project-relative paths.
+   */
+  private stripBranchFromPaths<T extends { data: { path?: string } }>(files: T[], branchName?: string): T[] {
+    if (!branchName) {
+      return files;
+    }
+
+    return files.map((file) => ({
+      ...file,
+      data: { ...file.data, path: stripBranchPrefix(toPosixPath(file.data.path ?? ''), branchName) },
+    }));
   }
 
   /**

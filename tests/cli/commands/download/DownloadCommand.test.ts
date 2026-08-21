@@ -1399,6 +1399,35 @@ describe('DownloadCommand', () => {
       });
     });
 
+    // Files inside a branch carry the branch in their project path; the config patterns never do.
+    // Without stripping it, every path missed its pattern and the command downloaded nothing.
+    test('downloads branch sources despite the branch prefix in their path', async () => {
+      const downloadCommand = createDownloadCommand();
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: { id: 123 },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectBranches').mockResolvedValue({
+        data: [{ data: { id: 55, name: 'main' } }],
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/main/resources/en/messages.json' } }],
+      } as never);
+      const getDownloadUrlSpy = spyOn(fileService, 'getSourceFileDownloadUrl').mockResolvedValue(
+        'https://example.test/messages.json',
+      );
+      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('branch content'));
+
+      commandContext = createCommandContext({ ...globalOptions, branch: 'main' });
+
+      await downloadCommand.sourcesAction(commandContext);
+
+      expect(getDownloadUrlSpy).toHaveBeenCalledWith(1);
+
+      const writtenFile = await Bun.file(join(tempDir, 'resources', 'en', 'messages.json')).text();
+      expect(writtenFile).toBe('branch content');
+    });
+
     test('fails when branch not found for sources', async () => {
       const downloadCommand = createDownloadCommand();
 
