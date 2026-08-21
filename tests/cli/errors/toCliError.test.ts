@@ -20,10 +20,17 @@ describe('toCliError HTTP status mapping', () => {
     expect(cliError.message).toBe(message);
   });
 
-  test('collapses connection failures to the base_url hint', () => {
+  test('collapses an unknown host to the base_url hint', () => {
     const cliError = toCliError(new CrowdinError('getaddrinfo ENOTFOUND api.crowdin.com', 500, null), 'ctx');
 
     expect(cliError.message).toBe("Invalid url. check your 'base_url'");
+  });
+
+  // Downloads use plain fetch on a signed URL, so the failure never passes through the api client.
+  test('maps a bare connection error to the connectivity hint', () => {
+    const cliError = toCliError(new Error('connect ECONNREFUSED 54.173.33.148:443'), 'Failed to download file');
+
+    expect(cliError.message).toBe("Couldn't connect to Crowdin. Check your internet connection and 'base_url'");
   });
 
   // the client's own message says only "Value is required and can't be empty" — without the field

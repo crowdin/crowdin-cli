@@ -5,10 +5,41 @@ import ForbiddenError from './ForbiddenError.ts';
 import NotFoundError from './NotFoundError.ts';
 import RateLimitError from './RateLimitError.ts';
 
-// Client normalizes an unreachable/misspelled base_url into a wrapped CrowdinError whose message
-// is the raw connection code (code 500). Java matched "Name or service not known"; Bun collapses
-// DNS-not-found and refused into these tokens instead.
-const CONNECTION_ERROR_TOKENS = ['ECONNREFUSED', 'ENOTFOUND', 'EAI_AGAIN'];
+// A connection failure arrives as a wrapped CrowdinError (code 500) whose message is the raw
+// error from the HTTP layer. Java matched "Name or service not known"; Bun/axios surface these
+// tokens instead. Two buckets, because they mean different things to the user:
+//
+//   ENOTFOUND  - DNS answered "no such host": the URL itself is wrong.
+//   everything else - the name resolved (or the resolver was unreachable) and the socket failed:
+//                     offline, captive portal, firewall dropping packets, host down. The base_url
+//                     can be perfectly valid here, so pointing at it sends the user hunting a
+//                     typo that doesn't exist.
+const UNKNOWN_HOST_TOKENS = ['ENOTFOUND'];
+const UNREACHABLE_TOKENS = [
+  'ECONNREFUSED',
+  'ECONNRESET',
+  'EAI_AGAIN',
+  'ETIMEDOUT',
+  'EHOSTUNREACH',
+  'ENETUNREACH',
+  // Bun's fetch collapses connect failures into prose instead of an errno.
+  'Unable to connect',
+  'ConnectionRefused',
+];
+
+// Returns the curated message for a connection-layer failure, or undefined when the error is
+// something else (an API status, a validation error, a bug).
+function connectionMessage(message: string): string | undefined {
+  if (UNKNOWN_HOST_TOKENS.some((token) => message.includes(token))) {
+    return "Invalid url. check your 'base_url'";
+  }
+
+  if (UNREACHABLE_TOKENS.some((token) => message.includes(token))) {
+    return "Couldn't connect to Crowdin. Check your internet connection and 'base_url'";
+  }
+
+  return undefined;
+}
 
 // Mirrors Java's CrowdinClientCore.standardErrorHandlers: maps the HTTP status of an
 // API error onto the matching exit code. The Java substring branches (Project/Bundle Not
@@ -23,10 +54,10 @@ export function mapCrowdinError(error: CrowdinError, fallbackMessage: string): C
     return new AuthorizationError("Couldn't authorize. Check your 'api_token'");
   }
 
-  // ponytail: Bun gives one signal for both DNS failure and refused connection, so both map to
-  // the base_url hint — upgrade path is a finer probe if a genuine outage ever needs distinguishing.
-  if (CONNECTION_ERROR_TOKENS.some((token) => error.message.includes(token))) {
-    return new CliError("Invalid url. check your 'base_url'");
+  const connection = connectionMessage(error.message);
+
+  if (connection) {
+    return new CliError(connection);
   }
 
   const message = `${fallbackMessage}. ${formatValidationMessage(error) ?? error.message}`;
@@ -73,8 +104,10 @@ export function toCliError(error: unknown, fallbackMessage: string): CliError {
     return mapCrowdinError(error, fallbackMessage);
   }
 
+  // Downloads bypass the api client (plain fetch on a signed URL), so a connection failure gets
+  // here unwrapped — same cause, same message.
   if (error instanceof Error) {
-    return new CliError(`${fallbackMessage}. ${error.message}`);
+    return new CliError(connectionMessage(error.message) ?? `${fallbackMessage}. ${error.message}`);
   }
 
   return new CliError(fallbackMessage);

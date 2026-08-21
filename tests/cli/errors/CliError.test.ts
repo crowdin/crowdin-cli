@@ -41,17 +41,28 @@ describe('mapCrowdinError', () => {
     expect(error.message).toBe("Couldn't authorize. Check your 'api_token'");
   });
 
-  test.each([
-    'ECONNREFUSED',
-    'ENOTFOUND',
-    'EAI_AGAIN',
-  ])('maps a wrapped connection error (%s) to the curated base_url hint', (token) => {
+  test('maps an unknown host to the curated base_url hint', () => {
     // A bad base_url arrives as a CrowdinError with code 500 whose message is the raw connection token.
-    const error = mapCrowdinError(new CrowdinError(token, 500, {}), 'Failed to fetch project');
+    const error = mapCrowdinError(new CrowdinError('getaddrinfo ENOTFOUND api.crowdin.con', 500, {}), 'ctx');
 
     expect(error.constructor).toBe(CliError);
     expect(error.exitCode).toBe(ExitCode.GENERIC);
     expect(error.message).toBe("Invalid url. check your 'base_url'");
+  });
+
+  // The host resolved but the socket never came up: blaming base_url sends the user hunting a
+  // typo that isn't there, when the real cause is a dead network.
+  test.each([
+    'connect ECONNREFUSED 54.173.33.148:443',
+    'getaddrinfo EAI_AGAIN api.crowdin.com',
+    'connect ETIMEDOUT 54.173.33.148:443',
+    'Unable to connect. Is the computer able to access the url?',
+  ])('maps an unreachable network (%s) to the connectivity hint', (message) => {
+    const error = mapCrowdinError(new CrowdinError(message, 500, {}), 'Failed to fetch project');
+
+    expect(error.constructor).toBe(CliError);
+    expect(error.exitCode).toBe(ExitCode.GENERIC);
+    expect(error.message).toBe("Couldn't connect to Crowdin. Check your internet connection and 'base_url'");
   });
 });
 
