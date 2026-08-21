@@ -1086,4 +1086,117 @@ describe('UploadTranslationsCommand', () => {
       expect.any(Function),
     );
   });
+
+  // output.success is text-only, so before this the machine formats saw an empty stdout for a
+  // command that had imported real translations.
+  describe('machine-format summary', () => {
+    const summaryOf = (output: ReturnType<typeof createOutputMock>) =>
+      (output.list as unknown as { mock: { calls: unknown[][] } }).mock.calls.at(-1)?.[0];
+
+    const spanishProject = {
+      loadProject: mock(async () => ({
+        data: { id: 123, languageMapping: {}, targetLanguages: [language('es', 'es', 'spa')] },
+      })),
+    };
+
+    const commandFor = (output: ReturnType<typeof createOutputMock>) =>
+      createUploadCommand(
+        tempDir,
+        output,
+        spanishProject,
+        { addStorage: mock(async () => ({ data: { id: 10 } })) },
+        baseBranchServiceMock(),
+        baseDirectoryServiceMock(),
+        {
+          ...baseFileServiceMock(),
+          loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+        },
+        baseLabelServiceMock(),
+        baseTranslationServiceMock(),
+      );
+
+    test('reports each imported translation', async () => {
+      await Bun.write(`${tempDir}/src/app.json`, '{}');
+      await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
+
+      const output = createOutputMock();
+
+      await commandFor(output).uploadTranslationsAction(commandContext({ output: 'json' }));
+
+      expect(summaryOf(output)).toEqual([{ path: 'locale/es/app.json', action: 'uploaded' }]);
+    });
+
+    test('records a translation missing from disk as skipped', async () => {
+      await Bun.write(`${tempDir}/src/app.json`, '{}');
+
+      const output = createOutputMock();
+
+      await commandFor(output).uploadTranslationsAction(commandContext({ output: 'json' }));
+
+      expect(summaryOf(output)).toEqual([
+        { path: 'locale/es/app.json', action: 'skipped', reason: 'not found locally' },
+      ]);
+    });
+
+    test('drops the skips in plain, which cannot carry the action', async () => {
+      await Bun.write(`${tempDir}/src/app.json`, '{}');
+
+      const output = createOutputMock();
+
+      await commandFor(output).uploadTranslationsAction(commandContext({ output: 'plain' }));
+
+      expect(summaryOf(output)).toEqual([]);
+    });
+
+    // Uploads run concurrently, so records land in completion order. Delay the one that sorts
+    // first to make sure the summary is sorted rather than however the network happened to finish.
+    test('sorts by path regardless of which upload finished first', async () => {
+      for (const name of ['a.json', 'b.json']) {
+        await Bun.write(`${tempDir}/src/${name}`, '{}');
+        await Bun.write(`${tempDir}/locale/es/${name}`, '{}');
+      }
+
+      const output = createOutputMock();
+      const command = createUploadCommand(
+        tempDir,
+        output,
+        spanishProject,
+        { addStorage: mock(async () => ({ data: { id: 10 } })) },
+        baseBranchServiceMock(),
+        baseDirectoryServiceMock(),
+        {
+          ...baseFileServiceMock(),
+          loadProjectFiles: mock(async () => ({
+            data: [{ data: { id: 77, path: '/src/a.json' } }, { data: { id: 78, path: '/src/b.json' } }],
+          })),
+        },
+        baseLabelServiceMock(),
+        {
+          ...baseTranslationServiceMock(),
+          importProjectTranslation: mock(async (_storage: number, _file: number, _langs: string[], p: string) => {
+            await Bun.sleep(p.endsWith('a.json') ? 30 : 0);
+          }),
+        },
+      );
+
+      await command.uploadTranslationsAction(commandContext({ output: 'json' }));
+
+      expect((summaryOf(output) as { path: string }[]).map(({ path }) => path)).toEqual([
+        'locale/es/a.json',
+        'locale/es/b.json',
+      ]);
+    });
+
+    test('stays quiet in text, which already prints a line per file', async () => {
+      await Bun.write(`${tempDir}/src/app.json`, '{}');
+      await Bun.write(`${tempDir}/locale/es/app.json`, '{}');
+
+      const output = createOutputMock();
+
+      await commandFor(output).uploadTranslationsAction(commandContext({}));
+
+      expect(output.list).not.toHaveBeenCalled();
+      expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
+    });
+  });
 });

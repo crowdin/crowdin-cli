@@ -45,7 +45,7 @@ import {
   toSortedRelativePaths,
 } from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
-import { type UploadedSource, uploadedSourceView } from './views.ts';
+import { type UploadedFile, uploadedFileView } from './views.ts';
 
 interface UploadSourcesOptions extends GlobalOptions {
   branch?: string;
@@ -224,7 +224,7 @@ export default class UploadSourcesCommand {
     // Shared cache so files sharing the same customSegmentation reuse the uploaded srx storage id
     const srxStorageIds = new Map<string, Promise<number>>();
     const seenFilePaths = new Set<string>();
-    const uploadedSources: UploadedSource[] = [];
+    const uploadedSources: UploadedFile[] = [];
     let hasErrors = false;
 
     for (const { patterns, fileOptions, files } of patternFilePaths) {
@@ -473,7 +473,7 @@ export default class UploadSourcesCommand {
 
       output.list(
         isStructuredFormat(options.output) ? sorted : sorted.filter(({ action }) => action !== 'skipped'),
-        uploadedSourceView,
+        uploadedFileView,
       );
     }
 

@@ -15,6 +15,7 @@ import type {
   GetStorageService,
   GetTranslationService,
 } from '@/cli/services.ts';
+import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
@@ -26,6 +27,7 @@ import { getCommonPath, resolveProjectPath } from '@/lib/upload/fileOptions.ts';
 import { runConcurrently } from '@/lib/utils/concurrency.ts';
 import { stripBranchPrefix, stripLeadingSlashes, toProjectPath, toSortedRelativePaths } from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
+import { type UploadedFile, uploadedFileView } from './views.ts';
 
 interface UploadTranslationsOptions extends GlobalOptions {
   branch?: string;
@@ -118,11 +120,15 @@ export default class UploadTranslationsCommand {
       return;
     }
 
+    // What json/toon report at the end. Text streams per-file messages instead, so it stays empty.
+    const uploadedFiles: UploadedFile[] = [];
+
     const tasks = entries.map((entry) => async () => {
       const localFilePath = path.join(config.basePath, entry.translationPath);
 
       if (!(await Bun.file(localFilePath).exists())) {
         output.warning(`File ${entry.translationPath} does not exist in the specified location`);
+        uploadedFiles.push({ path: entry.translationPath, action: 'skipped', reason: 'not found locally' });
         return;
       }
 
@@ -153,6 +159,7 @@ export default class UploadTranslationsCommand {
             `Translation file '${entry.translationPath}' hasn't been uploaded since the following target language(s) ` +
               `are not enabled for the source file in your Crowdin project: ${entry.languageNames.join('/')}`,
           );
+          uploadedFiles.push({ path: entry.translationPath, action: 'skipped', reason: 'target language not enabled' });
           return;
         }
 
@@ -160,9 +167,23 @@ export default class UploadTranslationsCommand {
       }
 
       output.success(`File '${entry.translationPath}'`);
+      uploadedFiles.push({ path: entry.translationPath, action: 'uploaded' });
     });
 
     const results = await runConcurrently(tasks);
+
+    // Text already streamed a line per file, so only the machine formats need the summary.
+    // Sorted because the uploads run concurrently, and a machine contract should not depend
+    // on which finished first. plain is line-oriented and cannot carry the action, so it
+    // lists only what was uploaded — Java prints nothing there for a skipped file.
+    if (isMachineFormat(options.output)) {
+      const sorted = uploadedFiles.sort((one, other) => one.path.localeCompare(other.path));
+
+      output.list(
+        isStructuredFormat(options.output) ? sorted : sorted.filter(({ action }) => action !== 'skipped'),
+        uploadedFileView,
+      );
+    }
 
     // A dry run only previews; like Java's separate list action it never fails the process.
     const failed = reportFailures(results, output);
@@ -304,11 +325,15 @@ export default class UploadTranslationsCommand {
       return;
     }
 
+    // What json/toon report at the end. Text streams per-file messages instead, so it stays empty.
+    const uploadedFiles: UploadedFile[] = [];
+
     const tasks = entries.map((entry) => async () => {
       const localFilePath = path.join(config.basePath, entry.translationPath);
 
       if (!(await Bun.file(localFilePath).exists())) {
         output.warning(`File ${entry.translationPath} does not exist in the specified location`);
+        uploadedFiles.push({ path: entry.translationPath, action: 'skipped', reason: 'not found locally' });
         return;
       }
 
@@ -333,9 +358,23 @@ export default class UploadTranslationsCommand {
       );
 
       output.success(`File '${entry.translationPath}'`);
+      uploadedFiles.push({ path: entry.translationPath, action: 'uploaded' });
     });
 
     const results = await runConcurrently(tasks);
+
+    // Text already streamed a line per file, so only the machine formats need the summary.
+    // Sorted because the uploads run concurrently, and a machine contract should not depend
+    // on which finished first. plain is line-oriented and cannot carry the action, so it
+    // lists only what was uploaded — Java prints nothing there for a skipped file.
+    if (isMachineFormat(options.output)) {
+      const sorted = uploadedFiles.sort((one, other) => one.path.localeCompare(other.path));
+
+      output.list(
+        isStructuredFormat(options.output) ? sorted : sorted.filter(({ action }) => action !== 'skipped'),
+        uploadedFileView,
+      );
+    }
 
     if (reportFailures(results, output)) {
       throw new CliError(EXECUTION_FINISHED_WITH_ERRORS);

@@ -1922,6 +1922,34 @@ describe('UploadSourcesCommand', () => {
       expect(summaryOf(output)).toEqual([{ path: 'src/uploaded.json', action: 'created' }]);
     });
 
+    // Uploads run concurrently, so records land in completion order. Both files take the same
+    // path here and the one that sorts first is delayed, so the assertion turns on the sort
+    // rather than on which branch of the upload happens to be quicker.
+    test('sorts by path regardless of which upload finished first', async () => {
+      await Bun.write(`${tempDir}/src/a.json`, '{}');
+      await Bun.write(`${tempDir}/src/b.json`, '{}');
+
+      const output = createOutputMock();
+      const command = createUploadCommand(
+        tempDir,
+        output,
+        baseProjectServiceMock(),
+        { addStorage: mock(async () => ({ data: { id: 10 } })) },
+        baseBranchServiceMock(),
+        baseDirectoryServiceMock(),
+        {
+          ...baseFileServiceMock(),
+          createProjectFile: mock(async (request: SourceFilesModel.CreateFileRequest) => {
+            await Bun.sleep(request.name === 'a.json' ? 30 : 0);
+          }),
+        },
+      );
+
+      await command.uploadSourcesAction(commandContext({ output: 'json' }));
+
+      expect((summaryOf(output) as { path: string }[]).map(({ path }) => path)).toEqual(['src/a.json', 'src/b.json']);
+    });
+
     test('stays quiet in text, which already prints a line per file', async () => {
       await Bun.write(`${tempDir}/src/app.json`, '{}');
 
