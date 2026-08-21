@@ -134,7 +134,7 @@ export default class UploadTranslationsCommand {
       const storage = await storageService.addStorage(Bun.file(localFilePath));
 
       try {
-        output.log(this.importingMessage(entry.translationPath));
+        output.info(this.importingMessage(entry.translationPath));
 
         // importProjectTranslation returns only once the server-side import has finished.
         await translationService.importProjectTranslation(
@@ -319,7 +319,7 @@ export default class UploadTranslationsCommand {
 
       const storage = await storageService.addStorage(Bun.file(localFilePath));
 
-      output.log(this.importingMessage(entry.translationPath));
+      output.info(this.importingMessage(entry.translationPath));
 
       await translationService.importProjectTranslationStringsBased(
         storage.data.id,

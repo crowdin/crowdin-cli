@@ -313,7 +313,7 @@ describe('UploadTranslationsCommand', () => {
     await command.uploadTranslationsAction(commandContext({}));
 
     expect(output.success).toHaveBeenCalledWith("File 'locale/es/app.json'");
-    expect(output.log).toHaveBeenCalledWith("Importing translations for file 'locale/es/app.json'");
+    expect(output.info).toHaveBeenCalledWith("Importing translations for file 'locale/es/app.json'");
     expect(output.debug).toHaveBeenCalledWith("Importing translations for file 'locale/es/app.json' (50%) (import-1)");
   });
 

@@ -1842,4 +1842,98 @@ describe('UploadSourcesCommand', () => {
     expect(output.error).toHaveBeenCalledWith('boom a.json');
     expect(output.error).toHaveBeenCalledWith('boom b.json');
   });
+
+  // output.success is text-only, so before this the machine formats saw an empty stdout for a
+  // command that had uploaded real files.
+  describe('machine-format summary', () => {
+    const summaryOf = (output: ReturnType<typeof createOutputMock>) =>
+      (output.list as unknown as { mock: { calls: unknown[][] } }).mock.calls.at(-1)?.[0];
+
+    test('reports what became of each file', async () => {
+      await Bun.write(`${tempDir}/src/created.json`, '{}');
+      await Bun.write(`${tempDir}/src/updated.json`, '{}');
+
+      const output = createOutputMock();
+      const command = createUploadCommand(
+        tempDir,
+        output,
+        baseProjectServiceMock(),
+        { addStorage: mock(async () => ({ data: { id: 10 } })) },
+        baseBranchServiceMock(),
+        baseDirectoryServiceMock(),
+        {
+          ...baseFileServiceMock(),
+          loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/updated.json' } }] })),
+        },
+      );
+
+      await command.uploadSourcesAction(commandContext({ output: 'json' }));
+
+      expect(summaryOf(output)).toEqual([
+        { path: 'src/created.json', action: 'created' },
+        { path: 'src/updated.json', action: 'updated' },
+      ]);
+    });
+
+    test('records why a file was skipped', async () => {
+      await Bun.write(`${tempDir}/src/app.json`, '{}');
+
+      const output = createOutputMock();
+      const command = createUploadCommand(
+        tempDir,
+        output,
+        baseProjectServiceMock(),
+        { addStorage: mock(async () => ({ data: { id: 10 } })) },
+        baseBranchServiceMock(),
+        baseDirectoryServiceMock(),
+        {
+          ...baseFileServiceMock(),
+          loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/app.json' } }] })),
+        },
+      );
+
+      await command.uploadSourcesAction(commandContext({ output: 'json', autoUpdate: false }));
+
+      expect(summaryOf(output)).toEqual([{ path: 'src/app.json', action: 'skipped', reason: 'auto-update disabled' }]);
+    });
+
+    // plain is line-oriented and cannot carry the action, so it lists only what changed — Java
+    // prints nothing there for a skipped file.
+    test('lists only changed files in plain', async () => {
+      await Bun.write(`${tempDir}/src/uploaded.json`, '{}');
+      await Bun.write(`${tempDir}/src/kept.json`, '{}');
+
+      const output = createOutputMock();
+      const command = createUploadCommand(
+        tempDir,
+        output,
+        baseProjectServiceMock(),
+        { addStorage: mock(async () => ({ data: { id: 10 } })) },
+        baseBranchServiceMock(),
+        baseDirectoryServiceMock(),
+        {
+          ...baseFileServiceMock(),
+          loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/src/kept.json' } }] })),
+        },
+      );
+
+      await command.uploadSourcesAction(commandContext({ output: 'plain', autoUpdate: false }));
+
+      expect(summaryOf(output)).toEqual([{ path: 'src/uploaded.json', action: 'created' }]);
+    });
+
+    test('stays quiet in text, which already prints a line per file', async () => {
+      await Bun.write(`${tempDir}/src/app.json`, '{}');
+
+      const output = createOutputMock();
+      const command = createUploadCommand(tempDir, output, baseProjectServiceMock(), {
+        addStorage: mock(async () => ({ data: { id: 10 } })),
+      });
+
+      await command.uploadSourcesAction(commandContext({}));
+
+      expect(output.list).not.toHaveBeenCalled();
+      expect(output.success).toHaveBeenCalledWith("File 'src/app.json'");
+    });
+  });
 });

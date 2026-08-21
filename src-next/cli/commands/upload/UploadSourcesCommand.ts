@@ -19,7 +19,8 @@ import type {
   GetStorageService,
   GetStringService,
 } from '@/cli/services.ts';
-import type { Output } from '@/cli/utils/output.ts';
+import { isMachineFormat } from '@/cli/utils/formatter.ts';
+import { OUTPUT_FORMATS, type Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { assertFilesConfigured } from '@/lib/config.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
@@ -44,6 +45,7 @@ import {
   toSortedRelativePaths,
 } from '@/lib/utils/path.ts';
 import { EXECUTION_FINISHED_WITH_ERRORS, reportFailures } from './uploadFailures.ts';
+import { type UploadedSource, uploadedSourceView } from './views.ts';
 
 interface UploadSourcesOptions extends GlobalOptions {
   branch?: string;
@@ -222,6 +224,7 @@ export default class UploadSourcesCommand {
     // Shared cache so files sharing the same customSegmentation reuse the uploaded srx storage id
     const srxStorageIds = new Map<string, Promise<number>>();
     const seenFilePaths = new Set<string>();
+    const uploadedSources: UploadedSource[] = [];
     let hasErrors = false;
 
     for (const { patterns, fileOptions, files } of patternFilePaths) {
@@ -259,6 +262,7 @@ export default class UploadSourcesCommand {
 
         if (seenFilePaths.has(projectPath)) {
           output.warning(`Skipping file '${fileFullPath}' because it is already uploading/uploaded`);
+          uploadedSources.push({ path: fileFullPath, action: 'skipped', reason: 'already uploading' });
           return;
         }
 
@@ -268,6 +272,7 @@ export default class UploadSourcesCommand {
 
         if (localFile.size === 0) {
           output.warning(`File '${fileFullPath}' was skipped since it is empty`);
+          uploadedSources.push({ path: fileFullPath, action: 'skipped', reason: 'empty' });
           return;
         }
 
@@ -284,6 +289,7 @@ export default class UploadSourcesCommand {
 
             if (sourceHashes.get(localFilePath) === checksum) {
               output.info(`File '${localFilePath}' was skipped since it is up to date`);
+              uploadedSources.push({ path: fileFullPath, action: 'skipped', reason: 'up to date' });
               return;
             }
           }
@@ -306,6 +312,7 @@ export default class UploadSourcesCommand {
           }
 
           output.success(`File '${fileFullPath}'`);
+          uploadedSources.push({ path: fileFullPath, action: 'uploaded' });
           return;
         }
 
@@ -323,6 +330,7 @@ export default class UploadSourcesCommand {
         if (existingFile) {
           if (options.autoUpdate === false) {
             output.info(`File ${localFilePath} already exists and will not be updated`);
+            uploadedSources.push({ path: fileFullPath, action: 'skipped', reason: 'auto-update disabled' });
             return;
           }
 
@@ -338,6 +346,7 @@ export default class UploadSourcesCommand {
 
             if (sourceHashes.get(localFilePath) === checksum) {
               output.info(`File '${localFilePath}' was skipped since it is up to date`);
+              uploadedSources.push({ path: fileFullPath, action: 'skipped', reason: 'up to date' });
               return;
             }
           }
@@ -382,6 +391,7 @@ export default class UploadSourcesCommand {
           }
 
           output.success(`File '${fileFullPath}'`);
+          uploadedSources.push({ path: fileFullPath, action: 'updated' });
           return;
         }
 
@@ -435,6 +445,7 @@ export default class UploadSourcesCommand {
         }
 
         output.success(`File '${fileFullPath}'`);
+        uploadedSources.push({ path: fileFullPath, action: 'created' });
       });
 
       const results = await runConcurrently(tasks);
@@ -446,6 +457,24 @@ export default class UploadSourcesCommand {
 
     if (sourceHashes) {
       await saveSourceCache(config.basePath, sourceHashes, output);
+    }
+
+    // Text already streamed a line per file, so only the machine formats need the summary —
+    // without it they saw an empty stdout for a command that uploaded real files. Sorted because
+    // the uploads run concurrently, and a machine contract should not depend on which finished
+    // first. Emitted before the error throw so a partial run still reports what it managed.
+    //
+    // plain is line-oriented and cannot carry the action, so it lists only what changed — Java
+    // prints nothing there for a duplicate or an up-to-date file. (Java does print the empty-file
+    // skip under --plain, but that branch simply has no plainView case, like its error handler;
+    // an icon'd prose line in a stream of bare paths is the oversight, not the contract.)
+    if (OUTPUT_FORMATS.includes(options.output ?? '')) {
+      const sorted = uploadedSources.sort((one, other) => one.path.localeCompare(other.path));
+
+      output.list(
+        isMachineFormat(options.output) ? sorted : sorted.filter(({ action }) => action !== 'skipped'),
+        uploadedSourceView,
+      );
     }
 
     if (hasErrors) {
