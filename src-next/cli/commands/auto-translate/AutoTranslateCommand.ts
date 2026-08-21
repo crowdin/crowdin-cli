@@ -13,6 +13,7 @@ import type {
   GetTranslationService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import { normalizePath } from '@/cli/utils/parsing.ts';
 import { stripBranchPrefix } from '@/lib/utils/path.ts';
 import {
@@ -38,6 +39,7 @@ import {
   translateWithPerfectMatchOnly,
   translationModifiedBefore,
 } from './options.ts';
+import { autoTranslateVerboseView, autoTranslateView } from './views.ts';
 
 type Method = TranslationsModel.Method;
 type AutoApproveOption = TranslationsModel.AutoApproveOption;
@@ -220,7 +222,7 @@ export default class AutoTranslateCommand {
       };
 
       const status = await translationService.preTranslate(request, verbose);
-      await this.printVerbose(translationService, status, output, verbose);
+      await this.reportResult(translationService, status, output, verbose, options.output);
       return;
     }
 
@@ -304,7 +306,7 @@ export default class AutoTranslateCommand {
     };
 
     const status = await translationService.preTranslate(request, verbose);
-    await this.printVerbose(translationService, status, output, verbose);
+    await this.reportResult(translationService, status, output, verbose, options.output);
 
     if (containsError) {
       throw new CliError('Some of the specified files were not found in the project');
@@ -456,13 +458,25 @@ export default class AutoTranslateCommand {
       .filter((labelId): labelId is number => labelId !== undefined);
   }
 
-  private async printVerbose(
+  /**
+   * Text prints the report totals as indented lines under `--verbose` and nothing otherwise;
+   * json and toon get the job either way, since stdout has to carry the result of a command
+   * that translated the project. The report costs a request, so `--verbose` still gates it.
+   */
+  private async reportResult(
     translationService: Awaited<ReturnType<GetTranslationService>>,
-    status: { identifier: string },
+    status: { identifier: string; status?: string },
     output: ReturnType<GetOutput>,
     verbose: boolean,
+    format?: string,
   ): Promise<void> {
     if (!verbose) {
+      if (isMachineFormat(format)) {
+        output.item({ identifier: status.identifier, status: status.status ?? 'finished' }, autoTranslateView, {
+          mark: false,
+        });
+      }
+
       return;
     }
 
@@ -485,6 +499,23 @@ export default class AutoTranslateCommand {
       for (const skipped of Object.values(targetLanguage.skipped ?? {})) {
         skippedCount += Number(skipped) || 0;
       }
+    }
+
+    if (isMachineFormat(format)) {
+      output.item(
+        {
+          identifier: status.identifier,
+          status: status.status ?? 'finished',
+          files: filesCount,
+          phrases: phrasesCount,
+          words: wordsCount,
+          skipped: skippedCount,
+        },
+        autoTranslateVerboseView,
+        { mark: false },
+      );
+
+      return;
     }
 
     output.log(`\t- files: ${filesCount}`);

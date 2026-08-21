@@ -657,4 +657,58 @@ describe('AutoTranslateCommand', () => {
       );
     });
   });
+  // The command writes no files, so its result is the job itself. output.log is text-only, so
+  // json and toon saw an empty stdout for a run that had translated the project.
+  describe('machine-format result', () => {
+    const emitted = (item: ReturnType<typeof spyOn>) => item.mock.calls.at(-1)?.[0];
+
+    const runWith = async (options: Record<string, unknown>) => {
+      const command = createCommand();
+
+      commandContext = createCommandContext({ ...globalOptions, method: 'tm', branch: 'main', ...options });
+
+      spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
+      spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
+      spyOn(fileService, 'loadProjectFiles').mockResolvedValue(projectFiles as never);
+      spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
+      spyOn(translationService, 'getPreTranslationReport').mockResolvedValue({
+        preTranslateType: 'tm',
+        languages: [
+          { id: 'ua', files: [{ id: 101, statistics: { phrases: 5, words: 12 } }], skipped: { duplicate: 2 } },
+        ],
+      } as never);
+
+      const item = spyOn(output, 'item').mockImplementation(() => {});
+
+      await command.defaultAction(commandContext);
+
+      return item;
+    };
+
+    test('reports the job without --verbose, and does not pay for the report', async () => {
+      const item = await runWith({ output: 'json' });
+
+      expect(emitted(item)).toEqual({ identifier: '121', status: 'finished' });
+      expect(translationService.getPreTranslationReport).not.toHaveBeenCalled();
+    });
+
+    test('adds the report totals under --verbose', async () => {
+      const item = await runWith({ output: 'json', verbose: true });
+
+      expect(emitted(item)).toEqual({
+        identifier: '121',
+        status: 'finished',
+        files: 1,
+        phrases: 5,
+        words: 12,
+        skipped: 2,
+      });
+    });
+
+    test('stays quiet in text, which prints its own report lines', async () => {
+      const item = await runWith({ output: 'text', verbose: true });
+
+      expect(item).not.toHaveBeenCalled();
+    });
+  });
 });
