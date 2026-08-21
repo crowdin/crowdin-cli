@@ -24,6 +24,20 @@ describe('globToRegex', () => {
     expect(globToRegex('a/**/b/**/*.md')).toBe('a/(.+/)?b/(.+/)?[^/]+\\.md');
     expect(globToRegex('%original_path%/*.json')).toBe('.+/[^/]+\\.json');
   });
+
+  // Java never escapes brackets, and Bun's Glob (which scans the local sources) honours sets, so
+  // escaping them here made the server-side matcher disagree with the local scan.
+  test('passes character sets through as regex classes', () => {
+    expect(globToRegex('file[12].json')).toBe('file[12]\\.json');
+    expect(globToRegex('file[a-c].json')).toBe('file[a-c]\\.json');
+    expect(globToRegex('file[!12].json')).toBe('file[^12]\\.json');
+  });
+
+  // A '[' with no ']' in the same segment is a literal bracket in a file name, not a set.
+  test('escapes an unterminated bracket', () => {
+    expect(globToRegex('a[1.json')).toBe('a\\[1\\.json');
+    expect(globToRegex('a[b/c].json')).toBe('a\\[b/c\\]\\.json');
+  });
 });
 
 describe('matchesSourcePattern', () => {
@@ -42,6 +56,12 @@ describe('matchesSourcePattern', () => {
     expect(matchesSourcePattern('src/app.json', '/src/**/*.json', true)).toBe(true);
     expect(matchesSourcePattern('src/main/app.json', '/src/**/*.json', true)).toBe(true);
     expect(matchesSourcePattern('other/app.json', '/src/**/*.json', true)).toBe(false);
+  });
+
+  test('matches character sets in the pattern', () => {
+    expect(matchesSourcePattern('resources/en/file1.json', '/resources/en/file[12].json', true)).toBe(true);
+    expect(matchesSourcePattern('resources/en/file3.json', '/resources/en/file[12].json', true)).toBe(false);
+    expect(matchesSourcePattern('resources/en/fileb.json', '/resources/**/file[a-c].json', true)).toBe(true);
   });
 
   test('matches only trailing segments when preserveHierarchy is false', () => {

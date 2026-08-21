@@ -30,6 +30,23 @@ export function globToRegex(pattern: string): string {
       continue;
     }
 
+    // Glob character sets ('[12]', '[a-z]', '[!0-9]') become regex classes. Java leaves brackets
+    // untouched (formatSourcePatternForRegex escapes only '.', '(' and ')'), and Bun's Glob — which
+    // scans the local sources — supports sets too, so escaping them here made server-side matching
+    // disagree with the local scan. '!' is translated to '^' to follow glob negation, as Bun does.
+    // An unterminated '[', or one whose ']' sits in another path segment, is a literal bracket in a
+    // file name and falls through to the escape branch below.
+    if (char === '[') {
+      const end = pattern.indexOf(']', i + 2);
+      const set = end === -1 ? undefined : pattern.slice(i + 1, end);
+
+      if (set !== undefined && !set.includes('/')) {
+        result += `[${set.startsWith('!') ? `^${set.slice(1)}` : set}]`;
+        i = end;
+        continue;
+      }
+    }
+
     // Escape regex metacharacters so the rest of the pattern matches literally.
     // biome-ignore lint/suspicious/noTemplateCurlyInString: not a template literal so no error here
     if ('.+^${}()|[]\\'.includes(char)) {
