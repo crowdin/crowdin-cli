@@ -2,7 +2,6 @@ import { statSync } from 'node:fs';
 import path from 'node:path';
 import type { Command } from 'commander';
 import { load as loadYaml } from 'js-yaml';
-import { z } from 'zod';
 import NotFoundError from '@/cli/errors/NotFoundError.ts';
 import { expandTilde } from '@/cli/utils/localPath.ts';
 import InvalidConfigurationError from '@/lib/config/errors/InvalidConfigurationError.ts';
@@ -17,7 +16,10 @@ import type { Output } from './utils/output.ts';
 // load surfaces a not-found error naming it.
 const DEFAULT_CONFIG_FILES = ['crowdin.yml', 'crowdin.yaml'] as const;
 
-type LoadedConfig = { config: Config; fromFile: boolean };
+// The two facts the post-merge checks need: whether the config file was read (a missing one is what
+// Java reports when there are no credentials at all) and whether any file was read (which picks the
+// error title). Kept as the raw facts so neither reading has to be guessed from the other.
+type LoadedConfig = { config: Config; fromConfigFile: boolean; fromIdentityFile: boolean };
 
 export function createGetConfig(getOutput: (command: Command) => Output) {
   let cachedLoad: LoadedConfig | undefined;
@@ -48,30 +50,27 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
     // Env resolution is two layers straddling the config file (Java PropertiesBuilder precedence):
     // `*_env` outranks a literal key, CROWDIN_* underranks it. Bun auto-loads `.env` into
     // process.env, so `.env` and shell vars are both covered natively.
-    const config = assembleConfig([
-      envFallbackLayer(),
-      mapConfig(raw),
-      envKeyLayer(raw),
-      identity ?? {},
-      cliLayer(options, isFilesTier(command)),
-    ]);
+    const config = assembleConfig(
+      [envFallbackLayer(), mapConfig(raw), envKeyLayer(raw), identity ?? {}, cliLayer(options, isFilesTier(command))],
+      readConfigFile || identity !== undefined,
+    );
 
     // Java resolves base_path relative to the config file's directory, expanding a leading `~`
     // (BaseProperties.populateWithDefaultValues).
     config.basePath = resolveBasePath(config.basePath, configPath);
 
-    cachedLoad = { config, fromFile: readConfigFile || identity !== undefined };
+    cachedLoad = { config, fromConfigFile: readConfigFile, fromIdentityFile: identity !== undefined };
     cachedConfigPath = configPath;
 
     return cachedLoad;
   };
 
   const getConfig = async (command: Command): Promise<Config> => {
-    const { config, fromFile } = await loadConfig(command);
+    const loaded = await loadConfig(command);
 
-    checkResolvedConfig(config, command, fromFile);
+    checkResolvedConfig(loaded, command);
 
-    return config;
+    return loaded.config;
   };
 
   // Java's ProjectProperties. checkResolvedConfig already reports a missing project_id for every
@@ -90,9 +89,19 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
 // The checks Java defers until every source is merged and base_path is resolved
 // (BaseProperties/ProjectProperties.checkProperties). Java collects them into one ValidationException
 // rather than failing on the first, so a single run tells you everything that needs fixing.
-function checkResolvedConfig(config: Config, command: Command, fromFile: boolean): void {
+function checkResolvedConfig({ config, fromConfigFile, fromIdentityFile }: LoadedConfig, command: Command): void {
   const errors: string[] = [];
   const basePath = statSync(config.basePath, { throwIfNoEntry: false });
+
+  if (requiresApiToken(command) && !config.apiToken) {
+    if (!fromConfigFile) {
+      throw new NotFoundError(
+        "Configuration file doesn't exist. Run the 'crowdin init' to generate configuration skeleton",
+      );
+    }
+
+    errors.push("Required option 'api_token' is missing");
+  }
 
   if (!basePath) {
     errors.push(
@@ -110,12 +119,7 @@ function checkResolvedConfig(config: Config, command: Command, fromFile: boolean
     return;
   }
 
-  // Java picks the title by whether any file was read at all (PropertiesBuilder.build).
-  const title = fromFile
-    ? 'Configuration file is invalid. Check the following parameters in your configuration file:'
-    : 'Configuration is invalid. Check the following parameters:';
-
-  throw new InvalidConfigurationError([title, ...errors.map((error) => `\t- ${error}`)].join('\n'));
+  throw new InvalidConfigurationError(formatConfigErrors(errors, fromConfigFile || fromIdentityFile));
 }
 
 // Mirrors Java PropertiesBuilders: the file tier reads the config file when it exists or when no
@@ -141,8 +145,20 @@ function isFilesTier(command: Command): boolean {
   return command.options.some((option) => option.attributeName() === 'source');
 }
 
+function formatConfigErrors(errors: string[], fromAnyFile: boolean): string {
+  const title = fromAnyFile
+    ? 'Configuration file is invalid. Check the following parameters in your configuration file:'
+    : 'Configuration is invalid. Check the following parameters:';
+
+  return [title, ...errors.map((error) => `\t- ${error}`)].join('\n');
+}
+
 function requiresProjectId(command: Command): boolean {
   return hasOption(command, 'projectId');
+}
+
+function requiresApiToken(command: Command): boolean {
+  return hasOption(command, 'token');
 }
 
 function hasOption(command: Command, attributeName: string): boolean {
@@ -184,7 +200,7 @@ function resolveBasePath(basePath: string, configPath: string): string {
 // Folds credential/config layers lowest-priority-first into a single validated Config.
 // `undefined` values never clobber a lower layer, so each caller passes only the keys it has;
 // the last layer to set a key wins. This is the one place config is validated (exit 2 on failure).
-function assembleConfig(layers: Array<Record<string, unknown>>): Config {
+function assembleConfig(layers: Array<Record<string, unknown>>, fromAnyFile: boolean): Config {
   const merged: Record<string, unknown> = {};
 
   for (const layer of layers) {
@@ -197,9 +213,16 @@ function assembleConfig(layers: Array<Record<string, unknown>>): Config {
 
   const parsed = ConfigSchema.safeParse(merged);
 
-  // Java throws ValidationException (exit 2) for an invalid config; surface zod errors as the same.
+  // Java throws ValidationException (exit 2) for an invalid config; surface zod errors as the same,
+  // under the same title and bullet list the post-merge checks use.
   if (!parsed.success) {
-    throw new InvalidConfigurationError(z.prettifyError(parsed.error), { cause: parsed.error });
+    throw new InvalidConfigurationError(
+      formatConfigErrors(
+        parsed.error.issues.map((issue) => issue.message),
+        fromAnyFile,
+      ),
+      { cause: parsed.error },
+    );
   }
 
   return parsed.data;

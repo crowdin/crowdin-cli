@@ -139,13 +139,14 @@ describe('exit codes (offline, end-to-end)', () => {
     }
   });
 
-  // A project-scoped command reads the config only when it happens to exist, so with no config file
-  // it fails on the missing credentials instead (Java ProjectProperties.checkProperties, exit 2).
-  test('project-scoped command without a config file exits 2 (validation)', async () => {
+  // A project-scoped command reads the config only when it happens to exist. With no config file and
+  // no token, Java reports the missing file rather than the missing options
+  // (BaseProperties.checkProperties -> NotFoundException, exit 102).
+  test('project-scoped command without a config file exits 102 (not found)', async () => {
     const dir = await mkdtemp(join(tmpdir(), 'crowdin-exitcode-noconfig-'));
 
     try {
-      expect(await runCli(['file', 'list'], dir)).toBe(2);
+      expect(await runCli(['file', 'list'], dir)).toBe(102);
     } finally {
       await rm(dir, { recursive: true, force: true });
     }

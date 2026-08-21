@@ -58,8 +58,9 @@ export function createGetApiClient(getConfig: GetConfig) {
 
     const config = await getConfig(command);
 
+    // getConfig already reports this for every command with a config tier; kept as a type guard.
     if (!config.apiToken) {
-      throw new ValidationError('API token is missing. Set it via --token, an identity file, or configuration.');
+      throw new ValidationError("Required option 'api_token' is missing");
     }
 
     // Proxy parity with the Java CLI: HTTP_PROXY_HOST/PORT/USER/PASSWORD env vars.

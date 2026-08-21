@@ -44,7 +44,13 @@ export const ConfigSchema = z
     // Optional here because the base tier (glossary, tm) talks to the API without a project context,
     // exactly like Java's BaseProperties. Project-scoped commands restore the requirement via
     // assertProjectConfigured; cli/config.ts maps commands to tiers.
-    projectId: z.coerce.number().gt(0).optional(),
+    projectId: z.preprocess(
+      (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+      z.coerce
+        .number({ error: "Option 'project_id' must be a numeric value" })
+        .gt(0, "Option 'project_id' must be a numeric value")
+        .optional(),
+    ),
     // Java only rejects an empty token (BaseProperties: isEmpty → missed_api_token); token length/
     // validity is the API's job (401), not the config's. A local min-length check wrongly blamed the
     // config file for a short --token flag, so match Java: reject only empty, let the API judge the rest.
