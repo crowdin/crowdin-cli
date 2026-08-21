@@ -29,7 +29,7 @@ export async function loadSourceCache(basePath: string, output: Output): Promise
     const data = (await cacheFile.json()) as CacheFile;
     return new Map(Object.entries(data.sourceHashes ?? {}));
   } catch {
-    output.warning(`Failed to read cache file ${cachePath}, starting with an empty cache`);
+    output.warning(`Failed to read cache file '${cachePath}', starting with an empty cache`);
     return new Map();
   }
 }
@@ -44,6 +44,6 @@ export async function saveSourceCache(
   try {
     await Bun.write(cachePath, JSON.stringify({ sourceHashes: Object.fromEntries(sourceHashes) }, null, 4));
   } catch {
-    output.warning(`Failed to write cache file ${cachePath}`);
+    output.warning(`Failed to write cache file '${cachePath}'`);
   }
 }

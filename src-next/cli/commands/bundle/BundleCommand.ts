@@ -309,13 +309,13 @@ export default class BundleCommand {
       if (options.output === 'plain') {
         output.log(archivePath);
       } else {
-        output.success(`Archive saved to ${archivePath}`);
+        output.success(`Archive saved to '${archivePath}'`);
       }
     } else {
       try {
         await rm(archivePath, { force: true });
       } catch {
-        output.warning(`Failed to delete archive ${archivePath}`);
+        output.warning(`Failed to delete archive '${archivePath}'`);
       }
     }
   };

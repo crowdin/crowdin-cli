@@ -96,7 +96,7 @@ describe('UploadSourcesCommand', () => {
     expect(storageService.addStorage).not.toHaveBeenCalled();
     expect(fileService.updateProjectFile).not.toHaveBeenCalled();
     expect(fileService.createProjectFile).not.toHaveBeenCalled();
-    expect(output.info).toHaveBeenCalledWith('File src/app.json already exists and will not be updated');
+    expect(output.info).toHaveBeenCalledWith("File 'src/app.json' already exists and will not be updated");
   });
 
   test('dry-runs source upload without mutating project', async () => {
@@ -122,7 +122,7 @@ describe('UploadSourcesCommand', () => {
     expect(storageService.addStorage).not.toHaveBeenCalled();
     expect(directoryService.createProjectDirectory).not.toHaveBeenCalled();
     expect(fileService.createProjectFile).not.toHaveBeenCalled();
-    expect(output.info).toHaveBeenCalledWith('File src/app.json would be created');
+    expect(output.info).toHaveBeenCalledWith("File 'src/app.json' would be created");
   });
 
   test('passes merged labels and excluded languages when creating source files', async () => {

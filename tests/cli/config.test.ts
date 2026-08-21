@@ -373,7 +373,7 @@ describe('createGetConfig', () => {
 
     const promise = getConfig()(makeCommand({}));
 
-    expect(promise).rejects.toThrow(/The base path .*nope was not found/);
+    expect(promise).rejects.toThrow(/The base path .*nope' was not found/);
   });
 
   test('reports a base_path that is a file, not a directory', async () => {

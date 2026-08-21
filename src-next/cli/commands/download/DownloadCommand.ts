@@ -224,7 +224,7 @@ export default class DownloadCommand {
         try {
           await rm(tempDir, { recursive: true, force: true });
         } catch {
-          output.warning(`Failed to clean up temp directory ${tempDir}`);
+          output.warning(`Failed to clean up temp directory '${tempDir}'`);
         }
       }
 
@@ -253,7 +253,7 @@ export default class DownloadCommand {
         output.success(`File '${download.relativePath}'`);
         downloadedFiles.push({ path: download.relativePath, action: 'downloaded' });
       } catch (error) {
-        throw toCliError(error, `Failed to download ${download.relativePath}`);
+        throw toCliError(error, `Failed to download '${download.relativePath}'`);
       }
     }
 
@@ -445,7 +445,7 @@ export default class DownloadCommand {
           await Bun.write(targetPath, entry.getData());
 
           anyFileDownloaded = true;
-          output.success(`File ${localPath} extracted`);
+          output.success(`File '${localPath}' extracted`);
           downloadedFiles.push({ path: localPath, action: 'downloaded' });
         }
 
@@ -457,7 +457,7 @@ export default class DownloadCommand {
 
           await Bun.write(savedArchivePath, Bun.file(archivePath));
 
-          output.success(`Archive saved to ${savedArchivePath}`);
+          output.success(`Archive saved to '${savedArchivePath}'`);
         }
       }
 
@@ -490,7 +490,7 @@ export default class DownloadCommand {
         try {
           await rm(tempDir, { recursive: true, force: true });
         } catch {
-          output.warning(`Failed to clean up temp directory ${tempDir}`);
+          output.warning(`Failed to clean up temp directory '${tempDir}'`);
         }
       }
     }

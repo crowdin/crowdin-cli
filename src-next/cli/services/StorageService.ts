@@ -13,7 +13,7 @@ export class StorageService {
 
       return await this.apiClient.uploadStorageApi.addStorage(fileInfo.base, content, file.type);
     } catch (error) {
-      throw toCliError(error, `Failed to upload ${file.name}`);
+      throw toCliError(error, `Failed to upload '${file.name}'`);
     }
   }
 }

@@ -37,7 +37,7 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
       return cachedLoad;
     }
 
-    output.debug(`Loading configuration from ${configPath} file`);
+    output.debug(`Loading configuration from '${configPath}' file`);
 
     const readConfigFile = await needsConfigFile(command, options, configPath);
     const raw = readConfigFile ? await loadRawFromFile(configPath) : {};
@@ -105,7 +105,7 @@ function checkResolvedConfig({ config, fromConfigFile, fromIdentityFile }: Loade
 
   if (!basePath) {
     errors.push(
-      `The base path ${config.basePath} was not found. Check your 'base_path' for possible typos and/or capitalization mismatches`,
+      `The base path '${config.basePath}' was not found. Check your 'base_path' for possible typos and/or capitalization mismatches`,
     );
   } else if (!basePath.isDirectory()) {
     errors.push(`The base path '${config.basePath}' should be a directory. Specify the path to your project directory`);
@@ -282,7 +282,7 @@ async function identityLayer(
     assertNotDirectory(identityPath);
 
     if (!(await Bun.file(identityPath).exists())) {
-      throw new NotFoundError(`Identity file not found: ${identityPath}`);
+      throw new NotFoundError(`Identity file '${identityPath}' not found`);
     }
   } else {
     identityPath = await firstExistingDefaultIdentityFile();
@@ -292,7 +292,7 @@ async function identityLayer(
     return undefined;
   }
 
-  output.debug(`Loading credentials from ${identityPath} file`);
+  output.debug(`Loading credentials from '${identityPath}' file`);
 
   // Java tolerates an empty identity file (unlike an empty config file), so parse leniently.
   const parsed = loadYaml(await Bun.file(identityPath).text());

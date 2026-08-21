@@ -437,7 +437,7 @@ describe('BundleCommand', () => {
 
       const archivePath = path.join(tempRoot, 'bundle-export-1.zip');
       expect((await stat(archivePath)).isFile()).toBe(true);
-      expect(successSpy).toHaveBeenCalledWith(`Archive saved to ${archivePath}`);
+      expect(successSpy).toHaveBeenCalledWith(`Archive saved to '${archivePath}'`);
     });
   });
 });

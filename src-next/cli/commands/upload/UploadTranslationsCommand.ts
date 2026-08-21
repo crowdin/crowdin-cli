@@ -127,13 +127,13 @@ export default class UploadTranslationsCommand {
       const localFilePath = path.join(config.basePath, entry.translationPath);
 
       if (!(await Bun.file(localFilePath).exists())) {
-        output.warning(`File ${entry.translationPath} does not exist in the specified location`);
+        output.warning(`File '${entry.translationPath}' does not exist in the specified location`);
         uploadedFiles.push({ path: entry.translationPath, action: 'skipped', reason: 'not found locally' });
         return;
       }
 
       if (options.dryrun) {
-        output.info(`File ${entry.translationPath} would be queued for translations import`);
+        output.info(`File '${entry.translationPath}' would be queued for translations import`);
         return;
       }
 
@@ -337,13 +337,13 @@ export default class UploadTranslationsCommand {
       const localFilePath = path.join(config.basePath, entry.translationPath);
 
       if (!(await Bun.file(localFilePath).exists())) {
-        output.warning(`File ${entry.translationPath} does not exist in the specified location`);
+        output.warning(`File '${entry.translationPath}' does not exist in the specified location`);
         uploadedFiles.push({ path: entry.translationPath, action: 'skipped', reason: 'not found locally' });
         return;
       }
 
       if (options.dryrun) {
-        output.info(`File ${entry.translationPath} would be queued for translations import`);
+        output.info(`File '${entry.translationPath}' would be queued for translations import`);
         return;
       }
 

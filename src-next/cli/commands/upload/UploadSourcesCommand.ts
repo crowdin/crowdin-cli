@@ -284,7 +284,7 @@ export default class UploadSourcesCommand {
 
         if (isStringsBasedProject) {
           if (options.dryrun) {
-            output.info(`File ${localFilePath} would be uploaded`);
+            output.info(`File '${localFilePath}' would be uploaded`);
             return;
           }
 
@@ -335,13 +335,13 @@ export default class UploadSourcesCommand {
 
         if (existingFile) {
           if (options.autoUpdate === false) {
-            output.info(`File ${localFilePath} already exists and will not be updated`);
+            output.info(`File '${localFilePath}' already exists and will not be updated`);
             uploadedSources.push({ path: fileFullPath, action: 'skipped', reason: 'auto-update disabled' });
             return;
           }
 
           if (options.dryrun) {
-            output.info(`File ${localFilePath} would be updated`);
+            output.info(`File '${localFilePath}' would be updated`);
             return;
           }
 
@@ -405,7 +405,7 @@ export default class UploadSourcesCommand {
         let directoryId: number | undefined;
 
         if (options.dryrun) {
-          output.info(`File ${localFilePath} would be created`);
+          output.info(`File '${localFilePath}' would be created`);
           return;
         }
 

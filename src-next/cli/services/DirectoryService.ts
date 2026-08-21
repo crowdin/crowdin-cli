@@ -34,7 +34,7 @@ export class DirectoryService {
     try {
       await this.apiClient.sourceFilesApi.deleteDirectory(this.projectId, directoryId);
     } catch (error) {
-      throw toCliError(error, `Failed to delete directory ${directoryPath}`);
+      throw toCliError(error, `Failed to delete directory '${directoryPath}'`);
     }
   }
 

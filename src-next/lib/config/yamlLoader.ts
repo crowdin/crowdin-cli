@@ -16,7 +16,7 @@ import InvalidConfigurationError from './errors/InvalidConfigurationError.ts';
 // so validation happens once, after everything is merged (mirrors Java build()).
 export async function loadRawFromFile(filePath: string): Promise<Record<string, unknown>> {
   if (!(await Bun.file(filePath).exists())) {
-    throw new FileNotFoundError(`File ${filePath} does not exist`);
+    throw new FileNotFoundError(`File '${filePath}' does not exist`);
   }
 
   return parseYaml(await Bun.file(filePath).text());

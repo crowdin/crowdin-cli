@@ -1478,7 +1478,7 @@ describe('DownloadCommand', () => {
       spyOn(fileService, 'getSourceFileDownloadUrl').mockRejectedValue(new Error('Network error'));
 
       expect(downloadCommand.sourcesAction(commandContext)).rejects.toThrow(
-        'Failed to download resources/en/strings.json',
+        "Failed to download 'resources/en/strings.json'",
       );
     });
 

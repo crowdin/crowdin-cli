@@ -61,7 +61,7 @@ export class StringService {
     return await pollUntilFinished(
       response,
       ({ identifier }) => this.getUploadStringsStatus(identifier),
-      `Failed to upload strings for file ${filePath}`,
+      `Failed to upload strings for file '${filePath}'`,
       onProgress,
     );
   }

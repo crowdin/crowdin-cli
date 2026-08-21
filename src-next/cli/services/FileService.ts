@@ -27,7 +27,7 @@ export class FileService {
         throw new FileExistsError();
       }
 
-      throw toCliError(error, `Failed to create file ${data.name}`);
+      throw toCliError(error, `Failed to create file '${data.name}'`);
     }
   }
 
@@ -71,7 +71,7 @@ export class FileService {
         throw new FileInUpdateError();
       }
 
-      throw toCliError(error, `Failed to update ${localFilePath}`);
+      throw toCliError(error, `Failed to update '${localFilePath}'`);
     }
   }
 
@@ -79,7 +79,7 @@ export class FileService {
     try {
       await this.apiClient.sourceFilesApi.deleteFile(this.projectId, fileId);
     } catch (error) {
-      throw toCliError(error, `Failed to delete ${projectFilePath}`);
+      throw toCliError(error, `Failed to delete '${projectFilePath}'`);
     }
   }
 

@@ -55,7 +55,7 @@ describe('StringService', () => {
       } as never);
 
       expect(stringService.uploadStrings(request, 'src/app.json')).rejects.toThrow(
-        'Failed to upload strings for file src/app.json',
+        "Failed to upload strings for file 'src/app.json'",
       );
     });
 

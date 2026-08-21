@@ -487,7 +487,7 @@ export default class FileCommand {
     try {
       return await storageService.addStorage(localFile);
     } catch (error) {
-      throw toCliError(error, `Failed to upload ${filePath}`);
+      throw toCliError(error, `Failed to upload '${filePath}'`);
     }
   };
 
@@ -585,7 +585,7 @@ export default class FileCommand {
           await mkdir(path.dirname(fullFilePath), { recursive: true });
           await Bun.write(fullFilePath, await fetch(downloadUrl));
         } catch (error) {
-          throw toCliError(error, `Failed to download ${filePath}`);
+          throw toCliError(error, `Failed to download '${filePath}'`);
         }
 
         output.success(`File '${filePath}'`);
@@ -651,7 +651,7 @@ export default class FileCommand {
         await mkdir(path.dirname(fullFilePath), { recursive: true });
         await Bun.write(fullFilePath, await fetch(url));
       } catch (error) {
-        throw toCliError(error, `Failed to download ${destPath}`);
+        throw toCliError(error, `Failed to download '${destPath}'`);
       }
 
       output.success(`File '${destPath}'`);
@@ -687,7 +687,7 @@ export default class FileCommand {
         try {
           await fileService.deleteProjectFile(file.data.id, file.data.path);
         } catch (error) {
-          throw toCliError(error, `Failed to delete ${filePath}`);
+          throw toCliError(error, `Failed to delete '${filePath}'`);
         }
 
         output.success(`File '${filePath}' deleted`);

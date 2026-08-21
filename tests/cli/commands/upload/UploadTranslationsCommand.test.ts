@@ -145,7 +145,7 @@ describe('UploadTranslationsCommand', () => {
       undefined,
       expect.any(Function),
     );
-    expect(output.warning).not.toHaveBeenCalledWith('File s/app.json does not exist in the specified location');
+    expect(output.warning).not.toHaveBeenCalledWith("File 's/app.json' does not exist in the specified location");
   });
 
   test('uploads a translation through the group that owns the source, not one that ignores it', async () => {
@@ -492,7 +492,7 @@ describe('UploadTranslationsCommand', () => {
 
     expect(storageService.addStorage).not.toHaveBeenCalled();
     expect(translationService.importProjectTranslation).not.toHaveBeenCalled();
-    expect(output.warning).toHaveBeenCalledWith('File locale/es/app.json does not exist in the specified location');
+    expect(output.warning).toHaveBeenCalledWith("File 'locale/es/app.json' does not exist in the specified location");
   });
 
   test('uploads translations for all languages when no language filter is specified', async () => {
@@ -588,7 +588,7 @@ describe('UploadTranslationsCommand', () => {
 
     expect(storageService.addStorage).not.toHaveBeenCalled();
     expect(translationService.importProjectTranslation).not.toHaveBeenCalled();
-    expect(output.info).toHaveBeenCalledWith('File locale/es/app.json would be queued for translations import');
+    expect(output.info).toHaveBeenCalledWith("File 'locale/es/app.json' would be queued for translations import");
   });
 
   // Java routes --dryrun to ListTranslationsAction -> DryrunTranslations, which resolves paths from
@@ -622,7 +622,7 @@ describe('UploadTranslationsCommand', () => {
     await command.uploadTranslationsAction(commandContext({ dryrun: true }));
 
     expect(output.error).not.toHaveBeenCalledWith("Source file 'src/app.json' does not exist in the project");
-    expect(output.info).toHaveBeenCalledWith('File locale/es/app.json would be queued for translations import');
+    expect(output.info).toHaveBeenCalledWith("File 'locale/es/app.json' would be queued for translations import");
     expect(translationService.importProjectTranslation).not.toHaveBeenCalled();
   });
 
