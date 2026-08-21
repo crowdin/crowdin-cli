@@ -3,7 +3,21 @@ import type { OptionDef } from '@/cli/types.ts';
 export const stringId: OptionDef = {
   name: 'string-id',
   type: 'number',
-  description: 'Numeric string identifier',
+  variadic: true,
+  description: 'Numeric string identifier (multiple identifiers can be specified)',
+};
+
+export const search: OptionDef = {
+  name: 'search',
+  type: 'string',
+  description: 'Filter screenshots by name, tagged strings or file names',
+};
+
+export const excludeLabel: OptionDef = {
+  name: 'exclude-label',
+  type: 'string',
+  variadic: true,
+  description: 'Skip screenshots with the specified labels (multiple labels can be specified)',
 };
 
 export const autoTag: OptionDef = {
@@ -31,6 +45,13 @@ export const label: OptionDef = {
   type: 'string',
   variadic: true,
   description: 'Attach labels to screenshot (multiple labels can be specified)',
+};
+
+export const filterLabel: OptionDef = {
+  name: 'label',
+  type: 'string',
+  variadic: true,
+  description: 'Filter screenshots by labels (multiple labels can be specified)',
 };
 
 export const directory: OptionDef = {

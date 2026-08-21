@@ -3,16 +3,28 @@ import { toCliError } from '@/cli/errors/toCliError.ts';
 
 export type ScreenshotView = ScreenshotsModel.Screenshot;
 
+export interface ScreenshotListFilters {
+  stringIds?: number[];
+  search?: string;
+  labelIds?: number[];
+  excludeLabelIds?: number[];
+}
+
 export class ScreenshotService {
   constructor(
     private client: Client,
     private projectId: number,
   ) {}
 
-  async list(stringId?: number): Promise<ScreenshotView[]> {
+  async list(filters: ScreenshotListFilters = {}): Promise<ScreenshotView[]> {
+    const { stringIds, search, labelIds, excludeLabelIds } = filters;
+
     try {
       const response = await this.client.screenshotsApi.withFetchAll().listScreenshots(this.projectId, {
-        ...(stringId !== undefined ? { stringId } : {}),
+        ...(stringIds?.length ? { stringIds } : {}),
+        ...(search !== undefined ? { search } : {}),
+        ...(labelIds?.length ? { labelIds: labelIds.join(',') } : {}),
+        ...(excludeLabelIds?.length ? { excludeLabelIds: excludeLabelIds.join(',') } : {}),
       });
 
       return response.data.map((entry) => entry.data);
@@ -21,12 +33,17 @@ export class ScreenshotService {
     }
   }
 
-  async findByName(name: string): Promise<ScreenshotView | null> {
+  async findAllByName(name: string): Promise<ScreenshotView[]> {
     try {
       const response = await this.client.screenshotsApi.withFetchAll().listScreenshots(this.projectId, {
         search: name,
       });
-      return response.data[0]?.data ?? null;
+
+      // `search` matches substrings of names, tagged strings and file names, so keep exact name matches only
+      return response.data
+        .map((entry) => entry.data)
+        .filter((screenshot) => screenshot.name === name)
+        .sort((left, right) => left.id - right.id);
     } catch (error) {
       throw toCliError(error, `Failed to find screenshot '${name}'`);
     }
@@ -60,6 +77,18 @@ export class ScreenshotService {
       return response.data;
     } catch (error) {
       throw toCliError(error, 'Screenshot was not updated');
+    }
+  }
+
+  async replaceLabels(id: number, labelIds: number[]): Promise<ScreenshotView> {
+    try {
+      // labelIds is not part of the update form, only the patch one
+      const response = await this.client.screenshotsApi.editScreenshot(this.projectId, id, [
+        { op: 'replace', path: '/labelIds', value: labelIds },
+      ]);
+      return response.data;
+    } catch (error) {
+      throw toCliError(error, `Failed to update labels for screenshot #${id}`);
     }
   }
 

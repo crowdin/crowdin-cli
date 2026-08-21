@@ -18,11 +18,24 @@ import type {
 import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
-import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
-import { autoTag, branch as branchOption, directory, file, label, stringId } from './options.ts';
+import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
+import {
+  autoTag,
+  branch as branchOption,
+  directory,
+  excludeLabel,
+  file,
+  filterLabel,
+  label,
+  search,
+  stringId,
+} from './options.ts';
 
 interface ListOptions extends GlobalOptions {
-  stringId?: number;
+  stringId?: string | string[];
+  search?: string;
+  label?: string[];
+  excludeLabel?: string[];
 }
 
 interface UploadOptions extends GlobalOptions {
@@ -63,12 +76,12 @@ export default class ScreenshotCommand {
         {
           name: 'list',
           description: 'List screenshots',
-          options: [stringId, projectConfigGroup],
+          options: [stringId, search, filterLabel, excludeLabel, projectConfigGroup],
           action: this.listAction,
         },
         {
           name: 'upload',
-          description: 'Add screenshot',
+          description: 'Add screenshot or update an existing one with the same name',
           arguments: [
             {
               name: 'file',
@@ -103,9 +116,40 @@ export default class ScreenshotCommand {
     const options = command.optsWithGlobals() as ListOptions;
     const output = this.getOutput(command);
     const screenshotService = await this.getScreenshotService(command);
-    const screenshots = await screenshotService.list(options.stringId);
+    const { labelIds, excludeLabelIds } = await this.resolveFilterLabelIds(command, options);
+    const screenshots = await screenshotService.list({
+      stringIds: toNumberArray(options.stringId, "The '--string-id' value must be numeric"),
+      search: options.search,
+      labelIds,
+      excludeLabelIds,
+    });
 
     output.list(screenshots, screenshotView, { empty: 'No screenshot found' });
+  };
+
+  private resolveFilterLabelIds = async (command: Command, options: ListOptions) => {
+    const titles = toArray(options.label);
+    const excludedTitles = toArray(options.excludeLabel);
+
+    if (titles.length === 0 && excludedTitles.length === 0) {
+      return {};
+    }
+
+    const labelService = await this.getLabelService(command);
+    const idsByTitle = new Map((await labelService.list()).map((entry) => [entry.title, entry.id]));
+    // filtering must not create labels, so unknown titles are an error instead of a silent no-op
+    const toIds = (labelTitles: string[]) =>
+      labelTitles.map((title) => {
+        const labelId = idsByTitle.get(title);
+
+        if (labelId === undefined) {
+          throw new CliError(`Project doesn't contain the '${title}' label`);
+        }
+
+        return labelId;
+      });
+
+    return { labelIds: toIds(titles), excludeLabelIds: toIds(excludedTitles) };
   };
 
   uploadAction = async (command: Command) => {
@@ -135,19 +179,41 @@ export default class ScreenshotCommand {
       : undefined;
     const directoryId = await directoryService.resolveDirectoryId(options.directory, branchId);
     const labelIds = await labelService.resolveLabelIds(toArray(options.label));
-    const existingScreenshot = await screenshotService.findByName(imageName);
+    const [existingScreenshot, ...duplicates] = await screenshotService.findAllByName(imageName);
     const storage = await storageService.addStorage(image);
 
     if (existingScreenshot) {
-      await screenshotService.update(existingScreenshot.id, { name: imageName, storageId: storage.data.id });
+      if (duplicates.length > 0) {
+        output.warning(
+          `Found ${duplicates.length + 1} screenshots named '${imageName}', updating '#${existingScreenshot.id}'`,
+        );
+      }
+
+      await screenshotService.update(existingScreenshot.id, {
+        name: imageName,
+        storageId: storage.data.id,
+        usePreviousTags: !options.autoTag,
+      });
+
+      if (labelIds !== undefined) {
+        await screenshotService.replaceLabels(existingScreenshot.id, labelIds);
+      }
 
       if (options.autoTag) {
-        await screenshotService.replaceTags(existingScreenshot.id, {
-          autoTag: true,
-          ...(branchId !== undefined ? { branchId } : {}),
-          ...(fileId !== undefined ? { fileId } : {}),
-          ...(directoryId !== undefined ? { directoryId } : {}),
-        });
+        try {
+          await screenshotService.replaceTags(existingScreenshot.id, {
+            autoTag: true,
+            ...(branchId !== undefined ? { branchId } : {}),
+            ...(fileId !== undefined ? { fileId } : {}),
+            ...(directoryId !== undefined ? { directoryId } : {}),
+          });
+        } catch (error) {
+          if (!screenshotService.isAutoTagInProgressError(error)) {
+            throw error;
+          }
+
+          output.warning(`Tags were not applied for ${imageName} because auto tag is currently in progress`);
+        }
       }
 
       const updatedScreenshot = await screenshotService.get(existingScreenshot.id);

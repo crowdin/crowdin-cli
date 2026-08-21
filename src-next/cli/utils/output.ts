@@ -87,7 +87,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
     withGuide,
   });
 
-  const structured = isStructuredFormat(format);
+  const isStructured = isStructuredFormat(format);
 
   function renderLine<T>(item: T, view: View<T>): string {
     return format === 'plain' && view.plain ? view.plain(item) : view.text(item);
@@ -106,7 +106,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
     // separates records by newline, toon by blank line; both escape newlines inside a message,
     // so neither separator can appear within a record. TOON's list form would give one document
     // but declares its record count up front ('[2]{level,message}:'), unknowable mid-run.
-    if (structured) {
+    if (isStructured) {
       const record = { level, message, ...(code !== undefined ? { code } : {}) };
 
       // Not formatData for json: it indents for readability on stdout, which would spread one
@@ -160,7 +160,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
 
       // json/toon serialize the grid; plain is the caller's own business — status prints its
       // per-language report there and never reaches this.
-      if (structured) {
+      if (isStructured) {
         console.log(formatData(data, format));
       }
     },
@@ -170,7 +170,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
      * every bit of display shaping.
      */
     list<T>(items: T[], view: View<T>, { empty }: { empty?: string } = {}): void {
-      if (structured) {
+      if (isStructured) {
         console.log(
           formatData(
             items.map((item) => pickKeys(item, view.keys)),
@@ -207,7 +207,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
      * created") but not a report block, whose view renders many lines from one payload.
      */
     item<T>(value: T, view: View<T>, { mark = true }: { mark?: boolean } = {}): void {
-      if (structured) {
+      if (isStructured) {
         console.log(formatData(pickKeys(value, view.keys), format));
         return;
       }

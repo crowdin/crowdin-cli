@@ -21,10 +21,11 @@ describe('ScreenshotCommand', () => {
   let tempDirectory: string;
   let screenshotService: {
     list: ReturnType<typeof mock<ScreenshotService['list']>>;
-    findByName: ReturnType<typeof mock<ScreenshotService['findByName']>>;
+    findAllByName: ReturnType<typeof mock<ScreenshotService['findAllByName']>>;
     get: ReturnType<typeof mock<ScreenshotService['get']>>;
     upload: ReturnType<typeof mock<ScreenshotService['upload']>>;
     update: ReturnType<typeof mock<ScreenshotService['update']>>;
+    replaceLabels: ReturnType<typeof mock<ScreenshotService['replaceLabels']>>;
     replaceTags: ReturnType<typeof mock<ScreenshotService['replaceTags']>>;
     delete: ReturnType<typeof mock<ScreenshotService['delete']>>;
     isAutoTagInProgressError: ReturnType<typeof mock<ScreenshotService['isAutoTagInProgressError']>>;
@@ -32,7 +33,10 @@ describe('ScreenshotCommand', () => {
   let branchService: { resolveBranch: ReturnType<typeof mock<BranchService['resolveBranch']>> };
   let fileService: { resolveFileIds: ReturnType<typeof mock<FileService['resolveFileIds']>> };
   let directoryService: { resolveDirectoryId: ReturnType<typeof mock<DirectoryService['resolveDirectoryId']>> };
-  let labelService: { resolveLabelIds: ReturnType<typeof mock<LabelService['resolveLabelIds']>> };
+  let labelService: {
+    resolveLabelIds: ReturnType<typeof mock<LabelService['resolveLabelIds']>>;
+    list: ReturnType<typeof mock<LabelService['list']>>;
+  };
   let storageService: { addStorage: ReturnType<typeof mock<StorageService['addStorage']>> };
   const globalOptions: GlobalOptions = {
     verbose: false,
@@ -94,10 +98,11 @@ describe('ScreenshotCommand', () => {
 
     screenshotService = {
       list: mock(async () => []),
-      findByName: mock(async () => null),
+      findAllByName: mock(async () => []),
       get: mock(async () => null),
       upload: mock(async () => createScreenshot(10, 'screen.png')),
       update: mock(async () => createScreenshot(10, 'screen.png')),
+      replaceLabels: mock(async () => createScreenshot(10, 'screen.png')),
       replaceTags: mock(async () => {}),
       delete: mock(async () => {}),
       isAutoTagInProgressError: mock(() => false),
@@ -105,7 +110,7 @@ describe('ScreenshotCommand', () => {
     branchService = { resolveBranch: mock(async () => undefined) };
     fileService = { resolveFileIds: mock(async () => ({ fileIds: [], missingPaths: [] })) };
     directoryService = { resolveDirectoryId: mock(async () => undefined) };
-    labelService = { resolveLabelIds: mock(async () => undefined) };
+    labelService = { resolveLabelIds: mock(async () => undefined), list: mock(async () => []) };
     storageService = {
       addStorage: mock(
         async (_file: BunFile) =>
@@ -279,13 +284,44 @@ describe('ScreenshotCommand', () => {
     );
   });
 
+  test('listAction accepts multiple string ids', async () => {
+    const cmd = createScreenshotCommand();
+
+    await cmd.listAction(createCommandContext({ ...globalOptions, stringId: ['42', '43'] }));
+
+    expect(screenshotService.list).toHaveBeenCalledWith(expect.objectContaining({ stringIds: [42, 43] }));
+
+    expect(cmd.listAction(createCommandContext({ ...globalOptions, stringId: ['x'] }))).rejects.toThrow(
+      new CliError("The '--string-id' value must be numeric"),
+    );
+  });
+
+  test('listAction resolves label filters to ids and fails on unknown labels', async () => {
+    const cmd = createScreenshotCommand();
+    labelService.list = mock(async () => [
+      { id: 1, title: 'web' },
+      { id: 2, title: 'ios' },
+    ]) as never;
+
+    await cmd.listAction(createCommandContext({ ...globalOptions, label: ['web'], excludeLabel: ['ios'] }));
+
+    expect(screenshotService.list).toHaveBeenCalledWith(
+      expect.objectContaining({ labelIds: [1], excludeLabelIds: [2] }),
+    );
+
+    expect(cmd.listAction(createCommandContext({ ...globalOptions, label: ['nope'] }))).rejects.toThrow(
+      new CliError("Project doesn't contain the 'nope' label"),
+    );
+  });
+
   test('uploadAction updates existing screenshot and replaces tags when auto-tag enabled', async () => {
     const cmd = createScreenshotCommand();
     const localPath = path.join(tempDirectory, 'welcome.png');
     await writeFile(localPath, 'image');
     branchService.resolveBranch.mockResolvedValue({ id: 9, name: 'main' } as never);
     fileService.resolveFileIds.mockResolvedValue({ fileIds: [77], missingPaths: [] });
-    screenshotService.findByName.mockResolvedValue(createScreenshot(55, 'welcome.png', 1) as never);
+    screenshotService.findAllByName.mockResolvedValue([createScreenshot(55, 'welcome.png', 1)] as never);
+    labelService.resolveLabelIds.mockResolvedValue([5]);
     screenshotService.get.mockResolvedValue(createScreenshot(55, 'welcome.png', 3) as never);
 
     await cmd.uploadAction(
@@ -295,12 +331,13 @@ describe('ScreenshotCommand', () => {
     expect(labelService.resolveLabelIds).toHaveBeenCalledWith(['web']);
     expect(screenshotService.update).toHaveBeenCalledWith(
       55,
-      expect.objectContaining({ name: 'welcome.png', storageId: 44 }),
+      expect.objectContaining({ name: 'welcome.png', storageId: 44, usePreviousTags: false }),
     );
     expect(screenshotService.replaceTags).toHaveBeenCalledWith(
       55,
       expect.objectContaining({ autoTag: true, fileId: 77 }),
     );
+    expect(screenshotService.replaceLabels).toHaveBeenCalledWith(55, [5]);
     expect(console.log).toHaveBeenCalledWith(JSON.stringify(asJson(createScreenshot(55, 'welcome.png', 3)), null, 2));
   });
 
@@ -339,6 +376,33 @@ describe('ScreenshotCommand', () => {
     expect(warningSpy).toHaveBeenCalledWith(
       'Tags were not applied for new.png because auto tag is currently in progress',
     );
+  });
+
+  test('uploadAction warns instead of failing when auto-tag is in progress on update', async () => {
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
+    const warningSpy = spyOn(textOutput, 'warning');
+    const cmd = new ScreenshotCommand(
+      () => textOutput,
+      async () => screenshotService as unknown as ScreenshotService,
+      async () => storageService as unknown as StorageService,
+      async () => branchService as unknown as BranchService,
+      async () => directoryService as unknown as DirectoryService,
+      async () => fileService as unknown as FileService,
+      async () => labelService as unknown as LabelService,
+    );
+    const localPath = path.join(tempDirectory, 'welcome.png');
+    await writeFile(localPath, 'image');
+    screenshotService.findAllByName.mockResolvedValue([createScreenshot(55, 'welcome.png', 1)] as never);
+    screenshotService.get.mockResolvedValue(createScreenshot(55, 'welcome.png', 1) as never);
+    screenshotService.replaceTags.mockRejectedValue(new Error('Auto tag is currently in progress'));
+    screenshotService.isAutoTagInProgressError.mockReturnValue(true);
+
+    await cmd.uploadAction(createCommandContext({ ...globalOptions, output: 'text', autoTag: true }, [localPath]));
+
+    expect(warningSpy).toHaveBeenCalledWith(
+      'Tags were not applied for welcome.png because auto tag is currently in progress',
+    );
+    expect(screenshotService.get).toHaveBeenCalledWith(55);
   });
 
   test('uploadAction validates source file and directory path resolution', async () => {
