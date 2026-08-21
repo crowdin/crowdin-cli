@@ -512,7 +512,7 @@ describe('DownloadCommand', () => {
       const buildProject = spyOn(apiClient.translationsApi, 'buildProject').mockResolvedValue({} as never);
       // Dry-run now always loads the server file map to filter excluded target languages (Java parity).
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({ data: [] } as never);
-      const logSpy = spyOn(output, 'log');
+      const listSpy = spyOn(output, 'list');
       await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
 
       commandContext = createCommandContext({
@@ -524,7 +524,7 @@ describe('DownloadCommand', () => {
       await downloadCommand.translationsAction(commandContext);
 
       // Dry-run lists resolved translation destination paths, not raw server source paths.
-      expect(logSpy).toHaveBeenCalledWith('resources/fr/messages.json');
+      expect(listSpy.mock.calls[0]?.[0]).toEqual(['resources/fr/messages.json']);
       expect(buildProject).not.toHaveBeenCalled();
     });
 
@@ -546,7 +546,7 @@ describe('DownloadCommand', () => {
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
         data: [{ data: { id: 1, path: '/resources/en/messages.json', excludedTargetLanguages: ['fr'] } }],
       } as never);
-      const logSpy = spyOn(output, 'log');
+      const listSpy = spyOn(output, 'list');
       await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
 
       commandContext = createCommandContext({
@@ -557,8 +557,7 @@ describe('DownloadCommand', () => {
 
       await downloadCommand.translationsAction(commandContext);
 
-      expect(logSpy).toHaveBeenCalledWith('resources/de/messages.json');
-      expect(logSpy).not.toHaveBeenCalledWith('resources/fr/messages.json');
+      expect(listSpy.mock.calls[0]?.[0]).toEqual(['resources/de/messages.json']);
     });
 
     test('filters by branch', async () => {

@@ -5,6 +5,7 @@ import { ProjectsGroupsModel, type ResponseObject, type TranslationsModel } from
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
+import { pathView } from '@/cli/commands/common/views.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -161,9 +162,7 @@ export default class DownloadCommand {
       const paths = toSortedRelativePaths(downloads.map((download) => download.relativePath));
 
       if (!printDryRunPaths(paths, options, output)) {
-        for (const relativePath of paths) {
-          output.log(relativePath);
-        }
+        output.list(paths, pathView);
       }
 
       return;
@@ -330,9 +329,7 @@ export default class DownloadCommand {
       const paths = toSortedRelativePaths([...new Set(mapping.byArchivePath.values())]);
 
       if (!printDryRunPaths(paths, options, output)) {
-        for (const line of paths) {
-          output.log(line);
-        }
+        output.list(paths, pathView);
       }
 
       return;
