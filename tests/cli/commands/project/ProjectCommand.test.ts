@@ -214,6 +214,28 @@ describe('ProjectCommand', () => {
     });
   });
 
+  test('echoes the created project through the list view, in plain too', async () => {
+    const plainOutput = createOutput({ ...globalOptions, output: 'plain' });
+    const projectCommand = new ProjectCommand(
+      () => plainOutput,
+      async () => new ProjectService(apiClient, plainOutput, config.projectId),
+    );
+
+    spyOn(apiClient.projectsGroupsApi, 'addProject').mockResolvedValue({
+      data: { id: 77, name: 'New Project' },
+    } as never);
+    const logSpy = spyOn(console, 'log');
+
+    commandContext = createCommandContext(
+      { ...globalOptions, output: 'plain', sourceLanguage: 'uk', language: ['fr'] },
+      ['New Project'],
+    );
+
+    await projectCommand.addAction(commandContext);
+
+    expect(logSpy).toHaveBeenCalledWith('#77 New Project');
+  });
+
   test('requires project name', async () => {
     const projectCommand = createProjectCommand();
 

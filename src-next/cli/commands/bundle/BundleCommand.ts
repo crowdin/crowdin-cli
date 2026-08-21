@@ -3,12 +3,14 @@ import path from 'node:path';
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
+import { pathView } from '@/cli/commands/common/views.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { AddBundlePayload, BundleView } from '@/cli/services/BundleService.ts';
 import type { GetBundleService, GetConfig, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
+import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
@@ -283,16 +285,22 @@ export default class BundleCommand {
       return { entry, relativePath, targetPath };
     });
 
-    if (options.dryrun) {
-      // Dry run lists archive contents without writing anything to disk.
-      for (const { relativePath } of extractions) {
-        output.log(relativePath);
-      }
-    } else {
-      for (const { entry, relativePath, targetPath } of extractions) {
+    if (!options.dryrun) {
+      for (const { entry, targetPath } of extractions) {
         await mkdir(path.dirname(targetPath), { recursive: true });
         await Bun.write(targetPath, entry.getData());
+      }
+    }
 
+    // Java prints one path per extracted file (message.file_path), for a dry run as much as for a
+    // real one. Both used to go through log()/success(), so json/toon/plain — where the path list
+    // is the whole result — printed nothing at all.
+    const extractedPaths = extractions.map(({ relativePath }) => relativePath);
+
+    if (isMachineFormat(options.output)) {
+      output.list(extractedPaths, pathView);
+    } else {
+      for (const relativePath of extractedPaths) {
         output.success(relativePath);
       }
     }

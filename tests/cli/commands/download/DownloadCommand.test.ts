@@ -832,6 +832,9 @@ describe('DownloadCommand', () => {
         { entryName: 'resources/fr-FR/messages.json', content: 'translated' },
         { entryName: 'resources/fr-FR/other.json', content: 'omitted' },
       ]);
+      // The list prints through log(), which only text renders.
+      output = createOutput({ ...globalOptions, output: 'text' });
+      commandContext = createCommandContext({ ...globalOptions, output: 'text' });
       const warningSpy = spyOn(output, 'warning');
       const logSpy = spyOn(output, 'log');
 
@@ -845,6 +848,38 @@ describe('DownloadCommand', () => {
       expect(warningSpy).toHaveBeenCalledWith(expect.stringContaining("don't match the current project configuration"));
       expect(logSpy).toHaveBeenCalledWith('\t- resources/en/other.json (1)');
       expect(await Bun.file(join(tempDir, 'resources/fr-FR/other.json')).exists()).toBe(false);
+    });
+
+    test('skips the omitted-file report in a machine format', async () => {
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+      mockBuildAndDownload([language('fr', 'fr-FR')]);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [
+          {
+            data: {
+              id: 2,
+              path: '/resources/en/other.json',
+              exportOptions: { exportPattern: '/resources/%locale%/%original_file_name%' },
+            },
+          },
+        ],
+      } as never);
+      mockZipEntries([
+        { entryName: 'resources/fr-FR/messages.json', content: 'translated' },
+        { entryName: 'resources/fr-FR/other.json', content: 'omitted' },
+      ]);
+      const warningSpy = spyOn(output, 'warning');
+      const logSpy = spyOn(output, 'log');
+
+      const downloadCommand = createCommandFor({
+        ...config,
+        files: [{ source: '/resources/en/messages.json', translation: '/resources/%locale%/%original_file_name%' }],
+      });
+
+      await downloadCommand.translationsAction(commandContext);
+
+      expect(warningSpy).not.toHaveBeenCalled();
+      expect(logSpy).not.toHaveBeenCalled();
     });
 
     test('lists omitted translations under each source when verbose', async () => {
@@ -865,9 +900,10 @@ describe('DownloadCommand', () => {
         { entryName: 'resources/fr-FR/messages.json', content: 'translated' },
         { entryName: 'resources/fr-FR/other.json', content: 'omitted' },
       ]);
+      output = createOutput({ ...globalOptions, output: 'text' });
       const logSpy = spyOn(output, 'log');
 
-      commandContext = createCommandContext({ ...globalOptions, verbose: true });
+      commandContext = createCommandContext({ ...globalOptions, output: 'text', verbose: true });
 
       const downloadCommand = createCommandFor({
         ...config,
@@ -887,6 +923,8 @@ describe('DownloadCommand', () => {
         { entryName: 'resources/fr-FR/messages.json', content: 'translated' },
         { entryName: 'unrelated/file.json', content: 'noise' },
       ]);
+      output = createOutput({ ...globalOptions, output: 'text' });
+      commandContext = createCommandContext({ ...globalOptions, output: 'text' });
       const warningSpy = spyOn(output, 'warning');
       const logSpy = spyOn(output, 'log');
 

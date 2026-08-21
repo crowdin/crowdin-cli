@@ -406,13 +406,25 @@ describe('BundleCommand', () => {
     test('dryrun lists archive contents without writing files', async () => {
       mockArchive();
       const textOutput = createOutput(textOptions({ dryrun: true }));
-      const logSpy = spyOn(textOutput, 'log');
+      const successSpy = spyOn(textOutput, 'success');
       const cmd = createBundleCommand(textOutput);
 
       await cmd.downloadAction(createCommandContext(textOptions({ dryrun: true }), ['5']));
 
-      expect(logSpy).toHaveBeenCalledWith('messages/en.json');
+      expect(successSpy).toHaveBeenCalledWith('messages/en.json');
       expect(stat(path.join(tempRoot, 'messages/en.json'))).rejects.toThrow();
+    });
+
+    test('reports extracted paths as a list in a machine format', async () => {
+      mockArchive({ 'messages/en.json': '{}', 'messages/fr.json': '{}' });
+      const jsonOutput = createOutput(globalOptions);
+      const listSpy = spyOn(jsonOutput, 'list');
+      const cmd = createBundleCommand(jsonOutput);
+
+      await cmd.downloadAction(createCommandContext(globalOptions, ['5']));
+
+      expect(listSpy).toHaveBeenCalledWith(['messages/en.json', 'messages/fr.json'], expect.anything());
+      expect(await Bun.file(path.join(tempRoot, 'messages/fr.json')).exists()).toBe(true);
     });
 
     test('keeps the archive with --keep-archive', async () => {

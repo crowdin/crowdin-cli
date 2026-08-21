@@ -1,13 +1,7 @@
-import { beforeEach, describe, expect, test } from 'bun:test';
-import { enableColors } from '@/cli/utils/colors.ts';
+import { describe, expect, test } from 'bun:test';
 import { fileTree } from '@/cli/utils/fileTree.ts';
 
 describe('fileTree', () => {
-  // The glyphs are cyan once an Output has switched colors on; assert on the bare tree.
-  beforeEach(() => {
-    enableColors(false);
-  });
-
   test('empty input returns only root', () => {
     expect(fileTree([])).toEqual(['.']);
   });

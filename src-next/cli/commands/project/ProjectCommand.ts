@@ -114,6 +114,8 @@ export default class ProjectCommand {
 
     const project = await projectService.addProject(data);
 
-    output.log(`${project.data.id} ${project.data.name}`.trim());
+    // Java's plain branch prints the id alone; here plain renders like text ('#id name'), matching
+    // how `project list` treats plain.
+    output.item(project.data, projectView);
   };
 }

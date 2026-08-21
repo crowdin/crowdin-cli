@@ -1,13 +1,7 @@
-import { beforeAll, describe, expect, test } from 'bun:test';
+import { describe, expect, test } from 'bun:test';
 import { type ProgressRow, statusPlainView, statusTableView, toProgressList } from '@/cli/commands/status/views.ts';
-import { enableColors } from '@/cli/utils/colors.ts';
 
 describe('status views', () => {
-  // colors default to on; the views are asserted as raw strings, so switch them off like fileTree.test.ts
-  beforeAll(() => {
-    enableColors(false);
-  });
-
   const row = (overrides: Partial<ProgressRow> = {}): ProgressRow => ({
     languageId: 'fr',
     name: 'French',
