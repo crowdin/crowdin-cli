@@ -218,10 +218,15 @@ export default class UploadTranslationsCommand {
         fileLanguageMapping: patterns.languages_mapping,
       });
 
+      // Java reports the empty group and moves on to the next one, keeping the message out of
+      // `--plain` so that stream stays parseable. It never flags the run as failed for this.
       if (localSourcePaths.length === 0) {
-        output.error(
-          `No sources found for '${patterns.source}' pattern. Check the source paths in your configuration file`,
-        );
+        if (!plainView) {
+          output.error(
+            `No sources found for '${patterns.source}' pattern. Check the source paths in your configuration file`,
+          );
+        }
+
         continue;
       }
 

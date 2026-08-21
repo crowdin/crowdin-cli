@@ -1741,12 +1741,15 @@ describe('UploadSourcesCommand', () => {
     expect(createCalls[0]?.[0]?.name).toBe('app.json');
   });
 
-  test('throws when a source pattern matches no files during source upload', async () => {
+  test('reports a source pattern that matches no files and still uploads the remaining groups', async () => {
+    await Bun.write(`${tempDir}/other/app.json`, '{}');
+
+    const output = createOutputMock();
     const storageService = { addStorage: mock(async () => ({ data: { id: 10 } })) };
     const fileService = { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) };
     const command = createUploadCommand(
       tempDir,
-      createOutputMock(),
+      output,
       baseProjectServiceMock(),
       storageService,
       baseBranchServiceMock(),
@@ -1754,13 +1757,24 @@ describe('UploadSourcesCommand', () => {
       fileService,
       baseLabelServiceMock(),
       baseTranslationServiceMock(),
-      { source: '/src/*.json' },
+      {},
+      {
+        files: [
+          { source: '/src/*.json', translation: '/locale/%two_letters_code%/%original_file_name%' },
+          { source: '/other/*.json', translation: '/locale/%two_letters_code%/%original_file_name%' },
+        ],
+      },
     );
 
-    expect(command.uploadSourcesAction(commandContext({}))).rejects.toThrow(
+    await expect(command.uploadSourcesAction(commandContext({}))).rejects.toThrow(
+      'Current execution finished with errors',
+    );
+
+    expect(output.error).toHaveBeenCalledWith(
       "No sources found for '/src/*.json' pattern. Check the source paths in your configuration file",
     );
-    expect(fileService.createProjectFile).not.toHaveBeenCalled();
+    const createCalls = fileService.createProjectFile.mock.calls as SourceFilesModel.CreateFileRequest[][];
+    expect(createCalls[0]?.[0]?.name).toBe('app.json');
   });
 
   test('warns and skips when an existing source file is currently being updated', async () => {

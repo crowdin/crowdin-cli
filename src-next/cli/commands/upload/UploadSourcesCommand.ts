@@ -225,13 +225,19 @@ export default class UploadSourcesCommand {
     const srxStorageIds = new Map<string, Promise<number>>();
     const seenFilePaths = new Set<string>();
     const uploadedSources: UploadedFile[] = [];
+    const isPlainView = options.output === 'plain';
     let hasErrors = false;
 
     for (const { patterns, fileOptions, files } of patternFilePaths) {
       if (files.length === 0) {
-        throw new CliError(
-          `No sources found for '${patterns.source}' pattern. Check the source paths in your configuration file`,
-        );
+        if (!isPlainView) {
+          output.error(
+            `No sources found for '${patterns.source}' pattern. Check the source paths in your configuration file`,
+          );
+          hasErrors = true;
+        }
+
+        continue;
       }
 
       if (isStringsBasedProject && patterns.context) {
