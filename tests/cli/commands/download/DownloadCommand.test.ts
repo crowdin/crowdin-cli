@@ -1701,4 +1701,158 @@ describe('DownloadCommand', () => {
       expect(await Bun.file(join(tempDir, 'unrelated/other.json')).exists()).toBe(false);
     });
   });
+
+  // output.success is text-only, so before this the machine formats saw an empty stdout for a
+  // command that had written real files to disk.
+  describe('machine-format summary', () => {
+    const summary = () => {
+      const calls = (console.log as ReturnType<typeof mock>).mock.calls;
+      return JSON.parse(String(calls.at(-1)?.[0]));
+    };
+
+    test('reports each downloaded source', async () => {
+      const downloadCommand = createDownloadCommand();
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/resources/en/messages.json' } }],
+      } as never);
+      spyOn(fileService, 'getSourceFileDownloadUrl').mockResolvedValue('https://example.test/messages.json');
+      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('source content'));
+
+      await downloadCommand.sourcesAction(commandContext);
+
+      expect(summary()).toEqual([{ path: 'resources/en/messages.json', action: 'downloaded', reason: null }]);
+    });
+
+    const downloadTranslationsOf = async (entries: { entryName: string; content: string }[], options = {}) => {
+      const downloadCommand = createDownloadCommand();
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: {
+          id: 123,
+          languageMapping: {},
+          targetLanguages: [{ id: 'fr', locale: 'fr', twoLettersCode: 'fr', threeLettersCode: 'fre', name: 'French' }],
+        },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({ data: [] } as never);
+      spyOn(apiClient.translationsApi, 'buildProject').mockResolvedValue({
+        data: { id: 1, status: 'finished', progress: 100 },
+      } as never);
+      spyOn(apiClient.translationsApi, 'checkBuildStatus').mockResolvedValue({
+        data: { id: 1, status: 'finished', progress: 100 },
+      } as never);
+      spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/t.zip');
+      respondWithZip(entries);
+
+      await downloadCommand.translationsAction(
+        createCommandContext({ ...globalOptions, ignoreMatch: true, ...options }),
+      );
+    };
+
+    test('stays quiet in text, which already prints a line per file', async () => {
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+      const list = spyOn(output, 'list');
+
+      await downloadTranslationsOf([{ entryName: 'resources/fr/messages.json', content: 'x' }], { output: 'text' });
+
+      expect(list).not.toHaveBeenCalled();
+    });
+
+    test('drops the skips in plain, which cannot carry the action', async () => {
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+      const list = spyOn(output, 'list');
+
+      await downloadTranslationsOf(
+        [
+          { entryName: 'resources/fr/messages.json', content: 'x' },
+          { entryName: 'stray/unmapped.json', content: 'y' },
+        ],
+        { output: 'plain' },
+      );
+
+      expect(list.mock.calls.at(-1)?.[0]).toEqual([{ path: 'resources/fr/messages.json', action: 'downloaded' }]);
+    });
+
+    // The server lists project files by id, not by path. The summary does not sort — it relies
+    // on collectSourceDownloads having done so — which makes the ordering worth pinning here.
+    test('reports files in path order, not the order the server listed them', async () => {
+      const downloadCommand = createDownloadCommand();
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/resources/en/b.json' } }, { data: { id: 2, path: '/resources/en/a.json' } }],
+      } as never);
+      spyOn(fileService, 'getSourceFileDownloadUrl').mockResolvedValue('https://example.test/x.json');
+      spyOn(globalThis, 'fetch').mockImplementation((async () => new Response('x')) as unknown as typeof fetch);
+
+      await downloadCommand.sourcesAction(commandContext);
+
+      expect((summary() as { path: string }[]).map(({ path }) => path)).toEqual([
+        'resources/en/a.json',
+        'resources/en/b.json',
+      ]);
+    });
+
+    // An archive entry with no config mapping was reported only as prose, so machine consumers
+    // could not tell it had been left on the floor.
+    test('records an unmapped archive entry as skipped', async () => {
+      const downloadCommand = createDownloadCommand();
+
+      // The archive-to-local mapping is built from local sources, so one has to exist on disk.
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: {
+          id: 123,
+          languageMapping: {},
+          targetLanguages: [{ id: 'fr', locale: 'fr', twoLettersCode: 'fr', threeLettersCode: 'fre', name: 'French' }],
+        },
+      } as never);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({ data: [] } as never);
+      spyOn(apiClient.translationsApi, 'buildProject').mockResolvedValue({
+        data: { id: 1, status: 'finished', progress: 100 },
+      } as never);
+      spyOn(apiClient.translationsApi, 'checkBuildStatus').mockResolvedValue({
+        data: { id: 1, status: 'finished', progress: 100 },
+      } as never);
+      spyOn(translationService, 'getTranslationDownloadUrl').mockResolvedValue('https://example.test/t.zip');
+      respondWithZip([
+        { entryName: 'resources/fr/messages.json', content: 'mapped' },
+        { entryName: 'stray/unmapped.json', content: 'unmapped' },
+      ]);
+
+      await downloadCommand.translationsAction(createCommandContext({ ...globalOptions, ignoreMatch: true }));
+
+      expect(summary()).toEqual([
+        { path: 'resources/fr/messages.json', action: 'downloaded', reason: null },
+        { path: 'stray/unmapped.json', action: 'skipped', reason: 'no matching configuration' },
+      ]);
+    });
+
+    test('records a source missing from the reviewed archive as skipped', async () => {
+      const downloadCommand = createDownloadCommand();
+
+      spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
+        data: { id: 123, sourceLanguageId: 'en', userRole: 'manager' },
+      } as never);
+      spyOn(projectService, 'isEnterprise').mockReturnValue(true);
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [{ data: { id: 1, path: '/resources/en/messages.json' } }],
+      } as never);
+      spyOn(fileService, 'buildReviewedSources').mockResolvedValue({ data: { id: 5 } } as never);
+      spyOn(fileService, 'getReviewedSourcesDownloadUrl').mockResolvedValue('https://example.test/reviewed.zip');
+
+      // An archive that contains nothing matching the project file.
+      const zip = new AdmZip();
+      zip.addFile('en-REV/unrelated/other.json', Buffer.from('other'));
+      spyOn(globalThis, 'fetch').mockResolvedValue(new Response(zip.toBuffer()));
+
+      await downloadCommand.sourcesAction(createCommandContext({ ...globalOptions, reviewed: true }));
+
+      expect(summary()).toEqual([
+        { path: 'resources/en/messages.json', action: 'skipped', reason: 'not in the reviewed archive' },
+      ]);
+    });
+  });
 });

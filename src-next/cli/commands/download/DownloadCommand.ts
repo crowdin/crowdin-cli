@@ -17,6 +17,7 @@ import type {
   GetTranslationService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { matchesManagerSourceFile, matchesSourcePattern, replaceUnaryAsterisk } from '@/lib/config/projectFileMatch.ts';
 import { assertFilesConfigured, type Config } from '@/lib/config.ts';
@@ -40,6 +41,7 @@ import {
   skipUntranslatedFiles,
   skipUntranslatedStrings,
 } from './options.ts';
+import { type DownloadedFile, downloadedFileView } from './views.ts';
 
 interface TranslationsOptions extends GlobalOptions {
   branch?: string;
@@ -167,6 +169,8 @@ export default class DownloadCommand {
       return;
     }
 
+    const downloadedFiles: DownloadedFile[] = [];
+
     if (options.reviewed) {
       const build = await fileService.buildReviewedSources(branchId);
       const downloadUrl = await fileService.getReviewedSourcesDownloadUrl(build.data.id);
@@ -201,6 +205,11 @@ export default class DownloadCommand {
           const content = reviewedFiles.get(`/${download.relativePath}`);
 
           if (!content) {
+            downloadedFiles.push({
+              path: download.relativePath,
+              action: 'skipped',
+              reason: 'not in the reviewed archive',
+            });
             continue;
           }
 
@@ -209,6 +218,7 @@ export default class DownloadCommand {
           await mkdir(path.dirname(filePath), { recursive: true });
           await Bun.write(filePath, content);
           output.success(`File '${download.relativePath}'`);
+          downloadedFiles.push({ path: download.relativePath, action: 'downloaded' });
         }
       } finally {
         try {
@@ -216,6 +226,17 @@ export default class DownloadCommand {
         } catch {
           output.warning(`Failed to clean up temp directory ${tempDir}`);
         }
+      }
+
+      // Text already streamed a line per file, so only the machine formats need the summary.
+      // plain is line-oriented and cannot carry the action, so it lists only what was written.
+      if (isMachineFormat(options.output)) {
+        const sorted = downloadedFiles.sort((one, other) => one.path.localeCompare(other.path));
+
+        output.list(
+          isStructuredFormat(options.output) ? sorted : sorted.filter(({ action }) => action !== 'skipped'),
+          downloadedFileView,
+        );
       }
 
       return;
@@ -230,9 +251,24 @@ export default class DownloadCommand {
         await mkdir(path.dirname(filePath), { recursive: true });
         await Bun.write(filePath, response);
         output.success(`File '${download.relativePath}'`);
+        downloadedFiles.push({ path: download.relativePath, action: 'downloaded' });
       } catch (error) {
         throw toCliError(error, `Failed to download ${download.relativePath}`);
       }
+    }
+
+    // Text already streamed a line per file, so only the machine formats need the summary.
+    // plain is line-oriented and cannot carry the action, so it lists only what was written.
+    //
+    // No sort here, unlike upload: both loops are sequential over input that is already ordered
+    // by path — collectSourceDownloads sorts its matches, and adm-zip sorts archive entries.
+    if (isMachineFormat(options.output)) {
+      output.list(
+        isStructuredFormat(options.output)
+          ? downloadedFiles
+          : downloadedFiles.filter(({ action }) => action !== 'skipped'),
+        downloadedFileView,
+      );
     }
   };
 
@@ -341,6 +377,7 @@ export default class DownloadCommand {
     }
 
     const tempDirs: string[] = [];
+    const downloadedFiles: DownloadedFile[] = [];
     // One omitted-entry list per build; reported as the cross-build intersection (Java totalOmittedFiles).
     const perBuildOmitted: string[][] = [];
     let anyFileDownloaded = false;
@@ -394,6 +431,11 @@ export default class DownloadCommand {
           // Entries with no config mapping are "omitted" and reported below.
           if (!localPath) {
             omittedFiles.push(archiveRelPath);
+            downloadedFiles.push({
+              path: archiveRelPath,
+              action: 'skipped',
+              reason: 'no matching configuration',
+            });
             continue;
           }
 
@@ -404,6 +446,7 @@ export default class DownloadCommand {
 
           anyFileDownloaded = true;
           output.success(`File ${localPath} extracted`);
+          downloadedFiles.push({ path: localPath, action: 'downloaded' });
         }
 
         perBuildOmitted.push(omittedFiles);
@@ -443,6 +486,20 @@ export default class DownloadCommand {
           output.warning(`Failed to clean up temp directory ${tempDir}`);
         }
       }
+    }
+
+    // Text already streamed a line per file, so only the machine formats need the summary.
+    // plain is line-oriented and cannot carry the action, so it lists only what was written.
+    //
+    // No sort here, unlike upload: both loops are sequential over input that is already ordered
+    // by path — collectSourceDownloads sorts its matches, and adm-zip sorts archive entries.
+    if (isMachineFormat(options.output)) {
+      output.list(
+        isStructuredFormat(options.output)
+          ? downloadedFiles
+          : downloadedFiles.filter(({ action }) => action !== 'skipped'),
+        downloadedFileView,
+      );
     }
 
     output.success('Done');
