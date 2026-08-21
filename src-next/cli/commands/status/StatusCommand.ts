@@ -12,7 +12,7 @@ import type {
   GetProjectService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { isMachineFormat } from '@/cli/utils/formatter.ts';
+import { isStructuredFormat } from '@/cli/utils/formatter.ts';
 import { toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
 import { directory, file, proofreading, status, translation } from './options.ts';
 import { type ProgressRow, type ProgressView, statusPlainView, statusTableView, toProgressList } from './views.ts';
@@ -156,7 +156,7 @@ export default class StatusCommand {
     // its grid, and plain gains a section per count.
     if (options.output === 'plain') {
       output.item(progress, statusPlainView(rows, show, options.verbose));
-    } else if (isMachineFormat(options.output)) {
+    } else if (isStructuredFormat(options.output)) {
       output.table(progress);
     } else {
       output.table(statusTableView(rows, show, options.verbose));

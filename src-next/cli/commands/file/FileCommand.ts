@@ -26,7 +26,7 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
-import { OUTPUT_FORMATS } from '@/cli/utils/output.ts';
+import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
@@ -153,7 +153,7 @@ export default class FileCommand {
 
     // Tree is an interactive-only rendering; a machine --output (json/toon/plain) is a parseable
     // contract and wins, falling through to output.list so the format stays intact.
-    if (options.tree && !OUTPUT_FORMATS.includes(options.output ?? '')) {
+    if (options.tree && !isMachineFormat(options.output)) {
       printFileTree(
         files.map((file) => stripLeadingSlashes(file.path)),
         output,

@@ -12,7 +12,7 @@ import type {
   GetStringService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
-import { isMachineFormat } from '@/cli/utils/formatter.ts';
+import { isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import { add, edit, list } from './options.ts';
@@ -295,7 +295,7 @@ export default class StringCommand {
     const verbose = Boolean(options.verbose);
     // Only the verbose text/plain detail lines split on this; json/toon keep the raw ids either way.
     const isStringsBased =
-      verbose && !isMachineFormat(options.output) ? await stringService.isStringsBasedProject() : false;
+      verbose && !isStructuredFormat(options.output) ? await stringService.isStringsBasedProject() : false;
 
     output.success(`Source string #${id} was updated successfully`);
     output.item(updated, await this.buildStringView(command, { verbose, isStringsBased }));
@@ -326,7 +326,7 @@ export default class StringCommand {
 
     // json/toon carry the raw fileId/labelIds, so the lookups the verbose text lines need — a
     // label map and every file path in the project — would be paid for nothing there.
-    if (isMachineFormat((command.optsWithGlobals() as GlobalOptions).output)) {
+    if (isStructuredFormat((command.optsWithGlobals() as GlobalOptions).output)) {
       return createStringView({ verbose: true });
     }
 

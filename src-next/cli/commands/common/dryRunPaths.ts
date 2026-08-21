@@ -1,6 +1,7 @@
 import { pathView } from '@/cli/commands/common/views.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
-import { OUTPUT_FORMATS, type Output } from '@/cli/utils/output.ts';
+import { isMachineFormat } from '@/cli/utils/formatter.ts';
+import type { Output } from '@/cli/utils/output.ts';
 
 export interface DryRunListingOptions {
   output?: string;
@@ -25,7 +26,7 @@ export interface DryRunListingOptions {
 export function printDryRunPaths(paths: string[], options: DryRunListingOptions, output: Output): boolean {
   // The format check stays: in text the caller prints its own messages instead, and it needs to
   // know the listing wasn't emitted.
-  if (OUTPUT_FORMATS.includes(options.output ?? '')) {
+  if (isMachineFormat(options.output)) {
     output.list(paths, pathView);
     return true;
   }

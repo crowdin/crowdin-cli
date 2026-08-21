@@ -19,8 +19,8 @@ import type {
   GetStorageService,
   GetStringService,
 } from '@/cli/services.ts';
-import { isMachineFormat } from '@/cli/utils/formatter.ts';
-import { OUTPUT_FORMATS, type Output } from '@/cli/utils/output.ts';
+import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
+import type { Output } from '@/cli/utils/output.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { assertFilesConfigured } from '@/lib/config.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
@@ -468,11 +468,11 @@ export default class UploadSourcesCommand {
     // prints nothing there for a duplicate or an up-to-date file. (Java does print the empty-file
     // skip under --plain, but that branch simply has no plainView case, like its error handler;
     // an icon'd prose line in a stream of bare paths is the oversight, not the contract.)
-    if (OUTPUT_FORMATS.includes(options.output ?? '')) {
+    if (isMachineFormat(options.output)) {
       const sorted = uploadedSources.sort((one, other) => one.path.localeCompare(other.path));
 
       output.list(
-        isMachineFormat(options.output) ? sorted : sorted.filter(({ action }) => action !== 'skipped'),
+        isStructuredFormat(options.output) ? sorted : sorted.filter(({ action }) => action !== 'skipped'),
         uploadedSourceView,
       );
     }

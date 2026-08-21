@@ -12,9 +12,7 @@ import {
 } from '@clack/prompts';
 import type { GlobalOptions } from '../options.ts';
 import { colors, enableColors } from './colors.ts';
-import { formatData, isMachineFormat as isMachine } from './formatter.ts';
-
-export const OUTPUT_FORMATS = ['json', 'toon', 'plain'];
+import { formatData, isMachineFormat, isStructuredFormat } from './formatter.ts';
 
 // biome-ignore lint/suspicious/noControlCharactersInRegex: ESC is what an SGR sequence starts with
 const SGR_SEQUENCE = /\u001b\[[0-9;]*m/g;
@@ -89,7 +87,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
     withGuide,
   });
 
-  const isMachineFormat = isMachine(format);
+  const structured = isStructuredFormat(format);
 
   function renderLine<T>(item: T, view: View<T>): string {
     return format === 'plain' && view.plain ? view.plain(item) : view.text(item);
@@ -108,7 +106,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
     // separates records by newline, toon by blank line; both escape newlines inside a message,
     // so neither separator can appear within a record. TOON's list form would give one document
     // but declares its record count up front ('[2]{level,message}:'), unknowable mid-run.
-    if (isMachineFormat) {
+    if (structured) {
       const record = { level, message, ...(code !== undefined ? { code } : {}) };
 
       // Not formatData for json: it indents for readability on stdout, which would spread one
@@ -162,7 +160,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
 
       // json/toon serialize the grid; plain is the caller's own business — status prints its
       // per-language report there and never reaches this.
-      if (isMachineFormat) {
+      if (structured) {
         console.log(formatData(data, format));
       }
     },
@@ -172,7 +170,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
      * every bit of display shaping.
      */
     list<T>(items: T[], view: View<T>, { empty }: { empty?: string } = {}): void {
-      if (isMachineFormat) {
+      if (structured) {
         console.log(
           formatData(
             items.map((item) => pickKeys(item, view.keys)),
@@ -209,7 +207,7 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
      * created") but not a report block, whose view renders many lines from one payload.
      */
     item<T>(value: T, view: View<T>, { mark = true }: { mark?: boolean } = {}): void {
-      if (isMachineFormat) {
+      if (structured) {
         console.log(formatData(pickKeys(value, view.keys), format));
         return;
       }
@@ -311,7 +309,7 @@ export function getOutputFormatFromArgs(argv: string[]): GlobalOptions {
     if (arg === '--output' || arg === '-o') {
       const value = argv[index + 1];
 
-      if (value && OUTPUT_FORMATS.includes(value)) {
+      if (value && isMachineFormat(value)) {
         outputFormat = value;
         break;
       }
@@ -320,7 +318,7 @@ export function getOutputFormatFromArgs(argv: string[]): GlobalOptions {
     if (arg?.startsWith('--output=')) {
       const value = arg.slice('--output='.length);
 
-      if (OUTPUT_FORMATS.includes(value)) {
+      if (isMachineFormat(value)) {
         outputFormat = value;
         break;
       }
