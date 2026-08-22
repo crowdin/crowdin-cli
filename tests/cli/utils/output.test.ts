@@ -285,4 +285,49 @@ describe('spinner colors', () => {
     expect(log).toHaveBeenCalledWith(expect.stringContaining('Translated'));
     expect(log).toHaveBeenCalledWith(expect.not.stringMatching(SGR));
   });
+
+  // A row list, unlike the keyed grid above, keeps rows that share a value — the case that made
+  // 'context status --by-file' collapse two branches' copies of one path into a single row.
+  test('renders every row of a grid, duplicates included, and honours --no-colors', () => {
+    const log = spyOn(console, 'log').mockImplementation(() => {});
+
+    createOutput({ ...textOptions(false), progress: false }).grid({
+      columns: [
+        { name: 'file', title: 'File', alignment: 'left' },
+        { name: 'branch', title: 'Branch', alignment: 'left' },
+      ],
+      rows: [
+        { file: '/first.txt', branch: '' },
+        { file: '/first.txt', branch: 'feature' },
+      ],
+    });
+
+    const rendered = log.mock.calls
+      .map((call) => call[0])
+      .find((line) => String(line).includes('/first.txt')) as string;
+
+    expect(rendered.split('\n').filter((line) => line.includes('/first.txt'))).toHaveLength(2);
+    expect(rendered).toContain('feature');
+    expect(rendered).not.toMatch(SGR);
+  });
+
+  // console-table-printer paints every cell white by default, which reads as grey; only the header
+  // should carry styling, the same as the keyed grid above.
+  test('leaves grid cells in the terminal foreground and bolds only the header', () => {
+    const log = spyOn(console, 'log').mockImplementation(() => {});
+
+    createOutput({ ...textOptions(true), progress: false }).grid({
+      columns: [{ name: 'file', title: 'File', alignment: 'left' }],
+      rows: [{ file: '/first.txt' }],
+    });
+
+    const rendered = log.mock.calls
+      .map((call) => call[0])
+      .filter((line) => String(line).includes('/first.txt'))
+      .at(-1) as string;
+    const [, header, , row] = rendered.split('\n');
+
+    expect(header).toMatch(SGR);
+    expect(row).not.toMatch(SGR);
+  });
 });

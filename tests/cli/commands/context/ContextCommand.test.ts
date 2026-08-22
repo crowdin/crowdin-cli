@@ -8,7 +8,7 @@ import ContextCommand from '@/cli/commands/context/ContextCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
-import type { FileService } from '@/cli/services/FileService.ts';
+import type { FileService, ProjectFilePath } from '@/cli/services/FileService.ts';
 import type { LabelService } from '@/cli/services/LabelService.ts';
 import type { ProjectService } from '@/cli/services/ProjectService.ts';
 import type { StringService } from '@/cli/services/StringService.ts';
@@ -78,7 +78,7 @@ describe('ContextCommand', () => {
     projectService = { loadProject: mock() };
     stringService = { list: mock(async () => []), batchEdit: mock(async () => {}) };
     branchService = { resolveBranch: mock(async () => undefined) };
-    fileService = { listProjectFilePaths: mock(async () => new Map<number, string>()) };
+    fileService = { listProjectFilePaths: mock(async () => new Map<number, ProjectFilePath>()) };
     labelService = { resolveLabelIds: mock(async () => undefined) };
 
     mockProject();
@@ -115,7 +115,7 @@ describe('ContextCommand', () => {
       const command = createContextCommand();
       const to = join(tempDir, 'out.jsonl');
 
-      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, '/first.txt']]));
+      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, { path: '/first.txt' }]]));
       stringService.list.mockResolvedValue([
         createString({ id: 701, identifier: 'the.key', text: 'the-text', context: AI_CONTEXT('manual', 'ai-content') }),
       ]);
@@ -218,8 +218,8 @@ describe('ContextCommand', () => {
 
       fileService.listProjectFilePaths.mockResolvedValue(
         new Map([
-          [101, '/android-new-file.xml'],
-          [102, '/android-new-file2.xml'],
+          [101, { path: '/android-new-file.xml' }],
+          [102, { path: '/android-new-file2.xml' }],
         ]),
       );
       stringService.list.mockImplementation(async (params) => {
@@ -241,14 +241,30 @@ describe('ContextCommand', () => {
       expect(content).not.toContain('"id":702');
     });
 
+    // The glob never carries a branch, so it matches the branch-relative path — and the API refuses
+    // branchId next to the fileId the match produced.
+    test('matches a --file glob inside a branch and queries without branchId', async () => {
+      const command = createContextCommand();
+      const to = join(tempDir, 'out.jsonl');
+
+      branchService.resolveBranch.mockResolvedValue({ id: 7, name: 'feature' } as never);
+      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, { path: '/first.txt', branch: 'feature' }]]));
+      stringService.list.mockResolvedValue([createString({ id: 701, identifier: 'the.key' })]);
+
+      await command.downloadAction(createCommandContext({ to, branch: 'feature', file: ['first.txt'] }));
+
+      expect(stringService.list).toHaveBeenCalledWith(expect.objectContaining({ fileId: 101 }));
+      expect(stringService.list).toHaveBeenCalledWith(expect.not.objectContaining({ branchId: expect.anything() }));
+    });
+
     test('matches globs with brackets in folder names', async () => {
       const command = createContextCommand();
       const to = join(tempDir, 'out.jsonl');
 
       fileService.listProjectFilePaths.mockResolvedValue(
         new Map([
-          [101, '/[test.Folder dev]/resources/js/lang/en/auth.php'],
-          [102, '/[test.Folder dev]/resources/js/lang/en/email.php'],
+          [101, { path: '/[test.Folder dev]/resources/js/lang/en/auth.php' }],
+          [102, { path: '/[test.Folder dev]/resources/js/lang/en/email.php' }],
         ]),
       );
       stringService.list.mockImplementation(async (params) => {
@@ -277,7 +293,7 @@ describe('ContextCommand', () => {
       const command = createContextCommand();
       const to = join(tempDir, 'out.jsonl');
 
-      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, '/first.txt']]));
+      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, { path: '/first.txt' }]]));
 
       await command.downloadAction(createCommandContext({ to, file: ['nothing-matches.xml'] }));
 
@@ -301,7 +317,7 @@ describe('ContextCommand', () => {
         }),
       );
 
-      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, '/first.txt']]));
+      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, { path: '/first.txt' }]]));
       stringService.list.mockResolvedValue([
         createString({ id: 701, identifier: 'the.key', context: AI_CONTEXT('manual', 'original-ai') }),
       ]);
@@ -485,7 +501,7 @@ describe('ContextCommand', () => {
     test('resets AI context, preserving the manual part', async () => {
       const command = createContextCommand();
 
-      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, '/first.txt']]));
+      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, { path: '/first.txt' }]]));
       stringService.list.mockResolvedValue([
         createString({ id: 701, text: 'the-text', context: AI_CONTEXT('manual', 'ai-content') }),
         createString({ id: 702, text: 'other', context: 'just manual' }),
@@ -559,7 +575,7 @@ describe('ContextCommand', () => {
     test('shows context coverage statistics', async () => {
       const command = createContextCommand();
 
-      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, '/first.txt']]));
+      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, { path: '/first.txt' }]]));
       stringService.list.mockResolvedValue([
         createString({ id: 1, context: '' }),
         createString({ id: 2, context: AI_CONTEXT('manual', 'ai') }),
@@ -642,8 +658,8 @@ describe('ContextCommand', () => {
 
       fileService.listProjectFilePaths.mockResolvedValue(
         new Map([
-          [101, '/first.txt'],
-          [102, '/second.txt'],
+          [101, { path: '/first.txt' }],
+          [102, { path: '/second.txt' }],
         ]),
       );
       stringService.list.mockResolvedValue([
@@ -654,20 +670,63 @@ describe('ContextCommand', () => {
 
       await command.statusAction(createCommandContext({ byFile: true }));
 
-      expect(Bun.inspect.table).toHaveBeenCalledWith(
-        {
-          '/first.txt': { Total: 2, 'AI context': '1 (50.00%)', Missing: 1 },
-          '/second.txt': { Total: 1, 'AI context': '0 (0.00%)', Missing: 1 },
-        },
-        { colors: false },
+      const grid = (console.log as unknown as ReturnType<typeof mock>).mock.calls
+        .map((call) => call[0])
+        .find((line: unknown) => typeof line === 'string' && line.includes('/first.txt'));
+
+      expect(grid).toContain('/second.txt');
+      expect(grid).toContain('1 (50.00%)');
+      expect(grid).not.toContain('Branch');
+    });
+
+    // Two branches hold the same path, so the rows keep them apart and the branch gets a column.
+    test('gives each branch its own row and a branch column', async () => {
+      const command = createContextCommand();
+
+      fileService.listProjectFilePaths.mockResolvedValue(
+        new Map([
+          [101, { path: '/first.txt' }],
+          [102, { path: '/first.txt', branch: 'feature' }],
+        ]),
       );
+      stringService.list.mockResolvedValue([
+        createString({ id: 1, fileId: 101, context: AI_CONTEXT('manual', 'ai') }),
+        createString({ id: 2, fileId: 102, context: '' }),
+      ]);
+
+      await command.statusAction(createCommandContext({ byFile: true }));
+
+      const grid = (console.log as unknown as ReturnType<typeof mock>).mock.calls
+        .map((call) => call[0])
+        .find((line: unknown) => typeof line === 'string' && line.includes('/first.txt'));
+
+      expect(grid).toContain('Branch');
+      expect(grid).toContain('feature');
+      // One row per file, not one merged row for the shared path.
+      expect(grid.split('\n').filter((line: string) => line.includes('/first.txt'))).toHaveLength(2);
+    });
+
+    // Dividing by an empty string set printed 'NaN' in every percentage.
+    test('reports zero percentages when the filters match no strings', async () => {
+      output = createOutput({ ...globalOptions, output: 'plain' });
+      const command = createContextCommand();
+
+      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, { path: '/first.txt' }]]));
+      stringService.list.mockResolvedValue([]);
+
+      await command.statusAction(createCommandContext({ output: 'plain' }));
+
+      const report = (console.log as unknown as ReturnType<typeof mock>).mock.calls.map((call) => call[0]).at(-1);
+
+      expect(report).toContain('Total strings: 0');
+      expect(report).not.toContain('NaN');
     });
 
     test('emits per-file counts in structured formats', async () => {
       output = createOutput({ ...globalOptions, output: 'json' });
       const command = createContextCommand();
 
-      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, '/first.txt']]));
+      fileService.listProjectFilePaths.mockResolvedValue(new Map([[101, { path: '/first.txt' }]]));
       stringService.list.mockResolvedValue([
         createString({ id: 1, fileId: 101, context: AI_CONTEXT('manual', 'ai') }),
         createString({ id: 2, fileId: 101, context: '' }),

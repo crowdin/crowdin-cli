@@ -1,4 +1,9 @@
-import type { LanguagesModel, ResponseObject, TranslationStatusModel } from '@crowdin/crowdin-api-client';
+import type {
+  LanguagesModel,
+  ResponseObject,
+  SourceFilesModel,
+  TranslationStatusModel,
+} from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
@@ -13,7 +18,7 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { isStructuredFormat } from '@/cli/utils/formatter.ts';
-import { toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
+import { stripBranchPrefix, toPosixPath, toProjectPath } from '@/lib/utils/path.ts';
 import { directory, file, proofreading, status, translation } from './options.ts';
 import { type ProgressRow, type ProgressView, statusPlainView, statusTableView, toProgressList } from './views.ts';
 
@@ -97,12 +102,27 @@ export default class StatusCommand {
     }
 
     let progressData: LanguageProgress[];
+    let projectBranch: SourceFilesModel.Branch | undefined;
+
+    if (branchName) {
+      const branches = await branchService.list();
+      projectBranch = branches.find((branch) => branch.name === branchName);
+
+      if (!projectBranch) {
+        throw new CliError(
+          "The branch with the specified name doesn't exist in the project. Try specifying another branch name",
+        );
+      }
+    }
 
     if (filePath) {
-      const projectFiles = await fileService.loadProjectFiles();
+      const projectFiles = await fileService.loadProjectFiles(projectBranch?.id);
       const normalizedFilePath = this.normalizePath(filePath);
+      // Server paths carry the branch name, '--file' never does, so the branch only arrives
+      // through '--branch' (same addressing as FileService.resolveFileIds).
       const projectFile = projectFiles.data.find(
-        (fileEntry) => this.normalizePath(fileEntry.data.path) === normalizedFilePath,
+        (fileEntry) =>
+          stripBranchPrefix(this.normalizePath(fileEntry.data.path), projectBranch?.name) === normalizedFilePath,
       );
 
       if (!projectFile) {
@@ -112,28 +132,10 @@ export default class StatusCommand {
       const fileProgress = await progressService.loadFileProgress(projectFile.data.id);
       progressData = fileProgress.data;
     } else if (directoryPath) {
-      const projectDirectories = await directoryService.loadProjectDirectories();
-      const normalizedDirectoryPath = this.normalizePath(directoryPath);
-      const projectDirectory = projectDirectories.find(
-        (directoryEntry) => this.normalizePath(directoryEntry.data.path) === normalizedDirectoryPath,
-      );
-
-      if (!projectDirectory) {
-        throw new CliError(`Project doesn't contain the '${directoryPath}' directory`);
-      }
-
-      const directoryProgress = await progressService.loadDirectoryProgress(projectDirectory.data.id);
+      const directoryId = await directoryService.resolveDirectoryId(directoryPath, projectBranch);
+      const directoryProgress = await progressService.loadDirectoryProgress(directoryId as number);
       progressData = directoryProgress.data;
-    } else if (branchName) {
-      const branches = await branchService.list();
-      const projectBranch = branches.find((branch) => branch.name === branchName);
-
-      if (!projectBranch) {
-        throw new CliError(
-          "The branch with the specified name doesn't exist in the project. Try specifying another branch name",
-        );
-      }
-
+    } else if (projectBranch) {
       const branchProgress = await progressService.loadBranchProgress(projectBranch.id);
       progressData = branchProgress.data;
     } else {

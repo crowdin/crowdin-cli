@@ -168,7 +168,6 @@ export default class UploadSourcesCommand {
 
     const branchId = branch?.id;
     const branchName = branch?.name;
-    const branchPrefix = branchName ? `${branchName}/` : '';
     const projectFiles = isStringsBasedProject ? { data: [] } : await fileService.loadProjectFiles(branchId);
     // Server paths carry the branch name; the project paths resolved from the config never do.
     const projectFilePaths = new Map(
@@ -264,11 +263,9 @@ export default class UploadSourcesCommand {
       }
 
       const tasks = files.map(({ localFilePath, projectPath }) => async () => {
-        const fileFullPath = `${branchPrefix}${projectPath}`;
-
         if (seenFilePaths.has(projectPath)) {
-          output.warning(`Skipping file '${fileFullPath}' because it is already uploading/uploaded`);
-          uploadedSources.push({ path: fileFullPath, action: 'skipped', reason: 'already uploading' });
+          output.warning(`Skipping file '${projectPath}' because it is already uploading/uploaded`);
+          uploadedSources.push({ path: projectPath, action: 'skipped', reason: 'already uploading' });
           return;
         }
 
@@ -277,8 +274,8 @@ export default class UploadSourcesCommand {
         const localFile = Bun.file(path.join(config.basePath, localFilePath));
 
         if (localFile.size === 0) {
-          output.warning(`File '${fileFullPath}' was skipped since it is empty`);
-          uploadedSources.push({ path: fileFullPath, action: 'skipped', reason: 'empty' });
+          output.warning(`File '${projectPath}' was skipped since it is empty`);
+          uploadedSources.push({ path: projectPath, action: 'skipped', reason: 'empty' });
           return;
         }
 
@@ -295,7 +292,7 @@ export default class UploadSourcesCommand {
 
             if (sourceHashes.get(localFilePath) === checksum) {
               output.info(`File '${localFilePath}' was skipped since it is up to date`);
-              uploadedSources.push({ path: fileFullPath, action: 'skipped', reason: 'up to date' });
+              uploadedSources.push({ path: projectPath, action: 'skipped', reason: 'up to date' });
               return;
             }
           }
@@ -317,8 +314,8 @@ export default class UploadSourcesCommand {
             sourceHashes.set(localFilePath, checksum ?? (await computeChecksum(localFile)));
           }
 
-          output.success(`File '${fileFullPath}'`);
-          uploadedSources.push({ path: fileFullPath, action: 'uploaded' });
+          output.success(`File '${projectPath}'`);
+          uploadedSources.push({ path: projectPath, action: 'uploaded' });
           return;
         }
 
@@ -336,7 +333,7 @@ export default class UploadSourcesCommand {
         if (existingFile) {
           if (options.autoUpdate === false) {
             output.info(`File '${localFilePath}' already exists and will not be updated`);
-            uploadedSources.push({ path: fileFullPath, action: 'skipped', reason: 'auto-update disabled' });
+            uploadedSources.push({ path: projectPath, action: 'skipped', reason: 'auto-update disabled' });
             return;
           }
 
@@ -352,7 +349,7 @@ export default class UploadSourcesCommand {
 
             if (sourceHashes.get(localFilePath) === checksum) {
               output.info(`File '${localFilePath}' was skipped since it is up to date`);
-              uploadedSources.push({ path: fileFullPath, action: 'skipped', reason: 'up to date' });
+              uploadedSources.push({ path: projectPath, action: 'skipped', reason: 'up to date' });
               return;
             }
           }
@@ -385,7 +382,7 @@ export default class UploadSourcesCommand {
             );
           } catch (error) {
             if (error instanceof FileInUpdateError) {
-              output.warning(`File '${fileFullPath}' is currently being updated`);
+              output.warning(`File '${projectPath}' is currently being updated`);
               return;
             }
 
@@ -396,8 +393,8 @@ export default class UploadSourcesCommand {
             sourceHashes.set(localFilePath, checksum as string);
           }
 
-          output.success(`File '${fileFullPath}'`);
-          uploadedSources.push({ path: fileFullPath, action: 'updated' });
+          output.success(`File '${projectPath}'`);
+          uploadedSources.push({ path: projectPath, action: 'updated' });
           return;
         }
 
@@ -440,7 +437,7 @@ export default class UploadSourcesCommand {
           });
         } catch (error) {
           if (error instanceof FileExistsError) {
-            throw new CliError(`Project already contains the file '${fileFullPath}'`);
+            throw new CliError(`Project already contains the file '${projectPath}'`);
           }
 
           throw error;
@@ -450,8 +447,8 @@ export default class UploadSourcesCommand {
           sourceHashes.set(localFilePath, await computeChecksum(localFile));
         }
 
-        output.success(`File '${fileFullPath}'`);
-        uploadedSources.push({ path: fileFullPath, action: 'created' });
+        output.success(`File '${projectPath}'`);
+        uploadedSources.push({ path: projectPath, action: 'created' });
       });
 
       const results = await runConcurrently(tasks);
@@ -560,7 +557,8 @@ export default class UploadSourcesCommand {
         .createProjectDirectory(directoryName, parentId, parentId ? undefined : branch?.id)
         .then((dir) => {
           projectDirectories.set(dir.data.path, dir.data.id);
-          output.success(`Directory '${stripLeadingSlashes(directoryPath)}'`);
+          // Server paths carry the branch name; the listing shows project paths.
+          output.success(`Directory '${stripLeadingSlashes(stripBranchPrefix(directoryPath, branch?.name))}'`);
           return dir.data.id;
         });
 

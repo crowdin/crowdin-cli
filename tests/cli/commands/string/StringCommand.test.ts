@@ -104,7 +104,7 @@ describe('StringCommand', () => {
     };
     fileService = {
       resolveFileIds: mock(async () => ({ fileIds: [101], missingPaths: [] })),
-      listProjectFilePaths: mock(async () => new Map<number, string>([[101, '/content.md']])),
+      listProjectFilePaths: mock(async () => new Map([[101, { path: '/content.md' }]])),
     };
 
     spyOn(console, 'log').mockImplementation(() => {});
@@ -161,6 +161,40 @@ describe('StringCommand', () => {
       await cmd.listAction(commandContext);
 
       expect(infoSpy).toHaveBeenCalledWith('No source strings found');
+    });
+
+    // The API refuses branchId next to fileId or directoryId, and both already imply the branch.
+    test('drops branchId when --file resolved a file inside the branch', async () => {
+      const cmd = createStringCommand();
+      branchService.resolveBranch.mockResolvedValue({ id: 7, name: 'feature' } as never);
+      stringService.list.mockResolvedValue([]);
+
+      await cmd.listAction(createCommandContext({ ...globalOptions, branch: 'feature', file: 'content.md' }));
+
+      expect(stringService.list).toHaveBeenCalledWith(expect.objectContaining({ fileId: 101 }));
+      expect(stringService.list).toHaveBeenCalledWith(expect.not.objectContaining({ branchId: expect.anything() }));
+    });
+
+    test('drops branchId when --directory resolved a directory inside the branch', async () => {
+      const cmd = createStringCommand();
+      branchService.resolveBranch.mockResolvedValue({ id: 7, name: 'feature' } as never);
+      directoryService.resolveDirectoryId.mockResolvedValue(22);
+      stringService.list.mockResolvedValue([]);
+
+      await cmd.listAction(createCommandContext({ ...globalOptions, branch: 'feature', directory: 'docs' }));
+
+      expect(stringService.list).toHaveBeenCalledWith(expect.objectContaining({ directoryId: 22 }));
+      expect(stringService.list).toHaveBeenCalledWith(expect.not.objectContaining({ branchId: expect.anything() }));
+    });
+
+    test('keeps branchId when neither --file nor --directory narrows the listing', async () => {
+      const cmd = createStringCommand();
+      branchService.resolveBranch.mockResolvedValue({ id: 7, name: 'feature' } as never);
+      stringService.list.mockResolvedValue([]);
+
+      await cmd.listAction(createCommandContext({ ...globalOptions, branch: 'feature' }));
+
+      expect(stringService.list).toHaveBeenCalledWith(expect.objectContaining({ branchId: 7 }));
     });
 
     test('serializes the strings themselves in structured formats', async () => {

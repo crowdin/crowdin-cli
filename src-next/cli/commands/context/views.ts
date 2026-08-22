@@ -1,5 +1,5 @@
 import type { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
-import type { View } from '@/cli/utils/output.ts';
+import type { TableGrid, View } from '@/cli/utils/output.ts';
 
 export interface ContextStats {
   total: number;
@@ -11,7 +11,7 @@ export interface ContextStats {
   withManualPercentage: string;
 }
 
-export type FileContextStats = ContextStats & { file: string };
+export type FileContextStats = ContextStats & { file: string; branch?: string };
 
 /** A named block of "<file> <value>" lines, the by-file counterpart of the summary's keyed lines. */
 type PlainSection = [title: string, value: (row: FileContextStats) => string];
@@ -31,21 +31,32 @@ export function contextStatusTable(stats: ContextStats): Record<string, { Count:
   };
 }
 
-/** The --by-file grid, keyed by path. console.table sizes the columns, so no padding here. */
-export function contextStatusByFileTable(
-  rows: FileContextStats[],
-): Record<string, { Total: number; 'AI context': string; Missing: number }> {
-  const table: Record<string, { Total: number; 'AI context': string; Missing: number }> = {};
+/**
+ * The --by-file grid. Rows rather than a keyed object, because two branches hold the same path and
+ * a keyed grid would collapse them into one row; the branch gets a column of its own, dropped
+ * entirely when nothing in the listing sits in a branch.
+ */
+export function contextStatusByFileTable(rows: FileContextStats[]): TableGrid {
+  const hasBranch = rows.some((row) => row.branch);
 
-  for (const row of rows) {
-    table[row.file] = {
-      Total: row.total,
-      'AI context': `${row.withAi} (${row.withAiPercentage}%)`,
-      Missing: row.total - row.withAi,
-    };
-  }
-
-  return table;
+  return {
+    columns: [
+      { name: 'file', title: 'File', alignment: 'left' },
+      ...(hasBranch ? [{ name: 'branch', title: 'Branch', alignment: 'left' as const }] : []),
+      { name: 'total', title: 'Total', alignment: 'right' },
+      { name: 'aiContext', title: 'AI context', alignment: 'right' },
+      { name: 'missing', title: 'Missing', alignment: 'right' },
+    ],
+    // A key the columns don't declare still becomes a column, so the branch only goes into the rows
+    // when there is a branch column to hold it.
+    rows: rows.map((row) => ({
+      file: row.file,
+      ...(hasBranch ? { branch: row.branch ?? '' } : {}),
+      total: row.total,
+      aiContext: `${row.withAi} (${row.withAiPercentage}%)`,
+      missing: row.total - row.withAi,
+    })),
+  };
 }
 
 /**
@@ -69,8 +80,11 @@ export const contextStatusPlainView = (): View<ContextStats> => ({
 });
 
 /**
- * The plain --by-file report: a section per metric, so every line stays "<file> <value>" and the
- * header above says which value it carries — nothing is positional beyond the path.
+ * The plain --by-file report: a section per metric, so every line stays "<file> <branch> <value>"
+ * and the header above says which value it carries. The branch is a field of its own rather than a
+ * prefix on the path, so each line is self-contained — a consumer never has to pair rows across
+ * sections or split a branch off a path. A file outside every branch carries '-', keeping the
+ * column count the same for every row.
  */
 export const contextStatusByFilePlainView = (): View<FileContextStats[]> => ({
   text: (rows) => {
@@ -82,7 +96,10 @@ export const contextStatusByFilePlainView = (): View<FileContextStats[]> => ({
     ];
 
     return sections
-      .flatMap(([title, value]) => [`${title}:`, ...rows.map((row) => `${row.file} ${value(row)}`)])
+      .flatMap(([title, value]) => [
+        `${title}:`,
+        ...rows.map((row) => `${row.file} ${row.branch || '-'} ${value(row)}`),
+      ])
       .join('\n');
   },
 });

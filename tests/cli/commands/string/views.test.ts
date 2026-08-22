@@ -10,7 +10,7 @@ describe('string views', () => {
     verbose: true,
     isStringsBased: false,
     labels: new Map([[9, 'marketing']]),
-    filePaths: new Map([[101, '/content.md']]),
+    filePaths: new Map([[101, { path: '/content.md' }]]),
   };
 
   describe('headline', () => {
@@ -42,6 +42,20 @@ describe('string views', () => {
 
       expect(createStringView(verboseContext).plain?.(entry)).toBe(
         '11\n\t- file: /content.md\n\t- labels: marketing\n\t- context: Greeting',
+      );
+    });
+
+    // The branch is a line of its own, so a listing that spans branches says which branch a string
+    // is in without the path carrying a prefix.
+    test('adds a branch line for a string in a branch', () => {
+      const entry = createString({ fileId: 101 });
+      const context = {
+        ...verboseContext,
+        filePaths: new Map([[101, { path: '/content.md', branch: 'feature' }]]),
+      };
+
+      expect(createStringView(context).text(entry)).toBe(
+        '#11 welcome Hello\n\t- file: /content.md\n\t- branch: feature',
       );
     });
 

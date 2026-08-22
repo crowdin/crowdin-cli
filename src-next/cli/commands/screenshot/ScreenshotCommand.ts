@@ -177,7 +177,7 @@ export default class ScreenshotCommand {
     const fileId = options.file
       ? await fileService.resolveFileIds([options.file], branch).then(this.takeFirstFileId(options.file))
       : undefined;
-    const directoryId = await directoryService.resolveDirectoryId(options.directory, branchId);
+    const directoryId = await directoryService.resolveDirectoryId(options.directory, branch);
     const labelIds = await labelService.resolveLabelIds(toArray(options.label));
     const [existingScreenshot, ...duplicates] = await screenshotService.findAllByName(imageName);
     const storage = await storageService.addStorage(image);

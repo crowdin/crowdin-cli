@@ -10,6 +10,7 @@ import {
   spinner,
   updateSettings,
 } from '@clack/prompts';
+import { Table } from 'console-table-printer';
 import type { GlobalOptions } from '../options.ts';
 import { colors, enableColors } from './colors.ts';
 import { formatData, isMachineFormat, isStructuredFormat } from './formatter.ts';
@@ -51,6 +52,12 @@ export type OutputOptions = {
  * How one entity renders per `--output` format: a line in text and plain, a narrowed record in
  * json/toon.
  */
+/** A row-list grid: column definitions plus the rows themselves, duplicates and all. */
+export type TableGrid = {
+  columns: { name: string; title: string; alignment?: 'left' | 'right' }[];
+  rows: Record<string, string | number>[];
+};
+
 export type View<T> = {
   /** The default line, mirroring the Java message templates (`message.branch.list` and friends). */
   text: (item: T) => string;
@@ -143,6 +150,33 @@ export function createOutput(options: GlobalOptions, { withGuide = false }: Outp
     cancel(message: string): void {
       if (format === 'text') {
         cancel(message);
+      }
+    },
+    /**
+     * A grid whose rows are not keyed by anything unique — `context status --by-file`, where two
+     * branches hold the same path. Bun.inspect.table keys rows by object property, so duplicates
+     * would collapse; console-table-printer takes a row list and prints every one of them.
+     */
+    grid({ columns, rows }: TableGrid): void {
+      if (format === 'text') {
+        const table = new Table({
+          columns,
+          shouldDisableColors: !options.colors,
+          // The library paints every cell white, which reads as grey next to the rest of the output.
+          // An unmapped colour renders as plain text, so dropping 'white' leaves cells in the
+          // terminal's own foreground with only the header bold — what Bun.inspect.table does in
+          // table() above.
+          colorMap: { white: undefined },
+        });
+
+        table.addRows(rows);
+        console.log(table.render());
+        return;
+      }
+
+      // json/toon serialize the row list; plain is the caller's own business, as in table() below.
+      if (isStructured) {
+        console.log(formatData(rows, format));
       }
     },
     /**

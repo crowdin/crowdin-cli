@@ -868,8 +868,8 @@ describe('UploadSourcesCommand', () => {
       attachLabelIds: undefined,
     });
     expect(output.success).toHaveBeenCalledWith("Branch 'feature'");
-    expect(output.success).toHaveBeenCalledWith("Directory 'feature/src'");
-    expect(output.success).toHaveBeenCalledWith("File 'feature/src/app.json'");
+    expect(output.success).toHaveBeenCalledWith("Directory 'src'");
+    expect(output.success).toHaveBeenCalledWith("File 'src/app.json'");
   });
 
   test('creates directory once and reuses its id for multiple files in the same directory', async () => {
@@ -1549,7 +1549,7 @@ describe('UploadSourcesCommand', () => {
       expect.objectContaining({ branchId: 5, storageId: 10 }),
       'src/app.json',
     );
-    expect(output.success).toHaveBeenCalledWith("File 'main/src/app.json'");
+    expect(output.success).toHaveBeenCalledWith("File 'src/app.json'");
   });
 
   test('throws if strings-based project upload requires a branch and none provided', async () => {

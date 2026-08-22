@@ -340,6 +340,40 @@ describe('StatusCommand', () => {
     expect(loadFileProgress).toHaveBeenCalledWith(33);
   });
 
+  // Server paths carry the branch name, '--file' never does.
+  test('resolves --file inside the branch named by --branch', async () => {
+    const statusCommand = createStatusCommand();
+    commandContext = createCommandContext({ ...globalOptions, file: 'docs/readme.md', branch: 'feature' });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
+    spyOn(branchService, 'list').mockResolvedValue([{ id: 7, name: 'feature' }] as never);
+    const loadProjectFiles = spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 44, path: '/feature/docs/readme.md' } }],
+    } as never);
+    const loadFileProgress = spyOn(progressService, 'loadFileProgress').mockResolvedValue({
+      data: [createProgress('fr', 100, 100)],
+    } as never);
+
+    await statusCommand.defaultAction(commandContext);
+
+    expect(loadProjectFiles).toHaveBeenCalledWith(7);
+    expect(loadFileProgress).toHaveBeenCalledWith(44);
+  });
+
+  test('rejects a branch-prefixed --file when no --branch is given', async () => {
+    const statusCommand = createStatusCommand();
+    commandContext = createCommandContext({ ...globalOptions, file: 'feature/docs/readme.md' });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(mockProject as never);
+    spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 44, path: '/feature/docs/readme.md', branchId: 7 } }],
+    } as never);
+
+    expect(statusCommand.defaultAction(commandContext)).rejects.toThrow(
+      new CliError("Project doesn't contain the 'feature/docs/readme.md' file"),
+    );
+  });
+
   test('rejects when both --file and --directory are passed', async () => {
     const statusCommand = createStatusCommand();
     commandContext = createCommandContext({

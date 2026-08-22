@@ -117,6 +117,25 @@ describe('DirectoryService', () => {
       expect(result).toBe(20);
     });
 
+    test('matches a branch-relative path when a branch is given', async () => {
+      const listProjectDirectories = spyOn(apiClient.sourceFilesApi, 'listProjectDirectories').mockResolvedValue({
+        data: [{ data: { id: 30, path: '/feature/docs', branchId: 7 } }],
+      } as never);
+
+      const result = await directoryService.resolveDirectoryId('docs', { id: 7, name: 'feature' } as never);
+
+      expect(result).toBe(30);
+      expect(listProjectDirectories).toHaveBeenCalledWith(123, expect.objectContaining({ branchId: 7 }));
+    });
+
+    test('ignores branch directories when no branch is given', async () => {
+      spyOn(apiClient.sourceFilesApi, 'listProjectDirectories').mockResolvedValue({
+        data: [{ data: { id: 30, path: '/feature/docs', branchId: 7 } }],
+      } as never);
+
+      expect(directoryService.resolveDirectoryId('feature/docs')).rejects.toThrow(CliError);
+    });
+
     test('throws CliError when directory not found', async () => {
       spyOn(apiClient.sourceFilesApi, 'listProjectDirectories').mockResolvedValue({
         data: [],

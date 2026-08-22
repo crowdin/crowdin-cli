@@ -39,6 +39,7 @@
     "@toon-format/toon": "^2.3.1",
     "adm-zip": "^0.6.0",
     "commander": "^15.0.0",
+    "console-table-printer": "^2.16.1",
     "jose": "^6.2.4",
     "js-yaml": "^4.3.0",
     "zod": "^4.3.6"

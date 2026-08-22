@@ -241,13 +241,10 @@ export default class AutoTranslateCommand {
     const projectFiles = await fileService.loadProjectFiles(branchId);
     const paths = new Map<string, number>();
 
+    // loadProjectFiles is already scoped to the branch (root tree without one); server paths carry
+    // the branch name, the paths passed via --file never do.
     for (const entry of projectFiles.data) {
-      const isInScope = branchId === undefined ? entry.data.branchId == null : entry.data.branchId === branchId;
-
-      if (isInScope) {
-        // Server paths carry the branch name; the paths passed via --file never do.
-        paths.set(stripBranchPrefix(normalizePath(entry.data.path), branchName), entry.data.id);
-      }
+      paths.set(stripBranchPrefix(normalizePath(entry.data.path), branchName), entry.data.id);
     }
 
     const fileIds: number[] = [];

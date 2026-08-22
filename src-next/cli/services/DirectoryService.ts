@@ -1,4 +1,5 @@
-import type { Client } from '@crowdin/crowdin-api-client';
+import type { Client, SourceFilesModel } from '@crowdin/crowdin-api-client';
+import { stripBranchPrefix } from '@/lib/utils/path.ts';
 import CliError from '../errors/CliError.ts';
 import { toCliError } from '../errors/toCliError.ts';
 import { normalizePath } from '../utils/parsing.ts';
@@ -9,14 +10,15 @@ export class DirectoryService {
     private projectId: number,
   ) {}
 
+  // Scoped to one branch, and to the root tree when none is given — see FileService.loadProjectFiles.
   async loadProjectDirectories(branchId?: number) {
     try {
       return (
         await this.apiClient.sourceFilesApi.withFetchAll().listProjectDirectories(this.projectId, {
           branchId,
-          recursion: '1', // TODO: Looks weird. API doc says should be integer or null
+          recursion: '1',
         })
-      ).data;
+      ).data.filter((directory) => (directory.data.branchId ?? null) === (branchId ?? null));
     } catch (error) {
       throw toCliError(error, `Failed to list directories for project ${this.projectId}`);
     }
@@ -38,14 +40,21 @@ export class DirectoryService {
     }
   }
 
-  async resolveDirectoryId(directoryPath: string | undefined, branchId?: number): Promise<number | undefined> {
+  // Server paths carry the branch name, the path given on the command line never does — the same
+  // branch-relative addressing FileService.resolveFileIds uses for '--file'.
+  async resolveDirectoryId(
+    directoryPath: string | undefined,
+    branch?: Pick<SourceFilesModel.Branch, 'id' | 'name'>,
+  ): Promise<number | undefined> {
     if (!directoryPath) {
       return undefined;
     }
 
     const expectedPath = normalizePath(directoryPath);
-    const directories = await this.loadProjectDirectories(branchId);
-    const directory = directories.find((entry) => normalizePath(entry.data.path) === expectedPath);
+    const directories = await this.loadProjectDirectories(branch?.id);
+    const directory = directories.find(
+      (entry) => stripBranchPrefix(normalizePath(entry.data.path), branch?.name) === expectedPath,
+    );
 
     if (!directory) {
       throw new CliError(`Project doesn't contain the '${directoryPath}' directory`);

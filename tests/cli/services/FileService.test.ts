@@ -68,6 +68,34 @@ describe('FileService', () => {
       expect(spy).toHaveBeenCalledWith(PROJECT_ID, { branchId: undefined, recursion: '1' });
     });
 
+    // The endpoint returns every branch's files when no branchId is sent, and their paths carry the
+    // branch name — leaving them in would make them addressable by that prefixed path.
+    test('keeps only the root tree when no branch is given', async () => {
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [
+          { data: { id: 1, path: '/docs/readme.md', branchId: null } },
+          { data: { id: 2, path: '/feature/docs/readme.md', branchId: 7 } },
+        ],
+      } as never);
+
+      const result = await fileService.loadProjectFiles();
+
+      expect(result.data.map((file) => file.data.id)).toEqual([1]);
+    });
+
+    test('keeps only the named branch when one is given', async () => {
+      spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
+        data: [
+          { data: { id: 1, path: '/docs/readme.md', branchId: null } },
+          { data: { id: 2, path: '/feature/docs/readme.md', branchId: 7 } },
+        ],
+      } as never);
+
+      const result = await fileService.loadProjectFiles(7);
+
+      expect(result.data.map((file) => file.data.id)).toEqual([2]);
+    });
+
     test('throws CliError when API fails', async () => {
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockRejectedValue(new Error('fail'));
 
@@ -158,30 +186,31 @@ describe('FileService', () => {
 
       const result = await fileService.listProjectFilePaths();
 
-      expect(result.get(1)).toBe('/docs/readme.md');
-      expect(result.get(2)).toBe('/src/index.ts');
+      expect(result.get(1)).toEqual({ path: '/docs/readme.md', branch: undefined });
+      expect(result.get(2)).toEqual({ path: '/src/index.ts', branch: undefined });
     });
 
     // This map labels strings that were already fetched, so a branch file has to keep a path even
-    // though '--file' could not have addressed it.
-    test('keeps branch files, prefix and all, when no branch is given', async () => {
+    // though '--file' could not have addressed it. The branch comes back as its own field, read off
+    // the first path segment, instead of staying prefixed onto the path.
+    test('keeps branch files with the branch as its own field when no branch is given', async () => {
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
         data: [{ data: { id: 7, path: '/main/docs/readme.md', branchId: 5 } }],
       } as never);
 
       const result = await fileService.listProjectFilePaths();
 
-      expect(result.get(7)).toBe('/main/docs/readme.md');
+      expect(result.get(7)).toEqual({ path: '/docs/readme.md', branch: 'main' });
     });
 
     test('reports paths relative to the requested branch', async () => {
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [{ data: { id: 7, path: '/main/docs/readme.md' } }],
+        data: [{ data: { id: 7, path: '/main/docs/readme.md', branchId: 5 } }],
       } as never);
 
       const result = await fileService.listProjectFilePaths(BRANCH);
 
-      expect(result.get(7)).toBe('/docs/readme.md');
+      expect(result.get(7)).toEqual({ path: '/docs/readme.md', branch: 'main' });
     });
   });
 

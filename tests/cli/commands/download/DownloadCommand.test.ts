@@ -1411,7 +1411,7 @@ describe('DownloadCommand', () => {
         data: [{ data: { id: 55, name: 'main' } }],
       } as never);
       spyOn(apiClient.sourceFilesApi, 'listProjectFiles').mockResolvedValue({
-        data: [{ data: { id: 1, path: '/main/resources/en/messages.json' } }],
+        data: [{ data: { id: 1, path: '/main/resources/en/messages.json', branchId: 55 } }],
       } as never);
       const getDownloadUrlSpy = spyOn(fileService, 'getSourceFileDownloadUrl').mockResolvedValue(
         'https://example.test/messages.json',

@@ -3,6 +3,7 @@ import type { Command } from 'commander';
 import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import type { ProjectFilePath } from '@/cli/services/FileService.ts';
 import type {
   GetBranchService,
   GetDirectoryService,
@@ -176,12 +177,16 @@ export default class StringCommand {
 
     const branch = await branchService.resolveBranch(options.branch);
     const branchId = branch?.id;
-    const directoryId = await directoryService.resolveDirectoryId(directory, branchId);
+    const directoryId = await directoryService.resolveDirectoryId(directory, branch);
     const labelIds = await labelService.resolveLabelIds(labelNames, false);
     const listFileId = filePath ? await this.resolveSingleFileId(fileService, filePath, branch) : undefined;
+    // The API refuses branchId alongside fileId or directoryId ("Field [branchId] must not be set
+    // with the current field"), and it is redundant there anyway: both were resolved inside the
+    // branch, so either one already scopes the listing to it.
+    const isBranchImplied = listFileId !== undefined || directoryId !== undefined;
     const strings = await stringService.list({
       ...(listFileId !== undefined ? { fileId: listFileId } : {}),
-      ...(branchId !== undefined ? { branchId } : {}),
+      ...(branchId !== undefined && !isBranchImplied ? { branchId } : {}),
       ...(labelIds?.length ? { labelIds: labelIds.join(',') } : {}),
       ...(options.filter ? { filter: options.filter } : {}),
       ...(options.croql ? { croql: options.croql } : {}),
@@ -337,7 +342,7 @@ export default class StringCommand {
       verbose: true,
       isStringsBased,
       labels: await labelService.listLabelsMap(),
-      filePaths: isStringsBased ? new Map<number, string>() : await fileService.listProjectFilePaths(branch),
+      filePaths: isStringsBased ? new Map<number, ProjectFilePath>() : await fileService.listProjectFilePaths(branch),
     });
   }
 

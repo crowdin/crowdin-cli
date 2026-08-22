@@ -52,19 +52,50 @@ describe('context views', () => {
       expect(contextStatusByFilePlainView().text(rows)).toBe(
         [
           'Total strings:',
-          '/first.txt 2',
-          '/second.txt 1',
+          '/first.txt - 2',
+          '/second.txt - 1',
           'With AI context:',
-          '/first.txt 1',
-          '/second.txt 0',
+          '/first.txt - 1',
+          '/second.txt - 0',
           'With AI context (percentage):',
-          '/first.txt 50.00',
-          '/second.txt 0.00',
+          '/first.txt - 50.00',
+          '/second.txt - 0.00',
           'Missing:',
-          '/first.txt 1',
-          '/second.txt 1',
+          '/first.txt - 1',
+          '/second.txt - 1',
         ].join('\n'),
       );
+    });
+
+    // The branch is a column of its own, so each line stands alone: same path, different branch,
+    // different row — and a root file holds the column open with '-'.
+    test('carries the branch as its own column, dashed when there is none', () => {
+      const branched: FileContextStats[] = [
+        { file: '/first.txt', ...stats({ total: 2, withAi: 1, withAiPercentage: '50.00' }) },
+        { file: '/first.txt', branch: 'feature', ...stats({ total: 4, withAi: 0, withAiPercentage: '0.00' }) },
+      ];
+
+      expect(contextStatusByFilePlainView().text(branched).split('\n').slice(0, 3)).toEqual([
+        'Total strings:',
+        '/first.txt - 2',
+        '/first.txt feature 4',
+      ]);
+    });
+
+    // Every row carries the same column count, so a consumer can split on whitespace from the right.
+    test('keeps every row at three columns', () => {
+      const branched: FileContextStats[] = [
+        { file: '/first.txt', ...stats({ total: 2, withAi: 1, withAiPercentage: '50.00' }) },
+        { file: '/first.txt', branch: 'feature', ...stats({ total: 4, withAi: 0, withAiPercentage: '0.00' }) },
+      ];
+
+      for (const line of contextStatusByFilePlainView().text(branched).split('\n')) {
+        if (line.endsWith(':')) {
+          continue;
+        }
+
+        expect(line.split(' ')).toHaveLength(3);
+      }
     });
 
     test('survives an empty row set', () => {

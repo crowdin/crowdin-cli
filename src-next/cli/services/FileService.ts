@@ -12,6 +12,9 @@ import { withSpinner } from '../utils/withSpinner.ts';
 // path the request returns.
 type ProjectBranch = Pick<SourceFilesModel.Branch, 'id' | 'name'>;
 
+/** A project file path with its branch kept apart from the path instead of prefixed onto it. */
+export type ProjectFilePath = { path: string; branch?: string };
+
 export class FileService {
   constructor(
     private apiClient: Client,
@@ -105,13 +108,23 @@ export class FileService {
     return { fileIds: Array.from(new Set(fileIds)), missingPaths };
   }
 
+  // Scoped to one branch, and to the root tree when none is given: without a branchId the endpoint
+  // returns every branch's files too, whose paths carry the branch name, so they would answer to
+  // their prefixed path everywhere below (and 'upload sources --delete-obsolete' would delete them
+  // as obsolete). Java scopes the same way, by equality that treats null as the root
+  // (CrowdinProjectFull.getFiles(branchId)).
   async loadProjectFiles(branchId?: number) {
-    return await withSpinner(
+    const response = await withSpinner(
       this.output,
       'projectFiles',
       { start: 'Fetching project files', stop: 'Project files fetched', fail: 'Failed to fetch project files' },
       () => this.apiClient.sourceFilesApi.withFetchAll().listProjectFiles(this.projectId, { branchId, recursion: '1' }),
     );
+
+    return {
+      ...response,
+      data: response.data.filter((file) => (file.data.branchId ?? null) === (branchId ?? null)),
+    };
   }
 
   // A file inside a branch is addressable only once '--branch' names that branch: the branch is
@@ -127,15 +140,25 @@ export class FileService {
     const files = await this.fetchProjectFiles(branch?.id);
     const addressable = branch ? files : files.filter((file) => file.branchId === null);
 
-    return new Map(addressable.map((file) => [this.toLookupPath(file.path, branch), file.id]));
+    return new Map(addressable.map((file) => [this.toLookupPath(file.path, branch?.name), file.id]));
   }
 
   // Unlike the lookup above this keeps branch files, because it labels strings that were already
   // fetched rather than addressing one: dropping them would leave those strings without a path.
-  async listProjectFilePaths(branch?: ProjectBranch): Promise<Map<number, string>> {
+  // The branch travels as its own field instead of a path prefix, so a caller can tell two
+  // branches' copies of the same file apart without parsing the path.
+  async listProjectFilePaths(branch?: ProjectBranch): Promise<Map<number, ProjectFilePath>> {
     const files = await this.fetchProjectFiles(branch?.id);
 
-    return new Map(files.map((file) => [file.id, this.toLookupPath(file.path, branch)]));
+    return new Map(
+      files.map((file) => {
+        // A branch file's server path starts with its branch name, so with no '--branch' to name it
+        // the first segment is the branch — no second request to list them.
+        const branchName = file.branchId === null ? undefined : (branch?.name ?? this.firstPathSegment(file.path));
+
+        return [file.id, { path: this.toLookupPath(file.path, branchName), branch: branchName }];
+      }),
+    );
   }
 
   private async fetchProjectFiles(
@@ -163,8 +186,12 @@ export class FileService {
   // stays branch-relative and the branch only arrives through '--branch'. Branch-relative keys do
   // match Java, which builds them off the directory tree alone; what differs is which files reach
   // the lookup at all (see loadFileIdsByPath).
-  private toLookupPath(projectPath: string, branch?: ProjectBranch): string {
-    return stripBranchPrefix(normalizePath(projectPath), branch?.name);
+  private firstPathSegment(projectPath: string): string | undefined {
+    return normalizePath(projectPath).split('/')[1];
+  }
+
+  private toLookupPath(projectPath: string, branchName?: string): string {
+    return stripBranchPrefix(normalizePath(projectPath), branchName);
   }
 
   async getSourceFileDownloadUrl(fileId: number): Promise<string> {

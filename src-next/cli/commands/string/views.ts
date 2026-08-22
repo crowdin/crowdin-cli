@@ -1,4 +1,5 @@
 import type { SourceStringsModel } from '@crowdin/crowdin-api-client';
+import type { ProjectFilePath } from '@/cli/services/FileService.ts';
 import { colors } from '@/cli/utils/colors.ts';
 import type { View } from '@/cli/utils/output.ts';
 
@@ -6,7 +7,7 @@ export type StringViewContext = {
   verbose: boolean;
   isStringsBased: boolean;
   labels: Map<number, string>;
-  filePaths: Map<number, string>;
+  filePaths: Map<number, ProjectFilePath>;
 };
 
 export function extractText(entry: SourceStringsModel.String): string {
@@ -32,7 +33,7 @@ export function createStringView({
   verbose = false,
   isStringsBased = false,
   labels = new Map<number, string>(),
-  filePaths = new Map<number, string>(),
+  filePaths = new Map<number, ProjectFilePath>(),
 }: Partial<StringViewContext> = {}): View<SourceStringsModel.String> {
   const details = (entry: SourceStringsModel.String): string[] => {
     if (!verbose) {
@@ -42,7 +43,15 @@ export function createStringView({
     const lines: string[] = [];
 
     if (!isStringsBased && entry.fileId !== undefined) {
-      lines.push(`\t- file: ${colors.blue(filePaths.get(entry.fileId) ?? '')}`);
+      const file = filePaths.get(entry.fileId);
+
+      lines.push(`\t- file: ${colors.blue(file?.path ?? '')}`);
+
+      // The branch is a field of its own rather than a prefix on the path above, so a listing that
+      // spans branches (no '--branch') still says which one a string belongs to.
+      if (file?.branch) {
+        lines.push(`\t- branch: ${colors.blue(file.branch)}`);
+      }
     }
 
     const entryLabels = (entry.labelIds ?? [])

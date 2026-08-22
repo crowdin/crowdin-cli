@@ -44,7 +44,6 @@ interface UploadFileCommandOptions extends GlobalOptions {
   tree?: boolean;
   context?: string;
   excludedLanguage?: string[];
-  // commander maps `--no-auto-update` to `autoUpdate` (defaults to true)
   autoUpdate?: boolean;
   language?: string;
   xliff?: boolean;
@@ -144,12 +143,15 @@ export default class FileCommand {
     const branchService = await this.getBranchService(command);
     await projectService.loadProject();
     const branchId = await branchService.resolveBranchId(options.branch);
+    // loadProjectFiles is already scoped to the branch (root tree without one), so without
+    // '--branch' a project whose files all live in branches lists nothing at all — as Java's
+    // FileListAction does.
     const projectFiles = await fileService.loadProjectFiles(branchId);
-    // Java's FileListAction keeps only the files whose branchId equals the resolved one, so without
-    // '--branch' a project whose files all live in branches lists nothing at all.
-    const files = projectFiles.data
-      .map((file) => file.data)
-      .filter((file) => (file.branchId ?? null) === (branchId ?? null));
+    // Paths inside a branch come back prefixed with the branch name; the listing shows project paths.
+    const files = projectFiles.data.map((file) => ({
+      ...file.data,
+      path: stripBranchPrefix(file.data.path, options.branch),
+    }));
 
     // Tree is an interactive-only rendering; a machine --output (json/toon/plain) is a parseable
     // contract and wins, falling through to output.list so the format stays intact.

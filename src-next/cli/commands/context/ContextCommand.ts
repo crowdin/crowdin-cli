@@ -5,6 +5,7 @@ import { dryRun, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import type { ProjectFilePath } from '@/cli/services/FileService.ts';
 import type {
   GetBranchService,
   GetFileService,
@@ -78,7 +79,7 @@ interface FilteredStrings {
   project: ProjectsGroupsModel.Project;
   isStringsBased: boolean;
   strings: SourceStringsModel.String[];
-  filePaths: Map<number, string>;
+  filePaths: Map<number, ProjectFilePath>;
 }
 
 const BATCH_SIZE = 100;
@@ -186,7 +187,7 @@ export default class ContextCommand {
           id: entry.id,
           key: entry.identifier ?? '',
           text: getStringText(entry.text),
-          file: isStringsBased ? '' : (filePaths.get(entry.fileId) ?? ''),
+          file: isStringsBased ? '' : this.toFilePath(filePaths.get(entry.fileId)),
           context: getManualContext(entry.context),
           ai_context:
             existingRecords.find((existing) => existing.id === entry.id)?.ai_context ??
@@ -302,7 +303,9 @@ export default class ContextCommand {
       const stats = this.byFileStats(strings, filePaths);
 
       if (isText) {
-        this.printStatusTable(output, project, contextStatusByFileTable(stats));
+        output.success(contextStatusTitle(project));
+        output.grid(contextStatusByFileTable(stats));
+        output.info(contextStatusFooter);
         return;
       }
 
@@ -326,28 +329,47 @@ export default class ContextCommand {
     output.info(contextStatusFooter);
   }
 
-  private groupByFile(
-    strings: SourceStringsModel.String[],
-    filePaths: Map<number, string>,
-  ): Map<string, SourceStringsModel.String[]> {
-    const grouped = new Map<string, SourceStringsModel.String[]>();
+  /**
+   * The path a file is listed under here. Unlike `string list`, which prints the branch as its own
+   * line, this command keys a grid and a JSONL record by the path alone — so a branch file keeps the
+   * branch in front of it, or two branches' copies of the same file would collapse into one row.
+   */
+  private toFilePath(file?: ProjectFilePath): string {
+    if (!file) {
+      return '';
+    }
+
+    return file.branch ? `/${file.branch}${file.path}` : file.path;
+  }
+
+  // Grouped by file id, not by path: two branches hold the same path, and grouping by it would
+  // merge their strings into one row.
+  private groupByFile(strings: SourceStringsModel.String[]): Map<number | undefined, SourceStringsModel.String[]> {
+    const grouped = new Map<number | undefined, SourceStringsModel.String[]>();
 
     for (const entry of strings) {
-      const path = filePaths.get(entry.fileId) ?? '';
-      const group = grouped.get(path) ?? [];
+      const group = grouped.get(entry.fileId) ?? [];
 
       group.push(entry);
-      grouped.set(path, group);
+      grouped.set(entry.fileId, group);
     }
 
     return grouped;
   }
 
-  private byFileStats(strings: SourceStringsModel.String[], filePaths: Map<number, string>): FileContextStats[] {
-    return [...this.groupByFile(strings, filePaths).entries()].map(([file, group]) => ({
-      file,
-      ...this.calculateStats(group),
-    }));
+  private byFileStats(
+    strings: SourceStringsModel.String[],
+    filePaths: Map<number, ProjectFilePath>,
+  ): FileContextStats[] {
+    return [...this.groupByFile(strings).entries()].map(([fileId, group]) => {
+      const file = fileId === undefined ? undefined : filePaths.get(fileId);
+
+      return {
+        file: file?.path ?? '',
+        branch: file?.branch,
+        ...this.calculateStats(group),
+      };
+    });
   }
 
   private async fetchFilteredStrings(command: Command, options: FilterOptions): Promise<FilteredStrings> {
@@ -362,7 +384,9 @@ export default class ContextCommand {
     const branch = await branchService.resolveBranch(options.branch);
     const branchId = branch?.id;
     const labelIds = await labelService.resolveLabelIds(toArray(options.label), false);
-    const filePaths = isStringsBased ? new Map<number, string>() : await fileService.listProjectFilePaths(branch);
+    const filePaths = isStringsBased
+      ? new Map<number, ProjectFilePath>()
+      : await fileService.listProjectFilePaths(branch);
     const fileFilters = toArray(options.file);
 
     const baseParams: SourceStringsModel.ListProjectStringsOptions = {
@@ -378,14 +402,20 @@ export default class ContextCommand {
       // falls back to all project strings for 'status' and 'reset' in that
       // case — an intentional divergence: silently widening the scope of a
       // destructive 'reset' to the whole project is unsafe.
+      // Matched against the branch-relative path: a '--file' glob never carries a branch, the same
+      // as everywhere else in the CLI.
       const fileIds = [...filePaths.entries()]
-        .filter(([, path]) => fileFilters.some((filter) => isPathMatch(path, filter)))
+        .filter(([, file]) => fileFilters.some((filter) => isPathMatch(file.path, filter)))
         .map(([id]) => id);
 
       strings = [];
 
+      // fileId already scopes the query to the branch the file lives in, and the API refuses the
+      // two together ("Field [branchId] must not be set with the current field").
+      const { branchId: _scopedByFile, ...fileParams } = baseParams;
+
       for (const fileId of fileIds) {
-        strings.push(...(await stringService.list({ ...baseParams, fileId })));
+        strings.push(...(await stringService.list({ ...fileParams, fileId })));
       }
     } else {
       strings = await stringService.list(baseParams);
@@ -458,7 +488,8 @@ export default class ContextCommand {
     const withAi = strings.filter((entry) => getAiContextSection(entry.context) !== '').length;
     const withManual = strings.filter((entry) => getManualContext(entry.context) !== '').length;
     const withoutAi = total - withAi;
-    const percentage = (value: number) => ((value / total) * 100).toFixed(2);
+    // No strings at all means no percentage to report; dividing anyway printed 'NaN'.
+    const percentage = (value: number) => (total === 0 ? '0.00' : ((value / total) * 100).toFixed(2));
 
     return {
       total,
