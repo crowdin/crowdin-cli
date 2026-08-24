@@ -73,7 +73,7 @@ describe('LanguageCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
       data: {
-        managerAccess: true,
+        languageMapping: {},
         targetLanguages: [
           { id: 'fr', name: 'French', twoLettersCode: 'fr' },
           { id: 'de', name: 'German', twoLettersCode: 'de' },
@@ -106,7 +106,7 @@ describe('LanguageCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
       data: {
-        managerAccess: true,
+        languageMapping: {},
       },
     } as never);
     const listSupportedLanguages = mock().mockResolvedValue({
@@ -137,7 +137,6 @@ describe('LanguageCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
       data: {
-        managerAccess: true,
         languageMapping: {
           uk: {
             locale: 'uk_UA',
@@ -152,33 +151,11 @@ describe('LanguageCommand', () => {
     expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ code: 'uk_UA', name: 'Ukrainian' }], null, 2));
   });
 
-  test('throws if user has no manager access in non-text mode', async () => {
+  test('prints warning and lists nothing if user has no manager access', async () => {
     const languageCommand = createLanguageCommand();
-
-    spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: {
-        managerAccess: false,
-      },
-    } as never);
-
-    expect(languageCommand.listAction(commandContext)).rejects.toThrow(
-      new CliError('You must have manager or developer role in the project to perform this action'),
-    );
-  });
-
-  test('prints warning if user has no manager access in text mode', async () => {
-    const languageCommand = createLanguageCommand();
-    commandContext = createCommandContext({
-      ...globalOptions,
-      output: 'text',
-    });
     const warning = spyOn(output, 'warning');
 
-    spyOn(projectService, 'loadProject').mockResolvedValue({
-      data: {
-        managerAccess: false,
-      },
-    } as never);
+    spyOn(projectService, 'loadProject').mockResolvedValue({ data: {} } as never);
 
     await languageCommand.listAction(commandContext);
 
@@ -197,7 +174,7 @@ describe('LanguageCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
       data: {
-        managerAccess: true,
+        languageMapping: {},
         targetLanguages: [
           { id: 'fr', name: 'French' },
           { id: 'de', name: 'German' },
@@ -222,7 +199,6 @@ describe('LanguageCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
       data: {
-        managerAccess: true,
         languageMapping: { uk: { locale: 'uk_UA' } },
         targetLanguages: [{ id: 'uk', name: 'Ukrainian', locale: 'uk-UA' }],
       },
@@ -246,7 +222,7 @@ describe('LanguageCommand', () => {
 
     spyOn(projectService, 'loadProject').mockResolvedValue({
       data: {
-        managerAccess: true,
+        languageMapping: {},
       },
     } as never);
     spyOn(apiClient.languagesApi, 'withFetchAll').mockReturnValue({

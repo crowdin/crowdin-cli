@@ -1,12 +1,12 @@
-import type { LanguagesModel } from '@crowdin/crowdin-api-client';
+import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
-import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
-import { resolveOutputFormat, type View } from '@/cli/utils/output.ts';
+import type { View } from '@/cli/utils/output.ts';
+import { hasManagerAccess } from '@/lib/project/access.ts';
 import { all, code } from './options.ts';
 
 type LanguageCodeFormat =
@@ -22,8 +22,6 @@ interface LanguageCommandOptions extends GlobalOptions {
   code?: LanguageCodeFormat;
   all?: boolean;
 }
-
-type LanguageMapping = Record<string, Record<string, string>>;
 
 // `code` is resolved from --code plus the project's language mapping, so it rides along with the
 // language: json consumers have no way to reproduce the mapping overrides on their own.
@@ -70,32 +68,20 @@ export default class LanguageCommand {
     const languageService = await this.getLanguageService(command);
     const codeFormat = options.code ?? 'id';
     const project = await projectService.loadProject();
-    const projectData = project.data as {
-      targetLanguages?: LanguagesModel.Language[];
-      languageMapping?: LanguageMapping;
-      managerAccess?: boolean;
-    };
 
-    // TODO: This options does not look right
-    if (projectData.managerAccess === false) {
-      const message = 'You must have manager or developer role in the project to perform this action';
-
-      if (resolveOutputFormat(options.output) === 'text') {
-        output.warning(message);
-        return;
-      }
-
-      throw new CliError(message);
+    if (!hasManagerAccess(project)) {
+      output.warning('You must have manager or developer role in the project to perform this action');
+      return;
     }
 
     const languages = options.all
       ? await languageService.listSupportedLanguages()
-      : (projectData.targetLanguages ?? []);
+      : (project.data.targetLanguages ?? []);
 
     output.list(
       languages.map((language) => ({
         ...language,
-        code: this.getCode(projectData.languageMapping, language, codeFormat),
+        code: this.getCode(project.data.languageMapping, language, codeFormat),
       })),
       languageView,
       { empty: 'No languages found' },
@@ -103,11 +89,12 @@ export default class LanguageCommand {
   };
 
   private getCode(
-    languageMapping: LanguageMapping | undefined,
+    languageMapping: ProjectsGroupsModel.LanguageMapping | undefined,
     language: LanguagesModel.Language,
     codeFormat: LanguageCodeFormat,
   ): string {
-    const mappedCode = languageMapping?.[language.id]?.[codeFormat];
+    // The client types the mapping entity with fixed keys; `id` is not one of them.
+    const mappedCode = (languageMapping?.[language.id] as Record<string, string> | undefined)?.[codeFormat];
 
     if (mappedCode) {
       return mappedCode;
