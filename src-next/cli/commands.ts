@@ -45,7 +45,7 @@ import {
 import type { CommandDef } from './types.ts';
 
 const getOutput = createGetOutput();
-const { getConfig, getProjectConfig } = createGetConfig(getOutput);
+const { getConfig, getProjectConfig, tryGetConfig } = createGetConfig(getOutput);
 // The API client needs credentials only, so it takes plain getConfig — that keeps project_id out of
 // the requirements for glossary/tm, which Java runs on BaseProperties. Everything project-scoped
 // takes getProjectConfig, which is where the project_id requirement lives.
@@ -65,7 +65,10 @@ const getFileService = createGetFileService(getApiClient, getOutput, getProjectC
 const getLabelService = createGetLabelService(getApiClient, getProjectConfig);
 const getProgressService = createGetProgressService(getApiClient, getOutput, getProjectConfig);
 const getTranslationService = createGetTranslationService(getApiClient, getOutput, getProjectConfig);
-const getLanguageService = createGetLanguageService(getApiClient);
+// Supported languages are project-independent, so this client is built from the unchecked config:
+// `language list --all` must not inherit the project_id requirement its command declares for the
+// project-scoped listing. A missing token still fails in createGetApiClient.
+const getLanguageService = createGetLanguageService(createGetApiClient(tryGetConfig));
 const getTmService = createGetTmService(getApiClient, getOutput);
 const getGlossaryService = createGetGlossaryService(getApiClient, getOutput);
 
@@ -114,7 +117,7 @@ const autoTranslateCommand = new AutoTranslateCommand(
   getTranslationService,
 );
 const labelCommand = new LabelCommand(getOutput, getLabelService);
-const languageCommand = new LanguageCommand(getOutput, getProjectService, getLanguageService);
+const languageCommand = new LanguageCommand(getOutput, getProjectService, getLanguageService, tryGetConfig);
 const projectCommand = new ProjectCommand(getOutput, getProjectService);
 const statusCommand = new StatusCommand(
   getOutput,

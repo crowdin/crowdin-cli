@@ -1,5 +1,7 @@
 import type { Credentials } from '@crowdin/crowdin-api-client';
 
+const CROWDIN_API_DOMAIN = 'api.crowdin.com';
+
 /**
  * Extracts the Crowdin Enterprise organization name from a base URL, mirroring Java's
  * PropertiesBeanUtils.getOrganization. Returns undefined for the standard crowdin.com host.
@@ -26,6 +28,17 @@ export function isUrlForTesting(baseUrl: string): boolean {
   );
 }
 
+/** The api domain a testing host carries; undefined elsewhere, where the client's default applies. */
+function getApiDomain(baseUrl: string, organization: string | undefined): string | undefined {
+  if (!isUrlForTesting(baseUrl)) {
+    return undefined;
+  }
+
+  const host = baseUrl.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
+
+  return organization ? host.replace(new RegExp(`^${organization}\\.`, 'i'), '') : host;
+}
+
 /**
  * Builds api-client credentials from a token + config base URL, mirroring Java's Clients.prepareClient.
  * For testing hosts the raw base URL is passed through (client uses it verbatim, so ensure /api/v2);
@@ -33,13 +46,15 @@ export function isUrlForTesting(baseUrl: string): boolean {
  */
 export function buildCredentials(token: string, baseUrl: string): Credentials {
   const organization = getOrganization(baseUrl);
+  const apiDomain = getApiDomain(baseUrl, organization);
 
-  if (isUrlForTesting(baseUrl)) {
-    const host = baseUrl.replace(/^https?:\/\//, '').replace(/\/.*$/, '');
-    const apiDomain = organization ? host.replace(new RegExp(`^${organization}\\.`, 'i'), '') : host;
+  return apiDomain ? { token, organization, apiDomain } : { token, organization };
+}
 
-    return { token, organization, apiDomain };
-  }
+/** The API root the client derives from these credentials, for the calls that bypass the client. */
+export function buildApiUrl(baseUrl: string): string {
+  const organization = getOrganization(baseUrl);
+  const apiDomain = getApiDomain(baseUrl, organization) ?? CROWDIN_API_DOMAIN;
 
-  return { token, organization };
+  return `https://${organization ? `${organization}.` : ''}${apiDomain}/api/v2`;
 }

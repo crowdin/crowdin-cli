@@ -83,7 +83,12 @@ export function createGetConfig(getOutput: (command: Command) => Output) {
     return config;
   };
 
-  return { getConfig, getProjectConfig };
+  // Same load, without the "credentials are present" checks: `language list --all` needs to know
+  // whether a token/project resolved, since Crowdin serves the supported-language list publicly.
+  // A malformed config file still throws here — only missing credentials come back as undefined.
+  const tryGetConfig = async (command: Command): Promise<Config> => (await loadConfig(command)).config;
+
+  return { getConfig, getProjectConfig, tryGetConfig };
 }
 
 // The checks Java defers until every source is merged and base_path is resolved

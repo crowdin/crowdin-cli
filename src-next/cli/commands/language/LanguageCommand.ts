@@ -2,10 +2,11 @@ import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-c
 import type { Command } from 'commander';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
-import type { GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
+import { LanguageService } from '@/cli/services/LanguageService.ts';
+import type { GetConfig, GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
-import type { View } from '@/cli/utils/output.ts';
+import type { Output, View } from '@/cli/utils/output.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { all, code } from './options.ts';
 
@@ -39,6 +40,7 @@ export default class LanguageCommand {
     private getOutput: GetOutput,
     private getProjectService: GetProjectService,
     private getLanguageService: GetLanguageService,
+    private tryGetConfig: GetConfig,
   ) {}
 
   getDefinition(): CommandDef {
@@ -64,11 +66,34 @@ export default class LanguageCommand {
   listAction = async (command: Command) => {
     const options = command.optsWithGlobals() as LanguageCommandOptions;
     const output = this.getOutput(command);
+    const codeFormat = options.code ?? 'id';
+    const config = await this.tryGetConfig(command);
+
+    // Supported languages are project-independent, and with no project there is no language mapping
+    // to apply — so `--all` needs no project_id: a token alone answers it, and so do no credentials
+    // at all, since the list is public (per organization, whose list differs) at every base_url.
+    if (options.all && (!config.apiToken || !config.projectId)) {
+      if (config.apiToken) {
+        const languageService = await this.getLanguageService(command);
+
+        this.printLanguages(output, await languageService.listSupportedLanguages(), undefined, codeFormat);
+        return;
+      }
+
+      this.printLanguages(
+        output,
+        await LanguageService.listPublicSupportedLanguages(config.baseUrl),
+        undefined,
+        codeFormat,
+      );
+      return;
+    }
+
     const projectService = await this.getProjectService(command);
     const languageService = await this.getLanguageService(command);
-    const codeFormat = options.code ?? 'id';
     const project = await projectService.loadProject();
 
+    // Manager/developer role is exposed as `languageMapping` only on the settings-bearing response.
     if (!hasManagerAccess(project)) {
       output.warning('You must have manager or developer role in the project to perform this action');
       return;
@@ -78,15 +103,24 @@ export default class LanguageCommand {
       ? await languageService.listSupportedLanguages()
       : (project.data.targetLanguages ?? []);
 
+    this.printLanguages(output, languages, project.data.languageMapping, codeFormat);
+  };
+
+  private printLanguages(
+    output: Output,
+    languages: LanguagesModel.Language[],
+    languageMapping: ProjectsGroupsModel.LanguageMapping | undefined,
+    codeFormat: LanguageCodeFormat,
+  ): void {
     output.list(
       languages.map((language) => ({
         ...language,
-        code: this.getCode(project.data.languageMapping, language, codeFormat),
+        code: this.getCode(languageMapping, language, codeFormat),
       })),
       languageView,
       { empty: 'No languages found' },
     );
-  };
+  }
 
   private getCode(
     languageMapping: ProjectsGroupsModel.LanguageMapping | undefined,

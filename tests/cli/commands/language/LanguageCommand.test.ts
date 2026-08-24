@@ -3,10 +3,12 @@ import { Client } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import LanguageCommand from '@/cli/commands/language/LanguageCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
+import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import { LanguageService } from '@/cli/services/LanguageService.ts';
 import { ProjectService } from '@/cli/services/ProjectService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
+import type { Config } from '@/lib/config.ts';
 
 type LanguageCommandTestOptions = GlobalOptions & {
   code?: 'id' | 'two_letters_code' | 'three_letters_code' | 'locale' | 'android_code' | 'osx_code' | 'osx_locale';
@@ -28,7 +30,14 @@ const createCommandContext = (options: LanguageCommandTestOptions, args: string[
   } as unknown as Command;
 };
 
+const configured = {
+  apiToken: 'a'.repeat(80),
+  projectId: 123,
+  baseUrl: 'https://api.crowdin.com',
+} as Config;
+
 describe('LanguageCommand', () => {
+  let config: Config;
   let commandContext: Command;
   let apiClient: Client;
   let output: Output;
@@ -41,6 +50,7 @@ describe('LanguageCommand', () => {
     projectService = new ProjectService(apiClient, output, 123);
     languageService = new LanguageService(apiClient);
     commandContext = createCommandContext(globalOptions);
+    config = { ...configured };
 
     spyOn(console, 'log').mockImplementation(() => {});
     spyOn(console, 'table').mockImplementation(() => {});
@@ -55,6 +65,7 @@ describe('LanguageCommand', () => {
       () => output,
       async () => projectService,
       async () => languageService,
+      async () => config,
     );
   };
 
@@ -151,6 +162,62 @@ describe('LanguageCommand', () => {
     expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ code: 'uk_UA', name: 'Ukrainian' }], null, 2));
   });
 
+  test('lists supported languages without credentials when --all is passed', async () => {
+    const languageCommand = createLanguageCommand();
+    commandContext = createCommandContext({ ...globalOptions, all: true, code: 'locale' });
+    config = { ...configured, apiToken: undefined, projectId: undefined };
+    const loadProject = spyOn(projectService, 'loadProject');
+    const fetchMock = spyOn(globalThis, 'fetch').mockResolvedValue(
+      Response.json({ data: [{ data: { id: 'uk', name: 'Ukrainian', locale: 'uk-UA' } }] }),
+    );
+
+    await languageCommand.listAction(commandContext);
+
+    expect(fetchMock).toHaveBeenCalledWith('https://api.crowdin.com/api/v2/languages?limit=500&offset=0');
+    expect(loadProject).not.toHaveBeenCalled();
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ code: 'uk-UA', name: 'Ukrainian' }], null, 2));
+  });
+
+  test('lists supported languages from the token alone when --all runs without a project', async () => {
+    const languageCommand = createLanguageCommand();
+    commandContext = createCommandContext({ ...globalOptions, all: true });
+    config = { ...configured, projectId: undefined };
+    const loadProject = spyOn(projectService, 'loadProject');
+    const listSupportedLanguages = spyOn(languageService, 'listSupportedLanguages').mockResolvedValue([
+      { id: 'uk', name: 'Ukrainian' } as never,
+    ]);
+
+    await languageCommand.listAction(commandContext);
+
+    expect(listSupportedLanguages).toHaveBeenCalledTimes(1);
+    expect(loadProject).not.toHaveBeenCalled();
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify([{ code: 'uk', name: 'Ukrainian' }], null, 2));
+  });
+
+  test('reads the organization language list when --all runs on an Enterprise base url', async () => {
+    const languageCommand = createLanguageCommand();
+    commandContext = createCommandContext({ ...globalOptions, all: true });
+    config = { ...configured, apiToken: undefined, projectId: undefined, baseUrl: 'https://acme.crowdin.com' };
+    const fetchMock = spyOn(globalThis, 'fetch').mockResolvedValue(
+      Response.json({ data: [{ data: { id: 'uk', name: 'Ukrainian' } }] }),
+    );
+
+    await languageCommand.listAction(commandContext);
+
+    expect(fetchMock).toHaveBeenCalledWith('https://acme.api.crowdin.com/api/v2/languages?limit=500&offset=0');
+  });
+
+  test('asks for a token when the organization gates its language list', async () => {
+    const languageCommand = createLanguageCommand();
+    commandContext = createCommandContext({ ...globalOptions, all: true });
+    config = { ...configured, apiToken: undefined, projectId: undefined, baseUrl: 'https://acme.crowdin.com' };
+    spyOn(globalThis, 'fetch').mockResolvedValue(new Response(null, { status: 401 }));
+
+    expect(languageCommand.listAction(commandContext)).rejects.toThrow(
+      new ValidationError("Required option 'api_token' is missing"),
+    );
+  });
+
   test('prints warning and lists nothing if user has no manager access', async () => {
     const languageCommand = createLanguageCommand();
     const warning = spyOn(output, 'warning');
@@ -186,6 +253,7 @@ describe('LanguageCommand', () => {
       () => output,
       async () => projectService,
       async () => languageService,
+      async () => config,
     ).listAction(commandContext);
 
     // list() writes a line per item, where the old formatter joined them into a single write.
@@ -208,6 +276,7 @@ describe('LanguageCommand', () => {
       () => output,
       async () => projectService,
       async () => languageService,
+      async () => config,
     ).listAction(commandContext);
 
     expect(console.log).toHaveBeenCalledWith(expect.stringContaining('uk_UA Ukrainian'));
