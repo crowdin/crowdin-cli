@@ -376,7 +376,7 @@ describe('StringCommand', () => {
 
       expect(stringService.add).toHaveBeenCalledWith(
         expect.objectContaining({
-          text: { one: 'One value' },
+          text: { other: 'hello', one: 'One value' },
           identifier: 'hello',
           branchId: 555,
         }),

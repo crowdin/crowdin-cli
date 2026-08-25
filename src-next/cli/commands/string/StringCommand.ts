@@ -229,7 +229,7 @@ export default class StringCommand {
     const isStringsBased = await stringService.isStringsBasedProject();
     const labelIds = await labelService.resolveLabelIds(labels);
     const isPlural = PLURAL_KEYS.some((key) => options[key] !== undefined);
-    const requestText = isPlural ? this.buildPluralText(options) : text;
+    const requestText = isPlural ? this.buildPluralText(options, text) : text;
 
     if (isStringsBased) {
       if (files.length > 0) {
@@ -442,8 +442,9 @@ export default class StringCommand {
     return patch;
   }
 
-  private buildPluralText(options: AddOptions): SourceStringsModel.PluralText {
-    const plural: SourceStringsModel.PluralText = {};
+  private buildPluralText(options: AddOptions, text: string): SourceStringsModel.PluralText {
+    // The API requires the 'other' form; Java fills it from the positional text argument.
+    const plural: SourceStringsModel.PluralText = { other: text };
 
     for (const key of PLURAL_KEYS) {
       const value = options[key];
