@@ -48,16 +48,16 @@ describe('LabelService', () => {
       expect(result).toEqual([1, 99]);
     });
 
-    test('skips missing labels when createMissing=false', async () => {
+    test('fails on missing labels when createMissing=false', async () => {
       spyOn(apiClient.labelsApi, 'listLabels').mockResolvedValue({
         data: [{ data: { id: 1, title: 'bug' } }],
       } as never);
       const addLabel = spyOn(apiClient.labelsApi, 'addLabel');
 
-      const result = await labelService.resolveLabelIds(['bug', 'missing'], false);
-
+      expect(labelService.resolveLabelIds(['bug', 'missing'], false)).rejects.toThrow(
+        "Project doesn't contain the 'missing' label",
+      );
       expect(addLabel).not.toHaveBeenCalled();
-      expect(result).toEqual([1]);
     });
 
     test('wraps API error as CliError', async () => {

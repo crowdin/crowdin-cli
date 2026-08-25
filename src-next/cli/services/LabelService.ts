@@ -1,4 +1,5 @@
 import type { Client, LabelsModel } from '@crowdin/crowdin-api-client';
+import CliError from '../errors/CliError.ts';
 import { toCliError } from '../errors/toCliError.ts';
 
 export class LabelService {
@@ -52,9 +53,13 @@ export class LabelService {
           labelIdsByTitle.set(title, labelId);
         }
 
-        if (labelId !== undefined) {
-          labelIds.push(labelId);
+        // Filtering callers pass createMissing=false. Skipping an unknown title there would
+        // silently drop the filter and list everything, so it's an error instead.
+        if (labelId === undefined) {
+          throw new CliError(`Project doesn't contain the '${title}' label`);
         }
+
+        labelIds.push(labelId);
       }
 
       return labelIds;
