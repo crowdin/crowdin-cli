@@ -15,7 +15,7 @@ import type {
 import type { CommandDef } from '@/cli/types.ts';
 import { isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { View } from '@/cli/utils/output.ts';
-import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
+import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
 import { add, edit, list } from './options.ts';
 import { createStringView } from './views.ts';
 
@@ -31,7 +31,7 @@ interface ListOptions extends GlobalOptions {
 
 interface AddOptions extends GlobalOptions {
   identifier?: string;
-  maxLength?: number;
+  maxLength?: number | string;
   context?: string;
   file?: string | string[];
   label?: string | string[];
@@ -48,7 +48,7 @@ interface EditOptions extends GlobalOptions {
   identifier?: string;
   text?: string;
   context?: string;
-  maxLength?: number;
+  maxLength?: number | string;
   label?: string | string[];
   hidden?: boolean;
 }
@@ -211,7 +211,11 @@ export default class StringCommand {
       throw new CliError('Source string text can not be empty');
     }
 
-    if (options.maxLength !== undefined && options.maxLength < 0) {
+    // Commander yields option values as strings, so the request builders below would forward
+    // '999' to an int field and the API would reject it.
+    const [maxLength] = toNumberArray(options.maxLength, "The '--max-length' value must be numeric");
+
+    if (maxLength !== undefined && maxLength < 0) {
       throw new CliError("'--max-length' cannot be lower than 0");
     }
 
@@ -239,7 +243,7 @@ export default class StringCommand {
       }
 
       const added = await stringService.add(
-        this.buildStringsBasedRequest(requestText, text, options, labelIds, branchId),
+        this.buildStringsBasedRequest(requestText, text, options, labelIds, branchId, maxLength),
       );
 
       output.item(added, createStringView());
@@ -264,7 +268,9 @@ export default class StringCommand {
     const added: SourceStringsModel.String[] = [];
 
     for (const fileId of resolved.fileIds) {
-      added.push(await stringService.add(this.buildFileBasedRequest(requestText, options, labelIds, fileId)));
+      added.push(
+        await stringService.add(this.buildFileBasedRequest(requestText, options, labelIds, fileId, maxLength)),
+      );
     }
 
     output.list(added, createStringView());
@@ -287,7 +293,11 @@ export default class StringCommand {
       throw new CliError('Specify some parameters to edit the string');
     }
 
-    if (options.maxLength !== undefined && options.maxLength < 0) {
+    // Commander yields option values as strings, so the request builders below would forward
+    // '999' to an int field and the API would reject it.
+    const [maxLength] = toNumberArray(options.maxLength, "The '--max-length' value must be numeric");
+
+    if (maxLength !== undefined && maxLength < 0) {
       throw new CliError("'--max-length' cannot be lower than 0");
     }
 
@@ -295,7 +305,7 @@ export default class StringCommand {
     const stringService = await this.getStringService(command);
     const labelService = await this.getLabelService(command);
     const labelIds = await labelService.resolveLabelIds(labelNames);
-    const patch = this.buildEditPatch(options, labelIds);
+    const patch = this.buildEditPatch(options, labelIds, maxLength);
     const updated = await stringService.edit(id, patch);
     const verbose = Boolean(options.verbose);
     // Only the verbose text/plain detail lines split on this; json/toon keep the raw ids either way.
@@ -366,12 +376,13 @@ export default class StringCommand {
     options: AddOptions,
     labelIds: number[] | undefined,
     fileId: number,
+    maxLength: number | undefined,
   ): SourceStringsModel.CreateStringRequest {
     return {
       text,
       fileId,
       ...(options.identifier ? { identifier: options.identifier } : {}),
-      ...(options.maxLength !== undefined ? { maxLength: options.maxLength } : {}),
+      ...(maxLength !== undefined ? { maxLength } : {}),
       ...(options.context ? { context: options.context } : {}),
       ...(options.hidden !== undefined ? { isHidden: options.hidden } : {}),
       ...(labelIds && labelIds.length > 0 ? { labelIds } : {}),
@@ -384,19 +395,24 @@ export default class StringCommand {
     options: AddOptions,
     labelIds: number[] | undefined,
     branchId: number,
+    maxLength: number | undefined,
   ): SourceStringsModel.CreateStringStringsBasedRequest {
     return {
       text,
       branchId,
       identifier: options.identifier ?? fallbackIdentifier,
-      ...(options.maxLength !== undefined ? { maxLength: options.maxLength } : {}),
+      ...(maxLength !== undefined ? { maxLength } : {}),
       ...(options.context ? { context: options.context } : {}),
       ...(options.hidden !== undefined ? { isHidden: options.hidden } : {}),
       ...(labelIds && labelIds.length > 0 ? { labelIds } : {}),
     };
   }
 
-  private buildEditPatch(options: EditOptions, labelIds: number[] | undefined): PatchRequest[] {
+  private buildEditPatch(
+    options: EditOptions,
+    labelIds: number[] | undefined,
+    maxLength: number | undefined,
+  ): PatchRequest[] {
     const patch: PatchRequest[] = [];
 
     if (options.text !== undefined) {
@@ -407,8 +423,8 @@ export default class StringCommand {
       patch.push({ op: 'replace', path: '/context', value: options.context });
     }
 
-    if (options.maxLength !== undefined) {
-      patch.push({ op: 'replace', path: '/maxLength', value: options.maxLength });
+    if (maxLength !== undefined) {
+      patch.push({ op: 'replace', path: '/maxLength', value: maxLength });
     }
 
     if (options.hidden !== undefined) {
