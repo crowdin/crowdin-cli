@@ -106,6 +106,12 @@ class FileUploadAction implements NewAction<ProjectProperties, ProjectClient> {
                             client.editSource(sourceId, editRequest);
                         }
                     }
+                    if (nonNull(context)) {
+                        String existingContext = projectFile.getKey().getContext();
+                        if (!Objects.equals(context, existingContext)) {
+                            client.editSource(sourceId, RequestBuilder.updateFileContext(context));
+                        }
+                    }
                     if (!plainView) {
                         out.println(
                             OK.withIcon(String.format(RESOURCE_BUNDLE.getString("message.uploading_file"), fileFullPath)));

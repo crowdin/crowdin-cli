@@ -243,7 +243,7 @@ public class PlaceholderUtil {
             String postfix = Utils.getParentDirectory(substringAfter);
             String prefix = prefixFormat.length() > 1 && file.getPath().contains(prefixFormat) ? StringUtils.substringBefore(fileParent, Utils.noSepAtStart(prefixFormat)) : "";
             String doubleAsterisks =
-                StringUtils.removeStart(Utils.noSepAtStart(StringUtils.removeStart(fileParent, prefix)), Utils.noSepAtEnd(Utils.noSepAtStart(prefixFormat)));
+                removeStartSegment(Utils.noSepAtStart(StringUtils.removeStart(fileParent, prefix)), Utils.noSepAtEnd(Utils.noSepAtStart(prefixFormat)));
             doubleAsterisks = postfix.length() > 1 ? StringUtils.removeEnd(doubleAsterisks, Utils.noSepAtEnd(postfix)) : doubleAsterisks;
             toFormat = toFormat.replace("**", doubleAsterisks);
         }
@@ -350,5 +350,19 @@ public class PlaceholderUtil {
             }
         }
         return true;
+    }
+
+    private static String removeStartSegment(String value, String prefix) {
+        if (prefix == null || prefix.isEmpty() || !value.startsWith(prefix)) {
+            return value;
+        }
+        if (value.length() == prefix.length()) {
+            return "";
+        }
+        char nextChar = value.charAt(prefix.length());
+        if (nextChar == '/' || nextChar == File.separatorChar) {
+            return value.substring(prefix.length());
+        }
+        return value;
     }
 }

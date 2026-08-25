@@ -270,6 +270,16 @@ public class RequestBuilder {
         return request;
     }
 
+    public static List<PatchRequest> updateFileContext(String context) {
+        List<PatchRequest> request = new ArrayList<>();
+        PatchRequest patchRequest = new PatchRequest();
+        patchRequest.setPath("/context");
+        patchRequest.setOp(PatchOperation.REPLACE);
+        patchRequest.setValue(context);
+        request.add(patchRequest);
+        return request;
+    }
+
     public static ApplyPreTranslationRequest applyPreTranslation(
         List<String> languageIds, List<Long> fileIds, Method method, Long engineId, AutoApproveOption autoApproveOption,
         Boolean duplicateTranslations, Boolean translateUntranslatedOnly, Boolean translateWithPerfectMatchOnly, List<Long> labelIds, Long aiPrompt

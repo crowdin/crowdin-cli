@@ -7,7 +7,7 @@ plugins {
 }
 
 group 'com.crowdin'
-version '4.14.4'
+version '4.15.1'
 
 sourceCompatibility = '17'
 

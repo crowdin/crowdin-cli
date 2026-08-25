@@ -26,6 +26,7 @@ import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.doThrow;
@@ -56,6 +57,25 @@ public class DownloadActionTest {
                 setStatus(status);
                 setProgress(progress);
             }};
+    }
+
+    public static ProjectBuild buildFailedProjectBuild(Long buildId, Long projectId, String errorMessage) {
+        return new ProjectBuild() {{
+                setId(buildId);
+                setProjectId(projectId);
+                setStatus("failed");
+                ProjectBuild.Error error = new ProjectBuild.Error();
+                error.setMessage(errorMessage);
+                setError(error);
+            }};
+    }
+
+    private static List<String> exceptionMessages(Throwable throwable) {
+        List<String> messages = new ArrayList<>();
+        for (Throwable t = throwable; t != null; t = t.getCause()) {
+            messages.add(t.getMessage());
+        }
+        return messages;
     }
 
     @Test
@@ -605,6 +625,45 @@ public class DownloadActionTest {
 
         verify(client).downloadFullProject(null);
         verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
+        verifyNoMoreInteractions(client);
+
+        verifyNoMoreInteractions(files);
+    }
+
+    @Test
+    public void testProjectOneFittingFile_FailBuildWithErrorMessage() throws ResponseException {
+        NewPropertiesWithFilesUtilBuilder pbBuilder = NewPropertiesWithFilesUtilBuilder
+            .minimalBuiltPropertiesBean("*", Utils.PATH_SEPARATOR + "%original_file_name%-CR-%locale%")
+            .setBasePath(project.getBasePath());
+        PropertiesWithFiles pb = pbBuilder.build();
+
+        project.addFile("first.po");
+
+        ProjectClient client = mock(ProjectClient.class);
+        when(client.downloadFullProject(null))
+            .thenReturn(ProjectBuilder.emptyProject(Long.parseLong(pb.getProjectId()))
+                .addFile("first.po", "gettext", 101L, null, null, "/%original_file_name%-CR-%locale%").build());
+        CrowdinTranslationCreateProjectBuildForm buildProjectTranslationRequest = new CrowdinTranslationCreateProjectBuildForm();
+        long buildId = 42L;
+        when(client.startBuildingTranslation(eq(buildProjectTranslationRequest)))
+            .thenReturn(buildProjectBuild(buildId, Long.parseLong(pb.getProjectId()), "building", 25));
+        String buildErrorMessage = "Export failed: the exported file contains invalid data.";
+        when(client.checkBuildingTranslation(eq(buildId)))
+            .thenReturn(buildFailedProjectBuild(buildId, Long.parseLong(pb.getProjectId()), buildErrorMessage));
+
+        FilesInterface files = mock(FilesInterface.class);
+
+        NewAction<PropertiesWithFiles, ProjectClient> action =
+            new DownloadAction(files, false, null, null, false, null, false, false, false, false, false);
+        RuntimeException e = assertThrows(RuntimeException.class, () -> action.act(Outputter.getDefault(), pb, client));
+
+        assertTrue(
+            exceptionMessages(e).stream().anyMatch(m -> m != null && m.contains(buildErrorMessage)),
+            "Expected the build error message to be propagated, but got: " + exceptionMessages(e));
+
+        verify(client).downloadFullProject(null);
+        verify(client).startBuildingTranslation(eq(buildProjectTranslationRequest));
+        verify(client).checkBuildingTranslation(eq(buildId));
         verifyNoMoreInteractions(client);
 
         verifyNoMoreInteractions(files);
