@@ -54,7 +54,7 @@ npm install -g @crowdin/cli
 - Run auto-translation via MT, TM, or AI
 - Cached source uploads that skip files unchanged since the last run
 - Polished interactive prompts - select menus, spinners, and graceful cancellation
-- Bash/Zsh command completion
+- Shell completion for Bash, Zsh, Fish, and PowerShell
 - HTTP Proxy support including authorization
 - and more.
 

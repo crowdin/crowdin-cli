@@ -9,7 +9,7 @@ Today we are happy to announce Crowdin CLI **5.0**! 🚀
 
 This is the biggest change in the tool's history: a complete rewrite - from Java to TypeScript, powered by [Bun](https://bun.sh). The new CLI is dramatically faster and lighter, built on a modern toolchain that lets us ship improvements faster and unlocks capabilities that weren't practical before.
 
-For existing users, the essentials don't move: the command tree, the `crowdin.yml` configuration file, and the exit codes stay the same. Most workflows carry over unchanged, and the few breaking changes are listed below to make migration easy.
+For existing users, the essentials don't move: the commands, the `crowdin.yml` configuration file, and the exit codes stay the same. Most workflows carry over unchanged, and the few breaking changes are listed below to make migration easy.
 
 <!--truncate-->
 
@@ -87,11 +87,13 @@ Pair that with millisecond startup and stable exit codes, and you get a tool an 
 
 #### Agent Skills
 
-Your agent doesn't have to learn the CLI by trial and error, either. The new [**crowdin-cli** Agent Skill](https://github.com/crowdin/skills) packages the know-how an agent needs - `crowdin.yml` configuration patterns, the core sync workflow, machine-readable output, exit codes, and v4 → v5 migration - in a format AI coding agents load automatically. One command installs it for Claude Code, Cursor, Gemini CLI, GitHub Copilot, and any other tool that supports Agent Skills:
+Your agent doesn't have to learn the CLI by trial and error, either. The new [crowdin-cli Agent Skill](https://github.com/crowdin/skills) packages the know-how an agent needs - `crowdin.yml` configuration patterns, the core sync workflow, machine-readable output, exit codes, and v4 → v5 migration - in a format AI coding agents load automatically. The quickest install, for any tool that supports Agent Skills:
 
 ```bash
 npx skills add crowdin/skills --skill crowdin-cli
 ```
+
+There are more ways to install it - as a Claude Code plugin (which also bundles the [Crowdin MCP Server](https://support.crowdin.com/developer/crowdin-mcp-server/)), a Gemini CLI extension, or via the GitHub CLI - see the [installation options](https://github.com/crowdin/skills#installation).
 
 ### More control over auto-translation
 
