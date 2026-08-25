@@ -22,7 +22,6 @@
     "bin"
   ],
   "publishConfig": {
-    "access": "public",
-    "tag": "next"
+    "access": "public"
   }
 }

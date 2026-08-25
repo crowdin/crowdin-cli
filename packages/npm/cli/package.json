@@ -21,8 +21,7 @@
     "node": ">=20"
   },
   "publishConfig": {
-    "access": "public",
-    "tag": "next"
+    "access": "public"
   },
   "keywords": [
     "Crowdin",

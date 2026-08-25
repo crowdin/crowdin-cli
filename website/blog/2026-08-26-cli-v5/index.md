@@ -2,8 +2,6 @@
 title: Crowdin CLI 5.0
 description: Crowdin CLI 5.0 is a complete rewrite in TypeScript powered by Bun - instant startup, no Java required, machine-readable output for scripts and AI agents, and more.
 authors: [andrii-bodnar]
-# TODO: add social card image and uncomment
-# image: ./img/social-card.png
 tags: [release]
 ---
 

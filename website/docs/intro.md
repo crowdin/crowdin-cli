@@ -16,11 +16,11 @@ With Crowdin CLI you can:
 
 Crowdin CLI is cross-platform: it runs in a terminal on Linux and macOS, or in Command Prompt on Windows.
 
-:::tip Crowdin CLI 5.0 Pre-Release is here! 🚀
-The next major version of the CLI has been rewritten from the ground up in TypeScript, powered by [Bun](https://bun.sh) - it starts instantly, requires no Java, and speaks JSON and TOON for your scripts and AI agents. Your `crowdin.yml` and commands stay the same. Try it out and [share your feedback](https://github.com/crowdin/crowdin-cli/discussions/1043):
+:::tip Crowdin CLI 5.0 is here! 🚀
+The CLI has been rewritten from the ground up in TypeScript, powered by [Bun](https://bun.sh) - it starts instantly, requires no Java, and speaks JSON and TOON for your scripts and AI agents. Your `crowdin.yml` and commands stay the same. [Read the announcement](/blog/2026/08/26/cli-v5) and upgrade:
 
 ```bash
-npm install -g @crowdin/cli@next
+npm install -g @crowdin/cli
 ```
 :::
 
