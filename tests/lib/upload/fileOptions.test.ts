@@ -201,6 +201,21 @@ describe('** in dest and context', () => {
   test('drops the part of the parent path before a mid-path prefix', () => {
     expect(prepareDest('/nested/**/%original_file_name%', 'src/nested/deep/app.json')).toBe('nested/deep/app.json');
   });
+
+  // `Product.Core` is a string prefix of `Product.Core.Implementation` but not a path segment of
+  // it, so nothing may be trimmed off the parent path.
+  test('keeps a folder whose name merely starts with the dest prefix', () => {
+    expect(
+      prepareDest(
+        '/Product.Core/**/%file_name%.resx',
+        'Product.Core.Implementation/Localization/UniversalStrings.resx',
+      ),
+    ).toBe('Product.Core/Product.Core.Implementation/Localization/UniversalStrings.resx');
+  });
+
+  test('keeps a folder whose name merely starts with the last segment of a multi-segment prefix', () => {
+    expect(prepareDest('/a/b/**/%original_file_name%', 'a/bc/deep/app.json')).toBe('a/b/a/bc/deep/app.json');
+  });
 });
 
 describe('getCommonPath', () => {
