@@ -3,7 +3,7 @@
 
 ; The publish workflow overrides the version with ISCC /DMyAppVersion=<version>
 #ifndef MyAppVersion
-#define MyAppVersion "5.0.0-next.6"
+#define MyAppVersion "5.0.0"
 #endif
 #define MyAppName "Crowdin"
 #define MyAppPublisher "OU Crowdin"
