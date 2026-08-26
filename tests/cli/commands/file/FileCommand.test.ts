@@ -348,6 +348,29 @@ describe('FileCommand', () => {
     });
   });
 
+  // The per-file messages go through success(), which prints in text only, so a machine format saw
+  // an empty stdout for an upload that had just created a project file. Same {path, action} shape
+  // `upload sources` emits, so a script parses one summary whichever command wrote the file.
+  test('summarises the created file in a machine format', async () => {
+    const listSpy = spyOn(output, 'list');
+    const fileCommand = createFileCommand();
+    const localFilePath = join(tempDir, 'readme.json');
+
+    await Bun.write(localFilePath, '{}');
+
+    spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(storageService, 'addStorage').mockResolvedValue({ data: { id: 99 } } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({ data: [] } as never);
+    spyOn(directoryService, 'loadProjectDirectories').mockResolvedValue([] as never);
+    spyOn(apiClient.sourceFilesApi, 'createFile').mockResolvedValue({ data: { id: 777 } } as never);
+
+    commandContext = createCommandContext({ ...globalOptions, dest: 'remote.json' }, [localFilePath]);
+
+    await fileCommand.uploadAction(commandContext);
+
+    expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([{ path: 'remote.json', action: 'created' }]);
+  });
+
   test('resolves and attaches label ids when uploading with --label', async () => {
     const fileCommand = createFileCommand();
     const localFilePath = join(tempDir, 'remote.json');
@@ -435,10 +458,13 @@ describe('FileCommand', () => {
 
     const updateProjectFile = spyOn(fileService, 'updateProjectFile').mockResolvedValue(undefined as never);
     const createFile = spyOn(apiClient.sourceFilesApi, 'createFile');
+    const listSpy = spyOn(output, 'list');
 
     commandContext = createCommandContext({ ...globalOptions, dest: 'remote.json' }, [localFilePath]);
 
     await fileCommand.uploadAction(commandContext);
+
+    expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([{ path: 'remote.json', action: 'updated' }]);
 
     expect(updateProjectFile).toHaveBeenCalledWith(
       42,
@@ -495,6 +521,8 @@ describe('FileCommand', () => {
       data: { status: 'finished', identifier: 'abc' },
     } as never);
 
+    const listSpy = spyOn(output, 'list');
+
     commandContext = createCommandContext(
       { ...globalOptions, branch: 'main', dest: 'strings.csv', cleanupMode: true, updateStrings: true },
       [localFilePath],
@@ -512,6 +540,7 @@ describe('FileCommand', () => {
       },
       localFilePath,
     );
+    expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([{ path: 'strings.csv', action: 'uploaded' }]);
   });
 
   test('requires a branch for strings-based upload', async () => {
@@ -565,6 +594,7 @@ describe('FileCommand', () => {
     const importProjectTranslation = spyOn(translationService, 'importProjectTranslation').mockResolvedValue({
       data: { identifier: 'import-1', status: 'finished', progress: 100 },
     } as never);
+    const listSpy = spyOn(output, 'list');
 
     commandContext = createCommandContext({ ...globalOptions, language: 'uk', dest: 'main.json' }, [localFilePath]);
 
@@ -580,6 +610,7 @@ describe('FileCommand', () => {
       undefined,
       expect.any(Function),
     );
+    expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([{ path: localFilePath, action: 'uploaded' }]);
   });
 
   // The service polls to completion; the command's job is the init line plus a progress line per
@@ -692,11 +723,15 @@ describe('FileCommand', () => {
     spyOn(fileService, 'getSourceFileDownloadUrl').mockResolvedValue('https://example.test/readme.md');
     spyOn(globalThis, 'fetch').mockResolvedValue(new Response('downloaded content'));
 
+    const listSpy = spyOn(output, 'list');
+
     commandContext = createCommandContext({ ...globalOptions, dest: 'downloads' }, ['docs/readme.md']);
 
     await fileCommand.downloadAction(commandContext);
 
     expect(await Bun.file(join(destinationDir, 'readme.md')).text()).toBe('downloaded content');
+    // The path a machine format reports is where the file landed, relative to base_path.
+    expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([{ path: 'downloads/readme.md', action: 'downloaded' }]);
   });
 
   test('downloads a source file to its own path when --dest is omitted', async () => {
@@ -800,12 +835,15 @@ describe('FileCommand', () => {
 
     spyOn(globalThis, 'fetch').mockResolvedValue(new Response('translated'));
 
+    const listSpy = spyOn(output, 'list');
+
     commandContext = createCommandContext({ ...globalOptions, language: 'uk' }, ['main.json']);
 
     await fileCommand.downloadAction(commandContext);
 
     expect(build).toHaveBeenCalledWith(40, 'uk');
     expect(await Bun.file(join(tempDir, 'uk/main.json')).text()).toBe('translated');
+    expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([{ path: 'uk/main.json', action: 'downloaded' }]);
   });
 
   test('resolves language placeholders in --dest for translation download', async () => {

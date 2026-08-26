@@ -27,11 +27,14 @@ import type {
 import type { CommandDef } from '@/cli/types.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
 import { isMachineFormat } from '@/cli/utils/formatter.ts';
+import type { Output, View } from '@/cli/utils/output.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
 import { fileLookup } from '@/lib/upload/fileLookup.ts';
 import { sameLanguageSet } from '@/lib/upload/fileOptions.ts';
 import { stripBranchPrefix, stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
+import { type DownloadedFile, downloadedFileView } from '../download/views.ts';
+import { type UploadedFile, uploadedFileView } from '../upload/views.ts';
 import { download, upload } from './options.ts';
 import { fileVerboseView, fileView } from './views.ts';
 
@@ -293,6 +296,7 @@ export default class FileCommand {
       }
 
       output.success(`File '${fileFullPath}'`);
+      this.reportUploaded(output, options, { path: fileFullPath, action: 'updated' });
       return;
     }
 
@@ -313,6 +317,7 @@ export default class FileCommand {
       });
 
       output.success(`#${created.data.id} ${fileFullPath}`);
+      this.reportUploaded(output, options, { path: fileFullPath, action: 'created' });
     } catch (error) {
       if (error instanceof FileExistsError) {
         throw new CliError(`Project already contains the file '${fileFullPath}'`);
@@ -388,6 +393,7 @@ export default class FileCommand {
     }
 
     output.success(`File '${filePath}'`);
+    this.reportUploaded(output, options, { path: filePath, action: 'uploaded' });
   };
 
   // The non-xliff import: file-based needs the project file the translation belongs to,
@@ -479,7 +485,28 @@ export default class FileCommand {
     );
 
     output.success(`File '${destPath}'`);
+    this.reportUploaded(output, options, { path: destPath, action: 'uploaded' });
   };
+
+  /**
+   * The summary the machine formats get for a command whose text output is a stream of per-file
+   * messages — the same {path, action} entries `upload sources` and `download` emit, so a script
+   * parses one shape whichever command wrote the file. success() prints in text only, so without
+   * this a real upload or download left json/toon/plain with an empty stdout.
+   */
+  private reportUploaded(output: Output, options: GlobalOptions, file: UploadedFile): void {
+    this.reportFiles(output, options, [file], uploadedFileView);
+  }
+
+  private reportDownloaded(output: Output, options: GlobalOptions, files: DownloadedFile[]): void {
+    this.reportFiles(output, options, files, downloadedFileView);
+  }
+
+  private reportFiles<T>(output: Output, options: GlobalOptions, files: T[], view: View<T>): void {
+    if (isMachineFormat(options.output)) {
+      output.list(files, view);
+    }
+  }
 
   private uploadToStorage = async (
     storageService: Awaited<ReturnType<GetStorageService>>,
@@ -591,6 +618,9 @@ export default class FileCommand {
         }
 
         output.success(`File '${filePath}'`);
+        this.reportDownloaded(output, options, [
+          { path: path.relative(config.basePath, fullFilePath), action: 'downloaded' },
+        ]);
         return;
       }
     }
@@ -642,6 +672,8 @@ export default class FileCommand {
       throw new CliError(`File '${wantedPath}' not found in the Crowdin project`);
     }
 
+    const downloaded: DownloadedFile[] = [];
+
     for (const language of languages) {
       const destPath = options.dest
         ? resolveLanguagePlaceholders(`${options.dest}/${sourceFile.data.name}`, language)
@@ -657,7 +689,10 @@ export default class FileCommand {
       }
 
       output.success(`File '${destPath}'`);
+      downloaded.push({ path: stripLeadingSlashes(destPath), action: 'downloaded' });
     }
+
+    this.reportDownloaded(output, options, downloaded);
   };
 
   deleteAction = async (command: Command) => {
