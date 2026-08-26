@@ -28,6 +28,8 @@ No JVM, no warm-up. The new CLI starts in about a millisecond:
 
 You might not notice 200 ms once. You will notice it in CI, where the CLI is often invoked dozens of times per pipeline.
 
+> "Really enjoying the speed up of the CLI in v5 by the way 🚀" - early adopter feedback
+
 ### No Java required
 
 Crowdin CLI 4.x was a Java application: a 7 MB jar that needed a few hundred megabytes of JRE installed and kept up to date. Crowdin CLI 5.0 ships as a single self-contained binary for macOS, Linux, and Windows - download it and run it. Nothing else to install, patch, or configure.
@@ -236,8 +238,8 @@ The <kbd>--branch</kbd> option was removed from the `crowdin config sources` com
 
 ## Summary
 
-The rewrite is a beginning, not a finish line: with the new foundation in place, there is a lot more on the way. In the meantime - upgrade, run your usual workflows, and tell us how it goes. Early feedback is what turns a big release into a great one.
+The rewrite is a beginning, not a finish line: with the new foundation in place, more commands and further improvements to the agentic experience are already on the way. In the meantime - upgrade, run your usual workflows, and tell us how it goes. Early feedback is what turns a big release into a great one.
 
 :::tip
-Need help or have questions? [Let's discuss it](https://github.com/crowdin/crowdin-cli/discussions/1043)!
+Need help or have questions? [Join the discussion](https://github.com/crowdin/crowdin-cli/discussions/1043), [report an issue](https://github.com/crowdin/crowdin-cli/issues), or explore the [documentation](/).
 :::
