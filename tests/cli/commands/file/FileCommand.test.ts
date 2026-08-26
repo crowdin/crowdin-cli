@@ -494,6 +494,7 @@ describe('FileCommand', () => {
 
     const updateProjectFile = spyOn(fileService, 'updateProjectFile');
     const addStorage = spyOn(storageService, 'addStorage');
+    const listSpy = spyOn(output, 'list');
 
     commandContext = createCommandContext({ ...globalOptions, dest: 'remote.json', autoUpdate: false }, [
       localFilePath,
@@ -503,6 +504,35 @@ describe('FileCommand', () => {
 
     expect(updateProjectFile).not.toHaveBeenCalled();
     expect(addStorage).not.toHaveBeenCalled();
+    // The skip notice goes through info(), which prints in text only; json/toon carry the record
+    // with its reason, as `upload sources` does for the same flag.
+    expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([
+      { path: 'remote.json', action: 'skipped', reason: 'auto-update disabled' },
+    ]);
+  });
+
+  // plain cannot carry the action, so a skipped path would read as one that was written.
+  test('lists nothing in plain when the upload is skipped', async () => {
+    const plainOutput = createOutput({ ...globalOptions, output: 'plain' });
+    const listSpy = spyOn(plainOutput, 'list');
+    const fileCommand = createFileCommandWith(plainOutput);
+    const localFilePath = join(tempDir, 'remote.json');
+
+    await Bun.write(localFilePath, '{}');
+
+    spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({ data: { id: 123 } } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+      data: [{ data: { id: 42, path: '/remote.json' } }],
+    } as never);
+
+    commandContext = createCommandContext(
+      { ...globalOptions, output: 'plain', dest: 'remote.json', autoUpdate: false },
+      [localFilePath],
+    );
+
+    await fileCommand.uploadAction(commandContext);
+
+    expect(listSpy.mock.calls.at(-1)?.[0]).toEqual([]);
   });
 
   test('uploads strings for a strings-based project', async () => {

@@ -26,7 +26,7 @@ import type {
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
-import { isMachineFormat } from '@/cli/utils/formatter.ts';
+import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { Output, View } from '@/cli/utils/output.ts';
 import { resolveLanguagePlaceholders } from '@/lib/export/languagePlaceholders.ts';
 import { hasManagerAccess } from '@/lib/project/access.ts';
@@ -262,6 +262,11 @@ export default class FileCommand {
     if (existingFile) {
       if (options.autoUpdate === false) {
         output.info(`Project already contains the file '${fileFullPath}'`);
+        this.reportUploaded(output, options, {
+          path: fileFullPath,
+          action: 'skipped',
+          reason: 'auto-update disabled',
+        });
         return;
       }
 
@@ -502,10 +507,19 @@ export default class FileCommand {
     this.reportFiles(output, options, files, downloadedFileView);
   }
 
-  private reportFiles<T>(output: Output, options: GlobalOptions, files: T[], view: View<T>): void {
-    if (isMachineFormat(options.output)) {
-      output.list(files, view);
+  private reportFiles<T extends { action: string }>(
+    output: Output,
+    options: GlobalOptions,
+    files: T[],
+    view: View<T>,
+  ): void {
+    if (!isMachineFormat(options.output)) {
+      return;
     }
+
+    // plain is line-oriented and cannot carry the action, so a skip would read as a file that was
+    // written. It lists only what changed, as `upload sources` does; json/toon keep the record.
+    output.list(isStructuredFormat(options.output) ? files : files.filter(({ action }) => action !== 'skipped'), view);
   }
 
   private uploadToStorage = async (
