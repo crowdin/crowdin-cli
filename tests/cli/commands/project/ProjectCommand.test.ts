@@ -214,7 +214,9 @@ describe('ProjectCommand', () => {
     });
   });
 
-  test('echoes the created project through the list view, in plain too', async () => {
+  // Java ProjectAddAction prints the id alone under --plain, unlike the listing it shares its text
+  // line with.
+  test('echoes the bare id in plain, as Java ProjectAddAction does', async () => {
     const plainOutput = createOutput({ ...globalOptions, output: 'plain' });
     const projectCommand = new ProjectCommand(
       () => plainOutput,
@@ -233,7 +235,7 @@ describe('ProjectCommand', () => {
 
     await projectCommand.addAction(commandContext);
 
-    expect(logSpy).toHaveBeenCalledWith('#77 New Project');
+    expect(logSpy).toHaveBeenCalledWith('77');
   });
 
   test('requires project name', async () => {
