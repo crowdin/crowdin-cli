@@ -10,9 +10,8 @@
 
     // Bundler mode
     "moduleResolution": "bundler",
-    "baseUrl": ".",
     "paths": {
-      "@/*": ["src-next/*"]
+      "@/*": ["./src-next/*"]
     },
     "allowImportingTsExtensions": true,
     "resolveJsonModule": true,
