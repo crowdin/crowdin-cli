@@ -279,6 +279,9 @@ export default class ContextCommand {
 
     if (withAiContext.length === 0) {
       output.warning('No strings found');
+      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
+      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
+      output.list([], contextChangeView());
       return;
     }
 

@@ -246,6 +246,9 @@ export default class BundleCommand {
 
     if (!bundle) {
       output.warning("Couldn't find bundle by the specified ID");
+      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
+      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
+      output.list([], pathView);
       return;
     }
 

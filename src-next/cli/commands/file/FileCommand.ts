@@ -349,6 +349,9 @@ export default class FileCommand {
     // Manager/developer role is exposed as `languageMapping` only on the settings-bearing response.
     if (!hasManagerAccess(project)) {
       output.warning('You must have manager or developer role in the project to perform this action');
+      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
+      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
+      this.reportFiles(output, options, [] as UploadedFile[], uploadedFileView);
       return;
     }
 
@@ -606,11 +609,15 @@ export default class FileCommand {
 
     if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
       output.warning('File management is not available for string-based projects');
+      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
+      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
+      this.reportDownloaded(output, options, []);
       return;
     }
 
     if (!hasManagerAccess(project)) {
       output.warning('You must have manager or developer role in the project to perform this action');
+      this.reportDownloaded(output, options, []);
       return;
     }
 
@@ -657,11 +664,15 @@ export default class FileCommand {
 
     if (project.data.type === ProjectsGroupsModel.Type.STRINGS_BASED) {
       output.warning('File management is not available for string-based projects');
+      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
+      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
+      this.reportDownloaded(output, options, []);
       return;
     }
 
     if (!hasManagerAccess(project)) {
       output.warning('You must have manager or developer role in the project to perform this action');
+      this.reportDownloaded(output, options, []);
       return;
     }
 

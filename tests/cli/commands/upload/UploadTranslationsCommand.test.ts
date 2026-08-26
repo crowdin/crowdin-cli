@@ -59,6 +59,8 @@ describe('UploadTranslationsCommand', () => {
       'You must have manager or developer role in the project to perform this action',
     );
     expect(translationService.importProjectTranslation).not.toHaveBeenCalled();
+    // The bail still owes the machine formats a document, empty though it is.
+    expect(output.list).toHaveBeenCalledWith([], expect.anything());
   });
 
   test('soft-matches an existing project file when uploading translations', async () => {

@@ -1262,11 +1262,14 @@ describe('DownloadCommand', () => {
       } as never);
       const buildProject = spyOn(apiClient.translationsApi, 'buildProject');
       const warningSpy = spyOn(output, 'warning');
+      const listSpy = spyOn(output, 'list');
 
       await downloadCommand.translationsAction(commandContext);
 
       expect(warningSpy).toHaveBeenCalledWith(expect.stringContaining('manager or developer role'));
       expect(buildProject).not.toHaveBeenCalled();
+      // The bail still owes the machine formats a document, empty though it is.
+      expect(listSpy).toHaveBeenCalledWith([], expect.anything());
     });
 
     test('warns instead of erroring on no files when skip-untranslated-files is set', async () => {
