@@ -54,6 +54,13 @@ const bundleView: View<BundleView> = {
   keys: ['id', 'format', 'exportPattern', 'name'],
 };
 
+// The kept archive is a file the command wrote, so it belongs in the result: plain prints the bare
+// path (what Java's --plain branch meant to print), json/toon serialize it, text keeps the sentence.
+const archiveView: View<string> = {
+  text: (archivePath) => `Archive saved to '${archivePath}'`,
+  plain: (archivePath) => archivePath,
+};
+
 export default class BundleCommand {
   constructor(
     private getOutput: GetOutput,
@@ -306,11 +313,9 @@ export default class BundleCommand {
     }
 
     if (options.keepArchive) {
-      if (options.output === 'plain') {
-        output.log(archivePath);
-      } else {
-        output.success(`Archive saved to '${archivePath}'`);
-      }
+      // log() is text-only, so the plain branch this replaces printed nothing at all, and json/toon
+      // lost the path with it. item() renders the view in every format.
+      output.item(archivePath, archiveView);
     } else {
       try {
         await rm(archivePath, { force: true });
