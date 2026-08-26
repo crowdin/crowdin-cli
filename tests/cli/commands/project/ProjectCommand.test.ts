@@ -174,9 +174,10 @@ describe('ProjectCommand', () => {
 
     await projectCommand.addAction(commandContext);
 
+    // No identifier: the API derives one from the name. Sending `name` verbatim broke every name
+    // the identifier rules reject — 'CLI 27' failed on the space alone.
     expect(addProject).toHaveBeenCalledWith({
       name: 'New Project',
-      identifier: 'New Project',
       sourceLanguageId: 'uk',
       targetLanguageIds: ['fr', 'de'],
       visibility: 'open',

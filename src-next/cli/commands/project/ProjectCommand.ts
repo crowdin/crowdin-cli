@@ -1,8 +1,8 @@
-import type { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
+import type { CreateProjectPayload } from '@/cli/services/ProjectService.ts';
 import type { GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { openUrl } from '@/cli/utils/open.ts';
@@ -95,22 +95,23 @@ export default class ProjectCommand {
 
     const sourceLanguageId = options.sourceLanguage || 'en';
     const targetLanguageIds = options.language ?? [];
-    const data: ProjectsGroupsModel.CreateProjectEnterpriseRequest | ProjectsGroupsModel.CreateProjectRequest =
-      projectService.isEnterprise()
-        ? {
-            name,
-            sourceLanguageId,
-            targetLanguageIds,
-            ...(options.stringBased ? { type: 1 as const } : {}),
-          }
-        : {
-            name,
-            identifier: name,
-            sourceLanguageId,
-            targetLanguageIds,
-            visibility: options.public ? 'open' : 'private',
-            ...(options.stringBased ? { type: 1 as const } : {}),
-          };
+    // No `identifier`: the API generates one from the name, and a name with a space or any other
+    // character the identifier rules reject ('CLI 27') made the request fail outright. Java never
+    // sends one either.
+    const data: CreateProjectPayload = projectService.isEnterprise()
+      ? {
+          name,
+          sourceLanguageId,
+          targetLanguageIds,
+          ...(options.stringBased ? { type: 1 as const } : {}),
+        }
+      : {
+          name,
+          sourceLanguageId,
+          targetLanguageIds,
+          visibility: options.public ? 'open' : 'private',
+          ...(options.stringBased ? { type: 1 as const } : {}),
+        };
 
     const project = await projectService.addProject(data);
 
