@@ -97,6 +97,23 @@ Here are the common config options for all CLI commands:
 
 Some commands have their own config options.
 
+### Output formats
+
+By default, the CLI prints output designed for people. The `--output` (`-o`) option switches it to one of three machine-readable formats. Each format has its own purpose and look:
+
+- **text** (default) - *a human at a terminal*. Colors, symbols, spinners, progress, and friendly messages - everything decorative lives here.
+- **plain** - *a shell pipeline*. One bare line per entity, identifier first - no symbols, no colors, no prose - so the output composes with `grep`, `awk`, and `xargs` without any extra tooling. An empty result prints nothing.
+- **json** - *a parser*. The complete result as a structured document, carrying the same fields the text output shows.
+- **toon** - *an AI agent*. The same data as `json` in [TOON](https://github.com/toon-format/toon)'s token-efficient encoding - a natural fit for agent workflows.
+
+In the machine-readable formats, stdout carries only the result; warnings and errors go to stderr, so piped output always stays parseable:
+
+```bash
+crowdin file list --output plain   # one "<id> <path>" line per file
+```
+
+For commands that support it, `--verbose` adds more information to the output in any format.
+
 ## Further Reading
 
 - [Installation](/installation)
