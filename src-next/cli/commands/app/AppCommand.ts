@@ -92,9 +92,12 @@ export default class AppCommand {
       throw new CliError(`Application with identifier '${identifier}' doesn't exist in Crowdin Store`);
     }
 
-    await appService.installByManifestUrl(manifestUrl);
+    const app = await appService.installByManifestUrl(manifestUrl);
 
     output.success('Application has been installed');
+    // The sentence above is text-only, and it names nothing; the installed app is what a machine
+    // format owes the caller — the same view `app list` renders.
+    output.item(app, appView, { mark: false });
   };
 
   uninstallAction = async (command: Command) => {

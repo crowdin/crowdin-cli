@@ -20,9 +20,10 @@ export class AppService {
     }
   }
 
-  async installByManifestUrl(url: string): Promise<void> {
+  async installByManifestUrl(url: string): Promise<ApplicationsModel.Application> {
     try {
-      await this.client.applicationsApi.installApplication({ url });
+      const response = await this.client.applicationsApi.installApplication({ url });
+      return response.data;
     } catch (error) {
       throw toCliError(error, `Failed to install application from '${url}'`);
     }

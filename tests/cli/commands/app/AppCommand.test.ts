@@ -64,7 +64,7 @@ describe('AppCommand', () => {
     appService = {
       list: mock(async () => []),
       findManifestUrl: mock(async () => null),
-      installByManifestUrl: mock(async () => {}),
+      installByManifestUrl: mock(async () => createApp({ identifier: 'github', name: 'GitHub' })),
       uninstall: mock(async () => {}),
     };
 
@@ -175,6 +175,21 @@ describe('AppCommand', () => {
     expect(appService.findManifestUrl).toHaveBeenCalledWith('github');
     expect(appService.installByManifestUrl).toHaveBeenCalledWith('https://example.com/manifest.json');
     expect(successSpy).toHaveBeenCalledWith('Application has been installed');
+  });
+
+  // 'Application has been installed' is text-only and names nothing, so a machine format saw an
+  // empty stdout for an install that had just happened.
+  test('installAction echoes the installed app in a machine format', async () => {
+    const item = spyOn(output, 'item');
+    const cmd = createAppCommand();
+
+    appService.findManifestUrl.mockResolvedValue('https://example.com/manifest.json');
+
+    await cmd.installAction(createCommandContext(globalOptions, ['github']));
+
+    expect(item).toHaveBeenCalledWith(createApp({ identifier: 'github', name: 'GitHub' }), expect.anything(), {
+      mark: false,
+    });
   });
 
   test('uninstallAction validates identifier', async () => {
