@@ -16,6 +16,30 @@ export type FileContextStats = ContextStats & { file: string; branch?: string };
 /** A named block of "<file> <value>" lines, the by-file counterpart of the summary's keyed lines. */
 type PlainSection = [title: string, value: (row: FileContextStats) => string];
 
+/** One string whose context a run touched, or would touch under `--dry-run`. */
+export interface ContextChange {
+  id: number;
+  text: string;
+  context: string;
+}
+
+/**
+ * The per-string line upload and reset print. `suffix` carries Java's conditional wording ('would
+ * be uploaded'), so a real run reuses the same view without it. plain prints the id alone, as the
+ * string listing does — a text and a context both run to arbitrary length and hold newlines.
+ */
+export const contextChangeView = (suffix = ''): View<ContextChange> => ({
+  text: (change) => `String #${change.id}: ${change.text} (context: ${change.context})${suffix}`,
+  plain: (change) => String(change.id),
+  keys: ['id', 'text', 'context'],
+});
+
+/** The file `context download` wrote. Java's message.saved; the path is the whole result. */
+export const savedPathView: View<string> = {
+  text: (writtenPath) => `'${writtenPath}' saved successfully`,
+  plain: (writtenPath) => writtenPath,
+};
+
 export const contextStatusTitle = (project: ProjectsGroupsModel.Project): string =>
   `Context Status for Project "${project.name}" (ID: ${project.id})`;
 

@@ -23,6 +23,7 @@ import {
   readContextRecords,
   type StringContextRecord,
 } from '@/cli/utils/aiContext.ts';
+import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import { type Output, resolveOutputFormat } from '@/cli/utils/output.ts';
 import { toArray } from '@/cli/utils/parsing.ts';
 import { isPathMatch } from '@/cli/utils/pathMatcher.ts';
@@ -37,7 +38,9 @@ import {
   to as toOption,
 } from './options.ts';
 import {
+  type ContextChange,
   type ContextStats,
+  contextChangeView,
   contextStatusByFilePlainView,
   contextStatusByFileTable,
   contextStatusFooter,
@@ -45,6 +48,7 @@ import {
   contextStatusTable,
   contextStatusTitle,
   type FileContextStats,
+  savedPathView,
 } from './views.ts';
 
 interface FilterOptions extends GlobalOptions {
@@ -204,7 +208,7 @@ export default class ContextCommand {
       throw toCliError(error, `Failed to write to the file '${options.to}'`);
     }
 
-    output.success(`'${options.to}' saved successfully`);
+    output.item(options.to, savedPathView);
   };
 
   uploadAction = async (command: Command) => {
@@ -226,11 +230,16 @@ export default class ContextCommand {
       context: fullContext(record.context, record.ai_context),
     }));
 
-    if (options.dryrun) {
-      for (const { record, context } of recordsWithContext) {
-        output.success(`String #${record.id}: ${record.text} (context: ${context}) would be uploaded`);
-      }
+    const changes: ContextChange[] = recordsWithContext.map(({ record, context }) => ({
+      id: record.id,
+      text: record.text,
+      context,
+    }));
 
+    // A dry run's whole output is this list, so it renders in every format — a json consumer that
+    // saw nothing here would read 'no changes pending' from a run that is about to rewrite context.
+    if (options.dryrun) {
+      output.list(changes, contextChangeView(' would be uploaded'));
       return;
     }
 
@@ -241,6 +250,11 @@ export default class ContextCommand {
     }));
 
     await this.applyBatches(command, output, patch);
+
+    // Text already streamed its per-batch progress; the machine formats get what was written.
+    if (isMachineFormat(options.output)) {
+      output.list(changes, contextChangeView());
+    }
   };
 
   resetAction = async (command: Command) => {
@@ -270,13 +284,16 @@ export default class ContextCommand {
 
     output.success(`Downloaded ${withAiContext.length} strings`);
 
-    if (options.dryrun) {
-      for (const entry of withAiContext) {
-        output.success(
-          `String #${entry.id}: ${getStringText(entry.text)} (context: ${getManualContext(entry.context)}) would be updated`,
-        );
-      }
+    const changes: ContextChange[] = withAiContext.map((entry) => ({
+      id: entry.id,
+      text: getStringText(entry.text),
+      context: getManualContext(entry.context),
+    }));
 
+    // Same as upload: reset drops every AI context it finds, so a dry run that prints nothing in
+    // json/toon/plain is the most misleading output this command can produce.
+    if (options.dryrun) {
+      output.list(changes, contextChangeView(' would be updated'));
       return;
     }
 
@@ -287,6 +304,10 @@ export default class ContextCommand {
     }));
 
     await this.applyBatches(command, output, patch);
+
+    if (isMachineFormat(options.output)) {
+      output.list(changes, contextChangeView());
+    }
   };
 
   statusAction = async (command: Command) => {
