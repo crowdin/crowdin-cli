@@ -229,13 +229,17 @@ export default class UploadSourcesCommand {
 
     for (const { patterns, fileOptions, files } of patternFilePaths) {
       if (files.length === 0) {
+        // Java suppresses the message under --plain and returns, so the run exits 0 on a config
+        // whose pattern matches nothing. `upload translations` keeps its exit code there and only
+        // drops the message, which is the behaviour worth carrying: a plain consumer is a script,
+        // and a script that reads success from a broken pattern uploads nothing and says nothing.
         if (!isPlainView) {
           output.error(
             `No sources found for '${patterns.source}' pattern. Check the source paths in your configuration file`,
           );
-          hasErrors = true;
         }
 
+        hasErrors = true;
         continue;
       }
 
