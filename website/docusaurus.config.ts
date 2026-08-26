@@ -98,7 +98,7 @@ const config: Config = {
     announcementBar: {
       id: 'cli_v5',
       content:
-        '🚀 <a target="_blank" rel="noopener noreferrer" href="/crowdin-cli/blog/2026/07/13/cli-v5">Crowdin CLI 5.0 is here</a> — faster, more portable, and easier to automate',
+        '🚀 <a target="_blank" rel="noopener noreferrer" href="/crowdin-cli/blog/2026/08/26/cli-v5">Crowdin CLI 5.0 is here</a> — faster, more portable, and easier to automate',
       backgroundColor: '#029e87',
       textColor: '#ffffff',
     },

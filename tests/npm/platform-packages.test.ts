@@ -13,7 +13,7 @@ interface PlatformManifest {
   cpu: string[];
   libc?: string[];
   files: string[];
-  publishConfig: { access: string; tag: string };
+  publishConfig: { access: string };
 }
 
 const packagesRoot = path.resolve(import.meta.dir, '../../packages/npm');
@@ -56,12 +56,12 @@ describe('platform packages', () => {
     }
   });
 
-  it('ship only the bin directory, unplugged, on the next dist-tag', () => {
+  it('ship only the bin directory, unplugged, with public access', () => {
     for (const name of platformNames) {
       const manifest = loadManifest(name);
       expect(manifest.files).toEqual(['bin']);
       expect(manifest.preferUnplugged).toBe(true);
-      expect(manifest.publishConfig).toEqual({ access: 'public', tag: 'next' });
+      expect(manifest.publishConfig).toEqual({ access: 'public' });
     }
   });
 });

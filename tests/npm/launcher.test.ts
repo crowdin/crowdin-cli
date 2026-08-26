@@ -107,7 +107,7 @@ describe('launcher manifest', () => {
     expect(launcherPkg.files).toEqual(['bin']);
   });
 
-  it('publishes to the next dist-tag with public access', () => {
-    expect(launcherPkg.publishConfig).toEqual({ access: 'public', tag: 'next' });
+  it('publishes with public access to the default dist-tag', () => {
+    expect(launcherPkg.publishConfig).toEqual({ access: 'public' });
   });
 });

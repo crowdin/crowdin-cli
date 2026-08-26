@@ -2,8 +2,6 @@
 title: Crowdin CLI 5.0
 description: Crowdin CLI 5.0 is a complete rewrite in TypeScript powered by Bun - instant startup, no Java required, machine-readable output for scripts and AI agents, and more.
 authors: [andrii-bodnar]
-# TODO: add social card image and uncomment
-# image: ./img/social-card.png
 tags: [release]
 ---
 
@@ -11,7 +9,7 @@ Today we are happy to announce Crowdin CLI **5.0**! 🚀
 
 This is the biggest change in the tool's history: a complete rewrite - from Java to TypeScript, powered by [Bun](https://bun.sh). The new CLI is dramatically faster and lighter, built on a modern toolchain that lets us ship improvements faster and unlocks capabilities that weren't practical before.
 
-For existing users, the essentials don't move: the command tree, the `crowdin.yml` configuration file, and the exit codes stay the same. Most workflows carry over unchanged, and the few breaking changes are listed below to make migration easy.
+For existing users, the essentials don't move: the commands, the `crowdin.yml` configuration file, and the exit codes stay the same. Most workflows carry over unchanged, and the few breaking changes are listed below to make migration easy.
 
 <!--truncate-->
 
@@ -29,6 +27,8 @@ No JVM, no warm-up. The new CLI starts in about a millisecond:
 <small>Measured with the standalone CLI 5.0 binary on an Apple Silicon MacBook, median of 10 runs. Your numbers will vary, but the ratio won't: startup is roughly two orders of magnitude faster.</small>
 
 You might not notice 200 ms once. You will notice it in CI, where the CLI is often invoked dozens of times per pipeline.
+
+> "Really enjoying the speed up of the CLI in v5 by the way 🚀" - early adopter feedback
 
 ### No Java required
 
@@ -89,11 +89,13 @@ Pair that with millisecond startup and stable exit codes, and you get a tool an 
 
 #### Agent Skills
 
-Your agent doesn't have to learn the CLI by trial and error, either. The new [**crowdin-cli** Agent Skill](https://github.com/crowdin/skills) packages the know-how an agent needs - `crowdin.yml` configuration patterns, the core sync workflow, machine-readable output, exit codes, and v4 → v5 migration - in a format AI coding agents load automatically. One command installs it for Claude Code, Cursor, Gemini CLI, GitHub Copilot, and any other tool that supports Agent Skills:
+Your agent doesn't have to learn the CLI by trial and error, either. The new [crowdin-cli Agent Skill](https://github.com/crowdin/skills) packages the know-how an agent needs - `crowdin.yml` configuration patterns, the core sync workflow, machine-readable output, exit codes, and v4 → v5 migration - in a format AI coding agents load automatically. The quickest install, for any tool that supports Agent Skills:
 
 ```bash
 npx skills add crowdin/skills --skill crowdin-cli
 ```
+
+There are more ways to install it - as a Claude Code plugin (which also bundles the [Crowdin MCP Server](https://support.crowdin.com/developer/crowdin-mcp-server/)), a Gemini CLI extension, or via the GitHub CLI - see the [installation options](https://github.com/crowdin/skills#installation).
 
 ### More control over auto-translation
 
@@ -236,8 +238,8 @@ The <kbd>--branch</kbd> option was removed from the `crowdin config sources` com
 
 ## Summary
 
-The rewrite is a beginning, not a finish line: with the new foundation in place, there is a lot more on the way. In the meantime - upgrade, run your usual workflows, and tell us how it goes. Early feedback is what turns a big release into a great one.
+The rewrite is a beginning, not a finish line: with the new foundation in place, more commands and further improvements to the agentic experience are already on the way. In the meantime - upgrade, run your usual workflows, and tell us how it goes. Early feedback is what turns a big release into a great one.
 
 :::tip
-Need help or have questions? [Let's discuss it](https://github.com/crowdin/crowdin-cli/discussions/1043)!
+Need help or have questions? [Join the discussion](https://github.com/crowdin/crowdin-cli/discussions/1043), [report an issue](https://github.com/crowdin/crowdin-cli/issues), or explore the [documentation](/).
 :::
