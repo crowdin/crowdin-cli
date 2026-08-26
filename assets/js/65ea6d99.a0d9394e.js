@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcrowdin_cli_website=globalThis.webpackChunkcrowdin_cli_website||[]).push([[5702],{1061(e){e.exports=JSON.parse('{"metadata":{"permalink":"/crowdin-cli/blog","page":1,"postsPerPage":10,"totalPages":1,"totalCount":4,"blogDescription":"Blog","blogTitle":"Blog"}}')}}]);

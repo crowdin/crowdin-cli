@@ -1,0 +1,1 @@
+"use strict";(globalThis.webpackChunkcrowdin_cli_website=globalThis.webpackChunkcrowdin_cli_website||[]).push([[787],{9055(l){l.exports=JSON.parse('{"tags":[{"label":"release","permalink":"/crowdin-cli/blog/tags/release","count":2},{"label":"tutorial","permalink":"/crowdin-cli/blog/tags/tutorial","count":2}]}')}}]);
