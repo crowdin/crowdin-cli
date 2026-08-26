@@ -317,8 +317,9 @@ export default class BundleCommand {
 
     if (options.keepArchive) {
       // log() is text-only, so the plain branch this replaces printed nothing at all, and json/toon
-      // lost the path with it. item() renders the view in every format.
-      output.item(archivePath, archiveView);
+      // lost the path with it. item() renders the view in every format — and those formats report
+      // POSIX paths on every OS, so path.join's separators are normalized.
+      output.item(toPosixPath(archivePath), archiveView);
     } else {
       try {
         await rm(archivePath, { force: true });

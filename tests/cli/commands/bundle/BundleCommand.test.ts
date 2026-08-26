@@ -11,6 +11,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { BundleService, BundleView } from '@/cli/services/BundleService.ts';
 import type { GetConfig } from '@/cli/services.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
+import { toPosixPath } from '@/lib/utils/path.ts';
 
 describe('BundleCommand', () => {
   let output: Output;
@@ -436,7 +437,10 @@ describe('BundleCommand', () => {
 
       const archivePath = path.join(tempRoot, 'bundle-export-1.zip');
       expect((await stat(archivePath)).isFile()).toBe(true);
-      expect(console.log).toHaveBeenCalledWith(expect.stringContaining(`Archive saved to '${archivePath}'`));
+      // The reported path is POSIX on every OS, so it is compared as such (a no-op off Windows).
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(`Archive saved to '${toPosixPath(archivePath)}'`),
+      );
     });
 
     // The path used to go through log(), which prints in text only: --plain printed nothing and
@@ -448,7 +452,7 @@ describe('BundleCommand', () => {
 
       await cmd.downloadAction(createCommandContext(options, ['5']));
 
-      expect(console.log).toHaveBeenCalledWith(path.join(tempRoot, 'bundle-export-1.zip'));
+      expect(console.log).toHaveBeenCalledWith(toPosixPath(path.join(tempRoot, 'bundle-export-1.zip')));
     });
 
     test('carries the kept archive path in a machine format', async () => {
@@ -460,7 +464,7 @@ describe('BundleCommand', () => {
 
       await cmd.downloadAction(createCommandContext(options, ['5']));
 
-      expect(itemSpy).toHaveBeenCalledWith(path.join(tempRoot, 'bundle-export-1.zip'), expect.anything());
+      expect(itemSpy).toHaveBeenCalledWith(toPosixPath(path.join(tempRoot, 'bundle-export-1.zip')), expect.anything());
     });
   });
 });

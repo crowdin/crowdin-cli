@@ -640,7 +640,8 @@ export default class FileCommand {
 
         output.success(`File '${filePath}'`);
         this.reportDownloaded(output, options, [
-          { path: path.relative(config.basePath, fullFilePath), action: 'downloaded' },
+          // Machine formats report POSIX paths on every OS, so path.relative's separators are normalized.
+          { path: toPosixPath(path.relative(config.basePath, fullFilePath)), action: 'downloaded' },
         ]);
         return;
       }
@@ -714,7 +715,7 @@ export default class FileCommand {
       }
 
       output.success(`File '${destPath}'`);
-      downloaded.push({ path: stripLeadingSlashes(destPath), action: 'downloaded' });
+      downloaded.push({ path: stripLeadingSlashes(toPosixPath(destPath)), action: 'downloaded' });
     }
 
     this.reportDownloaded(output, options, downloaded);
