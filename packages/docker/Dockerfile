@@ -1,16 +1,12 @@
-FROM alpine
+# CI stages the musl binaries under binaries/<arch>/ before building.
+FROM alpine:3
 
-RUN apk --no-cache add sudo openjdk17-jre --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community;
+# The Bun-compiled binary needs libstdc++/libgcc, absent from Alpine by default.
+RUN apk --no-cache add libstdc++
 
-ADD https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin-cli.zip /usr/
+ARG TARGETARCH
 
-RUN unzip -j /usr/crowdin-cli.zip; \
-	sh install-crowdin-cli.sh; \
-	rm /usr/crowdin-cli.zip; \
-	rm *.*;
-
-RUN echo -e '#!/bin/sh\njava -jar /usr/local/bin/crowdin-cli.jar "$@"' > /usr/local/bin/crowdin; \
-	chmod +x /usr/local/bin/crowdin;
+COPY --chmod=0755 binaries/${TARGETARCH}/crowdin /usr/local/bin/crowdin
 
 WORKDIR /usr/crowdin-project
 

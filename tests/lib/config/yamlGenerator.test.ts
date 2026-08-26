@@ -1,0 +1,139 @@
+import { describe, expect, test } from 'bun:test';
+import { generate } from '@/lib/config/yamlGenerator.ts';
+import { parseYaml } from '@/lib/config/yamlLoader.ts';
+
+describe('config generator', () => {
+  test('escapes user-supplied values so the result parses back', () => {
+    const config = generate({
+      projectId: 1,
+      basePath: '.',
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [{ source: '/say "hi"/*.json', translation: '/t/%locale%/%original_file_name%' }],
+    });
+
+    expect(parseYaml(config)).toMatchObject({
+      files: [{ source: '/say "hi"/*.json', translation: '/t/%locale%/%original_file_name%' }],
+    });
+  });
+
+  test('generates config', async () => {
+    const data = {
+      projectId: 750373,
+      apiToken: '1234567890',
+      basePath: '.',
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      ignoreHiddenFiles: true,
+      files: [
+        {
+          source: '/resources/en/*.csv',
+          translation: '/resources/%locale%/%original_file_name%',
+        },
+      ],
+    };
+
+    const expected = `#
+# Basic Crowdin CLI configuration
+# See https://crowdin.github.io/crowdin-cli/configuration for more information
+# See https://support.crowdin.com/developer/configuration-file/ for all available options
+#
+
+#
+# Your Crowdin credentials
+#
+"project_id": "750373"
+"api_token": "1234567890"
+"base_path": "."
+"base_url": "https://api.crowdin.com"
+
+#
+# Defines whether to preserve the original directory structure in the Crowdin project
+# Recommended to set to true
+#
+"preserve_hierarchy": true
+
+#
+# Files configuration.
+# See https://support.crowdin.com/developer/configuration-file/ for all available options
+#
+"files": [
+  {
+    #
+    # Source files filter
+    # e.g. "/resources/en/*.json"
+    #
+    "source": "/resources/en/*.csv",
+
+    #
+    # Translation files filter
+    # e.g. "/resources/%two_letters_code%/%original_file_name%"
+    #
+    "translation": "/resources/%locale%/%original_file_name%",
+  }
+]`;
+
+    const config = generate(data);
+
+    expect(config).toBe(expected);
+  });
+
+  test('generates skeleton for quiet mode without flags', async () => {
+    const data = {
+      projectId: '',
+      basePath: '',
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: false,
+      ignoreHiddenFiles: true,
+      files: [
+        {
+          source: '',
+          translation: '',
+        },
+      ],
+    };
+
+    const expected = `#
+# Basic Crowdin CLI configuration
+# See https://crowdin.github.io/crowdin-cli/configuration for more information
+# See https://support.crowdin.com/developer/configuration-file/ for all available options
+#
+
+#
+# Your Crowdin credentials
+#
+"project_id": ""
+"base_path": ""
+"base_url": "https://api.crowdin.com"
+
+#
+# Defines whether to preserve the original directory structure in the Crowdin project
+# Recommended to set to true
+#
+"preserve_hierarchy": false
+
+#
+# Files configuration.
+# See https://support.crowdin.com/developer/configuration-file/ for all available options
+#
+"files": [
+  {
+    #
+    # Source files filter
+    # e.g. "/resources/en/*.json"
+    #
+    "source": "",
+
+    #
+    # Translation files filter
+    # e.g. "/resources/%two_letters_code%/%original_file_name%"
+    #
+    "translation": "",
+  }
+]`;
+
+    const config = generate(data);
+
+    expect(config).toBe(expected);
+  });
+});

@@ -1,0 +1,605 @@
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import { ProjectsGroupsModel, type SourceFilesModel } from '@crowdin/crowdin-api-client';
+import type { Command } from 'commander';
+import BranchCommand from '@/cli/commands/branch/BranchCommand.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import type { BranchService } from '@/cli/services/BranchService.ts';
+import type { ProjectService } from '@/cli/services/ProjectService.ts';
+import { createOutput, type Output } from '@/cli/utils/output.ts';
+
+describe('BranchCommand', () => {
+  let output: Output;
+  let branchService: {
+    list: ReturnType<typeof mock<BranchService['list']>>;
+    add: ReturnType<typeof mock<BranchService['add']>>;
+    delete: ReturnType<typeof mock<BranchService['delete']>>;
+    edit: ReturnType<typeof mock<BranchService['edit']>>;
+    cloneBranch: ReturnType<typeof mock<BranchService['cloneBranch']>>;
+    mergeBranch: ReturnType<typeof mock<BranchService['mergeBranch']>>;
+  };
+  let projectService: {
+    loadProject: ReturnType<typeof mock<ProjectService['loadProject']>>;
+  };
+  const globalOptions: GlobalOptions = {
+    verbose: false,
+    config: '',
+    colors: false,
+    progress: false,
+    output: 'json',
+  };
+
+  const createCommandContext = (
+    options: Partial<GlobalOptions> & Record<string, unknown> = {},
+    args: string[] = [],
+  ) => {
+    return {
+      optsWithGlobals: () => ({ ...globalOptions, ...options }),
+      args,
+    } as unknown as Command;
+  };
+
+  const createBranch = (overrides: Partial<SourceFilesModel.Branch> = {}): SourceFilesModel.Branch =>
+    ({ id: 14, name: 'main', title: '', ...overrides }) as SourceFilesModel.Branch;
+
+  const stringsBasedProject = {
+    data: { type: ProjectsGroupsModel.Type.STRINGS_BASED },
+  } as Awaited<ReturnType<ProjectService['loadProject']>>;
+  const filesBasedProject = {
+    data: { type: ProjectsGroupsModel.Type.FILES_BASED },
+  } as Awaited<ReturnType<ProjectService['loadProject']>>;
+
+  const createBranchCommand = () => {
+    return new BranchCommand(
+      () => output,
+      async () => projectService as unknown as ProjectService,
+      async () => branchService as unknown as BranchService,
+    );
+  };
+
+  beforeEach(() => {
+    output = createOutput(globalOptions);
+    branchService = {
+      list: mock(async () => [] as SourceFilesModel.Branch[]),
+      add: mock(async () => createBranch()),
+      delete: mock(async () => {}),
+      edit: mock(async () => createBranch()),
+      cloneBranch: mock(async () => createBranch()),
+      mergeBranch: mock(
+        async () =>
+          ({
+            status: 'merged',
+            sourceBranchId: 14,
+            targetBranchId: 15,
+            dryRun: false,
+            details: { added: 1, deleted: 2, updated: 3, conflicted: 0 },
+          }) as SourceFilesModel.MergeBranchSummary,
+      ),
+    };
+    projectService = {
+      loadProject: mock(async () => stringsBasedProject),
+    };
+
+    spyOn(Bun, 'sleep').mockResolvedValue(undefined);
+    spyOn(console, 'log').mockImplementation(() => {});
+    spyOn(console, 'error').mockImplementation(() => {});
+    spyOn(console, 'table').mockImplementation(() => {});
+  });
+
+  afterEach(() => {
+    mock.restore();
+  });
+
+  test('delegates default action to command help', async () => {
+    const branchCommand = createBranchCommand();
+    const help = mock(() => {});
+    const helpCommand = { help, optsWithGlobals: () => ({}) } as unknown as Command;
+
+    await branchCommand.defaultAction(helpCommand);
+
+    expect(help).toHaveBeenCalledTimes(1);
+  });
+
+  test('defines all subcommands without command-local output options', () => {
+    const branchCommand = createBranchCommand();
+    const definition = branchCommand.getDefinition();
+    const subcommandNames = definition.subcommands?.map((subcommand) => subcommand.name);
+
+    expect(definition.name).toBe('branch');
+    expect(subcommandNames).toEqual(['list', 'add', 'delete', 'edit', 'clone', 'merge']);
+
+    for (const subcommand of definition.subcommands ?? []) {
+      const optionNames = (subcommand.options ?? []).filter((option) => 'name' in option).map((option) => option.name);
+
+      expect(optionNames).not.toContain('plain');
+    }
+  });
+
+  describe('list', () => {
+    test('serializes the branches themselves in structured formats', async () => {
+      const branchCommand = createBranchCommand();
+      const branches = [createBranch({ id: 10, name: 'main' }), createBranch({ id: 11, name: 'release' })];
+      branchService.list.mockResolvedValue(branches);
+
+      await branchCommand.listAction(createCommandContext());
+
+      expect(branchService.list).toHaveBeenCalledTimes(1);
+      expect(console.log).toHaveBeenCalledWith(
+        JSON.stringify(
+          branches.map(({ id, name }) => ({ id, name })),
+          null,
+          2,
+        ),
+      );
+    });
+
+    test('prints one line per branch in text format', async () => {
+      const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'text' });
+      branchService.list.mockResolvedValue([
+        createBranch({ id: 10, name: 'main' }),
+        createBranch({ id: 11, name: 'release' }),
+      ]);
+
+      await branchCommand.listAction(createCommandContext({ output: 'text' }));
+
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#10 main'));
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#11 release'));
+    });
+
+    test('prints branch names only in plain format', async () => {
+      const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'plain' });
+      branchService.list.mockResolvedValue([
+        createBranch({ id: 10, name: 'main' }),
+        createBranch({ id: 11, name: 'release' }),
+      ]);
+
+      await branchCommand.listAction(createCommandContext({ output: 'plain' }));
+
+      expect(console.log).toHaveBeenCalledWith('main');
+      expect(console.log).toHaveBeenCalledWith('release');
+    });
+
+    test('prints an empty array in structured formats when no branches found', async () => {
+      const branchCommand = createBranchCommand();
+
+      await branchCommand.listAction(createCommandContext());
+
+      expect(console.log).toHaveBeenCalledWith('[]');
+    });
+
+    test('strips leading slashes from rendered branch names', async () => {
+      const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'text' });
+      branchService.list.mockResolvedValue([createBranch({ id: 10, name: '/main' })]);
+
+      await branchCommand.listAction(createCommandContext({ output: 'text' }));
+
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#10 main'));
+    });
+
+    test('prints empty message when no branches found', async () => {
+      const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'text' });
+
+      await branchCommand.listAction(createCommandContext());
+
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('No branches found'));
+    });
+
+    test('propagates list errors', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockRejectedValue(new CliError('Failed to list branches'));
+
+      expect(branchCommand.listAction(createCommandContext())).rejects.toThrow(new CliError('Failed to list branches'));
+    });
+  });
+
+  describe('add', () => {
+    test('requires branch name', async () => {
+      const branchCommand = createBranchCommand();
+
+      expect(branchCommand.addAction(createCommandContext())).rejects.toThrow(new CliError('Branch name is required'));
+      expect(branchService.add).not.toHaveBeenCalled();
+    });
+
+    test('adds a new branch', async () => {
+      const branchCommand = createBranchCommand();
+      const branch = createBranch({ id: 20, name: 'dev' });
+      branchService.add.mockResolvedValue(branch);
+
+      await branchCommand.addAction(createCommandContext({}, ['dev']));
+
+      expect(branchService.add).toHaveBeenCalledWith({ name: 'dev' });
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify({ id: 20, name: 'dev' }, null, 2));
+    });
+
+    test('echoes the created branch as a line in text format', async () => {
+      const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'text' });
+      branchService.add.mockResolvedValue(createBranch({ id: 20, name: 'dev' }));
+
+      await branchCommand.addAction(createCommandContext({ output: 'text' }, ['dev']));
+
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining('#20 dev'));
+    });
+
+    test('echoes the created branch name only in plain format', async () => {
+      const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'plain' });
+      branchService.add.mockResolvedValue(createBranch({ id: 20, name: 'dev' }));
+
+      await branchCommand.addAction(createCommandContext({ output: 'plain' }, ['dev']));
+
+      expect(console.log).toHaveBeenCalledWith('dev');
+    });
+
+    test('passes title, export pattern and priority', async () => {
+      const branchCommand = createBranchCommand();
+
+      await branchCommand.addAction(
+        createCommandContext({ title: 'Dev branch', exportPattern: '%locale%', priority: 'high' }, ['dev']),
+      );
+
+      expect(branchService.add).toHaveBeenCalledWith({
+        name: 'dev',
+        title: 'Dev branch',
+        exportPattern: '%locale%',
+        priority: 'high',
+      });
+    });
+
+    test('normalizes branch name and keeps original as title', async () => {
+      const branchCommand = createBranchCommand();
+
+      await branchCommand.addAction(createCommandContext({}, ['feature/x']));
+
+      expect(branchService.add).toHaveBeenCalledWith({ name: 'feature.x', title: 'feature/x' });
+    });
+
+    test('skips adding branch that already exists', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
+      output = createOutput({ ...globalOptions, output: 'text' });
+
+      await branchCommand.addAction(createCommandContext({}, ['main']));
+
+      expect(branchService.add).not.toHaveBeenCalled();
+      expect(console.error).toHaveBeenCalledWith(
+        expect.stringContaining("Branch 'main' already exists in the project"),
+      );
+    });
+
+    test('propagates add errors', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.add.mockRejectedValue(new CliError("Failed to add branch 'dev'"));
+
+      expect(branchCommand.addAction(createCommandContext({}, ['dev']))).rejects.toThrow(
+        new CliError("Failed to add branch 'dev'"),
+      );
+    });
+  });
+
+  describe('delete', () => {
+    test('requires branch name', async () => {
+      const branchCommand = createBranchCommand();
+
+      expect(branchCommand.deleteAction(createCommandContext())).rejects.toThrow(
+        new CliError('Branch name is required'),
+      );
+      expect(branchService.delete).not.toHaveBeenCalled();
+    });
+
+    test('deletes branch by name', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
+      output = createOutput({ ...globalOptions, output: 'text' });
+
+      await branchCommand.deleteAction(createCommandContext({}, ['main']));
+
+      expect(branchService.delete).toHaveBeenCalledWith(14);
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Branch 'main' deleted"));
+    });
+
+    test('finds branch by normalized name', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([createBranch({ id: 21, name: 'feature.x' })]);
+
+      await branchCommand.deleteAction(createCommandContext({}, ['feature/x']));
+
+      expect(branchService.delete).toHaveBeenCalledWith(21);
+    });
+
+    test('skips deleting missing branch', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([]);
+      output = createOutput({ ...globalOptions, output: 'text' });
+
+      await branchCommand.deleteAction(createCommandContext({}, ['main']));
+
+      expect(branchService.delete).not.toHaveBeenCalled();
+      expect(console.error).toHaveBeenCalledWith(expect.stringContaining("Branch 'main' doesn't exist in the project"));
+    });
+
+    test('propagates delete errors', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
+      branchService.delete.mockRejectedValue(new CliError('Failed to delete branch'));
+
+      expect(branchCommand.deleteAction(createCommandContext({}, ['main']))).rejects.toThrow(
+        new CliError('Failed to delete branch'),
+      );
+    });
+  });
+
+  describe('edit', () => {
+    test('requires branch name', async () => {
+      const branchCommand = createBranchCommand();
+
+      expect(branchCommand.editAction(createCommandContext({ title: 'New title' }))).rejects.toThrow(
+        new CliError('Branch name is required'),
+      );
+    });
+
+    test('requires at least one parameter to edit', async () => {
+      const branchCommand = createBranchCommand();
+
+      expect(branchCommand.editAction(createCommandContext({}, ['main']))).rejects.toThrow(
+        new CliError('Specify some parameters to edit the branch'),
+      );
+      expect(branchService.edit).not.toHaveBeenCalled();
+    });
+
+    test('throws when branch does not exist', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([]);
+
+      expect(branchCommand.editAction(createCommandContext({ title: 'New title' }, ['main']))).rejects.toThrow(
+        new CliError("Project doesn't contain the 'main' branch"),
+      );
+      expect(branchService.edit).not.toHaveBeenCalled();
+    });
+
+    const editCases: Array<[Record<string, unknown>, Array<Record<string, unknown>>]> = [
+      [{ name: 'dev' }, [{ op: 'replace', path: '/name', value: 'dev' }]],
+      [{ title: 'test' }, [{ op: 'replace', path: '/title', value: 'test' }]],
+      [{ priority: 'high' }, [{ op: 'replace', path: '/priority', value: 'high' }]],
+      [
+        { name: 'dev', title: 'test', priority: 'high' },
+        [
+          { op: 'replace', path: '/name', value: 'dev' },
+          { op: 'replace', path: '/title', value: 'test' },
+          { op: 'replace', path: '/priority', value: 'high' },
+        ],
+      ],
+    ];
+
+    test.each(editCases)('builds patch requests for %j', async (options, patches) => {
+      const branchCommand = createBranchCommand();
+      const updatedBranch = createBranch({ id: 14, name: 'dev' });
+      branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
+      branchService.edit.mockResolvedValue(updatedBranch);
+
+      await branchCommand.editAction(createCommandContext(options, ['main']));
+
+      expect(branchService.edit).toHaveBeenCalledWith(14, patches);
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify({ id: 14, name: 'dev' }, null, 2));
+    });
+
+    test('normalizes the new branch name', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
+
+      await branchCommand.editAction(createCommandContext({ name: 'feature/x' }, ['main']));
+
+      expect(branchService.edit).toHaveBeenCalledWith(14, [{ op: 'replace', path: '/name', value: 'feature.x' }]);
+    });
+
+    test('propagates edit errors', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
+      branchService.edit.mockRejectedValue(new CliError('Failed to edit branch'));
+
+      expect(branchCommand.editAction(createCommandContext({ title: 'New title' }, ['main']))).rejects.toThrow(
+        new CliError('Failed to edit branch'),
+      );
+    });
+  });
+
+  describe('clone', () => {
+    test('requires source and target branch names', async () => {
+      const branchCommand = createBranchCommand();
+
+      expect(branchCommand.cloneAction(createCommandContext({}, ['main']))).rejects.toThrow(
+        new CliError('Source and target branch names are required'),
+      );
+      expect(branchService.cloneBranch).not.toHaveBeenCalled();
+    });
+
+    test('is only available for string-based projects', async () => {
+      const branchCommand = createBranchCommand();
+      projectService.loadProject.mockResolvedValue(filesBasedProject);
+
+      expect(branchCommand.cloneAction(createCommandContext({}, ['main', 'clone']))).rejects.toThrow(
+        new CliError('This command is only available for string-based projects'),
+      );
+      expect(branchService.cloneBranch).not.toHaveBeenCalled();
+    });
+
+    test('throws when source branch does not exist', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([]);
+
+      expect(branchCommand.cloneAction(createCommandContext({}, ['main', 'clone']))).rejects.toThrow(
+        new CliError("Project doesn't contain the 'main' branch"),
+      );
+    });
+
+    test('clones the branch and prints the result', async () => {
+      const branchCommand = createBranchCommand();
+      const clonedBranch = createBranch({ id: 20, name: 'cloned' });
+      branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
+      branchService.cloneBranch.mockResolvedValue(clonedBranch);
+
+      await branchCommand.cloneAction(createCommandContext({}, ['main', 'cloned']));
+
+      expect(branchService.cloneBranch).toHaveBeenCalledWith(14, { name: 'cloned' }, expect.any(Function));
+      expect(console.log).toHaveBeenCalledWith(JSON.stringify({ id: 20, name: 'cloned' }, null, 2));
+    });
+
+    test('normalizes target name and keeps original as title', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
+
+      await branchCommand.cloneAction(createCommandContext({}, ['main', 'feature/x']));
+
+      expect(branchService.cloneBranch).toHaveBeenCalledWith(
+        14,
+        { name: 'feature.x', title: 'feature/x' },
+        expect.any(Function),
+      );
+    });
+
+    test('throws when clone fails', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
+      branchService.cloneBranch.mockRejectedValue(new CliError('Failed to clone the branch'));
+
+      expect(branchCommand.cloneAction(createCommandContext({}, ['main', 'cloned']))).rejects.toThrow(
+        new CliError('Failed to clone the branch'),
+      );
+    });
+
+    test('propagates already exists error from the service', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'main' })]);
+      branchService.cloneBranch.mockRejectedValue(new CliError("Branch 'cloned' already exists in the project"));
+
+      expect(branchCommand.cloneAction(createCommandContext({}, ['main', 'cloned']))).rejects.toThrow(
+        new CliError("Branch 'cloned' already exists in the project"),
+      );
+    });
+  });
+
+  describe('merge', () => {
+    test('requires source and target branch names', async () => {
+      const branchCommand = createBranchCommand();
+
+      expect(branchCommand.mergeAction(createCommandContext({}, ['main']))).rejects.toThrow(
+        new CliError('Source and target branch names are required'),
+      );
+      expect(branchService.mergeBranch).not.toHaveBeenCalled();
+    });
+
+    test('is only available for string-based projects', async () => {
+      const branchCommand = createBranchCommand();
+      projectService.loadProject.mockResolvedValue(filesBasedProject);
+
+      expect(branchCommand.mergeAction(createCommandContext({}, ['dev', 'main']))).rejects.toThrow(
+        new CliError('This command is only available for string-based projects'),
+      );
+      expect(branchService.mergeBranch).not.toHaveBeenCalled();
+    });
+
+    test('throws when source branch does not exist', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([createBranch({ id: 15, name: 'main' })]);
+
+      expect(branchCommand.mergeAction(createCommandContext({}, ['dev', 'main']))).rejects.toThrow(
+        new CliError("Project doesn't contain the 'dev' branch"),
+      );
+    });
+
+    test('throws when target branch does not exist', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([createBranch({ id: 14, name: 'dev' })]);
+
+      expect(branchCommand.mergeAction(createCommandContext({}, ['dev', 'main']))).rejects.toThrow(
+        new CliError("Project doesn't contain the 'main' branch"),
+      );
+    });
+
+    test('merges branches and prints summary in text format', async () => {
+      const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'text' });
+
+      branchService.list.mockResolvedValue([
+        createBranch({ id: 14, name: 'dev' }),
+        createBranch({ id: 15, name: 'main' }),
+      ]);
+
+      await branchCommand.mergeAction(createCommandContext({ output: 'text' }, ['dev', 'main']));
+
+      expect(branchService.mergeBranch).toHaveBeenCalledWith(
+        15,
+        { sourceBranchId: 14, deleteAfterMerge: false, dryRun: false },
+        expect.any(Function),
+      );
+      expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Merged branch 'dev' into 'main'"));
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining('Merge summary: added: 1, deleted: 2, updated: 3, conflicted: 0'),
+      );
+    });
+
+    test('passes dryrun and delete-after-merge options', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([
+        createBranch({ id: 14, name: 'dev' }),
+        createBranch({ id: 15, name: 'main' }),
+      ]);
+
+      await branchCommand.mergeAction(createCommandContext({ dryrun: true, deleteAfterMerge: true }, ['dev', 'main']));
+
+      expect(branchService.mergeBranch).toHaveBeenCalledWith(
+        15,
+        { sourceBranchId: 14, deleteAfterMerge: true, dryRun: true },
+        expect.any(Function),
+      );
+    });
+
+    test('prints merge summary with target branch id first in structured formats', async () => {
+      const branchCommand = createBranchCommand();
+      branchService.list.mockResolvedValue([
+        createBranch({ id: 14, name: 'dev' }),
+        createBranch({ id: 15, name: 'main' }),
+      ]);
+
+      await branchCommand.mergeAction(createCommandContext({}, ['dev', 'main']));
+
+      expect(console.log).toHaveBeenCalledWith(
+        JSON.stringify({ targetBranchId: 15, added: 1, deleted: 2, updated: 3, conflicted: 0 }, null, 2),
+      );
+    });
+
+    // Java BranchMergeAction prints the target branch id alone in plain view.
+    test('prints the target branch id in plain format', async () => {
+      const branchCommand = createBranchCommand();
+      output = createOutput({ ...globalOptions, output: 'plain' });
+
+      branchService.list.mockResolvedValue([
+        createBranch({ id: 14, name: 'dev' }),
+        createBranch({ id: 15, name: 'main' }),
+      ]);
+
+      await branchCommand.mergeAction(createCommandContext({ output: 'plain' }, ['dev', 'main']));
+
+      expect(console.log).toHaveBeenCalledWith('15');
+      expect(console.log).toHaveBeenCalledTimes(1);
+    });
+
+    test('throws when merge fails', async () => {
+      const branchCommand = createBranchCommand();
+
+      branchService.list.mockResolvedValue([
+        createBranch({ id: 14, name: 'dev' }),
+        createBranch({ id: 15, name: 'main' }),
+      ]);
+      branchService.mergeBranch.mockRejectedValue(new CliError('Failed to merge the branch'));
+
+      expect(branchCommand.mergeAction(createCommandContext({}, ['dev', 'main']))).rejects.toThrow(
+        new CliError('Failed to merge the branch'),
+      );
+    });
+  });
+});

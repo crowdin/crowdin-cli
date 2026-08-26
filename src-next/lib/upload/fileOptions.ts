@@ -1,0 +1,220 @@
+import path from 'node:path';
+import { SourceFilesModel, type SourceStringsModel } from '@crowdin/crowdin-api-client';
+import type { Config } from '@/lib/config.ts';
+import { fileExtension, fileName, originalFileName, originalPath } from '@/lib/export/patterns.ts';
+import { expandDestDoubleAsterisk, replaceDoubleAsterisk } from '@/lib/utils/doubleAsterisk.ts';
+import { collapseSeparators, stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
+
+type FileConfig = Config['files'][number];
+
+const SPREADSHEET_EXTENSIONS = new Set(['.csv', '.xls', '.xlsx']);
+
+export function buildExportOptions(
+  localFilePath: string,
+  fileConfig: FileConfig,
+  exportPattern?: string,
+): SourceFilesModel.ExportOptions {
+  const extension = path.extname(localFilePath).toLowerCase();
+  // Expand `**` in the export pattern from the matched source subpath (mirrors Java buildExportOptions).
+  // Java collapses separator runs in the export pattern before sending it (UploadSourcesAction:539).
+  const resolvedExportPattern =
+    exportPattern !== undefined
+      ? collapseSeparators(replaceDoubleAsterisk(fileConfig.source, exportPattern, toPosixPath(localFilePath)))
+      : exportPattern;
+
+  if (extension === '.properties') {
+    return {
+      exportPattern: resolvedExportPattern,
+      escapeQuotes: fileConfig.escape_quotes as SourceFilesModel.EscapeQuotes | undefined,
+      escapeSpecialCharacters: fileConfig.escape_special_characters ?? 1,
+    };
+  }
+
+  if (extension === '.js') {
+    return {
+      exportPattern: resolvedExportPattern,
+      exportQuotes:
+        fileConfig.export_quotes === 'double'
+          ? SourceFilesModel.ExportQuotes.DOUBLE
+          : fileConfig.export_quotes === 'single'
+            ? SourceFilesModel.ExportQuotes.SINGLE
+            : undefined,
+    };
+  }
+
+  return { exportPattern: resolvedExportPattern };
+}
+
+export function buildImportOptions(
+  localFilePath: string,
+  fileConfig: FileConfig,
+  srxStorageId?: number,
+): SourceFilesModel.ImportOptions | undefined {
+  const extension = path.extname(localFilePath).toLowerCase();
+
+  if (SPREADSHEET_EXTENSIONS.has(extension)) {
+    return omitUndefined({
+      firstLineContainsHeader: fileConfig.first_line_contains_header,
+      scheme: buildScheme(fileConfig.scheme),
+      importTranslations: fileConfig.import_translations,
+    });
+  }
+
+  if (extension === '.xml') {
+    return omitUndefined({
+      translateContent: fileConfig.translate_content,
+      translateAttributes: fileConfig.translate_attributes,
+      contentSegmentation: fileConfig.content_segmentation,
+      translatableElements: fileConfig.translatable_elements,
+      srxStorageId,
+    });
+  }
+
+  return omitUndefined({
+    contentSegmentation: fileConfig.content_segmentation,
+    srxStorageId,
+  });
+}
+
+export function buildStringsImportOptions(
+  localFilePath: string,
+  fileConfig: FileConfig,
+): SourceStringsModel.UploadStringsRequest['importOptions'] {
+  const extension = path.extname(localFilePath).toLowerCase();
+
+  if (!SPREADSHEET_EXTENSIONS.has(extension)) {
+    return undefined;
+  }
+
+  return omitUndefined({
+    firstLineContainsHeader: fileConfig.first_line_contains_header,
+    importTranslations: fileConfig.import_translations,
+    scheme: buildScheme(fileConfig.scheme),
+  }) as SourceStringsModel.UploadStringsRequest['importOptions'];
+}
+
+function buildScheme(scheme: FileConfig['scheme']): SourceFilesModel.Scheme | undefined {
+  if (scheme === undefined) {
+    return undefined;
+  }
+
+  if (typeof scheme === 'object') {
+    return scheme as SourceFilesModel.Scheme;
+  }
+
+  return Object.fromEntries(
+    scheme.split(',').map((part, index) => [part.trim(), index]),
+  ) as unknown as SourceFilesModel.Scheme;
+}
+
+function omitUndefined<T extends Record<string, unknown>>(value: T): T | undefined {
+  const result = Object.fromEntries(Object.entries(value).filter(([, v]) => v !== undefined)) as T;
+  return Object.keys(result).length > 0 ? result : undefined;
+}
+
+/**
+ * Maps a local source path to its path inside the Crowdin project, mirroring Java's
+ * UploadSourcesAction: an explicit `dest` wins, otherwise the common path is stripped unless
+ * `preserve_hierarchy` is enabled (in which case `commonPath` is empty).
+ */
+export function resolveProjectPath(localFilePath: string, patterns: { dest?: string }, commonPath: string): string {
+  if (patterns.dest) {
+    return prepareDest(patterns.dest, localFilePath);
+  }
+
+  if (commonPath && localFilePath.startsWith(commonPath)) {
+    return localFilePath.slice(commonPath.length);
+  }
+
+  return localFilePath;
+}
+
+export function resolveContextPath(pattern: string, localFilePath: string): string {
+  return replaceFileDependentPlaceholders(pattern, localFilePath);
+}
+
+/**
+ * Substitutes the file-dependent placeholders (`%file_name%`, `%original_path%`, …) in a `dest` or
+ * `context` pattern, mirroring Java's PlaceholderUtil.replaceFileDependentPlaceholders.
+ *
+ * `localFilePath` is posix and relative to basePath — Java's `fileParent` is likewise
+ * basePath-relative. The download archive key passes a server project path instead, matching Java's
+ * `new File(prepareDest(dest, file))`.
+ */
+export function replaceFileDependentPlaceholders(pattern: string, localFilePath: string): string {
+  const parsed = path.posix.parse(localFilePath);
+
+  let resolved = pattern.replaceAll(/%[a-z_]+%/g, (match) => {
+    switch (match) {
+      case fileExtension:
+        return parsed.ext.slice(1);
+      case fileName:
+        return parsed.name;
+      case originalFileName:
+        return parsed.base;
+      case originalPath:
+        return parsed.dir;
+      default:
+        return match;
+    }
+  });
+
+  if (resolved.includes('**')) {
+    resolved = expandDestDoubleAsterisk(resolved, localFilePath, parsed.dir);
+  }
+
+  // Java ends the method by collapsing separator runs and dropping a leading one.
+  return stripLeadingSlashes(collapseSeparators(resolved));
+}
+
+/**
+ * Resolves the `dest` config option into a project file path, mirroring Java's
+ * PropertiesBeanUtils.prepareDest: file-dependent placeholders are substituted from the local
+ * source path and any leading separator is stripped.
+ */
+export function prepareDest(dest: string, localFilePath: string): string {
+  // replaceFileDependentPlaceholders already drops the leading separator, as Java's does.
+  return toPosixPath(replaceFileDependentPlaceholders(dest, localFilePath));
+}
+
+/**
+ * Computes the common directory prefix of the given POSIX file paths (relative to basePath),
+ * mirroring Java's SourcesUtils.getCommonPath. Returns a string ending in '/' or an empty string.
+ */
+export function getCommonPath(filePaths: string[]): string {
+  if (filePaths.length === 0) {
+    return '';
+  }
+
+  const commonPrefix = longestCommonPrefix(filePaths);
+  const lastSeparator = commonPrefix.lastIndexOf('/');
+
+  return lastSeparator >= 0 ? commonPrefix.slice(0, lastSeparator + 1) : '';
+}
+
+function longestCommonPrefix(values: string[]): string {
+  let prefix = values[0] as string;
+
+  for (const value of values) {
+    let index = 0;
+
+    while (index < prefix.length && index < value.length && prefix[index] === value[index]) {
+      index++;
+    }
+
+    prefix = prefix.slice(0, index);
+
+    if (prefix === '') {
+      break;
+    }
+  }
+
+  return prefix;
+}
+
+export function sameLanguageSet(left: string[] | undefined, right: string[] | undefined): boolean {
+  const a = [...(left ?? [])].sort();
+  const b = [...(right ?? [])].sort();
+
+  return a.length === b.length && a.every((value, index) => value === b[index]);
+}

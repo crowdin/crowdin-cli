@@ -13,7 +13,7 @@ brew tap crowdin/crowdin
 ```
 
 ```bash
-brew install crowdin@4
+brew install crowdin@5
 ```
 
 [Homebrew Tap Reference](https://github.com/crowdin/homebrew-crowdin).
@@ -141,24 +141,21 @@ Visit the [Crowdin CLI package page](https://aur.archlinux.org/packages/crowdin-
 
 ## Standalone version
 
-Crowdin CLI can be installed as a stand-alone Java application. [Download](https://github.com/crowdin/crowdin-cli/releases/latest/download/crowdin-cli.zip).
+Crowdin CLI is also distributed as a single self-contained binary for macOS, Linux, and Windows - with no runtime to install. Download the binary for your platform from the [latest GitHub release](https://github.com/crowdin/crowdin-cli/releases/latest).
 
 ### Installation on Linux and macOS
 
-- Download `crowdin-cli.zip` using the link above
-- Unpack it
-- Run `./install-crowdin-cli.sh` in the terminal with sudo rights in order to add crowdin command to your terminal
+- Download the binary for your platform using the link above
+- Make it executable: `chmod +x crowdin`
+- Move it to a directory on your `PATH` (for example, `sudo mv crowdin /usr/local/bin/crowdin`)
+- Run `crowdin --version` to verify the installation
 
 ### Installation on Windows
 
-- Download `crowdin-cli.zip` using the link above
-- Extract it's content to the place where you want Crowdin CLI to be stored
-- Open Command Prompt as an Administrator
-  - Click Start
-  - In the *Start Search* box, type `cmd`, and then press `Ctrl`+`Shift`+`Enter`
-  - If the *User Account Control* dialog box appears, confirm that the action it displays is what you want, and then click _Continue_
-- Run `setup_crowdin.bat` script in order to add crowdin command to the Command Prompt
-- Restart your Command Prompt
+- Download the `.exe` for Windows using the link above
+- Move it to the folder where you want Crowdin CLI to be stored
+- Add that folder to your `PATH` environment variable
+- Open a new Command Prompt and run `crowdin --version` to verify the installation
 
 ## Nix package manager
 

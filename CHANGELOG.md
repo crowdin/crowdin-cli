@@ -1,5 +1,11 @@
 # Changelog
 
+# [5.0.0](https://github.com/crowdin/crowdin-cli/compare/4.15.1...5.0.0) (2026-08-26)
+
+Crowdin CLI 5.0 is a complete rewrite - from Java to TypeScript, powered by [Bun](https://bun.sh): a single self-contained binary with instant startup, machine-readable output for scripts and AI agents, and more. The commands, `crowdin.yml` configuration, and exit codes stay the same.
+
+See the [announcement](https://crowdin.github.io/crowdin-cli/blog/2026/08/26/cli-v5) for the highlights, breaking changes, and migration examples.
+
 ## [4.15.1](https://github.com/crowdin/crowdin-cli/compare/4.15.0...4.15.1) (2026-08-20)
 
 

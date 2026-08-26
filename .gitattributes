@@ -1,0 +1,3 @@
+# Hooks must keep LF on Windows checkouts (GitHub runners set core.autocrlf=true): CRLF breaks
+# them under sh, and knip's husky plugin reads the trailing \r as part of the binary name.
+.husky/** text eol=lf

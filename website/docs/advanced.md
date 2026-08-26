@@ -37,7 +37,7 @@ There are a few ways to attach labels to the uploaded strings using the Crowdin 
 2. Specify Labels as the [crowdin upload sources](/commands/crowdin-upload-sources) command options:
 
     ```bash
-    crowdin upload sources -s "..." -t "..." --label "main-menu" -- label "application"
+    crowdin upload sources -s "..." -t "..." --label "main-menu" --label "application"
     ```
 
 ### Excluding target languages for uploaded sources
@@ -191,7 +191,7 @@ The supported placeholders in the `context` file path are:
 - `%file_name%` - the name of the source file without the extension
 - `%original_file_name%` - the name of the source file with the extension
 - `%file_extension%` - the extension of the source file
-- `%original_path%` - the full path to the source file, including the file name
+- `%original_path%` - the path to the source file's parent directory relative to `base_path`, without the file name
 
 :::info
 The File Context feature is only available for [file-based](https://support.crowdin.com/creating-project/#project-types) projects.
@@ -274,19 +274,19 @@ files: [
          'source': '...',
          'translation': '...',
          // highlight-next-line
-         'export_string_that_passed_workflow': true # Export only strings that passed workflow
+         'export_strings_that_passed_workflow': true # Export only strings that passed workflow
      },
 ]
 ```
 
 ### Ignore hidden files during upload sources
 
-To ignore hidden files during sources upload, add the following to your configuration file:
+By default, Crowdin CLI skips hidden files - and entire hidden directories, such as `.github/` - when uploading sources. This behavior is controlled by the `ignore_hidden_files` setting, which defaults to `true`.
+
+To upload hidden files and directories instead, set it to `false`:
 
 ```yml title="crowdin.yml"
 settings: {
     "ignore_hidden_files": false
 }
 ```
-
-Default value - `true`.

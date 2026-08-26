@@ -1,0 +1,399 @@
+import { describe, expect, test } from 'bun:test';
+import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
+
+import { ConfigSchema } from '@/lib/config.ts';
+import { resolveProjectPath } from '@/lib/upload/fileOptions.ts';
+
+describe('translation path resolver', () => {
+  test('resolves path for export pattern', async () => {
+    const basePath = await mkdtemp();
+
+    const dataProvider = [
+      {
+        name: 'one file section',
+        config: ConfigSchema.parse({
+          projectId: 123,
+          apiToken: 'a'.repeat(80),
+          basePath,
+          baseUrl: 'https://api.crowdin.com',
+          preserveHierarchy: true,
+          files: [
+            {
+              source: '/resources/en/*.md',
+              translation: '/resources/%two_letters_code%/%original_file_name%',
+            },
+          ],
+        }),
+        file: {
+          path: 'resources/en/readme.md',
+        },
+        language: {
+          id: 'es',
+          name: 'Spanish',
+          editorCode: 'es',
+          twoLettersCode: 'es',
+          threeLettersCode: 'spa',
+          locale: 'es-ES',
+          androidCode: 'es-rES',
+          osxCode: 'es.lproj',
+          osxLocale: 'es',
+          pluralCategoryNames: ['one'],
+          pluralRules: '(n != 1)',
+          pluralExamples: ['0, 2-999; 1.2, 2.07...'],
+          textDirection: 'ltr',
+          dialectOf: 'es',
+        },
+        expected: '/resources/es/readme.md',
+      },
+      {
+        name: 'two file sections',
+        config: ConfigSchema.parse({
+          projectId: 123,
+          apiToken: 'a'.repeat(80),
+          basePath,
+          baseUrl: 'https://api.crowdin.com',
+          preserveHierarchy: true,
+          files: [
+            {
+              source: '/resources/en/*.md',
+              translation: '/resources/%two_letters_code%/%original_file_name%',
+            },
+            {
+              source: '/resources/emails/en/*.md',
+              translation: '/resources/emails/%two_letters_code%/%original_file_name%',
+            },
+          ],
+        }),
+        groupIndex: 1,
+        file: {
+          path: 'resources/emails/en/welcome.md',
+        },
+        language: {
+          id: 'es',
+          name: 'Spanish',
+          editorCode: 'es',
+          twoLettersCode: 'es',
+          threeLettersCode: 'spa',
+          locale: 'es-ES',
+          androidCode: 'es-rES',
+          osxCode: 'es.lproj',
+          osxLocale: 'es',
+          pluralCategoryNames: ['one'],
+          pluralRules: '(n != 1)',
+          pluralExamples: ['0, 2-999; 1.2, 2.07...'],
+          textDirection: 'ltr',
+          dialectOf: 'es',
+        },
+        expected: '/resources/emails/es/welcome.md',
+      },
+      {
+        name: 'complex translation pattern',
+        config: ConfigSchema.parse({
+          projectId: 123,
+          apiToken: 'a'.repeat(80),
+          basePath,
+          baseUrl: 'https://api.crowdin.com',
+          preserveHierarchy: true,
+          files: [
+            {
+              source: '/resources/en/*.md',
+              translation: '/resources/%three_letters_code%/%file_name%.%file_extension%',
+            },
+          ],
+        }),
+        file: {
+          path: 'resources/en/readme.md',
+        },
+        language: {
+          id: 'es',
+          name: 'Spanish',
+          editorCode: 'es',
+          twoLettersCode: 'es',
+          threeLettersCode: 'spa',
+          locale: 'es-ES',
+          androidCode: 'es-rES',
+          osxCode: 'es.lproj',
+          osxLocale: 'es',
+          pluralCategoryNames: ['one'],
+          pluralRules: '(n != 1)',
+          pluralExamples: ['0, 2-999; 1.2, 2.07...'],
+          textDirection: 'ltr',
+          dialectOf: 'es',
+        },
+        expected: '/resources/spa/readme.md',
+      },
+    ];
+
+    await Bun.write(`${basePath}/resources/en/readme.md`, 'readme');
+    await Bun.write(`${basePath}/resources/emails/en/welcome.md`, 'welcome');
+
+    for (const { config, file, language, expected, groupIndex = 0 } of dataProvider) {
+      // The caller owns group selection now, so each case names the group its file belongs to.
+      const actual = resolveTranslationPath(config.files[groupIndex] as never, file.path, language as never);
+
+      expect(actual).toBe(expected);
+    }
+  });
+
+  test('expands ** in the translation pattern from the matched source subpath', async () => {
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath: '/tmp',
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/resources/en/**/*.md',
+          translation: '/resources/%two_letters_code%/**/%original_file_name%',
+        },
+      ],
+    });
+    const language = {
+      id: 'es',
+      name: 'Spanish',
+      twoLettersCode: 'es',
+      threeLettersCode: 'spa',
+      locale: 'es-ES',
+      androidCode: 'es-rES',
+      osxCode: 'es.lproj',
+      osxLocale: 'es',
+      editorCode: 'es',
+    } as never;
+    const fileConfig = config.files[0] as never;
+
+    // Local destination expands ** to the matched subpath 'sub'.
+    expect(resolveTranslationPath(fileConfig, 'resources/en/sub/readme.md', language, undefined)).toBe(
+      '/resources/es/sub/readme.md',
+    );
+
+    // Server/archive path (serverOnly) expands ** the same way.
+    expect(
+      resolveTranslationPath(fileConfig, 'resources/en/sub/readme.md', language, undefined, {
+        serverOnly: true,
+        preserveHierarchy: true,
+      }),
+    ).toBe('/resources/es/sub/readme.md');
+  });
+
+  test('resolves translation path using per-file languagesMapping override', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/resources/en/readme.md`, 'readme');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/resources/en/*.md',
+          translation: '/resources/%two_letters_code%/%original_file_name%',
+          languages_mapping: {
+            two_letters_code: {
+              es: 'es-custom',
+            },
+          },
+        },
+      ],
+    });
+
+    const actual = resolveTranslationPath(config.files[0] as never, 'resources/en/readme.md', language('es'));
+
+    expect(actual).toBe('/resources/es-custom/readme.md');
+  });
+
+  test('resolves translation path using server language mapping', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/resources/en/readme.md`, 'readme');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/resources/en/*.md',
+          translation: '/resources/%two_letters_code%/%original_file_name%',
+        },
+      ],
+    });
+
+    const serverMapping = { es: { two_letters_code: 'es-server' } } as never;
+    const actual = resolveTranslationPath(
+      config.files[0] as never,
+      'resources/en/readme.md',
+      language('es'),
+      serverMapping,
+    );
+
+    expect(actual).toBe('/resources/es-server/readme.md');
+  });
+
+  test('per-file languagesMapping takes precedence over server mapping', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/resources/en/readme.md`, 'readme');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/resources/en/*.md',
+          translation: '/resources/%two_letters_code%/%original_file_name%',
+          languages_mapping: { two_letters_code: { es: 'es-local' } },
+        },
+      ],
+    });
+
+    const serverMapping = { es: { two_letters_code: 'es-server' } } as never;
+    const actual = resolveTranslationPath(
+      config.files[0] as never,
+      'resources/en/readme.md',
+      language('es'),
+      serverMapping,
+    );
+
+    expect(actual).toBe('/resources/es-local/readme.md');
+  });
+
+  test('applies translationReplace to resolved translation file name', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/resources/en/readme.md`, 'readme');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/resources/en/*.md',
+          translation: '/resources/%two_letters_code%/%original_file_name%',
+          translation_replace: {
+            readme: 'guide',
+          },
+        },
+      ],
+    });
+
+    const actual = resolveTranslationPath(config.files[0] as never, 'resources/en/readme.md', language('es'));
+
+    expect(actual).toBe('/resources/es/guide.md');
+  });
+
+  test('resolves %original_path% to the source file parent directory', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/resources/en/readme.md`, 'readme');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/resources/en/*.md',
+          translation: '/translated/%original_path%/%two_letters_code%/%original_file_name%',
+        },
+      ],
+    });
+
+    const actual = resolveTranslationPath(config.files[0] as never, 'resources/en/readme.md', language('es'));
+
+    expect(actual).toBe('/translated/resources/en/es/readme.md');
+  });
+
+  test('collapses the separator left by %original_path% for a top-level source file', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/readme.md`, 'readme');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/*.md',
+          translation: '/translated/%original_path%/%two_letters_code%/%original_file_name%',
+        },
+      ],
+    });
+
+    const actual = resolveTranslationPath(config.files[0] as never, 'readme.md', language('es'));
+
+    expect(actual).toBe('/translated/es/readme.md');
+  });
+
+  // The dest branch of Java's doTranslationMapping only fires when `translation` has no language
+  // placeholder, which the schema allows only for multilingual/scheme files.
+  test('expands ** in the dest-derived archive key so it matches the path upload creates', async () => {
+    const basePath = await mkdtemp();
+    await Bun.write(`${basePath}/src/main/app.json`, '{}');
+
+    const config = ConfigSchema.parse({
+      projectId: 123,
+      apiToken: 'a'.repeat(80),
+      basePath,
+      baseUrl: 'https://api.crowdin.com',
+      preserveHierarchy: true,
+      files: [
+        {
+          source: '/src/**/*.json',
+          dest: '/i18n/**/%original_file_name%',
+          translation: 'strings.json',
+          multilingual: true,
+        },
+      ],
+    });
+    const dest = config.files[0]?.dest;
+    const sourcePath = 'src/main/app.json';
+
+    const archivePath = resolveTranslationPath(config.files[0] as never, sourcePath, language('es'), undefined, {
+      serverOnly: true,
+      dest,
+      preserveHierarchy: true,
+    });
+
+    // The archive key must be the very path `upload sources` puts the file at, `**` expanded the same way.
+    expect(archivePath).toBe('i18n/src/main/app.json');
+    expect(archivePath).toBe(resolveProjectPath(sourcePath, { dest }, ''));
+  });
+});
+
+function language(id: string) {
+  return {
+    id,
+    name: id,
+    editorCode: id,
+    twoLettersCode: id,
+    threeLettersCode: `${id}${id}${id}`,
+    locale: `${id}-${id.toUpperCase()}`,
+    androidCode: id,
+    osxCode: id,
+    osxLocale: id,
+    pluralCategoryNames: ['one'],
+    pluralRules: '(n != 1)',
+    pluralExamples: ['0'],
+    textDirection: 'ltr',
+    dialectOf: id,
+  } as never;
+}
+
+async function mkdtemp(): Promise<string> {
+  const basePath = `/tmp/crowdin-translation-path-resolver-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+
+  await Bun.$`mkdir -p ${basePath}/resources/en ${basePath}/resources/emails/en`.quiet();
+
+  return basePath;
+}

@@ -1,0 +1,209 @@
+import { afterEach, beforeEach, describe, expect, mock, spyOn, test } from 'bun:test';
+import type { DistributionsModel } from '@crowdin/crowdin-api-client';
+import type { Command } from 'commander';
+import DistributionCommand from '@/cli/commands/distribution/DistributionCommand.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import type { DistributionService, DistributionView } from '@/cli/services/DistributionService.ts';
+import { createOutput, type Output } from '@/cli/utils/output.ts';
+
+describe('DistributionCommand', () => {
+  let output: Output;
+  let distributionService: {
+    list: ReturnType<typeof mock<DistributionService['list']>>;
+    add: ReturnType<typeof mock<DistributionService['add']>>;
+    edit: ReturnType<typeof mock<DistributionService['edit']>>;
+    getByHash: ReturnType<typeof mock<DistributionService['getByHash']>>;
+    releaseDistribution: ReturnType<typeof mock<DistributionService['releaseDistribution']>>;
+  };
+  const globalOptions: GlobalOptions = {
+    verbose: false,
+    config: '',
+    colors: false,
+    progress: false,
+    output: 'json',
+  };
+
+  type DistributionTestOptions = GlobalOptions & {
+    name?: string;
+    bundleId?: number | string | Array<number | string>;
+  };
+
+  const createCommandContext = (options: DistributionTestOptions, args: string[] = []) => {
+    return {
+      optsWithGlobals: () => options,
+      args,
+    } as unknown as Command;
+  };
+
+  const createDistribution = (overrides: Partial<DistributionView> = {}): DistributionView =>
+    ({ hash: 'hash-1', name: 'CDN', exportMode: 'bundle', ...overrides }) as DistributionView;
+
+  const createDistributionCommand = () => {
+    return new DistributionCommand(
+      () => output,
+      async () => distributionService as unknown as DistributionService,
+    );
+  };
+
+  beforeEach(() => {
+    output = createOutput(globalOptions);
+    distributionService = {
+      list: mock(async () => [] as DistributionsModel.Distribution[]),
+      add: mock(async () => createDistribution()),
+      edit: mock(async () => createDistribution()),
+      getByHash: mock(async () => createDistribution()),
+      releaseDistribution: mock(async () => undefined),
+    };
+
+    spyOn(console, 'log').mockImplementation(() => {});
+    spyOn(console, 'table').mockImplementation(() => {});
+    spyOn(Bun, 'sleep').mockResolvedValue(undefined);
+  });
+
+  afterEach(() => {
+    mock.restore();
+  });
+
+  test('delegates default action to command help', async () => {
+    const distributionCommand = createDistributionCommand();
+    const help = mock(() => {});
+    const helpCommand = { help, optsWithGlobals: () => ({}) } as unknown as Command;
+
+    await distributionCommand.defaultAction(helpCommand);
+
+    expect(help).toHaveBeenCalledTimes(1);
+  });
+
+  test('does not include deprecated distribution options', () => {
+    const distributionCommand = createDistributionCommand();
+    const definition = distributionCommand.getDefinition();
+    const addSubcommand = definition.subcommands?.find((subcommand) => subcommand.name === 'add');
+    const editSubcommand = definition.subcommands?.find((subcommand) => subcommand.name === 'edit');
+    const addOptionNames = (addSubcommand?.options ?? [])
+      .filter((option) => 'name' in option)
+      .map((option) => option.name);
+    const editOptionNames = (editSubcommand?.options ?? [])
+      .filter((option) => 'name' in option)
+      .map((option) => option.name);
+
+    expect(addOptionNames).not.toContain('export-mode');
+    expect(addOptionNames).not.toContain('file');
+    expect(editOptionNames).not.toContain('export-mode');
+    expect(editOptionNames).not.toContain('file');
+  });
+
+  test('lists distributions', async () => {
+    const distributionCommand = createDistributionCommand();
+    const distributions = [
+      createDistribution({ hash: 'hash-1', name: 'CDN one' }),
+      createDistribution({ hash: 'hash-2', name: 'CDN two' }),
+    ];
+
+    distributionService.list.mockResolvedValue(distributions);
+    await distributionCommand.listAction(createCommandContext(globalOptions));
+
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(distributions, null, 2));
+  });
+
+  test('prints hash, name and export mode per distribution in text format', async () => {
+    output = createOutput({ ...globalOptions, output: 'text' });
+    const distributionCommand = createDistributionCommand();
+
+    distributionService.list.mockResolvedValue([
+      createDistribution({ hash: 'hash-1', name: 'CDN one', exportMode: 'default' }),
+    ]);
+    await distributionCommand.listAction(createCommandContext({ ...globalOptions, output: 'text' }));
+
+    expect(console.log).toHaveBeenCalledWith(expect.stringContaining('hash-1 CDN one default'));
+  });
+
+  test('prints hash and name in plain format', async () => {
+    output = createOutput({ ...globalOptions, output: 'plain' });
+    const distributionCommand = createDistributionCommand();
+
+    distributionService.list.mockResolvedValue([
+      createDistribution({ hash: 'hash-1', name: 'CDN one', exportMode: 'default' }),
+    ]);
+    await distributionCommand.listAction(createCommandContext({ ...globalOptions, output: 'plain' }));
+
+    expect(console.log).toHaveBeenCalledWith('hash-1 CDN one');
+  });
+
+  // Java's add/edit echoes print the name alone in plain; we keep the listing's shape so the hash
+  // that `edit`/`release` take stays in the output.
+  test('echoes hash and name in plain format after add', async () => {
+    output = createOutput({ ...globalOptions, output: 'plain' });
+    const distributionCommand = createDistributionCommand();
+    const commandContext = createCommandContext({ ...globalOptions, output: 'plain', bundleId: ['4'] }, ['CDN']);
+
+    distributionService.add.mockResolvedValue(createDistribution({ hash: 'hash-1', name: 'CDN' }));
+    await distributionCommand.addAction(commandContext);
+
+    expect(console.log).toHaveBeenCalledWith('hash-1 CDN');
+  });
+
+  test('adds distribution with bundle IDs', async () => {
+    const distributionCommand = createDistributionCommand();
+    const commandContext = createCommandContext({ ...globalOptions, bundleId: ['4', '7'] }, ['CDN']);
+    const distribution = createDistribution({ hash: 'hash-1', name: 'CDN' });
+
+    distributionService.add.mockResolvedValue(distribution);
+    await distributionCommand.addAction(commandContext);
+
+    expect(distributionService.add).toHaveBeenCalledWith('CDN', [4, 7]);
+    expect(console.log).toHaveBeenCalledWith(JSON.stringify(distribution, null, 2));
+  });
+
+  test('requires bundle IDs for add action', async () => {
+    const distributionCommand = createDistributionCommand();
+    const commandContext = createCommandContext(globalOptions, ['CDN']);
+
+    expect(distributionCommand.addAction(commandContext)).rejects.toThrow(
+      new CliError('Bundle IDs are required. Use --bundle-id <id> (can be specified multiple times)'),
+    );
+  });
+
+  test('requires at least one edit option', async () => {
+    const distributionCommand = createDistributionCommand();
+    const commandContext = createCommandContext(globalOptions, ['hash-1']);
+
+    expect(distributionCommand.editAction(commandContext)).rejects.toThrow(
+      new CliError('Specify the parameters to edit the distribution'),
+    );
+  });
+
+  test('edits distribution name and bundle IDs', async () => {
+    const distributionCommand = createDistributionCommand();
+    const commandContext = createCommandContext({ ...globalOptions, name: 'New', bundleId: ['8', '9'] }, ['hash-1']);
+
+    distributionService.edit.mockResolvedValue(createDistribution({ hash: 'hash-1', name: 'New' }));
+    await distributionCommand.editAction(commandContext);
+
+    expect(distributionService.edit).toHaveBeenCalledWith('hash-1', [
+      { op: 'replace', path: '/name', value: 'New' },
+      { op: 'replace', path: '/bundleIds', value: [8, 9] },
+    ]);
+  });
+
+  test('releases the distribution', async () => {
+    const distributionCommand = createDistributionCommand();
+    const commandContext = createCommandContext(globalOptions, ['hash-1']);
+
+    await distributionCommand.releaseAction(commandContext);
+
+    expect(distributionService.getByHash).toHaveBeenCalledWith('hash-1');
+    expect(distributionService.releaseDistribution).toHaveBeenCalledWith('hash-1', expect.any(Function));
+  });
+
+  test('surfaces a failed release', async () => {
+    const distributionCommand = createDistributionCommand();
+    const commandContext = createCommandContext(globalOptions, ['hash-1']);
+
+    distributionService.releaseDistribution.mockRejectedValue(new CliError('Distribution release failed'));
+
+    expect(distributionCommand.releaseAction(commandContext)).rejects.toThrow(
+      new CliError('Distribution release failed'),
+    );
+  });
+});

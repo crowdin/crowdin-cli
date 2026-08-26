@@ -33,23 +33,23 @@ As part of this release, the minimum Java version has been updated to **17 LTS**
 
 ## New command options
 
-| <div style={{width:150 + 'px'}}>Command</div> | Option/Description                                                                                                 |
-|-----------------------------------------------|--------------------------------------------------------------------------------------------------------------------|
-| `init`                                        | <kbd>--quiet</kbd> option to skip interactive input prompts                                                        |
-| `string add`                                  | <kbd>--branch</kbd> option to specify the branch to which the new string should be added                           |
-| `string list`                                 | <kbd>--directory</kbd> and <kbd>--scope</kbd> options to filter strings by directory and scope                     |
-| `pre-translate`                               | <kbd>--file</kbd> option to specify the file(s) in the Crowdin project to pre-translate                            |
-| `pre-translate`                               | <kbd>ai</kbd> method and <kbd>--ai-prompt</kbd> parameter to allow pre-translation via AI                          |
-| `file upload`                                 | <kbd>--type</kbd> and <kbd>--parser-version</kbd> options to specify the file type and parser version respectively |
-| `file upload`                                 | <kbd>--context</kbd> option to provide a context about the whole file                                              |
-| `file list`                                   | <kbd>--verbose</kbd> option to show more information about the files                                               |
-| `language list`                               | <kbd>--all</kbd> option to list all languages for the current account                                              |
+| Command         | Option/Description                                                                                                 |
+|-----------------|--------------------------------------------------------------------------------------------------------------------|
+| `init`          | <kbd>--quiet</kbd> option to skip interactive input prompts                                                        |
+| `string add`    | <kbd>--branch</kbd> option to specify the branch to which the new string should be added                           |
+| `string list`   | <kbd>--directory</kbd> and <kbd>--scope</kbd> options to filter strings by directory and scope                     |
+| `pre-translate` | <kbd>--file</kbd> option to specify the file(s) in the Crowdin project to pre-translate                            |
+| `pre-translate` | <kbd>ai</kbd> method and <kbd>--ai-prompt</kbd> parameter to allow pre-translation via AI                          |
+| `file upload`   | <kbd>--type</kbd> and <kbd>--parser-version</kbd> options to specify the file type and parser version respectively |
+| `file upload`   | <kbd>--context</kbd> option to provide a context about the whole file                                              |
+| `file list`     | <kbd>--verbose</kbd> option to show more information about the files                                               |
+| `language list` | <kbd>--all</kbd> option to list all languages for the current account                                              |
 
 ## Command updates
 
 ### Pre-translate
 
-We've made significant changes to the [`pre-translate`](/commands/crowdin-pre-translate) command. The command now requires the <kbd>--file</kbd> parameter for file-based projects. The <kbd>--file</kbd> parameter determines which files to pre-translate. Previously, the command relied on the current configuration, and it was only possible to pre-translate the files that matched the configuration patterns. Now you can specify any file(s) in the Crowdin project to pre-translate.
+We've made significant changes to the [`pre-translate`](/commands/crowdin-auto-translate) command. The command now requires the <kbd>--file</kbd> parameter for file-based projects. The <kbd>--file</kbd> parameter determines which files to pre-translate. Previously, the command relied on the current configuration, and it was only possible to pre-translate the files that matched the configuration patterns. Now you can specify any file(s) in the Crowdin project to pre-translate.
 
 Tip: Use the [`file list`](/commands/crowdin-file-list) command to get the file paths in the current project.
 

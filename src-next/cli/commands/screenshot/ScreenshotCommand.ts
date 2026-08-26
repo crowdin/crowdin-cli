@@ -1,0 +1,321 @@
+import { stat } from 'node:fs/promises';
+import path from 'node:path';
+import type { ScreenshotsModel } from '@crowdin/crowdin-api-client';
+import type { Command } from 'commander';
+import { projectConfigGroup } from '@/cli/commands/common/options.ts';
+import CliError from '@/cli/errors/CliError.ts';
+import type { GlobalOptions } from '@/cli/options.ts';
+import type { ScreenshotView } from '@/cli/services/ScreenshotService.ts';
+import type {
+  GetBranchService,
+  GetDirectoryService,
+  GetFileService,
+  GetLabelService,
+  GetOutput,
+  GetScreenshotService,
+  GetStorageService,
+} from '@/cli/services.ts';
+import type { CommandDef } from '@/cli/types.ts';
+import { colors } from '@/cli/utils/colors.ts';
+import type { View } from '@/cli/utils/output.ts';
+import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
+import {
+  autoTag,
+  branch as branchOption,
+  directory,
+  excludeLabel,
+  file,
+  filterLabel,
+  label,
+  search,
+  stringId,
+} from './options.ts';
+
+interface ListOptions extends GlobalOptions {
+  stringId?: string | string[];
+  search?: string;
+  label?: string[];
+  excludeLabel?: string[];
+}
+
+interface UploadOptions extends GlobalOptions {
+  autoTag?: boolean;
+  file?: string;
+  branch?: string;
+  label?: string[];
+  directory?: string;
+}
+
+const ALLOWED_IMAGE_EXTENSIONS = new Set(['jpeg', 'jpg', 'png', 'gif']);
+
+// Java message.screenshot.list: id, tag count, name. Shared by list and the upload/update echoes;
+// Java's plain echo prints the local file name, but the listing shape keeps the id addressable.
+const screenshotView: View<ScreenshotView> = {
+  text: (screenshot) =>
+    `${colors.yellow(`#${screenshot.id}`)} ${screenshot.tagsCount} ${colors.green(screenshot.name)}`,
+  plain: (screenshot) => `${screenshot.id} ${screenshot.name}`,
+  keys: ['id', 'tagsCount', 'name'],
+};
+
+export default class ScreenshotCommand {
+  constructor(
+    private getOutput: GetOutput,
+    private getScreenshotService: GetScreenshotService,
+    private getStorageService: GetStorageService,
+    private getBranchService: GetBranchService,
+    private getDirectoryService: GetDirectoryService,
+    private getFileService: GetFileService,
+    private getLabelService: GetLabelService,
+  ) {}
+
+  getDefinition(): CommandDef {
+    return {
+      name: 'screenshot',
+      description: 'Manage screenshots',
+      subcommands: [
+        {
+          name: 'list',
+          description: 'List screenshots',
+          options: [stringId, search, filterLabel, excludeLabel, projectConfigGroup],
+          action: this.listAction,
+        },
+        {
+          name: 'upload',
+          description: 'Add screenshot or update an existing one with the same name',
+          arguments: [
+            {
+              name: 'file',
+              description: 'File path to add',
+            },
+          ],
+          options: [autoTag, file, branchOption, label, directory, projectConfigGroup],
+          action: this.uploadAction,
+        },
+        {
+          name: 'delete',
+          description: 'Delete screenshot',
+          arguments: [
+            {
+              name: 'id',
+              description: 'Screenshot id',
+            },
+          ],
+          options: [projectConfigGroup],
+          action: this.deleteAction,
+        },
+      ],
+      action: this.defaultAction,
+    };
+  }
+
+  defaultAction = async (command: Command) => {
+    command.help();
+  };
+
+  listAction = async (command: Command) => {
+    const options = command.optsWithGlobals() as ListOptions;
+    const output = this.getOutput(command);
+    const screenshotService = await this.getScreenshotService(command);
+    const { labelIds, excludeLabelIds } = await this.resolveFilterLabelIds(command, options);
+    const screenshots = await screenshotService.list({
+      stringIds: toNumberArray(options.stringId, "The '--string-id' value must be numeric"),
+      search: options.search,
+      labelIds,
+      excludeLabelIds,
+    });
+
+    output.list(screenshots, screenshotView, { empty: 'No screenshot found' });
+  };
+
+  private resolveFilterLabelIds = async (command: Command, options: ListOptions) => {
+    const titles = toArray(options.label);
+    const excludedTitles = toArray(options.excludeLabel);
+
+    if (titles.length === 0 && excludedTitles.length === 0) {
+      return {};
+    }
+
+    const labelService = await this.getLabelService(command);
+    const idsByTitle = new Map((await labelService.list()).map((entry) => [entry.title, entry.id]));
+    // filtering must not create labels, so unknown titles are an error instead of a silent no-op
+    const toIds = (labelTitles: string[]) =>
+      labelTitles.map((title) => {
+        const labelId = idsByTitle.get(title);
+
+        if (labelId === undefined) {
+          throw new CliError(`Project doesn't contain the '${title}' label`);
+        }
+
+        return labelId;
+      });
+
+    return { labelIds: toIds(titles), excludeLabelIds: toIds(excludedTitles) };
+  };
+
+  uploadAction = async (command: Command) => {
+    const [filePath] = command.args;
+    const options = command.optsWithGlobals() as UploadOptions;
+
+    if (!filePath) {
+      throw new CliError('Screenshot file path can not be empty');
+    }
+
+    this.validateUploadOptions(options);
+    await this.validateFile(filePath);
+
+    const output = this.getOutput(command);
+    const screenshotService = await this.getScreenshotService(command);
+    const storageService = await this.getStorageService(command);
+    const branchService = await this.getBranchService(command);
+    const directoryService = await this.getDirectoryService(command);
+    const fileService = await this.getFileService(command);
+    const labelService = await this.getLabelService(command);
+    const image = Bun.file(filePath);
+    const imageName = path.basename(filePath);
+    const branch = await branchService.resolveBranch(options.branch);
+    const branchId = branch?.id;
+    const fileId = options.file
+      ? await fileService.resolveFileIds([options.file], branch).then(this.takeFirstFileId(options.file))
+      : undefined;
+    const directoryId = await directoryService.resolveDirectoryId(options.directory, branch);
+    const labelIds = await labelService.resolveLabelIds(toArray(options.label));
+    const [existingScreenshot, ...duplicates] = await screenshotService.findAllByName(imageName);
+    const storage = await storageService.addStorage(image);
+
+    if (existingScreenshot) {
+      if (duplicates.length > 0) {
+        output.warning(
+          `Found ${duplicates.length + 1} screenshots named '${imageName}', updating '#${existingScreenshot.id}'`,
+        );
+      }
+
+      await screenshotService.update(existingScreenshot.id, {
+        name: imageName,
+        storageId: storage.data.id,
+        usePreviousTags: !options.autoTag,
+      });
+
+      if (labelIds !== undefined) {
+        await screenshotService.replaceLabels(existingScreenshot.id, labelIds);
+      }
+
+      if (options.autoTag) {
+        try {
+          await screenshotService.replaceTags(existingScreenshot.id, {
+            autoTag: true,
+            ...(branchId !== undefined ? { branchId } : {}),
+            ...(fileId !== undefined ? { fileId } : {}),
+            ...(directoryId !== undefined ? { directoryId } : {}),
+          });
+        } catch (error) {
+          if (!screenshotService.isAutoTagInProgressError(error)) {
+            throw error;
+          }
+
+          output.warning(`Tags were not applied for ${imageName} because auto tag is currently in progress`);
+        }
+      }
+
+      const updatedScreenshot = await screenshotService.get(existingScreenshot.id);
+
+      if (updatedScreenshot) {
+        output.item(updatedScreenshot, screenshotView);
+      }
+
+      return;
+    }
+
+    const request: ScreenshotsModel.CreateScreenshotRequest = {
+      name: imageName,
+      storageId: storage.data.id,
+      autoTag: options.autoTag ?? false,
+      ...(branchId !== undefined ? { branchId } : {}),
+      ...(fileId !== undefined ? { fileId } : {}),
+      ...(directoryId !== undefined ? { directoryId } : {}),
+      ...(labelIds !== undefined ? { labelIds } : {}),
+    };
+
+    try {
+      const screenshot = await screenshotService.upload(request);
+      output.item(screenshot, screenshotView);
+    } catch (error) {
+      if (screenshotService.isAutoTagInProgressError(error)) {
+        output.warning(`Tags were not applied for ${imageName} because auto tag is currently in progress`);
+        return;
+      }
+
+      throw error;
+    }
+  };
+
+  deleteAction = async (command: Command) => {
+    const [idArg] = command.args;
+    const id = parseNumericId(idArg, 'Screenshot');
+    const output = this.getOutput(command);
+    const screenshotService = await this.getScreenshotService(command);
+    const screenshot = await screenshotService.get(id);
+
+    if (!screenshot) {
+      output.warning("Couldn't find screenshot by the specified ID");
+      return;
+    }
+
+    await screenshotService.delete(id);
+
+    output.success(`Screenshot '#${id} ${screenshot.name}' deleted successfully`);
+  };
+
+  private validateUploadOptions(options: UploadOptions): void {
+    const targetingFlags: Array<[keyof UploadOptions, string]> = [
+      ['file', '--file'],
+      ['branch', '--branch'],
+      ['directory', '--directory'],
+    ];
+
+    for (const [key, flag] of targetingFlags) {
+      if (options[key] && !options.autoTag) {
+        throw new CliError(`'--auto-tag' is required for '${flag}' option`);
+      }
+    }
+
+    const selected = targetingFlags.filter(([key]) => Boolean(options[key]));
+
+    if (selected.length > 1) {
+      throw new CliError(
+        "Only one of the following options can be used at a time: '--file', '--branch' or '--directory'",
+      );
+    }
+  }
+
+  private async validateFile(filePath: string): Promise<void> {
+    let stats: Awaited<ReturnType<typeof stat>>;
+
+    try {
+      stats = await stat(filePath);
+    } catch {
+      throw new CliError(`File '${filePath}' not found in the Crowdin project`);
+    }
+
+    if (stats.isDirectory()) {
+      throw new CliError('The specified file is a directory');
+    }
+
+    const extension = path.extname(filePath).slice(1).toLowerCase();
+
+    if (!ALLOWED_IMAGE_EXTENSIONS.has(extension)) {
+      throw new CliError('Wrong format of the file. Supported formats: jpeg, jpg, png, gif');
+    }
+  }
+
+  private takeFirstFileId(originalPath: string) {
+    return (resolved: { fileIds: number[]; missingPaths: string[] }): number => {
+      const [fileId] = resolved.fileIds;
+
+      if (fileId === undefined) {
+        throw new CliError(`Project doesn't contain the '${originalPath}' file`);
+      }
+
+      return fileId;
+    };
+  }
+}

@@ -1,0 +1,79 @@
+import type { Client, LabelsModel } from '@crowdin/crowdin-api-client';
+import CliError from '../errors/CliError.ts';
+import { toCliError } from '../errors/toCliError.ts';
+
+export class LabelService {
+  constructor(
+    private apiClient: Client,
+    private projectId: number,
+  ) {}
+
+  async list(): Promise<LabelsModel.Label[]> {
+    try {
+      const response = await this.apiClient.labelsApi.withFetchAll().listLabels(this.projectId);
+      return response.data.map((entry) => entry.data);
+    } catch (error) {
+      throw toCliError(error, 'Failed to list labels');
+    }
+  }
+
+  async add(title: string): Promise<LabelsModel.Label> {
+    try {
+      const response = await this.apiClient.labelsApi.addLabel(this.projectId, { title });
+      return response.data;
+    } catch (error) {
+      throw toCliError(error, `Failed to add label '${title}'`);
+    }
+  }
+
+  async delete(id: number): Promise<void> {
+    try {
+      await this.apiClient.labelsApi.deleteLabel(this.projectId, id);
+    } catch (error) {
+      throw toCliError(error, 'Failed to delete label');
+    }
+  }
+
+  async resolveLabelIds(titles: string[], createMissing: boolean = true): Promise<number[] | undefined> {
+    if (titles.length === 0) {
+      return undefined;
+    }
+
+    try {
+      const labels = await this.apiClient.labelsApi.withFetchAll().listLabels(this.projectId);
+      const labelIdsByTitle = new Map(labels.data.map((label) => [label.data.title, label.data.id]));
+      const labelIds: number[] = [];
+
+      for (const title of titles) {
+        let labelId = labelIdsByTitle.get(title);
+
+        if (labelId === undefined && createMissing) {
+          const label = await this.apiClient.labelsApi.addLabel(this.projectId, { title });
+          labelId = label.data.id;
+          labelIdsByTitle.set(title, labelId);
+        }
+
+        // Filtering callers pass createMissing=false. Skipping an unknown title there would
+        // silently drop the filter and list everything, so it's an error instead.
+        if (labelId === undefined) {
+          throw new CliError(`Project doesn't contain the '${title}' label`);
+        }
+
+        labelIds.push(labelId);
+      }
+
+      return labelIds;
+    } catch (error) {
+      throw toCliError(error, 'Failed to resolve labels');
+    }
+  }
+
+  async listLabelsMap(): Promise<Map<number, string>> {
+    try {
+      const response = await this.apiClient.labelsApi.withFetchAll().listLabels(this.projectId);
+      return new Map(response.data.map((entry) => [entry.data.id, entry.data.title]));
+    } catch (error) {
+      throw toCliError(error, 'Failed to fetch labels');
+    }
+  }
+}

@@ -1,4 +1,18 @@
-module.exports = {
+// Versions are committed by this config (run via the Bump Version workflow); the publish
+// workflow only injects checksums of the released binaries at publish time.
+const npmPackages = [
+  "darwin-arm64",
+  "darwin-x64",
+  "linux-x64",
+  "linux-arm64",
+  "linux-x64-musl",
+  "linux-arm64-musl",
+  "win32-x64",
+].map((platform) => `packages/npm/${platform}/package.json`);
+
+const versionedPackageJsons = ["package.json", "packages/npm/cli/package.json", ...npmPackages];
+
+export default {
   branches: [
     "main"
   ],
@@ -19,49 +33,30 @@ module.exports = {
       {
         "replacements": [
           {
-            "files": [
-              "build.gradle"
-            ],
-            "from": "^version '4..*'",
-            "to": "version '${nextRelease.version}'",
-            "results": [
-              {
-                "file": "build.gradle",
-                "hasChanged": true,
-                "numMatches": 1,
-                "numReplacements": 1
-              }
-            ],
-            "countMatches": true
-          },
-          {
-            "files": [
-              "src/main/resources/crowdin.properties"
-            ],
-            "from": "application.version=.*",
-            "to": "application.version=${nextRelease.version}",
-            "results": [
-              {
-                "file": "src/main/resources/crowdin.properties",
-                "hasChanged": true,
-                "numMatches": 1,
-                "numReplacements": 1
-              }
-            ],
-            "countMatches": true
-          },
-          {
-            "files": [
-              "package.json"
-            ],
+            "files": versionedPackageJsons,
             "from": "\"version\": \".*\"",
             "to": "\"version\": \"${nextRelease.version}\"",
+            "results": versionedPackageJsons.map((file) => ({
+              "file": file,
+              "hasChanged": true,
+              "numMatches": 1,
+              "numReplacements": 1
+            })),
+            "countMatches": true
+          },
+          {
+            // The launcher pins exact platform-package versions in optionalDependencies
+            "files": [
+              "packages/npm/cli/package.json"
+            ],
+            "from": "\"@crowdin/cli-([a-z0-9-]+)\": \".*\"",
+            "to": "\"@crowdin/cli-$1\": \"${nextRelease.version}\"",
             "results": [
               {
-                "file": "package.json",
+                "file": "packages/npm/cli/package.json",
                 "hasChanged": true,
-                "numMatches": 1,
-                "numReplacements": 1
+                "numMatches": 7,
+                "numReplacements": 7
               }
             ],
             "countMatches": true
@@ -102,8 +97,8 @@ module.exports = {
             "files": [
               "packages/chocolatey/tools/chocolateyinstall.ps1"
             ],
-            "from": "https://github.com/crowdin/crowdin-cli/releases/download/.*/crowdin-cli.zip",
-            "to": "https://github.com/crowdin/crowdin-cli/releases/download/${nextRelease.version}/crowdin-cli.zip",
+            "from": "https://github.com/crowdin/crowdin-cli/releases/download/.*/crowdin.exe",
+            "to": "https://github.com/crowdin/crowdin-cli/releases/download/${nextRelease.version}/crowdin.exe",
             "results": [
               {
                 "file": "packages/chocolatey/tools/chocolateyinstall.ps1",
@@ -134,19 +129,11 @@ module.exports = {
       }
     ],
     [
-      "@semantic-release/exec",
-      {
-        "prepareCmd": "npm install"
-      }
-    ],
-    [
       "@semantic-release/git",
       {
         "assets": [
-          "build.gradle",
-          "src/main/resources/crowdin.properties",
           "package.json",
-          "package-lock.json",
+          "packages/npm/*/package.json",
           "packages/aur/pkgbuild/PKGBUILD",
           "packages/chocolatey/crowdin-cli.nuspec",
           "packages/chocolatey/tools/chocolateyinstall.ps1",
@@ -154,12 +141,6 @@ module.exports = {
           "CHANGELOG.md"
         ],
         "message": "chore(release): version ${nextRelease.version} [skip ci]"
-      }
-    ],
-    [
-      "@semantic-release/npm",
-      {
-        "npmPublish": false
       }
     ],
   ],

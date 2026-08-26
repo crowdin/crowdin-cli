@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "crowdin-api-client": {
+      "source": "crowdin/skills",
+      "sourceType": "github",
+      "skillPath": "crowdin-api-client/SKILL.md",
+      "computedHash": "a81165ce79d1e7b219d8f3909f2454a368b9c920b3e7e30eec776d6458afb35c"
+    }
+  }
+}

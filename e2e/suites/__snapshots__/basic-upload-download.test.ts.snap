@@ -1,0 +1,33 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`basic upload sources and download translations uploads all source files to a fresh project 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory sources created
+◆  File sources/alpha.md created
+◆  File sources/beta.md created
+◆  File sources/gamma.md created"
+`;
+
+exports[`basic upload sources and download translations updates existing source files 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File sources/alpha.md updated
+◆  File sources/beta.md updated
+◆  File sources/gamma.md updated"
+`;
+
+exports[`basic upload sources and download translations downloads translations for every target language 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Extracting archive
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done"
+`;
