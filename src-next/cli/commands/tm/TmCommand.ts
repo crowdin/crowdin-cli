@@ -3,6 +3,7 @@ import path from 'node:path';
 import type { TranslationMemoryModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { baseConfigGroup } from '@/cli/commands/common/options.ts';
+import { downloadedPathView } from '@/cli/commands/common/views.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -147,7 +148,7 @@ export default class TmCommand {
       throw toCliError(error, `Failed to write to the file '${to}'`);
     }
 
-    output.success(`'${to}' downloaded successfully`);
+    output.item(to, downloadedPathView);
   };
 
   uploadAction = async (command: Command) => {
@@ -211,5 +212,7 @@ export default class TmCommand {
     });
 
     output.success(`Imported in #${tm.id} '${tm.name}' translation memory`);
+    // The sentence above is text-only; the memory itself is what a machine format owes the caller.
+    output.item(tm, tmView, { mark: false });
   };
 }

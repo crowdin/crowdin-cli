@@ -222,6 +222,28 @@ describe('GlossaryCommand', () => {
       expect(console.log).toHaveBeenCalledWith(expect.stringContaining("'forty-two.tbx' downloaded successfully"));
     });
 
+    // The default target is derived from the glossary name, so without this line a script has no
+    // way to learn where the file landed — the message used to be text-only.
+    test('prints the written path alone in plain', async () => {
+      const glossaryCommand = createGlossaryCommand();
+      spyOn(Bun, 'write').mockResolvedValue(0 as never);
+      output = createOutput({ ...globalOptions, output: 'plain' });
+
+      await glossaryCommand.downloadAction(createCommandContext({ output: 'plain' }, ['42']));
+
+      expect(console.log).toHaveBeenCalledWith('forty-two.tbx');
+    });
+
+    test('carries the written path in a machine format', async () => {
+      const glossaryCommand = createGlossaryCommand();
+      spyOn(Bun, 'write').mockResolvedValue(0 as never);
+      const item = spyOn(output, 'item');
+
+      await glossaryCommand.downloadAction(createCommandContext({}, ['42']));
+
+      expect(item).toHaveBeenCalledWith('forty-two.tbx', expect.anything());
+    });
+
     test('downloads to the specified file and derives format from its extension', async () => {
       const glossaryCommand = createGlossaryCommand();
       const write = spyOn(Bun, 'write').mockResolvedValue(0 as never);
@@ -300,6 +322,16 @@ describe('GlossaryCommand', () => {
       expect(storageService.addStorage).toHaveBeenCalledTimes(1);
       expect(glossaryService.import).toHaveBeenCalledWith(42, { storageId: 52 });
       expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Imported in #42 'forty-two' glossary"));
+    });
+
+    // 'Imported in …' is text-only, so a machine format saw an empty stdout for a real import.
+    test('echoes the glossary in a machine format', async () => {
+      const glossaryCommand = createGlossaryCommand();
+      const item = spyOn(output, 'item');
+
+      await glossaryCommand.uploadAction(createCommandContext({ id: '42' }, [tbxFile]));
+
+      expect(item).toHaveBeenCalledWith(createGlossary(), expect.anything(), { mark: false });
     });
 
     test('creates a new glossary when no id is specified', async () => {
