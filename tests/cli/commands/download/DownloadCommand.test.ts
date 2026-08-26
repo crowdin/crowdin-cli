@@ -1840,6 +1840,24 @@ describe('DownloadCommand', () => {
       expect(list.mock.calls.at(-1)?.[0]).toEqual([{ path: 'resources/fr/messages.json', action: 'downloaded' }]);
     });
 
+    // 'Archive saved to …' goes through success(), which is text-only, so the kept archive joins
+    // the summary instead — otherwise --keep-archive leaves no trace in a machine format.
+    test('carries the kept archive in the summary', async () => {
+      await Bun.write(join(tempDir, 'resources/en/messages.json'), '{}');
+      const list = spyOn(output, 'list');
+
+      await downloadTranslationsOf([{ entryName: 'resources/fr/messages.json', content: 'x' }], {
+        output: 'plain',
+        keepArchive: true,
+      });
+
+      expect(list.mock.calls.at(-1)?.[0]).toEqual([
+        { path: 'resources/fr/messages.json', action: 'downloaded' },
+        { path: 'crowdin-translations.zip', action: 'downloaded' },
+      ]);
+      expect(await Bun.file(join(tempDir, 'crowdin-translations.zip')).exists()).toBe(true);
+    });
+
     // The server lists project files by id, not by path. The summary does not sort — it relies
     // on collectSourceDownloads having done so — which makes the ordering worth pinning here.
     test('reports files in path order, not the order the server listed them', async () => {

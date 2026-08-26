@@ -461,6 +461,10 @@ export default class DownloadCommand {
           await Bun.write(savedArchivePath, Bun.file(archivePath));
 
           output.success(`Archive saved to '${savedArchivePath}'`);
+          // The kept archive is a file this run wrote, so it joins the summary the machine formats
+          // render below. success() is text-only, and without this the path — the whole point of
+          // --keep-archive — was missing from json/toon/plain entirely.
+          downloadedFiles.push({ path: name, action: 'downloaded' });
         }
       }
 
