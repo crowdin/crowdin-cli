@@ -220,6 +220,7 @@ export default class ContextCommand {
 
     const output = this.getOutput(command);
     let records = await readContextRecords(options.from);
+    const readCount = records.length;
 
     if (!options.overwrite) {
       records = records.filter((record) => record.ai_context !== '');
@@ -235,6 +236,18 @@ export default class ContextCommand {
       text: record.text,
       context,
     }));
+
+    // Nothing to patch — the run is already over, so say so instead of exiting silently. Checked
+    // ahead of the dry run, which was just as silent on an empty file.
+    if (changes.length === 0) {
+      output.list(changes, contextChangeView(), {
+        empty:
+          readCount === 0
+            ? `No strings found in '${options.from}'`
+            : `No strings with AI context found in '${options.from}'`,
+      });
+      return;
+    }
 
     // A dry run's whole output is this list, so it renders in every format — a json consumer that
     // saw nothing here would read 'no changes pending' from a run that is about to rewrite context.

@@ -518,6 +518,43 @@ describe('ContextCommand', () => {
       expect(list.mock.calls.at(-1)?.[0]).toEqual([{ id: 21, text: 't21', context: AI_CONTEXT('man21', 'ai21') }]);
     });
 
+    // An upload with nothing to send used to exit silently, so a run that skipped every record
+    // looked exactly like one that had not run at all.
+    test('reports an empty file', async () => {
+      const command = createContextCommand();
+      const from = await writeRecords([]);
+
+      await command.uploadAction(createCommandContext({ from }));
+
+      expect(stringService.batchEdit).not.toHaveBeenCalled();
+      expect(loggedOutput()).toContain(`No strings found in '${from}'`);
+    });
+
+    test.each([{ dryrun: false }, { dryrun: true }])(
+      'reports a file whose records all lack ai_context (dryrun: $dryrun)',
+      async ({ dryrun }) => {
+        const command = createContextCommand();
+        const from = await writeRecords([record(10, 'man10', ''), record(11, 'man11', '')]);
+
+        await command.uploadAction(createCommandContext({ from, dryrun }));
+
+        expect(stringService.batchEdit).not.toHaveBeenCalled();
+        expect(loggedOutput()).toContain(`No strings with AI context found in '${from}'`);
+      },
+    );
+
+    test('reports an empty result in a machine format', async () => {
+      output = createOutput({ ...globalOptions, output: 'json' });
+      const list = spyOn(output, 'list');
+      const command = createContextCommand();
+      const from = await writeRecords([record(10, 'man10', '')]);
+
+      await command.uploadAction(createCommandContext({ from, output: 'json' }));
+
+      expect(stringService.batchEdit).not.toHaveBeenCalled();
+      expect(list.mock.calls[0]?.[0]).toEqual([]);
+    });
+
     test('fails when the file does not exist', async () => {
       const command = createContextCommand();
       const from = join(tempDir, 'missing.jsonl');
