@@ -220,6 +220,35 @@ describe('BundleCommand', () => {
 
       expect(bundleService.add).toHaveBeenCalledWith(expect.objectContaining({ format: 'json' }));
     });
+
+    // The pseudo-language is on unless it is negated, so only `--no-include-pseudo-language` can
+    // change the request. Parsed from argv because the flag lives in commander's negation handling.
+    test.each([
+      [[], true],
+      [['--no-include-pseudo-language'], false],
+    ])('reads %p as includeInContextPseudoLanguage=%p', async (flags, expected) => {
+      const cmd = createBundleCommand();
+      const program = buildCommand(cmd.getDefinition());
+
+      await program.parseAsync(
+        [
+          'add',
+          'bundle',
+          '--format',
+          'json',
+          '--source-pattern',
+          '/src/**',
+          '--export-pattern',
+          '/%locale%/app.json',
+          ...flags,
+        ],
+        { from: 'user' },
+      );
+
+      expect(bundleService.add).toHaveBeenCalledWith(
+        expect.objectContaining({ includeInContextPseudoLanguage: expected }),
+      );
+    });
   });
 
   describe('deleteAction', () => {
@@ -302,6 +331,33 @@ describe('BundleCommand', () => {
         includeInContextPseudoLanguage: true,
         isMultilingual: false,
       });
+    });
+
+    // Clone is tri-state per boolean: omitting the flag inherits the source bundle's value (covered
+    // by the defaults test above), each flag overrides it. Parsed from argv because the negations
+    // live in commander's `--no-` handling.
+    test.each([
+      ['--include-source-language', 'includeProjectSourceLanguage', true],
+      ['--no-include-source-language', 'includeProjectSourceLanguage', false],
+      ['--include-pseudo-language', 'includeInContextPseudoLanguage', true],
+      ['--no-include-pseudo-language', 'includeInContextPseudoLanguage', false],
+      ['--multilingual', 'isMultilingual', true],
+      ['--no-multilingual', 'isMultilingual', false],
+    ])('clone reads %s as %s=%p', async (flag, key, expected) => {
+      const cmd = createBundleCommand();
+      const program = buildCommand(cmd.getDefinition());
+      bundleService.get.mockResolvedValue(
+        createBundleView({
+          id: 1,
+          includeProjectSourceLanguage: !expected,
+          includeInContextPseudoLanguage: !expected,
+          isMultilingual: !expected,
+        }),
+      );
+
+      await program.parseAsync(['clone', '1', flag], { from: 'user' });
+
+      expect(bundleService.add).toHaveBeenCalledWith(expect.objectContaining({ [key]: expected }));
     });
   });
 

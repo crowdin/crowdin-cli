@@ -26,6 +26,9 @@ import {
   label as labelOption,
   multilingual as multilingualOption,
   name as nameOption,
+  noIncludePseudoLanguage as noIncludePseudoLanguageOption,
+  noIncludeSourceLanguage as noIncludeSourceLanguageOption,
+  noMultilingual as noMultilingualOption,
   sourcePattern as sourcePatternOption,
 } from './options.ts';
 
@@ -96,7 +99,9 @@ export default class BundleCommand {
             exportPatternOption,
             labelOption,
             includeSourceLanguageOption,
-            { ...includePseudoLanguageOption, default: true },
+            // The bundle is created with the pseudo-language included, so only the negation
+            // changes the request — a positive flag here would be a no-op.
+            noIncludePseudoLanguageOption,
             multilingualOption,
             projectConfigGroup,
           ],
@@ -142,9 +147,14 @@ export default class BundleCommand {
             ignorePatternOption,
             exportPatternOption,
             labelOption,
+            // Every boolean is tri-state on clone: omitting it inherits the source bundle's value,
+            // so each one needs a negation to turn an inherited `true` back off.
             includeSourceLanguageOption,
+            noIncludeSourceLanguageOption,
             includePseudoLanguageOption,
+            noIncludePseudoLanguageOption,
             multilingualOption,
+            noMultilingualOption,
             projectConfigGroup,
           ],
           action: this.cloneAction,
