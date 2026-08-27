@@ -14,7 +14,8 @@
             <guid>https://crowdin.github.io/crowdin-cli/blog/2026/08/26/cli-v5</guid>
             <pubDate>Wed, 26 Aug 2026 00:00:00 GMT</pubDate>
             <description><![CDATA[Crowdin CLI 5.0 is a complete rewrite in TypeScript powered by Bun - instant startup, no Java required, machine-readable output for scripts and AI agents, and more.]]></description>
-            <content:encoded><![CDATA[<p>Today we are happy to announce Crowdin CLI <strong>5.0</strong>! 🚀</p>
+            <content:encoded><![CDATA[<p>Today, we are happy to announce Crowdin CLI <strong>5.0</strong>! 🚀</p>
+<p><img decoding="async" loading="lazy" alt="social-card image" src="https://crowdin.github.io/crowdin-cli/assets/images/social-card-0826747bf98891e96d2658b9446f8396.png" width="1200" height="630" class="img_ev3q"></p>
 <p>This is the biggest change in the tool's history: a complete rewrite - from Java to TypeScript, powered by <a href="https://bun.sh/" target="_blank" rel="noopener noreferrer" class="">Bun</a>. The new CLI is dramatically faster and lighter, built on a modern toolchain that lets us ship improvements faster and unlocks capabilities that weren't practical before.</p>
 <p>For existing users, the essentials don't move: the commands, the <code>crowdin.yml</code> configuration file, and the exit codes stay the same. Most workflows carry over unchanged, and the few breaking changes are listed below to make migration easy.</p>
 <h2 class="anchor anchorTargetStickyNavbar_Vzrq" id="highlights">Highlights<a href="https://crowdin.github.io/crowdin-cli/blog/2026/08/26/cli-v5#highlights" class="hash-link" aria-label="Direct link to Highlights" title="Direct link to Highlights" translate="no">​</a></h2>
