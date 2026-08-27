@@ -30,9 +30,9 @@ jobs:
           echo "Publishing runs from main only (dispatched from $REF)"
           exit 1
 
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version-file: .bun-version
 
@@ -78,13 +78,13 @@ jobs:
           - linux-arm64-musl
           - win32-x64
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version-file: .bun-version
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
@@ -109,9 +109,9 @@ jobs:
       contents: read
       id-token: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: actions/setup-node@v6
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org/
@@ -129,9 +129,9 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version-file: .bun-version
 
@@ -157,7 +157,7 @@ jobs:
           echo ${{ steps.version.outputs.version }} > version.txt
 
       - name: Create release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
           tag_name: ${{ steps.version.outputs.version }}
           target_commitish: ${{ github.sha }}
@@ -171,7 +171,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Read version
         id: version
@@ -198,7 +198,7 @@ jobs:
           cat "$pkgbuild"
 
       - name: Publish AUR package
-        uses: KSXGitHub/github-actions-deploy-aur@v4.1.3
+        uses: KSXGitHub/github-actions-deploy-aur@084b0d9b15415bf9cdb65d44dad1efe37a354050 # v4.2.0
         with:
           pkgname: crowdin-cli
           pkgbuild: ./packages/aur/pkgbuild/PKGBUILD
@@ -214,14 +214,14 @@ jobs:
     # Runs on a skipped (but not failed) assets chain too, so it can be dispatched alone against the latest existing release
     if: ${{ !failure() && !cancelled() && (github.event.inputs.package == 'all' || github.event.inputs.package == 'homebrew') }}
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Read version
         id: version
         uses: ./.github/actions/read-version
 
       - name: Invoke workflow in the homebrew-crowdin repo
-        uses: benc-uk/workflow-dispatch@v1
+        uses: benc-uk/workflow-dispatch@31e2b3319479a63f0ab15bf800eff9e913504e26 # v1.3.2
         with:
           workflow: publish.yml
           repo: crowdin/homebrew-crowdin
@@ -237,7 +237,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Read version
         id: version
@@ -264,7 +264,7 @@ jobs:
           Get-Content $install
 
       - name: Choco pack
-        uses: crazy-max/ghaction-chocolatey@v4
+        uses: crazy-max/ghaction-chocolatey@dfdcf5bba9c0a16358a21c13a06ec5c89024b3ac # v4.1.0
         with:
           args: pack packages/chocolatey/crowdin-cli.nuspec --outputdirectory packages/chocolatey
 
@@ -278,7 +278,7 @@ jobs:
           if ("$out" -ne $env:VERSION) { exit 1 }
 
       - name: Choco push
-        uses: crazy-max/ghaction-chocolatey@v4
+        uses: crazy-max/ghaction-chocolatey@dfdcf5bba9c0a16358a21c13a06ec5c89024b3ac # v4.1.0
         with:
           args: push packages/chocolatey/crowdin-cli.${{ steps.version.outputs.version }}.nupkg --api-key ${{ secrets.CHOCOLATEY_API_KEY }} --source=https://push.chocolatey.org/
 
@@ -288,9 +288,9 @@ jobs:
     if: github.event.inputs.package == 'all' || github.event.inputs.package == 'docker'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           bun-version-file: .bun-version
 
@@ -314,17 +314,17 @@ jobs:
           cp packages/docker/Dockerfile Dockerfile
 
       - name: Login to Docker Hub
-        uses: docker/login-action@v3
+        uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: docker.io
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - uses: docker/setup-qemu-action@v3
-      - uses: docker/setup-buildx-action@v3
+      - uses: docker/setup-qemu-action@96fe6ef7f33517b61c61be40b68a1882f3264fb8 # v4.2.0
+      - uses: docker/setup-buildx-action@37fe631027851001ddb9b187196cc803df7f5f0e # v4.3.0
 
       - name: Build and push
-        uses: docker/build-push-action@v6
+        uses: docker/build-push-action@53b7df96c91f9c12dcc8a07bcb9ccacbed38856a # v7.3.0
         with:
           platforms: linux/amd64,linux/arm64
           push: true
@@ -342,14 +342,14 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Read version
         id: version
         uses: ./.github/actions/read-version
 
       - name: Submit to winget-pkgs
-        uses: vedantmgoyal9/winget-releaser@v2
+        uses: vedantmgoyal9/winget-releaser@4ffc7888bffd451b357355dc214d43bb9f23917e # v2
         with:
           identifier: Crowdin.CrowdinCLI
           installers-regex: '^crowdin\.exe$'
@@ -366,9 +366,9 @@ jobs:
     permissions:
       contents: write
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: oven-sh/setup-bun@v2
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
         with:
           # Baseline build, so the win32-x64-baseline compile target matches the host
           # and bun doesn't download the target executable - that download is broken
@@ -393,7 +393,7 @@ jobs:
         run: iscc /DMyAppVersion=${{ steps.version.outputs.version }} packages\exe\CrowdinCLIInstaller.iss
 
       - name: Upload asset
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@3d0d9888cb7fd7b750713d6e236d1fcb99157228 # v3.0.2
         with:
           tag_name: ${{ steps.version.outputs.version }}
           files: crowdin-installer.exe
