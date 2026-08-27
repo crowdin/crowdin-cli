@@ -7,7 +7,7 @@
       "dependencies": {
         "@bomb.sh/tab": "^0.0.22",
         "@clack/prompts": "^1.7.0",
-        "@crowdin/crowdin-api-client": "^1.56.3",
+        "@crowdin/crowdin-api-client": "^1.56.4",
         "@toon-format/toon": "^4.1.1",
         "adm-zip": "^0.6.0",
         "commander": "^15.0.0",
@@ -70,7 +70,7 @@
 
     "@colors/colors": ["@colors/colors@1.5.0", "", {}, "sha512-ooWCrlZP11i8GImSjTHYHLkvFDP48nS4+204nGb1RiX/WXYHmJA2III9/e2DWVabCESdW7hBAEzHRqUn9OUVvQ=="],
 
-    "@crowdin/crowdin-api-client": ["@crowdin/crowdin-api-client@1.56.3", "", { "dependencies": { "axios": "1.19.0" } }, "sha512-QX+tGpe8aF+BPQRx+ORtopQe8SVHL61mkXSnEcbxYNzL33/mmkz0LOGc/ZWyULWn542lKNpagEa8JAhzjsWeJw=="],
+    "@crowdin/crowdin-api-client": ["@crowdin/crowdin-api-client@1.56.4", "", { "dependencies": { "axios": "1.19.0" } }, "sha512-237BqWcKzNbDcFELWYPF7uoK8APlWjWTJwBr1CV3gKDLtSgc6dsqq3yw+TaA3LJeyaHkSWOlc9HYzo0ovuU0Yw=="],
 
     "@emnapi/core": ["@emnapi/core@1.11.2", "", { "dependencies": { "@emnapi/wasi-threads": "1.2.2", "tslib": "^2.4.0" } }, "sha512-TC8MkTuZUtcTSiFeuC0ksCh9QIJ5+F21MvZ4Wn4ORfYaFJ/0dsiudv5tVkejgwZlwQ39jL9WWDe2lz8x0WglOA=="],
 
