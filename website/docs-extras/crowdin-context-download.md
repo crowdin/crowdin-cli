@@ -14,3 +14,8 @@ The JSON objects in the file include the following fields:
 ## Notes
 
 The `--croql` option cannot be used together with other filter options.
+
+## Links
+
+- [Context Enrichment with AI Agents](/blog/2026/02/23/context-enrichment) - a step-by-step tutorial
+

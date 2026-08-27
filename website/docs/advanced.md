@@ -199,6 +199,10 @@ The File Context feature is only available for [file-based](https://support.crow
 
 You can also specify the file context when uploading sources using the [`file upload`](/commands/crowdin-file-upload) command.
 
+:::tip
+File context describes a whole file. To add context to individual strings, use the [`crowdin context`](/commands/crowdin-context) commands - an AI agent can fill it in for you by analyzing your codebase. Read [Context Enrichment with AI Agents](/blog/2026/02/23/context-enrichment) to learn more.
+:::
+
 ### Argument File
 
 Crowdin CLI supports loading command-line arguments from a file.
