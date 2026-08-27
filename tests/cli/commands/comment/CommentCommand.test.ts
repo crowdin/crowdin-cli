@@ -355,12 +355,25 @@ describe('CommentCommand', () => {
       const commandContext = createCommandContext(globalOptions, ['42']);
       const successSpy = spyOn(textOutput, 'success');
 
-      spyOn(commentService, 'resolve').mockResolvedValue({ id: 42 } as never);
+      spyOn(commentService, 'resolve').mockResolvedValue({ id: 42, text: 'the issue' } as never);
 
       await cmd.resolveAction(commandContext);
 
       expect(commentService.resolve).toHaveBeenCalledWith(42);
       expect(successSpy).toHaveBeenCalledWith('A string issue #42 has been successfully resolved');
+    });
+
+    // The sentence is text-only, so the machine formats had nothing to show for a resolved issue.
+    test('echoes the resolved comment in a machine format', async () => {
+      const cmd = createCommentCommand();
+      const commandContext = createCommandContext(globalOptions, ['42']);
+      const item = spyOn(output, 'item');
+
+      spyOn(commentService, 'resolve').mockResolvedValue({ id: 42, text: 'the issue' } as never);
+
+      await cmd.resolveAction(commandContext);
+
+      expect(item).toHaveBeenCalledWith({ id: 42, text: 'the issue' }, expect.anything(), { mark: false });
     });
 
     test('throws when id argument is missing', async () => {

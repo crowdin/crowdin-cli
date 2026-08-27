@@ -3,6 +3,7 @@ import path from 'node:path';
 import type { GlossariesModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { baseConfigGroup } from '@/cli/commands/common/options.ts';
+import { downloadedPathView } from '@/cli/commands/common/views.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -136,7 +137,7 @@ export default class GlossaryCommand {
       throw toCliError(error, `Failed to write to the file '${to}'`);
     }
 
-    output.success(`'${to}' downloaded successfully`);
+    output.item(to, downloadedPathView);
   };
 
   uploadAction = async (command: Command) => {
@@ -148,7 +149,6 @@ export default class GlossaryCommand {
     const fileStat = await stat(fileArg).catch(() => undefined);
 
     if (fileStat === undefined) {
-      // Same wording as the Java CLI (error.file_not_found)
       throw new CliError(`File '${fileArg}' not found in the Crowdin project`);
     }
 
@@ -202,6 +202,8 @@ export default class GlossaryCommand {
     });
 
     output.success(`Imported in #${glossary.id} '${glossary.name}' glossary`);
+    // The sentence above is text-only; the glossary itself is what a machine format owes the caller.
+    output.item(glossary, createGlossaryView(), { mark: false });
   };
 
   private async loadTerms(

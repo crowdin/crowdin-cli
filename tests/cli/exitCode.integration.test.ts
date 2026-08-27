@@ -89,6 +89,30 @@ describe('exit codes (offline, end-to-end)', () => {
     expect(out).not.toContain('too many arguments');
   });
 
+  // stderr is a contract in the machine formats too: one diagnostic record per line, so commander's
+  // own prose (its 'error: ' line plus the usage hint) is suppressed and re-emitted as a record.
+  test('reports a usage error as a diagnostic record under --output=json', async () => {
+    const out = await captureCli(['--nonsense', '--output=json'], workspace);
+
+    expect(JSON.parse(out.trim())).toEqual({
+      level: 'error',
+      message: "unknown option '--nonsense'",
+      code: 2,
+    });
+  });
+
+  test('reports a usage error as a record under --output=toon', async () => {
+    const out = await captureCli(['boguscmd', '--output=toon'], workspace);
+
+    expect(out.trim()).toBe("level: error\nmessage: unknown command 'boguscmd'\ncode: 2");
+  });
+
+  test('keeps commander prose in text output', async () => {
+    const out = await captureCli(['--nonsense'], workspace);
+
+    expect(out).toContain("error: unknown option '--nonsense'");
+  });
+
   test('unknown option on a subcommand exits 2 (usage error)', async () => {
     expect(await runCli(['file', '--bogus'], workspace)).toBe(2);
   });

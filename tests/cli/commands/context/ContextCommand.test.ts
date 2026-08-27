@@ -134,6 +134,20 @@ describe('ContextCommand', () => {
       expect(loggedOutput()).toContain(`'${to}' saved successfully`);
     });
 
+    // The path went through success(), which prints in text only, so a machine format learned
+    // nothing about the file the command had just written.
+    test('prints the written path alone in plain', async () => {
+      output = createOutput({ ...globalOptions, output: 'plain' });
+      const command = createContextCommand();
+      const to = join(tempDir, 'out.jsonl');
+
+      stringService.list.mockResolvedValue([createString({ id: 701, context: 'manual' })]);
+
+      await command.downloadAction(createCommandContext({ to, output: 'plain' }));
+
+      expect(console.log).toHaveBeenCalledWith(to);
+    });
+
     test("filters strings by status 'ai'", async () => {
       const command = createContextCommand();
       const to = join(tempDir, 'out.jsonl');
@@ -478,6 +492,32 @@ describe('ContextCommand', () => {
       );
     });
 
+    // A dry run printed nothing outside text, so `-o json --dry-run` looked like 'nothing pending'
+    // for a run that was about to rewrite every context in the file.
+    test('reports the pending changes on a dry run in a machine format', async () => {
+      output = createOutput({ ...globalOptions, output: 'json' });
+      const list = spyOn(output, 'list');
+      const command = createContextCommand();
+      const from = await writeRecords([record(21, 'man21', 'ai21')]);
+
+      await command.uploadAction(createCommandContext({ from, dryrun: true, output: 'json' }));
+
+      expect(stringService.batchEdit).not.toHaveBeenCalled();
+      expect(list.mock.calls[0]?.[0]).toEqual([{ id: 21, text: 't21', context: AI_CONTEXT('man21', 'ai21') }]);
+    });
+
+    test('reports what it wrote in a machine format', async () => {
+      output = createOutput({ ...globalOptions, output: 'json' });
+      const list = spyOn(output, 'list');
+      const command = createContextCommand();
+      const from = await writeRecords([record(21, 'man21', 'ai21')]);
+
+      await command.uploadAction(createCommandContext({ from, output: 'json' }));
+
+      expect(stringService.batchEdit).toHaveBeenCalled();
+      expect(list.mock.calls.at(-1)?.[0]).toEqual([{ id: 21, text: 't21', context: AI_CONTEXT('man21', 'ai21') }]);
+    });
+
     test('fails when the file does not exist', async () => {
       const command = createContextCommand();
       const from = join(tempDir, 'missing.jsonl');
@@ -530,6 +570,23 @@ describe('ContextCommand', () => {
 
       expect(stringService.batchEdit).not.toHaveBeenCalled();
       expect(loggedOutput()).toContain('String #701: the-text (context: manual) would be updated');
+    });
+
+    // reset drops every AI context it finds, so a silent dry run is the most misleading output
+    // this command can produce.
+    test('reports the strings it would reset in a machine format', async () => {
+      output = createOutput({ ...globalOptions, output: 'json' });
+      const list = spyOn(output, 'list');
+      const command = createContextCommand();
+
+      stringService.list.mockResolvedValue([
+        createString({ id: 701, text: 'the-text', context: AI_CONTEXT('manual', 'ai-content') }),
+      ]);
+
+      await command.resetAction(createCommandContext({ all: true, dryrun: true, output: 'json' }));
+
+      expect(stringService.batchEdit).not.toHaveBeenCalled();
+      expect(list.mock.calls[0]?.[0]).toEqual([{ id: 701, text: 'the-text', context: 'manual' }]);
     });
 
     test('requires the --all flag when no filter is provided', async () => {

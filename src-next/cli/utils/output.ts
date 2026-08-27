@@ -61,7 +61,11 @@ export type TableGrid = {
 export type View<T> = {
   /** The default line, mirroring the Java message templates (`message.branch.list` and friends). */
   text: (item: T) => string;
-  /** Java's plain line, when it differs from `text` (e.g. branch prints the name alone). */
+  /**
+   * Java's plain line, when it differs from `text` (e.g. branch prints the name alone); left off,
+   * plain prints `text`. What belongs on it — and why its wording is frozen once shipped — is the
+   * render-command-output skill (.agents/skills/render-command-output/SKILL.md).
+   */
   plain?: (item: T) => string;
   /**
    * The keys json/toon keep, so a machine format carries what the text line shows instead of the

@@ -1777,6 +1777,32 @@ describe('UploadSourcesCommand', () => {
     expect(createCalls[0]?.[0]?.name).toBe('app.json');
   });
 
+  // Java suppresses the message under --plain and returns, exiting 0 on a pattern that matched
+  // nothing. `upload translations` keeps the exit code and drops only the message; a plain
+  // consumer is a script, so that is the behaviour worth carrying here too.
+  test('keeps the exit code in plain, message suppressed, when a pattern matches nothing', async () => {
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      baseProjectServiceMock(),
+      { addStorage: mock(async () => ({ data: { id: 10 } })) },
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      baseFileServiceMock(),
+      baseLabelServiceMock(),
+      baseTranslationServiceMock(),
+      {},
+      { files: [{ source: '/src/*.json', translation: '/locale/%two_letters_code%/%original_file_name%' }] },
+    );
+
+    await expect(command.uploadSourcesAction(commandContext({ output: 'plain' }))).rejects.toThrow(
+      'Current execution finished with errors',
+    );
+
+    expect(output.error).not.toHaveBeenCalled();
+  });
+
   test('warns and skips when an existing source file is currently being updated', async () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
 

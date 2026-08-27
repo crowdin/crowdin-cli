@@ -7,7 +7,7 @@ import type { GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import { language, languageAccessPolicy, sourceLanguage, stringBased } from './options.ts';
-import { projectVerboseView, projectView } from './views.ts';
+import { projectAddView, projectVerboseView, projectView } from './views.ts';
 
 interface ProjectCommandOptions extends GlobalOptions {
   sourceLanguage?: string;
@@ -114,8 +114,6 @@ export default class ProjectCommand {
 
     const project = await projectService.addProject(data);
 
-    // Java's plain branch prints the id alone; here plain renders like text ('#id name'), matching
-    // how `project list` treats plain.
-    output.item(project.data, projectView);
+    output.item(project.data, projectAddView);
   };
 }

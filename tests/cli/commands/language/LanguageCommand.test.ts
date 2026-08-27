@@ -221,6 +221,7 @@ describe('LanguageCommand', () => {
   test('prints warning and lists nothing if user has no manager access', async () => {
     const languageCommand = createLanguageCommand();
     const warning = spyOn(output, 'warning');
+    const list = spyOn(output, 'list');
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ data: {} } as never);
 
@@ -229,6 +230,9 @@ describe('LanguageCommand', () => {
     expect(warning).toHaveBeenCalledWith(
       'You must have manager or developer role in the project to perform this action',
     );
+    // The bail still owes json/toon a document — an absent stdout reads as an empty result, and
+    // 'bailed' is what the exit code and the stderr diagnostic carry.
+    expect(list).toHaveBeenCalledWith([], expect.anything());
   });
 
   test('lists project target languages with plain format outputs only codes', async () => {

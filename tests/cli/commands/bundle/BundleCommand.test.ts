@@ -11,6 +11,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { BundleService, BundleView } from '@/cli/services/BundleService.ts';
 import type { GetConfig } from '@/cli/services.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
+import { toPosixPath } from '@/lib/utils/path.ts';
 
 describe('BundleCommand', () => {
   let output: Output;
@@ -429,15 +430,41 @@ describe('BundleCommand', () => {
 
     test('keeps the archive with --keep-archive', async () => {
       mockArchive();
-      const textOutput = createOutput(textOptions({ keepArchive: true }));
-      const successSpy = spyOn(textOutput, 'success');
-      const cmd = createBundleCommand(textOutput);
+      const options = textOptions({ keepArchive: true });
+      const cmd = createBundleCommand(createOutput(options));
 
-      await cmd.downloadAction(createCommandContext(textOptions({ keepArchive: true }), ['5']));
+      await cmd.downloadAction(createCommandContext(options, ['5']));
 
       const archivePath = path.join(tempRoot, 'bundle-export-1.zip');
       expect((await stat(archivePath)).isFile()).toBe(true);
-      expect(successSpy).toHaveBeenCalledWith(`Archive saved to '${archivePath}'`);
+      // The reported path is POSIX on every OS, so it is compared as such (a no-op off Windows).
+      expect(console.log).toHaveBeenCalledWith(
+        expect.stringContaining(`Archive saved to '${toPosixPath(archivePath)}'`),
+      );
+    });
+
+    // The path used to go through log(), which prints in text only: --plain printed nothing and
+    // json/toon lost the archive from the result entirely.
+    test('prints the kept archive path alone in plain', async () => {
+      mockArchive();
+      const options = { ...globalOptions, output: 'plain', keepArchive: true };
+      const cmd = createBundleCommand(createOutput(options));
+
+      await cmd.downloadAction(createCommandContext(options, ['5']));
+
+      expect(console.log).toHaveBeenCalledWith(toPosixPath(path.join(tempRoot, 'bundle-export-1.zip')));
+    });
+
+    test('carries the kept archive path in a machine format', async () => {
+      mockArchive();
+      const options = { ...globalOptions, keepArchive: true };
+      const jsonOutput = createOutput(options);
+      const itemSpy = spyOn(jsonOutput, 'item');
+      const cmd = createBundleCommand(jsonOutput);
+
+      await cmd.downloadAction(createCommandContext(options, ['5']));
+
+      expect(itemSpy).toHaveBeenCalledWith(toPosixPath(path.join(tempRoot, 'bundle-export-1.zip')), expect.anything());
     });
   });
 });

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import type { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
-import { projectVerboseView, projectView } from '@/cli/commands/project/views.ts';
+import { projectAddView, projectVerboseView, projectView } from '@/cli/commands/project/views.ts';
 
 describe('project views', () => {
   const createProject = (overrides: Partial<ProjectsGroupsModel.Project> = {}): ProjectsGroupsModel.Project =>
@@ -39,5 +39,13 @@ describe('project views', () => {
   test('has no plain override, since Java ProjectListAction has no plain branch', () => {
     expect(projectView.plain).toBeUndefined();
     expect(projectVerboseView.plain).toBeUndefined();
+  });
+
+  // ProjectAddAction does have one, so the add echo carries the id a script needs.
+  test('prints the id alone in the add view, sharing the listing text line', () => {
+    const project = createProject();
+
+    expect(projectAddView.plain?.(project)).toBe('1');
+    expect(projectAddView.text(project)).toBe(projectView.text(project));
   });
 });

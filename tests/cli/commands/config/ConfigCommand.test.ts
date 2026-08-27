@@ -177,8 +177,14 @@ describe('ConfigCommand sources', () => {
       ...overrides,
     }) as ProjectConfig;
 
-  const runSources = async (config: ProjectConfig) => {
+  const runSources = async (config: ProjectConfig, options: Partial<GlobalOptions & { tree: boolean }> = {}) => {
+    const commandOptions = { ...globalOptions, config: '', ...options } as GlobalOptions & { config: string };
+
+    // The output has to be built for the format under test: --tree is text-only rendering.
+    output = createOutput(commandOptions);
+
     const list = spyOn(output, 'list');
+    const log = spyOn(output, 'log');
     const command = new ConfigCommand(
       async () => config,
       () => output,
@@ -186,20 +192,34 @@ describe('ConfigCommand sources', () => {
       async () => languageService,
     );
 
-    await command.listSourcesAction(createCommandContext({ ...globalOptions, config: '' }));
-    return list;
+    await command.listSourcesAction(createCommandContext(commandOptions));
+    return { list, log };
   };
 
   test('strips the common parent directory when preserve_hierarchy is off', async () => {
-    const list = await runSources(buildConfig());
+    const { list } = await runSources(buildConfig());
 
     expect(list).toHaveBeenCalledWith(['bar/b.json', 'foo/a.json'], expect.anything(), expect.anything());
   });
 
   test('keeps the full hierarchy when preserve_hierarchy is on', async () => {
-    const list = await runSources(buildConfig({ preserveHierarchy: true }));
+    const { list } = await runSources(buildConfig({ preserveHierarchy: true }));
 
     expect(list).toHaveBeenCalledWith(['src/bar/b.json', 'src/foo/a.json'], expect.anything(), expect.anything());
+  });
+
+  test('renders a tree with --tree', async () => {
+    const { list, log } = await runSources(buildConfig(), { tree: true, output: 'text' });
+
+    expect(list).not.toHaveBeenCalled();
+    expect(log).toHaveBeenCalled();
+  });
+
+  test('--tree is ignored under a machine --output so the format stays parseable', async () => {
+    const { list, log } = await runSources(buildConfig(), { tree: true, output: 'json' });
+
+    expect(log).not.toHaveBeenCalled();
+    expect(list).toHaveBeenCalledWith(['bar/b.json', 'foo/a.json'], expect.anything(), expect.anything());
   });
 });
 
@@ -245,6 +265,11 @@ describe('ConfigCommand translations', () => {
   ) => {
     spyOn(projectService, 'loadProject').mockResolvedValue(project as never);
 
+    const commandOptions = { ...globalOptions, config: '', ...options } as GlobalOptions & { config: string };
+
+    // The output has to be built for the format under test: --tree is text-only rendering.
+    output = createOutput(commandOptions);
+
     const config = (): ProjectConfig =>
       ConfigSchema.parse({
         projectId: 123,
@@ -256,6 +281,7 @@ describe('ConfigCommand translations', () => {
     const list = spyOn(output, 'list');
     const warning = spyOn(output, 'warning');
     const log = spyOn(output, 'log');
+    const error = spyOn(output, 'error');
     const command = new ConfigCommand(
       async () => config(),
       () => output,
@@ -263,11 +289,10 @@ describe('ConfigCommand translations', () => {
       async () => languageService,
     );
 
-    await command.listTranslationsAction(
-      createCommandContext({ ...globalOptions, config: '', ...options } as GlobalOptions & { config: string }),
-    );
+    // Returned rather than propagated so a test can assert on what was printed before the throw.
+    const thrown = await command.listTranslationsAction(createCommandContext(commandOptions)).catch((cause) => cause);
 
-    return { list, warning, log };
+    return { list, warning, log, error, thrown };
   };
 
   test('lists translations including the in-context pseudo-language', async () => {
@@ -311,20 +336,40 @@ describe('ConfigCommand translations', () => {
   });
 
   test('warns and lists nothing without manager access', async () => {
-    const { list, warning } = await run({ data: { targetLanguages: [{ id: 'uk', twoLettersCode: 'uk' }] } });
+    const { list, warning } = await run(
+      { data: { targetLanguages: [{ id: 'uk', twoLettersCode: 'uk' }] } },
+      { output: 'text' },
+    );
 
     expect(warning).toHaveBeenCalledTimes(1);
     expect(list).not.toHaveBeenCalled();
   });
 
-  test('throws Forbidden without manager access in plain output', async () => {
-    expect(run({ data: { targetLanguages: [] } }, { output: 'plain' })).rejects.toBeInstanceOf(CliError);
+  // A machine format gets the refusal as a diagnostic and a 103 exit, not a warning and exit 0 —
+  // otherwise the empty stdout is indistinguishable from a project with no translations.
+  test.each(['plain', 'json', 'toon'])('throws Forbidden without manager access in %s output', async (format) => {
+    const { error, list, thrown } = await run({ data: { targetLanguages: [] } }, { output: format });
+
+    expect(thrown).toBeInstanceOf(CliError);
+    expect(error).toHaveBeenCalledWith('You must have manager or developer role in the project to perform this action');
+    expect(list).not.toHaveBeenCalled();
   });
 
   test('renders a tree with --tree', async () => {
-    const { list, log } = await run(managerProject, { tree: true });
+    const { list, log } = await run(managerProject, { tree: true, output: 'text' });
 
     expect(list).not.toHaveBeenCalled();
     expect(log).toHaveBeenCalled();
+  });
+
+  test('--tree is ignored under a machine --output so the format stays parseable', async () => {
+    const { list, log } = await run(managerProject, { tree: true, output: 'json' });
+
+    expect(log).not.toHaveBeenCalled();
+    expect(list).toHaveBeenCalledWith(
+      ['l/ie/a.json', 'l/ie/b.json', 'l/uk/a.json', 'l/uk/b.json'],
+      expect.anything(),
+      expect.anything(),
+    );
   });
 });

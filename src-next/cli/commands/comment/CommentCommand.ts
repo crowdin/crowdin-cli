@@ -138,5 +138,8 @@ export default class CommentCommand {
     const comment = await commentService.resolve(id);
 
     output.success(`A string issue #${comment.id} has been successfully resolved`);
+    // Text keeps Java's sentence; the machine formats get the resolved comment itself, as the add
+    // echo above already does.
+    output.item(comment, commentView, { mark: false });
   };
 }

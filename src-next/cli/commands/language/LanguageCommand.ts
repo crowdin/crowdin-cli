@@ -96,6 +96,9 @@ export default class LanguageCommand {
     // Manager/developer role is exposed as `languageMapping` only on the settings-bearing response.
     if (!hasManagerAccess(project)) {
       output.warning('You must have manager or developer role in the project to perform this action');
+      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
+      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
+      output.list([], languageView);
       return;
     }
 

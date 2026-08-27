@@ -8,6 +8,7 @@ import ValidationError from '@/cli/errors/ValidationError.ts';
 import type { GetConfig, GetLanguageService, GetOutput, GetProjectService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
+import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import FileNotFoundError from '@/lib/common/errors/FileNotFoundError.ts';
 import SourceFileLoader from '@/lib/config/SourceFileLoader.ts';
 import { resolveTranslationPath } from '@/lib/config/translationPathResolver.ts';
@@ -72,7 +73,11 @@ export default class ConfigCommand {
       .map((localFilePath) => (localFilePath.startsWith(prefix) ? localFilePath.slice(prefix.length) : localFilePath))
       .sort();
 
-    if (command.optsWithGlobals().tree) {
+    // Tree is an interactive-only rendering; a machine --output (json/toon/plain) is a parseable
+    // contract and wins, falling through to output.list so the format stays intact.
+    const { tree, output: outputFormat } = command.optsWithGlobals();
+
+    if (tree && !isMachineFormat(outputFormat)) {
       printFileTree(displayedPaths, output);
       return;
     }
@@ -82,7 +87,6 @@ export default class ConfigCommand {
 
   listTranslationsAction = async (command: Command) => {
     const options = command.optsWithGlobals();
-    const plainView = options.output === 'plain';
     const config = await this.getConfig(command);
     const output = this.getOutput(command);
     const projectService = await this.getProjectService(command);
@@ -96,7 +100,11 @@ export default class ConfigCommand {
     if (!('translateDuplicates' in project.data)) {
       const message = 'You must have manager or developer role in the project to perform this action';
 
-      if (plainView) {
+      // A machine format owes the caller a result document, and a warning followed by exit 0 reads
+      // as 'no translations' instead of 'you may not ask'. Print first, then throw so the exit code
+      // carries the reason — the same order lintAction uses (Java only branches on --plain here).
+      if (isMachineFormat(options.output)) {
+        output.error(message);
         throw new ForbiddenError(message, true);
       }
 
@@ -146,7 +154,8 @@ export default class ConfigCommand {
 
     const displayedPaths = [...translationFilePaths].sort();
 
-    if (options.tree) {
+    // Same gate as the sources listing above: a machine format outranks --tree.
+    if (options.tree && !isMachineFormat(options.output)) {
       printFileTree(displayedPaths, output);
       return;
     }

@@ -178,6 +178,28 @@ describe('TmCommand', () => {
       expect(console.log).toHaveBeenCalledWith(expect.stringContaining("'42.tmx' downloaded successfully"));
     });
 
+    // The default target is derived from the memory's name, so without this line a script has no
+    // way to learn where the file landed — the message used to be text-only.
+    test('prints the written path alone in plain', async () => {
+      const tmCommand = createTmCommand();
+      spyOn(Bun, 'write').mockResolvedValue(0 as never);
+      output = createOutput({ ...globalOptions, output: 'plain' });
+
+      await tmCommand.downloadAction(createCommandContext({ output: 'plain' }, ['42']));
+
+      expect(console.log).toHaveBeenCalledWith('42.tmx');
+    });
+
+    test('carries the written path in a machine format', async () => {
+      const tmCommand = createTmCommand();
+      spyOn(Bun, 'write').mockResolvedValue(0 as never);
+      const item = spyOn(output, 'item');
+
+      await tmCommand.downloadAction(createCommandContext({}, ['42']));
+
+      expect(item).toHaveBeenCalledWith('42.tmx', expect.anything());
+    });
+
     test('downloads to the specified file and derives format from its extension', async () => {
       const tmCommand = createTmCommand();
       const write = spyOn(Bun, 'write').mockResolvedValue(0 as never);
@@ -276,6 +298,16 @@ describe('TmCommand', () => {
       expect(storageService.addStorage).toHaveBeenCalledTimes(1);
       expect(tmService.import).toHaveBeenCalledWith(42, { storageId: 52 });
       expect(console.log).toHaveBeenCalledWith(expect.stringContaining("Imported in #42 '42' translation memory"));
+    });
+
+    // 'Imported in …' is text-only, so a machine format saw an empty stdout for a real import.
+    test('echoes the translation memory in a machine format', async () => {
+      const tmCommand = createTmCommand();
+      const item = spyOn(output, 'item');
+
+      await tmCommand.uploadAction(createCommandContext({ id: '42' }, [tmxFile]));
+
+      expect(item).toHaveBeenCalledWith(createTm(), expect.anything(), { mark: false });
     });
 
     test('creates a new translation memory when no id is specified', async () => {
