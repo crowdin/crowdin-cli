@@ -6,14 +6,14 @@ export const to: OptionDef = {
   name: 'to',
   type: 'string',
   default: DEFAULT_CONTEXT_FILE,
-  description: `File path to download the context to. Default: ${DEFAULT_CONTEXT_FILE}`,
+  description: `File path to download the context to`,
 };
 
 export const from: OptionDef = {
   name: 'from',
   type: 'string',
   default: DEFAULT_CONTEXT_FILE,
-  description: `The file path to upload the context from. Only files previously downloaded by the context download command are supported. Default: ${DEFAULT_CONTEXT_FILE}`,
+  description: `The file path to upload the context from. Only files previously downloaded by the context download command are supported`,
 };
 
 export const overwrite: OptionDef = {

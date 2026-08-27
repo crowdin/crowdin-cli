@@ -20,7 +20,7 @@ import {
   getAiContextSection,
   getManualContext,
   getStringText,
-  readContextRecords,
+  readContextFile,
   type StringContextRecord,
 } from '@/cli/utils/aiContext.ts';
 import { isMachineFormat } from '@/cli/utils/formatter.ts';
@@ -175,7 +175,9 @@ export default class ContextCommand {
 
     const output = this.getOutput(command);
     const { isStringsBased, strings, filePaths } = await this.fetchFilteredStrings(command, options);
-    const existingRecords = (await Bun.file(options.to).exists()) ? await readContextRecords(options.to) : [];
+    // The download rewrites this path wholesale, so a target that holds something other than a
+    // context file has to stop the run — otherwise the first download silently destroys it.
+    const existingRecords = (await Bun.file(options.to).exists()) ? await this.readContextRecords(options.to) : [];
     const filtered = this.filterByStatus(strings, options.status);
 
     if (filtered.length === 0) {
@@ -219,7 +221,7 @@ export default class ContextCommand {
     }
 
     const output = this.getOutput(command);
-    let records = await readContextRecords(options.from);
+    let records = await this.readContextRecords(options.from);
     const readCount = records.length;
 
     if (!options.overwrite) {
@@ -432,7 +434,7 @@ export default class ContextCommand {
       ...(options.croql ? { croql: options.croql } : {}),
     };
 
-    let strings: SourceStringsModel.String[];
+    let strings: SourceStringsModel.String[] = [];
 
     if (!isStringsBased && fileFilters.length > 0) {
       // A file filter that matches nothing yields no strings. The Java CLI
@@ -444,9 +446,6 @@ export default class ContextCommand {
       const fileIds = [...filePaths.entries()]
         .filter(([, file]) => fileFilters.some((filter) => isPathMatch(file.path, filter)))
         .map(([id]) => id);
-
-      strings = [];
-
       // fileId already scopes the query to the branch the file lives in, and the API refuses the
       // two together ("Field [branchId] must not be set with the current field").
       const { branchId: _scopedByFile, ...fileParams } = baseParams;
@@ -464,6 +463,31 @@ export default class ContextCommand {
     }
 
     return { project, isStringsBased, strings, filePaths };
+  }
+
+  /**
+   * A line that holds no record fails the read, rather than being skipped as the Java CLI skips it:
+   * both callers rewrite the file they read, so a dropped line is an upload that silently sends
+   * less than the file holds, or a download that recomputes the ai_context that line carried and
+   * then overwrites it. Nothing parsed at all means the file is not a context file to begin with —
+   * a glossary, an XLIFF — which is worth saying instead of pointing at its first line.
+   */
+  private async readContextRecords(filePath: string): Promise<StringContextRecord[]> {
+    const { records, firstInvalidLine } = await readContextFile(filePath);
+
+    if (firstInvalidLine === undefined) {
+      return records;
+    }
+
+    if (records.length === 0) {
+      throw new CliError(
+        `File '${filePath}' is not a context file. Expected the JSONL format written by 'crowdin context download'`,
+      );
+    }
+
+    throw new CliError(
+      `File '${filePath}' contains an invalid record at line ${firstInvalidLine}. Expected the JSONL format written by 'crowdin context download'`,
+    );
   }
 
   private async applyBatches(command: Command, output: Output, patch: PatchRequest[]): Promise<void> {
