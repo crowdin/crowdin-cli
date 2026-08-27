@@ -9,6 +9,7 @@ import BundleCommand from '@/cli/commands/bundle/BundleCommand.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { BundleService, BundleView } from '@/cli/services/BundleService.ts';
+import type { LabelService } from '@/cli/services/LabelService.ts';
 import type { GetConfig } from '@/cli/services.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 import { toPosixPath } from '@/lib/utils/path.ts';
@@ -24,6 +25,7 @@ describe('BundleCommand', () => {
     exportBundle: ReturnType<typeof mock<BundleService['exportBundle']>>;
     getDownloadUrl: ReturnType<typeof mock<BundleService['getDownloadUrl']>>;
   };
+  let labelService: { resolveLabelIds: ReturnType<typeof mock<LabelService['resolveLabelIds']>> };
   const config = { basePath: '/tmp/bundle-base', projectId: 1 } as unknown as Awaited<ReturnType<GetConfig>>;
   const globalOptions: GlobalOptions = {
     verbose: false,
@@ -51,6 +53,7 @@ describe('BundleCommand', () => {
       () => out,
       async () => bundleService as unknown as BundleService,
       async () => config,
+      async () => labelService as unknown as LabelService,
     );
   };
 
@@ -82,6 +85,7 @@ describe('BundleCommand', () => {
       exportBundle: mock(async () => 'export-1'),
       getDownloadUrl: mock(async () => 'https://crowdin.com/download/bundle.zip'),
     };
+    labelService = { resolveLabelIds: mock(async () => undefined) };
 
     spyOn(console, 'log').mockImplementation(() => {});
     spyOn(console, 'table').mockImplementation(() => {});
@@ -179,14 +183,17 @@ describe('BundleCommand', () => {
         sourcePattern: ['/src/**'],
         ignorePattern: ['/src/tmp/**'],
         exportPattern: '/%two_letters_code%/app.json',
-        label: [7],
+        label: ['marketing'],
         includeSourceLanguage: true,
         includePseudoLanguage: false,
         multilingual: true,
       });
 
+      labelService.resolveLabelIds.mockResolvedValue([7]);
+
       await cmd.addAction(context);
 
+      expect(labelService.resolveLabelIds).toHaveBeenCalledWith(['marketing'], false);
       expect(bundleService.add).toHaveBeenCalledWith({
         name: 'bundle',
         format: 'json',

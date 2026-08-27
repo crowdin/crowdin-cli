@@ -6,6 +6,7 @@ import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { BranchService } from '@/cli/services/BranchService.ts';
 import type { FileService } from '@/cli/services/FileService.ts';
+import type { LabelService } from '@/cli/services/LabelService.ts';
 import type { TaskService } from '@/cli/services/TaskService.ts';
 import { createOutput, type Output } from '@/cli/utils/output.ts';
 
@@ -17,6 +18,7 @@ describe('TaskCommand', () => {
   };
   let branchService: { resolveBranch: ReturnType<typeof mock<BranchService['resolveBranch']>> };
   let fileService: { resolveFileIds: ReturnType<typeof mock<FileService['resolveFileIds']>> };
+  let labelService: { resolveLabelIds: ReturnType<typeof mock<LabelService['resolveLabelIds']>> };
   let apiClient: { organization?: Client['organization'] };
   const globalOptions: GlobalOptions = {
     verbose: false,
@@ -41,6 +43,7 @@ describe('TaskCommand', () => {
       async () => apiClient as Client,
       async () => branchService as unknown as BranchService,
       async () => fileService as unknown as FileService,
+      async () => labelService as unknown as LabelService,
     );
   };
 
@@ -58,6 +61,7 @@ describe('TaskCommand', () => {
     };
     branchService = { resolveBranch: mock(async () => undefined) };
     fileService = { resolveFileIds: mock(async () => ({ fileIds: [], missingPaths: [] })) };
+    labelService = { resolveLabelIds: mock(async () => undefined) };
     apiClient = {};
 
     spyOn(console, 'log').mockImplementation(() => {});
@@ -171,6 +175,7 @@ describe('TaskCommand', () => {
         async () => apiClient as Client,
         async () => branchService as unknown as BranchService,
         async () => fileService as unknown as FileService,
+        async () => labelService as unknown as LabelService,
       );
       const commandContext = createCommandContext({ ...globalOptions, output: 'text' });
       const infoSpy = spyOn(textOutput, 'info');
@@ -253,6 +258,7 @@ describe('TaskCommand', () => {
         async () => apiClient as Client,
         async () => branchService as unknown as BranchService,
         async () => fileService as unknown as FileService,
+        async () => labelService as unknown as LabelService,
       );
       const commandContext = createCommandContext(
         {
@@ -281,13 +287,14 @@ describe('TaskCommand', () => {
           type: 'translate',
           language: 'de',
           file: ['content.md'],
-          label: ['11', '12'],
+          label: ['marketing', 'urgent'],
           description: 'new task',
         },
         ['Translate docs'],
       );
       const createdTask = createTask({ id: 99, title: 'Translate docs', targetLanguageId: 'de' });
       fileService.resolveFileIds.mockResolvedValue({ fileIds: [55], missingPaths: [] });
+      labelService.resolveLabelIds.mockResolvedValue([11, 12]);
       taskService.add.mockResolvedValue(createdTask);
 
       await cmd.addAction(commandContext);
@@ -302,6 +309,7 @@ describe('TaskCommand', () => {
           description: 'new task',
         }),
       );
+      expect(labelService.resolveLabelIds).toHaveBeenCalledWith(['marketing', 'urgent'], false);
       expect(console.log).toHaveBeenCalledWith(JSON.stringify(asJson(createdTask), null, 2));
     });
 

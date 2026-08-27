@@ -74,7 +74,7 @@ const getGlossaryService = createGetGlossaryService(getApiClient, getOutput);
 
 const commentCommand = new CommentCommand(getOutput, getCommentService);
 const appCommand = new AppCommand(getOutput, getAppService);
-const bundleCommand = new BundleCommand(getOutput, getBundleService, getProjectConfig);
+const bundleCommand = new BundleCommand(getOutput, getBundleService, getProjectConfig, getLabelService);
 const screenshotCommand = new ScreenshotCommand(
   getOutput,
   getScreenshotService,
@@ -135,7 +135,14 @@ const stringCommand = new StringCommand(
   getFileService,
   getLabelService,
 );
-const taskCommand = new TaskCommand(getOutput, getTaskService, getApiClient, getBranchService, getFileService);
+const taskCommand = new TaskCommand(
+  getOutput,
+  getTaskService,
+  getApiClient,
+  getBranchService,
+  getFileService,
+  getLabelService,
+);
 const tmCommand = new TmCommand(getOutput, getTmService, getStorageService, getApiClient);
 const glossaryCommand = new GlossaryCommand(getOutput, getGlossaryService, getStorageService, getApiClient);
 const contextCommand = new ContextCommand(

@@ -28,9 +28,9 @@ export const exportPattern: OptionDef = {
 
 export const label: OptionDef = {
   name: 'label',
-  type: 'number',
+  type: 'string',
   variadic: true,
-  description: 'Label identifier. Could be specified multiple times',
+  description: 'Label title. Could be specified multiple times',
 };
 
 export const name: OptionDef = {
