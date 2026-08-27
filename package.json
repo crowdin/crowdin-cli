@@ -33,31 +33,31 @@
     "prepare": "husky"
   },
   "dependencies": {
-    "@bomb.sh/tab": "^0.0.21",
+    "@bomb.sh/tab": "^0.0.22",
     "@clack/prompts": "^1.7.0",
-    "@crowdin/crowdin-api-client": "^1.56.1",
-    "@toon-format/toon": "^2.3.1",
+    "@crowdin/crowdin-api-client": "^1.56.3",
+    "@toon-format/toon": "^4.1.1",
     "adm-zip": "^0.6.0",
     "commander": "^15.0.0",
     "console-table-printer": "^2.16.1",
-    "jose": "^6.2.4",
-    "js-yaml": "^4.3.0",
-    "zod": "^4.3.6"
+    "jose": "^6.2.10",
+    "js-yaml": "^4.3.1",
+    "zod": "^4.4.3"
   },
   "lint-staged": {
     "*.ts": "biome check --write"
   },
   "devDependencies": {
-    "@biomejs/biome": "^2.5.1",
-    "@semantic-release/changelog": "^6.0.3",
-    "@semantic-release/git": "^10.0.1",
+    "@biomejs/biome": "^2.5.10",
+    "@semantic-release/changelog": "^7.0.0",
+    "@semantic-release/git": "^11.0.1",
     "@types/bun": "latest",
     "@types/js-yaml": "^4.0.9",
     "husky": "^9.1.7",
-    "knip": "^6.32.2",
-    "lint-staged": "^17.0.8",
-    "semantic-release": "^25.0.5",
+    "knip": "^6.32.3",
+    "lint-staged": "^17.3.0",
+    "semantic-release": "^25.0.9",
     "semantic-release-replace-plugin": "^1.2.7",
-    "typescript": "^5"
+    "typescript": "^7.0.2"
   }
 }
