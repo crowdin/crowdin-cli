@@ -16,22 +16,25 @@ on:
           - "chocolatey"
           - "docker"
           - "winget"
-      winget_release_tag:
-        description: "Release tag for manual WinGet publish (example: 5.0.0)"
-        type: string
-        required: false
 
 jobs:
   verify:
-    # Publish from the release branch only
-    if: github.ref == 'refs/heads/main' && contains(fromJSON('["all", "npm", "docker", "aur", "homebrew", "chocolatey"]'), github.event.inputs.package)
     runs-on: ubuntu-latest
     steps:
+      - name: Ensure release branch
+        # Publish from main only. Fails (rather than skips) so it also blocks the channel jobs whose !failure() conditions tolerate a skipped assets chain
+        if: github.ref != 'refs/heads/main'
+        env:
+          REF: ${{ github.ref_name }}
+        run: |
+          echo "Publishing runs from main only (dispatched from $REF)"
+          exit 1
+
       - uses: actions/checkout@v6
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version-file: .bun-version
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -79,7 +82,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version-file: .bun-version
 
       - uses: actions/setup-node@v6
         with:
@@ -130,7 +133,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version-file: .bun-version
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -289,7 +292,7 @@ jobs:
 
       - uses: oven-sh/setup-bun@v2
         with:
-          bun-version: latest
+          bun-version-file: .bun-version
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -331,29 +334,27 @@ jobs:
             "${{ secrets.DOCKER_HUB_REGISTRY_IMAGE }}:${{ steps.version.outputs.version }}"
 
   winget:
-    # Runs automatically once the assets job has uploaded the standalone binary
+    # Submits the standalone crowdin.exe from the GitHub release to winget-pkgs
     runs-on: windows-latest
-    if: false # disabled until the first manual v5 manifest submission (packages/winget) lands in winget-pkgs
     needs: assets
+    # Runs on a skipped (but not failed) assets chain too, so it can be dispatched alone against the latest existing release
+    if: ${{ !failure() && !cancelled() && (github.event.inputs.package == 'all' || github.event.inputs.package == 'winget') }}
+    permissions:
+      contents: read
     steps:
-      - uses: vedantmgoyal9/winget-releaser@v2
-        with:
-          identifier: Crowdin.CrowdinCLI
-          installers-regex: '^crowdin\.exe$'
-          token: ${{ secrets.GH_WINGET_TOKEN }}
-          fork-user: crowdin-bot
+      - uses: actions/checkout@v6
 
-  winget-manual:
-    # Runs on manual dispatch only. The action picks up the standalone binary
-    # from the latest existing GitHub release, so the release must already exist
-    runs-on: windows-latest
-    if: false # disabled until the first manual v5 manifest submission (packages/winget) lands in winget-pkgs
-    steps:
-      - uses: vedantmgoyal9/winget-releaser@v2
+      - name: Read version
+        id: version
+        uses: ./.github/actions/read-version
+
+      - name: Submit to winget-pkgs
+        uses: vedantmgoyal9/winget-releaser@v2
         with:
           identifier: Crowdin.CrowdinCLI
           installers-regex: '^crowdin\.exe$'
-          release-tag: ${{ github.event.inputs.winget_release_tag }}
+          # The default release-tag comes from the release event, which never fires on workflow_dispatch
+          release-tag: ${{ steps.version.outputs.version }}
           token: ${{ secrets.GH_WINGET_TOKEN }}
           fork-user: crowdin-bot
 
@@ -371,8 +372,8 @@ jobs:
         with:
           # Baseline build, so the win32-x64-baseline compile target matches the host
           # and bun doesn't download the target executable - that download is broken
-          # on Windows hosts (oven-sh/bun#28327)
-          bun-download-url: https://github.com/oven-sh/bun/releases/latest/download/bun-windows-x64-baseline.zip
+          # on Windows hosts (oven-sh/bun#11198). Keep the version in sync with .bun-version
+          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.0/bun-windows-x64-baseline.zip
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
