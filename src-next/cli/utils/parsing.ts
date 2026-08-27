@@ -1,5 +1,5 @@
 import ValidationError from '@/cli/errors/ValidationError.ts';
-import { stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
+import { stripLeadingSlashes, stripTrailingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 
 // Java declares these ids as `Long`, so picocli converts them with Long.parseLong and reports a
 // usage error (exit 2) for anything else. `Number()` is far looser — it accepts '1.5', '1e3',
@@ -48,8 +48,10 @@ export function toNumberArray(value: NumericInput, errorMessage: string): number
   });
 }
 
+// Server paths never carry a trailing separator, so a path typed as 'en/' has to lose it before it
+// can be compared against one — otherwise '--directory en/' matches nothing.
 export function normalizePath(value: string): string {
-  return `/${stripLeadingSlashes(toPosixPath(value))}`;
+  return `/${stripTrailingSlashes(stripLeadingSlashes(toPosixPath(value)))}`;
 }
 
 // Symbols that are not allowed in Crowdin branch names are replaced with dots

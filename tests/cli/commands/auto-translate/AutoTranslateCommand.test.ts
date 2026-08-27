@@ -162,6 +162,31 @@ describe('AutoTranslateCommand', () => {
     expect(request.languageIds).toEqual(['ua']);
   });
 
+  // '--directory src/' has to reach the same files as '--directory src', and neither may reach a
+  // sibling that merely starts with the same characters.
+  test.each(['src', 'src/', '/src/'])('auto-translates the files under %p', async (directory) => {
+    const command = createCommand();
+    commandContext = createCommandContext({
+      ...globalOptions,
+      method: 'tm',
+      language: ['ua'],
+      directory,
+      branch: 'main',
+    });
+
+    spyOn(projectService, 'loadProject').mockResolvedValue(filesBasedProject as never);
+    spyOn(branchService, 'getBranch').mockResolvedValue({ id: 81, name: 'main' } as never);
+    spyOn(fileService, 'loadProjectFiles').mockResolvedValue({
+      data: [...projectFiles.data, { data: { id: 103, path: '/srcfiles/third.po', branchId: 81, directoryId: 62 } }],
+    } as never);
+    const preTranslate = spyOn(translationService, 'preTranslate').mockResolvedValue(finishedStatus as never);
+
+    await command.defaultAction(commandContext);
+
+    const request = preTranslate.mock.calls[0]?.[0] as unknown as Record<string, unknown>;
+    expect(request.fileIds).toEqual([102]);
+  });
+
   test('auto-translates all project files when no file or directory is given', async () => {
     const command = createCommand();
     commandContext = createCommandContext({
