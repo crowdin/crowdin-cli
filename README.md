@@ -18,6 +18,7 @@ Crowdin CLI is a command line tool that allows you to manage and synchronize you
 - upload all your existing translations to Crowdin in minutes
 - manage your localization resources without leaving the terminal
 - integrate Crowdin CLI with GitHub, GitLab, Jenkins, CircleCI, and other software
+- plug localization into AI agent workflows - machine-readable output, Agent Skills, and string context enrichment
 
 It is cross-platform and runs in a terminal on Linux-based and macOS operating systems, or in the command prompt on Windows.
 
@@ -48,6 +49,16 @@ It is cross-platform and runs in a terminal on Linux-based and macOS operating s
 ## Usage
 
 Visit the [documentation](https://crowdin.github.io/crowdin-cli/) for more details.
+
+## Built for AI Agents
+
+Crowdin CLI treats AI agents as first-class users: instant startup, stable exit codes, and machine-readable output (`--output json|toon`) make it cheap and predictable for an agent to call dozens of times in a row. The [Crowdin Agent Skills](https://github.com/crowdin/skills) teach your agent the CLI, the configuration file, and the core workflows:
+
+```bash
+npx skills add crowdin/skills --skill crowdin-cli
+```
+
+Your agent can also enrich your strings with context: it downloads the strings, analyzes your codebase to see how each one is used, and pushes the descriptions back to Crowdin - so translators and AI translations stop guessing. Read [Context Enrichment with AI Agents](https://crowdin.github.io/crowdin-cli/blog/2026/02/23/context-enrichment) to learn more.
 
 ## Seeking Assistance and Contributing
 

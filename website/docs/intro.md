@@ -50,13 +50,27 @@ npm install -g @crowdin/cli
 - Manage tasks in a Crowdin project
 - Manage source files and branches in the current project
 - Machine-readable output for scripts and AI agent workflows
-- Manage project context
+- Enrich string context with AI agents
 - Run auto-translation via MT, TM, or AI
 - Cached source uploads that skip files unchanged since the last run
 - Polished interactive prompts - select menus, spinners, and graceful cancellation
 - Shell completion for Bash, Zsh, Fish, and PowerShell
 - HTTP Proxy support including authorization
 - and more.
+
+## AI Agents
+
+Crowdin CLI treats AI agents as first-class users. Millisecond startup, stable [exit codes](/exit-codes), and machine-readable output make it a tool an agent can call dozens of times in a row - cheaply and predictably:
+
+- Use `--output toon` when the consumer of the output is an LLM - the same data as `json` at a fraction of the token cost.
+- Install the [crowdin-cli Agent Skill](https://github.com/crowdin/skills) so your agent knows the configuration patterns, the sync workflow, and the exit codes without trial and error:
+
+  ```bash
+  npx skills add crowdin/skills --skill crowdin-cli
+  ```
+
+  It's also available as a Claude Code plugin, a Gemini CLI extension, and more - see the [installation options](https://github.com/crowdin/skills#installation).
+- Let your agent enrich your strings with context: with the [`crowdin context`](/commands/crowdin-context) commands, the agent downloads your strings, analyzes the codebase to see how each one is used, and pushes the descriptions back to Crowdin - so translators and AI translations stop guessing. Read the tutorial: [Context Enrichment with AI Agents](/blog/2026/02/23/context-enrichment).
 
 ## Usage
 

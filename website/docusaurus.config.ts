@@ -5,7 +5,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 const config: Config = {
   title: 'Crowdin CLI',
   tagline:
-    'Crowdin CLI is a command line tool that allows you to manage and synchronize localization resources with your Crowdin project',
+    'Crowdin CLI is a command line tool that allows you to manage and synchronize localization resources with your Crowdin project - fast, portable, and built for scripts, CI, and AI agents',
   favicon: 'img/favicon.ico',
   trailingSlash: false,
 
