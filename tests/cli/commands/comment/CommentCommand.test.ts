@@ -330,6 +330,35 @@ describe('CommentCommand', () => {
       expect(listSpy).toHaveBeenCalledWith(expect.objectContaining({ type: 'issue', status: 'resolved' }));
     });
 
+    test('defaults type to issue when issue-type is set but type is not', async () => {
+      const cmd = createCommentCommand();
+      const commandContext = createCommandContext({
+        ...globalOptions,
+        issueType: 'translation_mistake',
+      });
+      const listSpy = spyOn(commentService, 'list').mockResolvedValue([]);
+
+      await cmd.listAction(commandContext);
+
+      expect(listSpy).toHaveBeenCalledWith(
+        expect.objectContaining({ type: 'issue', issueType: 'translation_mistake' }),
+      );
+    });
+
+    test('does not override type when both issue-type and type are set', async () => {
+      const cmd = createCommentCommand();
+      const commandContext = createCommandContext({
+        ...globalOptions,
+        type: 'comment',
+        issueType: 'translation_mistake',
+      });
+      const listSpy = spyOn(commentService, 'list').mockResolvedValue([]);
+
+      await cmd.listAction(commandContext);
+
+      expect(listSpy).toHaveBeenCalledWith(expect.objectContaining({ type: 'comment' }));
+    });
+
     test('does not override type when both status and type are set', async () => {
       const cmd = createCommentCommand();
       const commandContext = createCommandContext({
