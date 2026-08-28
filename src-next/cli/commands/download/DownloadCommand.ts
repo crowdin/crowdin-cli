@@ -18,6 +18,7 @@ import type {
   GetTranslationService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { Output } from '@/cli/utils/output.ts';
 import { matchesManagerSourceFile, matchesSourcePattern, replaceUnaryAsterisk } from '@/lib/config/projectFileMatch.ts';
@@ -181,12 +182,11 @@ export default class DownloadCommand {
     if (options.reviewed) {
       const build = await fileService.buildReviewedSources(branch?.id);
       const downloadUrl = await fileService.getReviewedSourcesDownloadUrl(build.data.id);
-      const response = await fetch(downloadUrl);
       const tempDir = await mkdtemp(path.join(tmpdir(), 'crowdin-reviewed-sources-'));
 
       try {
         const archivePath = path.join(tempDir, 'reviewed.zip');
-        await Bun.write(archivePath, response);
+        await downloadToFile(downloadUrl, archivePath);
 
         // The reviewed archive nests every file under a `<source_language_id>-REV` directory;
         // strip that prefix so keys line up with the project file paths (mirrors Java).
@@ -253,10 +253,8 @@ export default class DownloadCommand {
       try {
         const filePath = path.join(config.basePath, download.destination);
         const downloadUrl = await fileService.getSourceFileDownloadUrl(download.fileId);
-        const response = await fetch(downloadUrl);
 
-        await mkdir(path.dirname(filePath), { recursive: true });
-        await Bun.write(filePath, response);
+        await downloadToFile(downloadUrl, filePath);
         output.success(`File '${download.relativePath}'`);
         downloadedFiles.push({ path: download.relativePath, action: 'downloaded' });
       } catch (error) {
@@ -411,13 +409,12 @@ export default class DownloadCommand {
         }
 
         const downloadUrl = await translationService.getTranslationDownloadUrl(build.data.id);
-        const response = await fetch(downloadUrl);
 
         const tempDir = await mkdtemp(path.join(tmpdir(), 'crowdin-translations-'));
         tempDirs.push(tempDir);
         const archivePath = path.join(tempDir, 'translations.zip');
 
-        await Bun.write(archivePath, response);
+        await downloadToFile(downloadUrl, archivePath);
 
         // Pseudo builds always map all target languages (Java ignores export_languages/exclude here).
         const mappingLanguages = group.pseudo ? projectLanguages : resolvedLanguages;

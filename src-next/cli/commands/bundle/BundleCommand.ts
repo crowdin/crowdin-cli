@@ -10,6 +10,7 @@ import type { AddBundlePayload, BundleView } from '@/cli/services/BundleService.
 import type { GetBundleService, GetConfig, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
+import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import type { View } from '@/cli/utils/output.ts';
@@ -271,9 +272,8 @@ export default class BundleCommand {
     // Archive and extracted files both land under basePath (matches `download` keep-archive behaviour).
     const archivePath = path.join(config.basePath, `bundle-${exportId}.zip`);
     const downloadUrl = await bundleService.getDownloadUrl(id, exportId);
-    const response = await fetch(downloadUrl);
 
-    await Bun.write(archivePath, response);
+    await downloadToFile(downloadUrl, archivePath);
     output.success(`#${bundle.id} '${bundle.name}' has been successfully downloaded`);
 
     const zip = new AdmZip(archivePath);

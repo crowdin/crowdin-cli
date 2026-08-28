@@ -1,5 +1,4 @@
 import { existsSync, statSync } from 'node:fs';
-import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import type { ResponseObject, SourceFilesModel, UploadStorageModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
@@ -25,6 +24,7 @@ import type {
   GetTranslationService,
 } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import { printFileTree } from '@/cli/utils/fileTree.ts';
 import { isMachineFormat, isStructuredFormat } from '@/cli/utils/formatter.ts';
 import type { Output, View } from '@/cli/utils/output.ts';
@@ -632,8 +632,7 @@ export default class FileCommand {
 
         try {
           const downloadUrl = await fileService.getSourceFileDownloadUrl(projectFile.data.id);
-          await mkdir(path.dirname(fullFilePath), { recursive: true });
-          await Bun.write(fullFilePath, await fetch(downloadUrl));
+          await downloadToFile(downloadUrl, fullFilePath);
         } catch (error) {
           throw toCliError(error, `Failed to download '${filePath}'`);
         }
@@ -708,8 +707,7 @@ export default class FileCommand {
 
       try {
         const url = await translationService.buildProjectFileTranslation(sourceFile.data.id, language.id);
-        await mkdir(path.dirname(fullFilePath), { recursive: true });
-        await Bun.write(fullFilePath, await fetch(url));
+        await downloadToFile(url, fullFilePath);
       } catch (error) {
         throw toCliError(error, `Failed to download '${destPath}'`);
       }

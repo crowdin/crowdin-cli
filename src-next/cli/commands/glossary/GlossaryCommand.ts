@@ -10,6 +10,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { GlossaryService } from '@/cli/services/GlossaryService.ts';
 import type { GetApiClient, GetGlossaryService, GetOutput, GetStorageService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
+import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
 import {
   firstLineContainsHeader as firstLineContainsHeaderOption,
@@ -129,10 +130,9 @@ export default class GlossaryCommand {
 
     const exportId = await glossaryService.export(glossary.id, format);
     const downloadUrl = await glossaryService.getDownloadUrl(glossary.id, exportId);
-    const response = await fetch(downloadUrl);
 
     try {
-      await Bun.write(to, response);
+      await downloadToFile(downloadUrl, to);
     } catch (error) {
       throw toCliError(error, `Failed to write to the file '${to}'`);
     }

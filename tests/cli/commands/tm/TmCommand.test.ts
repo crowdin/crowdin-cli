@@ -160,13 +160,21 @@ describe('TmCommand', () => {
   });
 
   describe('download', () => {
+    let cwd: string;
+
     beforeEach(() => {
       spyOn(globalThis, 'fetch').mockResolvedValue(new Response('tm-content'));
+      // The default target is a bare file name, so the writes have to land somewhere disposable.
+      cwd = process.cwd();
+      process.chdir(tempDir);
+    });
+
+    afterEach(() => {
+      process.chdir(cwd);
     });
 
     test('downloads translation memory by id with the default file name', async () => {
       const tmCommand = createTmCommand();
-      const write = spyOn(Bun, 'write').mockResolvedValue(0 as never);
       output = createOutput({ ...globalOptions, output: 'text' });
 
       await tmCommand.downloadAction(createCommandContext({}, ['42']));
@@ -174,7 +182,7 @@ describe('TmCommand', () => {
       expect(tmService.get).toHaveBeenCalledWith(42);
       expect(tmService.export).toHaveBeenCalledWith(42, undefined, undefined, undefined);
       expect(tmService.getDownloadUrl).toHaveBeenCalledWith(42, 'export-id');
-      expect(write).toHaveBeenCalledWith('42.tmx', expect.anything());
+      expect(await Bun.file(join(tempDir, '42.tmx')).text()).toBe('tm-content');
       expect(console.log).toHaveBeenCalledWith(expect.stringContaining("'42.tmx' downloaded successfully"));
     });
 
@@ -182,7 +190,6 @@ describe('TmCommand', () => {
     // way to learn where the file landed — the message used to be text-only.
     test('prints the written path alone in plain', async () => {
       const tmCommand = createTmCommand();
-      spyOn(Bun, 'write').mockResolvedValue(0 as never);
       output = createOutput({ ...globalOptions, output: 'plain' });
 
       await tmCommand.downloadAction(createCommandContext({ output: 'plain' }, ['42']));
@@ -192,7 +199,6 @@ describe('TmCommand', () => {
 
     test('carries the written path in a machine format', async () => {
       const tmCommand = createTmCommand();
-      spyOn(Bun, 'write').mockResolvedValue(0 as never);
       const item = spyOn(output, 'item');
 
       await tmCommand.downloadAction(createCommandContext({}, ['42']));
@@ -202,25 +208,23 @@ describe('TmCommand', () => {
 
     test('downloads to the specified file and derives format from its extension', async () => {
       const tmCommand = createTmCommand();
-      const write = spyOn(Bun, 'write').mockResolvedValue(0 as never);
       const to = join(tempDir, 'memory.csv');
 
       await tmCommand.downloadAction(createCommandContext({ to }, ['42']));
 
       expect(tmService.export).toHaveBeenCalledWith(42, undefined, undefined, 'csv');
-      expect(write).toHaveBeenCalledWith(to, expect.anything());
+      expect(await Bun.file(to).text()).toBe('tm-content');
     });
 
     test('passes language pair and file format to the export', async () => {
       const tmCommand = createTmCommand();
-      spyOn(Bun, 'write').mockResolvedValue(0 as never);
 
       await tmCommand.downloadAction(
         createCommandContext({ sourceLanguageId: 'en', targetLanguageId: 'uk', format: 'csv' }, ['42']),
       );
 
       expect(tmService.export).toHaveBeenCalledWith(42, 'en', 'uk', 'csv');
-      expect(Bun.write).toHaveBeenCalledWith('42.csv', expect.anything());
+      expect(await Bun.file(join(tempDir, '42.csv')).text()).toBe('tm-content');
     });
 
     test('throws error for unsupported --to extension', async () => {
@@ -269,12 +273,12 @@ describe('TmCommand', () => {
       expect(tmService.export).not.toHaveBeenCalled();
     });
 
-    test('throws CliError when writing the file fails', async () => {
+    test('throws CliError when the download fails', async () => {
       const tmCommand = createTmCommand();
-      spyOn(Bun, 'write').mockRejectedValue(new Error('permission denied'));
+      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('nope', { status: 500 }));
 
       expect(tmCommand.downloadAction(createCommandContext({}, ['42']))).rejects.toThrow(
-        new CliError("Failed to write to the file '42.tmx'. permission denied"),
+        new CliError('Download failed with status 500'),
       );
     });
   });
