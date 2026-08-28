@@ -1,5 +1,7 @@
 import { decodeJwt } from 'jose';
 import CliError from '@/cli/errors/CliError.ts';
+import { openUrl } from './open.ts';
+import type { Output } from './output.ts';
 
 const CROWDIN_OAUTH_CLIENT_ID = 'wQEqvhU3vLOa2XicmUyT';
 const CROWDIN_OAUTH_HOST = 'localhost';
@@ -100,4 +102,27 @@ function authenticationPage(mainText: string): string {
     `<div><h1 style='text-align: center;'>${mainText}</h1>` +
     `<p style='text-align: center;'>You may now close this page.</p></div>`
   );
+}
+
+// Opens the OAuth page and waits for the callback, reporting progress. Shared by `init` and
+// `login`; the caller owns whatever prompt precedes it.
+export async function authorizeViaBrowser(output: Output): Promise<BrowserAuthorization> {
+  const authorizationUrl = getAuthorizationUrl();
+  const authorization = startBrowserAuthorization();
+
+  if (!openUrl(authorizationUrl)) {
+    output.warning(`Error opening a web browser. Please open the following link manually:\n${authorizationUrl}`);
+  }
+
+  output.spinner('browserAuth', 'start', 'Waiting for authorization in browser...');
+
+  try {
+    const result = await authorization;
+    output.spinner('browserAuth', 'stop', 'Browser authorization finished successfully');
+
+    return result;
+  } catch (error) {
+    output.spinner('browserAuth', 'error', 'Browser authorization failed');
+    throw error;
+  }
 }

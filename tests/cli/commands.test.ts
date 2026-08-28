@@ -16,7 +16,8 @@ const TIER_OPTIONS: Record<'base' | 'project' | 'files', string[]> = {
   files: FILES_TIER,
 };
 
-// Expected config tier for every registered command. `init` has its own options and is excluded.
+// Expected config tier for every registered command. `init` and `login` have their own options and
+// are excluded.
 // A new command without an entry here fails `assigns a config tier to every command`.
 const COMMAND_TIER: Record<string, 'base' | 'project' | 'files'> = {
   upload: 'files',
@@ -41,7 +42,7 @@ const COMMAND_TIER: Record<string, 'base' | 'project' | 'files'> = {
   tm: 'base',
 };
 
-const COMMANDS_WITHOUT_CONFIG = new Set(['init']);
+const COMMANDS_WITHOUT_CONFIG = new Set(['init', 'login']);
 
 // Parents whose own action performs a real operation (not a `command.help()` shim), so they carry
 // the config group themselves in addition to their subcommands.
@@ -79,6 +80,7 @@ describe('command registry', () => {
       'upload',
       'download',
       'init',
+      'login',
       'status',
       'auto-translate',
       'string',

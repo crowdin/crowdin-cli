@@ -12,6 +12,7 @@ import GlossaryCommand from './commands/glossary/GlossaryCommand.ts';
 import InitCommand from './commands/init/InitCommand.ts';
 import LabelCommand from './commands/label/LabelCommand.ts';
 import LanguageCommand from './commands/language/LanguageCommand.ts';
+import LoginCommand from './commands/login/LoginCommand.ts';
 import ProjectCommand from './commands/project/ProjectCommand.ts';
 import ScreenshotCommand from './commands/screenshot/ScreenshotCommand.ts';
 import StatusCommand from './commands/status/StatusCommand.ts';
@@ -85,6 +86,7 @@ const screenshotCommand = new ScreenshotCommand(
   getLabelService,
 );
 const initCommand = new InitCommand(getOutput);
+const loginCommand = new LoginCommand(getOutput);
 const configCommand = new ConfigCommand(getProjectConfig, getOutput, getProjectService, getLanguageService);
 const downloadCommand = new DownloadCommand(
   getProjectConfig,
@@ -170,6 +172,7 @@ export const commands: CommandDef[] = [
   uploadCommand.getDefinition(),
   downloadCommand.getDefinition(),
   initCommand.getDefinition(),
+  loginCommand.getDefinition(),
   statusCommand.getDefinition(),
   autoTranslateCommand.getDefinition(),
   stringCommand.getDefinition(),
