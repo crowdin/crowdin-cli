@@ -50,6 +50,26 @@ describe('downloadToFile', () => {
     expect(await Bun.file(join(tempDir, 'file.txt')).text()).toBe('file content');
   });
 
+  // Covers both arms of the mkdir guard the Windows fix added: an existing path is swallowed and
+  // the failure surfaces from the write instead, while any other errno is rethrown as-is.
+  test('swallows EEXIST from mkdir and fails on the write', async () => {
+    spyOn(globalThis, 'fetch').mockResolvedValue(new Response('file content'));
+    const blocker = join(tempDir, 'blocker');
+    await writeFile(blocker, 'not a directory');
+
+    expect(downloadToFile('https://example.test/file.txt', join(blocker, 'file.txt'))).rejects.toThrow(/ENOTDIR/);
+  });
+
+  test('rethrows other mkdir failures', async () => {
+    spyOn(globalThis, 'fetch').mockResolvedValue(new Response('file content'));
+    const blocker = join(tempDir, 'blocker');
+    await writeFile(blocker, 'not a directory');
+
+    expect(downloadToFile('https://example.test/file.txt', join(blocker, 'nested', 'file.txt'))).rejects.toThrow(
+      /ENOTDIR/,
+    );
+  });
+
   test('throws CliError for a failed request', async () => {
     spyOn(globalThis, 'fetch').mockResolvedValue(new Response('<Error/>', { status: 403 }));
 
