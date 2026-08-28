@@ -51,13 +51,23 @@ describe('downloadToFile', () => {
   });
 
   // Covers both arms of the mkdir guard the Windows fix added: an existing path is swallowed and
-  // the failure surfaces from the write instead, while any other errno is rethrown as-is.
+  // the failure surfaces from the write instead, while any other errno is rethrown as-is. The errno
+  // itself differs per platform (ENOTDIR on POSIX, ENOENT on Windows), so only its shape is asserted.
   test('swallows EEXIST from mkdir and fails on the write', async () => {
     spyOn(globalThis, 'fetch').mockResolvedValue(new Response('file content'));
     const blocker = join(tempDir, 'blocker');
     await writeFile(blocker, 'not a directory');
 
-    expect(downloadToFile('https://example.test/file.txt', join(blocker, 'file.txt'))).rejects.toThrow(/ENOTDIR/);
+    const error: NodeJS.ErrnoException = await downloadToFile(
+      'https://example.test/file.txt',
+      join(blocker, 'file.txt'),
+    ).then(
+      () => new Error('expected a rejection'),
+      (reason) => reason,
+    );
+
+    expect(error.code).toMatch(/^E/);
+    expect(await Bun.file(blocker).text()).toBe('not a directory');
   });
 
   test('rethrows other mkdir failures', async () => {
@@ -65,9 +75,15 @@ describe('downloadToFile', () => {
     const blocker = join(tempDir, 'blocker');
     await writeFile(blocker, 'not a directory');
 
-    expect(downloadToFile('https://example.test/file.txt', join(blocker, 'nested', 'file.txt'))).rejects.toThrow(
-      /ENOTDIR/,
+    const error: NodeJS.ErrnoException = await downloadToFile(
+      'https://example.test/file.txt',
+      join(blocker, 'nested', 'file.txt'),
+    ).then(
+      () => new Error('expected a rejection'),
+      (reason) => reason,
     );
+
+    expect(error.code).toMatch(/^E/);
   });
 
   test('throws CliError for a failed request', async () => {
