@@ -34,6 +34,22 @@ describe('downloadToFile', () => {
     expect(await readdir(tempDir)).toEqual(['file.txt']);
   });
 
+  // Bun on Windows rejects `mkdir('.', { recursive: true })` with EEXIST, which is what a bare
+  // file name resolves to — every relative download failed there.
+  test('writes to a bare file name in the current directory', async () => {
+    spyOn(globalThis, 'fetch').mockResolvedValue(new Response('file content'));
+    const cwd = process.cwd();
+    process.chdir(tempDir);
+
+    try {
+      await downloadToFile('https://example.test/file.txt', 'file.txt');
+    } finally {
+      process.chdir(cwd);
+    }
+
+    expect(await Bun.file(join(tempDir, 'file.txt')).text()).toBe('file content');
+  });
+
   test('throws CliError for a failed request', async () => {
     spyOn(globalThis, 'fetch').mockResolvedValue(new Response('<Error/>', { status: 403 }));
 

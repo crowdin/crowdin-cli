@@ -31,7 +31,13 @@ export async function downloadToFile(url: string, destination: string): Promise<
     throw new CliError(`Download failed with status ${response.status}`);
   }
 
-  await mkdir(path.dirname(destination), { recursive: true });
+  // Bun on Windows rejects a recursive mkdir of a directory that already exists, which a bare file
+  // name ('.') always is; POSIX treats it as a no-op.
+  await mkdir(path.dirname(destination), { recursive: true }).catch((error: NodeJS.ErrnoException) => {
+    if (error.code !== 'EEXIST') {
+      throw error;
+    }
+  });
 
   // Randomised so two downloads racing for one destination can't write to the same part file.
   const partPath = `${destination}.${Math.random().toString(36).slice(2, 10)}.part`;
