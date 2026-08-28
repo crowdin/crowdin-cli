@@ -85,10 +85,24 @@ export class TmService {
   }
 
   async import(tmId: number, request: TranslationMemoryModel.ImportTranslationMemoryRequest): Promise<void> {
-    try {
-      await this.apiClient.translationMemoryApi.importTm(tmId, request);
-    } catch (error) {
-      throw toCliError(error, 'Failed to import translation memory');
-    }
+    await withSpinner(
+      this.output,
+      'tmImport',
+      {
+        start: 'Importing translation memory',
+        stop: 'Importing translation memory (100%)',
+        fail: 'Failed to import translation memory',
+      },
+      async () => {
+        const started = await this.apiClient.translationMemoryApi.importTm(tmId, request);
+
+        await pollUntilFinished(
+          started,
+          ({ identifier }) => this.apiClient.translationMemoryApi.checkImportStatus(tmId, identifier),
+          'The import has failed',
+          (status) => this.output.spinner('tmImport', 'message', `Importing translation memory (${status.progress}%)`),
+        );
+      },
+    );
   }
 }

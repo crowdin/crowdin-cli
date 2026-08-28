@@ -195,7 +195,9 @@ describe('GlossaryService', () => {
 
   describe('import', () => {
     test('starts the import', async () => {
-      spyOn(apiClient.glossariesApi, 'importGlossaryFile').mockResolvedValue({} as never);
+      spyOn(apiClient.glossariesApi, 'importGlossaryFile').mockResolvedValue({
+        data: { identifier: 'import-id', status: 'finished' },
+      } as never);
 
       await glossaryService.import(42, { storageId: 52, scheme: { term_en: 0 }, firstLineContainsHeader: true });
 
@@ -204,6 +206,29 @@ describe('GlossaryService', () => {
         scheme: { term_en: 0 },
         firstLineContainsHeader: true,
       });
+    });
+
+    test('polls import status until finished', async () => {
+      spyOn(apiClient.glossariesApi, 'importGlossaryFile').mockResolvedValue({
+        data: { identifier: 'import-id', status: 'created', progress: 0 },
+      } as never);
+      spyOn(apiClient.glossariesApi, 'checkGlossaryImportStatus')
+        .mockResolvedValueOnce({ data: { identifier: 'import-id', status: 'inProgress', progress: 50 } } as never)
+        .mockResolvedValueOnce({ data: { identifier: 'import-id', status: 'finished' } } as never);
+      spyOn(Bun, 'sleep').mockResolvedValue(undefined);
+
+      await glossaryService.import(42, { storageId: 52 });
+
+      expect(apiClient.glossariesApi.checkGlossaryImportStatus).toHaveBeenCalledTimes(2);
+      expect(apiClient.glossariesApi.checkGlossaryImportStatus).toHaveBeenCalledWith(42, 'import-id');
+    });
+
+    test('throws CliError when the import fails', async () => {
+      spyOn(apiClient.glossariesApi, 'importGlossaryFile').mockResolvedValue({
+        data: { identifier: 'import-id', status: 'failed' },
+      } as never);
+
+      expect(glossaryService.import(42, { storageId: 52 })).rejects.toThrow(new CliError('The import has failed'));
     });
 
     test('wraps API error as CliError', async () => {
