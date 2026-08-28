@@ -76,7 +76,6 @@ jobs:
           - linux-arm64
           - linux-x64-musl
           - linux-arm64-musl
-          - win32-x64
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -101,9 +100,85 @@ jobs:
       - name: Publish
         run: npm publish packages/npm/${{ matrix.package }}
 
+  win-binary:
+    # Bun's --windows-* PE metadata flags only work on a Windows host, so crowdin.exe is
+    # built once here and reused by the npm package, the release asset and the installer
+    needs: verify
+    if: github.event.inputs.package == 'all' || github.event.inputs.package == 'npm'
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
+        with:
+          # Baseline build, so the win32-x64-baseline compile target matches the host
+          # and bun doesn't download the target executable - that download is broken
+          # on Windows hosts (oven-sh/bun#11198). Keep the version in sync with .bun-version
+          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.0/bun-windows-x64-baseline.zip
+
+      - name: Install dependencies
+        run: bun install --frozen-lockfile
+
+      - name: Read version
+        id: version
+        uses: ./.github/actions/read-version
+
+      - name: Build binary
+        run: bun run build:win32-x64
+
+      - name: Smoke test binary
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+        run: |
+          $out = & packages\npm\win32-x64\bin\crowdin.exe --version
+          Write-Host "manifest version: $env:VERSION / binary version: $out"
+          if ("$out" -ne $env:VERSION) { exit 1 }
+
+      - name: Verify PE metadata
+        # Catches the --windows-* flags silently falling out of the build script
+        run: |
+          $vi = (Get-Item packages\npm\win32-x64\bin\crowdin.exe).VersionInfo
+          $vi | Format-List CompanyName, ProductName, FileDescription, FileVersion, LegalCopyright
+          foreach ($field in 'CompanyName', 'ProductName', 'FileDescription', 'FileVersion') {
+            if (-not $vi.$field) { throw "PE metadata field $field is empty" }
+          }
+
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: crowdin-exe
+          path: packages/npm/win32-x64/bin/crowdin.exe
+          if-no-files-found: error
+
+  publish-win:
+    # Publishes the win-binary exe as the win32-x64 npm package, so npm ships the same
+    # binary as the release and the installer rather than a separate cross-compiled one
+    needs: win-binary
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          registry-url: https://registry.npmjs.org/
+
+      - name: Update npm
+        run: npm install -g npm@11.18.0
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: crowdin-exe
+          path: packages/npm/win32-x64/bin
+
+      - name: Publish
+        run: npm publish packages/npm/win32-x64
+
   # Last: the launcher pins exact platform-package versions, so it must never be published before its binaries
   publish-cli:
-    needs: publish-platforms
+    needs: [publish-platforms, publish-win]
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -124,7 +199,7 @@ jobs:
 
   assets:
     # Builds the standalone binaries and creates the GitHub release once the npm packages are published
-    needs: publish-cli
+    needs: [publish-cli, win-binary]
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -143,15 +218,20 @@ jobs:
         uses: ./.github/actions/read-version
 
       - name: Build binaries
+        # build:all covers the cross-compilable targets only; crowdin.exe comes from win-binary
         run: bun run build:all
+
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: crowdin-exe
+          path: release-assets
 
       - name: Stage release assets
         run: |
-          mkdir release-assets
+          mkdir -p release-assets
           for platform in darwin-arm64 darwin-x64 linux-x64 linux-arm64 linux-x64-musl linux-arm64-musl; do
             cp packages/npm/$platform/bin/crowdin release-assets/crowdin-$platform
           done
-          cp packages/npm/win32-x64/bin/crowdin.exe release-assets/crowdin.exe
           cd release-assets
           shasum -a 256 crowdin* > crowdin-cli_checksums.sha256
           echo ${{ steps.version.outputs.version }} > version.txt
@@ -359,31 +439,24 @@ jobs:
           fork-user: crowdin-bot
 
   exe:
-    # Builds the Windows installer (Inno Setup) around the standalone win32-x64
-    # binary and attaches it to the GitHub release created by the assets job
+    # Wraps the Windows installer (Inno Setup) around the win-binary exe - the same binary
+    # the release and the npm package ship - and attaches it to the GitHub release
     runs-on: windows-latest
-    needs: assets
+    needs: [assets, win-binary]
     permissions:
       contents: write
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - uses: oven-sh/setup-bun@0c5077e51419868618aeaa5fe8019c62421857d6 # v2.2.0
-        with:
-          # Baseline build, so the win32-x64-baseline compile target matches the host
-          # and bun doesn't download the target executable - that download is broken
-          # on Windows hosts (oven-sh/bun#11198). Keep the version in sync with .bun-version
-          bun-download-url: https://github.com/oven-sh/bun/releases/download/bun-v1.4.0/bun-windows-x64-baseline.zip
-
-      - name: Install dependencies
-        run: bun install --frozen-lockfile
-
       - name: Read version
         id: version
         uses: ./.github/actions/read-version
 
-      - name: Build binary
-        run: bun run build:win32-x64
+      - uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: crowdin-exe
+          # The path the .iss Source directive reads
+          path: packages/npm/win32-x64/bin
 
       - name: Smoke test binary
         run: packages\npm\win32-x64\bin\crowdin.exe --version
