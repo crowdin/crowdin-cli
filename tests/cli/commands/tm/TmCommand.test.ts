@@ -315,8 +315,9 @@ describe('TmCommand', () => {
 
       await tmCommand.uploadAction(createCommandContext({ language: 'uk' }, [tmxFile]));
 
-      expect(tmService.get).not.toHaveBeenCalled();
       expect(tmService.add).toHaveBeenCalledWith({ name: 'Created in Crowdin CLI (file.tmx)', languageId: 'uk' });
+      // The only `get` is the post-import refetch for the echoed segment count.
+      expect(tmService.get).toHaveBeenCalledWith(43);
       expect(tmService.import).toHaveBeenCalledWith(43, { storageId: 52 });
     });
 

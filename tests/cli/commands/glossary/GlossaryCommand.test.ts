@@ -339,8 +339,9 @@ describe('GlossaryCommand', () => {
 
       await glossaryCommand.uploadAction(createCommandContext({ language: 'uk' }, [tbxFile]));
 
-      expect(glossaryService.get).not.toHaveBeenCalled();
       expect(glossaryService.add).toHaveBeenCalledWith({ name: 'Created in Crowdin CLI (file.tbx)', languageId: 'uk' });
+      // The only `get` is the post-import refetch for the echoed term count.
+      expect(glossaryService.get).toHaveBeenCalledWith(43);
       expect(glossaryService.import).toHaveBeenCalledWith(43, { storageId: 52 });
     });
 

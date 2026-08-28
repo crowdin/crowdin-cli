@@ -203,7 +203,8 @@ export default class GlossaryCommand {
 
     output.success(`Imported in #${glossary.id} '${glossary.name}' glossary`);
     // The sentence above is text-only; the glossary itself is what a machine format owes the caller.
-    output.item(glossary, createGlossaryView(), { mark: false });
+    // Refetched: the copy from before the import still carries the old term count.
+    output.item(await glossaryService.get(glossary.id), createGlossaryView(), { mark: false });
   };
 
   private async loadTerms(

@@ -213,6 +213,7 @@ export default class TmCommand {
 
     output.success(`Imported in #${tm.id} '${tm.name}' translation memory`);
     // The sentence above is text-only; the memory itself is what a machine format owes the caller.
-    output.item(tm, tmView, { mark: false });
+    // Refetched: the copy from before the import still carries the old segment count.
+    output.item(await tmService.get(tm.id), tmView, { mark: false });
   };
 }
