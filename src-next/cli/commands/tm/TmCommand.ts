@@ -43,7 +43,6 @@ const UPLOAD_EXTENSIONS = ['tmx', 'csv', 'xls', 'xlsx'];
 const SCHEME_EXTENSIONS = ['csv', 'xls', 'xlsx'];
 const DEFAULT_TM_NAME = 'Created in Crowdin CLI (%s)';
 
-// Java message.tm.list: id, name, segment count.
 const tmView: View<TranslationMemoryModel.TranslationMemory> = {
   text: (tm) => `${colors.yellow(`#${tm.id}`)} ${tm.name} (${colors.green(`segments: ${tm.segmentsCount}`)})`,
   plain: (tm) => tm.name,
