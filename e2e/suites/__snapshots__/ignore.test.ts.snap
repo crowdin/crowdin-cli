@@ -5,8 +5,8 @@ exports[`ignore uploads hidden dotfiles when ignore_hidden_files is false 1`] = 
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory folder created
-◆  Directory sub created
+◆  Directory 'folder'
+◆  Directory 'folder/sub'
 ◆  File 'folder/.hidden.xml'
 ◆  File 'folder/1.xml'
 ◆  File 'folder/123.xml'
@@ -24,8 +24,8 @@ exports[`ignore skips hidden dotfiles when ignore_hidden_files is true 1`] = `
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory folder created
-◆  Directory sub created
+◆  Directory 'folder'
+◆  Directory 'folder/sub'
 ◆  File 'folder/1.xml'
 ◆  File 'folder/123.xml'
 ◆  File 'folder/123_test.xml'

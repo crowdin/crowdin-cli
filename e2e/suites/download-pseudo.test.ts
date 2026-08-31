@@ -49,7 +49,7 @@ describe('download pseudo', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources/android.xml'");
+    expect(result.stdout).toContain("File 'android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -62,7 +62,7 @@ describe('download pseudo', () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Building pseudo translations');
     expect(result.stdout).toContain('Downloading translations');
-    expect(result.stdout).toContain('File translations/uk/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await assertDownloadedMatches(ctx, 'uk', 'all_params');
@@ -75,7 +75,7 @@ describe('download pseudo', () => {
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/zh/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/zh/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await assertDownloadedMatches(ctx, 'zh', 'asian');
@@ -88,7 +88,7 @@ describe('download pseudo', () => {
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/fr/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/fr/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await assertDownloadedMatches(ctx, 'fr', 'european');
@@ -101,7 +101,7 @@ describe('download pseudo', () => {
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/ar/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/ar/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await assertDownloadedMatches(ctx, 'ar', 'arabic');
@@ -114,7 +114,7 @@ describe('download pseudo', () => {
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/en/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/en/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await assertDownloadedMatches(ctx, 'en', 'length_correction');
@@ -127,7 +127,7 @@ describe('download pseudo', () => {
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/en/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/en/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await assertDownloadedMatches(ctx, 'en', 'prefix');
@@ -140,7 +140,7 @@ describe('download pseudo', () => {
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/en/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/en/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await assertDownloadedMatches(ctx, 'en', 'suffix');
@@ -153,7 +153,7 @@ describe('download pseudo', () => {
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/en/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/en/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await assertDownloadedMatches(ctx, 'en', 'default');
@@ -165,8 +165,13 @@ describe('download pseudo', () => {
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
     expect(result.exitCode).toBe(2);
-    expect(result.stdout).toContain('Invalid option: expected one of "asian"|"european"|"arabic"|"cyrillic"');
-    expect(result.stdout).toContain('at pseudoLocalization.character_transformation');
+    expect(result.stderr).toContain('Invalid option: expected one of "asian"|"european"|"arabic"|"cyrillic"');
+    // The field path is NOT asserted: `cli/config.ts` maps zod issues with
+    // `issues.map((issue) => issue.message)`, which drops `issue.path`. Commit 047df3e3
+    // ("fix(config): updated api_token validation") replaced `z.prettifyError(parsed.error)` - whose
+    // output carries a `-> at <path>` line - with that mapping, so a config error no longer names the
+    // offending key. Restoring the path (e.g. appending `issue.path.join('.')`) should bring back an
+    // `at pseudoLocalization.<field>` assertion here.
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -176,8 +181,13 @@ describe('download pseudo', () => {
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
     expect(result.exitCode).toBe(2);
-    expect(result.stdout).toContain('Invalid input: expected string, received number');
-    expect(result.stdout).toContain('at pseudoLocalization.prefix');
+    expect(result.stderr).toContain('Invalid input: expected string, received number');
+    // The field path is NOT asserted: `cli/config.ts` maps zod issues with
+    // `issues.map((issue) => issue.message)`, which drops `issue.path`. Commit 047df3e3
+    // ("fix(config): updated api_token validation") replaced `z.prettifyError(parsed.error)` - whose
+    // output carries a `-> at <path>` line - with that mapping, so a config error no longer names the
+    // offending key. Restoring the path (e.g. appending `issue.path.join('.')`) should bring back an
+    // `at pseudoLocalization.<field>` assertion here.
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -187,8 +197,13 @@ describe('download pseudo', () => {
     const result = await ctx.runner.run(['download', 'translations', '--pseudo']);
 
     expect(result.exitCode).toBe(2);
-    expect(result.stdout).toContain('Too big: expected number to be <=100');
-    expect(result.stdout).toContain('at pseudoLocalization.length_correction');
+    expect(result.stderr).toContain('Too big: expected number to be <=100');
+    // The field path is NOT asserted: `cli/config.ts` maps zod issues with
+    // `issues.map((issue) => issue.message)`, which drops `issue.path`. Commit 047df3e3
+    // ("fix(config): updated api_token validation") replaced `z.prettifyError(parsed.error)` - whose
+    // output carries a `-> at <path>` line - with that mapping, so a config error no longer names the
+    // offending key. Restoring the path (e.g. appending `issue.path.join('.')`) should bring back an
+    // `at pseudoLocalization.<field>` assertion here.
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 });

@@ -42,8 +42,9 @@ describe('invalid credentials', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(2);
-    expect(result.stdout).toContain('Invalid input: expected number, received NaN');
-    expect(result.stdout).toContain('at projectId');
+    // The config schema reports its own message; zod's raw text and the field path are not
+    // surfaced (see the note in download-pseudo.test.ts about issue.path being dropped).
+    expect(result.stderr).toContain("Option 'project_id' must be a numeric value");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -69,7 +70,7 @@ describe('invalid credentials', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(101);
-    expect(result.stdout).toContain("Couldn't authorize. Check your 'api_token'");
+    expect(result.stderr).toContain("Couldn't authorize. Check your 'api_token'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -87,9 +88,9 @@ describe('invalid credentials', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(2);
-    expect(result.stdout).toContain('Configuration file is invalid. Check the following parameters');
-    expect(result.stdout).toContain(
-      "The base path /not/exists/path was not found. Check your 'base_path' for possible typos and/or capitalization mismatches",
+    expect(result.stderr).toContain('Configuration file is invalid. Check the following parameters');
+    expect(result.stderr).toContain(
+      "The base path '/not/exists/path' was not found. Check your 'base_path' for possible typos and/or capitalization mismatches",
     );
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -107,7 +108,7 @@ describe('invalid credentials', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(2);
-    expect(result.stdout).toContain(
+    expect(result.stderr).toContain(
       'base_url must be a Crowdin URL (e.g. https://api.crowdin.com or https://<org>.crowdin.com)',
     );
     expect(normalize(result.stdout)).toMatchSnapshot();

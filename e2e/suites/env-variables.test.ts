@@ -45,8 +45,8 @@ describe('env variables', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources/1_android.xml'");
-    expect(result.stdout).toContain("File 'sources/2_android.xml'");
+    expect(result.stdout).toContain("File '1_android.xml'");
+    expect(result.stdout).toContain("File '2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -78,10 +78,10 @@ describe('env variables', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/it/1_android.xml extracted');
-    expect(result.stdout).toContain('File translations/it/2_android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/1_android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/2_android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/it/1_android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/it/2_android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/1_android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/2_android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(
@@ -115,8 +115,8 @@ describe('env variables', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources/1_android.xml'");
-    expect(result.stdout).toContain("File 'sources/2_android.xml'");
+    expect(result.stdout).toContain("File '1_android.xml'");
+    expect(result.stdout).toContain("File '2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 });

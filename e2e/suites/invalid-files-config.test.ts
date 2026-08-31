@@ -42,7 +42,7 @@ describe('invalid files config', () => {
     expect(result.exitCode).toBe(1);
     expect(result.stdout).toContain('Fetching project info');
     // Literal wording confirmed at UploadSourcesCommand.ts -- matches the PHP original verbatim.
-    expect(result.stdout).toContain(
+    expect(result.stderr).toContain(
       "No sources found for '/sources/android-not-exists.xml' pattern. Check the source paths in your configuration file",
     );
     // Known CLI bug (see file-groups.test.ts): because this is a thrown CliError rather than the
@@ -65,7 +65,7 @@ describe('invalid files config', () => {
     // Same zero-match-group abort as above -- a nonexistent base folder also globs to zero matches.
     expect(result.exitCode).toBe(1);
     expect(result.stdout).toContain('Fetching project info');
-    expect(result.stdout).toContain(
+    expect(result.stderr).toContain(
       "No sources found for '/not-exists/**/*.*' pattern. Check the source paths in your configuration file",
     );
     expect(result.stdout).not.toContain('Current execution finished with errors');
@@ -90,7 +90,7 @@ describe('invalid files config', () => {
     // the exact issue message by parsing this same shape directly against ConfigSchema.
     expect(result.exitCode).toBe(2);
     expect(result.stdout).not.toContain('Fetching project info');
-    expect(result.stdout).toContain(
+    expect(result.stderr).toContain(
       "The 'translation' parameter should contain at least one language placeholder (e.g. %locale%)",
     );
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -110,7 +110,7 @@ describe('invalid files config', () => {
     // config.ts). Confirmed the exact issue message the same way as the previous test.
     expect(result.exitCode).toBe(2);
     expect(result.stdout).not.toContain('Fetching project info');
-    expect(result.stdout).toContain('translation cannot contain "../"');
+    expect(result.stderr).toContain("The 'translation' parameter can't contain any relative paths '../' or './'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -137,11 +137,11 @@ describe('invalid files config', () => {
     // UploadTranslationsCommand.ts.
     expect(result.exitCode).toBe(1);
     expect(result.stdout).toContain('Fetching project info');
-    expect(result.stdout).toContain("Source file 'sources/android.xml' does not exist in the project");
+    expect(result.stderr).toContain("Source file 'sources/android.xml' does not exist in the project");
     // Unlike the upload-sources zero-match case above, this goes through the entriesHaveErrors path
     // (not a thrown-mid-loop CliError), so the closing line IS printed here -- confirmed at
     // UploadTranslationsCommand.ts and uploadFailures.ts's EXECUTION_FINISHED_WITH_ERRORS constant.
-    expect(result.stdout).toContain('Current execution finished with errors');
+    expect(result.stderr).toContain('Current execution finished with errors');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 });

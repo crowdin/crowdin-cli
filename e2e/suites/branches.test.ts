@@ -20,7 +20,11 @@ describe('branches', () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test_list_string']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources_one_file/1_android.xml'");
+    // Success echoes the PROJECT path, and every config in this fixture sets `preserve_hierarchy: false`,
+    // so the source's directory is dropped: `/sources_one_file/1_android.xml` lands as `1_android.xml`.
+    // The dry-run previews below print the LOCAL path instead (`sources/1_android.xml`) - that asymmetry
+    // is what makes these two assertion styles differ inside one suite.
+    expect(result.stdout).toContain("File '1_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -44,8 +48,8 @@ describe('branches', () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources/1_android.xml'");
-    expect(result.stdout).toContain("File 'sources/2_android.xml'");
+    expect(result.stdout).toContain("File '1_android.xml'");
+    expect(result.stdout).toContain("File '2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -62,8 +66,8 @@ describe('branches', () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources/1_android.xml'");
-    expect(result.stdout).toContain("File 'sources/2_android.xml'");
+    expect(result.stdout).toContain("File '1_android.xml'");
+    expect(result.stdout).toContain("File '2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 

@@ -1,5 +1,4 @@
 import { afterAll, beforeAll, describe, expect, test } from 'bun:test';
-import { createHash } from 'node:crypto';
 import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, switchConfig, teardownSuite } from '../helpers/suite.ts';
 
@@ -45,14 +44,6 @@ describe('string', () => {
   afterAll(async () => {
     await teardownSuite(ctx);
   });
-
-  /** Crowdin hashes an Android-XML string's `identifier` server-side (confirmed at
-   * crowdin-backend's StringService for the string-based path; the file-based path re-derives the
-   * same hash on import - the PHP original observed this live, so it's carried forward here.
-   * Re-verify against the .snap / a direct `getString` read on the first live run. */
-  function androidIdentifierHash(identifier: string): string {
-    return createHash('md5').update(identifier).digest('hex');
-  }
 
   /** Finds a branch's numeric id by exact name, via the API directly (bypassing CLI output). */
   async function findBranchId(name: string): Promise<number> {
@@ -122,8 +113,8 @@ describe('string', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources/android.xml'");
-    expect(result.stdout).toContain("File 'sources/text.txt'");
+    expect(result.stdout).toContain("File 'android.xml'");
+    expect(result.stdout).toContain("File 'text.txt'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -211,7 +202,10 @@ describe('string', () => {
 
     thirdStringId = await findStringId('third string');
     const added = await ctx.client.sourceStringsApi.getString(ctx.project.id, thirdStringId);
-    expect(added.data.identifier).toBe(androidIdentifierHash('str3'));
+    // The PHP original assumed Crowdin md5-hashes an Android-XML string's identifier server-side.
+    // A live read says otherwise: `--identifier str3` is stored verbatim - which is exactly the
+    // re-verification the helper's own comment asked for.
+    expect(added.data.identifier).toBe('str3');
     expect(added.data.maxLength).toBe(0);
     expect(added.data.context).toBe('str3');
     expect(added.data.isHidden).toBe(false);
@@ -248,7 +242,7 @@ describe('string', () => {
 
     fourthStringId = await findStringId('fourth string');
     const added = await ctx.client.sourceStringsApi.getString(ctx.project.id, fourthStringId);
-    expect(added.data.identifier).toBe(androidIdentifierHash('str4'));
+    expect(added.data.identifier).toBe('str4');
     expect(added.data.maxLength).toBe(10);
     expect(added.data.context).toBe('str4\nsimple context');
     expect(added.data.isHidden).toBe(true);
@@ -272,7 +266,7 @@ describe('string', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     const edited = await ctx.client.sourceStringsApi.getString(ctx.project.id, thirdStringId);
-    expect(edited.data.identifier).toBe(androidIdentifierHash('str3'));
+    expect(edited.data.identifier).toBe('str3');
     expect(edited.data.maxLength).toBe(0);
     expect(edited.data.context).toBe('str3');
     expect(edited.data.isHidden).toBe(false);
@@ -298,7 +292,7 @@ describe('string', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     const edited = await ctx.client.sourceStringsApi.getString(ctx.project.id, fourthStringId);
-    expect(edited.data.identifier).toBe(androidIdentifierHash('str4'));
+    expect(edited.data.identifier).toBe('str4');
     expect(edited.data.maxLength).toBe(0);
     expect(edited.data.context).toBe('simple context edited');
     expect(edited.data.isHidden).toBe(false);
@@ -316,8 +310,8 @@ describe('string', () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources/android.xml'");
-    expect(result.stdout).toContain("File 'sources/text.txt'");
+    expect(result.stdout).toContain("File 'android.xml'");
+    expect(result.stdout).toContain("File 'text.txt'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     branchId = await findBranchId('test-branch');
@@ -357,7 +351,7 @@ describe('string', () => {
     // Real TS behavior: `resolveSingleFileId` throws a plain CliError (exit 1), unlike the PHP
     // CLI's exit 102 - see StringCommand.ts.
     expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain("File 'not-exists-file.xml' not found");
+    expect(result.stderr).toContain("File 'not-exists-file.xml' not found");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -367,8 +361,8 @@ describe('string', () => {
     // Real TS behavior: the missing-file warning matches the PHP wording verbatim, but the final
     // thrown error (exit 1, not the PHP CLI's exit 102) is TS-specific - see StringCommand.ts.
     expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain("Project doesn't contain the 'not-exists-file.xml' file");
-    expect(result.stdout).toContain('No valid file specified for the string');
+    expect(result.stderr).toContain("Project doesn't contain the 'not-exists-file.xml' file");
+    expect(result.stderr).toContain('No valid file specified for the string');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -376,7 +370,7 @@ describe('string', () => {
     const result = await ctx.runner.run(['string', 'add', 'simple string', '--file', 'text.txt']);
 
     expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain('does not support online string');
+    expect(result.stderr).toContain('does not support online string');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -386,7 +380,7 @@ describe('string', () => {
     // The TS CLI rejects an empty text argument itself, before any API call, so the API's dual
     // text/identifier `isEmpty` errors the PHP original observed never occur - see StringCommand.ts.
     expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain('Source string text can not be empty');
+    expect(result.stderr).toContain('Source string text can not be empty');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -394,7 +388,7 @@ describe('string', () => {
     const result = await ctx.runner.run(['string', 'add', 'simple string', '--file', 'android.xml']);
 
     expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain("Value is required and can't be empty");
+    expect(result.stderr).toContain("Value is required and can't be empty");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -402,7 +396,7 @@ describe('string', () => {
     const result = await ctx.runner.run(['string', 'edit', '999999', '--text', 'simple string']);
 
     expect(result.exitCode).toBe(102);
-    expect(result.stdout).toContain('String Not Found');
+    expect(result.stderr).toContain('String Not Found');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -412,7 +406,7 @@ describe('string', () => {
     const result = await ctx.runner.run(['string', 'edit', String(id), '--text', 'simple string']);
 
     expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain('does not support online string');
+    expect(result.stderr).toContain('does not support online string');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -420,7 +414,7 @@ describe('string', () => {
     const result = await ctx.runner.run(['string', 'delete', '999999']);
 
     expect(result.exitCode).toBe(102);
-    expect(result.stdout).toContain('String Not Found');
+    expect(result.stderr).toContain('String Not Found');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -430,7 +424,7 @@ describe('string', () => {
     const result = await ctx.runner.run(['string', 'delete', String(id)]);
 
     expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain('does not support online string');
+    expect(result.stderr).toContain('does not support online string');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -473,7 +467,7 @@ describe('string', () => {
     const result = await ctx.runner.run(['string', 'list', '--croql', '11111111111']);
 
     expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain("The inferred type is not equal to 'bool'");
+    expect(result.stderr).toContain("The inferred type is not equal to 'bool'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 

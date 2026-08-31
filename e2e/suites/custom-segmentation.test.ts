@@ -52,17 +52,17 @@ describe('custom segmentation', () => {
     expect(result.exitCode).toBe(1);
     // The "sources" directory is created before the per-file srxStorageId is validated by the API,
     // so it still succeeds even though both file creations below fail.
-    expect(result.stdout).toContain('Directory sources created');
+    expect(result.stdout).toContain("Directory 'sources'");
     // The Crowdin API's own validation error text (unrelated to the CLI rewrite), wrapped by
     // FileService.createProjectFile's `Failed to create file <name>. <api message>`. Confirmed via a
     // live run 2026-07-21 — not guessed.
-    expect(result.stdout).toContain(
-      'Failed to create file sample.docx. Invalid SRX specified. XML validation module returned: attributes construct error',
+    expect(result.stderr).toContain(
+      "Failed to create file 'sample.docx'. Key: importOptions. Message: Invalid SRX specified. XML validation module returned: attributes construct error",
     );
-    expect(result.stdout).toContain(
-      'Failed to create file strings.xml. Invalid SRX specified. XML validation module returned: attributes construct error',
+    expect(result.stderr).toContain(
+      "Failed to create file 'strings.xml'. Key: importOptions. Message: Invalid SRX specified. XML validation module returned: attributes construct error",
     );
-    expect(result.stdout).toContain('Current execution finished with errors');
+    expect(result.stderr).toContain('Current execution finished with errors');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -74,15 +74,15 @@ describe('custom segmentation', () => {
     expect(result.exitCode).toBe(1);
     // Unlike the previous test, the "sources" directory already exists on the project from the
     // first (failed) attempt above, so no new directory-created line is emitted this time.
-    expect(result.stdout).not.toContain('Directory sources created');
+    expect(result.stdout).not.toContain("Directory 'sources'");
     // Confirmed via a live run 2026-07-21 — not guessed.
-    expect(result.stdout).toContain(
-      'Failed to create file sample.docx. Invalid SRX specified. Invalid regular expression `/^.*[$/`',
+    expect(result.stderr).toContain(
+      "Failed to create file 'sample.docx'. Key: importOptions. Message: Invalid SRX specified. Invalid regular expression `/^.*[$/`",
     );
-    expect(result.stdout).toContain(
-      'Failed to create file strings.xml. Invalid SRX specified. Invalid regular expression `/^.*[$/`',
+    expect(result.stderr).toContain(
+      "Failed to create file 'strings.xml'. Key: importOptions. Message: Invalid SRX specified. Invalid regular expression `/^.*[$/`",
     );
-    expect(result.stdout).toContain('Current execution finished with errors');
+    expect(result.stderr).toContain('Current execution finished with errors');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -114,11 +114,11 @@ describe('custom segmentation', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Directory Folder created');
-    // Success messages always echo the LOCAL file path, never the dest-resolved project path —
-    // confirmed by grep of UploadSourcesCommand.ts's create-branch `output.success` call.
-    expect(result.stdout).toContain("File 'sources/sample.docx'");
-    expect(result.stdout).toContain("File 'sources/strings.xml'");
+    expect(result.stdout).toContain("Directory 'Folder'");
+    // Success messages echo the PROJECT path, so the `dest` remapping shows up here directly:
+    // `/sources/sample.docx` is uploaded as `Folder/sample.docx`.
+    expect(result.stdout).toContain("File 'Folder/sample.docx'");
+    expect(result.stdout).toContain("File 'Folder/strings.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // CONFIRMED BUG (2026-07-21, see crowdin-cli-known-bugs memory): fileLookup (lib/upload/fileLookup.ts)

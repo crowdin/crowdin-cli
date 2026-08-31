@@ -5,7 +5,7 @@ exports[`multilingual csv with language placeholder uploads multilingual CSV sou
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory sources created
+◆  Directory 'sources'
 ◆  File 'sources/1_multilingual.csv'
 ◆  File 'sources/2_multilingual.csv'"
 `;
@@ -41,10 +41,10 @@ exports[`multilingual csv with language placeholder previews the translation dow
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-translations/it/1_multilingual.csv
-translations/it/2_multilingual.csv
-translations/uk/1_multilingual.csv
-translations/uk/2_multilingual.csv"
+◆  translations/it/1_multilingual.csv
+◆  translations/it/2_multilingual.csv
+◆  translations/uk/1_multilingual.csv
+◆  translations/uk/2_multilingual.csv"
 `;
 
 exports[`multilingual csv with language placeholder downloads translations and matches the merged multilingual content 1`] = `
@@ -55,10 +55,10 @@ exports[`multilingual csv with language placeholder downloads translations and m
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_multilingual.csv extracted
-◆  File translations/it/2_multilingual.csv extracted
-◆  File translations/uk/1_multilingual.csv extracted
-◆  File translations/uk/2_multilingual.csv extracted"
+◆  File 'translations/it/1_multilingual.csv' extracted
+◆  File 'translations/it/2_multilingual.csv' extracted
+◆  File 'translations/uk/1_multilingual.csv' extracted
+◆  File 'translations/uk/2_multilingual.csv' extracted"
 `;
 
 exports[`multilingual csv with language placeholder updates sources from a new base path, targeting a new translation destination 1`] = `
@@ -78,10 +78,10 @@ exports[`multilingual csv with language placeholder downloads translations at th
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations-v2/it/1_multilingual.csv extracted
-◆  File translations-v2/it/2_multilingual.csv extracted
-◆  File translations-v2/uk/1_multilingual.csv extracted
-◆  File translations-v2/uk/2_multilingual.csv extracted"
+◆  File 'translations-v2/it/1_multilingual.csv' extracted
+◆  File 'translations-v2/it/2_multilingual.csv' extracted
+◆  File 'translations-v2/uk/1_multilingual.csv' extracted
+◆  File 'translations-v2/uk/2_multilingual.csv' extracted"
 `;
 
 exports[`multilingual csv with language placeholder uploads sources to a new branch 1`] = `
@@ -89,7 +89,8 @@ exports[`multilingual csv with language placeholder uploads sources to a new bra
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory sources created
+◆  Branch 'test-branch'
+◆  Directory 'sources'
 ◆  File 'sources/1_multilingual.csv'
 ◆  File 'sources/2_multilingual.csv'"
 `;
@@ -126,8 +127,8 @@ exports[`multilingual csv with language placeholder downloads translations on th
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_multilingual.csv extracted
-◆  File translations/it/2_multilingual.csv extracted
-◆  File translations/uk/1_multilingual.csv extracted
-◆  File translations/uk/2_multilingual.csv extracted"
+◆  File 'translations/it/1_multilingual.csv' extracted
+◆  File 'translations/it/2_multilingual.csv' extracted
+◆  File 'translations/uk/1_multilingual.csv' extracted
+◆  File 'translations/uk/2_multilingual.csv' extracted"
 `;

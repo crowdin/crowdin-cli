@@ -41,8 +41,8 @@ describe('delete obsolete', () => {
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Directory destination created');
-    expect(result.stdout).toContain('Directory lang created');
+    expect(result.stdout).toContain("Directory 'destination'");
+    expect(result.stdout).toContain("Directory 'lang'");
     expect(result.stdout).toContain("File '1_android.xml'");
     expect(result.stdout).toContain("File '2_android.xml'");
     expect(result.stdout).toContain("File '3_android.xml'");
@@ -75,7 +75,11 @@ describe('delete obsolete', () => {
       '--dryrun',
     ]);
 
-    expect(result.exitCode).toBe(0);
+    // Exit 1 is correct: the fixture's second file group is '/*.csv' and sources_rev2/ has no CSV,
+    // so that group matches nothing and the run is flagged as failed. Java does the same in the
+    // default view (UploadSourcesAction sets errorsPresented and throws for an empty group).
+    expect(result.exitCode).toBe(1);
+    expect(result.stderr).toContain("No sources found for '/*.csv' pattern");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // sources_rev2/ drops 2_android.xml and 1_simple.csv - a real run would delete their remote

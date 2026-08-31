@@ -34,7 +34,9 @@ function defaultTmName(ctx: SuiteContext): string {
 function extractTmxSegmentsByLanguage(xml: string): Record<string, string[]> {
   const byLanguage: Record<string, string[]> = {};
 
-  for (const tuvMatch of xml.matchAll(/<tuv\s+xml:lang="([^"]+)">([\s\S]*?)<\/tuv>/g)) {
+  // The exporter writes `<tuv xml:lang="en" creationid="..." creationdate="...">`, so the attribute
+  // list around xml:lang has to be tolerated - anchoring on `">` alone matches nothing.
+  for (const tuvMatch of xml.matchAll(/<tuv\b[^>]*\bxml:lang="([^"]+)"[^>]*>([\s\S]*?)<\/tuv>/g)) {
     const language = tuvMatch[1] as string;
     const segMatch = /<seg>([\s\S]*?)<\/seg>/.exec(tuvMatch[2] as string);
 
@@ -82,6 +84,33 @@ function extractXlsxTexts(path: string): string[] {
   return texts.sort();
 }
 
+/**
+ * The three names the CLI derives from this suite's fixtures (`Created in Crowdin CLI (<file>)`).
+ *
+ * Translation memories belong to the account, not to the project, so `teardownSuite` cannot reach
+ * them - and since the name comes from the uploaded file, a leftover from an interrupted run makes
+ * every `tm upload` below fail with "The name '...' is already taken". They are swept both before
+ * the suite (self-healing) and after it.
+ */
+const SUITE_TM_NAMES = ['simple-tm.tmx', 'simple-tm.csv', 'simple-tm.xlsx'].map(
+  (file) => `Created in Crowdin CLI (${file})`,
+);
+
+/** Deletes every account TM this suite owns by name. Never throws: cleanup must not mask a result. */
+async function removeSuiteTms(ctx: SuiteContext): Promise<void> {
+  try {
+    const response = await ctx.client.translationMemoryApi.withFetchAll().listTm();
+
+    for (const entry of response.data) {
+      if (SUITE_TM_NAMES.includes(entry.data.name)) {
+        await ctx.client.translationMemoryApi.deleteTm(entry.data.id);
+      }
+    }
+  } catch (error) {
+    console.warn(`Failed to clean up this suite's translation memories: ${error}`);
+  }
+}
+
 describe('tm', () => {
   let ctx: SuiteContext;
   let tmxId: number;
@@ -90,9 +119,14 @@ describe('tm', () => {
 
   beforeAll(async () => {
     ctx = await setupSuite('tm');
+    await removeSuiteTms(ctx);
   });
 
   afterAll(async () => {
+    if (ctx && !ctx.env.keep) {
+      await removeSuiteTms(ctx);
+    }
+
     await teardownSuite(ctx);
   });
 
@@ -168,7 +202,9 @@ describe('tm', () => {
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.tmx)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.csv)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.xlsx)');
-    expect(normalize(result.stdout)).toMatchSnapshot();
+    // No snapshot here: `tm list` lists everything on the account, so the output includes
+    // every other project's and user's entries on this shared test account and changes between
+    // runs. The name assertions above plus the API cross-check below are the stable contract.
 
     // Cross-check the segment counts the PHP suite asserted via table text, directly via the
     // API - `tm list` renders through `console.table`, which isn't something to hand-assert.
@@ -282,6 +318,7 @@ describe('tm', () => {
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.tmx)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.csv)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-tm.xlsx)');
-    expect(normalize(result.stdout)).toMatchSnapshot();
+    // No snapshot, for the same reason as the listing test above: `tm list` covers the whole
+    // account, so its output moves with every other project and user on it.
   });
 });

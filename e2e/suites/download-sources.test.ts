@@ -46,27 +46,30 @@ describe('download sources', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    // Directory success lines print the bare last path segment, not the cumulative project path
-    // (UploadSourcesCommand.ts ~line 480: `Directory ${directoryName} created`).
-    expect(result.stdout).toContain('Directory folder_2 created');
-    expect(result.stdout).toContain('Directory root created');
-    expect(result.stdout).toContain('Directory folder_1 created');
-    expect(result.stdout).toContain('Directory f1 created');
-    expect(result.stdout).toContain('Directory f2 created');
-    // File success lines report the local file path, not the server-side `dest`-mapped project path
-    // (UploadSourcesCommand.ts ~line 389: `File '${localFilePath}'`).
+
+    // Captured before the output assertions below: these bytes are the baseline every later
+    // re-download test compares against, and an assertion failing here must not leave the map empty
+    // and cascade into 'No content was captured' across the whole suite.
+    for (const relativePath of SOURCE_RELATIVE_PATHS) {
+      sourceContent.set(relativePath, await Bun.file(join(ctx.workspace, relativePath)).text());
+    }
+
+    // Directory and file success lines print the cumulative PROJECT path, so folder_1's group -
+    // which has a `dest` under `root/` - shows up prefixed, while folder_2's group does not.
+    expect(result.stdout).toContain("Directory 'folder_2'");
+    expect(result.stdout).toContain("Directory 'root'");
+    expect(result.stdout).toContain("Directory 'root/folder_1'");
+    expect(result.stdout).toContain("Directory 'root/folder_1/f1'");
+    expect(result.stdout).toContain("Directory 'root/folder_1/f1/f2'");
+    // File success lines report the `dest`-mapped project path, not the local one.
     expect(result.stdout).toContain("File 'folder_2/android_1.xml'");
     expect(result.stdout).toContain("File 'folder_2/android_2.xml'");
     expect(result.stdout).toContain("File 'folder_2/android_3.xml'");
     expect(result.stdout).toContain("File 'folder_2/android_4a.xml'");
-    expect(result.stdout).toContain("File 'folder_1/android.xml'");
-    expect(result.stdout).toContain("File 'folder_1/f1/android.xml'");
-    expect(result.stdout).toContain("File 'folder_1/f1/f2/android.xml'");
+    expect(result.stdout).toContain("File 'root/folder_1/android.xml'");
+    expect(result.stdout).toContain("File 'root/folder_1/f1/android.xml'");
+    expect(result.stdout).toContain("File 'root/folder_1/f1/f2/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
-
-    for (const relativePath of SOURCE_RELATIVE_PATHS) {
-      sourceContent.set(relativePath, await Bun.file(join(ctx.workspace, relativePath)).text());
-    }
   });
 
   test('uploads the same nested source files to a brand-new branch', async () => {
@@ -77,7 +80,7 @@ describe('download sources', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain("File 'folder_2/android_1.xml'");
-    expect(result.stdout).toContain("File 'folder_1/f1/f2/android.xml'");
+    expect(result.stdout).toContain("File 'root/folder_1/f1/f2/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -185,7 +188,7 @@ describe('download sources', () => {
 
     expect(result.exitCode).toBe(0);
     // Confirmed verbatim at DownloadCommand.ts ~line 743-745.
-    expect(result.stdout).toContain(
+    expect(result.stderr).toContain(
       "No sources found for '/folder_not_exists/**/*.xml' pattern. Check the source paths in your configuration file",
     );
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -201,7 +204,7 @@ describe('download sources', () => {
     expect(result.exitCode).toBe(0);
     // Confirmed verbatim at DownloadCommand.ts:140 -- this e2e account is SaaS, not Enterprise, so this
     // hits the same branch the PHP test's `else` (non-ENTERPRISE_MODE) arm expects.
-    expect(result.stdout).toContain('Operation is available only for Crowdin Enterprise');
+    expect(result.stderr).toContain('Operation is available only for Crowdin Enterprise');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 });

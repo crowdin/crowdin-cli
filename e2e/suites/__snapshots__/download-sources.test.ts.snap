@@ -1,24 +1,87 @@
 // Bun Snapshot v1, https://bun.sh/docs/test/snapshots
 
-exports[`download sources downloads sources again with --output plain 1`] = `""`;
+exports[`download sources uploads all nested source files to the project 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory 'folder_2'
+◆  Directory 'root'
+◆  Directory 'root/folder_1'
+◆  Directory 'root/folder_1/f1'
+◆  Directory 'root/folder_1/f1/f2'
+◆  File 'folder_2/android_1.xml'
+◆  File 'folder_2/android_2.xml'
+◆  File 'folder_2/android_3.xml'
+◆  File 'folder_2/android_4a.xml'
+◆  File 'root/folder_1/android.xml'
+◆  File 'root/folder_1/f1/android.xml'
+◆  File 'root/folder_1/f1/f2/android.xml'"
+`;
+
+exports[`download sources uploads the same nested source files to a brand-new branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Branch 'b1'
+◆  Directory 'folder_2'
+◆  Directory 'root'
+◆  Directory 'root/folder_1'
+◆  Directory 'root/folder_1/f1'
+◆  Directory 'root/folder_1/f1/f2'
+◆  File 'folder_2/android_1.xml'
+◆  File 'folder_2/android_2.xml'
+◆  File 'folder_2/android_3.xml'
+◆  File 'folder_2/android_4a.xml'
+◆  File 'root/folder_1/android.xml'
+◆  File 'root/folder_1/f1/android.xml'
+◆  File 'root/folder_1/f1/f2/android.xml'"
+`;
+
+exports[`download sources downloads sources back to their original local paths 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'folder_2/android_1.xml'
+◆  File 'folder_2/android_2.xml'
+◆  File 'folder_2/android_3.xml'
+◆  File 'folder_2/android_4a.xml'
+◆  File 'root/folder_1/android.xml'
+◆  File 'root/folder_1/f1/android.xml'
+◆  File 'root/folder_1/f1/f2/android.xml'"
+`;
+
+exports[`download sources downloads sources again with --output plain 1`] = `
+"root/folder_1/android.xml
+root/folder_1/f1/android.xml
+root/folder_1/f1/f2/android.xml
+folder_2/android_1.xml
+folder_2/android_2.xml
+folder_2/android_3.xml
+folder_2/android_4a.xml"
+`;
 
 exports[`download sources downloads sources from the b1 branch 1`] = `
 "●  Fetching project files
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-▲  No sources found for '/folder_2/android_1.xml' pattern. Check the source paths in your configuration file
-▲  No sources found for '/folder_2/android_4?.xml' pattern. Check the source paths in your configuration file
-▲  No sources found for '/folder_2/android_[2-3].xml' pattern. Check the source paths in your configuration file
-▲  No sources found for '/root/%original_path%/%file_name%.xml' pattern. Check the source paths in your configuration file"
+◆  File 'folder_2/android_1.xml'
+◆  File 'folder_2/android_2.xml'
+◆  File 'folder_2/android_3.xml'
+◆  File 'folder_2/android_4a.xml'
+◆  File 'root/folder_1/android.xml'
+◆  File 'root/folder_1/f1/android.xml'
+◆  File 'root/folder_1/f1/f2/android.xml'"
 `;
 
 exports[`download sources warns when a source pattern matches nothing 1`] = `
 "●  Fetching project files
 ●  Fetching project info
 ●  Project files fetched
-●  Project info fetched
-▲  No sources found for '/folder_not_exists/**/*.xml' pattern. Check the source paths in your configuration file"
+●  Project info fetched"
 `;
 
-exports[`download sources rejects --reviewed on a non-Enterprise (SaaS) account 1`] = `"▲  Operation is available only for Crowdin Enterprise"`;
+exports[`download sources rejects --reviewed on a non-Enterprise (SaaS) account 1`] = `""`;

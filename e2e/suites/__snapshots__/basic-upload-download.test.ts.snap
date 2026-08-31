@@ -5,7 +5,7 @@ exports[`basic upload sources and download translations uploads all source files
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory sources created
+◆  Directory 'sources'
 ◆  File 'sources/alpha.md'
 ◆  File 'sources/beta.md'
 ◆  File 'sources/gamma.md'"
@@ -29,10 +29,10 @@ exports[`basic upload sources and download translations downloads translations f
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it-IT/alpha.md extracted
-◆  File translations/it-IT/beta.md extracted
-◆  File translations/it-IT/gamma.md extracted
-◆  File translations/uk-UA/alpha.md extracted
-◆  File translations/uk-UA/beta.md extracted
-◆  File translations/uk-UA/gamma.md extracted"
+◆  File 'translations/it-IT/alpha.md' extracted
+◆  File 'translations/it-IT/beta.md' extracted
+◆  File 'translations/it-IT/gamma.md' extracted
+◆  File 'translations/uk-UA/alpha.md' extracted
+◆  File 'translations/uk-UA/beta.md' extracted
+◆  File 'translations/uk-UA/gamma.md' extracted"
 `;

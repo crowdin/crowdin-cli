@@ -5,8 +5,8 @@ exports[`export options uploads sources for both files 1`] = `
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  File 'sources/1_android.xml'
-◆  File 'sources/2_android.xml'"
+◆  File '1_android.xml'
+◆  File '2_android.xml'"
 `;
 
 exports[`export options reports no fully translated files when skipping untranslated files via the CLI flag, before any translations exist 1`] = `
@@ -16,7 +16,6 @@ exports[`export options reports no fully translated files when skipping untransl
 ●  Fetching project info
 ●  Project info fetched
 ●  Translations built
-▲  Couldn't find any file to download. Since you are using the 'Skip untranslated files' option, please make sure you have fully translated files
 ◆  Done"
 `;
 
@@ -27,7 +26,6 @@ exports[`export options reports no fully translated files when skip_untranslated
 ●  Fetching project info
 ●  Project info fetched
 ●  Translations built
-▲  Couldn't find any file to download. Since you are using the 'Skip untranslated files' option, please make sure you have fully translated files
 ◆  Done"
 `;
 
@@ -69,10 +67,10 @@ exports[`export options downloads translations skipping untranslated strings via
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/it/2_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-◆  File translations/uk/2_android.xml extracted"
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
 `;
 
 exports[`export options downloads translations skipping untranslated files via the CLI flag 1`] = `
@@ -83,8 +81,8 @@ exports[`export options downloads translations skipping untranslated files via t
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/uk/1_android.xml extracted"
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted"
 `;
 
 exports[`export options downloads translations exporting only approved translations via the CLI flag 1`] = `
@@ -95,10 +93,10 @@ exports[`export options downloads translations exporting only approved translati
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/it/2_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-◆  File translations/uk/2_android.xml extracted"
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
 `;
 
 exports[`export options downloads translations skipping untranslated strings and exporting only approved via CLI flags 1`] = `
@@ -109,10 +107,10 @@ exports[`export options downloads translations skipping untranslated strings and
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/it/2_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-◆  File translations/uk/2_android.xml extracted"
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
 `;
 
 exports[`export options downloads translations skipping untranslated files and exporting only approved via CLI flags 1`] = `
@@ -123,14 +121,13 @@ exports[`export options downloads translations skipping untranslated files and e
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/uk/1_android.xml extracted"
+◆  File 'translations/uk/1_android.xml' extracted"
 `;
 
 exports[`export options rejects skipping untranslated strings and files at the same time 1`] = `
 "●  Building translations
 ●  Fetching project info
-●  Project info fetched
-■  You cannot skip strings and files at the same time. Please use one of these parameters instead."
+●  Project info fetched"
 `;
 
 exports[`export options downloads translations with skip_untranslated_strings set in config 1`] = `
@@ -141,10 +138,10 @@ exports[`export options downloads translations with skip_untranslated_strings se
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/it/2_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-◆  File translations/uk/2_android.xml extracted"
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
 `;
 
 exports[`export options downloads translations with skip_untranslated_files set in config 1`] = `
@@ -155,8 +152,8 @@ exports[`export options downloads translations with skip_untranslated_files set 
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/uk/1_android.xml extracted"
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted"
 `;
 
 exports[`export options downloads translations with export_only_approved set in config 1`] = `
@@ -167,10 +164,10 @@ exports[`export options downloads translations with export_only_approved set in 
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/it/2_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-◆  File translations/uk/2_android.xml extracted"
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
 `;
 
 exports[`export options downloads translations with skip_untranslated_strings and export_only_approved set in config 1`] = `
@@ -181,10 +178,10 @@ exports[`export options downloads translations with skip_untranslated_strings an
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/it/2_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-◆  File translations/uk/2_android.xml extracted"
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
 `;
 
 exports[`export options downloads translations with skip_untranslated_files and export_only_approved set in config 1`] = `
@@ -195,7 +192,7 @@ exports[`export options downloads translations with skip_untranslated_files and 
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/uk/1_android.xml extracted"
+◆  File 'translations/uk/1_android.xml' extracted"
 `;
 
 exports[`export options warns and ignores export_strings_that_passed_workflow outside Enterprise 1`] = `
@@ -205,12 +202,11 @@ exports[`export options warns and ignores export_strings_that_passed_workflow ou
 ●  Fetching project info
 ●  Project info fetched
 ●  Translations built
-▲  Exporting strings that passed workflow is supported only for Crowdin Enterprise
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/it/2_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-◆  File translations/uk/2_android.xml extracted"
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
 `;
 
 exports[`export options downloads translations across two file groups with different export options in config 1`] = `
@@ -225,6 +221,6 @@ exports[`export options downloads translations across two file groups with diffe
 ●  Translations built
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/uk/1_android.xml extracted"
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted"
 `;

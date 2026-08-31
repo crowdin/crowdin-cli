@@ -75,7 +75,7 @@ describe('translations not match', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Directory sources created');
+    expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
     expect(result.stdout).toContain("File 'sources/2_android.xml'");
     expect(result.stdout).toContain("File 'sources/3_android.xml'");
@@ -86,12 +86,12 @@ describe('translations not match', () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/it/1_android.xml does not exist in the specified location');
-    expect(result.stdout).toContain('File translations/it/2_android.xml does not exist in the specified location');
-    expect(result.stdout).toContain('File translations/it/3_android.xml does not exist in the specified location');
-    expect(result.stdout).toContain('File translations/uk/1_android.xml does not exist in the specified location');
-    expect(result.stdout).toContain('File translations/uk/2_android.xml does not exist in the specified location');
-    expect(result.stdout).toContain('File translations/uk/3_android.xml does not exist in the specified location');
+    expect(result.stderr).toContain("File 'translations/it/1_android.xml' does not exist in the specified location");
+    expect(result.stderr).toContain("File 'translations/it/2_android.xml' does not exist in the specified location");
+    expect(result.stderr).toContain("File 'translations/it/3_android.xml' does not exist in the specified location");
+    expect(result.stderr).toContain("File 'translations/uk/1_android.xml' does not exist in the specified location");
+    expect(result.stderr).toContain("File 'translations/uk/2_android.xml' does not exist in the specified location");
+    expect(result.stderr).toContain("File 'translations/uk/3_android.xml' does not exist in the specified location");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -99,9 +99,9 @@ describe('translations not match', () => {
     const result = await ctx.runner.run(['upload', 'translations', '-l', 'uk']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/uk/1_android.xml does not exist in the specified location');
-    expect(result.stdout).toContain('File translations/uk/2_android.xml does not exist in the specified location');
-    expect(result.stdout).toContain('File translations/uk/3_android.xml does not exist in the specified location');
+    expect(result.stderr).toContain("File 'translations/uk/1_android.xml' does not exist in the specified location");
+    expect(result.stderr).toContain("File 'translations/uk/2_android.xml' does not exist in the specified location");
+    expect(result.stderr).toContain("File 'translations/uk/3_android.xml' does not exist in the specified location");
     expect(result.stdout).not.toContain('translations/it/');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -130,7 +130,7 @@ describe('translations not match', () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain(
+    expect(result.stderr).toContain(
       "Downloaded translations don't match the current project configuration. The translations for the " +
         'following sources will be omitted (use --verbose to get the list of the omitted translations):',
     );
@@ -218,7 +218,7 @@ describe('translations not match', () => {
     // success messages use the LOCAL path with no branch prefix - confirmed via `UploadSourcesCommand.ts`,
     // matching this porting effort's established branch-upload wording note. PHP's "Branch 'x'" /
     // "test-branch/sources/..." wording does not apply to the TS CLI.
-    expect(result.stdout).toContain('Directory sources created');
+    expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
     expect(result.stdout).toContain("File 'sources/2_android.xml'");
     expect(result.stdout).toContain("File 'sources/3_android.xml'");

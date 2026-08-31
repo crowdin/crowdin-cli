@@ -1,0 +1,157 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`dest uploads sources across dest-remapped file groups 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory 'Folder'
+◆  Directory 'Test-destCheckFolder'
+◆  Directory 'Test-destCheckFolder/xml'
+◆  Directory 'Test-destCheckFolder/xml/android'
+◆  Directory 'Test-destCheckFolderParallelFileProcess'
+◆  Directory 'Test-destCheckFolderParallelFileProcess/xml'
+◆  File 'Android.xml'
+◆  File 'Folder/Android.xml'
+◆  File 'Folder/Client.xml'
+◆  File 'Test-destCheckFolder/xml/android/android.xml'
+◆  File 'Test-destCheckFolderParallelFileProcess/xml/android.xml'
+◆  File 'Test-destCheckFolderParallelFileProcess/xml/second_android.xml'"
+`;
+
+exports[`dest uploads translations across dest-remapped file groups 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'android_it_IT.xml'
+●  Importing translations for file 'android_uk_UA.xml'
+●  Importing translations for file 'destCheckFolder/android_it_IT.xml'
+●  Importing translations for file 'destCheckFolder/android_uk_UA.xml'
+●  Importing translations for file 'destCheckFolderParallelFileProcess/android_it_IT.xml'
+●  Importing translations for file 'destCheckFolderParallelFileProcess/android_uk_UA.xml'
+●  Importing translations for file 'destCheckFolderParallelFileProcess/second_android_it_IT.xml'
+●  Importing translations for file 'destCheckFolderParallelFileProcess/second_android_uk_UA.xml'
+●  Importing translations for file 'folder/android_it_IT.xml'
+●  Importing translations for file 'folder/android_uk_UA.xml'
+●  Importing translations for file 'folder/client_it_IT.xml'
+●  Importing translations for file 'folder/client_uk_UA.xml'
+●  Project files fetched
+●  Project info fetched
+◆  File 'android_it_IT.xml'
+◆  File 'android_uk_UA.xml'
+◆  File 'destCheckFolder/android_it_IT.xml'
+◆  File 'destCheckFolder/android_uk_UA.xml'
+◆  File 'destCheckFolderParallelFileProcess/android_it_IT.xml'
+◆  File 'destCheckFolderParallelFileProcess/android_uk_UA.xml'
+◆  File 'destCheckFolderParallelFileProcess/second_android_it_IT.xml'
+◆  File 'destCheckFolderParallelFileProcess/second_android_uk_UA.xml'
+◆  File 'folder/android_it_IT.xml'
+◆  File 'folder/android_uk_UA.xml'
+◆  File 'folder/client_it_IT.xml'
+◆  File 'folder/client_uk_UA.xml'"
+`;
+
+exports[`dest downloads translations and matches the uploaded content for the parallel file group 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'android_it_IT.xml' extracted
+◆  File 'android_uk_UA.xml' extracted
+◆  File 'destCheckFolder/android_it_IT.xml' extracted
+◆  File 'destCheckFolder/android_uk_UA.xml' extracted
+◆  File 'destCheckFolderParallelFileProcess/android_it_IT.xml' extracted
+◆  File 'destCheckFolderParallelFileProcess/android_uk_UA.xml' extracted
+◆  File 'destCheckFolderParallelFileProcess/second_android_it_IT.xml' extracted
+◆  File 'destCheckFolderParallelFileProcess/second_android_uk_UA.xml' extracted
+◆  File 'folder/android_it_IT.xml' extracted
+◆  File 'folder/android_uk_UA.xml' extracted
+◆  File 'folder/client_it_IT.xml' extracted
+◆  File 'folder/client_uk_UA.xml' extracted"
+`;
+
+exports[`dest uploads sources to a branch with dest remapping 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Branch 'test-branch'
+◆  Directory 'Folder'
+◆  Directory 'Test-destCheckFolder'
+◆  Directory 'Test-destCheckFolder/xml'
+◆  Directory 'Test-destCheckFolder/xml/android'
+◆  Directory 'Test-destCheckFolderParallelFileProcess'
+◆  Directory 'Test-destCheckFolderParallelFileProcess/xml'
+◆  File 'Android.xml'
+◆  File 'Folder/Android.xml'
+◆  File 'Folder/Client.xml'
+◆  File 'Test-destCheckFolder/xml/android/android.xml'
+◆  File 'Test-destCheckFolderParallelFileProcess/xml/android.xml'
+◆  File 'Test-destCheckFolderParallelFileProcess/xml/second_android.xml'"
+`;
+
+exports[`dest uploads translations to the branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'android_it_IT.xml'
+●  Importing translations for file 'android_uk_UA.xml'
+●  Importing translations for file 'destCheckFolder/android_it_IT.xml'
+●  Importing translations for file 'destCheckFolder/android_uk_UA.xml'
+●  Importing translations for file 'destCheckFolderParallelFileProcess/android_it_IT.xml'
+●  Importing translations for file 'destCheckFolderParallelFileProcess/android_uk_UA.xml'
+●  Importing translations for file 'destCheckFolderParallelFileProcess/second_android_it_IT.xml'
+●  Importing translations for file 'destCheckFolderParallelFileProcess/second_android_uk_UA.xml'
+●  Importing translations for file 'folder/android_it_IT.xml'
+●  Importing translations for file 'folder/android_uk_UA.xml'
+●  Importing translations for file 'folder/client_it_IT.xml'
+●  Importing translations for file 'folder/client_uk_UA.xml'
+●  Project files fetched
+●  Project info fetched
+◆  File 'android_it_IT.xml'
+◆  File 'android_uk_UA.xml'
+◆  File 'destCheckFolder/android_it_IT.xml'
+◆  File 'destCheckFolder/android_uk_UA.xml'
+◆  File 'destCheckFolderParallelFileProcess/android_it_IT.xml'
+◆  File 'destCheckFolderParallelFileProcess/android_uk_UA.xml'
+◆  File 'destCheckFolderParallelFileProcess/second_android_it_IT.xml'
+◆  File 'destCheckFolderParallelFileProcess/second_android_uk_UA.xml'
+◆  File 'folder/android_it_IT.xml'
+◆  File 'folder/android_uk_UA.xml'
+◆  File 'folder/client_it_IT.xml'
+◆  File 'folder/client_uk_UA.xml'"
+`;
+
+exports[`dest downloads translations from the branch 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'android_it_IT.xml' extracted
+◆  File 'android_uk_UA.xml' extracted
+◆  File 'destCheckFolder/android_it_IT.xml' extracted
+◆  File 'destCheckFolder/android_uk_UA.xml' extracted
+◆  File 'destCheckFolderParallelFileProcess/android_it_IT.xml' extracted
+◆  File 'destCheckFolderParallelFileProcess/android_uk_UA.xml' extracted
+◆  File 'destCheckFolderParallelFileProcess/second_android_it_IT.xml' extracted
+◆  File 'destCheckFolderParallelFileProcess/second_android_uk_UA.xml' extracted
+◆  File 'folder/android_it_IT.xml' extracted
+◆  File 'folder/android_uk_UA.xml' extracted
+◆  File 'folder/client_it_IT.xml' extracted
+◆  File 'folder/client_uk_UA.xml' extracted"
+`;
+
+exports[`dest uploads a single file with an explicit --dest and no config file 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory 'SingleDest'
+◆  Directory 'SingleDest/xml'
+◆  Directory 'SingleDest/xml/android'
+◆  File 'SingleDest/xml/android/android.xml'"
+`;
