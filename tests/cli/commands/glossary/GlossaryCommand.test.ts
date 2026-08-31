@@ -204,13 +204,21 @@ describe('GlossaryCommand', () => {
   });
 
   describe('download', () => {
+    let cwd: string;
+
     beforeEach(() => {
       spyOn(globalThis, 'fetch').mockResolvedValue(new Response('glossary-content'));
+      // The default target is a bare file name, so the writes have to land somewhere disposable.
+      cwd = process.cwd();
+      process.chdir(tempDir);
+    });
+
+    afterEach(() => {
+      process.chdir(cwd);
     });
 
     test('downloads glossary by id with the default file name', async () => {
       const glossaryCommand = createGlossaryCommand();
-      const write = spyOn(Bun, 'write').mockResolvedValue(0 as never);
       output = createOutput({ ...globalOptions, output: 'text' });
 
       await glossaryCommand.downloadAction(createCommandContext({}, ['42']));
@@ -218,7 +226,7 @@ describe('GlossaryCommand', () => {
       expect(glossaryService.get).toHaveBeenCalledWith(42);
       expect(glossaryService.export).toHaveBeenCalledWith(42, undefined);
       expect(glossaryService.getDownloadUrl).toHaveBeenCalledWith(42, 'export-id');
-      expect(write).toHaveBeenCalledWith('forty-two.tbx', expect.anything());
+      expect(await Bun.file(join(tempDir, 'forty-two.tbx')).text()).toBe('glossary-content');
       expect(console.log).toHaveBeenCalledWith(expect.stringContaining("'forty-two.tbx' downloaded successfully"));
     });
 
@@ -226,7 +234,6 @@ describe('GlossaryCommand', () => {
     // way to learn where the file landed — the message used to be text-only.
     test('prints the written path alone in plain', async () => {
       const glossaryCommand = createGlossaryCommand();
-      spyOn(Bun, 'write').mockResolvedValue(0 as never);
       output = createOutput({ ...globalOptions, output: 'plain' });
 
       await glossaryCommand.downloadAction(createCommandContext({ output: 'plain' }, ['42']));
@@ -236,7 +243,6 @@ describe('GlossaryCommand', () => {
 
     test('carries the written path in a machine format', async () => {
       const glossaryCommand = createGlossaryCommand();
-      spyOn(Bun, 'write').mockResolvedValue(0 as never);
       const item = spyOn(output, 'item');
 
       await glossaryCommand.downloadAction(createCommandContext({}, ['42']));
@@ -246,23 +252,21 @@ describe('GlossaryCommand', () => {
 
     test('downloads to the specified file and derives format from its extension', async () => {
       const glossaryCommand = createGlossaryCommand();
-      const write = spyOn(Bun, 'write').mockResolvedValue(0 as never);
       const to = join(tempDir, 'glossary.csv');
 
       await glossaryCommand.downloadAction(createCommandContext({ to }, ['42']));
 
       expect(glossaryService.export).toHaveBeenCalledWith(42, 'csv');
-      expect(write).toHaveBeenCalledWith(to, expect.anything());
+      expect(await Bun.file(to).text()).toBe('glossary-content');
     });
 
     test('passes file format to the export', async () => {
       const glossaryCommand = createGlossaryCommand();
-      spyOn(Bun, 'write').mockResolvedValue(0 as never);
 
       await glossaryCommand.downloadAction(createCommandContext({ format: 'csv' }, ['42']));
 
       expect(glossaryService.export).toHaveBeenCalledWith(42, 'csv');
-      expect(Bun.write).toHaveBeenCalledWith('forty-two.csv', expect.anything());
+      expect(await Bun.file(join(tempDir, 'forty-two.csv')).text()).toBe('glossary-content');
     });
 
     test('throws error for unsupported --to extension', async () => {
@@ -293,12 +297,12 @@ describe('GlossaryCommand', () => {
       expect(glossaryService.export).not.toHaveBeenCalled();
     });
 
-    test('throws CliError when writing the file fails', async () => {
+    test('throws CliError when the download fails', async () => {
       const glossaryCommand = createGlossaryCommand();
-      spyOn(Bun, 'write').mockRejectedValue(new Error('permission denied'));
+      spyOn(globalThis, 'fetch').mockResolvedValue(new Response('nope', { status: 500 }));
 
       expect(glossaryCommand.downloadAction(createCommandContext({}, ['42']))).rejects.toThrow(
-        new CliError("Failed to write to the file 'forty-two.tbx'. permission denied"),
+        new CliError('Download failed with status 500'),
       );
     });
   });
@@ -339,8 +343,9 @@ describe('GlossaryCommand', () => {
 
       await glossaryCommand.uploadAction(createCommandContext({ language: 'uk' }, [tbxFile]));
 
-      expect(glossaryService.get).not.toHaveBeenCalled();
       expect(glossaryService.add).toHaveBeenCalledWith({ name: 'Created in Crowdin CLI (file.tbx)', languageId: 'uk' });
+      // The only `get` is the post-import refetch for the echoed term count.
+      expect(glossaryService.get).toHaveBeenCalledWith(43);
       expect(glossaryService.import).toHaveBeenCalledWith(43, { storageId: 52 });
     });
 

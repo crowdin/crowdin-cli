@@ -169,7 +169,9 @@ describe('TmService', () => {
 
   describe('import', () => {
     test('starts the import', async () => {
-      spyOn(apiClient.translationMemoryApi, 'importTm').mockResolvedValue({} as never);
+      spyOn(apiClient.translationMemoryApi, 'importTm').mockResolvedValue({
+        data: { identifier: 'import-id', status: 'finished' },
+      } as never);
 
       await tmService.import(42, { storageId: 52, scheme: { en: 0, uk: 1 }, firstLineContainsHeader: true });
 
@@ -178,6 +180,29 @@ describe('TmService', () => {
         scheme: { en: 0, uk: 1 },
         firstLineContainsHeader: true,
       });
+    });
+
+    test('polls import status until finished', async () => {
+      spyOn(apiClient.translationMemoryApi, 'importTm').mockResolvedValue({
+        data: { identifier: 'import-id', status: 'created', progress: 0 },
+      } as never);
+      spyOn(apiClient.translationMemoryApi, 'checkImportStatus')
+        .mockResolvedValueOnce({ data: { identifier: 'import-id', status: 'inProgress', progress: 50 } } as never)
+        .mockResolvedValueOnce({ data: { identifier: 'import-id', status: 'finished' } } as never);
+      spyOn(Bun, 'sleep').mockResolvedValue(undefined);
+
+      await tmService.import(42, { storageId: 52 });
+
+      expect(apiClient.translationMemoryApi.checkImportStatus).toHaveBeenCalledTimes(2);
+      expect(apiClient.translationMemoryApi.checkImportStatus).toHaveBeenCalledWith(42, 'import-id');
+    });
+
+    test('throws CliError when the import fails', async () => {
+      spyOn(apiClient.translationMemoryApi, 'importTm').mockResolvedValue({
+        data: { identifier: 'import-id', status: 'failed' },
+      } as never);
+
+      expect(tmService.import(42, { storageId: 52 })).rejects.toThrow(new CliError('The import has failed'));
     });
 
     test('wraps API error as CliError', async () => {

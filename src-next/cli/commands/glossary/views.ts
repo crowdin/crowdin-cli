@@ -21,9 +21,7 @@ export function createGlossaryView({
   return {
     text: (glossary) =>
       [
-        `${colors.yellow(`#${glossary.id}`)} ${colors.green(glossary.name)} (${colors.red(
-          `terms: ${glossary.terms ?? 0}`,
-        )})`,
+        `${colors.yellow(`#${glossary.id}`)} ${glossary.name} (${colors.green(`terms: ${glossary.terms ?? 0}`)})`,
         ...(verbose ? (terms.get(glossary.id) ?? []).map(termLine) : []),
       ].join('\n'),
     plain: (glossary) => glossary.name,

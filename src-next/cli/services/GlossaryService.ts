@@ -81,10 +81,20 @@ export class GlossaryService {
   }
 
   async import(glossaryId: number, request: GlossariesModel.GlossaryFile): Promise<void> {
-    try {
-      await this.apiClient.glossariesApi.importGlossaryFile(glossaryId, request);
-    } catch (error) {
-      throw toCliError(error, 'Failed to import glossary');
-    }
+    await withSpinner(
+      this.output,
+      'glossaryImport',
+      { start: 'Importing glossary', stop: 'Importing glossary (100%)', fail: 'Failed to import glossary' },
+      async () => {
+        const started = await this.apiClient.glossariesApi.importGlossaryFile(glossaryId, request);
+
+        await pollUntilFinished(
+          started,
+          ({ identifier }) => this.apiClient.glossariesApi.checkGlossaryImportStatus(glossaryId, identifier),
+          'The import has failed',
+          (status) => this.output.spinner('glossaryImport', 'message', `Importing glossary (${status.progress}%)`),
+        );
+      },
+    );
   }
 }

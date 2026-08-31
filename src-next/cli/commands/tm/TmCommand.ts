@@ -10,6 +10,7 @@ import type { GlobalOptions } from '@/cli/options.ts';
 import type { GetApiClient, GetOutput, GetStorageService, GetTmService } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
+import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import type { View } from '@/cli/utils/output.ts';
 import { parseNumericId, parseScheme, toArray } from '@/cli/utils/parsing.ts';
 import {
@@ -42,7 +43,6 @@ const UPLOAD_EXTENSIONS = ['tmx', 'csv', 'xls', 'xlsx'];
 const SCHEME_EXTENSIONS = ['csv', 'xls', 'xlsx'];
 const DEFAULT_TM_NAME = 'Created in Crowdin CLI (%s)';
 
-// Java message.tm.list: id, name, segment count.
 const tmView: View<TranslationMemoryModel.TranslationMemory> = {
   text: (tm) => `${colors.yellow(`#${tm.id}`)} ${tm.name} (${colors.green(`segments: ${tm.segmentsCount}`)})`,
   plain: (tm) => tm.name,
@@ -140,10 +140,9 @@ export default class TmCommand {
 
     const exportId = await tmService.export(tm.id, options.sourceLanguageId, options.targetLanguageId, format);
     const downloadUrl = await tmService.getDownloadUrl(tm.id, exportId);
-    const response = await fetch(downloadUrl);
 
     try {
-      await Bun.write(to, response);
+      await downloadToFile(downloadUrl, to);
     } catch (error) {
       throw toCliError(error, `Failed to write to the file '${to}'`);
     }
@@ -213,6 +212,7 @@ export default class TmCommand {
 
     output.success(`Imported in #${tm.id} '${tm.name}' translation memory`);
     // The sentence above is text-only; the memory itself is what a machine format owes the caller.
-    output.item(tm, tmView, { mark: false });
+    // Refetched: the copy from before the import still carries the old segment count.
+    output.item(await tmService.get(tm.id), tmView, { mark: false });
   };
 }
