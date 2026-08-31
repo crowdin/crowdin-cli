@@ -147,8 +147,12 @@ describe('custom segmentation', () => {
     const strings = await ctx.client.sourceStringsApi.listProjectStrings(ctx.project.id, {
       fileId: sourceDocx?.data.id,
     });
+    // The fixture's `<w:t>` runs separate the sentences with a NON-BREAKING space (U+00A0), which is what
+    // Word writes after an abbreviation - spelled as an escape here because it is indistinguishable from a
+    // plain space on screen, and a mismatch between the two renders as two identical-looking strings in the
+    // failure diff. It is also why sampleV2's `break="no"` rule has something to bind here at all.
     expect(strings.data.map((entry) => entry.data.text)).toEqual([
-      'The U.K. Prime Minister, Mr. Blair, was seen out with his family today. Boris Johnson also was there.',
+      'The U.K.\u00A0Prime Minister, Mr. Blair, was seen out with his family today.\u00A0Boris Johnson also was there.',
     ]);
   });
 });
