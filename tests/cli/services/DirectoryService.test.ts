@@ -117,6 +117,16 @@ describe('DirectoryService', () => {
       expect(result).toBe(20);
     });
 
+    test.each(['docs/', '/docs/', 'docs//', 'docs\\'])('handles a trailing separator in %p', async (value) => {
+      spyOn(apiClient.sourceFilesApi, 'listProjectDirectories').mockResolvedValue({
+        data: [{ data: { id: 20, path: '/docs' } }],
+      } as never);
+
+      const result = await directoryService.resolveDirectoryId(value);
+
+      expect(result).toBe(20);
+    });
+
     test('matches a branch-relative path when a branch is given', async () => {
       const listProjectDirectories = spyOn(apiClient.sourceFilesApi, 'listProjectDirectories').mockResolvedValue({
         data: [{ data: { id: 30, path: '/feature/docs', branchId: 7 } }],

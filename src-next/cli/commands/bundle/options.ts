@@ -28,9 +28,9 @@ export const exportPattern: OptionDef = {
 
 export const label: OptionDef = {
   name: 'label',
-  type: 'number',
+  type: 'string',
   variadic: true,
-  description: 'Label identifier. Could be specified multiple times',
+  description: 'Label title. Could be specified multiple times',
 };
 
 export const name: OptionDef = {
@@ -45,14 +45,32 @@ export const includeSourceLanguage: OptionDef = {
   description: 'Add project source language to bundle',
 };
 
+export const noIncludeSourceLanguage: OptionDef = {
+  name: 'no-include-source-language',
+  type: 'boolean',
+  description: 'Exclude project source language from bundle',
+};
+
 export const includePseudoLanguage: OptionDef = {
   name: 'include-pseudo-language',
   type: 'boolean',
   description: 'Add In-Context pseudo-language to bundle',
 };
 
+export const noIncludePseudoLanguage: OptionDef = {
+  name: 'no-include-pseudo-language',
+  type: 'boolean',
+  description: 'Exclude In-Context pseudo-language from bundle',
+};
+
 export const multilingual: OptionDef = {
   name: 'multilingual',
   type: 'boolean',
   description: 'Export translations in multilingual file',
+};
+
+export const noMultilingual: OptionDef = {
+  name: 'no-multilingual',
+  type: 'boolean',
+  description: 'Export translations in separate files per language',
 };

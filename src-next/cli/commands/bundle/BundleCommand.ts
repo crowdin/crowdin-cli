@@ -7,14 +7,14 @@ import { pathView } from '@/cli/commands/common/views.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { AddBundlePayload, BundleView } from '@/cli/services/BundleService.ts';
-import type { GetBundleService, GetConfig, GetOutput } from '@/cli/services.ts';
+import type { GetBundleService, GetConfig, GetLabelService, GetOutput } from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { colors } from '@/cli/utils/colors.ts';
 import { downloadToFile } from '@/cli/utils/downloadToFile.ts';
 import { isMachineFormat } from '@/cli/utils/formatter.ts';
 import { openUrl } from '@/cli/utils/open.ts';
 import type { View } from '@/cli/utils/output.ts';
-import { parseNumericId, toArray, toNumberArray } from '@/cli/utils/parsing.ts';
+import { parseNumericId, toArray } from '@/cli/utils/parsing.ts';
 import { stripLeadingSlashes, toPosixPath } from '@/lib/utils/path.ts';
 import { dryRun } from '../common/options.ts';
 import { keepArchive } from '../download/options.ts';
@@ -27,6 +27,9 @@ import {
   label as labelOption,
   multilingual as multilingualOption,
   name as nameOption,
+  noIncludePseudoLanguage as noIncludePseudoLanguageOption,
+  noIncludeSourceLanguage as noIncludeSourceLanguageOption,
+  noMultilingual as noMultilingualOption,
   sourcePattern as sourcePatternOption,
 } from './options.ts';
 
@@ -36,7 +39,7 @@ interface BundleOptions extends GlobalOptions {
   sourcePattern?: string | string[];
   ignorePattern?: string | string[];
   exportPattern?: string;
-  label?: number | number[];
+  label?: string | string[];
   includeSourceLanguage?: boolean;
   includePseudoLanguage?: boolean;
   multilingual?: boolean;
@@ -67,6 +70,7 @@ export default class BundleCommand {
     private getOutput: GetOutput,
     private getBundleService: GetBundleService,
     private getConfig: GetConfig,
+    private getLabelService: GetLabelService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -96,7 +100,9 @@ export default class BundleCommand {
             exportPatternOption,
             labelOption,
             includeSourceLanguageOption,
-            { ...includePseudoLanguageOption, default: true },
+            // The bundle is created with the pseudo-language included, so only the negation
+            // changes the request — a positive flag here would be a no-op.
+            noIncludePseudoLanguageOption,
             multilingualOption,
             projectConfigGroup,
           ],
@@ -142,9 +148,14 @@ export default class BundleCommand {
             ignorePatternOption,
             exportPatternOption,
             labelOption,
+            // Every boolean is tri-state on clone: omitting it inherits the source bundle's value,
+            // so each one needs a negation to turn an inherited `true` back off.
             includeSourceLanguageOption,
+            noIncludeSourceLanguageOption,
             includePseudoLanguageOption,
+            noIncludePseudoLanguageOption,
             multilingualOption,
+            noMultilingualOption,
             projectConfigGroup,
           ],
           action: this.cloneAction,
@@ -202,7 +213,9 @@ export default class BundleCommand {
     const output = this.getOutput(command);
     const bundleService = await this.getBundleService(command);
     const ignorePatterns = toArray(options.ignorePattern);
-    const labelIds = toNumberArray(options.label, "'--label' value must be numeric");
+    // Labels are titles here, like every other command that takes --label. They filter which
+    // strings the bundle picks up, so an unknown title is an error rather than a new empty label.
+    const labelIds = (await (await this.getLabelService(command)).resolveLabelIds(toArray(options.label), false)) ?? [];
     const payload: AddBundlePayload = {
       name,
       format: options.format,
@@ -344,7 +357,7 @@ export default class BundleCommand {
 
     const sourcePatterns = toArray(options.sourcePattern);
     const ignorePatterns = toArray(options.ignorePattern);
-    const labelIds = toNumberArray(options.label, "'--label' value must be numeric");
+    const labelIds = (await (await this.getLabelService(command)).resolveLabelIds(toArray(options.label), false)) ?? [];
     const payload: AddBundlePayload = {
       name: options.name ?? `${source.name ?? ''} (clone)`,
       format: options.format ?? source.format ?? '',

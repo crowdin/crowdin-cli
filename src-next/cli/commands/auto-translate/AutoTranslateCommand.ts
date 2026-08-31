@@ -269,8 +269,12 @@ export default class AutoTranslateCommand {
         fileIds.push(fileId);
       }
     } else if (directoryPath) {
+      // Compare against the separator too: a bare prefix would pull '/enterprise/app.json' into
+      // '--directory en'.
+      const directoryPrefix = `${directoryPath}/`;
+
       for (const [path, fileId] of paths) {
-        if (path.startsWith(directoryPath)) {
+        if (path.startsWith(directoryPrefix)) {
           fileIds.push(fileId);
         }
       }

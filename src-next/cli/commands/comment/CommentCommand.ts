@@ -116,7 +116,10 @@ export default class CommentCommand {
     const status = options.status as StringCommentsModel.IssueStatus | undefined;
     let type = options.type as StringCommentsModel.Type | undefined;
 
-    if (status && !type) {
+    // Both filters only exist on issues, and the API rejects either one on its own with "Any of
+    // [type] must be set". Java infers the type for --status (CommentListAction); --issue-type
+    // needs it for the same reason.
+    if ((status || options.issueType) && !type) {
       type = 'issue';
     }
 

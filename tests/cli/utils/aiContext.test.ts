@@ -7,7 +7,7 @@ import {
   getAiContextSection,
   getManualContext,
   getStringText,
-  readContextRecords,
+  readContextFile,
 } from '@/cli/utils/aiContext.ts';
 
 const CONTEXT_WITH_AI = 'This is the manual context.\n\n✨ AI Context\nThis is the AI context.\n✨ 🔚';
@@ -86,7 +86,7 @@ describe('aiContext', () => {
     });
   });
 
-  describe('readContextRecords', () => {
+  describe('readContextFile', () => {
     let tempDir: string;
 
     beforeEach(async () => {
@@ -107,7 +107,7 @@ describe('aiContext', () => {
         ].join('\n'),
       );
 
-      const records = await readContextRecords(filePath);
+      const { records } = await readContextFile(filePath);
 
       expect(records).toEqual([
         { id: 11, key: 'k1', text: 't1', file: '/f1', context: 'man1', ai_context: 'ai1' },
@@ -115,22 +115,56 @@ describe('aiContext', () => {
       ]);
     });
 
-    test('skips invalid and incomplete lines', async () => {
+    // A file where nothing parsed is some other kind of file, not an empty context file, and the
+    // reported line is what lets the caller tell those apart.
+    test('reports the first line that held no record', async () => {
+      const filePath = join(tempDir, 'glossary.tbx');
+      await writeFile(filePath, ['<?xml version="1.0"?>', '<martif type="TBX">', '', '</martif>'].join('\n'));
+
+      expect(await readContextFile(filePath)).toEqual({ records: [], firstInvalidLine: 1 });
+    });
+
+    test('numbers the invalid line from the top of the file, blank lines included', async () => {
       const filePath = join(tempDir, 'context.jsonl');
       await writeFile(
         filePath,
         [
-          'not json at all',
-          '{"id":"string-id","key":"k","text":"t","file":"f","context":"c","ai_context":"a"}',
-          '{"id":33,"key":"k3"}',
-          '{"id":44,"key":"k4","text":"t4","file":"/f4","context":"man4","ai_context":"ai4"}',
+          '{"id":11,"key":"k1","text":"t1","file":"/f1","context":"man1","ai_context":"ai1"}',
           '',
+          'not json at all',
         ].join('\n'),
       );
 
-      const records = await readContextRecords(filePath);
+      const { records, firstInvalidLine } = await readContextFile(filePath);
+
+      expect(records).toHaveLength(1);
+      expect(firstInvalidLine).toBe(3);
+    });
+
+    test('reports no invalid line for a blank file', async () => {
+      const filePath = join(tempDir, 'context.jsonl');
+      await writeFile(filePath, '\n\n');
+
+      expect(await readContextFile(filePath)).toEqual({ records: [] });
+    });
+
+    test.each([
+      ['not json at all'],
+      ['{"id":"string-id","key":"k","text":"t","file":"f","context":"c","ai_context":"a"}'],
+      ['{"id":33,"key":"k3"}'],
+    ])('reads past %p but reports it', async (invalidLine) => {
+      const filePath = join(tempDir, 'context.jsonl');
+      await writeFile(
+        filePath,
+        [invalidLine, '{"id":44,"key":"k4","text":"t4","file":"/f4","context":"man4","ai_context":"ai4"}', ''].join(
+          '\n',
+        ),
+      );
+
+      const { records, firstInvalidLine } = await readContextFile(filePath);
 
       expect(records).toEqual([{ id: 44, key: 'k4', text: 't4', file: '/f4', context: 'man4', ai_context: 'ai4' }]);
+      expect(firstInvalidLine).toBe(1);
     });
   });
 });

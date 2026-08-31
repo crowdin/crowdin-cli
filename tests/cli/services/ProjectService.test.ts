@@ -51,14 +51,12 @@ describe('ProjectService', () => {
 
       await projectService.addProject({
         name: 'My Project',
-        identifier: 'my-project',
         sourceLanguageId: 'en',
         targetLanguageIds: ['fr', 'de'],
       });
 
       expect(spy).toHaveBeenCalledWith({
         name: 'My Project',
-        identifier: 'my-project',
         sourceLanguageId: 'en',
         targetLanguageIds: ['fr', 'de'],
       });
@@ -71,7 +69,6 @@ describe('ProjectService', () => {
 
       const result = await projectService.addProject({
         name: 'My Project',
-        identifier: 'my-project',
         sourceLanguageId: 'en',
         targetLanguageIds: [],
       });
@@ -82,9 +79,9 @@ describe('ProjectService', () => {
     test('wraps API error as CliError', async () => {
       spyOn(apiClient.projectsGroupsApi, 'addProject').mockRejectedValue(new Error('validation failed'));
 
-      expect(
-        projectService.addProject({ name: 'Bad', identifier: 'bad', sourceLanguageId: 'en', targetLanguageIds: [] }),
-      ).rejects.toThrow(CliError);
+      expect(projectService.addProject({ name: 'Bad', sourceLanguageId: 'en', targetLanguageIds: [] })).rejects.toThrow(
+        CliError,
+      );
     });
   });
 

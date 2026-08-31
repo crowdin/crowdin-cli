@@ -163,6 +163,32 @@ export default class StringCommand {
       throw new CliError("The '--file' and '--directory' options can't be used together");
     }
 
+    // The API only reads `scope` as the target of `filter` and rejects it on its own with
+    // "Key: scope. Message: Any of [filter] must be set" — caught here so the round trip is spared.
+    if (options.scope && !options.filter) {
+      throw new CliError("The '--scope' option can only be used together with '--filter'");
+    }
+
+    // The API accepts `croql` only alongside pagination and rejects every other filter one at a
+    // time ("Field [fileId] must not be set with the current field"), naming the API field rather
+    // than the flag. Report them together, in the CLI's own vocabulary.
+    if (options.croql) {
+      const conflicting = [
+        ['--filter', Boolean(options.filter)],
+        ['--label', labelNames.length > 0],
+        // `--branch none` resolves to no branch at all, so it never reaches the request.
+        ['--branch', Boolean(options.branch) && options.branch !== 'none'],
+        ['--file', Boolean(filePath)],
+        ['--directory', Boolean(directory)],
+      ]
+        .filter(([, isSet]) => isSet)
+        .map(([flag]) => flag);
+
+      if (conflicting.length > 0) {
+        throw new CliError(`The '--croql' option can't be used together with ${conflicting.join(', ')}`);
+      }
+    }
+
     const output = this.getOutput(command);
     const stringService = await this.getStringService(command);
     const branchService = await this.getBranchService(command);

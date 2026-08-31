@@ -406,6 +406,44 @@ describe('ContextCommand', () => {
         'Failed to list source strings',
       );
     });
+
+    // The merge reads ai_context out of the existing file by id, so a line it cannot read is
+    // context that would be recomputed from the server and then overwritten by the rewrite.
+    test('refuses to rewrite a file with an unreadable line', async () => {
+      const command = createContextCommand();
+      const to = join(tempDir, 'out.jsonl');
+      const original = [
+        '{"id":701,"key":"k","text":"t","file":"/f","context":"","ai_context":"kept"}',
+        'not json at all',
+      ].join('\n');
+      await writeFile(to, original);
+
+      stringService.list.mockResolvedValue([createString({ id: 701, identifier: 'k', text: 't' })]);
+
+      expect(command.downloadAction(createCommandContext({ to }))).rejects.toThrow(
+        new CliError(
+          `File '${to}' contains an invalid record at line 2. Expected the JSONL format written by 'crowdin context download'`,
+        ),
+      );
+      expect(await Bun.file(to).text()).toBe(original);
+    });
+
+    // The download replaces --to wholesale, so pointing it at an unrelated file used to destroy it.
+    test('refuses to overwrite a file that holds no context records', async () => {
+      const command = createContextCommand();
+      const to = join(tempDir, 'glossary.tbx');
+      const original = '<?xml version="1.0"?>\n<martif type="TBX"></martif>';
+      await writeFile(to, original);
+
+      stringService.list.mockResolvedValue([createString({ id: 701, identifier: 'k', text: 't' })]);
+
+      expect(command.downloadAction(createCommandContext({ to }))).rejects.toThrow(
+        new CliError(
+          `File '${to}' is not a context file. Expected the JSONL format written by 'crowdin context download'`,
+        ),
+      );
+      expect(await Bun.file(to).text()).toBe(original);
+    });
   });
 
   describe('upload', () => {
@@ -516,6 +554,85 @@ describe('ContextCommand', () => {
 
       expect(stringService.batchEdit).toHaveBeenCalled();
       expect(list.mock.calls.at(-1)?.[0]).toEqual([{ id: 21, text: 't21', context: AI_CONTEXT('man21', 'ai21') }]);
+    });
+
+    // An upload with nothing to send used to exit silently, so a run that skipped every record
+    // looked exactly like one that had not run at all.
+    test('reports an empty file', async () => {
+      const command = createContextCommand();
+      const from = await writeRecords([]);
+
+      await command.uploadAction(createCommandContext({ from }));
+
+      expect(stringService.batchEdit).not.toHaveBeenCalled();
+      expect(loggedOutput()).toContain(`No strings found in '${from}'`);
+    });
+
+    test.each([{ dryrun: false }, { dryrun: true }])(
+      'reports a file whose records all lack ai_context (dryrun: $dryrun)',
+      async ({ dryrun }) => {
+        const command = createContextCommand();
+        const from = await writeRecords([record(10, 'man10', ''), record(11, 'man11', '')]);
+
+        await command.uploadAction(createCommandContext({ from, dryrun }));
+
+        expect(stringService.batchEdit).not.toHaveBeenCalled();
+        expect(loggedOutput()).toContain(`No strings with AI context found in '${from}'`);
+      },
+    );
+
+    test('reports an empty result in a machine format', async () => {
+      output = createOutput({ ...globalOptions, output: 'json' });
+      const list = spyOn(output, 'list');
+      const command = createContextCommand();
+      const from = await writeRecords([record(10, 'man10', '')]);
+
+      await command.uploadAction(createCommandContext({ from, output: 'json' }));
+
+      expect(stringService.batchEdit).not.toHaveBeenCalled();
+      expect(list.mock.calls[0]?.[0]).toEqual([]);
+    });
+
+    // '--from glossary.tbx' used to read as zero records and pass silently for anything that was
+    // not a context file at all.
+    test('refuses a file that holds no context records', async () => {
+      const command = createContextCommand();
+      const from = join(tempDir, 'glossary.tbx');
+      await writeFile(from, '<?xml version="1.0"?>\n<martif type="TBX"></martif>');
+
+      expect(command.uploadAction(createCommandContext({ from }))).rejects.toThrow(
+        new CliError(
+          `File '${from}' is not a context file. Expected the JSONL format written by 'crowdin context download'`,
+        ),
+      );
+      expect(stringService.batchEdit).not.toHaveBeenCalled();
+    });
+
+    // Sending only the lines that happened to parse is a silently truncated upload, so one bad
+    // line stops the run and names itself.
+    test('refuses a file with an unreadable line', async () => {
+      const command = createContextCommand();
+      const from = join(tempDir, 'context.jsonl');
+      await writeFile(
+        from,
+        [JSON.stringify(record(21, 'man21', 'ai21')), 'not json at all', '{"id":33,"key":"k3"}'].join('\n'),
+      );
+
+      expect(command.uploadAction(createCommandContext({ from }))).rejects.toThrow(
+        new CliError(
+          `File '${from}' contains an invalid record at line 2. Expected the JSONL format written by 'crowdin context download'`,
+        ),
+      );
+      expect(stringService.batchEdit).not.toHaveBeenCalled();
+    });
+
+    test('uploads a file it read in full', async () => {
+      const command = createContextCommand();
+      const from = await writeRecords([record(21, 'man21', 'ai21')]);
+
+      await command.uploadAction(createCommandContext({ from }));
+
+      expect(stringService.batchEdit).toHaveBeenCalledTimes(1);
     });
 
     test('fails when the file does not exist', async () => {

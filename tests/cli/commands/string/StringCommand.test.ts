@@ -134,6 +134,54 @@ describe('StringCommand', () => {
       );
     });
 
+    test('throws when --scope is used without --filter', async () => {
+      const cmd = createStringCommand();
+      const commandContext = createCommandContext({ ...globalOptions, scope: 'text' });
+
+      expect(cmd.listAction(commandContext)).rejects.toThrow(
+        new CliError("The '--scope' option can only be used together with '--filter'"),
+      );
+      expect(stringService.list).not.toHaveBeenCalled();
+    });
+
+    test('passes --scope through when --filter is present', async () => {
+      const cmd = createStringCommand();
+      const commandContext = createCommandContext({ ...globalOptions, scope: 'text', filter: 'Hello' });
+
+      await cmd.listAction(commandContext);
+
+      expect(stringService.list).toHaveBeenCalledWith(expect.objectContaining({ scope: 'text', filter: 'Hello' }));
+    });
+
+    test.each([
+      [{ filter: 'Hello' }, "The '--croql' option can't be used together with --filter"],
+      [{ label: ['main'] }, "The '--croql' option can't be used together with --label"],
+      [{ branch: 'main' }, "The '--croql' option can't be used together with --branch"],
+      [{ file: 'a.yml' }, "The '--croql' option can't be used together with --file"],
+      [{ directory: '/a' }, "The '--croql' option can't be used together with --directory"],
+      [{ filter: 'Hello', file: 'a.yml' }, "The '--croql' option can't be used together with --filter, --file"],
+    ])('throws when --croql is combined with %p', async (conflicting, message) => {
+      const cmd = createStringCommand();
+      const commandContext = createCommandContext({ ...globalOptions, croql: 'count of comments > 0', ...conflicting });
+
+      expect(cmd.listAction(commandContext)).rejects.toThrow(new CliError(message));
+      expect(stringService.list).not.toHaveBeenCalled();
+    });
+
+    // `--branch none` means "no branch", so it never reaches the request and never conflicts.
+    test('allows --croql with --branch none', async () => {
+      const cmd = createStringCommand();
+      const commandContext = createCommandContext({
+        ...globalOptions,
+        croql: 'count of comments > 0',
+        branch: 'none',
+      });
+
+      await cmd.listAction(commandContext);
+
+      expect(stringService.list).toHaveBeenCalledWith(expect.objectContaining({ croql: 'count of comments > 0' }));
+    });
+
     test('throws for file/directory filters on string-based projects', async () => {
       const cmd = createStringCommand();
       stringService.isStringsBasedProject.mockResolvedValue(true);

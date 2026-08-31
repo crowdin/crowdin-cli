@@ -4,7 +4,14 @@ import { branch, projectConfigGroup } from '@/cli/commands/common/options.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import type { TaskStatus } from '@/cli/services/TaskService.ts';
-import type { GetApiClient, GetBranchService, GetFileService, GetOutput, GetTaskService } from '@/cli/services.ts';
+import type {
+  GetApiClient,
+  GetBranchService,
+  GetFileService,
+  GetLabelService,
+  GetOutput,
+  GetTaskService,
+} from '@/cli/services.ts';
 import type { CommandDef } from '@/cli/types.ts';
 import { toArray, toNumberArray } from '@/cli/utils/parsing.ts';
 import {
@@ -48,6 +55,7 @@ export default class TaskCommand {
     private getApiClient: GetApiClient,
     private getBranchService: GetBranchService,
     private getFileService: GetFileService,
+    private getLabelService: GetLabelService,
   ) {}
 
   getDefinition(): CommandDef {
@@ -119,7 +127,6 @@ export default class TaskCommand {
     const files = toArray(options.file);
     const type = options.type?.toLowerCase();
     const [workflowStepId] = toNumberArray(options.workflowStep, "The '--workflow-step' value must be numeric");
-    const labelIds = toNumberArray(options.label, "The '--label' value must be numeric");
 
     if (!title) {
       throw new CliError('Task title can not be empty');
@@ -158,6 +165,10 @@ export default class TaskCommand {
 
     const output = this.getOutput(command);
     const taskService = await this.getTaskService(command);
+    // Titles, not ids: --label is a title everywhere else in the CLI. Unknown title is an error,
+    // creating a fresh empty label would just make the task cover nothing.
+    const labelService = await this.getLabelService(command);
+    const labelIds = (await labelService.resolveLabelIds(toArray(options.label), false)) ?? [];
     const branchService = await this.getBranchService(command);
     const fileService = await this.getFileService(command);
     const branch = await branchService.resolveBranch(options.branch);

@@ -1,6 +1,6 @@
 import { describe, expect, test } from 'bun:test';
 import { ExitCode, getExitCode } from '@/cli/errors/CliError.ts';
-import { normalizeBranchName, parseNumericId, toNumberArray } from '@/cli/utils/parsing.ts';
+import { normalizeBranchName, normalizePath, parseNumericId, toNumberArray } from '@/cli/utils/parsing.ts';
 
 // Java declares these ids as Long, so picocli's Long.parseLong rejects anything else with a usage
 // error. Number() would accept all of the below and forward junk to the API as a real id.
@@ -46,5 +46,23 @@ describe('normalizeBranchName', () => {
     expect(normalizeBranchName('test?"')).toBe('test..');
     expect(normalizeBranchName('test<')).toBe('test.');
     expect(normalizeBranchName('main')).toBe('main');
+  });
+});
+
+// Server paths are absolute and never end with a separator, so anything compared against one has
+// to be reduced to that shape first — '--directory en/' used to look for a directory named 'en/'.
+describe('normalizePath', () => {
+  test.each([
+    ['en', '/en'],
+    ['en/', '/en'],
+    ['/en/', '/en'],
+    ['en///', '/en'],
+    ['en\\', '/en'],
+    ['/src/en/', '/src/en'],
+    ['src\\en\\', '/src/en'],
+    ['/', '/'],
+    ['', '/'],
+  ])('normalizes %p to %p', (value, expected) => {
+    expect(normalizePath(value)).toBe(expected);
   });
 });

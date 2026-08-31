@@ -16,6 +16,16 @@ export interface StringContextRecord {
   ai_context: string;
 }
 
+/**
+ * A parsed context file. `firstInvalidLine` is the 1-based number of the first non-blank line that
+ * held no context record, so a file where nothing parsed — some other kind of file entirely — can
+ * be told apart from one bad line in a real context file.
+ */
+export interface ContextFileContent {
+  records: StringContextRecord[];
+  firstInvalidLine?: number;
+}
+
 export function getManualContext(context?: string | null): string {
   if (!context) {
     return '';
@@ -61,16 +71,34 @@ export function fullContext(manualContext: string, aiContext?: string | null): s
   return result;
 }
 
-export async function readContextRecords(filePath: string): Promise<StringContextRecord[]> {
+export async function readContextFile(filePath: string): Promise<ContextFileContent> {
   const content = await Bun.file(filePath).text();
+  const records: StringContextRecord[] = [];
+  let firstInvalidLine: number | undefined;
 
-  return content
-    .split('\n')
-    .map((line) => parseContextRecord(line))
-    .filter((record): record is StringContextRecord => record !== null);
+  const lines = content.split('\n');
+
+  for (const [index, line] of lines.entries()) {
+    if (line.trim() === '') {
+      continue;
+    }
+
+    const record = parseContextRecord(line);
+
+    if (record === null) {
+      firstInvalidLine ??= index + 1;
+      continue;
+    }
+
+    records.push(record);
+  }
+
+  return { records, ...(firstInvalidLine !== undefined ? { firstInvalidLine } : {}) };
 }
 
-// Invalid or incomplete lines are silently skipped, same as the Java CLI
+// A malformed or incomplete line yields no record. Unlike the Java CLI, which drops such lines
+// silently, the callers refuse the file: both of them rewrite what they read, so a dropped line is
+// context about to be lost.
 function parseContextRecord(line: string): StringContextRecord | null {
   try {
     const parsed: unknown = JSON.parse(line);
