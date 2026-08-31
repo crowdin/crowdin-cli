@@ -1,5 +1,15 @@
 # Changelog
 
+## [5.0.1](https://github.com/crowdin/crowdin-cli/compare/5.0.0...5.0.1) (2026-08-31)
+
+
+### Bug Fixes
+
+* **app:** bump api client for --force uninstall ([#1090](https://github.com/crowdin/crowdin-cli/issues/1090)) ([4ff9970](https://github.com/crowdin/crowdin-cli/commit/4ff99704845a9761131fb0e83b79b1fb843251fd))
+* tm/glossary import update ([#1093](https://github.com/crowdin/crowdin-cli/issues/1093)) ([0e89ebc](https://github.com/crowdin/crowdin-cli/commit/0e89ebc0091559df24bf4008be3385e81df5d12a))
+* various bug fixes ([#1079](https://github.com/crowdin/crowdin-cli/issues/1079)) ([1cb6e7d](https://github.com/crowdin/crowdin-cli/commit/1cb6e7d968ef1c484495321a22a994b44452a19f))
+* various fixes for output issues ([#1078](https://github.com/crowdin/crowdin-cli/issues/1078)) ([bc6cfc7](https://github.com/crowdin/crowdin-cli/commit/bc6cfc782e615cd4284214c3228541f78163c51e))
+
 # [5.0.0](https://github.com/crowdin/crowdin-cli/compare/4.15.1...5.0.0) (2026-08-26)
 
 Crowdin CLI 5.0 is a complete rewrite - from Java to TypeScript, powered by [Bun](https://bun.sh): a single self-contained binary with instant startup, machine-readable output for scripts and AI agents, and more. The commands, `crowdin.yml` configuration, and exit codes stay the same.
