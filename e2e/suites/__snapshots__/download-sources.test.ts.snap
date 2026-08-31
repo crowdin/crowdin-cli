@@ -54,13 +54,13 @@ exports[`download sources downloads sources back to their original local paths 1
 `;
 
 exports[`download sources downloads sources again with --output plain 1`] = `
-"root/folder_1/android.xml
-root/folder_1/f1/android.xml
-root/folder_1/f1/f2/android.xml
-folder_2/android_1.xml
+"folder_2/android_1.xml
 folder_2/android_2.xml
 folder_2/android_3.xml
-folder_2/android_4a.xml"
+folder_2/android_4a.xml
+root/folder_1/android.xml
+root/folder_1/f1/android.xml
+root/folder_1/f1/f2/android.xml"
 `;
 
 exports[`download sources downloads sources from the b1 branch 1`] = `
