@@ -143,11 +143,11 @@ exports[`download translations --all keeps the downloaded archive for a single l
 `;
 
 exports[`download translations --all keeps the downloaded archive with plain output 1`] = `
-"translations/it/{{cookiecutter.module_name}}/android.xml
-translations/it/folder/android.xml
+"crowdin-translations.zip
 translations/it/android.xml
-translations/uk/{{cookiecutter.module_name}}/android.xml
-translations/uk/folder/android.xml
+translations/it/folder/android.xml
+translations/it/{{cookiecutter.module_name}}/android.xml
 translations/uk/android.xml
-crowdin-translations.zip"
+translations/uk/folder/android.xml
+translations/uk/{{cookiecutter.module_name}}/android.xml"
 `;
