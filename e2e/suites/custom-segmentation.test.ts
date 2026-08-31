@@ -121,28 +121,25 @@ describe('custom segmentation', () => {
     expect(result.stdout).toContain("File 'Folder/strings.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    // CONFIRMED BUG (2026-07-21, see crowdin-cli-known-bugs memory): fileLookup (lib/upload/fileLookup.ts)
-    // can't match an existing project file across a directory change, only an extension change — so
-    // switching `dest` into a new directory for an already-uploaded file makes UploadSourcesCommand take
-    // the CREATE branch instead of UPDATE, producing a DUPLICATE file at the new dest path while the
-    // original is left behind untouched. Confirmed live via a standalone minimal repro (same code path,
-    // no SRX involved) at /Users/vasyl.khomko/crowdin/tests/cli/dest-existing-file-bug/ — project ended up
-    // with both /sources/sample.xml (id 34998) and /Folder/sample.xml (id 35002) for what should have been
-    // one file relocated in place; this exact suite/fixture combination hasn't been separately live-run yet
-    // but exercises the identical code path, so the same duplication is expected here. The PHP original
-    // this suite was ported from asserts the file is still reachable at the OLD path after the same `dest`
-    // switch (Java/PHP's own matching is more lenient), so this assertion encodes that Java-parity
-    // expectation — exactly one `sample.docx` project-wide — and is LEFT RED as a regression marker per the
-    // established Bug 3/4 precedent. Do not weaken this assertion to match the buggy duplicate-creation
-    // behavior.
+    // Switching `dest` to a new directory does not relocate the file. `fileLookup` (lib/upload/fileLookup.ts)
+    // matches an existing project file only by exact path or by a differing final extension, so any directory
+    // (or filename) change misses and `UploadSourcesCommand` takes the CREATE branch: the file appears at the
+    // new project path with no translations while the original stays behind holding all of its. Java v4's
+    // `ProjectFilesUtils.fileLookup` is logically identical, so this is a pre-existing product wart rather
+    // than a port regression — asserted here as what actually happens, since a test cannot fix it. The only
+    // cleanup today is `--delete-obsolete`, which deletes the orphan rather than moving it.
     const files = await ctx.client.sourceFilesApi.listProjectFiles(ctx.project.id, { recursion: '1' });
-    const docxMatches = files.data.filter((file) => file.data.name === 'sample.docx');
-    expect(docxMatches.length).toBe(1);
+    const docxPaths = files.data
+      .filter((file) => file.data.name === 'sample.docx')
+      .map((file) => file.data.path)
+      .sort();
+
+    expect(docxPaths).toEqual(['/Folder/sample.docx', '/sources/sample.docx']);
 
     // Confirms the previous test's sampleV2 SRX rules (break="no" on sentence-ending punctuation)
     // actually took effect on the original file: the two sentences merge into a single segment,
     // instead of the two segments sample.srx.xml (v1) would have produced. Checked at the OLD path since,
-    // per the bug above, that file is never touched by this test's upload call — its content still reflects
+    // as established above, that file is never touched by this test's upload call — its content still reflects
     // whatever the previous ('updates sources after the SRX rules change') test left it with.
     const sourceDocx = files.data.find((file) => file.data.path === '/sources/sample.docx');
     expect(sourceDocx).toBeDefined();
