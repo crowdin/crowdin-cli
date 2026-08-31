@@ -22,8 +22,8 @@ describe('auto update', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources/1_android.xml'");
-    expect(result.stdout).toContain("File 'sources/2_android.xml'");
+    expect(result.stdout).toContain("File '1_android.xml'");
+    expect(result.stdout).toContain("File '2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -35,9 +35,9 @@ describe('auto update', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources/1_android.xml'");
-    expect(result.stdout).toContain("File 'sources/2_android.xml'");
-    expect(result.stdout).toContain("File 'sources/3_android.xml'");
+    expect(result.stdout).toContain("File '1_android.xml'");
+    expect(result.stdout).toContain("File '2_android.xml'");
+    expect(result.stdout).toContain("File '3_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // The success line above is identical on the create and the update path, so stdout alone can't
@@ -65,10 +65,10 @@ describe('auto update', () => {
     const result = await ctx.runner.run(['upload', 'sources', '--no-auto-update']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File sources/1_android.xml already exists and will not be updated');
-    expect(result.stdout).toContain('File sources/2_android.xml already exists and will not be updated');
-    expect(result.stdout).toContain('File sources/3_android.xml already exists and will not be updated');
-    expect(result.stdout).toContain("File 'sources/4_android.xml'");
+    expect(result.stdout).toContain("File 'sources/1_android.xml' already exists and will not be updated");
+    expect(result.stdout).toContain("File 'sources/2_android.xml' already exists and will not be updated");
+    expect(result.stdout).toContain("File 'sources/3_android.xml' already exists and will not be updated");
+    expect(result.stdout).toContain("File '4_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     const texts = await projectStringTexts(ctx);

@@ -5,8 +5,8 @@ exports[`env variables uploads sources using credentials read from an env file 1
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  File 'sources/1_android.xml'
-◆  File 'sources/2_android.xml'"
+◆  File '1_android.xml'
+◆  File '2_android.xml'"
 `;
 
 exports[`env variables uploads translations using credentials read from an env file 1`] = `
@@ -32,10 +32,10 @@ exports[`env variables downloads translations using credentials read from an env
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/it/2_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-◆  File translations/uk/2_android.xml extracted"
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
 `;
 
 exports[`env variables a process-level env var overrides an invalid token in the env file on re-upload 1`] = `
@@ -43,6 +43,6 @@ exports[`env variables a process-level env var overrides an invalid token in the
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  File 'sources/1_android.xml'
-◆  File 'sources/2_android.xml'"
+◆  File '1_android.xml'
+◆  File '2_android.xml'"
 `;

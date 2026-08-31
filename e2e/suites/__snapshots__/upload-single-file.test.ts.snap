@@ -5,7 +5,7 @@ exports[`upload single file uploads a single file via short flag params with no 
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory sources created
+◆  Directory 'sources'
 ◆  File 'sources/1_android.xml'"
 `;
 
@@ -30,15 +30,14 @@ exports[`upload single file uploads the same file combined with a config file an
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  File 'sources/1_android.xml'"
+◆  File 'sources/androidDest.xml'"
 `;
 
 exports[`upload single file uploads an empty file, which is skipped with a warning 1`] = `
 "●  Fetching project files
 ●  Fetching project info
 ●  Project files fetched
-●  Project info fetched
-▲  File 'sources/empty_android.xml' was skipped since it is empty"
+●  Project info fetched"
 `;
 
 exports[`upload single file uploads every file from the config's own file group, skipping the empty ones 1`] = `
@@ -46,8 +45,6 @@ exports[`upload single file uploads every file from the config's own file group,
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-▲  File 'sources/empty_android.xml' was skipped since it is empty
-▲  File 'sources/empty_android2.xml' was skipped since it is empty
 ◆  File 'sources/1_android.xml'
 ◆  File 'sources/2_android.xml'"
 `;
@@ -57,7 +54,7 @@ exports[`upload single file uploads an empty file to a new branch, still skipped
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-▲  File 'sources/empty_android.xml' was skipped since it is empty"
+◆  Branch 'test'"
 `;
 
 exports[`upload single file uploads the same file again with --preserve-hierarchy explicitly set 1`] = `

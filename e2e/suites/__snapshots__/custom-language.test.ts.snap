@@ -5,9 +5,8 @@ exports[`custom language uploads sources 1`] = `
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory sources created
-◆  File 'sources/1_android.xml'
-◆  File 'sources/2_android.xml'"
+◆  File '1_android.xml'
+◆  File '2_android.xml'"
 `;
 
 exports[`custom language uploads translations for both the custom and standard target language 1`] = `
@@ -33,8 +32,8 @@ exports[`custom language downloads translations for both the custom and standard
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/dtk/1_android.xml extracted
-◆  File translations/dtk/2_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-◆  File translations/uk/2_android.xml extracted"
+◆  File 'translations/dtk/1_android.xml' extracted
+◆  File 'translations/dtk/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
 `;

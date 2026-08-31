@@ -84,7 +84,7 @@ describe('cli commands without an explicit config parameter', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources/android.xml'");
+    expect(result.stdout).toContain("File 'android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -109,8 +109,8 @@ describe('cli commands without an explicit config parameter', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/it/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(ctx.workspace, 'translations/it/android.xml', 'translations/uk/android.xml');
@@ -129,7 +129,7 @@ describe('cli commands without an explicit config parameter', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources/android.xml'");
+    expect(result.stdout).toContain("File 'android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -154,8 +154,8 @@ describe('cli commands without an explicit config parameter', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/it/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(ctx.workspace, 'translations/it/android.xml', 'translations/uk/android.xml');
@@ -191,7 +191,7 @@ describe('cli commands without an explicit config parameter', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources/android.xml'");
+    expect(result.stdout).toContain("File 'android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -220,8 +220,8 @@ describe('cli commands without an explicit config parameter', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/it/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(ctx.workspace, 'translations/it/android.xml', 'translations/uk/android.xml');

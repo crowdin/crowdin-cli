@@ -5,7 +5,7 @@ exports[`identity file credentials uploads sources using credentials from an --i
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  File 'sources/android.xml'"
+◆  File 'android.xml'"
 `;
 
 exports[`identity file credentials uploads translations using credentials from an --identity file 1`] = `
@@ -27,8 +27,8 @@ exports[`identity file credentials downloads translations using credentials from
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/android.xml extracted
-◆  File translations/uk/android.xml extracted"
+◆  File 'translations/it/android.xml' extracted
+◆  File 'translations/uk/android.xml' extracted"
 `;
 
 exports[`identity file credentials validates the merged configuration via config lint --identity 1`] = `"◆  Your configuration file looks good"`;

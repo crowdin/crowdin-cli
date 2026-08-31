@@ -94,3 +94,72 @@ describe('normalize', () => {
     expect(normalize(output)).toBe(['●  Fetching', '◆  File a', '■  something failed'].join('\n'));
   });
 });
+
+describe('normalize: run-to-run instability', () => {
+  test('masks the per-run project name', () => {
+    expect(normalize("◆  'e2e-1788179144-glossary's Glossary.tbx' downloaded successfully")).toBe(
+      "◆  'e2e-<run>-glossary's Glossary.tbx' downloaded successfully",
+    );
+  });
+
+  test('collapses repeated poll-progress lines, however many polls happened', () => {
+    const three =
+      '●  Importing glossary\n●  Importing glossary (100%)\n●  Importing glossary (100%)\n●  Importing glossary (100%)';
+    const four = `${three}\n●  Importing glossary (100%)`;
+
+    expect(normalize(three)).toBe(normalize(four));
+  });
+
+  test('keeps progress lines for distinct operations apart', () => {
+    // The percentage itself is masked away as noise, so what must survive is the distinction
+    // between two different operations reporting progress - not how far along each one got.
+    const output = '●  Building translations (10%)\n●  Building translations (100%)\n●  Importing glossary (100%)';
+    const result = normalize(output).split('\n');
+
+    expect(result).toHaveLength(2);
+    expect(result.some((line) => line.includes('Building translations'))).toBe(true);
+    expect(result.some((line) => line.includes('Importing glossary'))).toBe(true);
+  });
+
+  test('sorts report blocks as units, keeping children with their parent', () => {
+    const orderA =
+      '\t- sources/3_android.xml (2)\n\t\t- translations/it/3_android.xml\n\t- sources/2_android.xml (2)\n\t\t- translations/it/2_android.xml';
+    const orderB =
+      '\t- sources/2_android.xml (2)\n\t\t- translations/it/2_android.xml\n\t- sources/3_android.xml (2)\n\t\t- translations/it/3_android.xml';
+
+    expect(normalize(orderA)).toBe(normalize(orderB));
+    expect(normalize(orderA)).toBe(orderB);
+  });
+});
+
+describe('normalize: progress percentages', () => {
+  test('collapses polls regardless of which percentages the run happened to catch', () => {
+    const caughtZero = '●  Importing glossary\n●  Importing glossary (0%)\n●  Importing glossary (100%)';
+    const missedZero = '●  Importing glossary\n●  Importing glossary (100%)';
+    const caughtMany =
+      '●  Importing glossary\n●  Importing glossary (0%)\n●  Importing glossary (37%)\n●  Importing glossary (100%)\n●  Importing glossary (100%)';
+
+    expect(normalize(caughtZero)).toBe(normalize(missedZero));
+    expect(normalize(caughtMany)).toBe(normalize(missedZero));
+  });
+});
+
+describe('normalize: plain listings', () => {
+  test('sorts a bare-path listing, whose emission order is completion order', () => {
+    const orderA =
+      'translations/it/{{cookiecutter.module_name}}/android.xml\ntranslations/it/folder/android.xml\ntranslations/uk/folder/android.xml';
+    const orderB =
+      'translations/it/folder/android.xml\ntranslations/uk/folder/android.xml\ntranslations/it/{{cookiecutter.module_name}}/android.xml';
+
+    expect(normalize(orderA)).toBe(normalize(orderB));
+  });
+
+  test('still separates status markers from content lines', () => {
+    const output = '●  Fetching project info\nsome/path.xml\n◆  Done';
+    const result = normalize(output);
+
+    expect(result).toContain('●  Fetching project info');
+    expect(result).toContain('some/path.xml');
+    expect(result).toContain('◆  Done');
+  });
+});

@@ -5,11 +5,11 @@ exports[`base path uploads sources with an explicit --base-path, creating the di
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory files created
-◆  Directory main created
-◆  Directory res created
-◆  Directory src created
-◆  Directory values created
+◆  Directory 'files'
+◆  Directory 'files/src'
+◆  Directory 'files/src/main'
+◆  Directory 'files/src/main/res'
+◆  Directory 'files/src/main/res/values'
 ◆  File 'files/src/main/res/values/android.xml'"
 `;
 
@@ -40,29 +40,21 @@ exports[`base path downloads translations at the base path 1`] = `
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File files/src/main/res/values-it/android.xml extracted
-◆  File files/src/main/res/values-uk/android.xml extracted"
+◆  File 'files/src/main/res/values-it/android.xml' extracted
+◆  File 'files/src/main/res/values-uk/android.xml' extracted"
 `;
 
 exports[`base path lists configured source files with --base-path 1`] = `
 "●  Fetching project info
 ●  Project info fetched
-┌───┬───────────────────────────────────────┐
-│   │ file                                  │
-├───┼───────────────────────────────────────┤
-│ 0 │ files/src/main/res/values/android.xml │
-└───┴───────────────────────────────────────┘"
+◆  files/src/main/res/values/android.xml"
 `;
 
 exports[`base path lists configured translation files with --base-path 1`] = `
 "●  Fetching project info
 ●  Project info fetched
-┌───┬──────────────────────────────────────────┐
-│   │ file                                     │
-├───┼──────────────────────────────────────────┤
-│ 0 │ files/src/main/res/values-it/android.xml │
-│ 1 │ files/src/main/res/values-uk/android.xml │
-└───┴──────────────────────────────────────────┘"
+◆  files/src/main/res/values-it/android.xml
+◆  files/src/main/res/values-uk/android.xml"
 `;
 
 exports[`base path uploads sources to a new branch under a different base path 1`] = `
@@ -70,12 +62,32 @@ exports[`base path uploads sources to a new branch under a different base path 1
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory files created
-◆  Directory main created
-◆  Directory res created
-◆  Directory src created
-◆  Directory values created
+◆  Branch 'dev'
+◆  Directory 'files'
+◆  Directory 'files/src'
+◆  Directory 'files/src/main'
+◆  Directory 'files/src/main/res'
+◆  Directory 'files/src/main/res/values'
 ◆  File 'files/src/main/res/values/android.xml'"
+`;
+
+exports[`base path updates sources on the branch (branch already exists) 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'files/src/main/res/values/android.xml'"
+`;
+
+exports[`base path uploads translations on the branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'files/src/main/res/values-it/android.xml'
+●  Importing translations for file 'files/src/main/res/values-uk/android.xml'
+●  Project files fetched
+●  Project info fetched
+◆  File 'files/src/main/res/values-it/android.xml'
+◆  File 'files/src/main/res/values-uk/android.xml'"
 `;
 
 exports[`base path downloads translations on the branch 1`] = `
@@ -86,8 +98,8 @@ exports[`base path downloads translations on the branch 1`] = `
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File files/src/main/res/values-it/android.xml extracted
-◆  File files/src/main/res/values-uk/android.xml extracted"
+◆  File 'files/src/main/res/values-it/android.xml' extracted
+◆  File 'files/src/main/res/values-uk/android.xml' extracted"
 `;
 
 exports[`base path uploads sources with a relative --base-path pointing into a subdirectory 1`] = `
@@ -95,10 +107,10 @@ exports[`base path uploads sources with a relative --base-path pointing into a s
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory main created
-◆  Directory res created
-◆  Directory src created
-◆  Directory values created
+◆  Directory 'src'
+◆  Directory 'src/main'
+◆  Directory 'src/main/res'
+◆  Directory 'src/main/res/values'
 ◆  File 'src/main/res/values/android.xml'"
 `;
 
@@ -121,25 +133,6 @@ exports[`base path downloads translations with a relative --base-path 1`] = `
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File src/main/res/values-it/android.xml extracted
-◆  File src/main/res/values-uk/android.xml extracted"
-`;
-
-exports[`base path updates sources on the branch (branch already exists) 1`] = `
-"●  Fetching project files
-●  Fetching project info
-●  Project files fetched
-●  Project info fetched
-◆  File 'files/src/main/res/values/android.xml'"
-`;
-
-exports[`base path uploads translations on the branch 1`] = `
-"●  Fetching project files
-●  Fetching project info
-●  Importing translations for file 'files/src/main/res/values-it/android.xml'
-●  Importing translations for file 'files/src/main/res/values-uk/android.xml'
-●  Project files fetched
-●  Project info fetched
-◆  File 'files/src/main/res/values-it/android.xml'
-◆  File 'files/src/main/res/values-uk/android.xml'"
+◆  File 'src/main/res/values-it/android.xml' extracted
+◆  File 'src/main/res/values-uk/android.xml' extracted"
 `;

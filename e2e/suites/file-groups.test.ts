@@ -37,15 +37,15 @@ describe('file groups', () => {
     // separate hasErrors/reportFailures path in uploadFailures.ts), PHP's closing "Current
     // execution finished with errors" line never prints here -- do not assert it.
     expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain('Directory sources created');
+    expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("File 'sources/java.properties'");
     expect(result.stdout).toContain("File 'sources/android.xml'");
     // Overlap between '/sources/*.xml' and '/sources/android.xml': the second group's task sees the
     // project path already in `seenFilePaths` and skips it with this exact warning (confirmed at
     // UploadSourcesCommand.ts, matches the PHP wording verbatim).
-    expect(result.stdout).toContain("Skipping file 'sources/android.xml' because it is already uploading/uploaded");
+    expect(result.stderr).toContain("Skipping file 'sources/android.xml' because it is already uploading/uploaded");
     // Confirmed at UploadSourcesCommand.ts -- matches the PHP wording verbatim.
-    expect(result.stdout).toContain(
+    expect(result.stderr).toContain(
       "No sources found for '/sources/*.pot' pattern. Check the source paths in your configuration file",
     );
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -60,7 +60,7 @@ describe('file groups', () => {
     // (confirmed at buildTranslationEntries), unlike UploadSourcesCommand.ts's hard throw above -- so
     // this command finishes normally and exits 0 despite the same empty '.pot' pattern.
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain(
+    expect(result.stderr).toContain(
       "No sources found for '/sources/*.pot' pattern. Check the source paths in your configuration file",
     );
     expect(result.stdout).toContain("File 'translations/it/java.properties'");
@@ -99,10 +99,10 @@ describe('file groups', () => {
     expect(result.exitCode).toBe(0);
     // Confirmed at DownloadCommand.ts: `output.success(\`File ${localPath} extracted\`)` -- no quotes
     // around the path, unlike the upload commands' `File '...'` wording.
-    expect(result.stdout).toContain('File translations/it/android.xml extracted');
-    expect(result.stdout).toContain('File translations/it/java.properties extracted');
-    expect(result.stdout).toContain('File translations/uk/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/java.properties extracted');
+    expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/it/java.properties' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/java.properties' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // The config's `translation:` pattern has a leading slash ('/translations/...'); confirmed by

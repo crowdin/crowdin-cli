@@ -25,11 +25,11 @@ describe('base path', () => {
     const result = await ctx.runner.run(['upload', 'sources', '--base-path', '.']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Directory files created');
-    expect(result.stdout).toContain('Directory src created');
-    expect(result.stdout).toContain('Directory main created');
-    expect(result.stdout).toContain('Directory res created');
-    expect(result.stdout).toContain('Directory values created');
+    expect(result.stdout).toContain("Directory 'files'");
+    expect(result.stdout).toContain("Directory 'files/src'");
+    expect(result.stdout).toContain("Directory 'files/src/main'");
+    expect(result.stdout).toContain("Directory 'files/src/main/res'");
+    expect(result.stdout).toContain("Directory 'files/src/main/res/values'");
     expect(result.stdout).toContain("File 'files/src/main/res/values/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -93,11 +93,11 @@ describe('base path', () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'dev', '--base-path', 'dev']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Directory files created');
-    expect(result.stdout).toContain('Directory src created');
-    expect(result.stdout).toContain('Directory main created');
-    expect(result.stdout).toContain('Directory res created');
-    expect(result.stdout).toContain('Directory values created');
+    expect(result.stdout).toContain("Directory 'files'");
+    expect(result.stdout).toContain("Directory 'files/src'");
+    expect(result.stdout).toContain("Directory 'files/src/main'");
+    expect(result.stdout).toContain("Directory 'files/src/main/res'");
+    expect(result.stdout).toContain("Directory 'files/src/main/res/values'");
     expect(result.stdout).toContain("File 'files/src/main/res/values/android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });

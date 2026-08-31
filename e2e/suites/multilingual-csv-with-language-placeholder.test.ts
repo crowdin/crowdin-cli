@@ -28,7 +28,7 @@ describe('multilingual csv with language placeholder', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Directory sources created');
+    expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("File 'sources/1_multilingual.csv'");
     expect(result.stdout).toContain("File 'sources/2_multilingual.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -79,10 +79,10 @@ describe('multilingual csv with language placeholder', () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/it/1_multilingual.csv extracted');
-    expect(result.stdout).toContain('File translations/it/2_multilingual.csv extracted');
-    expect(result.stdout).toContain('File translations/uk/1_multilingual.csv extracted');
-    expect(result.stdout).toContain('File translations/uk/2_multilingual.csv extracted');
+    expect(result.stdout).toContain("File 'translations/it/1_multilingual.csv' extracted");
+    expect(result.stdout).toContain("File 'translations/it/2_multilingual.csv' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/1_multilingual.csv' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/2_multilingual.csv' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     expect(await Bun.file(join(ctx.workspace, 'translations/it/1_multilingual.csv')).text()).toBe(
@@ -114,10 +114,10 @@ describe('multilingual csv with language placeholder', () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations-v2/it/1_multilingual.csv extracted');
-    expect(result.stdout).toContain('File translations-v2/it/2_multilingual.csv extracted');
-    expect(result.stdout).toContain('File translations-v2/uk/1_multilingual.csv extracted');
-    expect(result.stdout).toContain('File translations-v2/uk/2_multilingual.csv extracted');
+    expect(result.stdout).toContain("File 'translations-v2/it/1_multilingual.csv' extracted");
+    expect(result.stdout).toContain("File 'translations-v2/it/2_multilingual.csv' extracted");
+    expect(result.stdout).toContain("File 'translations-v2/uk/1_multilingual.csv' extracted");
+    expect(result.stdout).toContain("File 'translations-v2/uk/2_multilingual.csv' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -127,7 +127,7 @@ describe('multilingual csv with language placeholder', () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Directory sources created');
+    expect(result.stdout).toContain("Directory 'sources'");
     expect(result.stdout).toContain("File 'sources/1_multilingual.csv'");
     expect(result.stdout).toContain("File 'sources/2_multilingual.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -164,10 +164,10 @@ describe('multilingual csv with language placeholder', () => {
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/it/1_multilingual.csv extracted');
-    expect(result.stdout).toContain('File translations/it/2_multilingual.csv extracted');
-    expect(result.stdout).toContain('File translations/uk/1_multilingual.csv extracted');
-    expect(result.stdout).toContain('File translations/uk/2_multilingual.csv extracted');
+    expect(result.stdout).toContain("File 'translations/it/1_multilingual.csv' extracted");
+    expect(result.stdout).toContain("File 'translations/it/2_multilingual.csv' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/1_multilingual.csv' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/2_multilingual.csv' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     expect(await Bun.file(join(ctx.workspace, 'translations/it/1_multilingual.csv')).text()).toBe(

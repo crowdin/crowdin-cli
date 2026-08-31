@@ -5,7 +5,7 @@ exports[`translations not match uploads sources, alongside a directly-uploaded f
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory sources created
+◆  Directory 'sources'
 ◆  File 'sources/1_android.xml'
 ◆  File 'sources/2_android.xml'
 ◆  File 'sources/3_android.xml'"
@@ -15,23 +15,14 @@ exports[`translations not match attempts to upload translations for all language
 "●  Fetching project files
 ●  Fetching project info
 ●  Project files fetched
-●  Project info fetched
-▲  File translations/it/1_android.xml does not exist in the specified location
-▲  File translations/it/2_android.xml does not exist in the specified location
-▲  File translations/it/3_android.xml does not exist in the specified location
-▲  File translations/uk/1_android.xml does not exist in the specified location
-▲  File translations/uk/2_android.xml does not exist in the specified location
-▲  File translations/uk/3_android.xml does not exist in the specified location"
+●  Project info fetched"
 `;
 
 exports[`translations not match attempts to upload translations for a single specified language (uk) 1`] = `
 "●  Fetching project files
 ●  Fetching project info
 ●  Project files fetched
-●  Project info fetched
-▲  File translations/uk/1_android.xml does not exist in the specified location
-▲  File translations/uk/2_android.xml does not exist in the specified location
-▲  File translations/uk/3_android.xml does not exist in the specified location"
+●  Project info fetched"
 `;
 
 exports[`translations not match previews downloading translations once the config narrows to a single source file (dry run) 1`] = `
@@ -39,8 +30,8 @@ exports[`translations not match previews downloading translations once the confi
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-translations/it/1_android.xml
-translations/uk/1_android.xml"
+◆  translations/it/1_android.xml
+◆  translations/uk/1_android.xml"
 `;
 
 exports[`translations not match previews the same narrowed dry run as a tree 1`] = `
@@ -66,12 +57,11 @@ exports[`translations not match downloads translations for real, warning about t
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-▲  Downloaded translations don't match the current project configuration. The translations for the following sources will be omitted (use --verbose to get the list of the omitted translations):
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
 	- java.properties (2)
-	- sources/3_android.xml (2)
 	- sources/2_android.xml (2)
+	- sources/3_android.xml (2)
 Visit the https://crowdin.github.io/crowdin-cli/faq for more details"
 `;
 
@@ -81,23 +71,22 @@ exports[`translations not match downloads translations again with --verbose, lis
 ●  Downloading translations
 ●  Fetching project files
 ●  Fetching project info
-●  Loading configuration from <workspace>/translations-not-match/crowdin.yml file
+●  Loading configuration from '<workspace>/translations-not-match/crowdin.yml' file
 ●  Project files fetched
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-▲  Downloaded translations don't match the current project configuration. The translations for the following sources will be omitted (use --verbose to get the list of the omitted translations):
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
 	- java.properties (2)
 		- it/java.properties
 		- uk/java.properties
-	- sources/3_android.xml (2)
-		- translations/it/3_android.xml
-		- translations/uk/3_android.xml
 	- sources/2_android.xml (2)
 		- translations/it/2_android.xml
 		- translations/uk/2_android.xml
+	- sources/3_android.xml (2)
+		- translations/it/3_android.xml
+		- translations/uk/3_android.xml
 Visit the https://crowdin.github.io/crowdin-cli/faq for more details"
 `;
 
@@ -111,11 +100,10 @@ exports[`translations not match downloads translations for a single specified la
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/uk/1_android.xml extracted
-▲  Downloaded translations don't match the current project configuration. The translations for the following sources will be omitted (use --verbose to get the list of the omitted translations):
+◆  File 'translations/uk/1_android.xml' extracted
 	- java.properties (1)
-	- sources/3_android.xml (1)
 	- sources/2_android.xml (1)
+	- sources/3_android.xml (1)
 Visit the https://crowdin.github.io/crowdin-cli/faq for more details"
 `;
 
@@ -125,19 +113,18 @@ exports[`translations not match downloads translations for a single specified la
 ●  Downloading translations
 ●  Fetching project files
 ●  Fetching project info
-●  Loading configuration from <workspace>/translations-not-match/crowdin.yml file
+●  Loading configuration from '<workspace>/translations-not-match/crowdin.yml' file
 ●  Project files fetched
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/uk/1_android.xml extracted
-▲  Downloaded translations don't match the current project configuration. The translations for the following sources will be omitted (use --verbose to get the list of the omitted translations):
+◆  File 'translations/uk/1_android.xml' extracted
 	- java.properties (1)
 		- java.properties
-	- sources/3_android.xml (1)
-		- translations/uk/3_android.xml
 	- sources/2_android.xml (1)
 		- translations/uk/2_android.xml
+	- sources/3_android.xml (1)
+		- translations/uk/3_android.xml
 Visit the https://crowdin.github.io/crowdin-cli/faq for more details"
 `;
 
@@ -146,7 +133,8 @@ exports[`translations not match uploads sources to a brand-new branch 1`] = `
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory sources created
+◆  Branch 'test-branch'
+◆  Directory 'sources'
 ◆  File 'sources/1_android.xml'
 ◆  File 'sources/2_android.xml'
 ◆  File 'sources/3_android.xml'"
@@ -162,11 +150,10 @@ exports[`translations not match downloads translations for the branch, with the 
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-▲  Downloaded translations don't match the current project configuration. The translations for the following sources will be omitted (use --verbose to get the list of the omitted translations):
-	- test-branch/sources/2_android.xml (2)
-	- test-branch/sources/3_android.xml (2)
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+	- sources/2_android.xml (2)
+	- sources/3_android.xml (2)
 Visit the https://crowdin.github.io/crowdin-cli/faq for more details"
 `;
 
@@ -176,18 +163,17 @@ exports[`translations not match downloads translations for the branch with --ver
 ●  Downloading translations
 ●  Fetching project files
 ●  Fetching project info
-●  Loading configuration from <workspace>/translations-not-match/crowdin.yml file
+●  Loading configuration from '<workspace>/translations-not-match/crowdin.yml' file
 ●  Project files fetched
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-▲  Downloaded translations don't match the current project configuration. The translations for the following sources will be omitted (use --verbose to get the list of the omitted translations):
-	- test-branch/sources/2_android.xml (2)
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+	- sources/2_android.xml (2)
 		- translations/it/2_android.xml
 		- translations/uk/2_android.xml
-	- test-branch/sources/3_android.xml (2)
+	- sources/3_android.xml (2)
 		- translations/it/3_android.xml
 		- translations/uk/3_android.xml
 Visit the https://crowdin.github.io/crowdin-cli/faq for more details"

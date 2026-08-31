@@ -5,8 +5,8 @@ exports[`simple csv uploads sources 1`] = `
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory files created
-◆  Directory sources created
+◆  Directory 'sources'
+◆  Directory 'sources/files'
 ◆  File 'sources/files/1_simple.csv'
 ◆  File 'sources/files/2_simple.csv'"
 `;
@@ -54,8 +54,8 @@ exports[`simple csv downloads translations for a single language 1`] = `
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File sources/files/uk/1_simple.csv extracted
-◆  File sources/files/uk/2_simple.csv extracted"
+◆  File 'sources/files/uk/1_simple.csv' extracted
+◆  File 'sources/files/uk/2_simple.csv' extracted"
 `;
 
 exports[`simple csv downloads translations for every target language 1`] = `
@@ -66,10 +66,10 @@ exports[`simple csv downloads translations for every target language 1`] = `
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File sources/files/it/1_simple.csv extracted
-◆  File sources/files/it/2_simple.csv extracted
-◆  File sources/files/uk/1_simple.csv extracted
-◆  File sources/files/uk/2_simple.csv extracted"
+◆  File 'sources/files/it/1_simple.csv' extracted
+◆  File 'sources/files/it/2_simple.csv' extracted
+◆  File 'sources/files/uk/1_simple.csv' extracted
+◆  File 'sources/files/uk/2_simple.csv' extracted"
 `;
 
 exports[`simple csv uploads sources to a brand-new branch 1`] = `
@@ -77,8 +77,9 @@ exports[`simple csv uploads sources to a brand-new branch 1`] = `
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory files created
-◆  Directory sources created
+◆  Branch 'test-branch'
+◆  Directory 'sources'
+◆  Directory 'sources/files'
 ◆  File 'sources/files/1_simple.csv'
 ◆  File 'sources/files/2_simple.csv'"
 `;
@@ -107,14 +108,30 @@ exports[`simple csv uploads translations to the branch 1`] = `
 ◆  File 'sources/files/uk/2_simple.csv'"
 `;
 
+exports[`simple csv downloads translations for a single language on the branch 1`] = `
+"●  Building translations for languages: uk
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'sources/files/uk/1_simple.csv' extracted
+◆  File 'sources/files/uk/2_simple.csv' extracted"
+`;
+
 exports[`simple csv downloads translations for every target language on the branch 1`] = `
 "●  Building translations
 ●  Building translations...
 ●  Downloading translations
 ●  Fetching project info
 ●  Project info fetched
-▲  Didn't manage to build translations
-■  Translations build failed"
+●  Translations built
+◆  Done
+◆  File 'sources/files/it/1_simple.csv' extracted
+◆  File 'sources/files/it/2_simple.csv' extracted
+◆  File 'sources/files/uk/1_simple.csv' extracted
+◆  File 'sources/files/uk/2_simple.csv' extracted"
 `;
 
 exports[`simple csv rejects a scheme missing the Source String/Translation elements, on a new branch 1`] = `
@@ -122,9 +139,7 @@ exports[`simple csv rejects a scheme missing the Source String/Translation eleme
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory files created
-◆  Directory sources created
-■  Current execution finished with errors
-■  Failed to create file 1_simple.csv. The file schema must include the "Source String" and "Translation" elements
-■  Failed to create file 2_simple.csv. The file schema must include the "Source String" and "Translation" elements"
+◆  Branch 'test-branch-invalid-scheme'
+◆  Directory 'sources'
+◆  Directory 'sources/files'"
 `;

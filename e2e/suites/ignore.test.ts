@@ -293,8 +293,8 @@ describe('ignore', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Fetching project info');
-    expect(result.stdout).toContain('Directory folder created');
-    expect(result.stdout).toContain('Directory sub created');
+    expect(result.stdout).toContain("Directory 'folder'");
+    expect(result.stdout).toContain("Directory 'folder/sub'");
     expect(result.stdout).toContain("File 'folder/.hidden.xml'");
     expect(result.stdout).toContain("File 'folder/1.xml'");
     expect(result.stdout).toContain("File 'folder/123.xml'");
@@ -316,8 +316,8 @@ describe('ignore', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Fetching project info');
-    expect(result.stdout).toContain('Directory folder created');
-    expect(result.stdout).toContain('Directory sub created');
+    expect(result.stdout).toContain("Directory 'folder'");
+    expect(result.stdout).toContain("Directory 'folder/sub'");
     expect(result.stdout).not.toContain('.hidden.xml');
     expect(result.stdout).toContain("File 'folder/1.xml'");
     expect(result.stdout).toContain("File 'folder/123.xml'");

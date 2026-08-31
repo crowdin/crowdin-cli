@@ -21,8 +21,8 @@ describe('simple csv', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Fetching project info');
-    expect(result.stdout).toContain('Directory sources created');
-    expect(result.stdout).toContain('Directory files created');
+    expect(result.stdout).toContain("Directory 'sources'");
+    expect(result.stdout).toContain("Directory 'sources/files'");
     expect(result.stdout).toContain("File 'sources/files/1_simple.csv'");
     expect(result.stdout).toContain("File 'sources/files/2_simple.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -83,6 +83,11 @@ describe('simple csv', () => {
     expect(result.exitCode).toBe(0);
     expect(normalize(result.stdout)).toMatchSnapshot();
 
+    // expected/uk/1_simple.csv leaves ident9 untranslated on purpose: that string carries
+    // max_length=10 while its uk translation ('файл 1 стрічка 9') is 16 characters, so Crowdin
+    // rejects it on import and the export returns the source text instead. Rows 1-8 (max_length=20)
+    // import fine. Note the CLI reports nothing about the rejected translation - the upload is
+    // reported as successful, which is worth a look on the product side.
     await expectFilesExist(ctx.workspace, 'sources/files/uk/1_simple.csv', 'sources/files/uk/2_simple.csv');
     expect(await Bun.file(join(ctx.workspace, 'sources/files/uk/1_simple.csv')).text()).toBe(
       await Bun.file(join(ctx.workspace, 'expected/uk/1_simple.csv')).text(),
@@ -123,8 +128,8 @@ describe('simple csv', () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Directory sources created');
-    expect(result.stdout).toContain('Directory files created');
+    expect(result.stdout).toContain("Directory 'sources'");
+    expect(result.stdout).toContain("Directory 'sources/files'");
     expect(result.stdout).toContain("File 'sources/files/1_simple.csv'");
     expect(result.stdout).toContain("File 'sources/files/2_simple.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -205,10 +210,10 @@ describe('simple csv', () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch-invalid-scheme']);
 
     expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain('Directory sources created');
-    expect(result.stdout).toContain('Directory files created');
-    expect(result.stdout).toContain('The file schema must include the "Source String" and "Translation" elements');
-    expect(result.stdout).toContain('Current execution finished with errors');
+    expect(result.stdout).toContain("Directory 'sources'");
+    expect(result.stdout).toContain("Directory 'sources/files'");
+    expect(result.stderr).toContain('The file schema must include the "Source String" and "Translation" elements');
+    expect(result.stderr).toContain('Current execution finished with errors');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 });

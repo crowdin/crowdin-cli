@@ -68,6 +68,33 @@ function extractXlsxTexts(path: string): string[] {
   return texts.sort();
 }
 
+/**
+ * The three names the CLI derives from this suite's fixtures (`Created in Crowdin CLI (<file>)`).
+ *
+ * Glossaries belong to the account, not to the project, so `teardownSuite` cannot reach them - and
+ * since the name comes from the uploaded file, a leftover from an interrupted run makes every
+ * `glossary upload` below fail with "The name '...' is already taken". They are swept both before
+ * the suite (self-healing) and after it.
+ */
+const SUITE_GLOSSARY_NAMES = ['simple-glossary.tbx', 'simple-glossary.csv', 'simple-glossary.xlsx'].map(
+  (file) => `Created in Crowdin CLI (${file})`,
+);
+
+/** Deletes every account glossary this suite owns by name. Never throws: cleanup must not mask a result. */
+async function removeSuiteGlossaries(ctx: SuiteContext): Promise<void> {
+  try {
+    const response = await ctx.client.glossariesApi.withFetchAll().listGlossaries();
+
+    for (const entry of response.data) {
+      if (SUITE_GLOSSARY_NAMES.includes(entry.data.name)) {
+        await ctx.client.glossariesApi.deleteGlossary(entry.data.id);
+      }
+    }
+  } catch (error) {
+    console.warn(`Failed to clean up this suite's glossaries: ${error}`);
+  }
+}
+
 describe('glossary', () => {
   let ctx: SuiteContext;
   let tbxGlossaryId: number;
@@ -76,9 +103,14 @@ describe('glossary', () => {
 
   beforeAll(async () => {
     ctx = await setupSuite('glossary');
+    await removeSuiteGlossaries(ctx);
   });
 
   afterAll(async () => {
+    if (ctx && !ctx.env.keep) {
+      await removeSuiteGlossaries(ctx);
+    }
+
     await teardownSuite(ctx);
   });
 
@@ -102,7 +134,9 @@ describe('glossary', () => {
     // Spot-check one term/description pair from the uploaded TBX (see sources/simple-glossary.tbx).
     expect(result.stdout).toContain('zuerst');
     expect(result.stdout).toContain('zuerst Beschreibung');
-    expect(normalize(result.stdout)).toMatchSnapshot();
+    // No snapshot here: `glossary list` lists everything on the account, so the output includes
+    // every other project's and user's entries on this shared test account and changes between
+    // runs. The name assertions above plus the API cross-check below are the stable contract.
   });
 
   test('uploads a CSV glossary with an explicit scheme, creating it', async () => {
@@ -188,7 +222,8 @@ describe('glossary', () => {
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.tbx)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.csv)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.xlsx)');
-    expect(normalize(result.stdout)).toMatchSnapshot();
+    // No snapshot: `glossary list` covers the whole account, so every other project's default
+    // glossary shows up here and the output moves between runs.
   });
 
   test('downloads the TBX glossary by id and format', async () => {
@@ -268,6 +303,7 @@ describe('glossary', () => {
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.tbx)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.csv)');
     expect(result.stdout).toContain('Created in Crowdin CLI (simple-glossary.xlsx)');
-    expect(normalize(result.stdout)).toMatchSnapshot();
+    // No snapshot, for the same reason as the listing test above: `glossary list` covers the whole
+    // account, so its output moves with every other project and user on it.
   });
 });

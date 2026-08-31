@@ -1,0 +1,308 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`file tree previews uploading sources as a dry run 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  File 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties' would be created
+●  File 'php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties' would be created
+●  File 'php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties' would be created
+●  File 'php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties' would be created
+●  File 'php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties' would be created
+●  Project files fetched
+●  Project info fetched"
+`;
+
+exports[`file tree uploads sources, creating the full nested directory hierarchy 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Directory 'php'
+◆  Directory 'php/hudson.php'
+◆  Directory 'php/hudson.php/src'
+◆  Directory 'php/hudson.php/src/org'
+◆  Directory 'php/hudson.php/src/org/netbeans'
+◆  Directory 'php/hudson.php/src/org/netbeans/modules'
+◆  Directory 'php/hudson.php/src/org/netbeans/modules/hudson'
+◆  Directory 'php/hudson.php/src/org/netbeans/modules/hudson/php'
+◆  Directory 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources'
+◆  Directory 'php/libs.javacup'
+◆  Directory 'php/libs.javacup/src'
+◆  Directory 'php/libs.javacup/src/org'
+◆  Directory 'php/libs.javacup/src/org/netbeans'
+◆  Directory 'php/libs.javacup/src/org/netbeans/libs'
+◆  Directory 'php/libs.javacup/src/org/netbeans/libs/javacup'
+◆  Directory 'php/php.api.annotation'
+◆  Directory 'php/php.api.annotation/src'
+◆  Directory 'php/php.api.annotation/src/org'
+◆  Directory 'php/php.api.annotation/src/org/netbeans'
+◆  Directory 'php/php.api.annotation/src/org/netbeans/modules'
+◆  Directory 'php/php.api.annotation/src/org/netbeans/modules/php'
+◆  Directory 'php/php.api.annotation/src/org/netbeans/modules/php/api'
+◆  Directory 'php/php.api.annotation/src/org/netbeans/modules/php/api/annotation'
+◆  Directory 'php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources'
+◆  Directory 'php/php.api.documentation'
+◆  Directory 'php/php.api.documentation/src'
+◆  Directory 'php/php.api.documentation/src/org'
+◆  Directory 'php/php.api.documentation/src/org/netbeans'
+◆  Directory 'php/php.api.documentation/src/org/netbeans/modules'
+◆  Directory 'php/php.api.documentation/src/org/netbeans/modules/php'
+◆  Directory 'php/php.api.documentation/src/org/netbeans/modules/php/api'
+◆  Directory 'php/php.api.documentation/src/org/netbeans/modules/php/api/documentation'
+◆  Directory 'php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources'
+◆  Directory 'php/php.api.editor'
+◆  Directory 'php/php.api.editor/src'
+◆  Directory 'php/php.api.editor/src/org'
+◆  Directory 'php/php.api.editor/src/org/netbeans'
+◆  Directory 'php/php.api.editor/src/org/netbeans/modules'
+◆  Directory 'php/php.api.editor/src/org/netbeans/modules/php'
+◆  Directory 'php/php.api.editor/src/org/netbeans/modules/php/api'
+◆  Directory 'php/php.api.editor/src/org/netbeans/modules/php/api/editor'
+◆  Directory 'php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources'
+◆  File 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+◆  File 'php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+◆  File 'php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+◆  File 'php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+◆  File 'php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'"
+`;
+
+exports[`file tree updates the existing sources (no new directories) 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+◆  File 'php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+◆  File 'php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+◆  File 'php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+◆  File 'php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'"
+`;
+
+exports[`file tree uploads translations for a single language (uk) 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+●  Importing translations for file 'uk/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'
+●  Project files fetched
+●  Project info fetched
+◆  File 'uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+◆  File 'uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+◆  File 'uk/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+◆  File 'uk/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+◆  File 'uk/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'"
+`;
+
+exports[`file tree uploads translations for all languages 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+●  Importing translations for file 'it/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+●  Importing translations for file 'it/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+●  Importing translations for file 'it/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+●  Importing translations for file 'it/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+●  Importing translations for file 'uk/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'
+●  Project files fetched
+●  Project info fetched
+◆  File 'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+◆  File 'it/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+◆  File 'it/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+◆  File 'it/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+◆  File 'it/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'
+◆  File 'uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+◆  File 'uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+◆  File 'uk/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+◆  File 'uk/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+◆  File 'uk/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'"
+`;
+
+exports[`file tree previews downloading translations as a dry run 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties
+◆  it/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties
+◆  it/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties
+◆  it/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties
+◆  it/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties
+◆  uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties
+◆  uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties
+◆  uk/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties
+◆  uk/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties
+◆  uk/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties"
+`;
+
+exports[`file tree downloads translations, overwriting the local it/uk trees 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties' extracted
+◆  File 'it/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties' extracted
+◆  File 'it/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties' extracted
+◆  File 'it/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties' extracted
+◆  File 'it/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties' extracted
+◆  File 'uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties' extracted
+◆  File 'uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties' extracted
+◆  File 'uk/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties' extracted
+◆  File 'uk/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties' extracted
+◆  File 'uk/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties' extracted"
+`;
+
+exports[`file tree uploads sources to a brand-new branch, creating the directory hierarchy again 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  Branch 'branch1'
+◆  Directory 'php'
+◆  Directory 'php/hudson.php'
+◆  Directory 'php/hudson.php/src'
+◆  Directory 'php/hudson.php/src/org'
+◆  Directory 'php/hudson.php/src/org/netbeans'
+◆  Directory 'php/hudson.php/src/org/netbeans/modules'
+◆  Directory 'php/hudson.php/src/org/netbeans/modules/hudson'
+◆  Directory 'php/hudson.php/src/org/netbeans/modules/hudson/php'
+◆  Directory 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources'
+◆  Directory 'php/libs.javacup'
+◆  Directory 'php/libs.javacup/src'
+◆  Directory 'php/libs.javacup/src/org'
+◆  Directory 'php/libs.javacup/src/org/netbeans'
+◆  Directory 'php/libs.javacup/src/org/netbeans/libs'
+◆  Directory 'php/libs.javacup/src/org/netbeans/libs/javacup'
+◆  Directory 'php/php.api.annotation'
+◆  Directory 'php/php.api.annotation/src'
+◆  Directory 'php/php.api.annotation/src/org'
+◆  Directory 'php/php.api.annotation/src/org/netbeans'
+◆  Directory 'php/php.api.annotation/src/org/netbeans/modules'
+◆  Directory 'php/php.api.annotation/src/org/netbeans/modules/php'
+◆  Directory 'php/php.api.annotation/src/org/netbeans/modules/php/api'
+◆  Directory 'php/php.api.annotation/src/org/netbeans/modules/php/api/annotation'
+◆  Directory 'php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources'
+◆  Directory 'php/php.api.documentation'
+◆  Directory 'php/php.api.documentation/src'
+◆  Directory 'php/php.api.documentation/src/org'
+◆  Directory 'php/php.api.documentation/src/org/netbeans'
+◆  Directory 'php/php.api.documentation/src/org/netbeans/modules'
+◆  Directory 'php/php.api.documentation/src/org/netbeans/modules/php'
+◆  Directory 'php/php.api.documentation/src/org/netbeans/modules/php/api'
+◆  Directory 'php/php.api.documentation/src/org/netbeans/modules/php/api/documentation'
+◆  Directory 'php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources'
+◆  Directory 'php/php.api.editor'
+◆  Directory 'php/php.api.editor/src'
+◆  Directory 'php/php.api.editor/src/org'
+◆  Directory 'php/php.api.editor/src/org/netbeans'
+◆  Directory 'php/php.api.editor/src/org/netbeans/modules'
+◆  Directory 'php/php.api.editor/src/org/netbeans/modules/php'
+◆  Directory 'php/php.api.editor/src/org/netbeans/modules/php/api'
+◆  Directory 'php/php.api.editor/src/org/netbeans/modules/php/api/editor'
+◆  Directory 'php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources'
+◆  File 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+◆  File 'php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+◆  File 'php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+◆  File 'php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+◆  File 'php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'"
+`;
+
+exports[`file tree updates sources on the branch (branch already exists) 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  File 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+◆  File 'php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+◆  File 'php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+◆  File 'php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+◆  File 'php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'"
+`;
+
+exports[`file tree uploads translations for a single language (uk) on the branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+●  Importing translations for file 'uk/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'
+●  Project files fetched
+●  Project info fetched
+◆  File 'uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+◆  File 'uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+◆  File 'uk/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+◆  File 'uk/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+◆  File 'uk/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'"
+`;
+
+exports[`file tree uploads translations for all languages on the branch 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Importing translations for file 'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+●  Importing translations for file 'it/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+●  Importing translations for file 'it/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+●  Importing translations for file 'it/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+●  Importing translations for file 'it/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+●  Importing translations for file 'uk/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+●  Importing translations for file 'uk/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'
+●  Project files fetched
+●  Project info fetched
+◆  File 'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+◆  File 'it/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+◆  File 'it/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+◆  File 'it/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+◆  File 'it/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'
+◆  File 'uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'
+◆  File 'uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties'
+◆  File 'uk/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties'
+◆  File 'uk/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties'
+◆  File 'uk/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties'"
+`;
+
+exports[`file tree previews downloading translations on the branch as a dry run 1`] = `
+"●  Fetching project files
+●  Fetching project info
+●  Project files fetched
+●  Project info fetched
+◆  it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties
+◆  it/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties
+◆  it/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties
+◆  it/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties
+◆  it/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties
+◆  uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties
+◆  uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties
+◆  uk/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties
+◆  uk/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties
+◆  uk/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties"
+`;
+
+exports[`file tree downloads translations on the branch, overwriting the local it/uk trees again 1`] = `
+"●  Building translations
+●  Building translations...
+●  Downloading translations
+●  Fetching project info
+●  Project info fetched
+●  Translations built
+◆  Done
+◆  File 'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties' extracted
+◆  File 'it/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties' extracted
+◆  File 'it/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties' extracted
+◆  File 'it/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties' extracted
+◆  File 'it/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties' extracted
+◆  File 'uk/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties' extracted
+◆  File 'uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties' extracted
+◆  File 'uk/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties' extracted
+◆  File 'uk/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties' extracted
+◆  File 'uk/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties' extracted"
+`;

@@ -125,12 +125,12 @@ describe('translation replace', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Directory en created');
-    expect(result.stdout).toContain('Directory src created');
-    expect(result.stdout).toContain('Directory main created');
-    expect(result.stdout).toContain('Directory resources created');
-    expect(result.stdout).toContain('Directory org created');
-    expect(result.stdout).toContain('Directory crowdin created');
+    expect(result.stdout).toContain("Directory 'en'");
+    expect(result.stdout).toContain("Directory 'en/src'");
+    expect(result.stdout).toContain("Directory 'en/src/main'");
+    expect(result.stdout).toContain("Directory 'en/src/main/resources'");
+    expect(result.stdout).toContain("Directory 'en/src/main/resources/org'");
+    expect(result.stdout).toContain("Directory 'en/src/main/resources/org/crowdin'");
     expect(result.stdout).toContain("File 'en/src/main/resources/android.xml'");
     expect(result.stdout).toContain("File 'en/src/main/resources/org/crowdin/android.xml'");
     expect(result.stdout).toContain("File 'en/src/main/resources/org/crowdin/strings.xml'");
@@ -159,9 +159,9 @@ describe('translation replace', () => {
     const result = await ctx.runner.run(['upload', 'translations', '--dryrun']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File it/src/main/resources/android.xml would be queued for translations import');
+    expect(result.stdout).toContain("File 'it/src/main/resources/android.xml' would be queued for translations import");
     expect(result.stdout).toContain(
-      'File uk/src/main/resources/org/crowdin/strings.xml would be queued for translations import',
+      "File 'uk/src/main/resources/org/crowdin/strings.xml' would be queued for translations import",
     );
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -199,8 +199,8 @@ describe('translation replace', () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File it/src/main/resources/android.xml extracted');
-    expect(result.stdout).toContain('File uk/src/main/resources/org/crowdin/strings.xml extracted');
+    expect(result.stdout).toContain("File 'it/src/main/resources/android.xml' extracted");
+    expect(result.stdout).toContain("File 'uk/src/main/resources/org/crowdin/strings.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(
@@ -238,8 +238,8 @@ describe('translation replace', () => {
     // Directories are per-branch entities in Crowdin, so the branch gets its own fresh set even
     // though a same-named tree already exists on master; messages use the LOCAL path (no
     // "test-branch/" prefix), matching file-tree.test.ts's confirmed branch-upload wording.
-    expect(result.stdout).toContain('Directory en created');
-    expect(result.stdout).toContain('Directory crowdin created');
+    expect(result.stdout).toContain("Directory 'en'");
+    expect(result.stdout).toContain("Directory 'en/src/main/resources/org/crowdin'");
     expect(result.stdout).toContain("File 'en/src/main/resources/android.xml'");
     expect(result.stdout).toContain("File 'en/src/main/resources/org/crowdin/android.xml'");
     expect(result.stdout).toContain("File 'en/src/main/resources/org/crowdin/strings.xml'");
@@ -275,7 +275,7 @@ describe('translation replace', () => {
     // Dry-run listing is driven purely by local file existence at the same local destination paths
     // used on master (the config has no branch-name placeholder), so this is expected to read
     // identically to the non-branch dry run above.
-    expect(result.stdout).toContain('File it/src/main/resources/android.xml would be queued for translations import');
+    expect(result.stdout).toContain("File 'it/src/main/resources/android.xml' would be queued for translations import");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -311,8 +311,8 @@ describe('translation replace', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File it/src/main/resources/android.xml extracted');
-    expect(result.stdout).toContain('File uk/src/main/resources/org/crowdin/strings.xml extracted');
+    expect(result.stdout).toContain("File 'it/src/main/resources/android.xml' extracted");
+    expect(result.stdout).toContain("File 'uk/src/main/resources/org/crowdin/strings.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     // Only existence is asserted here, deliberately NOT content equality against `expected/` - see

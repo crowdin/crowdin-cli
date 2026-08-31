@@ -13,7 +13,7 @@ export interface CliRunOptions {
   env?: Record<string, string>;
   /** Working directory; defaults to the workspace. */
   cwd?: string;
-  /** Skip the auto-appended `-c <config> --no-progress --no-colors` flags. */
+  /** Skip the auto-appended `-c <config>` flag (the output flags are always added - see run()). */
   noConfig?: boolean;
   /** Per-call timeout in milliseconds. */
   timeoutMs?: number;
@@ -32,8 +32,15 @@ export class CliRunner {
     const fullArgs = [...args];
 
     if (!runOpts.noConfig) {
-      fullArgs.push('-c', this.opts.configPath, '--no-progress', '--no-colors');
+      fullArgs.push('-c', this.opts.configPath);
     }
+
+    // Always appended, `noConfig` or not: these are about making stdout parseable, not about which
+    // config the CLI reads. Without `--no-progress` the spinner's animation frames (`◒◐◓◑`) land in
+    // the captured output, and how many frames appear depends on how long the call took - which made
+    // every snapshot in the noConfig suites (init, dest, upload-single-file, without-config-param,
+    // pre-translate) flaky rather than wrong.
+    fullArgs.push('--no-progress', '--no-colors');
 
     const proc = Bun.spawn([...CLI_COMMAND, ...fullArgs], {
       cwd: runOpts.cwd ?? this.opts.workspace,

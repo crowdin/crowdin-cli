@@ -82,12 +82,12 @@ describe('upload single file', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Fetching project info');
-    // Confirmed wording at UploadSourcesCommand.ts -- always the local path, create or update alike.
+    // Success echoes the project path; with no `--dest` here it equals the local one.
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
     // First upload in the suite: the project has no `sources` directory yet, and (per Bug 6 above)
     // `preserveHierarchy` resolves to `true` by default, so the local `sources/` prefix carries
     // straight into the project path and the directory has to be created here.
-    expect(result.stdout).toContain('Directory sources created');
+    expect(result.stdout).toContain("Directory 'sources'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -122,7 +122,7 @@ describe('upload single file', () => {
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
     // The project's `sources` directory and the file itself both already exist from the previous
     // test, so this is an update, not a create -- no second directory-creation line.
-    expect(result.stdout).not.toContain('Directory sources created');
+    expect(result.stdout).not.toContain("Directory 'sources'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -148,7 +148,7 @@ describe('upload single file', () => {
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
-    expect(result.stdout).not.toContain('Directory sources created');
+    expect(result.stdout).not.toContain("Directory 'sources'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -171,11 +171,11 @@ describe('upload single file', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Fetching project info');
-    // Still the local path, not the `--dest`-resolved project path 'sources/androidDest.xml' -- see
-    // this file's top comment. The `sources` directory already exists (created by the first test),
-    // so no directory-creation line here either, even though this creates a brand-new project file.
-    expect(result.stdout).toContain("File 'sources/1_android.xml'");
-    expect(result.stdout).not.toContain('Directory sources created');
+    // The `--dest`-resolved PROJECT path, not the local one: success messages echo the project path,
+    // so `--dest sources/androidDest.xml` shows up here directly. The `sources` directory already
+    // exists (created by the first test), so no directory-creation line either.
+    expect(result.stdout).toContain("File 'sources/androidDest.xml'");
+    expect(result.stdout).not.toContain("Directory 'sources'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -206,7 +206,7 @@ describe('upload single file', () => {
     expect(result.stdout).toContain('Fetching project info');
     // Confirmed wording at UploadSourcesCommand.ts: `output.warning(\`File '${localFilePath}' was
     // skipped since it is empty\`)`, hit before any existing-file/directory logic runs.
-    expect(result.stdout).toContain("File 'sources/empty_android.xml' was skipped since it is empty");
+    expect(result.stderr).toContain("File 'sources/empty_android.xml' was skipped since it is empty");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -229,13 +229,13 @@ describe('upload single file', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Fetching project info');
-    expect(result.stdout).toContain("File 'sources/empty_android.xml' was skipped since it is empty");
-    expect(result.stdout).toContain("File 'sources/empty_android2.xml' was skipped since it is empty");
+    expect(result.stderr).toContain("File 'sources/empty_android.xml' was skipped since it is empty");
+    expect(result.stderr).toContain("File 'sources/empty_android2.xml' was skipped since it is empty");
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
     expect(result.stdout).toContain("File 'sources/2_android.xml'");
     // 2_android.xml is new; 1_android.xml already exists -- but the `sources` directory itself was
     // already created by the very first test in this file, so no directory-creation line either way.
-    expect(result.stdout).not.toContain('Directory sources created');
+    expect(result.stdout).not.toContain("Directory 'sources'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -262,7 +262,7 @@ describe('upload single file', () => {
     // brand-new 'test' branch (confirmed at BranchService.ts and by branches.test.ts's equivalent
     // finding). The empty-file warning also carries no branch prefix -- it is always the bare local
     // path, unlike the PHP original's project-path-based "test/empty_android.xml".
-    expect(result.stdout).toContain("File 'sources/empty_android.xml' was skipped since it is empty");
+    expect(result.stderr).toContain("File 'sources/empty_android.xml' was skipped since it is empty");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
   });

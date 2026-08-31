@@ -9,15 +9,9 @@ exports[`bundle uploads sources for the bundle 1`] = `
 ◆  File 'sample.xml'"
 `;
 
-exports[`bundle adds a bundle 1`] = `
-"┌─┬─┬─┬─┬─┐
-│ │ id │ format │ translation │ name │
-├─┼─┼─┼─┼─┤
-│ 0 │ <id> │ macosx │ all.string │ RegularBundle │
-└─┴─┴─┴─┴─┘"
-`;
+exports[`bundle adds a bundle 1`] = `"◆ #id macosx all.string RegularBundle"`;
 
-exports[`bundle adds a bundle with plain output 1`] = `"<id>"`;
+exports[`bundle adds a bundle with plain output 1`] = `"<id> BundleCreatedWithPlainOutput"`;
 
 exports[`bundle downloads the bundle 1`] = `
 "●  Building bundle

@@ -137,15 +137,16 @@ describe('init generates a configuration skeleton', () => {
 
     expect(result.exitCode).toBe(2);
 
-    const stdout = normalize(result.stdout);
+    // Lint failures are diagnostics, so the whole report is on stderr and stdout stays empty.
+    const stderr = normalize(result.stderr);
     // Header grepped verbatim from ConfigCommand.ts's getLintErrorMessage.
-    expect(stdout).toContain('Configuration file is invalid.');
+    expect(stderr).toContain('Configuration file is invalid.');
     // Grepped verbatim from lib/config.ts's ConfigSchema (files[].source/.translation refinements).
     // Note the divergence from the PHP fixture: TS's message is lowercase with no article and no
     // trailing "Specify the source paths..." sentence (PHP: "The 'source' parameter can't be empty.
     // Specify the source paths in your configuration file").
-    expect(stdout).toContain('source parameter cannot be empty');
-    expect(stdout).toContain('translation parameter cannot be empty');
+    expect(stderr).toContain('source parameter cannot be empty');
+    expect(stderr).toContain('translation parameter cannot be empty');
     // Confirmed live (2026-07-22): unlike the PHP fixture, this generated skeleton never produces
     // "Required option 'project_id'/'api_token' is missing" or the translation-placeholder message.
     // `project_id: ""` coerces to 0 via z.coerce.number(), failing `.gt(0)` with zod's own message
@@ -153,7 +154,7 @@ describe('init generates a configuration skeleton', () => {
     // since it's zod's default wording rather than something this codebase owns. And `api_token` is
     // entirely absent from the generated file (see the first test), so the schema's optional() field
     // never triggers its own `min(1)` "Required option 'api_token' is missing" check at all.
-    expect(stdout).toMatchSnapshot();
+    expect(stderr).toMatchSnapshot();
   });
 
   test('creates missing parent directories for a nested destination', async () => {
