@@ -6,8 +6,7 @@ Authorize via browser and store the token in `~/.crowdin.yml`, without generatin
 crowdin login
 ```
 
-This is handy for agentic workflows: you log in once, and every later command (run by you or by a tool)
-picks the token up from the identity file.
+This is handy for agentic workflows: you log in once, and every later command (run by you or by a tool) picks the token up from the identity file.
 
 Store an existing personal access token instead of opening a browser:
 
