@@ -27,8 +27,8 @@
     "test:e2e": "bun test e2e/suites/ --timeout 120000",
     "docs": "bun run src-next/scripts/generate-docs.ts",
     "format": "biome format --write",
-    "lint": "biome lint",
-    "check": "biome check --write",
+    "lint": "biome check",
+    "fix": "biome check --write",
     "knip": "knip-bun",
     "prepare": "husky"
   },
