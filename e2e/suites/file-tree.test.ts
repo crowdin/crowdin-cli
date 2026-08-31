@@ -120,19 +120,19 @@ describe('file tree', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain(
-      'File php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties would be created',
+      "File 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties' would be created",
     );
     expect(result.stdout).toContain(
-      'File php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties would be created',
+      "File 'php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties' would be created",
     );
     expect(result.stdout).toContain(
-      'File php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties would be created',
+      "File 'php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties' would be created",
     );
     expect(result.stdout).toContain(
-      'File php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties would be created',
+      "File 'php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties' would be created",
     );
     expect(result.stdout).toContain(
-      'File php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties would be created',
+      "File 'php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties' would be created",
     );
     // Dryrun never creates anything server-side, so no "Directory ... created" line should appear
     // (only "File ... would be created" info lines, checked above).
@@ -145,10 +145,10 @@ describe('file tree', () => {
 
     expect(result.exitCode).toBe(0);
     // Representative sample of the 42 distinct directories this creates; the rest is snapshotted.
-    expect(result.stdout).toContain('Directory php created');
-    expect(result.stdout).toContain('Directory hudson.php created');
-    expect(result.stdout).toContain('Directory resources created');
-    expect(result.stdout).toContain('Directory javacup created');
+    expect(result.stdout).toContain("Directory 'php'");
+    expect(result.stdout).toContain("Directory 'php/hudson.php'");
+    expect(result.stdout).toContain("Directory 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources'");
+    expect(result.stdout).toContain("Directory 'php/libs.javacup/src/org/netbeans/libs/javacup'");
     expect(result.stdout).toContain(
       "File 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'",
     );
@@ -269,10 +269,10 @@ describe('file tree', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain(
-      'File it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties extracted',
+      "File 'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties' extracted",
     );
     expect(result.stdout).toContain(
-      'File uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties extracted',
+      "File 'uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties' extracted",
     );
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -306,9 +306,9 @@ describe('file tree', () => {
     // silent) - confirmed by reading UploadSourcesCommand.ts, matching this effort's established
     // BranchCommand/UploadSourcesCommand wording note. Directory/file messages use the LOCAL path,
     // so they're identical strings to the non-branch upload above (no "branch1/" prefix).
-    expect(result.stdout).toContain('Directory php created');
-    expect(result.stdout).toContain('Directory hudson.php created');
-    expect(result.stdout).toContain('Directory resources created');
+    expect(result.stdout).toContain("Directory 'php'");
+    expect(result.stdout).toContain("Directory 'php/hudson.php'");
+    expect(result.stdout).toContain("Directory 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources'");
     expect(result.stdout).toContain(
       "File 'php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties'",
     );
@@ -427,10 +427,10 @@ describe('file tree', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain(
-      'File it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties extracted',
+      "File 'it/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties' extracted",
     );
     expect(result.stdout).toContain(
-      'File uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties extracted',
+      "File 'uk/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties' extracted",
     );
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -446,18 +446,16 @@ describe('file tree', () => {
     // Unlike `upload`'s success messages, `file list`'s paths come straight from the server's raw
     // (branch-prefixed) `file.data.path` with only a leading-slash strip - no `stripBranchPrefix` -
     // so these DO carry the "branch1/" prefix, matching the PHP original.
+    expect(result.stdout).toContain('php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties');
+    expect(result.stdout).toContain('php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties');
     expect(result.stdout).toContain(
-      'branch1/php/hudson.php/src/org/netbeans/modules/hudson/php/resources/Bundle.properties',
-    );
-    expect(result.stdout).toContain('branch1/php/libs.javacup/src/org/netbeans/libs/javacup/Bundle.properties');
-    expect(result.stdout).toContain(
-      'branch1/php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties',
+      'php/php.api.annotation/src/org/netbeans/modules/php/api/annotation/resources/Bundle.properties',
     );
     expect(result.stdout).toContain(
-      'branch1/php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties',
+      'php/php.api.documentation/src/org/netbeans/modules/php/api/documentation/resources/Bundle.properties',
     );
     expect(result.stdout).toContain(
-      'branch1/php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties',
+      'php/php.api.editor/src/org/netbeans/modules/php/api/editor/resources/Bundle.properties',
     );
   });
 });

@@ -104,7 +104,7 @@ describe('translation patterns', () => {
     expect(result.exitCode).toBe(0);
 
     for (const path of UNAFFECTED_TRANSLATION_PATHS) {
-      expect(result.stdout).toContain(`File ${path} would be queued for translations import`);
+      expect(result.stdout).toContain(`File '${path}' would be queued for translations import`);
     }
 
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -152,7 +152,7 @@ describe('translation patterns', () => {
     expect(result.exitCode).toBe(0);
 
     for (const path of UNAFFECTED_TRANSLATION_PATHS) {
-      expect(result.stdout).toContain(`File ${path} extracted`);
+      expect(result.stdout).toContain(`File '${path}' extracted`);
     }
 
     expect(normalize(result.stdout)).toMatchSnapshot();

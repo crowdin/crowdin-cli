@@ -68,7 +68,7 @@ describe('language mapping', () => {
       'three_letters_code',
       'two_letters_code',
     ]) {
-      expect(result.stdout).toContain(`Directory ${group} created`);
+      expect(result.stdout).toContain(`Directory '${group}'`);
       expect(result.stdout).toContain(`File '${group}/android.xml'`);
     }
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -96,7 +96,7 @@ describe('language mapping', () => {
       'two_letters_code/uk_/android.xml',
       'two_letters_code/zh_/android.xml',
     ]) {
-      expect(result.stdout).toContain(`File ${path} would be queued for translations import`);
+      expect(result.stdout).toContain(`File '${path}' would be queued for translations import`);
     }
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -149,8 +149,8 @@ describe('language mapping', () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File android_code/uk-rUA_/android.xml extracted');
-    expect(result.stdout).toContain('File language/Chinese Simplified_/android.xml extracted');
+    expect(result.stdout).toContain("File 'android_code/uk-rUA_/android.xml' extracted");
+    expect(result.stdout).toContain("File 'language/Chinese Simplified_/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectRestored(ctx.workspace, captured);
@@ -171,14 +171,16 @@ describe('language mapping', () => {
     expect(result.exitCode).toBe(0);
     // android_code now resolves from the server mapping (*_crwd), not the removed local override.
     expect(result.stdout).toContain(
-      'File android_code/uk-rUA_crwd/android.xml would be queued for translations import',
+      "File 'android_code/uk-rUA_crwd/android.xml' would be queued for translations import",
     );
     expect(result.stdout).toContain(
-      'File android_code/zh-rCN_crwd/android.xml would be queued for translations import',
+      "File 'android_code/zh-rCN_crwd/android.xml' would be queued for translations import",
     );
     // Every other group's server value mirrors its old local override, so the path is unchanged.
-    expect(result.stdout).toContain('File locale/uk-UA_/android.xml would be queued for translations import');
-    expect(result.stdout).toContain('File three_letters_code/zho_/android.xml would be queued for translations import');
+    expect(result.stdout).toContain("File 'locale/uk-UA_/android.xml' would be queued for translations import");
+    expect(result.stdout).toContain(
+      "File 'three_letters_code/zho_/android.xml' would be queued for translations import",
+    );
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -232,8 +234,8 @@ describe('language mapping', () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File android_code/uk-rUA_crwd/android.xml extracted');
-    expect(result.stdout).toContain('File android_code/zh-rCN_crwd/android.xml extracted');
+    expect(result.stdout).toContain("File 'android_code/uk-rUA_crwd/android.xml' extracted");
+    expect(result.stdout).toContain("File 'android_code/zh-rCN_crwd/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectRestored(ctx.workspace, captured);

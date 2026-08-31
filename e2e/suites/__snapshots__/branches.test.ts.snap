@@ -5,14 +5,15 @@ exports[`branches uploads a single source file to a brand-new branch 1`] = `
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  File 'sources_one_file/1_android.xml'"
+◆  Branch 'test_list_string'
+◆  File '1_android.xml'"
 `;
 
 exports[`branches previews uploading two more source files to a not-yet-existing branch (dry run) 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  File sources/1_android.xml would be created
-●  File sources/2_android.xml would be created
+●  File 'sources/1_android.xml' would be created
+●  File 'sources/2_android.xml' would be created
 ●  Project files fetched
 ●  Project info fetched"
 `;
@@ -33,8 +34,9 @@ exports[`branches uploads the two source files for real, creating the branch 1`]
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  File 'sources/1_android.xml'
-◆  File 'sources/2_android.xml'"
+◆  Branch 'test-branch'
+◆  File '1_android.xml'
+◆  File '2_android.xml'"
 `;
 
 exports[`branches updates the existing sources after local changes 1`] = `
@@ -42,17 +44,17 @@ exports[`branches updates the existing sources after local changes 1`] = `
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  File 'sources/1_android.xml'
-◆  File 'sources/2_android.xml'"
+◆  File '1_android.xml'
+◆  File '2_android.xml'"
 `;
 
 exports[`branches previews the translation upload as a dry run 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  File translations/it/1_android.xml would be queued for translations import
-●  File translations/it/2_android.xml would be queued for translations import
-●  File translations/uk/1_android.xml would be queued for translations import
-●  File translations/uk/2_android.xml would be queued for translations import
+●  File 'translations/it/1_android.xml' would be queued for translations import
+●  File 'translations/it/2_android.xml' would be queued for translations import
+●  File 'translations/uk/1_android.xml' would be queued for translations import
+●  File 'translations/uk/2_android.xml' would be queued for translations import
 ●  Project files fetched
 ●  Project info fetched"
 `;
@@ -95,8 +97,8 @@ exports[`branches downloads translations for the branch 1`] = `
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File translations/it/1_android.xml extracted
-◆  File translations/it/2_android.xml extracted
-◆  File translations/uk/1_android.xml extracted
-◆  File translations/uk/2_android.xml extracted"
+◆  File 'translations/it/1_android.xml' extracted
+◆  File 'translations/it/2_android.xml' extracted
+◆  File 'translations/uk/1_android.xml' extracted
+◆  File 'translations/uk/2_android.xml' extracted"
 `;

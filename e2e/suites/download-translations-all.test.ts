@@ -45,9 +45,9 @@ describe('download translations --all', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Directory root created');
-    expect(result.stdout).toContain('Directory folder created');
-    expect(result.stdout).toContain('Directory {{cookiecutter.module_name}} created');
+    expect(result.stdout).toContain("Directory 'root'");
+    expect(result.stdout).toContain("Directory 'root/folder'");
+    expect(result.stdout).toContain("Directory 'root/{{cookiecutter.module_name}}'");
     expect(result.stdout).toContain("File 'root/android.xml'");
     expect(result.stdout).toContain("File 'root/folder/android.xml'");
     expect(result.stdout).toContain("File 'root/{{cookiecutter.module_name}}/android.xml'");
@@ -75,12 +75,12 @@ describe('download translations --all', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/it/android.xml extracted');
-    expect(result.stdout).toContain('File translations/it/folder/android.xml extracted');
-    expect(result.stdout).toContain('File translations/it/{{cookiecutter.module_name}}/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/folder/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/{{cookiecutter.module_name}}/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/it/folder/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/it/{{cookiecutter.module_name}}/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/folder/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/{{cookiecutter.module_name}}/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(
@@ -124,12 +124,12 @@ describe('download translations --all', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/it/android.xml extracted');
-    expect(result.stdout).toContain('File translations/it/folder/android.xml extracted');
-    expect(result.stdout).toContain('File translations/it/{{cookiecutter.module_name}}/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/folder/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/{{cookiecutter.module_name}}/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/it/folder/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/it/{{cookiecutter.module_name}}/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/folder/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/{{cookiecutter.module_name}}/android.xml' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(
@@ -157,7 +157,7 @@ describe('download translations --all', () => {
     const result = await ctx.runner.run(['download', '--skip-untranslated-files']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain(
+    expect(result.stderr).toContain(
       "Couldn't find any file to download. Since you are using the 'Skip untranslated files' option, please " +
         'make sure you have fully translated files',
     );
@@ -174,8 +174,8 @@ describe('download translations --all', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/it/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(normalize(redactWorkspace(ctx, result.stdout))).toMatchSnapshot();
 
     const zipName = await findKeptArchive(ctx);
@@ -214,8 +214,8 @@ describe('download translations --all', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/it/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/it/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
     expect(normalize(redactWorkspace(ctx, result.stdout))).toMatchSnapshot();
 
     const zipName = await findKeptArchive(ctx);
@@ -234,9 +234,9 @@ describe('download translations --all', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('Building translations for languages: uk');
-    expect(result.stdout).toContain('File translations/uk/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/folder/android.xml extracted');
-    expect(result.stdout).toContain('File translations/uk/{{cookiecutter.module_name}}/android.xml extracted');
+    expect(result.stdout).toContain("File 'translations/uk/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/folder/android.xml' extracted");
+    expect(result.stdout).toContain("File 'translations/uk/{{cookiecutter.module_name}}/android.xml' extracted");
     expect(normalize(redactWorkspace(ctx, result.stdout))).toMatchSnapshot();
 
     const zipName = await findKeptArchive(ctx);

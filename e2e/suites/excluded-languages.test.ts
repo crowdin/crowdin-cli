@@ -45,8 +45,8 @@ describe('excluded languages', () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/de/1_android.xml does not exist in the specified location');
-    expect(result.stdout).toContain('File translations/de/2_android.xml does not exist in the specified location');
+    expect(result.stderr).toContain("File 'translations/de/1_android.xml' does not exist in the specified location");
+    expect(result.stderr).toContain("File 'translations/de/2_android.xml' does not exist in the specified location");
     expect(result.stdout).toContain("File 'translations/it/1_android.xml'");
     expect(result.stdout).toContain("File 'translations/it/2_android.xml'");
     expect(result.stdout).toContain("File 'translations/uk/1_android.xml'");
@@ -96,9 +96,9 @@ describe('excluded languages', () => {
     const result = await ctx.runner.run(['upload', 'translations']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File translations/de/1_android.xml does not exist in the specified location');
-    expect(result.stdout).toContain('File translations/de/2_android.xml does not exist in the specified location');
-    expect(result.stdout).toContain(
+    expect(result.stderr).toContain("File 'translations/de/1_android.xml' does not exist in the specified location");
+    expect(result.stderr).toContain("File 'translations/de/2_android.xml' does not exist in the specified location");
+    expect(result.stderr).toContain(
       "Translation file 'translations/it/1_android.xml' hasn't been uploaded since the following target " +
         'language(s) are not enabled for the source file in your Crowdin project',
     );
@@ -214,7 +214,7 @@ describe('excluded languages', () => {
     const result = await ctx.runner.run(['upload', 'sources', '--excluded-language', 'ar']);
 
     expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain("Project doesn't have 'ar' language(s)");
+    expect(result.stderr).toContain("Project doesn't have 'ar' language(s)");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 });
