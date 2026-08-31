@@ -57,15 +57,15 @@ describe('dest', () => {
 
     // Confirmed wording (grepped from UploadSourcesCommand.ts): create/update success reports the
     // local file path, directory creation reports the bare last path segment. Only asserted for the
-    // three groups whose `dest` has no `%original_path%` placeholder (see file-level comment above
-    // for why the other three groups are snapshot-only).
-    expect(result.stdout).toContain("File 'android.xml'");
-    expect(result.stdout).toContain('Directory Folder created');
-    expect(result.stdout).toContain("File 'folder/android_en_US.xml'");
-    expect(result.stdout).toContain("File 'folder/client_en_US.xml'");
-    expect(result.stdout).toContain("File 'destCheckFolder/android.xml'");
-    expect(result.stdout).toContain("File 'destCheckFolderParallelFileProcess/android.xml'");
-    expect(result.stdout).toContain("File 'destCheckFolderParallelFileProcess/second_android.xml'");
+    // Success echoes the `dest`-remapped PROJECT path, not the local one, so each assertion below
+    // names the destination the group maps its file to.
+    expect(result.stdout).toContain("File 'Android.xml'");
+    expect(result.stdout).toContain("Directory 'Folder'");
+    expect(result.stdout).toContain("File 'Folder/Android.xml'");
+    expect(result.stdout).toContain("File 'Folder/Client.xml'");
+    expect(result.stdout).toContain("File 'Test-destCheckFolder/xml/android/android.xml'");
+    expect(result.stdout).toContain("File 'Test-destCheckFolderParallelFileProcess/xml/android.xml'");
+    expect(result.stdout).toContain("File 'Test-destCheckFolderParallelFileProcess/xml/second_android.xml'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -149,10 +149,10 @@ describe('dest', () => {
     // (it only affects an *existing* branch's update path / translation-source lookup, exercised by
     // the next two tests). Java/TS also print no branch-creation message at all — confirmed in
     // base-path.test.ts's port — so none is asserted here.
-    expect(result.stdout).toContain("File 'android.xml'");
-    expect(result.stdout).toContain('Directory Folder created');
-    expect(result.stdout).toContain("File 'folder/android_en_US.xml'");
-    expect(result.stdout).toContain("File 'folder/client_en_US.xml'");
+    expect(result.stdout).toContain("File 'Android.xml'");
+    expect(result.stdout).toContain("Directory 'Folder'");
+    expect(result.stdout).toContain("File 'Folder/Android.xml'");
+    expect(result.stdout).toContain("File 'Folder/Client.xml'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -228,10 +228,10 @@ describe('dest', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Directory SingleDest created');
-    expect(result.stdout).toContain('Directory xml created');
-    expect(result.stdout).toContain('Directory android created');
-    expect(result.stdout).toContain("File 'android.xml'");
+    expect(result.stdout).toContain("Directory 'SingleDest'");
+    expect(result.stdout).toContain("Directory 'SingleDest/xml'");
+    expect(result.stdout).toContain("Directory 'SingleDest/xml/android'");
+    expect(result.stdout).toContain("File 'SingleDest/xml/android/android.xml'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
@@ -252,7 +252,7 @@ describe('dest', () => {
     const result = await ctx.runner.run(['upload', 'sources', '--no-preserve-hierarchy']);
 
     expect(result.exitCode).toBe(2);
-    expect(result.stdout).toContain(
+    expect(result.stderr).toContain(
       "The 'dest' parameter only works for single files with the specified 'preserve_hierarchy': true option",
     );
   });

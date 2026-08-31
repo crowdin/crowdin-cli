@@ -36,7 +36,10 @@ describe('bundle', () => {
       '--export-pattern',
       'all.string',
     ]);
-    bundleId = result.stdout.match(/│\s*0\s*│\s*(\d+)\s*│/)?.[1] ?? '';
+    // `bundle add` echoes the created bundle through output.item(bundleView): text renders
+    // `#<id> <format> <exportPattern> <name>`, so the id comes from the `#<id>` token rather than
+    // from a console.table cell (the grid this used to parse is not what the command prints).
+    bundleId = result.stdout.match(/#(\d+)/)?.[1] ?? '';
 
     expect(result.exitCode).toBe(0);
     expect(bundleId).not.toBe('');
@@ -57,11 +60,15 @@ describe('bundle', () => {
       '--output',
       'plain',
     ]);
-    const localBundleId = normalize(result.stdout);
+    // bundleView's plain line is `<id> <name>` - identifier first, then the name, per the
+    // plain-format contract (one bare line per entity, space-safe fields last).
+    const plainLine = normalize(result.stdout);
+    const localBundleId = plainLine.match(/^(\d+)\b/)?.[1] ?? '';
 
     expect(result.exitCode).toBe(0);
-    expect(localBundleId).toMatch(/^\d+$/);
-    expect(maskBundleId(localBundleId, localBundleId)).toMatchSnapshot();
+    expect(localBundleId).not.toBe('');
+    expect(plainLine).toBe(`${localBundleId} BundleCreatedWithPlainOutput`);
+    expect(maskBundleId(plainLine, localBundleId)).toMatchSnapshot();
   });
 
   test('downloads the bundle', async () => {

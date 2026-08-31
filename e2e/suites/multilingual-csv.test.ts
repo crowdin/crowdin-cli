@@ -20,7 +20,7 @@ describe('multilingual csv', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Directory with-translations created');
+    expect(result.stdout).toContain("Directory 'with-translations'");
     expect(result.stdout).toContain("File 'with-translations/sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -57,7 +57,7 @@ describe('multilingual csv', () => {
     const result = await ctx.runner.run(['download', 'translations', '--dryrun']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File with-translations/sample.csv extracted');
+    expect(result.stdout).toContain('with-translations/sample.csv');
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -65,7 +65,7 @@ describe('multilingual csv', () => {
     const result = await ctx.runner.run(['download', 'translations']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File with-translations/sample.csv extracted');
+    expect(result.stdout).toContain('with-translations/sample.csv');
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(ctx.workspace, 'sources/rev1/with-translations/sample.csv');
@@ -82,7 +82,7 @@ describe('multilingual csv', () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('Directory without-translations created');
+    expect(result.stdout).toContain("Directory 'without-translations'");
     expect(result.stdout).toContain("File 'without-translations/sample.csv'");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
@@ -187,7 +187,7 @@ describe('multilingual csv', () => {
     const result = await ctx.runner.run(['download', 'translations', '--branch', 'test-branch']);
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain('File sample.csv extracted');
+    expect(result.stdout).toContain("File 'sample.csv' extracted");
     expect(normalize(result.stdout)).toMatchSnapshot();
 
     await expectFilesExist(ctx.workspace, 'sources/rev1/branch/sample.csv');

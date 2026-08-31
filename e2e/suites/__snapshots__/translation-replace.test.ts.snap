@@ -5,12 +5,12 @@ exports[`translation replace uploads sources, creating the nested directory hier
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory crowdin created
-◆  Directory en created
-◆  Directory main created
-◆  Directory org created
-◆  Directory resources created
-◆  Directory src created
+◆  Directory 'en'
+◆  Directory 'en/src'
+◆  Directory 'en/src/main'
+◆  Directory 'en/src/main/resources'
+◆  Directory 'en/src/main/resources/org'
+◆  Directory 'en/src/main/resources/org/crowdin'
 ◆  File 'en/src/main/resources/android.xml'
 ◆  File 'en/src/main/resources/org/crowdin/android.xml'
 ◆  File 'en/src/main/resources/org/crowdin/strings.xml'"
@@ -29,12 +29,12 @@ exports[`translation replace updates the existing sources without creating anyth
 exports[`translation replace previews uploading translations as a dry run 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  File it/src/main/resources/android.xml would be queued for translations import
-●  File it/src/main/resources/org/crowdin/android.xml would be queued for translations import
-●  File it/src/main/resources/org/crowdin/strings.xml would be queued for translations import
-●  File uk/src/main/resources/android.xml would be queued for translations import
-●  File uk/src/main/resources/org/crowdin/android.xml would be queued for translations import
-●  File uk/src/main/resources/org/crowdin/strings.xml would be queued for translations import
+●  File 'it/src/main/resources/android.xml' would be queued for translations import
+●  File 'it/src/main/resources/org/crowdin/android.xml' would be queued for translations import
+●  File 'it/src/main/resources/org/crowdin/strings.xml' would be queued for translations import
+●  File 'uk/src/main/resources/android.xml' would be queued for translations import
+●  File 'uk/src/main/resources/org/crowdin/android.xml' would be queued for translations import
+●  File 'uk/src/main/resources/org/crowdin/strings.xml' would be queued for translations import
 ●  Project files fetched
 ●  Project info fetched"
 `;
@@ -63,12 +63,12 @@ exports[`translation replace previews downloading translations as a dry run 1`] 
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-it/src/main/resources/android.xml
-it/src/main/resources/org/crowdin/android.xml
-it/src/main/resources/org/crowdin/strings.xml
-uk/src/main/resources/android.xml
-uk/src/main/resources/org/crowdin/android.xml
-uk/src/main/resources/org/crowdin/strings.xml"
+◆  it/src/main/resources/android.xml
+◆  it/src/main/resources/org/crowdin/android.xml
+◆  it/src/main/resources/org/crowdin/strings.xml
+◆  uk/src/main/resources/android.xml
+◆  uk/src/main/resources/org/crowdin/android.xml
+◆  uk/src/main/resources/org/crowdin/strings.xml"
 `;
 
 exports[`translation replace downloads translations, overwriting the local it/uk trees 1`] = `
@@ -79,12 +79,12 @@ exports[`translation replace downloads translations, overwriting the local it/uk
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File it/src/main/resources/android.xml extracted
-◆  File it/src/main/resources/org/crowdin/android.xml extracted
-◆  File it/src/main/resources/org/crowdin/strings.xml extracted
-◆  File uk/src/main/resources/android.xml extracted
-◆  File uk/src/main/resources/org/crowdin/android.xml extracted
-◆  File uk/src/main/resources/org/crowdin/strings.xml extracted"
+◆  File 'it/src/main/resources/android.xml' extracted
+◆  File 'it/src/main/resources/org/crowdin/android.xml' extracted
+◆  File 'it/src/main/resources/org/crowdin/strings.xml' extracted
+◆  File 'uk/src/main/resources/android.xml' extracted
+◆  File 'uk/src/main/resources/org/crowdin/android.xml' extracted
+◆  File 'uk/src/main/resources/org/crowdin/strings.xml' extracted"
 `;
 
 exports[`translation replace uploads sources to a brand-new branch, creating the directory hierarchy again 1`] = `
@@ -92,12 +92,13 @@ exports[`translation replace uploads sources to a brand-new branch, creating the
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-◆  Directory crowdin created
-◆  Directory en created
-◆  Directory main created
-◆  Directory org created
-◆  Directory resources created
-◆  Directory src created
+◆  Branch 'test-branch'
+◆  Directory 'en'
+◆  Directory 'en/src'
+◆  Directory 'en/src/main'
+◆  Directory 'en/src/main/resources'
+◆  Directory 'en/src/main/resources/org'
+◆  Directory 'en/src/main/resources/org/crowdin'
 ◆  File 'en/src/main/resources/android.xml'
 ◆  File 'en/src/main/resources/org/crowdin/android.xml'
 ◆  File 'en/src/main/resources/org/crowdin/strings.xml'"
@@ -116,12 +117,12 @@ exports[`translation replace updates sources on the branch (branch already exist
 exports[`translation replace previews uploading translations as a dry run on the branch 1`] = `
 "●  Fetching project files
 ●  Fetching project info
-●  File it/src/main/resources/android.xml would be queued for translations import
-●  File it/src/main/resources/org/crowdin/android.xml would be queued for translations import
-●  File it/src/main/resources/org/crowdin/strings.xml would be queued for translations import
-●  File uk/src/main/resources/android.xml would be queued for translations import
-●  File uk/src/main/resources/org/crowdin/android.xml would be queued for translations import
-●  File uk/src/main/resources/org/crowdin/strings.xml would be queued for translations import
+●  File 'it/src/main/resources/android.xml' would be queued for translations import
+●  File 'it/src/main/resources/org/crowdin/android.xml' would be queued for translations import
+●  File 'it/src/main/resources/org/crowdin/strings.xml' would be queued for translations import
+●  File 'uk/src/main/resources/android.xml' would be queued for translations import
+●  File 'uk/src/main/resources/org/crowdin/android.xml' would be queued for translations import
+●  File 'uk/src/main/resources/org/crowdin/strings.xml' would be queued for translations import
 ●  Project files fetched
 ●  Project info fetched"
 `;
@@ -150,12 +151,12 @@ exports[`translation replace previews downloading translations on the branch as 
 ●  Fetching project info
 ●  Project files fetched
 ●  Project info fetched
-it/src/main/resources/android.xml
-it/src/main/resources/org/crowdin/android.xml
-it/src/main/resources/org/crowdin/strings.xml
-uk/src/main/resources/android.xml
-uk/src/main/resources/org/crowdin/android.xml
-uk/src/main/resources/org/crowdin/strings.xml"
+◆  it/src/main/resources/android.xml
+◆  it/src/main/resources/org/crowdin/android.xml
+◆  it/src/main/resources/org/crowdin/strings.xml
+◆  uk/src/main/resources/android.xml
+◆  uk/src/main/resources/org/crowdin/android.xml
+◆  uk/src/main/resources/org/crowdin/strings.xml"
 `;
 
 exports[`translation replace downloads translations on the branch 1`] = `
@@ -166,10 +167,10 @@ exports[`translation replace downloads translations on the branch 1`] = `
 ●  Project info fetched
 ●  Translations built
 ◆  Done
-◆  File it/src/main/resources/android.xml extracted
-◆  File it/src/main/resources/org/crowdin/android.xml extracted
-◆  File it/src/main/resources/org/crowdin/strings.xml extracted
-◆  File uk/src/main/resources/android.xml extracted
-◆  File uk/src/main/resources/org/crowdin/android.xml extracted
-◆  File uk/src/main/resources/org/crowdin/strings.xml extracted"
+◆  File 'it/src/main/resources/android.xml' extracted
+◆  File 'it/src/main/resources/org/crowdin/android.xml' extracted
+◆  File 'it/src/main/resources/org/crowdin/strings.xml' extracted
+◆  File 'uk/src/main/resources/android.xml' extracted
+◆  File 'uk/src/main/resources/org/crowdin/android.xml' extracted
+◆  File 'uk/src/main/resources/org/crowdin/strings.xml' extracted"
 `;
