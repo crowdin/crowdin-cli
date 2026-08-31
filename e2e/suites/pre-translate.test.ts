@@ -93,8 +93,11 @@ describe('pre-translate via auto-translate', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("File 'sources/1_android.xml'");
-    expect(result.stdout).toContain("File 'sources/2_android.xml'");
+    // Success lines report the PROJECT path, not the local one, and the fixture's
+    // `preserve_hierarchy: false` strips the shared `sources/` parent (see the note on the next
+    // test), so what lands in the project - and in the output - is the bare filename.
+    expect(result.stdout).toContain("File '1_android.xml'");
+    expect(result.stdout).toContain("File '2_android.xml'");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -119,7 +122,10 @@ describe('pre-translate via auto-translate', () => {
     const result = await ctx.runner.run(['auto-translate', '-l', 'uk', '--method', 'mt']);
 
     expect(result.exitCode).toBe(1);
-    expect(result.stdout).toContain("Machine Translation should be used with the '--engine-id' parameter");
+    // The `CliError` this raises goes through `diagnostic()`, which writes to stderr in every output
+    // format (`cli/utils/output.ts`) so that stdout only ever carries the result document. Here that
+    // leaves stdout empty, which is what the snapshot below records.
+    expect(result.stderr).toContain("Machine Translation should be used with the '--engine-id' parameter");
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
@@ -166,7 +172,9 @@ describe('pre-translate via auto-translate', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    expect(result.stdout).toContain("'--auto-approve-option' is used only for the TM Auto-Translation method");
+    // `output.warning` is a diagnostic too, so it lands on stderr for the same reason as the
+    // `--engine-id` error above; the auto-translation progress itself still goes to stdout.
+    expect(result.stderr).toContain("'--auto-approve-option' is used only for the TM Auto-Translation method");
     expect(result.stdout).toContain('Fetching project info');
     expect(result.stdout).toContain('Auto-translation is finished (100%)');
   });
