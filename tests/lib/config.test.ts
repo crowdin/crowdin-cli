@@ -211,14 +211,14 @@ describe('ConfigSchema files[] parity fields', () => {
     );
   });
 
-  test.each([
-    '/foo/%file_name%.json',
-    '/foo/**/strings.json',
-  ])('accepts a per-file dest for a patterned source: %p', (dest) => {
-    const config = ConfigSchema.parse({ ...baseConfig({ dest }), preserveHierarchy: true });
+  test.each(['/foo/%file_name%.json', '/foo/**/strings.json'])(
+    'accepts a per-file dest for a patterned source: %p',
+    (dest) => {
+      const config = ConfigSchema.parse({ ...baseConfig({ dest }), preserveHierarchy: true });
 
-    expect(config.files[0]?.dest).toBe(dest);
-  });
+      expect(config.files[0]?.dest).toBe(dest);
+    },
+  );
 
   test('accepts a constant dest when source names a single file', () => {
     const config = ConfigSchema.parse({
@@ -245,12 +245,12 @@ describe('ConfigSchema files[] parity fields', () => {
     expect(config.files[0]?.translation).toBe('/l/**/%locale%/%original_file_name%');
   });
 
-  test.each([
-    '/l/../%locale%/%original_file_name%',
-    '/l/./%locale%/%original_file_name%',
-  ])('rejects a relative path in translation: %p', (translation) => {
-    expect(() => ConfigSchema.parse(baseConfig({ translation }))).toThrow("can't contain any relative paths");
-  });
+  test.each(['/l/../%locale%/%original_file_name%', '/l/./%locale%/%original_file_name%'])(
+    'rejects a relative path in translation: %p',
+    (translation) => {
+      expect(() => ConfigSchema.parse(baseConfig({ translation }))).toThrow("can't contain any relative paths");
+    },
+  );
 
   test('requires a language placeholder when not multilingual', () => {
     expect(() => ConfigSchema.parse(baseConfig({ translation: '/locale/strings.xml' }))).toThrow(

@@ -40,7 +40,7 @@ jobs:
         run: bun install --frozen-lockfile
 
       - name: Lint and format check
-        run: bunx biome check
+        run: bun run lint
 
       - name: Run tests
         run: bun run test
