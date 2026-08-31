@@ -123,10 +123,11 @@ describe('pre-translate via auto-translate', () => {
 
     expect(result.exitCode).toBe(1);
     // The `CliError` this raises goes through `diagnostic()`, which writes to stderr in every output
-    // format (`cli/utils/output.ts`) so that stdout only ever carries the result document. Here that
-    // leaves stdout empty, which is what the snapshot below records.
+    // format (`cli/utils/output.ts`) so that stdout only ever carries the result document — empty here,
+    // since the command fails long before producing one. Both the assertion and the snapshot therefore
+    // read stderr; snapshotting stdout would record nothing but an empty string.
     expect(result.stderr).toContain("Machine Translation should be used with the '--engine-id' parameter");
-    expect(normalize(result.stdout)).toMatchSnapshot();
+    expect(normalize(result.stderr)).toMatchSnapshot();
   });
 
   test('pre-translates via machine translation (MT) with an explicit engine id', async () => {
