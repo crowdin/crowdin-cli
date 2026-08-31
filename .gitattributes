@@ -1,3 +1,8 @@
 # Hooks must keep LF on Windows checkouts (GitHub runners set core.autocrlf=true): CRLF breaks
 # them under sh, and knip's husky plugin reads the trailing \r as part of the binary name.
 .husky/** text eol=lf
+
+# The biome format gate (bun run lint) requires LF; a CRLF checkout fails it on Windows runners.
+*.ts text eol=lf
+*.js text eol=lf
+*.json text eol=lf
