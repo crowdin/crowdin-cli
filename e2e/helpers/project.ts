@@ -6,6 +6,19 @@ export interface TestProject {
   name: string;
 }
 
+/**
+ * Stand-in project for suites set up with `withoutProject`. The config schema requires a positive
+ * `project_id` (`lib/config.ts`), so a suite whose commands never address a project still needs a
+ * value in `crowdin.yml` - this is one that is obviously not a real project, and nothing sends it
+ * anywhere. `teardownSuite` recognises it and has nothing to delete.
+ */
+export const SYNTHETIC_PROJECT_ID = 999999999;
+
+export const SYNTHETIC_PROJECT: TestProject = {
+  id: SYNTHETIC_PROJECT_ID,
+  name: 'no project created for this suite',
+};
+
 function buildProjectName(suite: string, seconds: number): string {
   return `e2e-${seconds}-${suite}`;
 }

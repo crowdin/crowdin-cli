@@ -163,3 +163,37 @@ describe('normalize: plain listings', () => {
     expect(result).toContain('◆  Done');
   });
 });
+
+describe('normalize: update-check banner', () => {
+  // `cli/utils/checkVersion.ts` prints this after every successful command once its cache is warm.
+  const banner = [
+    '╭───────────────────────────────────────────────────────────────────╮',
+    '│ Changelog: https://github.com/crowdin/crowdin-cli/releases/latest │',
+    '│ New version of Crowdin CLI is available! 5.0.0 -> 5.0.1           │',
+    '│ Please update for the best experience!                            │',
+    '╰───────────────────────────────────────────────────────────────────╯',
+  ].join('\n');
+
+  test('drops the banner wherever it lands', () => {
+    expect(normalize(`◆  Application has been installed\n${banner}`)).toBe('◆  Application has been installed');
+    expect(normalize(`${banner}\n◆  Done`)).toBe('◆  Done');
+  });
+
+  test('normalizes to the same output whichever release it announces', () => {
+    const withNext = banner.replace('5.0.0 -> 5.0.1', '5.0.0 -> 9.9.9');
+
+    expect(normalize(`◆  Done\n${withNext}`)).toBe(normalize(`◆  Done\n${banner}`));
+  });
+
+  test('leaves table rows alone, which are drawn with square corners', () => {
+    const table = ['┌───────┐', '│ id    │', '└───────┘'].join('\n');
+
+    expect(normalize(table)).toBe(table);
+  });
+
+  test('leaves an unrelated rounded box alone', () => {
+    const box = ['╭─────────────╮', '│ some notice │', '╰─────────────╯'].join('\n');
+
+    expect(normalize(box)).toBe(box);
+  });
+});
