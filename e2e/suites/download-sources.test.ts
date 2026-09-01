@@ -74,8 +74,8 @@ describe('download sources', () => {
 
   test('uploads the same nested source files to a brand-new branch', async () => {
     // First upload to a brand-new branch always takes the create path (the existing-file map starts
-    // empty), so this does not hit the branch-reupload lookup bug (see crowdin-cli-known-bugs Bug 4) --
-    // that only manifests from a *second* upload to an already-existing branch, which this suite never does.
+    // empty), so nothing here depends on how server paths are keyed; this suite never does a second
+    // upload to an already-existing branch.
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'b1']);
 
     expect(result.exitCode).toBe(0);
@@ -93,24 +93,18 @@ describe('download sources', () => {
     // Download success lines report the server-side project path (DownloadCommand.ts ~line 239:
     // `File '${download.relativePath}'`), which is `dest`-mapped for the folder_1 group.
     //
-    // CONFIRMED BUGS live-surfaced by this exact assertion (2026-07-21, see crowdin-cli-known-bugs
-    // memory) — left red as regression markers, do not weaken to match the buggy output:
-    //
-    // Bug 7 (2nd live confirmation, previously only code-traced): folder_1's `dest` uses
-    // `%original_path%`, which TS resolves to the FULL relative path incl. filename instead of just
-    // the directory. Real server path ends up `root/folder_1/android.xml/android.xml` (filename
-    // doubled as a fake directory segment), not `root/folder_1/android.xml`.
+    // folder_1's `dest` uses `%original_path%`, which resolves to the source file's parent directory
+    // (`translationPathResolver.ts` / `fileOptions.ts` both return `parsed.dir`) - so
+    // `folder_1/f1/android.xml` lands on `root/folder_1/f1/android.xml`, with no doubled filename
+    // segment.
     expect(result.stdout).toContain("File 'root/folder_1/android.xml'");
     expect(result.stdout).toContain("File 'root/folder_1/f1/android.xml'");
     expect(result.stdout).toContain("File 'root/folder_1/f1/f2/android.xml'");
     expect(result.stdout).toContain("File 'folder_2/android_1.xml'");
-    // Bug 9 (new, confirmed here): `globToRegex` (lib/config/projectFileMatch.ts:11-46) has no
-    // bracket-class glob support — it blindly escapes `[`/`]` as literal regex characters instead of
-    // implementing a character class. So the `/folder_2/android_[2-3].xml` source pattern can never
-    // match a real project file during download (local upload-side matching uses a real glob library
-    // and works fine, which is why the earlier `upload sources` test passes). Real output prints
-    // `No sources found for '/folder_2/android_[2-3].xml' pattern...` instead of these two files.
-    // Same broken matcher is also used by `download translations` (lib/download/translationMapping.ts).
+    // `globToRegex` (lib/config/projectFileMatch.ts) translates `[...]` into a real regex character
+    // class, so the `/folder_2/android_[2-3].xml` source pattern matches server-side during download
+    // exactly as Bun's Glob matches it locally during upload. The same matcher backs
+    // `download translations` (lib/download/translationMapping.ts).
     expect(result.stdout).toContain("File 'folder_2/android_2.xml'");
     expect(result.stdout).toContain("File 'folder_2/android_3.xml'");
     expect(result.stdout).toContain("File 'folder_2/android_4a.xml'");
@@ -139,8 +133,8 @@ describe('download sources', () => {
     expect(result.exitCode).toBe(0);
     expect(normalize(result.stdout)).toMatchSnapshot();
 
-    // Same Bug 7 (folder_1 `%original_path%` doubling) + Bug 9 (folder_2 bracket-class pattern never
-    // matches) as the previous test — left red for the same reason, see comments there.
+    // Same set of files as the previous test: `--output plain` only silences the messages, it does
+    // not change which files are matched or written.
     await expectFilesExist(ctx.workspace, ...SOURCE_RELATIVE_PATHS);
 
     for (const relativePath of SOURCE_RELATIVE_PATHS) {
@@ -153,20 +147,12 @@ describe('download sources', () => {
   test('downloads sources from the b1 branch', async () => {
     await removeDownloadedSources(ctx);
 
-    // `fileService.loadProjectFiles(branchId)` has been observed (crowdin-cli-known-bugs Bug 4) to
-    // return branch-scoped file paths *prefixed* with the branch name (e.g. `b1/folder_2/android_1.xml`).
-    // `collectSourceDownloads` matches those paths against the branch-agnostic `source`/`dest` patterns
-    // from crowdin.yml with an exact, non-prefixed regex under `preserve_hierarchy: true` -- if the
-    // prefix is really present here too, every pattern group fails to match, a new sibling of Bug 4 on
-    // the download side.
-    //
-    // STRONGLY SUPPORTED (2026-07-21): live run showed ALL 7 expected files missing here -- including
-    // folder_2/android_1.xml and folder_2/android_4a.xml, the two groups that download correctly on the
-    // master branch in the previous two tests (unaffected by Bug 7/Bug 9 above). Since those two groups
-    // work on master, something branch-specific -- not Bug 7/9 -- is additionally breaking them here,
-    // consistent with a total pattern-match failure caused by the branch-name prefix. Exact stdout not
-    // yet captured to pin the precise wording (e.g. confirm "No sources found" fires for every group);
-    // do that on the next live run before writing this up as a fully independent, numbered bug.
+    // `fileService.loadProjectFiles(branchId)` returns branch-scoped file paths *prefixed* with the
+    // branch name (e.g. `b1/folder_2/android_1.xml`), while `collectSourceDownloads` matches against
+    // the branch-agnostic `source`/`dest` patterns from crowdin.yml with an exact, non-prefixed regex
+    // under `preserve_hierarchy: true`. `DownloadCommand.stripBranchFromPaths` removes the prefix
+    // before the match (DownloadCommand.ts ~line 163), so every pattern group resolves on a branch
+    // exactly as it does on master - this asserts the same 7 files as the master download tests.
     const result = await ctx.runner.run(['download', 'sources', '-b', 'b1']);
 
     expect(result.exitCode).toBe(0);
