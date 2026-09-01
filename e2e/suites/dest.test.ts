@@ -144,11 +144,9 @@ describe('dest', () => {
     }
 
     expect(result.exitCode).toBe(0);
-    // First upload to a brand-new branch — the existing-file lookup Map starts empty for it, so
-    // Bug 4 (crowdin-cli-known-bugs.md: branch-prefixed path lookup mismatch) doesn't manifest yet
-    // (it only affects an *existing* branch's update path / translation-source lookup, exercised by
-    // the next two tests). Java/TS also print no branch-creation message at all — confirmed in
-    // base-path.test.ts's port — so none is asserted here.
+    // First upload to a brand-new branch: the existing-file lookup Map starts empty for it, so
+    // nothing here depends on how server paths are keyed. Java/TS also print no branch-creation
+    // message at all — confirmed in base-path.test.ts's port — so none is asserted here.
     expect(result.stdout).toContain("File 'Android.xml'");
     expect(result.stdout).toContain("Directory 'Folder'");
     expect(result.stdout).toContain("File 'Folder/Android.xml'");
@@ -157,14 +155,12 @@ describe('dest', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // Known-broken: Bug 4 (see crowdin-cli-known-bugs.md) — `fileService.loadProjectFiles(branchId)`
-  // returns branch-prefixed paths (`test-branch/android.xml`), but the translation-side source-file
-  // lookup in `UploadTranslationsCommand.buildTranslationEntries` computes a branch-agnostic project
-  // path, so the lookup always misses for a branched upload and every entry fails with "Source file
-  // '<path>' does not exist in the project". Written to match PHP's intended (passing) behavior and
-  // left as a regression marker, per the project's established convention for this bug
-  // (base-path.test.ts's equivalent test does the same) — do not weaken this assertion to match the
-  // current buggy output.
+  // `fileService.loadProjectFiles(branchId)` returns branch-prefixed paths
+  // (`test-branch/android.xml`), while the translation-side source-file lookup in
+  // `UploadTranslationsCommand` computes a branch-agnostic project path. The two are reconciled by
+  // `stripBranchPrefix` on the server paths before the lookup Map is built
+  // (`UploadTranslationsCommand.ts`), so a branched upload resolves its source files and this
+  // asserts the PHP-parity outcome.
   test('uploads translations to the branch', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-b', 'test-branch']);
 
@@ -179,8 +175,8 @@ describe('dest', () => {
     expect(normalize(result.stdout)).toMatchSnapshot();
   });
 
-  // Depends on the (likely broken, see above) translations upload actually having imported
-  // translations into the branch build.
+  // Depends on the previous test's translations upload actually having imported translations into
+  // the branch build.
   test('downloads translations from the branch', async () => {
     const result = await ctx.runner.run(['download', 'translations', '-b', 'test-branch']);
 
