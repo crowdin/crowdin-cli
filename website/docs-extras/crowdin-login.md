@@ -8,17 +8,7 @@ crowdin login
 
 This is handy for agentic workflows: you log in once, and every later command (run by you or by a tool) picks the token up from the identity file.
 
-Store an existing personal access token instead of opening a browser:
-
-```bash
-crowdin login -T "personal-access-token"
-```
-
-For Crowdin Enterprise, pass the organization base URL (it's saved along with the token):
-
-```bash
-crowdin login --base-url "https://<organization-name>.api.crowdin.com"
-```
+For Crowdin Enterprise, the organization comes from the account you sign in to in the browser and is saved along with the token, so the command stays the same.
 
 ## Notes
 

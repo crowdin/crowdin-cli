@@ -11,15 +11,9 @@ import type { Output } from '@/cli/utils/output.ts';
 import { buildUserAgent } from '@/cli/utils/userAgent.ts';
 import { DEFAULT_IDENTITY_FILE, getIdentityFilePath, saveCredentials } from '@/lib/identityFiles.ts';
 import { buildCredentials } from '@/lib/organization/credentials.ts';
-import { baseUrl, token } from '../common/options.ts';
 import { loginView } from './views.ts';
 
 const DEFAULT_BASE_URL = 'https://api.crowdin.com';
-
-interface LoginCommandOptions extends GlobalOptions {
-  token?: string;
-  baseUrl?: string;
-}
 
 export default class LoginCommand {
   constructor(private getOutput: GetOutput) {}
@@ -29,33 +23,24 @@ export default class LoginCommand {
       name: 'login',
       description: 'Authorize the CLI and save the API token for later use',
       action: this.defaultAction,
-      options: [token, baseUrl],
+      options: [],
     };
   }
 
   defaultAction = async (command: Command) => {
-    const options = command.optsWithGlobals() as LoginCommandOptions;
+    const options = command.optsWithGlobals() as GlobalOptions;
     const output = this.getOutput(command, { withGuide: true });
     const identityFile = getIdentityFilePath(DEFAULT_IDENTITY_FILE);
 
     output.intro('Authorizing Crowdin CLI');
 
-    // No prompts here on purpose: `login` is the unattended half of `init`, so it either takes the
-    // token it was given or goes straight to the browser.
-    let apiToken = options.token;
-    let resolvedBaseUrl = options.baseUrl;
-    let authorizedViaBrowser = false;
+    // No options and no prompts on purpose: `login` is the unattended half of `init`, and the
+    // browser authorization already settles both the token and the organization it belongs to.
+    const authorization = await this.authorizeViaBrowser(output);
+    const baseUrl = authorization.domain ? `https://${authorization.domain}.api.crowdin.com` : DEFAULT_BASE_URL;
 
-    if (!apiToken) {
-      const authorization = await this.authorizeViaBrowser(output);
-
-      authorizedViaBrowser = true;
-      apiToken = authorization.accessToken;
-      resolvedBaseUrl ??= authorization.domain ? `https://${authorization.domain}.api.crowdin.com` : undefined;
-    }
-
-    const user = await this.getAuthorizedUser(apiToken, resolvedBaseUrl ?? DEFAULT_BASE_URL, output);
-    const saved = await this.writeCredentials(apiToken, resolvedBaseUrl);
+    const user = await this.getAuthorizedUser(authorization.accessToken, baseUrl, output);
+    const saved = await this.writeCredentials(authorization.accessToken, baseUrl);
 
     if (!saved) {
       throw new CliError(`Couldn't write credentials to '${identityFile}'`, 1, true);
@@ -65,30 +50,19 @@ export default class LoginCommand {
     // and the outro names the identity file. The machine formats have neither, so they get the
     // result document here.
     if (isMachineFormat(options.output)) {
-      output.item(
-        {
-          username: user.data.username,
-          id: user.data.id,
-          baseUrl: resolvedBaseUrl ?? DEFAULT_BASE_URL,
-          identityFile,
-        },
-        loginView,
-      );
+      output.item({ username: user.data.username, id: user.data.id, baseUrl, identityFile }, loginView);
     }
 
-    output.outro(
-      `Credentials saved to '${identityFile}'.` +
-        (authorizedViaBrowser ? ' The browser authorization token expires in 30 days.' : ''),
-    );
+    output.outro(`Credentials saved to '${identityFile}'. The browser authorization token expires in 30 days.`);
   };
 
   private authorizeViaBrowser(output: Output): Promise<BrowserAuthorization> {
     return authorizeViaBrowser(output);
   }
 
-  // The default base URL is what every command already falls back to, so only a non-default one
-  // (Enterprise, or a testing host) is worth persisting.
-  protected async writeCredentials(apiToken: string, url: string | undefined): Promise<boolean> {
+  // The default base URL is what every command already falls back to, so only an Enterprise one is
+  // worth persisting.
+  protected async writeCredentials(apiToken: string, url: string): Promise<boolean> {
     return saveCredentials({ apiToken, baseUrl: url === DEFAULT_BASE_URL ? undefined : url });
   }
 
