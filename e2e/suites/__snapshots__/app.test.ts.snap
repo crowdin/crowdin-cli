@@ -1,0 +1,17 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`app reports an identifier that is not in the Crowdin Store 1`] = `"■  Application with identifier 'crowdin-cli-e2e-no-such-app-xyz' doesn't exist in Crowdin Store"`;
+
+exports[`app fails to uninstall an application that is not installed 1`] = `"■  Failed to uninstall application 'crowdin-cli-e2e-no-such-app-xyz'. Application Not Found"`;
+
+exports[`app installs an application from the Crowdin Store 1`] = `
+"◆  Application has been installed
+batch-add-strings Bulk Add Strings"
+`;
+
+exports[`app uninstalls the application again 1`] = `"◆  Application has been uninstalled"`;
+
+exports[`app requires project_id even though no subcommand sends one 1`] = `
+"■  Configuration file is invalid. Check the following parameters in your configuration file:
+	- Required option 'project_id' is missing"
+`;

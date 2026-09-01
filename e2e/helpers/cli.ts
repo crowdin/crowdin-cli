@@ -9,8 +9,15 @@ export interface CliResult {
 }
 
 export interface CliRunOptions {
-  /** Extra environment variables merged onto the current process env. */
-  env?: Record<string, string>;
+  /**
+   * Environment variables merged onto the current process env. A key set to `undefined` is
+   * REMOVED from the child's environment rather than merged - the only way to hide a variable the
+   * test process itself inherited. The repo-root `.env` (auto-loaded by Bun) sets `CROWDIN_*`
+   * values that `cli/config.ts`'s `envFallbackLayer` reads as its lowest config layer, so a suite
+   * asserting that a credential is *missing* has to remove them explicitly; CI, which sets only
+   * `CROWDIN_E2E_TOKEN`, would otherwise disagree with a local run.
+   */
+  env?: Record<string, string | undefined>;
   /** Working directory; defaults to the workspace. */
   cwd?: string;
   /** Skip the auto-appended `-c <config>` flag (the output flags are always added - see run()). */
@@ -42,9 +49,17 @@ export class CliRunner {
     // pre-translate) flaky rather than wrong.
     fullArgs.push('--no-progress', '--no-colors');
 
+    const env: Record<string, string | undefined> = { ...process.env, ...runOpts.env };
+
+    for (const [key, value] of Object.entries(runOpts.env ?? {})) {
+      if (value === undefined) {
+        delete env[key];
+      }
+    }
+
     const proc = Bun.spawn([...CLI_COMMAND, ...fullArgs], {
       cwd: runOpts.cwd ?? this.opts.workspace,
-      env: { ...process.env, ...runOpts.env },
+      env,
       stdout: 'pipe',
       stderr: 'pipe',
     });
