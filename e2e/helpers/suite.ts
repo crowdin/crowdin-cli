@@ -4,7 +4,14 @@ import { CliRunner } from './cli.ts';
 import { writeConfig } from './config.ts';
 import type { E2eEnv } from './env.ts';
 import { resolveEnv } from './env.ts';
-import { createApiClient, createTestProject, deleteTestProject, type TestProject } from './project.ts';
+import {
+  createApiClient,
+  createTestProject,
+  deleteTestProject,
+  SYNTHETIC_PROJECT,
+  SYNTHETIC_PROJECT_ID,
+  type TestProject,
+} from './project.ts';
 import { copyFixtures, createWorkspace, removeWorkspace } from './workspace.ts';
 
 /** Fixtures live at `e2e/fixtures/<suite>`, resolved relative to this helper. */
@@ -21,6 +28,14 @@ export interface SuiteContext {
 export interface SetupSuiteOptions {
   sourceLanguageId?: string;
   targetLanguageIds?: string[];
+  /**
+   * Skip creating a real Crowdin project. Only for suites whose commands never address one - `app`
+   * is the case this exists for: it sits in the project option tier, so `project_id` has to be
+   * *present* in the config, but none of `app list`/`install`/`uninstall` sends it to the API
+   * (`cli/services/AppService.ts`). The config gets {@link SYNTHETIC_PROJECT_ID} and teardown has
+   * nothing to delete, so the suite costs the account no project churn.
+   */
+  withoutProject?: boolean;
 }
 
 /**
@@ -41,11 +56,13 @@ export async function setupSuite(suite: string, opts: SetupSuiteOptions = {}): P
   const workspace = await createWorkspace(suite);
   await copyFixtures(fixturesDir, workspace);
 
-  const project = await createTestProject(client, {
-    suite,
-    sourceLanguageId: opts.sourceLanguageId,
-    targetLanguageIds: opts.targetLanguageIds,
-  });
+  const project = opts.withoutProject
+    ? SYNTHETIC_PROJECT
+    : await createTestProject(client, {
+        suite,
+        sourceLanguageId: opts.sourceLanguageId,
+        targetLanguageIds: opts.targetLanguageIds,
+      });
 
   // Everything past project creation can fail; if it does, tear down what we
   // already provisioned so a partial setup doesn't orphan the project (or
@@ -90,10 +107,14 @@ export async function teardownSuite(
     return;
   }
 
-  try {
-    await deleteTestProject(ctx.client, ctx.project.id);
-  } catch (error) {
-    console.error(`Failed to delete project #${ctx.project.id}: ${error instanceof Error ? error.message : error}`);
+  // A `withoutProject` suite never created one, so there is nothing to delete - and the synthetic
+  // id must never be sent to deleteProject, which would address someone else's project.
+  if (ctx.project.id !== SYNTHETIC_PROJECT_ID) {
+    try {
+      await deleteTestProject(ctx.client, ctx.project.id);
+    } catch (error) {
+      console.error(`Failed to delete project #${ctx.project.id}: ${error instanceof Error ? error.message : error}`);
+    }
   }
 
   try {

@@ -90,6 +90,36 @@ function groupKey(line: string): string {
  */
 const STATUS_MARKERS = new Set(['●', '▲', '◆']);
 
+/**
+ * Text the update-check banner always carries (`cli/utils/checkVersion.ts`'s `buildBanner`). The
+ * banner is printed after every successful command once `~/.crowdin/version-check.json` is warm,
+ * and both the version pair it names and the box width derived from it change with every published
+ * release - so left in, it would rewrite unrelated snapshots on someone else's release schedule.
+ * Matched on the prose rather than the border so nothing else drawn in a rounded box is eaten.
+ */
+const UPDATE_BANNER_TEXT = 'New version of Crowdin CLI is available!';
+
+/**
+ * Drop the update-check banner: the rounded box (`╭…╮` … `╰…╯`) whose body announces a new release.
+ * `Bun.inspect.table` draws with square corners (`┌│└`), so the rounded ones are this banner's alone,
+ * and the content guard keeps an unterminated box from swallowing the rest of the output.
+ */
+function dropUpdateBanner(lines: string[]): string[] {
+  const start = lines.findIndex((line) => line.startsWith('╭'));
+
+  if (start === -1) {
+    return lines;
+  }
+
+  const end = lines.findIndex((line, index) => index > start && line.startsWith('╰'));
+
+  if (end === -1 || !lines.slice(start, end).some((line) => line.includes(UPDATE_BANNER_TEXT))) {
+    return lines;
+  }
+
+  return dropUpdateBanner([...lines.slice(0, start), ...lines.slice(end + 1)]);
+}
+
 /** Collapse consecutive identical poll-progress lines to one. */
 function collapseProgress(lines: string[]): string[] {
   return lines.filter((line, index) => !(PROGRESS_LINE.test(line) && index > 0 && lines[index - 1] === line));
@@ -164,7 +194,7 @@ export function normalize(output: string): string {
     .map((line) => line.trimEnd())
     .filter((line) => line.length > 0);
 
-  const collapsed = collapseProgress(lines);
+  const collapsed = collapseProgress(dropUpdateBanner(lines));
 
   const firstStatus = collapsed.findIndex((line) => STATUS_MARKERS.has(groupKey(line)));
 
