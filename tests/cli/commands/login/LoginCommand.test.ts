@@ -32,10 +32,13 @@ describe('LoginCommand', () => {
     await rm(home, { recursive: true, force: true });
   });
 
-  function createCommand(options: Record<string, unknown>) {
+  function createCommand(options: Record<string, unknown> = {}, domain: string | null = null) {
     const merged = { ...globalOptions, ...options };
     const command = new LoginCommand(() => createOutput(merged)) as LoginCommand & Record<string, unknown>;
     const commandContext = { optsWithGlobals: () => merged } as unknown as Command;
+
+    // @ts-expect-error
+    command.authorizeViaBrowser = async () => ({ accessToken: 'browser-token', domain });
 
     return { command, commandContext };
   }
@@ -44,27 +47,21 @@ describe('LoginCommand', () => {
     return loadYaml(await Bun.file(getIdentityFilePath(DEFAULT_IDENTITY_FILE)).text()) as Record<string, unknown>;
   }
 
-  test('saves the provided token without opening a browser', async () => {
-    const { command, commandContext } = createCommand({ token: 'provided-token' });
+  test('saves the token the browser authorization returns', async () => {
+    const { command, commandContext } = createCommand();
 
-    // @ts-expect-error
-    command.authorizeViaBrowser = async () => {
-      throw new Error('authorizeViaBrowser should not be called when token option is provided');
-    };
     // @ts-expect-error
     command.getAuthorizedUser = async () => ({ data: { id: 1, username: 'agent' } });
 
     await command.defaultAction(commandContext);
 
     // The default base url is what every command falls back to, so it is not written out.
-    expect(await readIdentityFile()).toEqual({ api_token: 'provided-token' });
+    expect(await readIdentityFile()).toEqual({ api_token: 'browser-token' });
   });
 
-  test('persists the Enterprise base url derived from the browser authorization', async () => {
-    const { command, commandContext } = createCommand({});
+  test('persists the Enterprise base url the authorization carries', async () => {
+    const { command, commandContext } = createCommand({}, 'acme');
 
-    // @ts-expect-error
-    command.authorizeViaBrowser = async () => ({ accessToken: 'browser-token', domain: 'acme' });
     // @ts-expect-error
     command.getAuthorizedUser = async () => ({ data: { id: 2, username: 'agent' } });
 
@@ -76,24 +73,8 @@ describe('LoginCommand', () => {
     });
   });
 
-  test('keeps an explicit --base-url over the domain the token carries', async () => {
-    const { command, commandContext } = createCommand({ baseUrl: 'https://acme.crowdin.dev/api/v2' });
-
-    // @ts-expect-error
-    command.authorizeViaBrowser = async () => ({ accessToken: 'browser-token', domain: 'other' });
-    // @ts-expect-error
-    command.getAuthorizedUser = async () => ({ data: { id: 3, username: 'agent' } });
-
-    await command.defaultAction(commandContext);
-
-    expect(await readIdentityFile()).toEqual({
-      api_token: 'browser-token',
-      base_url: 'https://acme.crowdin.dev/api/v2',
-    });
-  });
-
   test('prints the user and the identity file as one plain line', async () => {
-    const { command, commandContext } = createCommand({ token: 'provided-token', output: 'plain' });
+    const { command, commandContext } = createCommand({ output: 'plain' });
     const log = spyOn(console, 'log');
 
     // @ts-expect-error
@@ -109,7 +90,7 @@ describe('LoginCommand', () => {
   });
 
   test('fails when the credentials cannot be written', async () => {
-    const { command, commandContext } = createCommand({ token: 'provided-token' });
+    const { command, commandContext } = createCommand();
 
     // @ts-expect-error
     command.getAuthorizedUser = async () => ({ data: { id: 4, username: 'agent' } });
