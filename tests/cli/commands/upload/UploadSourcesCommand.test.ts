@@ -125,6 +125,63 @@ describe('UploadSourcesCommand', () => {
     expect(output.info).toHaveBeenCalledWith("File 'src/app.json' would be created");
   });
 
+  test('dry-run reports the in-project path, not the local one, when preserve_hierarchy is off', async () => {
+    await Bun.$`mkdir -p ${tempDir}/public/locales/en`.quiet();
+    await Bun.write(`${tempDir}/public/locales/en/translation.json`, '{}');
+
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      baseProjectServiceMock(),
+      { addStorage: mock(async () => ({ data: { id: 10 } })) },
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      { ...baseFileServiceMock(), createProjectFile: mock(async () => undefined) },
+      baseLabelServiceMock(),
+      baseTranslationServiceMock(),
+      {
+        source: '/public/locales/en/translation.json',
+        translation: '/public/locales/%two_letters_code%/%original_file_name%',
+      },
+      { preserveHierarchy: false },
+    );
+
+    await command.uploadSourcesAction(commandContext({ dryrun: true }));
+
+    expect(output.info).toHaveBeenCalledWith("File 'translation.json' would be created");
+  });
+
+  test('reports the in-project path for a skipped existing file when preserve_hierarchy is off', async () => {
+    await Bun.$`mkdir -p ${tempDir}/public/locales/en`.quiet();
+    await Bun.write(`${tempDir}/public/locales/en/translation.json`, '{}');
+
+    const output = createOutputMock();
+    const command = createUploadCommand(
+      tempDir,
+      output,
+      baseProjectServiceMock(),
+      { addStorage: mock(async () => ({ data: { id: 10 } })) },
+      baseBranchServiceMock(),
+      baseDirectoryServiceMock(),
+      {
+        ...baseFileServiceMock(),
+        loadProjectFiles: mock(async () => ({ data: [{ data: { id: 77, path: '/translation.json' } }] })),
+      },
+      baseLabelServiceMock(),
+      baseTranslationServiceMock(),
+      {
+        source: '/public/locales/en/translation.json',
+        translation: '/public/locales/%two_letters_code%/%original_file_name%',
+      },
+      { preserveHierarchy: false },
+    );
+
+    await command.uploadSourcesAction(commandContext({ autoUpdate: false }));
+
+    expect(output.info).toHaveBeenCalledWith("File 'translation.json' already exists and will not be updated");
+  });
+
   test('passes merged labels and excluded languages when creating source files', async () => {
     await Bun.write(`${tempDir}/src/app.json`, '{}');
 
@@ -1766,9 +1823,7 @@ describe('UploadSourcesCommand', () => {
       },
     );
 
-    await expect(command.uploadSourcesAction(commandContext({}))).rejects.toThrow(
-      'Current execution finished with errors',
-    );
+    expect(command.uploadSourcesAction(commandContext({}))).rejects.toThrow('Current execution finished with errors');
 
     expect(output.error).toHaveBeenCalledWith(
       "No sources found for '/src/*.json' pattern. Check the source paths in your configuration file",
@@ -1796,7 +1851,7 @@ describe('UploadSourcesCommand', () => {
       { files: [{ source: '/src/*.json', translation: '/locale/%two_letters_code%/%original_file_name%' }] },
     );
 
-    await expect(command.uploadSourcesAction(commandContext({ output: 'plain' }))).rejects.toThrow(
+    expect(command.uploadSourcesAction(commandContext({ output: 'plain' }))).rejects.toThrow(
       'Current execution finished with errors',
     );
 
