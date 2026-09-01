@@ -15,29 +15,20 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  * `{{projectId}}`/`{{token}}` (and throw on any other `{{...}}`), so each test writes a full
  * `crowdin.yml` directly instead of going through that helper (same approach as `file-type.test.ts`).
  *
- * Local glob engine: confirmed this session (see `lib/config/sourceFileLoader.ts`) that both
- * `source` and `ignore` patterns are matched with Bun's built-in `Glob` (`bun:Glob`, not
- * micromatch/fast-glob), which DOES support `?`, `[0-9]`-style bracket classes, and `**` -
- * verified directly against a throwaway fixture tree before writing this suite. This is a
- * different, more capable engine than the download-side matcher in
- * `lib/config/projectFileMatch.ts` (the one lacking bracket-class support, tracked separately as
- * "Bug 9" in this porting effort's known-bugs notes) - rows 2-9 below all match Java/PHP's
- * documented behavior exactly.
+ * Local glob engine: both `source` and `ignore` patterns are matched with Bun's built-in `Glob`
+ * (`lib/config/sourceFileLoader.ts`), which supports `?`, `[0-9]`-style bracket classes and `**`.
+ * The download-side matcher (`lib/config/projectFileMatch.ts`'s `globToRegex`) translates bracket
+ * classes into real regex classes too, so the two engines agree - they used to disagree, because
+ * `globToRegex` escaped `[`/`]` as literal characters.
  *
- * KNOWN GAP (new, found this session, not yet in the known-bugs list): row 1's pattern
- * (`%file_name%-%two_letters_code%.%file_extension%`) relies on Java/PHP's per-source-file
+ * Row 1's pattern (`%file_name%-%two_letters_code%.%file_extension%`) relies on per-source-file
  * resolution of the FILE placeholders `%file_name%`/`%file_extension%`/`%original_path%` inside an
- * `ignore` pattern (each candidate source file's own name/extension get substituted before
- * matching, so a file that looks like another file's translation output gets excluded). The TS
- * port's `expandIgnorePatterns` (`lib/export/languagePlaceholders.ts`) only expands LANGUAGE
- * placeholders (`%two_letters_code%`, `%locale%`, etc.); `%file_name%`/`%file_extension%` are left
- * as the literal 7-character substrings `%file_name%`/`%file_extension%` in the glob pattern, which
- * then matches nothing real. Confirmed live (offline, no token) with a throwaway script calling
- * `SourceFileLoader.getFilePathsForPattern` directly against a copy of this suite's fixture tree:
- * with today's code, row 1 uploads all 15 files instead of excluding the 2 `android-uk.xml` copies.
- * Row 1 below is written to the CORRECT/intended (PHP-parity) expectation anyway, per this effort's
- * practice of leaving discovered divergences as regression markers rather than silently dodging them
- * - so it is expected to go red until this gap is fixed.
+ * `ignore` pattern: each candidate source file's own name/extension get substituted before matching,
+ * so a file that looks like another file's translation output gets excluded.
+ * `SourceFileLoader.expandFilePlaceholders` does exactly that, mirroring the sources flatMap in
+ * Java's `PlaceholderUtil.format`, while `expandIgnorePatterns`
+ * (`lib/export/languagePlaceholders.ts`) handles the language placeholders. All rows below match
+ * Java/PHP's documented behavior.
  */
 
 const ALL_FILES = [
