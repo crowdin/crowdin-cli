@@ -10,35 +10,24 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  * PHP-module source tree, both on the default branch and on a brand-new branch, asserting the deep
  * nested directory hierarchy gets created correctly and the exact set of server-side file paths.
  *
- * Two deliberate deviations from a literal 1:1 port, both already covered by this porting effort's
- * `crowdin-cli-known-bugs` notes:
+ * Ported literally: the fixture's `translation:` is the PHP original's
+ * `/%two_letters_code%/%original_path%/Bundle.properties`, and the branch re-upload/re-translate
+ * tests assert the intended (PHP-parity) outcome.
  *
- * 1. The fixture's `translation:` pattern is `/%two_letters_code%/php/**\/Bundle.properties`, NOT the
- *    PHP original's `/%two_letters_code%/%original_path%/Bundle.properties`. Verified directly
- *    against `TranslationPathResolver.resolveWithConfig` (`src-next/lib/config/translationPathResolver.ts`)
- *    this session: `%original_path%` resolves to the FULL matched source path *including the
- *    filename* (not just its containing directory, unlike the old Java/PHP CLI) - this is the
- *    already-known, separately-tracked "Bug 7". With the literal PHP pattern, every resolved
- *    translation path would come out as e.g.
- *    `uk/php/hudson.php/.../resources/Bundle.properties/Bundle.properties` (doubled filename),
- *    which matches no real file on disk and would make every `upload translations` task warn "does
- *    not exist" - swamping this suite (whose actual subject is directory-tree/branch handling) with
- *    an unrelated, already-covered bug. The `**`-based pattern used here was confirmed (via a
- *    throwaway script calling `replaceDoubleAsterisk`/`resolveWithConfig` directly, offline, no
- *    token needed) to resolve to the exact same local paths the PHP test expects
- *    (`uk/php/hudson.php/.../resources/Bundle.properties`), without touching the buggy placeholder.
- * 2. `crowdin-cli-known-bugs`'s "Bug 4" (re-uploading sources/translations to an already-existing
- *    branch always failed, because the existing-file lookup ignored the branch-name prefix Crowdin
- *    includes in `file.data.path`) is referenced by this port's task brief as still open, with tests
- *    8/9 below expected to go red. Reading the current source this session shows it was already
- *    fixed in commit `aee7318c` ("fix: strip branch prefix from project file paths", 2026-07-21,
- *    one day before this port): `UploadSourcesCommand.ts`, `UploadTranslationsCommand.ts`,
- *    `FileCommand.ts` and `obsoleteEntries.ts` all now route existing-file/-directory lookups
- *    through `stripBranchPrefix` (`src-next/lib/utils/path.ts`, with its own passing unit tests).
- *    So the branch re-upload/re-translate tests below are written with the correct/intended
- *    (PHP-parity) assertions and are, per this static reading, expected to PASS now - not fail.
- *    This suite has not been run live (no `CROWDIN_E2E_TOKEN` in this session); treat any live
- *    failure there as new information, not a repeat of the already-fixed Bug 4.
+ * Both of this suite's historical workarounds are gone because the bugs behind them were fixed:
+ *
+ * 1. `%original_path%` once resolved to the full matched source path *including* the filename,
+ *    which turned the literal PHP pattern into a doubled-filename path
+ *    (`uk/php/.../Bundle.properties/Bundle.properties`) that matched nothing on disk. It now
+ *    resolves to the source file's parent directory, matching Java `PlaceholderUtil.fileParent`
+ *    (`getValueForExportPattern`'s `originalPath` branch returns `parsed.dir`,
+ *    `src-next/lib/config/translationPathResolver.ts`). The fixture therefore no longer needs the
+ *    `**`-based stand-in pattern it used to carry.
+ * 2. Re-uploading sources/translations to an already-existing branch once failed, because the
+ *    existing-file lookup ignored the branch-name prefix Crowdin puts in `file.data.path`. Every
+ *    such lookup now routes through `stripBranchPrefix` (`src-next/lib/utils/path.ts`) -
+ *    `UploadSourcesCommand.ts`, `UploadTranslationsCommand.ts`, `DownloadCommand.ts`,
+ *    `FileCommand.ts`, `AutoTranslateCommand.ts`, `StatusCommand.ts` and `obsoleteEntries.ts`.
  */
 
 const EXPECTED_LOCAL_FILES_AFTER_DOWNLOAD = [
@@ -327,11 +316,9 @@ describe('file tree', () => {
     expect(await projectFilePaths(ctx)).toEqual([...MASTER_SOURCE_FILE_PATHS, ...BRANCH_SOURCE_FILE_PATHS].sort());
   });
 
-  // Known-bug status: see the top-of-file comment. `crowdin-cli-known-bugs.md` "Bug 4" (branch
-  // re-upload always failing) was fixed in commit aee7318c (2026-07-21), the day before this port -
-  // `stripBranchPrefix` is now applied to the existing-file lookup in UploadSourcesCommand.ts. This
-  // asserts the correct/intended (PHP-parity) update behavior; per this static reading it's expected
-  // to PASS, not fail - if it fails live, that's new information, not a repeat of the old Bug 4.
+  // The second upload to an existing branch is the update path: `UploadSourcesCommand.ts` builds
+  // its existing-file lookup through `stripBranchPrefix`, so the branch-prefixed server paths match
+  // the branch-agnostic project paths resolved from the config and nothing is re-created.
   test('updates sources on the branch (branch already exists)', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'branch1']);
 
@@ -359,8 +346,8 @@ describe('file tree', () => {
     expect(await projectFilePaths(ctx)).toEqual([...MASTER_SOURCE_FILE_PATHS, ...BRANCH_SOURCE_FILE_PATHS].sort());
   });
 
-  // Same known-bug status as the previous test (Bug 4 side affecting translation uploads on an
-  // existing branch) - see the top-of-file comment. Expected to PASS per the same fix.
+  // Translation uploads take the same branch-prefix-stripped lookup as the previous test, in
+  // `UploadTranslationsCommand.ts`.
   test('uploads translations for a single language (uk) on the branch', async () => {
     const result = await ctx.runner.run(['upload', 'translations', '-b', 'branch1', '-l', 'uk']);
 

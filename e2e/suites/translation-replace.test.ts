@@ -13,16 +13,9 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  * sources` call to a file that already exists (update, not create) and how translations behave
  * around that, plus the same cycle repeated on a branch.
  *
- * Three deliberate deviations from a literal 1:1 port:
+ * Two deliberate deviations from a literal 1:1 port:
  *
- * 1. The fixture's `translation:` pattern and the dropped `translation_replace` config key - see the
- *    comment in `../fixtures/translation-replace/config/crowdin.yml` for the full reasoning
- *    (crowdin-cli-known-bugs.md Bug 7: `%original_path%` resolves to the full path INCLUDING the
- *    filename, not just the containing directory - confirmed offline this session via a throwaway
- *    script calling `TranslationPathResolver.resolve` directly, same method prior sessions used for
- *    `file-tree.test.ts`'s analogous deviation).
- *
- * 2. `testUploadTranslationsBranch` in the PHP original calls `self::$cli->uploadTranslations()` with
+ * 1. `testUploadTranslationsBranch` in the PHP original calls `self::$cli->uploadTranslations()` with
  *    NO `-b test-branch` (unlike every other "Branch" method in the same file, which all pass it).
  *    Read literally, twice, to make sure it wasn't a transcription slip on this port's part - it
  *    really is the bare call in the original. Ported literally below (`'re-uploads translations to
@@ -38,22 +31,23 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  *    the original PHP test that happened to go unnoticed because its own assertions are equally weak
  *    at that point.
  *
- * 3. Per-language translation content was made genuinely distinct between it/uk (and different from
+ * 2. Per-language translation content was made genuinely distinct between it/uk (and different from
  *    the English source) so downloaded content can actually be verified; the real PHP fixture
  *    (`tests/var/Cli/Common/CliTranslationReplaceTest/`) uses byte-identical placeholder text
  *    ("first string"/"second string") for every language, which would make a content-equality
  *    assertion meaningless.
  *
- * Bug 4 status (branch re-upload) - reconciled by reading current source this session, since prior
- * porting sessions recorded contradictory findings: `crowdin-cli-known-bugs.md` "Bug 4" (re-uploading
- * sources/translations to an already-existing branch always failed, because the existing-file lookup
- * ignored the branch-name prefix Crowdin includes in `file.data.path`) was fixed 2026-07-21 (commit
- * `aee7318c`), one day before this port. Confirmed directly by reading `UploadSourcesCommand.ts`
- * (~line 153: `projectFilePaths` is built via `stripBranchPrefix(file.data.path, branchName)` before
- * the lookup at ~line 303) and `UploadTranslationsCommand.ts` (~line 103: same `stripBranchPrefix`
- * call). This matches `file-tree.test.ts`'s 2026-07-22 finding, not the older, now-stale "still open"
- * note - the non-branch and branch "update sources" tests below are BOTH expected to PASS (no
- * "created" lines, successful update), not just the non-branch one.
+ * The config is otherwise a literal port, `translation_replace` included - see the comment in
+ * `../fixtures/translation-replace/config/crowdin.yml`. It used to carry a `**`-based stand-in
+ * pattern with `translation_replace` dropped, because `%original_path%` then resolved to the full
+ * source path *including* the filename; it now resolves to the parent directory
+ * (`translationPathResolver.ts`), which is exactly what makes `translation_replace` load-bearing
+ * again - the resolved path keeps the source pattern's fixed `en/` prefix for the replace to strip.
+ *
+ * Both the non-branch and the branch "update sources" tests are expected to PASS (no "created"
+ * lines, successful update): the existing-file lookup that once ignored Crowdin's branch-name path
+ * prefix now routes through `stripBranchPrefix` in both `UploadSourcesCommand.ts` and
+ * `UploadTranslationsCommand.ts`.
  *
  * `upload sources -b <branch>` prints no branch-creation/already-exists message at all (confirmed by
  * reading `UploadSourcesCommand.ts`/`BranchService.getOrCreateBranch` - fully silent, matching this
@@ -139,9 +133,9 @@ describe('translation replace', () => {
     expect(await projectFilePaths(ctx)).toEqual(MASTER_SOURCE_FILE_PATHS);
   });
 
-  // Bug 4 doesn't apply here (no branch involved at all), so this is expected to PASS regardless of
-  // that history - a second upload of byte-identical local files must take the update path, not
-  // create, and must not fail or duplicate anything.
+  // No branch involved, so the branch-prefix lookup plays no part here - a second upload of
+  // byte-identical local files must take the update path, not create, and must not fail or
+  // duplicate anything.
   test('updates the existing sources without creating anything new', async () => {
     const result = await ctx.runner.run(['upload', 'sources']);
 
@@ -248,9 +242,8 @@ describe('translation replace', () => {
     expect(await projectFilePaths(ctx)).toEqual([...MASTER_SOURCE_FILE_PATHS, ...BRANCH_SOURCE_FILE_PATHS].sort());
   });
 
-  // Bug 4 (see top-of-file comment): fixed 2026-07-21, one day before this port. This asserts the
-  // correct/intended (PHP-parity) update behavior - expected to PASS, not fail. If it fails live,
-  // that's new information, not a repeat of the old Bug 4.
+  // The branch-prefix-stripped existing-file lookup (see the top-of-file comment) is what makes
+  // this the update path rather than a re-create.
   test('updates sources on the branch (branch already exists)', async () => {
     const result = await ctx.runner.run(['upload', 'sources', '-b', 'test-branch']);
 

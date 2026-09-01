@@ -21,21 +21,20 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
  *    no-config tests in *where the credentials/base_path/base_url come from*, never in which file
  *    gets uploaded or how. This mirrors the same rule already confirmed by
  *    invalid-files-config.test.ts.
- * 2. Bug 6 (see crowdin-cli-known-bugs.md): `cli/config.ts`'s `cliLayer()` unconditionally applies
- *    `preserveHierarchy: options.preserveHierarchy`, and Commander's `--no-preserve-hierarchy`
- *    negatable boolean defaults `options.preserveHierarchy` to `true` even when neither
- *    `--preserve-hierarchy` nor `--no-preserve-hierarchy` is passed. So `config.preserveHierarchy`
- *    resolves to `true` for *every* upload in this suite, not only the one test that passes
- *    `--preserve-hierarchy` explicitly. Concretely, this means: (a) the local `sources/` prefix is
- *    carried into the project path from the very first upload in this file, not deferred to the
- *    `--dest` test the way the PHP original assumes (PHP's Java-descended CLI defaults
- *    `preserve_hierarchy` to `false`, stripping the single file's containing directory); (b) the
- *    project ends up with a `sources` directory created by the very first test, so no later test in
- *    this file ever prints a `Directory sources created` line; (c) the final test's explicit
- *    `--preserve-hierarchy` is a no-op relative to the default already in effect throughout --
- *    included only to keep 1:1 method parity with the PHP original, not because it changes anything
- *    observable here. None of this is worked around (no `--no-preserve-hierarchy` added to "fix"
- *    the default) -- the suite asserts the real, current behavior.
+ * 2. `preserve_hierarchy` resolves to `true` for *every* upload in this suite, so the local
+ *    `sources/` prefix is carried into the project path from the very first test - not deferred to
+ *    the `--dest` test the way the PHP original assumes (PHP's Java-descended CLI defaults
+ *    `preserve_hierarchy` to `false`, stripping the single file's containing directory). It is the
+ *    fixture's own `preserve_hierarchy: true` that does this, not a flag default: `--preserve-hierarchy`
+ *    and `--no-preserve-hierarchy` are two separate options (`cli/commands/common/options.ts`) with
+ *    no default, so `options.preserveHierarchy` is `undefined` unless one is passed and
+ *    `assembleConfig` never lets it clobber the yaml value. And the fixture applies even to the
+ *    `noConfig: true` runs: that option only drops the explicit `-c` flag, after which
+ *    `resolveConfigPath` finds `<workspace>/crowdin.yml` by auto-discovery anyway. Consequences:
+ *    (a) the project ends up with a `sources` directory created by the very first test, so no later
+ *    test in this file ever prints a `Directory sources created` line; (b) the final test's explicit
+ *    `--preserve-hierarchy` matches the value already in effect throughout - included to keep 1:1
+ *    method parity with the PHP original, not because it changes anything observable here.
  *
  * Also note: `output.success`/`output.warning` for `upload sources` always report the local file
  * path (confirmed at UploadSourcesCommand.ts, and by every prior suite that upload sources), never
@@ -84,9 +83,9 @@ describe('upload single file', () => {
     expect(result.stdout).toContain('Fetching project info');
     // Success echoes the project path; with no `--dest` here it equals the local one.
     expect(result.stdout).toContain("File 'sources/1_android.xml'");
-    // First upload in the suite: the project has no `sources` directory yet, and (per Bug 6 above)
-    // `preserveHierarchy` resolves to `true` by default, so the local `sources/` prefix carries
-    // straight into the project path and the directory has to be created here.
+    // First upload in the suite: the project has no `sources` directory yet, and the fixture's
+    // `preserve_hierarchy: true` (see this file's top comment) carries the local `sources/` prefix
+    // straight into the project path, so the directory has to be created here.
     expect(result.stdout).toContain("Directory 'sources'");
 
     expect(normalize(result.stdout)).toMatchSnapshot();
@@ -217,10 +216,10 @@ describe('upload single file', () => {
     // 1_android.xml (update) and androidDest.xml's source 1_android.xml again, plus 2_android.xml
     // (brand new, create) and the two empty files (skipped with a warning each).
     //
-    // This does NOT hit Bug 10 (upload sources aborting the whole command on a zero-match file
-    // group, see crowdin-cli-known-bugs.md): the group's pattern matches 4 real local files, so
-    // `patternFilePaths` never sees an empty `files` array for this group -- the empty-file skip
-    // happens per-file, inside each task, well after the zero-match check that Bug 10 lives in.
+    // The group's pattern matches 4 real local files, so it never trips the zero-match branch in
+    // `UploadSourcesCommand.ts` ("No sources found for '<pattern>' pattern", which flags an error
+    // and skips just that group). The empty-file skip below happens per-file, inside each task,
+    // well after that check.
     const result = await ctx.runner.run(['upload', 'sources']);
 
     if (result.exitCode !== 0) {
@@ -268,9 +267,9 @@ describe('upload single file', () => {
   });
 
   test('uploads the same file again with --preserve-hierarchy explicitly set', async () => {
-    // Per Bug 6 (this file's top comment), `--preserve-hierarchy` here is a no-op: the default
-    // already resolves to `true` for every upload in this suite. Kept only for 1:1 parity with the
-    // PHP original's method count -- it does not exercise anything the earlier tests didn't already.
+    // `--preserve-hierarchy` here matches the fixture's `preserve_hierarchy: true` (this file's top
+    // comment), so it changes nothing. Kept only for 1:1 parity with the PHP original's method
+    // count -- it does not exercise anything the earlier tests didn't already.
     const result = await ctx.runner.run([
       'upload',
       'sources',
