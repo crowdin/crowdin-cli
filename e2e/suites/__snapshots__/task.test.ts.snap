@@ -1,0 +1,20 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`task reports a project with no tasks 1`] = `"●  No tasks found"`;
+
+exports[`task rejects --include-pre-translated-strings-only on a 'translate' task 1`] = `"■  The '--include-pre-translated-strings-only' option can't be used with the 'translate' task type"`;
+
+exports[`task adds a translate task 1`] = `"◆  #id uk Translate file one"`;
+
+exports[`task lists every task with its id and target language 1`] = `
+"◆  #id it Proofread file two
+◆  #id uk Labelled file two
+◆  #id uk Translate file one"
+`;
+
+exports[`task adds status, word count and due date with --verbose 1`] = `
+"●  Loading configuration from '<workspace>/task/crowdin.yml' file
+◆  #id it Proofread file two todo 8 NoDueDate
+◆  #id uk Labelled file two todo 8 NoDueDate
+◆  #id uk Translate file one todo 12 NoDueDate"
+`;
