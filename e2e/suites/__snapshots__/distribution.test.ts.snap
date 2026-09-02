@@ -1,0 +1,7 @@
+// Bun Snapshot v1, https://bun.sh/docs/test/snapshots
+
+exports[`distribution reports a project with no distributions 1`] = `"●  No distributions found"`;
+
+exports[`distribution adds a distribution for a bundle 1`] = `"◆  <hash> D1 bundle"`;
+
+exports[`distribution lists the distribution with its hash and export mode 1`] = `"◆  <hash> D1 bundle"`;
