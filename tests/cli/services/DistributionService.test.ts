@@ -43,6 +43,25 @@ describe('DistributionService', () => {
       expect(progress).toEqual([20, 60]);
     });
 
+    test('skips the progress callback while the release reports a null progress', async () => {
+      spyOn(apiClient.distributionsApi, 'createDistributionRelease').mockResolvedValue({
+        data: { status: 'inProgress', progress: null },
+      } as never);
+      const statuses = [
+        { data: { status: 'inProgress', progress: null } },
+        { data: { status: 'inProgress', progress: 40 } },
+        { data: { status: 'success', progress: 100 } },
+      ];
+      spyOn(apiClient.distributionsApi, 'getDistributionRelease').mockImplementation(
+        async () => statuses.shift() as never,
+      );
+      const progress: number[] = [];
+
+      await distributionService.releaseDistribution('hash-1', (p) => progress.push(p));
+
+      expect(progress).toEqual([40]);
+    });
+
     test('throws when the release status reports failure', async () => {
       spyOn(apiClient.distributionsApi, 'createDistributionRelease').mockResolvedValue({
         data: { status: 'inProgress', progress: 0 },

@@ -6,7 +6,7 @@ export type DistributionView = DistributionsModel.Distribution;
 
 interface ReleaseStatus {
   status?: string;
-  progress?: number;
+  progress?: number | null;
 }
 
 // The release poll stops on any of these; only "failed" is an error (Java treats success/finished alike).
@@ -76,7 +76,7 @@ export class DistributionService {
     }
 
     while (!RELEASE_TERMINAL_STATUSES.has(release.status?.toLowerCase() ?? '')) {
-      if (release.progress !== undefined) {
+      if (release.progress != null) {
         onProgress?.(release.progress);
       }
 
