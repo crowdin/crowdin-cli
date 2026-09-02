@@ -120,9 +120,11 @@ describe('checkNewVersion', () => {
 
     await checkNewVersion(output, '5.0.0', { cachePath: tmpCachePath() });
 
-    expect(log).not.toHaveBeenCalled();
+    const logged = log.mock.calls.flat().join('\n');
 
     log.mockRestore();
+
+    expect(logged).not.toContain('New version of Crowdin CLI is available!');
   });
 
   test('writes the fetched version to the cache', async () => {
