@@ -5,7 +5,6 @@ export const language: OptionDef = {
   short: 'l',
   type: 'string',
   variadic: true,
-  required: true,
   description: 'Target language identifier. Can be specified multiple times',
 };
 

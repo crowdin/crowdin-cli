@@ -89,6 +89,32 @@ describe('ProjectCommand', () => {
     expect(Bun.spawn).toHaveBeenCalledWith(['open', 'https://crowdin.com/project/demo']);
   });
 
+  test('warns instead of claiming success when no browser opens', async () => {
+    // Text format so both messages are observable: success() is gated to text, warning() goes to
+    // stderr in every format.
+    const textOutput = createOutput({ ...globalOptions, output: 'text' });
+    const projectCommand = new ProjectCommand(
+      () => textOutput,
+      async () => projectService,
+    );
+
+    spyOn(os, 'platform').mockReturnValue('linux');
+    spyOn(Bun, 'spawn').mockImplementation(() => {
+      throw new Error('Executable not found in $PATH: "xdg-open"');
+    });
+    spyOn(projectService, 'loadProject').mockResolvedValue({
+      data: { id: 123, webUrl: 'https://crowdin.com/project/demo' },
+    } as never);
+    const error = spyOn(console, 'error').mockImplementation(() => {});
+
+    await projectCommand.browseAction(commandContext);
+
+    expect(error.mock.calls.flat().join('\n')).toContain(
+      "Couldn't open a browser. Visit https://crowdin.com/project/demo to open the project",
+    );
+    expect(console.log).not.toHaveBeenCalled();
+  });
+
   test('lists projects with manager access', async () => {
     const projectCommand = createProjectCommand();
 

@@ -16,7 +16,7 @@ const branch: CommandDef = {
     {
       name: 'add',
       description: 'Create a new branch',
-      arguments: [{ name: 'name', description: 'Branch name', required: true }],
+      arguments: [{ name: 'name', description: 'Branch name' }],
       options: [
         { name: 'title', type: 'string', description: 'Provide more details for translators' },
         { name: 'priority', type: 'string', description: 'Defines priority level', choices: ['low', 'high'] },

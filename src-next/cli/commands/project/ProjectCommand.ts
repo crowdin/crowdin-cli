@@ -65,9 +65,12 @@ export default class ProjectCommand {
     const projectService = await this.getProjectService(command);
     const project = await projectService.loadProject();
 
-    openUrl(project.data.webUrl);
+    if (openUrl(project.data.webUrl)) {
+      output.success(`Opened ${project.data.webUrl} in browser`);
+      return;
+    }
 
-    output.success(`Opened ${project.data.webUrl} in browser`);
+    output.warning(`Couldn't open a browser. Visit ${project.data.webUrl} to open the project`);
   };
 
   listAction = async (command: Command) => {
