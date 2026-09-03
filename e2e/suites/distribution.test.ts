@@ -4,20 +4,15 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
 
 /**
  * Covers `distribution list` / `add` / `edit` / `release`
- * (`cli/commands/distribution/DistributionCommand.ts`). No PHP original - written against the TS
- * implementation.
+ * (`cli/commands/distribution/DistributionCommand.ts`).
  *
- * A distribution is defined by the bundles it exports, so `add` requires at least one `--bundle-id`
- * and the suite creates its bundles first, the same way `bundle.test.ts` does: `bundle add` echoes
- * the created bundle through `bundleView`, whose text form starts `#<id>`, so the id is read from
- * that token.
+ * A distribution is defined by the bundles it exports, so the suite creates its own first, reading
+ * the id from `bundle add`'s `#<id>` echo as `bundle.test.ts` does.
  *
- * Distribution hashes are server-generated and different on every run (`96b56107ddccaf8270616b7du20`),
- * and `normalize` does not mask them - it only masks `#123`-style ids. Snapshots therefore go
- * through `maskHash` first, mirroring `bundle.test.ts`'s `maskBundleId`.
+ * Hashes are server-generated and differ every run, and `normalize` masks only `#123`-style ids, so
+ * snapshots go through `maskHash` - mirroring `bundle.test.ts`'s `maskBundleId`.
  */
 
-/** Distribution hashes are per-run values, so snapshots see a stable placeholder instead. */
 function maskHash(output: string, hash: string): string {
   return output.replaceAll(hash, '<hash>');
 }
@@ -131,7 +126,7 @@ describe('distribution', () => {
   test('rejects a non-numeric bundle id', async () => {
     const result = await ctx.runner.run(['distribution', 'add', 'D1', '--bundle-id', 'abc']);
 
-    // toNumberArray raises a validation error, which exits 2 rather than the generic 1.
+    // toNumberArray raises a validation error, so exit 2 rather than the generic 1.
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toContain('Invalid bundle id');
   });
@@ -198,8 +193,7 @@ describe('distribution', () => {
   });
 
   test('replaces the bundle list', async () => {
-    // The other half of editAction's patch: `--bundle-id` becomes a replace on /bundleIds. The hash
-    // and name survive, so the listing is how the successful patch is observed.
+    // editAction's other patch branch: `--bundle-id` becomes a replace on /bundleIds.
     const result = await ctx.runner.run(['distribution', 'edit', hash, '--bundle-id', secondBundleId]);
 
     expect(result.exitCode).toBe(0);
