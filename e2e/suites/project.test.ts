@@ -3,39 +3,23 @@ import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Covers `project list` / `project add` (`cli/commands/project/ProjectCommand.ts`). No PHP original
- * - written against the TS implementation.
+ * Covers `project list` / `project add` (`cli/commands/project/ProjectCommand.ts`).
  *
- * `project browse` is NOT covered, deliberately. `browseAction` calls `openUrl`, which
- * `Bun.spawn`s `open` (macOS) or `xdg-open` (Linux), so a test would pop a real browser tab on the
- * machine running the suite - once per run, at every developer's desk. Nothing in the command is
- * injectable, so there is no way to exercise it without that side effect; testing it would need an
- * opener seam in `cli/utils/open.ts`. Worth knowing while it stays untested: `browseAction` ignores
- * `openUrl`'s boolean return, so it prints "Opened <url> in browser" even where the opener is
- * missing (a headless CI box with no `xdg-open`) and nothing actually opened.
+ * `project browse` is not covered: `browseAction` calls `openUrl`, which spawns a real
+ * `open`/`xdg-open`, so a test would pop a browser tab on every run. Nothing in the command is
+ * injectable - covering it needs an opener seam in `cli/utils/open.ts`. While it stays untested,
+ * note `browseAction` discards `openUrl`'s boolean and claims success even where nothing opened.
  *
- * Everything `project` touches is ACCOUNT-scoped, which shapes the suite twice:
- *
- *   - `project list` reads every project the token manages, which is shared, long-lived state no
- *     test controls (this account carries six unrelated projects). Nothing here snapshots it.
- *     Instead the assertions are anchored on the suite's own project, which `setupSuite` created and
- *     whose id is known, and the output formats are cross-checked against each other.
- *   - `project add` creates real projects that `teardownSuite` knows nothing about, so each is
- *     recorded as it is created and deleted in `afterAll`. Only ids this run created are ever
- *     deleted.
- *
- * `--language` is declared `required: true` in `cli/commands/project/options.ts`, but `buildOption`
- * (`cli/builder.ts`) never reads that field - it handles short/type/variadic/default/choices/hidden
- * and nothing else - so the flag is not enforced. The test at the bottom records what actually
- * happens: the project is created with an empty target-language list, exit 0.
+ * Both subcommands are account-scoped. `project list` returns every project the token manages, so
+ * it is never snapshotted - assertions anchor on the suite's own project instead. `project add`
+ * creates projects `teardownSuite` knows nothing about, so each id is recorded and removed in
+ * `afterAll`.
  */
 
 describe('project', () => {
   let ctx: SuiteContext;
-  /** Ids created by `project add` in this run, deleted in afterAll. Never anything else. */
   const createdProjectIds: number[] = [];
 
-  /** A per-run, self-identifying name; `normalize` masks the `e2e-<digits>-` prefix if it is ever snapshotted. */
   const projectName = (suffix: string) => `e2e-${Math.floor(Date.now() / 1000)}-project-${suffix}`;
 
   async function addProject(name: string, args: string[]): Promise<number> {
@@ -64,8 +48,6 @@ describe('project', () => {
   });
 
   afterAll(async () => {
-    // `project add` is account-scoped, so teardownSuite's project deletion would leave these behind.
-    // Honours CROWDIN_E2E_KEEP the way teardownSuite does, and only touches ids this run recorded.
     if (ctx && !ctx.env.keep) {
       for (const id of createdProjectIds) {
         try {
@@ -98,9 +80,6 @@ describe('project', () => {
   test("lists the projects the token manages, including this suite's own", async () => {
     const projects = await listedProjects();
 
-    // Anchored on the known project rather than the whole list: the account carries unrelated
-    // long-lived projects, so any assertion about the full set would be about the account, not the
-    // command.
     expect(projects).toContainEqual({ id: ctx.project.id, name: ctx.project.name });
   });
 
@@ -115,7 +94,6 @@ describe('project', () => {
     const result = await ctx.runner.run(['project', 'list', '--verbose']);
 
     expect(result.exitCode).toBe(0);
-    // A fresh file-based project created by setupSuite, with an ISO timestamp for last activity.
     expect(result.stdout).toMatch(
       new RegExp(`#${ctx.project.id} ${ctx.project.name} file-based private \\d{4}-\\d{2}-\\d{2}T[\\d:.]+Z`),
     );
@@ -125,8 +103,8 @@ describe('project', () => {
     const result = await ctx.runner.run(['project', 'list', '--output', 'plain']);
 
     expect(result.exitCode).toBe(0);
-    // Deliberate: `projectView` defines no `plain`, and `renderLine` falls back to `text`, mirroring
-    // Java's ProjectListAction, which has no plain branch either. So the id keeps its `#`.
+    // `projectView` defines no `plain`, so `renderLine` falls back to `text` and the id keeps its
+    // `#` - matching Java's ProjectListAction, which has no plain branch either.
     expect(result.stdout).toContain(`#${ctx.project.id} ${ctx.project.name}`);
   });
 
@@ -139,8 +117,6 @@ describe('project', () => {
   test('requires a name to add', async () => {
     const result = await ctx.runner.run(['project', 'add']);
 
-    // Commander rejects the missing `<name>` before addAction's own 'Project name is required'
-    // guard, so that guard is unreachable from the CLI.
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toContain("missing required argument 'name'");
   });
@@ -153,7 +129,6 @@ describe('project', () => {
 
     expect(created.data.name).toBe(name);
     expect(created.data.targetLanguageIds.sort()).toEqual(['it', 'uk']);
-    // Not passed, so the documented default applies.
     expect(created.data.sourceLanguageId).toBe('en');
 
     expect(await listedProjects()).toContainEqual({ id, name });
@@ -165,8 +140,7 @@ describe('project', () => {
 
     expect(result.exitCode).toBe(0);
 
-    // `projectAddView` DOES define a plain branch, unlike the listing: Java's ProjectAddAction
-    // prints the bare id, the one field a script needs from a project it just created.
+    // `projectAddView` does define a plain branch, unlike the listing: the bare id.
     const id = Number(result.stdout.trim());
 
     expect(Number.isInteger(id)).toBe(true);
@@ -196,9 +170,8 @@ describe('project', () => {
   });
 
   test('creates a project with no target languages when --language is omitted', async () => {
-    // Records real behaviour, not intended behaviour: `--language` carries `required: true`, but
-    // `buildOption` never reads that field, so nothing enforces it and the project is created with
-    // an empty target-language list. See this file's header.
+    // Real behaviour, not intended: `--language` carries `required: true`, but `buildOption` never
+    // reads that field, so nothing enforces it. Enforcing it should flip this test.
     const id = await addProject(projectName('nolang'), []);
 
     expect((await ctx.client.projectsGroupsApi.getProject(id)).data.targetLanguageIds).toEqual([]);
