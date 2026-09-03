@@ -218,21 +218,17 @@ describe('LanguageCommand', () => {
     );
   });
 
-  test('prints warning and lists nothing if user has no manager access', async () => {
+  test('fails with a forbidden exit code if user has no manager access', async () => {
     const languageCommand = createLanguageCommand();
-    const warning = spyOn(output, 'warning');
-    const list = spyOn(output, 'list');
+    const errorSpy = spyOn(output, 'error');
 
     spyOn(projectService, 'loadProject').mockResolvedValue({ data: {} } as never);
 
-    await languageCommand.listAction(commandContext);
-
-    expect(warning).toHaveBeenCalledWith(
+    // globalOptions is json, so this takes the machine-format branch.
+    await expect(languageCommand.listAction(commandContext)).rejects.toMatchObject({ exitCode: 103 });
+    expect(errorSpy).toHaveBeenCalledWith(
       'You must have manager or developer role in the project to perform this action',
     );
-    // The bail still owes json/toon a document — an absent stdout reads as an empty result, and
-    // 'bailed' is what the exit code and the stderr diagnostic carry.
-    expect(list).toHaveBeenCalledWith([], expect.anything());
   });
 
   test('lists project target languages with plain format outputs only codes', async () => {

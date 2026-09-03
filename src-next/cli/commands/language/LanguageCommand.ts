@@ -1,5 +1,6 @@
 import type { LanguagesModel, ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
+import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import { projectConfigGroup } from '@/cli/commands/common/options.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
 import { LanguageService } from '@/cli/services/LanguageService.ts';
@@ -95,10 +96,7 @@ export default class LanguageCommand {
 
     // Manager/developer role is exposed as `languageMapping` only on the settings-bearing response.
     if (!hasManagerAccess(project)) {
-      output.warning('You must have manager or developer role in the project to perform this action');
-      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
-      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
-      output.list([], languageView);
+      reportNoManagerAccess(output, options.output);
       return;
     }
 

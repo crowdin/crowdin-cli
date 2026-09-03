@@ -3,6 +3,7 @@ import type { LanguagesModel, SourceFilesModel, SourceStringsModel } from '@crow
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
+import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import FileExistsError from '@/cli/errors/FileExistsError.ts';
 import FileInUpdateError from '@/cli/errors/FileInUpdateError.ts';
@@ -116,10 +117,10 @@ export default class UploadSourcesCommand {
       ({ fileOptions }) => (fileOptions.excluded_target_languages?.length ?? 0) > 0,
     );
 
-    // Java warns and exits 0 by default; its non-zero exit only happened under the removed `--plain`
-    // flag, so this matches Java's default behavior.
     if (!hasManagerAccess(project) && (containsExcludedLanguages || options.deleteObsolete)) {
-      output.warning(
+      reportNoManagerAccess(
+        output,
+        options.output,
         "You must have manager or developer role in the project to apply 'excluded-languages' or/and 'delete-obsolete' options",
       );
       return;

@@ -5,6 +5,7 @@ import { ProjectsGroupsModel, type TranslationsModel } from '@crowdin/crowdin-ap
 import AdmZip from 'adm-zip';
 import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
+import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import { pathView } from '@/cli/commands/common/views.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import { toCliError } from '@/cli/errors/toCliError.ts';
@@ -137,8 +138,8 @@ export default class DownloadCommand {
     // then fetch the project and reject string-based ones.
     if (options.reviewed && !projectService.isEnterprise()) {
       output.warning('Operation is available only for Crowdin Enterprise');
-      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
-      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
+      // An early exit still owes the machine formats a document; an absent stdout would read as an
+      // empty result either way.
       output.list([], downloadedFileView);
       return;
     }
@@ -295,10 +296,7 @@ export default class DownloadCommand {
     }
 
     if (!hasManagerAccess(project)) {
-      output.warning('You must have manager or developer role in the project to perform this action');
-      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
-      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
-      output.list([], downloadedFileView);
+      reportNoManagerAccess(output, options.output);
       return;
     }
 

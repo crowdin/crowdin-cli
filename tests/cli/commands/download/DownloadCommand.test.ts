@@ -1252,22 +1252,19 @@ describe('DownloadCommand', () => {
       expect(buildProject).not.toHaveBeenCalled();
     });
 
-    test('warns and returns when the user lacks manager access', async () => {
+    test('fails with a forbidden exit code when the user lacks manager access', async () => {
       const downloadCommand = createDownloadCommand();
 
       spyOn(apiClient.projectsGroupsApi, 'getProject').mockResolvedValue({
         data: { id: 123, targetLanguages: [{ id: 'fr' }] },
       } as never);
       const buildProject = spyOn(apiClient.translationsApi, 'buildProject');
-      const warningSpy = spyOn(output, 'warning');
-      const listSpy = spyOn(output, 'list');
+      const errorSpy = spyOn(output, 'error');
 
-      await downloadCommand.translationsAction(commandContext);
-
-      expect(warningSpy).toHaveBeenCalledWith(expect.stringContaining('manager or developer role'));
+      // globalOptions is json, so this takes the machine-format branch.
+      await expect(downloadCommand.translationsAction(commandContext)).rejects.toMatchObject({ exitCode: 103 });
+      expect(errorSpy).toHaveBeenCalledWith(expect.stringContaining('manager or developer role'));
       expect(buildProject).not.toHaveBeenCalled();
-      // The bail still owes the machine formats a document, empty though it is.
-      expect(listSpy).toHaveBeenCalledWith([], expect.anything());
     });
 
     test('warns instead of erroring on no files when skip-untranslated-files is set', async () => {

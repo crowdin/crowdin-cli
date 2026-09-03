@@ -3,6 +3,7 @@ import type { LanguagesModel } from '@crowdin/crowdin-api-client';
 import { ProjectsGroupsModel } from '@crowdin/crowdin-api-client';
 import type { Command } from 'commander';
 import { printDryRunPaths } from '@/cli/commands/common/dryRunPaths.ts';
+import { reportNoManagerAccess } from '@/cli/commands/common/managerAccess.ts';
 import CliError from '@/cli/errors/CliError.ts';
 import WrongLanguageError from '@/cli/errors/WrongLanguageError.ts';
 import type { GlobalOptions } from '@/cli/options.ts';
@@ -72,10 +73,7 @@ export default class UploadTranslationsCommand {
     const project = await projectService.loadProject();
 
     if (!hasManagerAccess(project)) {
-      output.warning('You must have manager or developer role in the project to perform this action');
-      // An early exit still owes the machine formats a document: 'bailed' is carried by the exit
-      // code and the stderr diagnostic, not by an absent stdout, which reads as an empty result.
-      output.list([], uploadedFileView);
+      reportNoManagerAccess(output, options.output);
       return;
     }
 
