@@ -4,32 +4,18 @@ import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.t
 
 /**
  * Covers `screenshot list` / `screenshot upload` / `screenshot delete`
- * (`cli/commands/screenshot/ScreenshotCommand.ts`). No PHP original - written against the TS
- * implementation.
+ * (`cli/commands/screenshot/ScreenshotCommand.ts`).
  *
- * The image fixtures are real 32x32 PNGs (generated, ~99 bytes each) rather than placeholders,
- * because `upload` streams the file to storage and the API rejects anything that isn't a decodable
- * image. `images/not-an-image.txt` exists solely to reach the extension check, and the
- * "is a directory" check is reached by passing `images` itself, so no fixture is needed for it.
+ * The image fixtures are real 32x32 PNGs because `upload` streams the file to storage and the API
+ * rejects anything undecodable. `images/not-an-image.txt` exists to reach the extension check; the
+ * directory check is reached by passing `images` itself.
  *
- * `--auto-tag` runs, but the screenshots are flat colour and match no string, so `tagsCount` stays 0
- * throughout. That is the honest outcome for a generated fixture: the tagging round trip is
- * exercised, the OCR result is not asserted.
+ * `--auto-tag` runs but tags nothing: flat-colour fixtures match no string, so `tagsCount` stays 0.
+ * The round trip is the subject, not the OCR result.
  *
- * Three behaviours worth naming, all confirmed by probing:
- *
- *   - `upload` of a name that already exists UPDATES in place rather than creating a second
- *     screenshot, keeping the same id. The test captures the id and requires it to be unchanged;
- *     asserting the name alone would pass either way.
- *   - `delete` of an unknown id WARNS and exits 0, unlike `label delete`, which errors. A
- *     non-numeric id is a different thing again: `parseNumericId` exits 2.
- *   - `--label` is resolved twice over, differently: on `upload` through
- *     `resolveLabelIds` with the default `createMissing`, so the label is created and attached; on
- *     `list` through the command's own `resolveFilterLabelIds`, where an unknown title is an error
- *     because filtering must not create labels.
- *
- * The `--output plain` view prints a BARE id (`1 screenshot.png`), which `normalize` does not mask -
- * it only masks `#123` - so that listing is asserted with the id stripped rather than snapshotted.
+ * `--label` is resolved two different ways: `upload` uses `resolveLabelIds` with the default
+ * `createMissing`, so the label is created and attached; `list` uses the command's own
+ * `resolveFilterLabelIds`, where an unknown title is an error because filtering must not create.
  */
 
 const LABEL = 'shot-label';
@@ -42,7 +28,6 @@ interface ListedScreenshot {
 
 describe('screenshot', () => {
   let ctx: SuiteContext;
-  /** Id of the first uploaded screenshot, captured to prove the re-upload updates rather than adds. */
   let screenshotId: number;
 
   async function listScreenshots(args: string[] = []): Promise<ListedScreenshot[]> {
@@ -95,8 +80,6 @@ describe('screenshot', () => {
   test('requires a file path', async () => {
     const result = await ctx.runner.run(['screenshot', 'upload']);
 
-    // Commander rejects the missing `<file>` argument before uploadAction's own
-    // 'Screenshot file path can not be empty' guard, so that guard is unreachable from the CLI.
     expect(result.exitCode).toBe(2);
     expect(result.stderr).toContain("missing required argument 'file'");
   });
@@ -191,7 +174,6 @@ describe('screenshot', () => {
 
     expect(result.exitCode).toBe(0);
     expect(result.stdout).toContain('second.png');
-    // Flat-colour fixtures match no string, so auto-tagging completes without tagging anything.
     expect(await listScreenshots()).toHaveLength(2);
   });
 
@@ -232,8 +214,7 @@ describe('screenshot', () => {
   });
 
   test('filters by label, and by its absence', async () => {
-    // Only the first upload carried --label, so the two filters partition the set - which is what
-    // proves both were applied rather than ignored.
+    // Only the first upload carried --label, so the filters partition the set.
     expect((await listScreenshots(['--label', LABEL])).map((screenshot) => screenshot.name)).toEqual([
       'screenshot.png',
     ]);
@@ -266,8 +247,7 @@ describe('screenshot', () => {
   test('warns instead of failing when the id is unknown', async () => {
     const result = await ctx.runner.run(['screenshot', 'delete', '999999']);
 
-    // deleteAction returns after the warning rather than throwing, so this is a success exit -
-    // unlike `label delete`, which raises a CliError for a title it cannot find.
+    // deleteAction warns and returns rather than throwing, unlike `label delete`.
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toContain("Couldn't find screenshot by the specified ID");
   });

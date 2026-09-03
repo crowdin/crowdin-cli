@@ -3,26 +3,13 @@ import { normalize } from '../helpers/normalize.ts';
 import { type SuiteContext, setupSuite, teardownSuite } from '../helpers/suite.ts';
 
 /**
- * Covers `label list` / `label add` / `label delete` (`cli/commands/label/LabelCommand.ts`). No PHP
- * original to port - written against the TS implementation.
+ * Covers `label list` / `label add` / `label delete` (`cli/commands/label/LabelCommand.ts`).
  *
- * Labels are project-scoped, so `teardownSuite` cleans up everything this suite creates and no
- * account-level state is touched.
+ * Server label ids are neither contiguous nor stable between runs, so nothing asserts one: json
+ * matches titles, and the text listings go through `normalize`, which masks `#123` to `#id`.
  *
- * Label ids are assigned by the server and are neither contiguous nor stable between runs (a probe
- * saw 15, 17, 23, 25 within one project), so nothing here asserts an id value: the json tests match
- * titles and merely require the id to be a number, and the text listings go through `normalize`,
- * which masks `#123` to `#id`. Ordering is the API's insertion order in every format; `normalize`
- * sorts both the `◆`-marked text lines and the bare `--output plain` lines, and the json tests sort
- * titles themselves.
- *
- * The last test covers the path labels are actually created by in practice:
- * `LabelService.resolveLabelIds` with `createMissing`, reached from `upload sources --label`, which
- * `label list` then has to show.
- *
- * Note `addAction`/`deleteAction`'s own `CliError('Label title is required')` guards are unreachable
- * from the CLI - `builder.ts` declares the argument as `<title>`, so commander rejects a missing one
- * first with its own wording and exit 2.
+ * The last test covers how labels are really created - `LabelService.resolveLabelIds` with
+ * `createMissing`, reached from `upload sources --label`.
  */
 
 interface ListedLabel {
@@ -33,7 +20,6 @@ interface ListedLabel {
 describe('label', () => {
   let ctx: SuiteContext;
 
-  /** The project's labels, read through the CLI's machine contract, sorted for comparison. */
   async function listTitles(): Promise<string[]> {
     const result = await ctx.runner.run(['label', 'list', '--output', 'json']);
 
@@ -89,8 +75,7 @@ describe('label', () => {
   });
 
   test('adds a label and echoes it back', async () => {
-    // Added out of alphabetical order on purpose: every listing below is sorted by `normalize` or by
-    // the test, so an assertion that accidentally depended on insertion order would show up here.
+    // Out of alphabetical order on purpose, so a listing that depends on insertion order fails.
     const result = await ctx.runner.run(['label', 'add', 'zebra-label']);
 
     expect(result.exitCode).toBe(0);
@@ -103,7 +88,7 @@ describe('label', () => {
   test('warns instead of duplicating when the title already exists', async () => {
     const result = await ctx.runner.run(['label', 'add', 'zebra-label']);
 
-    // `addAction` returns after the warning rather than throwing, so this is a success exit.
+    // `addAction` returns after warning rather than throwing, hence the success exit.
     expect(result.exitCode).toBe(0);
     expect(result.stderr).toContain("Label 'zebra-label' already exists in the project");
     expect(await listTitles()).toEqual(['zebra-label']);
@@ -136,16 +121,14 @@ describe('label', () => {
   });
 
   test('carries the ids into a verbose plain listing', async () => {
-    // Java's LabelListAction prints the decorated line when `!plainView || isVerbose`, which
-    // `labelVerboseView` reproduces by pointing `plain` at the text renderer.
+    // `labelVerboseView` points `plain` at the text renderer, as Java's LabelListAction does.
     const result = await ctx.runner.run(['label', 'list', '--output', 'plain', '--verbose']);
 
     expect(result.exitCode).toBe(0);
 
     const lines = result.stdout.split('\n').filter((line) => line.length > 0);
 
-    // Sorted by title, not by the whole line: the id comes first and server ids are unordered
-    // relative to the titles, so `#27 zebra-label` sorts before `#29 alpha-label`.
+    // Sorted by title, not whole line: the id comes first, so `#27 zebra` sorts before `#29 alpha`.
     expect(lines.map((line) => line.replace(/^#\d+ /, '')).sort()).toEqual(['alpha-label', 'zebra-label']);
 
     for (const line of lines) {
@@ -187,9 +170,7 @@ describe('label', () => {
   });
 
   test('shows a label created on the fly by `upload sources --label`', async () => {
-    // The path labels are really created by: `LabelService.resolveLabelIds` adds any title the
-    // project doesn't have yet (createMissing defaults to true), so the upload is what brings
-    // 'from-upload' into existence.
+    // resolveLabelIds creates any title the project lacks, so the upload mints 'from-upload'.
     const upload = await ctx.runner.run(['upload', 'sources', '--label', 'from-upload']);
 
     expect(upload.exitCode).toBe(0);
