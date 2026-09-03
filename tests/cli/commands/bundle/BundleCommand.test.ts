@@ -405,16 +405,15 @@ describe('BundleCommand', () => {
       await rm(tempRoot, { recursive: true, force: true });
     });
 
-    test('warns and skips when bundle is missing', async () => {
-      const textOutput = createOutput(textOptions());
-      const warningSpy = spyOn(textOutput, 'warning');
-      const cmd = createBundleCommand(textOutput);
+    test('fails with a not-found exit code when bundle is missing', async () => {
+      const cmd = createBundleCommand(createOutput(textOptions()));
 
       bundleService.get.mockResolvedValue(null);
 
-      await cmd.downloadAction(createCommandContext(textOptions(), ['5']));
-
-      expect(warningSpy).toHaveBeenCalledWith("Couldn't find bundle by the specified ID");
+      await expect(cmd.downloadAction(createCommandContext(textOptions(), ['5']))).rejects.toMatchObject({
+        message: "Couldn't find bundle by the specified ID",
+        exitCode: 102,
+      });
       expect(bundleService.exportBundle).not.toHaveBeenCalled();
     });
 
