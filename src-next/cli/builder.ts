@@ -142,6 +142,10 @@ export function buildOption(opt: OptionDef): Option {
     option.choices(opt.choices);
   }
 
+  if (opt.required) {
+    option.makeOptionMandatory();
+  }
+
   if (opt.hidden) {
     option.hideHelp();
   }

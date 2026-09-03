@@ -3,7 +3,6 @@ import type { Command } from 'commander';
 export interface ArgumentDef {
   name: string;
   description: string;
-  required?: boolean;
   default?: unknown;
 }
 

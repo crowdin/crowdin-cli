@@ -27,7 +27,6 @@ export const file: OptionDef = {
 export const method: OptionDef = {
   name: 'method',
   type: 'string',
-  required: true,
   description: 'Defines auto-translation method. Supported values: mt, tm, ai',
 };
 
