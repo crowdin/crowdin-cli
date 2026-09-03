@@ -55,6 +55,17 @@ describe('BranchService', () => {
 
       expect(branchService.getBranch('main')).rejects.toThrow(CliError);
     });
+
+    test('normalizes unsupported characters before resolving', async () => {
+      const listSpy = spyOn(apiClient.sourceFilesApi, 'listProjectBranches').mockResolvedValue({
+        data: [{ data: { id: 11, name: 'features.xp-upsell' } }],
+      } as never);
+
+      const result = await branchService.getBranch('features/xp-upsell');
+
+      expect(listSpy).toHaveBeenCalledWith(PROJECT_ID, { name: 'features.xp-upsell' });
+      expect(result).toEqual({ id: 11, name: 'features.xp-upsell' } as never);
+    });
   });
 
   describe('getOrCreateBranch', () => {
@@ -70,13 +81,28 @@ describe('BranchService', () => {
 
     test('returns existing branch when found', async () => {
       spyOn(apiClient.sourceFilesApi, 'listProjectBranches').mockResolvedValue({
-        data: [{ data: { id: 5, name: 'feat/x' } }],
+        data: [{ data: { id: 5, name: 'feat.x' } }],
+      } as never);
+      const createBranch = spyOn(apiClient.sourceFilesApi, 'createBranch');
+
+      const result = await branchService.getOrCreateBranch('feat.x');
+
+      expect(result).toEqual({ branch: { id: 5, name: 'feat.x' }, created: false } as never);
+      expect(createBranch).not.toHaveBeenCalled();
+    });
+
+    // Crowdin rejects '/' in branch names; the CLI normalizes to '.' (as v4 did) so branch
+    // names copy-pasted from GitHub/Bitbucket (e.g. 'features/xp-upsell') work unmodified.
+    test('normalizes unsupported characters before resolving', async () => {
+      const listSpy = spyOn(apiClient.sourceFilesApi, 'listProjectBranches').mockResolvedValue({
+        data: [{ data: { id: 5, name: 'feat.x' } }],
       } as never);
       const createBranch = spyOn(apiClient.sourceFilesApi, 'createBranch');
 
       const result = await branchService.getOrCreateBranch('feat/x');
 
-      expect(result).toEqual({ branch: { id: 5, name: 'feat/x' }, created: false } as never);
+      expect(listSpy).toHaveBeenCalledWith(PROJECT_ID, { name: 'feat.x' });
+      expect(result).toEqual({ branch: { id: 5, name: 'feat.x' }, created: false } as never);
       expect(createBranch).not.toHaveBeenCalled();
     });
 
