@@ -15,10 +15,14 @@ let workspace: string;
  * The child must not inherit CROWDIN_* credentials: Bun auto-loads the repo's `.env` into the test
  * runner's environment, and the CLI's env fallback layer would then resolve a real project — so a
  * "no config file" case exits 0 against the live API instead of 2.
+ *
+ * The home directory is redirected at the empty workspace for the same reason: the credentials
+ * fallback reads `~/.crowdin.yml`, so a developer who has run `crowdin login` would otherwise see
+ * the "no config file" cases fail on a missing project_id (2) instead of the missing file (102).
  */
 function cleanEnv(): Record<string, string | undefined> {
   const env = Object.fromEntries(Object.entries(process.env).filter(([key]) => !key.startsWith('CROWDIN_')));
-  return { ...env, NO_COLOR: '1' };
+  return { ...env, NO_COLOR: '1', HOME: workspace, USERPROFILE: workspace };
 }
 
 async function runCli(args: string[], cwd: string): Promise<number> {
